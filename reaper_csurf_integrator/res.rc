@@ -1,0 +1,225 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SURFACEEDIT_CSI DIALOGEX 0, 0, 371, 208
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LISTBOX         IDC_LIST_Pages,7,19,166,162,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add",IDC_BUTTON_AddPage,7,186,39,14
+    PUSHBUTTON      "Edit",IDC_BUTTON_EditPage,92,186,39,14
+    PUSHBUTTON      "Remove",IDC_BUTTON_RemovePage,135,186,39,14
+    LISTBOX         IDC_LIST_Surfaces,184,19,180,162,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add Midi",IDC_BUTTON_AddMidiSurface,184,185,34,14
+    PUSHBUTTON      "Edit",IDC_BUTTON_EditSurface,280,185,34,14
+    PUSHBUTTON      "Remove",IDC_BUTTON_RemoveSurface,328,185,34,14
+    GROUPBOX        "Surfaces",IDC_STATIC,180,7,187,200
+    GROUPBOX        "Pages",IDC_STATIC,3,6,174,201
+    PUSHBUTTON      "Add OSC",IDC_BUTTON_AddOSCSurface,232,185,34,14
+END
+
+IDD_DIALOG_Page DIALOGEX 0, 0, 171, 154
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Page"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,69,134,44,14
+    PUSHBUTTON      "Cancel",IDCANCEL,117,134,44,14
+    EDITTEXT        IDC_EDIT_PageName,50,3,111,14,ES_AUTOHSCROLL
+    RTEXT           "Page Name",IDC_STATIC,2,6,39,9
+    GROUPBOX        "Track visibility on Surface follows:",IDC_STATIC,2,21,159,51,WS_GROUP
+    CONTROL         "Mixer Control Panel",IDC_RADIO_MCP,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,37,75,10
+    CONTROL         "Track Control Panel",IDC_RADIO_TCP,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,54,74,10
+    CONTROL         "Banks with other checked Pages ",IDC_CHECK_SynchPages,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,87,128,10
+    CONTROL         " Reaper GUI Follows Surfaces",IDC_CHECK_ScrollLink,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,104,102,10
+END
+
+IDD_DIALOG_MidiSurface DIALOGEX 0, 0, 219, 225
+STYLE DS_LOCALEDIT | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Midi Surface"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,161,200,50,14
+    COMBOBOX        IDC_COMBO_SurfaceTemplate,48,152,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Surface",IDC_STATIC,15,154,23,8
+    COMBOBOX        IDC_COMBO_MidiIn,48,99,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Midi In",IDC_STATIC,14,101,23,8
+    COMBOBOX        IDC_COMBO_MidiOut,48,117,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Midi Out",IDC_STATIC,13,120,26,8
+    LTEXT           "Name",IDC_STATIC,13,13,19,8
+    EDITTEXT        IDC_EDIT_MidiSurfaceName,48,9,163,14,ES_AUTOHSCROLL
+    GROUPBOX        "Templates",IDC_STATIC,8,137,206,56,WS_GROUP
+    COMBOBOX        IDC_COMBO_ZoneTemplates,48,172,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Zone Folder",IDC_STATIC,9,174,38,8
+    LTEXT           "Number of Channels",IDC_STATIC,39,33,67,8
+    EDITTEXT        IDC_EDIT_NumChannels,13,31,19,12,ES_AUTOHSCROLL
+    LTEXT           "Number of Sends",IDC_STATIC,39,65,69,8
+    EDITTEXT        IDC_EDIT_NumSends,13,63,19,12,ES_AUTOHSCROLL
+    LTEXT           "Number of FX Menu Items",IDC_STATIC,39,81,67,8
+    EDITTEXT        IDC_EDIT_NumFX,13,79,19,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,107,200,50,14
+    LTEXT           "Channel Start Postion",IDC_STATIC,39,49,69,8
+    EDITTEXT        IDC_EDIT_ChannelOffset,13,47,19,12,ES_AUTOHSCROLL
+END
+
+IDD_DIALOG_MidiSurface1 DIALOGEX 0, 0, 219, 225
+STYLE DS_LOCALEDIT | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "OSC Surface"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,107,200,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,161,200,50,14
+    COMBOBOX        IDC_COMBO_SurfaceTemplate,53,153,158,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Surface",IDC_STATIC,15,155,23,8
+    LTEXT           "Remote device IP",IDC_STATIC,13,91,58,8
+    LTEXT           "CSI receives on port",IDC_STATIC,13,108,58,8
+    LTEXT           "Name",IDC_STATIC,13,11,19,8
+    EDITTEXT        IDC_EDIT_OSCSurfaceName,41,9,170,14,ES_AUTOHSCROLL
+    GROUPBOX        "Templates",IDC_STATIC,7,138,206,56,WS_GROUP
+    COMBOBOX        IDC_COMBO_ZoneTemplates,53,173,158,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Zone Folder",IDC_STATIC,12,175,40,8
+    EDITTEXT        IDC_EDIT_OSCRemoteDeviceIP,80,89,62,12,ES_AUTOHSCROLL
+    LTEXT           "CSI sends on port",IDC_STATIC,13,125,66,8
+    EDITTEXT        IDC_EDIT_OSCOutPort,80,122,63,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_OSCInPort,80,105,62,12,ES_AUTOHSCROLL
+    LTEXT           "Number of Channels",IDC_STATIC,40,30,69,8
+    EDITTEXT        IDC_EDIT_NumChannels,14,28,19,12,ES_AUTOHSCROLL
+    LTEXT           "Number of Sends",IDC_STATIC,40,59,67,8
+    EDITTEXT        IDC_EDIT_NumSends,14,58,19,12,ES_AUTOHSCROLL
+    LTEXT           "Number of FX Menu Items",IDC_STATIC,40,75,66,8
+    EDITTEXT        IDC_EDIT_NumFX,14,73,19,12,ES_AUTOHSCROLL
+    LTEXT           "Channel Start Postion",IDC_STATIC,40,44,72,8
+    EDITTEXT        IDC_EDIT_ChannelOffset,14,43,19,12,ES_AUTOHSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_SURFACEEDIT_CSI, DIALOG
+    BEGIN
+        RIGHTMARGIN, 369
+        BOTTOMMARGIN, 115
+    END
+
+    IDD_DIALOG_Page, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 164
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 147
+    END
+
+    IDD_DIALOG_MidiSurface, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 212
+        TOPMARGIN, 7
+    END
+
+    IDD_DIALOG_MidiSurface1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        VERTGUIDE, 211
+        TOPMARGIN, 8
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_SURFACEEDIT_CSI AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_Page AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_MidiSurface AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_MidiSurface1 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,92 @@
+﻿  control_surface_integrator.cpp
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(403,54): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(413,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1655,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1709,58): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1721,31): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1754,30): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1776,26): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1795,26): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1892,47): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1906,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1923,31): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1930,41): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1937,30): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1945,34): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2029,39): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2035,39): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2196,21): warning C4834: discarding return value of function with 'nodiscard' attribute
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2728,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(227,38): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(236,38): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(515,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(521,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(546,111): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(551,112): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(595,22): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(616,117): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(621,118): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(653,123): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(658,124): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(684,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(701,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_midi_widgets.h(737,23): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_Reaper_actions.h(1032,22): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_Reaper_actions.h(1333,22): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_Reaper_actions.h(2439,111): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(216,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(283,23): warning C4101: 'e': unreferenced local variable
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(412,38): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(503,54): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(583,38): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(600,23): warning C4101: 'e': unreferenced local variable
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(643,30): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(673,53): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(688,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(765,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1012,23): warning C4101: 'e': unreferenced local variable
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1226,34): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1245,23): warning C4101: 'e': unreferenced local variable
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1421,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1427,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1657,32): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1686,43): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1696,32): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(1717,43): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(2275,23): warning C4101: 'e': unreferenced local variable
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.cpp(2567,44): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  control_surface_integrator_ui.cpp
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(403,54): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(413,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1655,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1709,58): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1721,31): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1754,30): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1776,26): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1795,26): warning C4018: '<=': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1892,47): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1906,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1923,31): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1930,41): warning C4018: '>': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1937,30): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(1945,34): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2029,39): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2035,39): warning C4018: '<': signed/unsigned mismatch
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2196,21): warning C4834: discarding return value of function with 'nodiscard' attribute
+C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\reaper_csurf_integrator\control_surface_integrator.h(2728,26): warning C4018: '<': signed/unsigned mismatch
+  main.cpp
+     Creating library C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\Windows\reaper_csurf_integrator\Release\reaper_csurf_integrator.lib and object C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\Windows\reaper_csurf_integrator\Release\reaper_csurf_integrator.exp
+  Generating code
+  122 of 5565 functions ( 2.2%) were compiled, the rest were copied from previous compilation.
+    12 functions were new in current compilation
+    98 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  reaper_csurf_integrator.vcxproj -> C:\Users\geoffwaddington\Desktop\reaper_csurf_integrator\Windows\reaper_csurf_integrator\Release\reaper_csurf_integrator.dll
