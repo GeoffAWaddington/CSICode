@@ -814,8 +814,8 @@ private:
                 Activate(activationType, selectedTrackSendsZones_);
             else if(zoneType == "TrackSends")
                 Activate(activationType, trackSendsZones_);
-         }
-     }
+        }
+    }
         
     void Activate(ActivationType activationType, vector<Zone*> &zones)
     {
