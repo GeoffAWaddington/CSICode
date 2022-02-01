@@ -731,9 +731,7 @@ private:
     int const numFXSlots_ = 0;
       
     vector<string> associatedZoneNames_;
-    
-    
-    
+
     map<Widget*, bool> usedWidgets_;
 
     vector<Zone*> focusedFXZones_;
@@ -772,7 +770,6 @@ private:
         
     }
     
-    
     void UnmapZones(vector<Zone*> &zones)
     {
         for(auto zone : zones)
@@ -787,47 +784,10 @@ private:
     void MapFocusedFXToWidgets();
     void UnmapFocusedFXFromWidgets();
     
-
-    
-    
     void MapSelectedTrackFXToWidgets();
-
     
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
     
-    
-    
-    
-    
-    
-    
-    
-    void MapSelectedTrackSendsToWidgets() {}
-    void MapSelectedTrackReceivesToWidgets() {}
-
-    void MapSelectedTrackFXToMenu() {}
-
-    void MapTrackSendsSlotToWidgets() {}
-    void MapTrackReceivesSlotToWidgets() {}
-    void MapTrackFXMenusSlotToWidgets() {}
-    
-    void MapSelectedTrackSendsSlotToWidgets() {}
-    void MapSelectedTrackReceivesSlotToWidgets() {}
-    
-    void UnmapSelectedTrackSendsFromWidgets() {}
-    void UnmapSelectedTrackReceivesFromWidgets() {}
-
-    void UnmapSelectedTrackFXFromMenu() {}
-    
-    void UnmapTrackSendsSlotFromWidgets() {}
-    void UnmapTrackReceivesSlotFromWidgets() {}
-    void UnmapTrackFXMenusSlotFromWidgets() {}
-    
-    void UnmapSelectedTrackSendsSlotFromWidgets() {}
-    void UnmapSelectedTrackReceivesSlotFromWidgets() {}
-    
-    void MapSelectedTrackFXMenuSlotToWidgets(int slot) {}
-
     void Activate(ActivationType activationType, vector<string> &zoneTypes)
     {
         for(string zoneType : zoneTypes)
@@ -912,7 +872,6 @@ public:
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
-    
     
     void AddAssociatedZoneName(string name)
     {
