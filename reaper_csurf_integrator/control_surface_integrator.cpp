@@ -2108,14 +2108,14 @@ void ZoneManager::Initialize()
         
         
         
-        else if(zoneName == "SelectedTrackReceives")
+        else if(zoneName == "SelectedTrackReceive")
         {
             ProcessZoneFile(zoneName, zoneName, this, selectedTrackReceivesZones_);
             if(selectedTrackReceivesZones_.size() > 0)
                 fixedZones_.push_back(selectedTrackReceivesZones_);
         }
         
-        else if(zoneName == "TrackReceives")
+        else if(zoneName == "TrackReceive")
         {
             ProcessZoneFile(zoneName, zoneName, this, trackReceivesZones_);
             if(trackReceivesZones_.size() > 0)
@@ -2124,14 +2124,14 @@ void ZoneManager::Initialize()
         
         
         
-        else if(zoneName == "SelectedTrackSends")
+        else if(zoneName == "SelectedTrackSend")
         {
             ProcessZoneFile(zoneName, zoneName, this, selectedTrackSendsZones_);
             if(selectedTrackSendsZones_.size() > 0)
                 fixedZones_.push_back(selectedTrackSendsZones_);
         }
         
-        else if(zoneName == "TrackSends")
+        else if(zoneName == "TrackSend")
         {
             ProcessZoneFile(zoneName, zoneName, this, trackSendsZones_);
             if(trackSendsZones_.size() > 0)

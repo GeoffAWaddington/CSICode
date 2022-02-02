@@ -581,7 +581,6 @@ public:
     
     void EnsureWidgetsNotUsed(vector<Widget*> &widgets)
     {
-        /*
         for(auto widget : widgets)
         {
             if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
@@ -593,7 +592,6 @@ public:
         
         for(auto zone : includedZones_)
             zone->EnsureWidgetsNotUsed(widgets);
-         */
     }
     
     void DoAction(Widget* widget, bool &isUsed, double value)
@@ -602,10 +600,12 @@ public:
             return;
         
         if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        {
             isUsed = true;
-        
-        for(auto context : GetActionContexts(widget))
-            context->DoAction(value);
+            
+            for(auto context : GetActionContexts(widget))
+                context->DoAction(value);
+        }
         
         for(auto zone : includedZones_)
             zone->DoAction(widget, isUsed, value);
@@ -617,10 +617,12 @@ public:
             return;
         
         if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        {
             isUsed = true;
 
-        for(auto context : GetActionContexts(widget))
-            context->DoRelativeAction(delta);
+            for(auto context : GetActionContexts(widget))
+                context->DoRelativeAction(delta);
+        }
         
         for(auto zone : includedZones_)
             zone->DoRelativeAction(widget, isUsed, delta);
@@ -632,10 +634,15 @@ public:
             return;
 
         if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        {
             isUsed = true;
 
-        for(auto context : GetActionContexts(widget))
-            context->DoRelativeAction(accelerationIndex, delta);
+            for(auto context : GetActionContexts(widget))
+                context->DoRelativeAction(accelerationIndex, delta);
+        }
+        
+        for(auto zone : includedZones_)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
     void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
@@ -644,14 +651,16 @@ public:
             return;
 
         if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        {
             isUsed = true;
 
-        activeTouchIds_[widgetName + "Touch"] = value;
-        activeTouchIds_[widgetName + "TouchPress"] = value;
-        activeTouchIds_[widgetName + "TouchRelease"] = ! value;
+            activeTouchIds_[widgetName + "Touch"] = value;
+            activeTouchIds_[widgetName + "TouchPress"] = value;
+            activeTouchIds_[widgetName + "TouchRelease"] = ! value;
 
-        for(auto context : GetActionContexts(widget))
-            context->DoTouch(value);
+            for(auto context : GetActionContexts(widget))
+                context->DoTouch(value);
+        }
         
         for(auto zone : includedZones_)
             zone->DoTouch(widget, widgetName, isUsed, value);
@@ -805,14 +814,14 @@ private:
             else if(zoneType == "TrackFXMenu")
                 Activate(activationType, trackFXMenuZones_);
             
-            else if(zoneType == "SelectedTrackReceives")
+            else if(zoneType == "SelectedTrackReceive")
                 Activate(activationType, selectedTrackReceivesZones_);
-            else if(zoneType == "TrackReceives")
+            else if(zoneType == "TrackReceive")
                 Activate(activationType, trackReceivesZones_);
             
-            else if(zoneType == "SelectedTrackSends")
+            else if(zoneType == "SelectedTrackSend")
                 Activate(activationType, selectedTrackSendsZones_);
-            else if(zoneType == "TrackSends")
+            else if(zoneType == "TrackSend")
                 Activate(activationType, trackSendsZones_);
         }
     }
@@ -912,11 +921,9 @@ public:
 
     void EnsureWidgetsNotUsed(Zone* zone)
     {
-        /*
         for(auto focusedFXZone : focusedFXZones_)
-        
-        if(zone == focusedFXZone)
-            return;
+            if(zone == focusedFXZone)
+                return;
         
         // GAW -- think I'll put in a clear focusedFX for now, not sure if this will be right for all use cases
         UnmapFocusedFXFromWidgets();
@@ -927,7 +934,6 @@ public:
         for(auto zones : fixedZones_)
             if(IsZoneHereAndClear(zone, zones))
                 return;
-         */
     }
     
     bool IsZoneHereAndClear(Zone* originatingZone, vector<Zone*> zones)
