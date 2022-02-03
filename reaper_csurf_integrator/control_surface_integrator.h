@@ -723,6 +723,8 @@ private:
     int const numChannels_ = 0;
     int const numSends_ = 0;
     int const numFXSlots_ = 0;
+    
+    bool allowOverlay_ = false;
       
     vector<string> associatedZoneNames_;
 
@@ -751,7 +753,18 @@ private:
     map<int, Navigator*> navigators_;
 
     map<string, CSIZoneInfo> zoneFilePaths_;
-       
+           
+    void MapFocusedFXToWidgets();
+    void UnmapFocusedFXFromWidgets();
+    
+    void MapSelectedTrackFXToWidgets();
+    
+    void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
+    
+    void Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones);
+    
+    void Activate(ActivationType activationType, vector<string> &zoneTypes);
+    
     void DeactivateZones(vector<Zone*> &zones)
     {
         for(auto zone : zones)
@@ -774,17 +787,6 @@ private:
     
         zones.clear();
     }
-        
-    void MapFocusedFXToWidgets();
-    void UnmapFocusedFXFromWidgets();
-    
-    void MapSelectedTrackFXToWidgets();
-    
-    void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
-    
-    void Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones);
-    
-    void Activate(ActivationType activationType, vector<string> &zoneTypes);
 
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset);
@@ -820,6 +822,11 @@ public:
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
+        
+    void AllowOverlay()
+    {
+        allowOverlay_ = true;
+    }
     
     void AddAssociatedZoneName(string name)
     {

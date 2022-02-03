@@ -1150,8 +1150,8 @@ void Manager::InitActionsDictionary()
     actions_["PageNameDisplay"] =                   new PageNameDisplay();
     actions_["Broadcast"] =                         new Broadcast();
     actions_["Receive"] =                           new Receive();
-    actions_["GoHome"] =                            new GoHome();
     actions_["GoSubZone"] =                         new GoSubZone();
+    actions_["AllowOverlay"] =                      new AllowOverlay();
     actions_["Activate"] =                          new Activate();
     actions_["Deactivate"] =                        new Deactivate();
     actions_["ToggleActivation"] =                  new ToggleActivation();
@@ -2172,7 +2172,25 @@ void ZoneManager::Activate(ActivationType activationType, string zoneType, vecto
     if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
         surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneType);
 
-    for(Zone* zone : zones)
+    if(allowOverlay_ == false)
+    {
+        auto it = find(fixedZones_.begin(), fixedZones_.end(), zones);
+        
+        if(it != fixedZones_.end())
+        {
+            for(auto zone : focusedFXZones_)
+                zone->Activate();
+            
+            for(auto zone : fxZones_)
+                zone->Activate();
+           
+            for(int i = 0; i < it - fixedZones_.begin(); i++)
+                for(auto overlayedZone : fixedZones_[i])
+                    overlayedZone->Deactivate();
+        }
+    }
+    
+    for(auto zone : zones)
     {
         switch (activationType)
         {
