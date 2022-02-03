@@ -782,56 +782,10 @@ private:
     
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
     
-    void Activate(ActivationType activationType, vector<string> &zoneTypes)
-    {
-        for(string zoneType : zoneTypes)
-        {
-            if(zoneType == "FocusedFX")
-                MapFocusedFXToWidgets();
-            else if(zoneType == "SelectedTrackFX")
-                MapSelectedTrackFXToWidgets();
-            
-            else if(zoneType == "SelectedTrack")
-                Activate(activationType, selectedTrackZones_);
-            
-            else if(zoneType == "SelectedTrackFXMenu")
-                Activate(activationType, selectedTrackFXMenuZones_);
-            else if(zoneType == "TrackFXMenu")
-                Activate(activationType, trackFXMenuZones_);
-            
-            else if(zoneType == "SelectedTrackReceive")
-                Activate(activationType, selectedTrackReceivesZones_);
-            else if(zoneType == "TrackReceive")
-                Activate(activationType, trackReceivesZones_);
-            
-            else if(zoneType == "SelectedTrackSend")
-                Activate(activationType, selectedTrackSendsZones_);
-            else if(zoneType == "TrackSend")
-                Activate(activationType, trackSendsZones_);
-        }
-    }
-        
-    void Activate(ActivationType activationType, vector<Zone*> &zones)
-    {
-        for(Zone* zone : zones)
-        {
-            switch (activationType)
-            {
-                case  ActivationType::Activating:
-                    zone->Activate();
-                    break;
-                
-                case  ActivationType::Deactivating:
-                    zone->Deactivate();
-                    break;
-                
-                case  ActivationType::TogglingActivation:
-                    zone->Toggle();
-                    break;
-            }
-        }
-    }
+    void Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones);
     
+    void Activate(ActivationType activationType, vector<string> &zoneTypes);
+
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset);
     
@@ -2301,7 +2255,7 @@ public:
             surface->OnInitialization();
     }
     
-    void SignalMapping(ControlSurface* originatingSurface, ActivationType activationType, string zoneName)
+    void SignalActivation(ControlSurface* originatingSurface, ActivationType activationType, string zoneName)
     {
         for(auto surface : surfaces_)
             if(surface != originatingSurface)

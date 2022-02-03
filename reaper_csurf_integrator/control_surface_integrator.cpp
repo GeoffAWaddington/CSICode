@@ -2167,33 +2167,85 @@ void ZoneManager::RequestUpdate()
             key->UpdateValue(0.0);
 }
 
+void ZoneManager::Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones)
+{
+    if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneType);
+
+    for(Zone* zone : zones)
+    {
+        switch (activationType)
+        {
+            case  ActivationType::Activating:
+                zone->Activate();
+                break;
+            
+            case  ActivationType::Deactivating:
+                zone->Deactivate();
+                break;
+            
+            case  ActivationType::TogglingActivation:
+                zone->Toggle();
+                break;
+        }
+    }
+}
+
+void ZoneManager::Activate(ActivationType activationType, vector<string> &zoneTypes)
+{
+    for(string zoneType : zoneTypes)
+    {
+        if(zoneType == "FocusedFX")
+            MapFocusedFXToWidgets();
+        else if(zoneType == "SelectedTrackFX")
+            MapSelectedTrackFXToWidgets();
+        
+        else if(zoneType == "SelectedTrack")
+            Activate(activationType, "SelectedTrack", selectedTrackZones_);
+        
+        else if(zoneType == "SelectedTrackFXMenu")
+            Activate(activationType, "SelectedTrackFXMenu", selectedTrackFXMenuZones_);
+        else if(zoneType == "TrackFXMenu")
+            Activate(activationType, "TrackFXMenu", trackFXMenuZones_);
+        
+        else if(zoneType == "SelectedTrackReceive")
+            Activate(activationType, "SelectedTrackReceive", selectedTrackReceivesZones_);
+        else if(zoneType == "TrackReceive")
+            Activate(activationType, "TrackReceive", trackReceivesZones_);
+        
+        else if(zoneType == "SelectedTrackSend")
+            Activate(activationType, "SelectedTrackSend", selectedTrackSendsZones_);
+        else if(zoneType == "TrackSend")
+            Activate(activationType, "TrackSend", trackSendsZones_);
+        
+        else if(zoneType == "Home")
+        {
+            if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
+                surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneType);
+
+            GoHome();
+        }
+    }
+}
+
 void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName)
 {
     if(find(receive_.begin(), receive_.end(), zoneName) != receive_.end())
     {
-        vector<string> zoneTypes { zoneName };
-        Activate(activationType, zoneTypes);
-        
-        
-       
-        
-        
-        
-        // Find Zone and Activate
-        
-        
-         
-        
-        
-        
-        
+        if(zoneName == "Home")
+            GoHome();
+        else
+        {
+            vector<string> zoneTypes { zoneName };
+            Activate(activationType, zoneTypes);
+        }
     }
 }
 
 void ZoneManager::UnmapFocusedFXFromWidgets()
 {
     if(find(broadcast_.begin(), broadcast_.end(), "FocusedFX") != broadcast_.end())
-        surface_->GetPage()->SignalMapping(surface_, ActivationType::Deactivating, "FocusedFX");
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, "FocusedFX");
 
     
     
@@ -2205,7 +2257,7 @@ void ZoneManager::UnmapFocusedFXFromWidgets()
 void ZoneManager::MapFocusedFXToWidgets()
 {
     if(find(broadcast_.begin(), broadcast_.end(), "FocusedFX") != broadcast_.end())
-        surface_->GetPage()->SignalMapping(surface_, ActivationType::Activating, "FocusedFX");
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
     
     UnmapFocusedFXFromWidgets();
     
