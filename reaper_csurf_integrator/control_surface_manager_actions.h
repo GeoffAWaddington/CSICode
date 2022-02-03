@@ -287,47 +287,47 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SendSlotBank : public Action
+class SendBank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SendSlotBank"; }
+    virtual string GetName() override { return "SendBank"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        TheManager->AdjustSendSlotBank(context->GetPage(), context->GetIntParam());
+        TheManager->AdjustSendBank(context->GetPage(), context->GetIntParam());
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ReceiveSlotBank : public Action
+class ReceiveBank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ReceiveSlotBank"; }
+    virtual string GetName() override { return "ReceiveBank"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        TheManager->AdjustReceiveSlotBank(context->GetPage(), context->GetIntParam());
+        TheManager->AdjustReceiveBank(context->GetPage(), context->GetIntParam());
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FXMenuSlotBank : public Action
+class FXMenuBank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXMenuSlotBank"; }
+    virtual string GetName() override { return "FXMenuBank"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        TheManager->AdjustFXMenuSlotBank(context->GetPage(), context->GetSurface(), context->GetIntParam());
+        TheManager->AdjustFXMenuBank(context->GetPage(), context->GetSurface(), context->GetIntParam());
     }
 };
 

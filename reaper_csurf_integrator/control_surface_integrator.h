@@ -579,21 +579,6 @@ public:
         subZones_.clear();
     }
     
-    void EnsureWidgetsNotUsed(vector<Widget*> &widgets)
-    {
-        for(auto widget : widgets)
-        {
-            if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
-            {
-                Deactivate();
-                return;
-            }
-        }
-        
-        for(auto zone : includedZones_)
-            zone->EnsureWidgetsNotUsed(widgets);
-    }
-    
     void DoAction(Widget* widget, bool &isUsed, double value)
     {
         if(! isActive_ || isUsed)
@@ -919,36 +904,6 @@ public:
         Activate(ActivationType::TogglingActivation, zoneTypes);
     }
 
-    void EnsureWidgetsNotUsed(Zone* zone)
-    {
-        for(auto focusedFXZone : focusedFXZones_)
-            if(zone == focusedFXZone)
-                return;
-        
-        // GAW -- think I'll put in a clear focusedFX for now, not sure if this will be right for all use cases
-        UnmapFocusedFXFromWidgets();
-        
-        if(IsZoneHereAndClear(zone, fxZones_))
-            return;
-        
-        for(auto zones : fixedZones_)
-            if(IsZoneHereAndClear(zone, zones))
-                return;
-    }
-    
-    bool IsZoneHereAndClear(Zone* originatingZone, vector<Zone*> zones)
-    {
-        for(auto zone : zones)
-        {
-            if(zone == originatingZone)
-                return true;
-            else
-                zone->EnsureWidgetsNotUsed(originatingZone->GetWidgets());
-        }
-        
-        return false;
-    }
-    
     string GetNameOrAlias(string name)
     {
         if(zoneFilePaths_.count(name) > 0)
@@ -1673,7 +1628,7 @@ public:
         }
     }
     
-    void AdjustFXMenuSlotBank(ControlSurface* originatingSurface, int amount)
+    void AdjustFXMenuBank(ControlSurface* originatingSurface, int amount)
     {
         fxMenuSlot_ += amount;
         
@@ -1684,7 +1639,7 @@ public:
             fxMenuSlot_ = 0;
     }
     
-    void AdjustSendSlotBank(int amount)
+    void AdjustSendBank(int amount)
     {
         sendSlot_ += amount;
         
@@ -1695,7 +1650,7 @@ public:
             sendSlot_ = maxSendSlot_;
     }
 
-    void AdjustReceiveSlotBank(int amount)
+    void AdjustReceiveBank(int amount)
     {
         receiveSlot_ += amount;
         
@@ -1997,14 +1952,14 @@ public:
                 if(maxSendSlot > maxSendSlot_)
                 {
                     maxSendSlot_ = maxSendSlot;
-                    AdjustSendSlotBank(0);
+                    AdjustSendBank(0);
                 }
              
                 int maxReceiveSlot = DAW::GetTrackNumSends(track, -1) - 1;
                 if(maxReceiveSlot > maxReceiveSlot_)
                 {
                     maxReceiveSlot_ = maxReceiveSlot;
-                    AdjustReceiveSlotBank(0);
+                    AdjustReceiveBank(0);
                 }
 
                 int maxFXMenuSlot = DAW::TrackFX_GetCount(track) - 1;
@@ -2370,9 +2325,9 @@ public:
     int GetFXMenuSlot() { return trackNavigationManager_->GetFXMenuSlot(); }
     void ForceScrollLink() { trackNavigationManager_->ForceScrollLink(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
-    void AdjustFXMenuSlotBank(ControlSurface* originatingSurface, int amount) { trackNavigationManager_->AdjustFXMenuSlotBank(originatingSurface, amount); }
-    void AdjustSendSlotBank(int amount) { trackNavigationManager_->AdjustSendSlotBank(amount); }
-    void AdjustReceiveSlotBank(int amount) { trackNavigationManager_->AdjustReceiveSlotBank(amount); }
+    void AdjustFXMenuBank(ControlSurface* originatingSurface, int amount) { trackNavigationManager_->AdjustFXMenuBank(originatingSurface, amount); }
+    void AdjustSendBank(int amount) { trackNavigationManager_->AdjustSendBank(amount); }
+    void AdjustReceiveBank(int amount) { trackNavigationManager_->AdjustReceiveBank(amount); }
     void TogglePin(MediaTrack* track) { trackNavigationManager_->TogglePin(track); }
     void RestorePinnedTracks() { trackNavigationManager_->RestorePinnedTracks(); }
     void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
@@ -2556,34 +2511,34 @@ public:
                     page->AdjustTrackBank(amount);
     }
     
-    void AdjustSendSlotBank(Page* sendingPage, int amount)
+    void AdjustSendBank(Page* sendingPage, int amount)
     {
         if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustSendSlotBank(amount);
+            sendingPage->AdjustSendBank(amount);
         else
             for(auto page: pages_)
                 if(page->GetSynchPages())
-                    page->AdjustSendSlotBank(amount);
+                    page->AdjustSendBank(amount);
     }
     
-    void AdjustReceiveSlotBank(Page* sendingPage, int amount)
+    void AdjustReceiveBank(Page* sendingPage, int amount)
     {
         if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustReceiveSlotBank(amount);
+            sendingPage->AdjustReceiveBank(amount);
         else
             for(auto page: pages_)
                 if(page->GetSynchPages())
-                    page->AdjustReceiveSlotBank(amount);
+                    page->AdjustReceiveBank(amount);
     }
     
-    void AdjustFXMenuSlotBank(Page* sendingPage, ControlSurface* originatingSurface, int amount)
+    void AdjustFXMenuBank(Page* sendingPage, ControlSurface* originatingSurface, int amount)
     {
         if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustFXMenuSlotBank(originatingSurface, amount);
+            sendingPage->AdjustFXMenuBank(originatingSurface, amount);
         else
             for(auto page: pages_)
                 if(page->GetSynchPages())
-                    page->AdjustFXMenuSlotBank(originatingSurface, amount);
+                    page->AdjustFXMenuBank(originatingSurface, amount);
     }
     
     void NextPage()

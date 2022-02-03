@@ -1157,9 +1157,9 @@ void Manager::InitActionsDictionary()
     actions_["ToggleActivation"] =                  new ToggleActivation();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["SelectedTrackBank"] =                 new SelectedTrackBank();
-    actions_["SendSlotBank"] =                      new SendSlotBank();
-    actions_["ReceiveSlotBank"] =                   new ReceiveSlotBank();
-    actions_["FXMenuSlotBank"] =                    new FXMenuSlotBank();
+    actions_["SendBank"] =                          new SendBank();
+    actions_["ReceiveBank"] =                       new ReceiveBank();
+    actions_["FXMenuBank"] =                        new FXMenuBank();
     actions_["ClearAllSolo"] =                      new ClearAllSolo();
     actions_["Shift"] =                             new SetShift();
     actions_["Option"] =                            new SetOption();
@@ -1825,9 +1825,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Zone::Activate()
-{
-    zoneManager_->EnsureWidgetsNotUsed(this);
-    
+{   
     isActive_ = true;
     
     zoneManager_->GetSurface()->ActivatingZone(GetName());
@@ -1875,16 +1873,18 @@ int Zone::GetSlotIndex()
 {
     if(basedOnZone_ == name_)
         return slotIndex_;
-    else if(basedOnZone_ == "SendSlot")
+    else if(basedOnZone_ == "TrackSend")
         return zoneManager_->GetSendSlot();
-    else if(basedOnZone_ == "ReceiveSlot")
+    else if(basedOnZone_ == "TrackReceive")
         return zoneManager_->GetReceiveSlot();
-    else if(basedOnZone_ == "FXMenuSlot")
+    else if(basedOnZone_ == "TrackFXMenu")
         return zoneManager_->GetFXMenuSlot();
-    else if(basedOnZone_ == "SelectedTrackSendSlot")
+    else if(basedOnZone_ == "SelectedTrackSend")
         return slotIndex_ + zoneManager_->GetSendSlot();
-    else if(basedOnZone_ == "SelectedTrackReceiveSlot")
+    else if(basedOnZone_ == "SelectedTrackReceive")
         return slotIndex_ + zoneManager_->GetReceiveSlot();
+    else if(basedOnZone_ == "SelectedTrackFXMenu")
+        return slotIndex_ + zoneManager_->GetFXMenuSlot();
     else
         return 0;
 }
