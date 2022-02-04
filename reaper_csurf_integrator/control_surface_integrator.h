@@ -822,7 +822,17 @@ public:
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
+      
+    void MapTrackFXSlotToWidgets(MediaTrack* track, int fxSlot)
+    {
+        char FXName[BUFSZ];
         
+        DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
+        
+        if(zoneFilePaths_.count(FXName) > 0)
+            ActivateFXZone(FXName, fxSlot, fxZones_);
+    }
+    
     void AllowOverlay()
     {
         allowOverlay_ = true;

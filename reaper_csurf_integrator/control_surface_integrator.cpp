@@ -364,9 +364,9 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                     vector<Navigator*> navigators;
                     
                     if(basedOnZone == "Home")
-                        navigators.push_back(zoneManager->GetDefaultNavigator());
+                        navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     else if(basedOnZone == "Buttons")
-                        navigators.push_back(zoneManager->GetDefaultNavigator());
+                        navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     else if(basedOnZone == "SelectedTrack")
                         navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     else if(basedOnZone == "MasterTrack")
@@ -1166,7 +1166,6 @@ void Manager::InitActionsDictionary()
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
     actions_["GoFXSlot"] =                          new GoFXSlot();
-    actions_["GoCurrentFXSlot"] =                   new GoCurrentFXSlot();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
     actions_["FocusedFXParam"] =                    new FocusedFXParam();
     actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
@@ -1878,7 +1877,7 @@ int Zone::GetSlotIndex()
     else if(basedOnZone_ == "TrackReceive")
         return zoneManager_->GetReceiveSlot();
     else if(basedOnZone_ == "TrackFXMenu")
-        return zoneManager_->GetFXMenuSlot();
+        return slotIndex_ + zoneManager_->GetFXMenuSlot();
     else if(basedOnZone_ == "SelectedTrackSend")
         return slotIndex_ + zoneManager_->GetSendSlot();
     else if(basedOnZone_ == "SelectedTrackReceive")

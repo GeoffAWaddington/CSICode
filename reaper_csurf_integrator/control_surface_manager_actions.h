@@ -41,22 +41,8 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        //context->GetSurface()->GetZoneManager()->MapSelectedTrackFXMenuSlotToWidgets(context->GetSlotIndex());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoCurrentFXSlot  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoFXSlot"; }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        //context->GetSurface()->GetZoneManager()->MapSelectedTrackFXMenuSlotToWidgets(context->GetPage()->GetFXMenuSlot());
+        if(MediaTrack* track = context->GetTrack())
+            context->GetSurface()->GetZoneManager()->MapTrackFXSlotToWidgets(track, context->GetSlotIndex());
     }
 };
 
