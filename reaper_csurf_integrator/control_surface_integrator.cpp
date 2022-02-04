@@ -499,6 +499,10 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                 else if(isInIncludedZonesSection)
                 {
                     includedZones.push_back(tokens[0]);
+                    
+                    if(tokens.size() > 1)
+                        for(int i = 1; i < tokens.size(); i++)
+                    zoneManager->AddAssociatedSubZoneName(tokens[0], tokens[i]);
                 }
                  
                 else if(tokens[0] == "AssociatedZones")
@@ -510,6 +514,10 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                 else if(isInAssociatedZonesSection)
                 {
                     zoneManager->AddAssociatedZoneName(tokens[0]);
+                    
+                    if(tokens.size() > 1)
+                        for(int i = 1; i < tokens.size(); i++)
+                    zoneManager->AddAssociatedSubZoneName(tokens[0], tokens[i]);
                 }
                  
                 else if(tokens.size() > 1)

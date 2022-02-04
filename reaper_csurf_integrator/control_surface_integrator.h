@@ -727,6 +727,7 @@ private:
     bool allowOverlay_ = false;
       
     vector<string> associatedZoneNames_;
+    map<string, vector<string>> associatedSubZoneNames_;
 
     map<Widget*, bool> usedWidgets_;
 
@@ -843,6 +844,11 @@ public:
         associatedZoneNames_.push_back(name);
     }
     
+    void AddAssociatedSubZoneName(string basedOnZone, string name)
+    {
+        associatedSubZoneNames_[basedOnZone].push_back(name);
+    }
+
     void AddWidget(Widget* widget)
     {
         usedWidgets_[widget] = false;
