@@ -446,6 +446,8 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+        
         context->GetSurface()->GetZoneManager()->Activate(context->GetZoneNames());
     }
 };
@@ -459,6 +461,8 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+        
         context->GetSurface()->GetZoneManager()->Deactivate(context->GetZoneNames());
     }
 };
@@ -472,6 +476,8 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+        
         context->GetSurface()->GetZoneManager()->ToggleActivation(context->GetZoneNames());
     }
 };
