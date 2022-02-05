@@ -664,8 +664,6 @@ private:
     bool isModifier_ = false;
     bool isToggled_ = false;
     
-    void LogInput(double value);
-   
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name) {}
     ~Widget();
@@ -690,6 +688,7 @@ public:
     void ClearCache();
     void Clear();
     void ForceClear();
+    void LogInput(double value);
 
     void GetFormattedFXParamValue(char *buffer, int bufferSize)
     {
@@ -933,6 +932,8 @@ public:
        
     void DoAction(Widget* widget, double value)
     {
+        widget->LogInput(value);
+        
         bool isUsed = false;
         
         for(auto zone : focusedFXZones_)
@@ -948,6 +949,8 @@ public:
     
     void DoRelativeAction(Widget* widget, double delta)
     {
+        widget->LogInput(delta);
+        
         bool isUsed = false;
         
         for(auto zone : focusedFXZones_)
@@ -963,6 +966,8 @@ public:
     
     void DoRelativeAction(Widget* widget, int accelerationIndex, double delta)
     {
+        widget->LogInput(delta);
+        
         bool isUsed = false;
                
         for(auto zone : focusedFXZones_)
@@ -978,6 +983,8 @@ public:
     
     void DoTouch(Widget* widget, double value)
     {
+        widget->LogInput(value);
+        
         bool isUsed = false;
         
         for(auto zone : focusedFXZones_)
@@ -1803,8 +1810,6 @@ public:
         
         return track;
     }
-    
- 
     
 //  Page only uses the following:
     
