@@ -2174,6 +2174,20 @@ void ZoneManager::RequestUpdate()
             key->UpdateValue(0.0);
 }
 
+void ZoneManager::DeactivateZones(vector<Zone*> &zones)
+{
+    if(zones.size() == 0)
+        return;
+    
+    string zoneType = zones[0]->GetBasedOnZone();
+    
+    if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, zoneType);
+
+    for(auto zone : zones)
+        zone->Deactivate();
+}
+
 void ZoneManager::Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones)
 {
     if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())

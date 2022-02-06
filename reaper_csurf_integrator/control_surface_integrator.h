@@ -495,7 +495,7 @@ public:
    
     void SetNavigator(Navigator* navigator) { navigator_ = navigator; }
     Navigator* GetNavigator() { return navigator_; }
-
+    string GetBasedOnZone() { return basedOnZone_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     int GetSlotIndex();
     
@@ -765,11 +765,7 @@ private:
     
     void Activate(ActivationType activationType, vector<string> &zoneTypes);
     
-    void DeactivateZones(vector<Zone*> &zones)
-    {
-        for(auto zone : zones)
-            zone->Deactivate();
-    }
+    void DeactivateZones(vector<Zone*> &zones);
     
     void ActivatingZone(string zoneName)
     {
