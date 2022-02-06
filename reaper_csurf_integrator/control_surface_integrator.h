@@ -69,6 +69,7 @@ enum ActivationType
 {
     Activating,
     Deactivating,
+    TogglingActivation,
 };
 
 class Manager;
@@ -494,7 +495,7 @@ public:
    
     void SetNavigator(Navigator* navigator) { navigator_ = navigator; }
     Navigator* GetNavigator() { return navigator_; }
-    string GetBasedOnZone() { return basedOnZone_; }
+
     void SetSlotIndex(int index) { slotIndex_ = index; }
     int GetSlotIndex();
     
@@ -508,6 +509,14 @@ public:
     vector<Zone*> &GetIncludedZones() { return includedZones_; }
       
     vector<Widget*> &GetWidgets() { return widgets_; }
+
+    void Toggle()
+    {
+        if(isActive_)
+            Deactivate();
+        else
+            Activate();
+    }
 
     string GetName()
     {
@@ -756,7 +765,11 @@ private:
     
     void Activate(ActivationType activationType, vector<string> &zoneTypes);
     
-    void DeactivateZones(vector<Zone*> &zones);
+    void DeactivateZones(vector<Zone*> &zones)
+    {
+        for(auto zone : zones)
+            zone->Deactivate();
+    }
     
     void ActivatingZone(string zoneName)
     {
@@ -860,6 +873,11 @@ public:
     void Deactivate(vector<string> &zoneTypes)
     {
         Activate(ActivationType::Deactivating, zoneTypes);
+    }
+
+    void ToggleActivation(vector<string> &zoneTypes)
+    {
+        Activate(ActivationType::TogglingActivation, zoneTypes);
     }
 
     string GetNameOrAlias(string name)
