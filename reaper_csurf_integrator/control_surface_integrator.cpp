@@ -1162,7 +1162,6 @@ void Manager::InitActionsDictionary()
     actions_["AllowOverlay"] =                      new AllowOverlay();
     actions_["Activate"] =                          new Activate();
     actions_["Deactivate"] =                        new Deactivate();
-    actions_["ToggleActivation"] =                  new ToggleActivation();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["SelectedTrackBank"] =                 new SelectedTrackBank();
     actions_["SendBank"] =                          new SendBank();
@@ -2174,6 +2173,20 @@ void ZoneManager::RequestUpdate()
             key->UpdateValue(0.0);
 }
 
+void ZoneManager::DeactivateZones(vector<Zone*> &zones)
+{
+    if(zones.size() == 0)
+        return;
+    
+    string zoneType = zones[0]->GetBasedOnZone();
+    
+    if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, zoneType);
+
+    for(auto zone : zones)
+        zone->Deactivate();
+}
+
 void ZoneManager::Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones)
 {
     if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
@@ -2207,10 +2220,6 @@ void ZoneManager::Activate(ActivationType activationType, string zoneType, vecto
             
             case  ActivationType::Deactivating:
                 zone->Deactivate();
-                break;
-            
-            case  ActivationType::TogglingActivation:
-                zone->Toggle();
                 break;
         }
     }

@@ -467,18 +467,4 @@ public:
     }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleActivation  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleActivation"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleActivation(context->GetZoneNames());
-    }
-};
 #endif /* control_surface_manager_actions_h */
