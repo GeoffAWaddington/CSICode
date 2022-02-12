@@ -139,7 +139,7 @@ static oscpkt::UdpSocket* GetOutputSocketForAddressAndPort(string surfaceName, s
             return nullptr;
         }
         
-        newOutputSocket->bindTo(outputPort);
+        //newOutputSocket->bindTo(outputPort);
         
         if ( ! newOutputSocket->isOk())
         {
