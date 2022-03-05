@@ -188,8 +188,6 @@ struct SurfaceLine
     string zoneTemplateFolder = "";
     int numChannels = 0;
     int channelOffset = 0;
-    int numSends = 0;
-    int numFX = 0;
     
     // for OSC
     string remoteDeviceIP = "";
@@ -224,8 +222,6 @@ static char zoneTemplateFolder[BUFSZ];
 
 int numChannels = 0;
 int channelOffset = 0;
-int numSends = 0;
-int numFX = 0;
 
 static bool followMCP = true;
 static bool synchPages = false;
@@ -382,8 +378,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, name);
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumSends, to_string(numSends).c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumFX, to_string(numFX).c_str());
 
                 int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)templateFilename);
                 if(index >= 0)
@@ -402,8 +396,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, 0, 0);
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumSends, "0");
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumFX, "0");
             }
         }
             break;
@@ -455,12 +447,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         channelOffset = atoi(buf);
                         
-                        GetDlgItemText(hwndDlg, IDC_EDIT_NumSends, buf, sizeof(buf));
-                        numSends = atoi(buf);
-                        
-                        GetDlgItemText(hwndDlg, IDC_EDIT_NumFX, buf, sizeof(buf));
-                        numFX = atoi(buf);
-
                         GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, name, sizeof(name));
                         
                         int currentSelection = SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiIn, CB_GETCURSEL, 0, 0);
@@ -523,8 +509,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, name);
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumSends, to_string(numSends).c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumFX, to_string(numFX).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, remoteDeviceIP);
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCInPort, to_string(inPort).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, to_string(outPort).c_str());
@@ -547,8 +531,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, 0, 0);
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumSends, "0");
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumFX, "0");
             }
         }
             break;
@@ -599,12 +581,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         channelOffset = atoi(buf);
-                        
-                        GetDlgItemText(hwndDlg, IDC_EDIT_NumSends, buf, sizeof(buf));
-                        numSends = atoi(buf);
-                        
-                        GetDlgItemText(hwndDlg, IDC_EDIT_NumFX, buf, sizeof(buf));
-                        numFX = atoi(buf);
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, name, sizeof(name));
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, remoteDeviceIP, sizeof(remoteDeviceIP));
@@ -728,8 +704,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     surface->zoneTemplateFolder = zoneTemplateFolder;
                                     surface->numChannels = numChannels;
                                     surface->channelOffset = channelOffset;
-                                    surface->numSends = numSends;
-                                    surface->numFX = numFX;
 
                                     pages[pageIndex]->surfaces.push_back(surface);
                                     
@@ -760,8 +734,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     surface->zoneTemplateFolder = zoneTemplateFolder;
                                     surface->numChannels = numChannels;
                                     surface->channelOffset = channelOffset;
-                                    surface->numSends = numSends;
-                                    surface->numFX = numFX;
 
                                     pages[pageIndex]->surfaces.push_back(surface);
                                     
@@ -818,8 +790,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 strcpy(zoneTemplateFolder, pages[pageIndex]->surfaces[index]->zoneTemplateFolder.c_str());
                                 numChannels = pages[pageIndex]->surfaces[index]->numChannels;
                                 channelOffset = pages[pageIndex]->surfaces[index]->channelOffset;
-                                numSends = pages[pageIndex]->surfaces[index]->numSends;
-                                numFX = pages[pageIndex]->surfaces[index]->numFX;
 
                                 dlgResult = false;
                                 editMode = true;
@@ -839,8 +809,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     pages[pageIndex]->surfaces[index]->zoneTemplateFolder = zoneTemplateFolder;
                                     pages[pageIndex]->surfaces[index]->numChannels = numChannels;
                                     pages[pageIndex]->surfaces[index]->channelOffset = channelOffset;
-                                    pages[pageIndex]->surfaces[index]->numSends = numSends;
-                                    pages[pageIndex]->surfaces[index]->numFX = numFX;
                                 }
                                 
                                 editMode = false;
@@ -965,19 +933,17 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
-                        if((surface->type == MidiSurfaceToken || surface->type == OSCSurfaceToken) && (tokens.size() == 10 || tokens.size() == 11))
+                        if((surface->type == MidiSurfaceToken || surface->type == OSCSurfaceToken) && (tokens.size() == 8 || tokens.size() == 9))
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
                             surface->templateFilename = tokens[4];
                             surface->zoneTemplateFolder = tokens[5];
                             surface->numChannels = atoi(tokens[6].c_str());
-                            surface->numSends = atoi(tokens[7].c_str());
-                            surface->numFX = atoi(tokens[8].c_str());
-                            surface->channelOffset = atoi(tokens[9].c_str());
+                            surface->channelOffset = atoi(tokens[7].c_str());
 
-                            if(tokens[0] == OSCSurfaceToken && tokens.size() == 11)
-                                surface->remoteDeviceIP = tokens[10];
+                            if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
+                                surface->remoteDeviceIP = tokens[8];
                         }
                         
                         if(pages.size() > 0)
@@ -1038,8 +1004,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             line += "\"" + surface->templateFilename + "\" ";
                             line += "\"" + surface->zoneTemplateFolder + "\" ";
                             line += to_string(surface->numChannels) + " " ;
-                            line += to_string(surface->numSends) + " " ;
-                            line += to_string(surface->numFX) + " " ;
                             line += to_string(surface->channelOffset) + " " ;
                             
                             if(surface->type == OSCSurfaceToken)

@@ -32,8 +32,6 @@
 #define IDC_EDIT_OSCOutPort             1043
 #define IDC_EDIT_OSCInPort              1045
 #define IDC_EDIT_NumChannels            1085
-#define IDC_EDIT_NumSends               1086
-#define IDC_EDIT_NumFX                  1087
 #define IDC_EDIT_ChannelOffset          1088
 
 // Next default values for new objects

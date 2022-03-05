@@ -1267,15 +1267,15 @@ void Manager::Init()
             
             if(tokens.size() > 4) // ignore comment lines and blank lines
             {
-                if(tokens[0] == MidiSurfaceToken && tokens.size() == 10)
+                if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
                 {
-                    if(atoi(tokens[6].c_str()) + atoi(tokens[9].c_str()) > numChannels )
-                        numChannels = atoi(tokens[6].c_str()) + atoi(tokens[9].c_str());
+                    if(atoi(tokens[6].c_str()) + atoi(tokens[7].c_str()) > numChannels )
+                        numChannels = atoi(tokens[6].c_str()) + atoi(tokens[7].c_str());
                 }
-                else if(tokens[0] == OSCSurfaceToken && tokens.size() == 11)
+                else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
                 {
-                    if(atoi(tokens[6].c_str()) + atoi(tokens[9].c_str()) > numChannels )
-                        numChannels = atoi(tokens[6].c_str()) + atoi(tokens[9].c_str());
+                    if(atoi(tokens[6].c_str()) + atoi(tokens[7].c_str()) > numChannels )
+                        numChannels = atoi(tokens[6].c_str()) + atoi(tokens[7].c_str());
                 }
             }
         }
@@ -1312,10 +1312,10 @@ void Manager::Init()
                     {
                         ControlSurface* surface = nullptr;
                         
-                        if(tokens[0] == MidiSurfaceToken && tokens.size() == 10)
-                            surface = new Midi_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), atoi(tokens[8].c_str()), atoi(tokens[9].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
-                        else if(tokens[0] == OSCSurfaceToken && tokens.size() == 11)
-                            surface = new OSC_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), atoi(tokens[8].c_str()), atoi(tokens[9].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[10], outPort));
+                        if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
+                            surface = new Midi_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
+                        else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
+                            surface = new OSC_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], outPort));
 
                         currentPage->AddSurface(surface);
                     }
