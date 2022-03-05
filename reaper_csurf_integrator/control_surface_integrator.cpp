@@ -393,17 +393,17 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                     }
                     else if(basedOnZone == "SelectedTrackSend")
                     {
-                        for(int i = 0; i < zoneManager->GetNumSendSlots(); i++)
+                        for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     }
                     else if(basedOnZone == "SelectedTrackReceive")
                     {
-                        for(int i = 0; i < zoneManager->GetNumReceiveSlots(); i++)
+                        for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     }
                     else if(basedOnZone == "SelectedTrackFXMenu")
                     {
-                        for(int i = 0; i < zoneManager->GetNumFXSlots(); i++)
+                        for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     }
                    
@@ -1313,9 +1313,9 @@ void Manager::Init()
                         ControlSurface* surface = nullptr;
                         
                         if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
-                            surface = new Midi_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
+                            surface = new Midi_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
                         else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
-                            surface = new OSC_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], outPort));
+                            surface = new OSC_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], outPort));
 
                         currentPage->AddSurface(surface);
                     }
@@ -2070,7 +2070,7 @@ void OSC_IntFeedbackProcessor::ForceValue(int param, double value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-ZoneManager::ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset) : surface_(surface), zoneFolder_(zoneFolder), numChannels_(numChannels), numSends_(numSends), numFXSlots_(numFX)
+ZoneManager::ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int channelOffset) : surface_(surface), zoneFolder_(zoneFolder)
 {
     for(int i = 0; i < numChannels; i++)
         navigators_[i] = surface->GetPage()->GetNavigatorForChannel(i + channelOffset);
@@ -2436,9 +2436,6 @@ int ZoneManager::GetSendSlot() { return surface_->GetPage()->GetSendSlot(); }
 int ZoneManager::GetReceiveSlot() { return surface_->GetPage()->GetReceiveSlot(); }
 int ZoneManager::GetFXMenuSlot() { return surface_->GetPage()->GetFXMenuSlot(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
-int ZoneManager::GetNumSendSlots() { return surface_->GetNumSendSlots(); }
-int ZoneManager::GetNumReceiveSlots() { return surface_->GetNumReceiveSlots(); }
-int ZoneManager::GetNumFXSlots() { return surface_->GetNumFXSlots(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface

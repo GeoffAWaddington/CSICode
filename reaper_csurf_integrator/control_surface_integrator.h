@@ -719,10 +719,6 @@ private:
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
     
-    int const numChannels_ = 0;
-    int const numSends_ = 0;
-    int const numFXSlots_ = 0;
-    
     bool allowOverlay_ = false;
       
     vector<string> associatedZoneNames_;
@@ -785,7 +781,7 @@ private:
     }
 
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset);
+    ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int channelOffset);
     
     void ForceClearAllWidgets() { } // GAW clear all widgets in context
     
@@ -1032,7 +1028,7 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), numSends_(numSends), numFXSlots_(numFX), zoneManager_(new ZoneManager(this, zoneFolder, numChannels, numSends, numFX, channelOffset)) { }
+    ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), zoneManager_(new ZoneManager(this, zoneFolder, numChannels, channelOffset)) { }
     
     CSurfIntegrator* const CSurfIntegrator_ ;
     Page* const page_;
@@ -1040,9 +1036,6 @@ protected:
     ZoneManager* const zoneManager_;
     
     int const numChannels_ = 0;
-    int const numSends_ = 0;
-    int const numFXSlots_ = 0;
-    bool const banksWithOthers_ = true;
     
     vector<Widget*> widgets_;
     map<string, Widget*> widgetsByName_;
@@ -1095,9 +1088,6 @@ public:
     vector<Widget*> GetWidgets() { return widgets_; }
     
     int GetNumChannels() { return numChannels_; }
-    int GetNumSendSlots() { return numSends_; }
-    int GetNumReceiveSlots() { return numSends_; }
-    int GetNumFXSlots() { return numFXSlots_; }
     
     virtual void RequestUpdate()
     {
@@ -1291,8 +1281,8 @@ private:
     }
 
 public:
-    Midi_ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
-    : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, numSends, numFX, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
+    Midi_ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
+    : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -1375,8 +1365,8 @@ private:
     void ProcessOSCMessage(string message, double value);
 
 public:
-    OSC_ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int numSends, int numFX, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
-    : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, numSends, numFX, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
+    OSC_ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
+    : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
     {
         Initialize(templateFilename, zoneFolder);
     }
