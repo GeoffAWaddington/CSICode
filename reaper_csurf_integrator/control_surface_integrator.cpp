@@ -2094,7 +2094,11 @@ void ZoneManager::Initialize()
         {
             ProcessZoneFile(zoneName, zoneName, this, selectedTrackZones_);
             if(selectedTrackZones_.size() > 0)
+            {
+                // GAW TBD -- add associated SubZones to associated Zones here
+                // and do same for all cases below this one
                 fixedZones_.push_back(selectedTrackZones_);
+            }
         }
         
         
@@ -2179,19 +2183,19 @@ void ZoneManager::DeactivateZones(vector<Zone*> &zones)
     if(zones.size() == 0)
         return;
     
-    string zoneType = zones[0]->GetBasedOnZone();
+    string basedOnZone = zones[0]->GetBasedOnZone();
     
-    if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, zoneType);
+    if(find(broadcast_.begin(), broadcast_.end(), basedOnZone) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, basedOnZone);
 
     for(auto zone : zones)
         zone->Deactivate();
 }
 
-void ZoneManager::Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones)
+void ZoneManager::Activate(ActivationType activationType, string basedOnZone, vector<Zone*> &zones)
 {
-    if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneType);
+    if(find(broadcast_.begin(), broadcast_.end(), basedOnZone) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, basedOnZone);
 
     if(allowOverlay_ == false)
     {
@@ -2230,37 +2234,37 @@ void ZoneManager::Activate(ActivationType activationType, string zoneType, vecto
     }
 }
 
-void ZoneManager::Activate(ActivationType activationType, vector<string> &zoneTypes)
+void ZoneManager::Activate(ActivationType activationType, vector<string> &basedOnZones)
 {
-    for(string zoneType : zoneTypes)
+    for(string basedOnZone : basedOnZones)
     {
-        if(zoneType == "FocusedFX")
+        if(basedOnZone == "FocusedFX")
             MapFocusedFXToWidgets();
-        else if(zoneType == "SelectedTrackFX")
+        else if(basedOnZone == "SelectedTrackFX")
             MapSelectedTrackFXToWidgets();
         
-        else if(zoneType == "SelectedTrack")
+        else if(basedOnZone == "SelectedTrack")
             Activate(activationType, "SelectedTrack", selectedTrackZones_);
         
-        else if(zoneType == "SelectedTrackFXMenu")
+        else if(basedOnZone == "SelectedTrackFXMenu")
             Activate(activationType, "SelectedTrackFXMenu", selectedTrackFXMenuZones_);
-        else if(zoneType == "TrackFXMenu")
+        else if(basedOnZone == "TrackFXMenu")
             Activate(activationType, "TrackFXMenu", trackFXMenuZones_);
         
-        else if(zoneType == "SelectedTrackReceive")
+        else if(basedOnZone == "SelectedTrackReceive")
             Activate(activationType, "SelectedTrackReceive", selectedTrackReceivesZones_);
-        else if(zoneType == "TrackReceive")
+        else if(basedOnZone == "TrackReceive")
             Activate(activationType, "TrackReceive", trackReceivesZones_);
         
-        else if(zoneType == "SelectedTrackSend")
+        else if(basedOnZone == "SelectedTrackSend")
             Activate(activationType, "SelectedTrackSend", selectedTrackSendsZones_);
-        else if(zoneType == "TrackSend")
+        else if(basedOnZone == "TrackSend")
             Activate(activationType, "TrackSend", trackSendsZones_);
         
-        else if(zoneType == "Home")
+        else if(basedOnZone == "Home")
         {
-            if(find(broadcast_.begin(), broadcast_.end(), zoneType) != broadcast_.end())
-                surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneType);
+            if(find(broadcast_.begin(), broadcast_.end(), basedOnZone) != broadcast_.end())
+                surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, basedOnZone);
 
             GoHome();
         }
@@ -2275,8 +2279,8 @@ void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName
             GoHome();
         else
         {
-            vector<string> zoneTypes { zoneName };
-            Activate(activationType, zoneTypes);
+            vector<string> basedOnZones { zoneName };
+            Activate(activationType, basedOnZones);
         }
     }
 }

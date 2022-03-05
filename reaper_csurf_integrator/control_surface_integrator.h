@@ -761,9 +761,9 @@ private:
     
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
     
-    void Activate(ActivationType activationType, string zoneType, vector<Zone*> &zones);
+    void Activate(ActivationType activationType, string basedOnZone, vector<Zone*> &zones);
     
-    void Activate(ActivationType activationType, vector<string> &zoneTypes);
+    void Activate(ActivationType activationType, vector<string> &basedOnZones);
     
     void DeactivateZones(vector<Zone*> &zones);
     
@@ -861,19 +861,19 @@ public:
             receive_.push_back(param);
     }
 
-    void Activate(vector<string> &zoneTypes)
+    void Activate(vector<string> &basedOnZones)
     {
-        Activate(ActivationType::Activating, zoneTypes);
+        Activate(ActivationType::Activating, basedOnZones);
     }
 
-    void Deactivate(vector<string> &zoneTypes)
+    void Deactivate(vector<string> &basedOnZones)
     {
-        Activate(ActivationType::Deactivating, zoneTypes);
+        Activate(ActivationType::Deactivating, basedOnZones);
     }
 
-    void ToggleActivation(vector<string> &zoneTypes)
+    void ToggleActivation(vector<string> &basedOnZones)
     {
-        Activate(ActivationType::TogglingActivation, zoneTypes);
+        Activate(ActivationType::TogglingActivation, basedOnZones);
     }
 
     string GetNameOrAlias(string name)
