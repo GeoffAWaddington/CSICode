@@ -181,7 +181,6 @@ protected:
 
 public:
     TrackNavigator(Page*  page, TrackNavigationManager* manager, int channelNum) : Navigator(page), manager_(manager), channelNum_(channelNum) {}
-    TrackNavigator(Page*  page, TrackNavigationManager* manager) : Navigator(page), manager_(manager) {}
     virtual ~TrackNavigator() {}
     
     virtual bool GetIsChannelPinned() override { return pinnedTrack_ != nullptr; }
@@ -781,8 +780,8 @@ private:
     }
 
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int channelOffset);
-    
+    ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
+
     void ForceClearAllWidgets() { } // GAW clear all widgets in context
     
     void Initialize();
@@ -1028,7 +1027,7 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), zoneManager_(new ZoneManager(this, zoneFolder, numChannels, channelOffset)) { }
+    ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
     
     CSurfIntegrator* const CSurfIntegrator_ ;
     Page* const page_;
@@ -1036,6 +1035,7 @@ protected:
     ZoneManager* const zoneManager_;
     
     int const numChannels_ = 0;
+    int const channelOffset_ = 0;
     
     vector<Widget*> widgets_;
     map<string, Widget*> widgetsByName_;
@@ -1088,6 +1088,7 @@ public:
     vector<Widget*> GetWidgets() { return widgets_; }
     
     int GetNumChannels() { return numChannels_; }
+    int GetChannelOffset() { return channelOffset_; }
     
     virtual void RequestUpdate()
     {
@@ -1422,7 +1423,7 @@ private:
     vector<MediaTrack*> vcaTopLeadTracks_;
     vector<MediaTrack*> vcaLeadTracks_;
     vector<MediaTrack*> vcaSpillTracks_;
-    vector<Navigator*> navigators_;
+    map<int, Navigator*> trackNavigators_;
     Navigator* const masterTrackNavigator_ = nullptr;
     Navigator* const selectedTrackNavigator_ = nullptr;
     Navigator* const focusedFXNavigator_ = nullptr;
@@ -1443,11 +1444,11 @@ private:
     {
         string pinnedTracks = "";
         
-        for(int i = 0; i < navigators_.size(); i++)
+        for(int i = 0; i < trackNavigators_.size(); i++)
         {
-            if(navigators_[i]->GetIsChannelPinned())
+            if(trackNavigators_[i]->GetIsChannelPinned())
             {
-                int trackNum = CSurf_TrackToID(navigators_[i]->GetTrack(), followMCP_);
+                int trackNum = CSurf_TrackToID(trackNavigators_[i]->GetTrack(), followMCP_);
                 
                 pinnedTracks += to_string(i + 1) + "-" + to_string(trackNum) + "_";
             }
@@ -1457,19 +1458,16 @@ private:
     }
    
 public:
-    TrackNavigationManager(Page* page, bool followMCP, bool synchPages, bool scrollLink, int numChannels) : page_(page), followMCP_(followMCP), synchPages_(synchPages), scrollLink_(scrollLink),
+    TrackNavigationManager(Page* page, bool followMCP, bool synchPages, bool scrollLink) : page_(page), followMCP_(followMCP), synchPages_(synchPages), scrollLink_(scrollLink),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
     focusedFXNavigator_(new FocusedFXNavigator(page_)),
     defaultNavigator_(new Navigator(page_))
-    {
-        for(int i = 0; i < numChannels; i++)
-            navigators_.push_back(new TrackNavigator(page_, this, i));
-    }
+    {}
     
     ~TrackNavigationManager()
     {
-        for(auto navigator : navigators_)
+        for(auto [key, navigator] : trackNavigators_)
         {
             delete navigator;
             navigator = nullptr;
@@ -1538,7 +1536,7 @@ public:
         
         if(selectedTrack != nullptr)
         {
-            for(auto navigator : navigators_)
+            for(auto  [key, navigator] : trackNavigators_)
                 if(selectedTrack == navigator->GetTrack())
                     return;
             
@@ -1551,7 +1549,7 @@ public:
             if(trackOffset_ <  0)
                 trackOffset_ =  0;
             
-            int top = GetNumTracks() - navigators_.size();
+            int top = GetNumTracks() - trackNavigators_.size();
             
             if(trackOffset_ >  top)
                 trackOffset_ = top;
@@ -1564,7 +1562,7 @@ public:
         {
             int numTracks = GetNumTracks();
             
-            if(numTracks <= navigators_.size())
+            if(numTracks <= trackNavigators_.size())
                 return;
            
             trackOffset_ += amount;
@@ -1572,7 +1570,7 @@ public:
             if(trackOffset_ <  0)
                 trackOffset_ =  0;
             
-            int top = numTracks - navigators_.size();
+            int top = numTracks - trackNavigators_.size();
             
             if(trackOffset_ >  top)
                 trackOffset_ = top;
@@ -1583,7 +1581,7 @@ public:
         {
             int numTracks = vcaSpillTracks_.size() + vcaLeadTracks_.size();
             
-            if(numTracks <= navigators_.size())
+            if(numTracks <= trackNavigators_.size())
                 return;
            
             vcaTrackOffset_ += amount;
@@ -1591,7 +1589,7 @@ public:
             if(vcaTrackOffset_ <  0)
                 vcaTrackOffset_ =  0;
             
-            int top = numTracks - navigators_.size();
+            int top = numTracks - trackNavigators_.size();
             
             if(vcaTrackOffset_ >  top)
                 vcaTrackOffset_ = top;
@@ -1633,7 +1631,7 @@ public:
     
     void TogglePin(MediaTrack* track)
     {
-        for(auto navigator : navigators_)
+        for(auto  [key, navigator] : trackNavigators_)
         {
             if(track == navigator->GetTrack())
             {
@@ -1680,8 +1678,8 @@ public:
                     int trackNum = atoi(tokens[1].c_str());
                    
                     if(MediaTrack* track =  CSurf_TrackFromID(trackNum, followMCP_))
-                        if(navigators_.size() > channelNum)
-                            navigators_[channelNum]->SetPinnedTrack(track);
+                        if(trackNavigators_.size() > channelNum)
+                            trackNavigators_[channelNum]->SetPinnedTrack(track);
                 }
             }
         }
@@ -1694,10 +1692,10 @@ public:
     
     Navigator* GetNavigatorForChannel(int channelNum)
     {
-        if(channelNum < navigators_.size())
-            return navigators_[channelNum];
-        else
-            return nullptr;
+        if(trackNavigators_.count(channelNum) < 1)
+            trackNavigators_[channelNum] = new TrackNavigator(page_, this, channelNum);
+            
+        return trackNavigators_[channelNum];
     }
     
     MediaTrack* GetTrackFromChannel(int channelNumber, int bias, MediaTrack* pinnedTrack)
@@ -1815,14 +1813,14 @@ public:
     
     void IncChannelBias(int channelNum)
     {
-        for(int i = channelNum + 1; i < navigators_.size(); i++)
-            navigators_[i]->IncBias();
+        for(int i = channelNum + 1; i < trackNavigators_.size(); i++)
+            trackNavigators_[i]->IncBias();
     }
     
     void DecChannelBias(int channelNum)
     {
-        for(int i = channelNum + 1; i < navigators_.size(); i++)
-            navigators_[i]->DecBias();
+        for(int i = channelNum + 1; i < trackNavigators_.size(); i++)
+            trackNavigators_[i]->DecBias();
     }
 
     void OnTrackSelectionBySurface(MediaTrack* track)
@@ -1842,7 +1840,7 @@ public:
         if(track == GetMasterTrackNavigator()->GetTrack())
             return GetIsNavigatorTouched(GetMasterTrackNavigator(), touchedControl);
         
-        for(auto navigator : navigators_)
+        for(auto  [key, navigator] : trackNavigators_)
             if(track == navigator->GetTrack())
                 return GetIsNavigatorTouched(navigator, touchedControl);
  
@@ -1883,7 +1881,7 @@ public:
 
     void RebuildTrackList()
     {
-        int top = GetNumTracks() - navigators_.size();
+        int top = GetNumTracks() - trackNavigators_.size();
         
         if(top < 0)
             trackOffset_ = 0;
@@ -1977,7 +1975,7 @@ public:
         if(fxMenuSlot_ > maxFXMenuSlot_)
             fxMenuSlot_ = maxFXMenuSlot_;
         
-        for(auto navigator : navigators_)
+        for(auto  [key, navigator] : trackNavigators_)
         {
             if(navigator->GetIsChannelPinned())
             {
@@ -2039,7 +2037,7 @@ private:
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name, bool followMCP, bool synchPages, bool scrollLink, int numChannels) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, scrollLink, numChannels)) {}
+    Page(string name, bool followMCP, bool synchPages, bool scrollLink) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, scrollLink)) {}
     
     ~Page()
     {

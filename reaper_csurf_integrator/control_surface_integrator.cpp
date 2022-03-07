@@ -361,6 +361,8 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                 {
                     currentActionTemplate = nullptr;
                     
+                    ControlSurface* surface = zoneManager->GetSurface();
+                    
                     vector<Navigator*> navigators;
                     
                     if(basedOnZone == "Home")
@@ -374,22 +376,22 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                     else if(basedOnZone == "Track")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
-                            navigators.push_back(zoneManager->GetNavigatorForChannel(i));
+                        navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
                     else if(basedOnZone == "TrackSend")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
-                            navigators.push_back(zoneManager->GetNavigatorForChannel(i));
+                            navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
                     else if(basedOnZone == "TrackReceive")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
-                            navigators.push_back(zoneManager->GetNavigatorForChannel(i));
+                            navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
                     else if(basedOnZone == "TrackFXMenu")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
-                            navigators.push_back(zoneManager->GetNavigatorForChannel(i));
+                            navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
                     else if(basedOnZone == "SelectedTrackSend")
                     {
@@ -411,14 +413,10 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                     {
                         string numStr = to_string(i + 1);
                         
-                        string newZoneName = zoneName;
-                        
                         map<string, string> expandedTouchIds;
                         
                         if(navigators.size() > 1)
                         {
-                            newZoneName += numStr;
-                        
                             for(auto [key, value] : touchIds)
                             {
                                 string expandedKey = regex_replace(key, regex("[|]"), numStr);
@@ -432,7 +430,7 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone = new Zone(zoneManager, navigators[i], basedOnZone, i, expandedTouchIds, newZoneName, zoneAlias, filePath);
+                        Zone* zone = new Zone(zoneManager, navigators[i], basedOnZone, i, expandedTouchIds, zoneName, zoneAlias, filePath);
                         
                         for(auto includedZoneName : includedZones)
                             ProcessZoneFile(includedZoneName, includedZoneName, zoneManager, zone->GetIncludedZones());
@@ -1255,34 +1253,7 @@ void Manager::Init()
     try
     {
         ifstream iniFile(iniFilePath);
-        
-        int numChannels = 0;
-    
-        for (string line; getline(iniFile, line) ; )
-        {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
-            
-            vector<string> tokens(GetTokens(line));
-            
-            if(tokens.size() > 4) // ignore comment lines and blank lines
-            {
-                if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
-                {
-                    if(atoi(tokens[6].c_str()) + atoi(tokens[7].c_str()) > numChannels )
-                        numChannels = atoi(tokens[6].c_str()) + atoi(tokens[7].c_str());
-                }
-                else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
-                {
-                    if(atoi(tokens[6].c_str()) + atoi(tokens[7].c_str()) > numChannels )
-                        numChannels = atoi(tokens[6].c_str()) + atoi(tokens[7].c_str());
-                }
-            }
-        }
-        
-        iniFile.clear();
-        iniFile.seekg(0);
-        
+               
         for (string line; getline(iniFile, line) ; )
         {
             line = regex_replace(line, regex(TabChars), " ");
@@ -1297,7 +1268,7 @@ void Manager::Init()
                     if(tokens.size() != 5)
                         continue;
 
-                    currentPage = new Page(tokens[1], tokens[2] == "FollowMCP" ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false, numChannels);
+                    currentPage = new Page(tokens[1], tokens[2] == "FollowMCP" ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false);
                     pages_.push_back(currentPage);
                 }
                 else if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
@@ -2070,12 +2041,6 @@ void OSC_IntFeedbackProcessor::ForceValue(int param, double value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-ZoneManager::ZoneManager(ControlSurface* surface, string zoneFolder, int numChannels, int channelOffset) : surface_(surface), zoneFolder_(zoneFolder)
-{
-    for(int i = 0; i < numChannels; i++)
-        navigators_[i] = surface->GetPage()->GetNavigatorForChannel(i + channelOffset);
-}
-
 void ZoneManager::Initialize()
 {
     PreProcessZones();
