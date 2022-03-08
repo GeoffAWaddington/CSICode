@@ -472,8 +472,6 @@ private:
     string const alias_ = "";
     string const sourceFilePath_ = "";
     
-    string const basedOnZone_ = "Standard";
-    
     bool isActive_ = false;
     map<string, string> touchIds_;
     map<string, bool> activeTouchIds_;
@@ -488,13 +486,12 @@ private:
     vector<ActionContext*> defaultContexts_;
     
 public:
-    Zone(ZoneManager* const zoneManager,  Navigator* navigator, string basedOnZone, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath): zoneManager_(zoneManager), navigator_(navigator), basedOnZone_(basedOnZone), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath) {}
+    Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath) {}
     
     Zone() {}
    
     void SetNavigator(Navigator* navigator) { navigator_ = navigator; }
     Navigator* GetNavigator() { return navigator_; }
-    string GetBasedOnZone() { return basedOnZone_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     int GetSlotIndex();
     
@@ -756,9 +753,9 @@ private:
     
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
     
-    void Activate(ActivationType activationType, string basedOnZone, vector<Zone*> &zones);
+    void Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones);
     
-    void Activate(ActivationType activationType, vector<string> &basedOnZones);
+    void Activate(ActivationType activationType, vector<string> &zoneNames);
     
     void DeactivateZones(vector<Zone*> &zones);
     
@@ -798,7 +795,7 @@ public:
     int GetSendSlot();
     int GetReceiveSlot();
     int GetFXMenuSlot();
-    int GetSlot(string basedOnZone);
+    int GetSlot(string zoneName);
     int GetNumChannels();
     int GetNumSendSlots();
     int GetNumReceiveSlots();
@@ -834,9 +831,9 @@ public:
         associatedZoneNames_.push_back(name);
     }
     
-    void AddAssociatedSubZoneName(string basedOnZone, string name)
+    void AddAssociatedSubZoneName(string zoneName, string name)
     {
-        associatedSubZoneNames_[basedOnZone].push_back(name);
+        associatedSubZoneNames_[zoneName].push_back(name);
     }
 
     void AddWidget(Widget* widget)
@@ -856,19 +853,19 @@ public:
             receive_.push_back(param);
     }
 
-    void Activate(vector<string> &basedOnZones)
+    void Activate(vector<string> &zoneNames)
     {
-        Activate(ActivationType::Activating, basedOnZones);
+        Activate(ActivationType::Activating, zoneNames);
     }
 
-    void Deactivate(vector<string> &basedOnZones)
+    void Deactivate(vector<string> &zoneNames)
     {
-        Activate(ActivationType::Deactivating, basedOnZones);
+        Activate(ActivationType::Deactivating, zoneNames);
     }
 
-    void ToggleActivation(vector<string> &basedOnZones)
+    void ToggleActivation(vector<string> &zoneNames)
     {
-        Activate(ActivationType::TogglingActivation, basedOnZones);
+        Activate(ActivationType::TogglingActivation, zoneNames);
     }
 
     string GetNameOrAlias(string name)

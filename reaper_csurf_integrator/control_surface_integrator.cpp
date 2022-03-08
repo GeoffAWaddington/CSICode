@@ -308,7 +308,7 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
     }
 }
 
-static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneManager* zoneManager, vector<Zone*> &zones)
+static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, vector<Zone*> &zones)
 {
     if(zoneManager->GetZoneFilePaths().count(zoneNameToProcess) < 1)
         return;
@@ -365,45 +365,45 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                     
                     vector<Navigator*> navigators;
                     
-                    if(basedOnZone == "Home")
+                    if(zoneName == "Home")
                         navigators.push_back(zoneManager->GetSelectedTrackNavigator());
-                    else if(basedOnZone == "Buttons")
+                    else if(zoneName == "Buttons")
                         navigators.push_back(zoneManager->GetSelectedTrackNavigator());
-                    else if(basedOnZone == "SelectedTrack")
+                    else if(zoneName == "SelectedTrack")
                         navigators.push_back(zoneManager->GetSelectedTrackNavigator());
-                    else if(basedOnZone == "MasterTrack")
+                    else if(zoneName == "MasterTrack")
                         navigators.push_back(zoneManager->GetMasterTrackNavigator());
-                    else if(basedOnZone == "Track")
+                    else if(zoneName == "Track")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                         navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
-                    else if(basedOnZone == "TrackSend")
+                    else if(zoneName == "TrackSend")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
-                    else if(basedOnZone == "TrackReceive")
+                    else if(zoneName == "TrackReceive")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
-                    else if(basedOnZone == "TrackFXMenu")
+                    else if(zoneName == "TrackFXMenu")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(surface->GetPage()->GetNavigatorForChannel(i + surface->GetChannelOffset()));
                     }
-                    else if(basedOnZone == "SelectedTrackSend")
+                    else if(zoneName == "SelectedTrackSend")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     }
-                    else if(basedOnZone == "SelectedTrackReceive")
+                    else if(zoneName == "SelectedTrackReceive")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     }
-                    else if(basedOnZone == "SelectedTrackFXMenu")
+                    else if(zoneName == "SelectedTrackFXMenu")
                     {
                         for(int i = 0; i < zoneManager->GetNumChannels(); i++)
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
@@ -430,10 +430,10 @@ static void ProcessZoneFile(string zoneNameToProcess, string basedOnZone, ZoneMa
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone = new Zone(zoneManager, navigators[i], basedOnZone, i, expandedTouchIds, zoneName, zoneAlias, filePath);
+                        Zone* zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath);
                         
                         for(auto includedZoneName : includedZones)
-                            ProcessZoneFile(includedZoneName, includedZoneName, zoneManager, zone->GetIncludedZones());
+                            ProcessZoneFile(includedZoneName, zoneManager, zone->GetIncludedZones());
 
                         for(auto [widgetName, modifierActions] : widgetActions)
                         {
@@ -620,7 +620,7 @@ static void ActivateFXZoneFile(string filePath, ZoneManager* zoneManager, int sl
                     
                     string numStr = "";
                     
-                    Zone * zone = new Zone(zoneManager, navigator, zoneName, slotIndex, touchIds, zoneName, zoneAlias, filePath);
+                    Zone * zone = new Zone(zoneManager, navigator, slotIndex, touchIds, zoneName, zoneAlias, filePath);
                     
                     for(auto [widgetName, modifierActions] : widgetActions)
                     {
@@ -1847,22 +1847,20 @@ vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
 
 int Zone::GetSlotIndex()
 {
-    if(basedOnZone_ == name_)
-        return slotIndex_;
-    else if(basedOnZone_ == "TrackSend")
+    if(name_ == "TrackSend")
         return zoneManager_->GetSendSlot();
-    else if(basedOnZone_ == "TrackReceive")
+    else if(name_ == "TrackReceive")
         return zoneManager_->GetReceiveSlot();
-    else if(basedOnZone_ == "TrackFXMenu")
+    else if(name_ == "TrackFXMenu")
         return slotIndex_ + zoneManager_->GetFXMenuSlot();
-    else if(basedOnZone_ == "SelectedTrackSend")
+    else if(name_ == "SelectedTrackSend")
         return slotIndex_ + zoneManager_->GetSendSlot();
-    else if(basedOnZone_ == "SelectedTrackReceive")
+    else if(name_ == "SelectedTrackReceive")
         return slotIndex_ + zoneManager_->GetReceiveSlot();
-    else if(basedOnZone_ == "SelectedTrackFXMenu")
+    else if(name_ == "SelectedTrackFXMenu")
         return slotIndex_ + zoneManager_->GetFXMenuSlot();
     else
-        return 0;
+        return slotIndex_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2043,7 +2041,7 @@ void ZoneManager::Initialize()
 {
     PreProcessZones();
       
-    ProcessZoneFile("Home", "Home", this, homeZone_);
+    ProcessZoneFile("Home", this, homeZone_);
     
     if(homeZone_.size() == 0)
     {
@@ -2055,7 +2053,7 @@ void ZoneManager::Initialize()
     {
         if(zoneName == "SelectedTrack")
         {
-            ProcessZoneFile(zoneName, zoneName, this, selectedTrackZones_);
+            ProcessZoneFile(zoneName, this, selectedTrackZones_);
             if(selectedTrackZones_.size() > 0)
             {
                 // GAW TBD -- add associated SubZones to associated Zones here
@@ -2068,14 +2066,14 @@ void ZoneManager::Initialize()
         
         else if(zoneName == "SelectedTrackFXMenu")
         {
-            ProcessZoneFile(zoneName, zoneName, this, selectedTrackFXMenuZones_);
+            ProcessZoneFile(zoneName, this, selectedTrackFXMenuZones_);
             if(selectedTrackFXMenuZones_.size() > 0)
                 fixedZones_.push_back(selectedTrackFXMenuZones_);
         }
         
         else if(zoneName == "TrackFXMenu")
         {
-            ProcessZoneFile(zoneName, zoneName, this, trackFXMenuZones_);
+            ProcessZoneFile(zoneName, this, trackFXMenuZones_);
             if(trackFXMenuZones_.size() > 0)
                 fixedZones_.push_back(trackFXMenuZones_);
         }
@@ -2084,14 +2082,14 @@ void ZoneManager::Initialize()
         
         else if(zoneName == "SelectedTrackReceive")
         {
-            ProcessZoneFile(zoneName, zoneName, this, selectedTrackReceivesZones_);
+            ProcessZoneFile(zoneName, this, selectedTrackReceivesZones_);
             if(selectedTrackReceivesZones_.size() > 0)
                 fixedZones_.push_back(selectedTrackReceivesZones_);
         }
         
         else if(zoneName == "TrackReceive")
         {
-            ProcessZoneFile(zoneName, zoneName, this, trackReceivesZones_);
+            ProcessZoneFile(zoneName, this, trackReceivesZones_);
             if(trackReceivesZones_.size() > 0)
                 fixedZones_.push_back(trackReceivesZones_);
         }
@@ -2100,14 +2098,14 @@ void ZoneManager::Initialize()
         
         else if(zoneName == "SelectedTrackSend")
         {
-            ProcessZoneFile(zoneName, zoneName, this, selectedTrackSendsZones_);
+            ProcessZoneFile(zoneName, this, selectedTrackSendsZones_);
             if(selectedTrackSendsZones_.size() > 0)
                 fixedZones_.push_back(selectedTrackSendsZones_);
         }
         
         else if(zoneName == "TrackSend")
         {
-            ProcessZoneFile(zoneName, zoneName, this, trackSendsZones_);
+            ProcessZoneFile(zoneName, this, trackSendsZones_);
             if(trackSendsZones_.size() > 0)
                 fixedZones_.push_back(trackSendsZones_);
         }
@@ -2146,19 +2144,19 @@ void ZoneManager::DeactivateZones(vector<Zone*> &zones)
     if(zones.size() == 0)
         return;
     
-    string basedOnZone = zones[0]->GetBasedOnZone();
+    string zoneName = zones[0]->GetName();
     
-    if(find(broadcast_.begin(), broadcast_.end(), basedOnZone) != broadcast_.end())
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, basedOnZone);
+    if(find(broadcast_.begin(), broadcast_.end(), zoneName) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, zoneName);
 
     for(auto zone : zones)
         zone->Deactivate();
 }
 
-void ZoneManager::Activate(ActivationType activationType, string basedOnZone, vector<Zone*> &zones)
+void ZoneManager::Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones)
 {
-    if(find(broadcast_.begin(), broadcast_.end(), basedOnZone) != broadcast_.end())
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, basedOnZone);
+    if(find(broadcast_.begin(), broadcast_.end(), zoneName) != broadcast_.end())
+        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneName);
 
     if(allowOverlay_ == false)
     {
@@ -2197,37 +2195,37 @@ void ZoneManager::Activate(ActivationType activationType, string basedOnZone, ve
     }
 }
 
-void ZoneManager::Activate(ActivationType activationType, vector<string> &basedOnZones)
+void ZoneManager::Activate(ActivationType activationType, vector<string> &zoneNames)
 {
-    for(string basedOnZone : basedOnZones)
+    for(string zoneName : zoneNames)
     {
-        if(basedOnZone == "FocusedFX")
+        if(zoneName == "FocusedFX")
             MapFocusedFXToWidgets();
-        else if(basedOnZone == "SelectedTrackFX")
+        else if(zoneName == "SelectedTrackFX")
             MapSelectedTrackFXToWidgets();
         
-        else if(basedOnZone == "SelectedTrack")
+        else if(zoneName == "SelectedTrack")
             Activate(activationType, "SelectedTrack", selectedTrackZones_);
         
-        else if(basedOnZone == "SelectedTrackFXMenu")
+        else if(zoneName == "SelectedTrackFXMenu")
             Activate(activationType, "SelectedTrackFXMenu", selectedTrackFXMenuZones_);
-        else if(basedOnZone == "TrackFXMenu")
+        else if(zoneName == "TrackFXMenu")
             Activate(activationType, "TrackFXMenu", trackFXMenuZones_);
         
-        else if(basedOnZone == "SelectedTrackReceive")
+        else if(zoneName == "SelectedTrackReceive")
             Activate(activationType, "SelectedTrackReceive", selectedTrackReceivesZones_);
-        else if(basedOnZone == "TrackReceive")
+        else if(zoneName == "TrackReceive")
             Activate(activationType, "TrackReceive", trackReceivesZones_);
         
-        else if(basedOnZone == "SelectedTrackSend")
+        else if(zoneName == "SelectedTrackSend")
             Activate(activationType, "SelectedTrackSend", selectedTrackSendsZones_);
-        else if(basedOnZone == "TrackSend")
+        else if(zoneName == "TrackSend")
             Activate(activationType, "TrackSend", trackSendsZones_);
         
-        else if(basedOnZone == "Home")
+        else if(zoneName == "Home")
         {
-            if(find(broadcast_.begin(), broadcast_.end(), basedOnZone) != broadcast_.end())
-                surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, basedOnZone);
+            if(find(broadcast_.begin(), broadcast_.end(), zoneName) != broadcast_.end())
+                surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneName);
 
             GoHome();
         }
@@ -2242,8 +2240,8 @@ void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName
             GoHome();
         else
         {
-            vector<string> basedOnZones { zoneName };
-            Activate(activationType, basedOnZones);
+            vector<string> zoneNames { zoneName };
+            Activate(activationType, zoneNames);
         }
     }
 }
