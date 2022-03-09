@@ -2393,9 +2393,6 @@ Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->
 Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
 Navigator* ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
 Navigator* ZoneManager::GetDefaultNavigator() { return surface_->GetPage()->GetDefaultNavigator(); }
-int ZoneManager::GetSendSlot() { return surface_->GetPage()->GetSendSlot(); }
-int ZoneManager::GetReceiveSlot() { return surface_->GetPage()->GetReceiveSlot(); }
-int ZoneManager::GetFXMenuSlot() { return surface_->GetPage()->GetFXMenuSlot(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

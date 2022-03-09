@@ -717,10 +717,20 @@ private:
     
     bool allowOverlay_ = false;
       
+    int sendSlot_ = 0;
+    int receiveSlot_ = 0;
+    int fxMenuSlot_ = 0;
+    
+    int maxSendSlot_ = 0;
+    int maxReceiveSlot_ = 0;
+    int maxFXMenuSlot_ = 0;
+    
+    map<Widget*, bool> usedWidgets_;
+    
+    
     vector<string> associatedZoneNames_;
     map<string, vector<string>> associatedSubZoneNames_;
 
-    map<Widget*, bool> usedWidgets_;
 
     vector<Zone*> focusedFXZones_;
     map<int, map<int, int>> focusedFXDictionary;
@@ -792,14 +802,14 @@ public:
     Navigator* GetFocusedFXNavigator();
     Navigator* GetDefaultNavigator();
     Navigator* GetNavigatorForChannel(int channelNum);
-    int GetSendSlot();
-    int GetReceiveSlot();
-    int GetFXMenuSlot();
+    
+    int GetSendSlot() { return sendSlot_; }
+    int GetReceiveSlot() { return receiveSlot_; }
+    int GetFXMenuSlot() { return fxMenuSlot_; }
+    
     int GetSlot(string zoneName);
     int GetNumChannels();
-    int GetNumSendSlots();
-    int GetNumReceiveSlots();
-    int GetNumFXSlots();
+
     
     void ReceiveActivate(ActivationType activationType, string zoneName);
     void GoHome();
@@ -810,7 +820,42 @@ public:
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
-      
+    
+    void SetFXMenuSlot(int fxMenuSlot) { fxMenuSlot_ = fxMenuSlot; }
+    
+    void AdjustFXMenuBank(int amount)
+    {
+        fxMenuSlot_ += amount;
+        
+        if(fxMenuSlot_ < 0)
+            fxMenuSlot_ = maxFXMenuSlot_;
+        
+        if(fxMenuSlot_ > maxFXMenuSlot_)
+            fxMenuSlot_ = 0;
+    }
+    
+    void AdjustSendBank(int amount)
+    {
+        sendSlot_ += amount;
+        
+        if(sendSlot_ < 0)
+            sendSlot_ = 0;
+        
+        if(sendSlot_ > maxSendSlot_)
+            sendSlot_ = maxSendSlot_;
+    }
+
+    void AdjustReceiveBank(int amount)
+    {
+        receiveSlot_ += amount;
+        
+        if(receiveSlot_ < 0)
+            receiveSlot_ = 0;
+        
+        if(receiveSlot_ > maxReceiveSlot_)
+            receiveSlot_ = maxReceiveSlot_;
+    }
+    
     void MapTrackFXSlotToWidgets(MediaTrack* track, int fxSlot)
     {
         char FXName[BUFSZ];
@@ -1426,14 +1471,6 @@ private:
     Navigator* const focusedFXNavigator_ = nullptr;
     Navigator* const defaultNavigator_ = nullptr;
     
-    int sendSlot_ = 0;
-    int receiveSlot_ = 0;
-    int fxMenuSlot_ = 0;
-    
-    int maxSendSlot_ = 0;
-    int maxReceiveSlot_ = 0;
-    int maxFXMenuSlot_ = 0;
-    
     vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     int autoModeIndex_ = 0;
     
@@ -1485,9 +1522,6 @@ public:
     Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
     Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
     Navigator* GetDefaultNavigator() { return defaultNavigator_; }
-    int GetSendSlot() { return sendSlot_; }
-    int GetReceiveSlot() { return receiveSlot_; }
-    int GetFXMenuSlot() { return fxMenuSlot_; }
     
     void SetAutoModeIndex()
     {
@@ -1592,40 +1626,7 @@ public:
                 vcaTrackOffset_ = top;
         }
     }
-    
-    void AdjustFXMenuBank(ControlSurface* originatingSurface, int amount)
-    {
-        fxMenuSlot_ += amount;
         
-        if(fxMenuSlot_ < 0)
-            fxMenuSlot_ = maxFXMenuSlot_;
-        
-        if(fxMenuSlot_ > maxFXMenuSlot_)
-            fxMenuSlot_ = 0;
-    }
-    
-    void AdjustSendBank(int amount)
-    {
-        sendSlot_ += amount;
-        
-        if(sendSlot_ < 0)
-            sendSlot_ = 0;
-        
-        if(sendSlot_ > maxSendSlot_)
-            sendSlot_ = maxSendSlot_;
-    }
-
-    void AdjustReceiveBank(int amount)
-    {
-        receiveSlot_ += amount;
-        
-        if(receiveSlot_ < 0)
-            receiveSlot_ = 0;
-        
-        if(receiveSlot_ > maxReceiveSlot_)
-            receiveSlot_ = maxReceiveSlot_;
-    }
-    
     void TogglePin(MediaTrack* track)
     {
         for(auto  [key, navigator] : trackNavigators_)
@@ -1793,9 +1794,7 @@ public:
     }
     
 //  Page only uses the following:
-    
-    void SetFXMenuSlot(int fxMenuSlot) { fxMenuSlot_ = fxMenuSlot; }
-    
+       
     void OnTrackSelection()
     {
         if(scrollLink_)
@@ -1889,10 +1888,13 @@ public:
         vcaTopLeadTracks_.clear();
         vcaSpillTracks_.clear();
         selectedTracks_.clear();
+        
+        // GAW TBD -- do on the realtime calc in Zone Manager, don't forget to check upon activation too !
+        /*
         maxSendSlot_ = 0;
         maxReceiveSlot_ = 0;
         maxFXMenuSlot_ = 0;
-
+*/
         MediaTrack* leadTrack = nullptr;
         bitset<32> leadTrackVCALeaderGroup;
         bitset<32> leadTrackVCALeaderGroupHigh;
@@ -1910,7 +1912,7 @@ public:
             MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_);
             
             if(DAW::IsTrackVisible(track, followMCP_))
-            {
+            {/*
                 int maxSendSlot = DAW::GetTrackNumSends(track, 0) - 1;
                 if(maxSendSlot > maxSendSlot_)
                 {
@@ -1928,7 +1930,7 @@ public:
                 int maxFXMenuSlot = DAW::TrackFX_GetCount(track) - 1;
                 if(maxFXMenuSlot > maxFXMenuSlot_)
                     maxFXMenuSlot_ = maxFXMenuSlot;
-                
+                */
                 if(DAW::GetMediaTrackInfo_Value(track, "I_SELECTED"))
                     selectedTracks_.push_back(track);
                 
@@ -1962,7 +1964,7 @@ public:
                 }
             }
         }
-
+/*
         if(sendSlot_ > maxSendSlot_)
             sendSlot_ = maxSendSlot_;
 
@@ -1971,7 +1973,7 @@ public:
 
         if(fxMenuSlot_ > maxFXMenuSlot_)
             fxMenuSlot_ = maxFXMenuSlot_;
-        
+        */
         for(auto  [key, navigator] : trackNavigators_)
         {
             if(navigator->GetIsChannelPinned())
@@ -2283,14 +2285,8 @@ public:
     Navigator* GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
     Navigator* GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
     Navigator* GetDefaultNavigator() { return trackNavigationManager_->GetDefaultNavigator(); }
-    int GetSendSlot() { return trackNavigationManager_->GetSendSlot(); }
-    int GetReceiveSlot() { return trackNavigationManager_->GetReceiveSlot(); }
-    int GetFXMenuSlot() { return trackNavigationManager_->GetFXMenuSlot(); }
     void ForceScrollLink() { trackNavigationManager_->ForceScrollLink(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
-    void AdjustFXMenuBank(ControlSurface* originatingSurface, int amount) { trackNavigationManager_->AdjustFXMenuBank(originatingSurface, amount); }
-    void AdjustSendBank(int amount) { trackNavigationManager_->AdjustSendBank(amount); }
-    void AdjustReceiveBank(int amount) { trackNavigationManager_->AdjustReceiveBank(amount); }
     void TogglePin(MediaTrack* track) { trackNavigationManager_->TogglePin(track); }
     void RestorePinnedTracks() { trackNavigationManager_->RestorePinnedTracks(); }
     void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
@@ -2473,37 +2469,7 @@ public:
                 if(page->GetSynchPages())
                     page->AdjustTrackBank(amount);
     }
-    
-    void AdjustSendBank(Page* sendingPage, int amount)
-    {
-        if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustSendBank(amount);
-        else
-            for(auto page: pages_)
-                if(page->GetSynchPages())
-                    page->AdjustSendBank(amount);
-    }
-    
-    void AdjustReceiveBank(Page* sendingPage, int amount)
-    {
-        if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustReceiveBank(amount);
-        else
-            for(auto page: pages_)
-                if(page->GetSynchPages())
-                    page->AdjustReceiveBank(amount);
-    }
-    
-    void AdjustFXMenuBank(Page* sendingPage, ControlSurface* originatingSurface, int amount)
-    {
-        if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustFXMenuBank(originatingSurface, amount);
-        else
-            for(auto page: pages_)
-                if(page->GetSynchPages())
-                    page->AdjustFXMenuBank(originatingSurface, amount);
-    }
-    
+        
     void NextPage()
     {
         if(pages_.size() > 0)

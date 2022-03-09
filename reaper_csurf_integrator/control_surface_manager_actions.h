@@ -270,7 +270,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        TheManager->AdjustSendBank(context->GetPage(), context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSendBank(context->GetIntParam());
     }
 };
 
@@ -285,7 +285,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        TheManager->AdjustReceiveBank(context->GetPage(), context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustReceiveBank(context->GetIntParam());
     }
 };
 
@@ -300,7 +300,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        TheManager->AdjustFXMenuBank(context->GetPage(), context->GetSurface(), context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustFXMenuBank(context->GetIntParam());
     }
 };
 
