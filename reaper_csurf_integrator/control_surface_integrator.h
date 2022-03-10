@@ -717,14 +717,18 @@ private:
     
     bool allowOverlay_ = false;
       
-    int sendSlot_ = 0;
-    int receiveSlot_ = 0;
-    int fxMenuSlot_ = 0;
+    int trackSendSlot_ = 0;
+    int trackReceiveSlot_ = 0;
+    int trackFXMenuSlot_ = 0;
     
     int maxSendSlot_ = 0;
     int maxReceiveSlot_ = 0;
     int maxFXMenuSlot_ = 0;
     
+    int selectedTrackSendSlot_ = 0;
+    int selectedTrackReceiveSlot_ = 0;
+    int selectedTrackFXMenuSlot_ = 0;
+        
     map<Widget*, bool> usedWidgets_;
     
     
@@ -803,9 +807,13 @@ public:
     Navigator* GetDefaultNavigator();
     Navigator* GetNavigatorForChannel(int channelNum);
     
-    int GetSendSlot() { return sendSlot_; }
-    int GetReceiveSlot() { return receiveSlot_; }
-    int GetFXMenuSlot() { return fxMenuSlot_; }
+    int GetTrackSendSlot() { return trackSendSlot_; }
+    int GetTrackReceiveSlot() { return trackReceiveSlot_; }
+    int GetTrackFXMenuSlot() { return trackFXMenuSlot_; }
+    
+    int GetSelectedTrackSendSlot() { return selectedTrackSendSlot_; }
+    int GetSelectedTrackReceiveSlot() { return selectedTrackReceiveSlot_; }
+    int GetSelectedTrackFXMenuSlot() { return selectedTrackFXMenuSlot_; }
     
     int GetSlot(string zoneName);
     int GetNumChannels();
@@ -821,39 +829,72 @@ public:
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
     
-    void SetFXMenuSlot(int fxMenuSlot) { fxMenuSlot_ = fxMenuSlot; }
+    void SetFXMenuSlot(int fxMenuSlot) { trackFXMenuSlot_ = fxMenuSlot; }
     
-    void AdjustFXMenuBank(int amount)
+    void AdjustSelectedTrackFXMenuBank(int amount)
     {
-        fxMenuSlot_ += amount;
+        selectedTrackFXMenuSlot_ += amount;
         
-        if(fxMenuSlot_ < 0)
-            fxMenuSlot_ = maxFXMenuSlot_;
+        if(selectedTrackFXMenuSlot_ < 0)
+            selectedTrackFXMenuSlot_ = 0;
         
-        if(fxMenuSlot_ > maxFXMenuSlot_)
-            fxMenuSlot_ = 0;
+        if(selectedTrackFXMenuSlot_ > maxFXMenuSlot_)
+            selectedTrackFXMenuSlot_ = 0;
     }
     
-    void AdjustSendBank(int amount)
+    void AdjustSelectedTrackSendBank(int amount)
     {
-        sendSlot_ += amount;
+        selectedTrackSendSlot_ += amount;
         
-        if(sendSlot_ < 0)
-            sendSlot_ = 0;
+        if(selectedTrackSendSlot_ < 0)
+            selectedTrackSendSlot_ = 0;
         
-        if(sendSlot_ > maxSendSlot_)
-            sendSlot_ = maxSendSlot_;
+        if(selectedTrackSendSlot_ > maxSendSlot_)
+            selectedTrackSendSlot_ = maxSendSlot_;
     }
 
-    void AdjustReceiveBank(int amount)
+    void AdjustSelectedTrackReceiveBank(int amount)
     {
-        receiveSlot_ += amount;
+        selectedTrackReceiveSlot_ += amount;
         
-        if(receiveSlot_ < 0)
-            receiveSlot_ = 0;
+        if(selectedTrackReceiveSlot_ < 0)
+            selectedTrackReceiveSlot_ = 0;
         
-        if(receiveSlot_ > maxReceiveSlot_)
-            receiveSlot_ = maxReceiveSlot_;
+        if(selectedTrackReceiveSlot_ > maxReceiveSlot_)
+            selectedTrackReceiveSlot_ = maxReceiveSlot_;
+    }
+    
+    void AdjustTrackFXMenuBank(int amount)
+    {
+        trackFXMenuSlot_ += amount;
+        
+        if(trackFXMenuSlot_ < 0)
+            trackFXMenuSlot_ = maxFXMenuSlot_;
+        
+        if(trackFXMenuSlot_ > maxFXMenuSlot_)
+            trackFXMenuSlot_ = 0;
+    }
+    
+    void AdjustTrackSendBank(int amount)
+    {
+        trackSendSlot_ += amount;
+        
+        if(trackSendSlot_ < 0)
+            trackSendSlot_ = 0;
+        
+        if(trackSendSlot_ > maxSendSlot_)
+            trackSendSlot_ = maxSendSlot_;
+    }
+
+    void AdjustTrackReceiveBank(int amount)
+    {
+        trackReceiveSlot_ += amount;
+        
+        if(trackReceiveSlot_ < 0)
+            trackReceiveSlot_ = 0;
+        
+        if(trackReceiveSlot_ > maxReceiveSlot_)
+            trackReceiveSlot_ = maxReceiveSlot_;
     }
     
     void MapTrackFXSlotToWidgets(MediaTrack* track, int fxSlot)

@@ -1161,9 +1161,12 @@ void Manager::InitActionsDictionary()
     actions_["ToggleActivation"] =                  new ToggleActivation();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["SelectedTrackBank"] =                 new SelectedTrackBank();
-    actions_["SendBank"] =                          new SendBank();
-    actions_["ReceiveBank"] =                       new ReceiveBank();
-    actions_["FXMenuBank"] =                        new FXMenuBank();
+    actions_["SelectedTrackSendBank"] =             new SelectedTrackSendBank();
+    actions_["SelectedTrackReceiveBank"] =          new SelectedTrackReceiveBank();
+    actions_["SelectedTrackFXMenuBank"] =           new SelectedTrackFXMenuBank();
+    actions_["TrackSendBank"] =                     new TrackSendBank();
+    actions_["TrackReceiveBank"] =                  new TrackReceiveBank();
+    actions_["TrackFXMenuBank"] =                   new TrackFXMenuBank();
     actions_["ClearAllSolo"] =                      new ClearAllSolo();
     actions_["Shift"] =                             new SetShift();
     actions_["Option"] =                            new SetOption();
@@ -1848,17 +1851,17 @@ vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
 int Zone::GetSlotIndex()
 {
     if(name_ == "TrackSend")
-        return zoneManager_->GetSendSlot();
+        return zoneManager_->GetTrackSendSlot();
     else if(name_ == "TrackReceive")
-        return zoneManager_->GetReceiveSlot();
+        return zoneManager_->GetTrackReceiveSlot();
     else if(name_ == "TrackFXMenu")
-        return slotIndex_ + zoneManager_->GetFXMenuSlot();
+        return slotIndex_ + zoneManager_->GetTrackFXMenuSlot();
     else if(name_ == "SelectedTrackSend")
-        return slotIndex_ + zoneManager_->GetSendSlot();
+        return slotIndex_ + zoneManager_->GetSelectedTrackSendSlot();
     else if(name_ == "SelectedTrackReceive")
-        return slotIndex_ + zoneManager_->GetReceiveSlot();
+        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveSlot();
     else if(name_ == "SelectedTrackFXMenu")
-        return slotIndex_ + zoneManager_->GetFXMenuSlot();
+        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuSlot();
     else
         return slotIndex_;
 }
@@ -2118,6 +2121,8 @@ void ZoneManager::Initialize()
 
 void ZoneManager::RequestUpdate()
 {
+    // GAW TBD put rebuild TrackList clones here for TrackSends, SelectedTrackSends, etc.
+    
     CheckFocusedFXState();
     
     for(auto &[key, value] : usedWidgets_)

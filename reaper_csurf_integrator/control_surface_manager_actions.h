@@ -260,47 +260,92 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SendBank : public Action
+class SelectedTrackSendBank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SendBank"; }
+    virtual string GetName() override { return "SelectedTrackSendBank"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustSendBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ReceiveBank : public Action
+class SelectedTrackReceiveBank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ReceiveBank"; }
+    virtual string GetName() override { return "SelectedTrackReceiveBank"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustReceiveBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FXMenuBank : public Action
+class SelectedTrackFXMenuBank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXMenuBank"; }
+    virtual string GetName() override { return "SelectedTrackFXMenuBank"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustFXMenuBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackSendBank : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackSendBank"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackReceiveBank : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackReceiveBank"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackFXMenuBank : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackFXMenuBank"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
     }
 };
 
