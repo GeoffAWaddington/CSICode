@@ -254,11 +254,7 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
         
         CSIZoneInfo info;
         info.filePath = filePath;
-        
-        int numLinesRead = 0;
-    
-        vector<vector<string>> lines;
-        
+                 
         for (string line; getline(file, line) ; )
         {
             line = regex_replace(line, regex(TabChars), " ");
@@ -277,25 +273,15 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
             vector<string> tokens(GetTokens(line));
                        
             if(tokens.size() > 0)
-                lines.push_back(tokens);
-
-            numLinesRead++;
+            {
+                if(tokens[0] == "Zone" && tokens.size() > 1)
+                {
+                    zoneName = tokens[1];
+                    info.alias = tokens.size() > 2 ? tokens[2] : "";
+                }
+            }
             
-            if(numLinesRead > 1)
-                break;
-        }
-        
-        for(auto tokens : lines)
-        {
-            if(tokens[0] == "Zone" && tokens.size() > 1)
-            {
-                zoneName = tokens[1];
-                info.alias = tokens.size() > 2 ? tokens[2] : "";
-            }
-            else if(tokens[0] == "FocusedFXNavigator")
-            {
-                info.navigator = "FocusedFXNavigator";
-            }
+            break;
         }
         
         zoneManager->AddZoneFilePath(zoneName, info);
@@ -1155,7 +1141,6 @@ void Manager::InitActionsDictionary()
     actions_["Broadcast"] =                         new Broadcast();
     actions_["Receive"] =                           new Receive();
     actions_["GoSubZone"] =                         new GoSubZone();
-    actions_["AllowOverlay"] =                      new AllowOverlay();
     actions_["Activate"] =                          new Activate();
     actions_["Deactivate"] =                        new Deactivate();
     actions_["ToggleActivation"] =                  new ToggleActivation();
@@ -2121,8 +2106,27 @@ void ZoneManager::Initialize()
 
 void ZoneManager::RequestUpdate()
 {
-    // GAW TBD put rebuild TrackList clones here for TrackSends, SelectedTrackSends, etc.
-    
+    // GAW TBD -- access this from every Zone to get realtime values
+    /*
+    int maxSendSlot = DAW::GetTrackNumSends(track, 0) - 1;
+    if(maxSendSlot > maxSendSlot_)
+    {
+        maxSendSlot_ = maxSendSlot;
+        AdjustSendBank(0);
+    }
+ 
+    int maxReceiveSlot = DAW::GetTrackNumSends(track, -1) - 1;
+    if(maxReceiveSlot > maxReceiveSlot_)
+    {
+        maxReceiveSlot_ = maxReceiveSlot;
+        AdjustReceiveBank(0);
+    }
+
+    int maxFXMenuSlot = DAW::TrackFX_GetCount(track) - 1;
+    if(maxFXMenuSlot > maxFXMenuSlot_)
+        maxFXMenuSlot_ = maxFXMenuSlot;
+     */
+
     CheckFocusedFXState();
     
     for(auto &[key, value] : usedWidgets_)
@@ -2151,7 +2155,7 @@ void ZoneManager::DeactivateZones(vector<Zone*> &zones)
     
     string zoneName = zones[0]->GetName();
     
-    if(find(broadcast_.begin(), broadcast_.end(), zoneName) != broadcast_.end())
+    if(broadcast_.count(zoneName) > 0)
         surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, zoneName);
 
     for(auto zone : zones)
@@ -2160,9 +2164,9 @@ void ZoneManager::DeactivateZones(vector<Zone*> &zones)
 
 void ZoneManager::Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones)
 {
-    if(find(broadcast_.begin(), broadcast_.end(), zoneName) != broadcast_.end())
+    if(broadcast_.count(zoneName) > 0)
         surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneName);
-
+/*
     if(allowOverlay_ == false)
     {
         auto it = find(fixedZones_.begin(), fixedZones_.end(), zones);
@@ -2180,7 +2184,7 @@ void ZoneManager::Activate(ActivationType activationType, string zoneName, vecto
                     overlayedZone->Deactivate();
         }
     }
-    
+    */
     for(auto zone : zones)
     {
         switch (activationType)
@@ -2229,7 +2233,7 @@ void ZoneManager::Activate(ActivationType activationType, vector<string> &zoneNa
         
         else if(zoneName == "Home")
         {
-            if(find(broadcast_.begin(), broadcast_.end(), zoneName) != broadcast_.end())
+            if(broadcast_.count(zoneName) > 0)
                 surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneName);
 
             GoHome();
@@ -2239,7 +2243,7 @@ void ZoneManager::Activate(ActivationType activationType, vector<string> &zoneNa
 
 void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName)
 {
-    if(find(receive_.begin(), receive_.end(), zoneName) != receive_.end())
+    if(receive_.count(zoneName) > 0)
     {
         if(zoneName == "Home")
             GoHome();
@@ -2253,7 +2257,7 @@ void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName
 
 void ZoneManager::UnmapFocusedFXFromWidgets()
 {
-    if(find(broadcast_.begin(), broadcast_.end(), "FocusedFX") != broadcast_.end())
+    if(broadcast_.count("FocusedFX") > 0)
         surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, "FocusedFX");
 
     
@@ -2265,7 +2269,7 @@ void ZoneManager::UnmapFocusedFXFromWidgets()
 
 void ZoneManager::MapFocusedFXToWidgets()
 {
-    if(find(broadcast_.begin(), broadcast_.end(), "FocusedFX") != broadcast_.end())
+    if(broadcast_.count("FocusedFX") > 0)
         surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
     
     UnmapFocusedFXFromWidgets();
@@ -2333,14 +2337,14 @@ void ZoneManager::PreProcessZones()
 
 void ZoneManager::ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones)
 {
-    if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator == "FocusedFXNavigator")
-        ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
+    //if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator == "FocusedFXNavigator")
+        //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
 }
 
 void ZoneManager::ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones)
 {
-    if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator != "FocusedFXNavigator")
-        ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
+    //if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator != "FocusedFXNavigator")
+        //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
 }
 
 void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones)
@@ -2383,16 +2387,6 @@ void ZoneManager::GoHome()
         zone->Activate();
 }
 
-Navigator* ZoneManager::GetNavigatorForChannel(int channelNum)
-{
-    if(channelNum < 0)
-        return nullptr;
-    
-    if(navigators_.count(channelNum) > 0)
-        return navigators_[channelNum];
-    else
-        return nullptr;
-}
 
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
 Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }

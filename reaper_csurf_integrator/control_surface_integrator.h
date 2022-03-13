@@ -697,11 +697,50 @@ public:
     }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ZoneNavigator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    void ClampMaxSlot()
+    {
+        int maxSlot = GetMaxSlot();
+        
+        if(slot_ > maxSlot)
+            slot_ = maxSlot;
+    }
+    
+protected:
+    string const zoneName_ = "";
+    int slot_ = 0;
+    vector<Zone*> zones_;
+    bool isActive_ = false;
+    
+    ZoneNavigator(string zoneName) : zoneName_(zoneName) {}
+    virtual void CheckFocusedFXState() {}
+    virtual int GetMaxSlot() { return 0; } // GAW TBD subclasses override to get proper value context
+    
+public:
+    virtual ~ZoneNavigator() {}
+
+    void SetIsActive(bool isActive) { isActive_ = isActive; }
+    virtual int GetSlot() { return 0; } // GAW TBD subclasses override to get proper slot in context
+    
+    void AdjustBank(int amount)
+    {
+        slot_ += amount;
+        
+        if(slot_ < 0)
+            slot_ = 0;
+        
+        ClampMaxSlot();
+    }
+};
+
 struct CSIZoneInfo
 {
     string filePath = "";
     string alias = "";
-    string navigator = "NotFocusedFXNavigator";
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -709,13 +748,11 @@ class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    vector<string> broadcast_;
-    vector<string> receive_;
+    map<string, string> broadcast_;
+    map<string, string> receive_;
 
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
-    
-    bool allowOverlay_ = false;
       
     int trackSendSlot_ = 0;
     int trackReceiveSlot_ = 0;
@@ -756,8 +793,6 @@ private:
     
     vector<vector<Zone*>> fixedZones_;
     
-    map<int, Navigator*> navigators_;
-
     map<string, CSIZoneInfo> zoneFilePaths_;
            
     void MapFocusedFXToWidgets();
@@ -793,7 +828,7 @@ private:
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
 
-    void ForceClearAllWidgets() { } // GAW clear all widgets in context
+    void ForceClearAllWidgets() { } // GAW TBD clear all widgets in context
     
     void Initialize();
    
@@ -805,7 +840,6 @@ public:
     Navigator* GetSelectedTrackNavigator();
     Navigator* GetFocusedFXNavigator();
     Navigator* GetDefaultNavigator();
-    Navigator* GetNavigatorForChannel(int channelNum);
     
     int GetTrackSendSlot() { return trackSendSlot_; }
     int GetTrackReceiveSlot() { return trackReceiveSlot_; }
@@ -907,11 +941,6 @@ public:
             ActivateFXZone(FXName, fxSlot, fxZones_);
     }
     
-    void AllowOverlay()
-    {
-        allowOverlay_ = true;
-    }
-    
     void AddAssociatedZoneName(string name)
     {
         associatedZoneNames_.push_back(name);
@@ -930,13 +959,13 @@ public:
     void SetBroadcast(ActionContext* context)
     {
         for(string param : context->GetZoneNames())
-            broadcast_.push_back(param);
+            broadcast_[param] = param;
     }
 
     void SetReceive(ActionContext* context)
     {
         for(string param : context->GetZoneNames())
-            receive_.push_back(param);
+            receive_[param] = param;
     }
 
     void Activate(vector<string> &zoneNames)
