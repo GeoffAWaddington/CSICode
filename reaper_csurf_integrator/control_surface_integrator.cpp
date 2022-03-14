@@ -296,6 +296,11 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
 
 static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, vector<Zone*> &zones)
 {
+    
+    // GAW TBD -- modifiy this to use the passed in ZoneNavigator
+
+    
+    
     if(zoneManager->GetZoneFilePaths().count(zoneNameToProcess) < 1)
         return;
     
@@ -303,7 +308,8 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
        
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
-    bool isInAssociatedZonesSection = false;
+    bool isInSubZonesSection = false;
+    vector<string> subZones;
     map<string, string> touchIds;
     
     map<string, map<string, vector<ActionTemplate*>>> widgetActions;
@@ -348,6 +354,11 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
                     currentActionTemplate = nullptr;
                     
                     ControlSurface* surface = zoneManager->GetSurface();
+                    
+                    
+                    
+                    
+                    
                     
                     vector<Navigator*> navigators;
                     
@@ -395,6 +406,14 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
                             navigators.push_back(zoneManager->GetSelectedTrackNavigator());
                     }
                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     for(int i = 0; i < navigators.size(); i++)
                     {
                         string numStr = to_string(i + 1);
@@ -418,9 +437,12 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
                         
                         Zone* zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath);
                         
-                        for(auto includedZoneName : includedZones)
-                            ProcessZoneFile(includedZoneName, zoneManager, zone->GetIncludedZones());
-
+                        for(auto name : includedZones)
+                            zone->AddIncludedZoneName(name);
+                        
+                        for(auto name : subZones)
+                            zone->AddSubZoneName(name);
+                        
                         for(auto [widgetName, modifierActions] : widgetActions)
                         {
                             string surfaceWidgetName = widgetName;
@@ -468,6 +490,7 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
                     }
                                     
                     includedZones.clear();
+                    subZones.clear();
                     widgetActions.clear();
                     touchIds.clear();
                     
@@ -481,28 +504,16 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
                     isInIncludedZonesSection = false;
                 
                 else if(isInIncludedZonesSection)
-                {
                     includedZones.push_back(tokens[0]);
-                    
-                    if(tokens.size() > 1)
-                        for(int i = 1; i < tokens.size(); i++)
-                    zoneManager->AddAssociatedSubZoneName(tokens[0], tokens[i]);
-                }
-                 
-                else if(tokens[0] == "AssociatedZones")
-                    isInAssociatedZonesSection = true;
+
+                else if(tokens[0] == "SubZones")
+                    isInSubZonesSection = true;
                 
-                else if(tokens[0] == "AssociatedZonesEnd")
-                    isInAssociatedZonesSection = false;
+                else if(tokens[0] == "SubZonesEnd")
+                    isInSubZonesSection = false;
                 
-                else if(isInAssociatedZonesSection)
-                {
-                    zoneManager->AddAssociatedZoneName(tokens[0]);
-                    
-                    if(tokens.size() > 1)
-                        for(int i = 1; i < tokens.size(); i++)
-                    zoneManager->AddAssociatedSubZoneName(tokens[0], tokens[i]);
-                }
+                else if(isInSubZonesSection)
+                    subZones.push_back(tokens[0]);
                  
                 else if(tokens.size() > 1)
                 {
@@ -2028,78 +2039,82 @@ void OSC_IntFeedbackProcessor::ForceValue(int param, double value)
 void ZoneManager::Initialize()
 {
     PreProcessZones();
-      
-    ProcessZoneFile("Home", this, homeZone_);
+     
+    for(auto [zoneName, zoneInfo] : zoneFilePaths_)
+    {
+        ZoneNavigationManager* manager = nullptr;
+        
+        if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack" ||
+           zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
+        {
+            if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack")
+                manager = new SelectedTrackZoneNavigationManager(zoneName);
+            else if(zoneName == "SelectedTrackSend")
+                manager = new SelectedTrackSendZoneNavigationManager(zoneName);
+            else if(zoneName == "SelectedTrackReceive")
+                manager = new SelectedTrackReceiveZoneNavigationManager(zoneName);
+            else if(zoneName == "SelectedTrackFXMenu")
+                manager = new SelectedTrackFXMenuZoneNavigationManager(zoneName);
+            
+            manager->AddNavigator(GetSelectedTrackNavigator());
+            navigationManagers_[zoneName] = manager;
+        }
+        else if(zoneName == "MasterTrack")
+        {
+            manager = new MasterTrackZoneNavigationManager(zoneName);
+            manager->AddNavigator(GetMasterTrackNavigator());
+            navigationManagers_[zoneName] = manager;
+        }
+        else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+        {
+            if(zoneName == "Track")
+                manager = new TrackZoneNavigationManager(zoneName);
+            else if(zoneName == "TrackSend")
+                manager = new TrackSendZoneNavigationManager(zoneName);
+            else if(zoneName == "TrackReceive")
+                manager = new TrackReceiveZoneNavigationManager(zoneName);
+            else if(zoneName == "TrackFXMenu")
+                manager = new TrackFXMenuZoneNavigationManager(zoneName);
+            
+            for(int i = 0; i < GetNumChannels(); i++)
+                manager->AddNavigator(surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset()));
+            
+            navigationManagers_[zoneName] = manager;
+        }
+            
+        else
+            continue;
+    }
     
-    if(homeZone_.size() == 0)
+    
+    if(navigationManagers_.count("Home") < 1)
     {
         MessageBox(g_hwnd, (surface_->GetName() + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + surface_->GetName()).c_str(), MB_OK);
         return;
     }
-
-    for(auto zoneName : associatedZoneNames_)
-    {
-        if(zoneName == "SelectedTrack")
-        {
-            ProcessZoneFile(zoneName, this, selectedTrackZones_);
-            if(selectedTrackZones_.size() > 0)
-            {
-                // GAW TBD -- add associated SubZones to associated Zones here
-                // and do same for all cases below this one
-                fixedZones_.push_back(selectedTrackZones_);
-            }
-        }
-        
-        
-        
-        else if(zoneName == "SelectedTrackFXMenu")
-        {
-            ProcessZoneFile(zoneName, this, selectedTrackFXMenuZones_);
-            if(selectedTrackFXMenuZones_.size() > 0)
-                fixedZones_.push_back(selectedTrackFXMenuZones_);
-        }
-        
-        else if(zoneName == "TrackFXMenu")
-        {
-            ProcessZoneFile(zoneName, this, trackFXMenuZones_);
-            if(trackFXMenuZones_.size() > 0)
-                fixedZones_.push_back(trackFXMenuZones_);
-        }
-        
-        
-        
-        else if(zoneName == "SelectedTrackReceive")
-        {
-            ProcessZoneFile(zoneName, this, selectedTrackReceivesZones_);
-            if(selectedTrackReceivesZones_.size() > 0)
-                fixedZones_.push_back(selectedTrackReceivesZones_);
-        }
-        
-        else if(zoneName == "TrackReceive")
-        {
-            ProcessZoneFile(zoneName, this, trackReceivesZones_);
-            if(trackReceivesZones_.size() > 0)
-                fixedZones_.push_back(trackReceivesZones_);
-        }
-        
-        
-        
-        else if(zoneName == "SelectedTrackSend")
-        {
-            ProcessZoneFile(zoneName, this, selectedTrackSendsZones_);
-            if(selectedTrackSendsZones_.size() > 0)
-                fixedZones_.push_back(selectedTrackSendsZones_);
-        }
-        
-        else if(zoneName == "TrackSend")
-        {
-            ProcessZoneFile(zoneName, this, trackSendsZones_);
-            if(trackSendsZones_.size() > 0)
-                fixedZones_.push_back(trackSendsZones_);
-        }
-    }
     
-    fixedZones_.push_back(homeZone_);
+    
+    
+    
+    
+    
+    
+    ProcessZoneFile("Home", this, homeZone_);
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+    
+    
+    
+    
+
     
     GoHome();
 }
@@ -2138,7 +2153,7 @@ void ZoneManager::RequestUpdate()
     for(Zone* zone : fxZones_)
         zone->RequestUpdate(usedWidgets_);
    
-    for(vector<Zone*> &zones : fixedZones_)
+    for(vector<Zone*> &zones : fixedZonesOld_)
         for(Zone* zone : zones)
             zone->RequestUpdate(usedWidgets_);
     
@@ -2322,7 +2337,7 @@ void ZoneManager::PreProcessZones()
     try
     {
         vector<string> zoneFilesToProcess;
-        listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // recursively find all the .zon files, starting at zoneFolder
+        listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // find all the .zon files to full folder depth, starting at zoneFolder
         
         for(auto zoneFilename : zoneFilesToProcess)
             PreProcessZoneFile(zoneFilename, this);
@@ -2380,7 +2395,7 @@ void ZoneManager::GoHome()
     for(auto zone : fxZones_)
         zone->Deactivate();
     
-    for(auto zones : fixedZones_)
+    for(auto zones : fixedZonesOld_)
         DeactivateZones(zones);
     
     for(auto zone : homeZone_)

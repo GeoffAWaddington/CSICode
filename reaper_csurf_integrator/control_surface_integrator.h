@@ -478,8 +478,10 @@ private:
     
     vector<Widget*> widgets_;
     
+    vector<string> includedZoneNames_;
     vector<Zone*> includedZones_;
 
+    vector<string> subZoneNames_;
     vector<Zone*> subZones_;
 
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
@@ -501,9 +503,9 @@ public:
     void Activate();
     void Deactivate();
 
-    void AddIncludedZone(Zone* &zone) { includedZones_.push_back(zone); }
-    vector<Zone*> &GetIncludedZones() { return includedZones_; }
-      
+    void AddIncludedZoneName(string name) { includedZoneNames_.push_back(name); }
+    void AddSubZoneName(string name) { subZoneNames_.push_back(name); }
+
     vector<Widget*> &GetWidgets() { return widgets_; }
 
     void Toggle()
@@ -698,7 +700,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ZoneNavigator
+class ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
@@ -714,17 +716,28 @@ protected:
     string const zoneName_ = "";
     int slot_ = 0;
     vector<Zone*> zones_;
+    vector<Navigator*> navigators_;
     bool isActive_ = false;
     
-    ZoneNavigator(string zoneName) : zoneName_(zoneName) {}
+    ZoneNavigationManager(string zoneName) : zoneName_(zoneName) {}
     virtual void CheckFocusedFXState() {}
-    virtual int GetMaxSlot() { return 0; } // GAW TBD subclasses override to get proper value context
+    virtual int GetMaxSlot() { return 0; } // GAW TBD subclasses override to get proper value in context
     
 public:
-    virtual ~ZoneNavigator() {}
+    virtual ~ZoneNavigationManager() {}
 
     void SetIsActive(bool isActive) { isActive_ = isActive; }
     virtual int GetSlot() { return 0; } // GAW TBD subclasses override to get proper slot in context
+    
+    void AddZone(Zone* zone)
+    {
+        zones_.push_back(zone);
+    }
+    
+    void AddNavigator(Navigator* navigator)
+    {
+        navigators_.push_back(navigator);
+    }
     
     void AdjustBank(int amount)
     {
@@ -738,83 +751,101 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FocusedFXZoneNavigator : public ZoneNavigator
+class TrackZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    FocusedFXZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    TrackZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackFXZoneNavigator : public ZoneNavigator
+class MasterTrackZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackFXZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    MasterTrackZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackZoneNavigator : public ZoneNavigator
+class FocusedFXZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    FocusedFXZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackSendZoneNavigator : public ZoneNavigator
+class SelectedTrackFXZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackSendZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    SelectedTrackFXZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackSendZoneNavigator : public ZoneNavigator
+class SelectedTrackZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackSendZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    SelectedTrackZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackReceiveZoneNavigator : public ZoneNavigator
+class TrackSendZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackReceiveZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    TrackSendZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackReceiveZoneNavigator : public ZoneNavigator
+class SelectedTrackSendZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackReceiveZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    SelectedTrackSendZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackFXMenuZoneNavigator : public ZoneNavigator
+class TrackReceiveZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackFXMenuZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    TrackReceiveZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackFXMenuZoneNavigator : public ZoneNavigator
+class SelectedTrackReceiveZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackFXMenuZoneNavigator(string zoneName) : ZoneNavigator(zoneName) {}
+    SelectedTrackReceiveZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackFXMenuZoneNavigationManager : public ZoneNavigationManager
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    TrackFXMenuZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SelectedTrackFXMenuZoneNavigationManager : public ZoneNavigationManager
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    SelectedTrackFXMenuZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
 
 };
 
@@ -837,6 +868,21 @@ private:
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
       
+    map<Widget*, bool> usedWidgets_;
+
+    
+    map<string, CSIZoneInfo> zoneFilePaths_;
+
+    map<string, ZoneNavigationManager*> navigationManagers_;
+    
+    vector<ZoneNavigationManager*> orderedZones_;
+    
+    
+    
+    
+    
+    
+    
     int trackSendSlot_ = 0;
     int trackReceiveSlot_ = 0;
     int trackFXMenuSlot_ = 0;
@@ -848,12 +894,7 @@ private:
     int selectedTrackSendSlot_ = 0;
     int selectedTrackReceiveSlot_ = 0;
     int selectedTrackFXMenuSlot_ = 0;
-        
-    map<Widget*, bool> usedWidgets_;
-    
-    
-    vector<string> associatedZoneNames_;
-    map<string, vector<string>> associatedSubZoneNames_;
+
 
 
     vector<Zone*> focusedFXZones_;
@@ -874,9 +915,8 @@ private:
 
     vector<Zone*> homeZone_;
     
-    vector<vector<Zone*>> fixedZones_;
+    vector<vector<Zone*>> fixedZonesOld_;
     
-    map<string, CSIZoneInfo> zoneFilePaths_;
            
     void MapFocusedFXToWidgets();
     void UnmapFocusedFXFromWidgets();
@@ -1023,16 +1063,6 @@ public:
         if(zoneFilePaths_.count(FXName) > 0)
             ActivateFXZone(FXName, fxSlot, fxZones_);
     }
-    
-    void AddAssociatedZoneName(string name)
-    {
-        associatedZoneNames_.push_back(name);
-    }
-    
-    void AddAssociatedSubZoneName(string zoneName, string name)
-    {
-        associatedSubZoneNames_[zoneName].push_back(name);
-    }
 
     void AddWidget(Widget* widget)
     {
@@ -1128,7 +1158,7 @@ public:
         for(auto zone : fxZones_)
             zone->DoAction(widget, isUsed, value);
 
-        for(vector<Zone*> zones : fixedZones_)
+        for(vector<Zone*> zones : fixedZonesOld_)
             for(auto zone : zones)
                 zone->DoAction(widget, isUsed, value);
     }
@@ -1145,7 +1175,7 @@ public:
         for(auto zone : fxZones_)
             zone->DoRelativeAction(widget, isUsed, delta);
 
-        for(vector<Zone*> zones : fixedZones_)
+        for(vector<Zone*> zones : fixedZonesOld_)
             for(auto zone : zones)
                 zone->DoRelativeAction(widget, isUsed, delta);
     }
@@ -1162,7 +1192,7 @@ public:
         for(auto zone : fxZones_)
             zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 
-        for(vector<Zone*> zones : fixedZones_)
+        for(vector<Zone*> zones : fixedZonesOld_)
             for(auto zone : zones)
                 zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
@@ -1179,7 +1209,7 @@ public:
         for(auto zone : fxZones_)
             zone->DoTouch(widget, widget->GetName(), isUsed, value);
 
-        for(vector<Zone*> zones : fixedZones_)
+        for(vector<Zone*> zones : fixedZonesOld_)
             for(auto zone : zones)
                 zone->DoTouch(widget, widget->GetName(), isUsed, value);
     }
