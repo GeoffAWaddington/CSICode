@@ -2048,33 +2048,33 @@ void ZoneManager::Initialize()
            zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
         {
             if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack")
-                manager = new SelectedTrackZoneNavigationManager(zoneName);
+                manager = new SelectedTrackZoneNavigationManager(zoneName, this);
             else if(zoneName == "SelectedTrackSend")
-                manager = new SelectedTrackSendZoneNavigationManager(zoneName);
+                manager = new SelectedTrackSendZoneNavigationManager(zoneName, this);
             else if(zoneName == "SelectedTrackReceive")
-                manager = new SelectedTrackReceiveZoneNavigationManager(zoneName);
+                manager = new SelectedTrackReceiveZoneNavigationManager(zoneName, this);
             else if(zoneName == "SelectedTrackFXMenu")
-                manager = new SelectedTrackFXMenuZoneNavigationManager(zoneName);
+                manager = new SelectedTrackFXMenuZoneNavigationManager(zoneName, this);
             
             manager->AddNavigator(GetSelectedTrackNavigator());
             navigationManagers_[zoneName] = manager;
         }
         else if(zoneName == "MasterTrack")
         {
-            manager = new MasterTrackZoneNavigationManager(zoneName);
+            manager = new MasterTrackZoneNavigationManager(zoneName, this);
             manager->AddNavigator(GetMasterTrackNavigator());
             navigationManagers_[zoneName] = manager;
         }
         else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
         {
             if(zoneName == "Track")
-                manager = new TrackZoneNavigationManager(zoneName);
+                manager = new TrackZoneNavigationManager(zoneName, this);
             else if(zoneName == "TrackSend")
-                manager = new TrackSendZoneNavigationManager(zoneName);
+                manager = new TrackSendZoneNavigationManager(zoneName, this);
             else if(zoneName == "TrackReceive")
-                manager = new TrackReceiveZoneNavigationManager(zoneName);
+                manager = new TrackReceiveZoneNavigationManager(zoneName, this);
             else if(zoneName == "TrackFXMenu")
-                manager = new TrackFXMenuZoneNavigationManager(zoneName);
+                manager = new TrackFXMenuZoneNavigationManager(zoneName, this);
             
             for(int i = 0; i < GetNumChannels(); i++)
                 manager->AddNavigator(surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset()));

@@ -714,12 +714,13 @@ private:
     
 protected:
     string const zoneName_ = "";
+    ZoneManager* manager_ = nullptr;
     int slot_ = 0;
     vector<Zone*> zones_;
     vector<Navigator*> navigators_;
     bool isActive_ = false;
     
-    ZoneNavigationManager(string zoneName) : zoneName_(zoneName) {}
+    ZoneNavigationManager(string zoneName, ZoneManager* manager) : zoneName_(zoneName), manager_(manager) {}
     virtual void CheckFocusedFXState() {}
     virtual int GetMaxSlot() { return 0; } // GAW TBD subclasses override to get proper value in context
     
@@ -755,7 +756,7 @@ class TrackZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    TrackZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -764,7 +765,7 @@ class MasterTrackZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    MasterTrackZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    MasterTrackZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -773,7 +774,7 @@ class FocusedFXZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    FocusedFXZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    FocusedFXZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -782,7 +783,7 @@ class SelectedTrackFXZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackFXZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    SelectedTrackFXZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -791,7 +792,7 @@ class SelectedTrackZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    SelectedTrackZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -800,7 +801,7 @@ class TrackSendZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackSendZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    TrackSendZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -809,7 +810,7 @@ class SelectedTrackSendZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackSendZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    SelectedTrackSendZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -818,7 +819,7 @@ class TrackReceiveZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackReceiveZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    TrackReceiveZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -827,7 +828,7 @@ class SelectedTrackReceiveZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackReceiveZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    SelectedTrackReceiveZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -836,7 +837,7 @@ class TrackFXMenuZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    TrackFXMenuZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    TrackFXMenuZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
@@ -845,7 +846,7 @@ class SelectedTrackFXMenuZoneNavigationManager : public ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackFXMenuZoneNavigationManager(string zoneName) : ZoneNavigationManager(zoneName) {}
+    SelectedTrackFXMenuZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
 
