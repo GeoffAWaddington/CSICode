@@ -95,6 +95,7 @@ class Midi_ControlSurface;
 class OSC_ControlSurface;
 class Widget;
 class TrackNavigationManager;
+class ZoneNavigationManager;
 class FeedbackProcessor;
 class Zone;
 class ZoneManager;
@@ -478,11 +479,11 @@ private:
     
     vector<Widget*> widgets_;
     
-    vector<string> includedZoneNames_;
     vector<Zone*> includedZones_;
+    vector<ZoneNavigationManager*> includedZoneNavigationManagers_;
 
-    vector<string> subZoneNames_;
-    vector<Zone*> subZones_;
+    map<string, Zone*> subZones_;
+    map<string, ZoneNavigationManager*> subZoneNavigationManagers_;
 
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
     vector<ActionContext*> defaultContexts_;
@@ -499,12 +500,11 @@ public:
     
     vector<ActionContext*> &GetActionContexts(Widget* widget);
     
+    void Initialize(vector<string> includedZones, vector<string> subZones);
+    
     void RequestUpdateWidget(Widget* widget);
     void Activate();
     void Deactivate();
-
-    void AddIncludedZoneName(string name) { includedZoneNames_.push_back(name); }
-    void AddSubZoneName(string name) { subZoneNames_.push_back(name); }
 
     vector<Widget*> &GetWidgets() { return widgets_; }
 
@@ -571,7 +571,7 @@ public:
         
         includedZones_.clear();
         
-        for(Zone* zone : subZones_)
+        for(auto [name, zone] : subZones_)
             zone->Unmap();
         
         subZones_.clear();
@@ -714,7 +714,7 @@ private:
     
 protected:
     string const zoneName_ = "";
-    ZoneManager* manager_ = nullptr;
+    ZoneManager* const manager_ = nullptr;
     int slot_ = 0;
     vector<Zone*> zones_;
     vector<Navigator*> navigators_;
@@ -729,6 +729,8 @@ public:
 
     void SetIsActive(bool isActive) { isActive_ = isActive; }
     virtual int GetSlot() { return 0; } // GAW TBD subclasses override to get proper slot in context
+    
+    vector<Navigator*> &GetNavigators() { return navigators_; }
     
     void AddZone(Zone* zone)
     {
@@ -955,6 +957,7 @@ public:
     void ForceClearAllWidgets() { } // GAW TBD clear all widgets in context
     
     void Initialize();
+    ZoneNavigationManager* GetNavigationManagerForZone(string zoneName);
    
     void RequestUpdate();
     
