@@ -500,7 +500,7 @@ public:
     
     vector<ActionContext*> &GetActionContexts(Widget* widget);
     
-    void Initialize(vector<string> includedZones, vector<string> subZones);
+    void Initialize(Zone* parentZone, vector<string> includedZones, vector<string> subZones);
     
     void RequestUpdateWidget(Widget* widget);
     void Activate();
@@ -719,12 +719,12 @@ protected:
     vector<Zone*> zones_;
     vector<Navigator*> navigators_;
     bool isActive_ = false;
-    
-    ZoneNavigationManager(string zoneName, ZoneManager* manager) : zoneName_(zoneName), manager_(manager) {}
+
     virtual void CheckFocusedFXState() {}
     virtual int GetMaxSlot() { return 0; } // GAW TBD subclasses override to get proper value in context
     
 public:
+    ZoneNavigationManager(string zoneName, ZoneManager* manager) : zoneName_(zoneName), manager_(manager) {}
     virtual ~ZoneNavigationManager() {}
 
     void SetIsActive(bool isActive) { isActive_ = isActive; }

@@ -371,7 +371,7 @@ static void ProcessZoneFile(string zoneNameToProcess, ZoneManager* zoneManager, 
                         
                         Zone* zone = new Zone(zoneManager, navigationManager->GetNavigators()[i], i, expandedTouchIds, zoneName, zoneAlias, filePath);
                         
-                        zone->Initialize(includedZones, subZones);
+                        zone->Initialize(zone, includedZones, subZones);
                         
                         for(auto [widgetName, modifierActions] : widgetActions)
                         {
@@ -1729,12 +1729,15 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Zone::Initialize(vector<string> includedZones, vector<string> subZones)
+void Zone::Initialize(Zone* parentZone, vector<string> includedZones, vector<string> subZones)
 {
     if(includedZones.size() > 0)
         for(auto zoneName : includedZones)
             if(ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForZone(zoneName))
             {
+                if(navigationManager->GetNavigators().size() == 0)
+                    navigationManager->AddNavigator(zoneManager_->GetDefaultNavigator() );
+
                 ProcessZoneFile(zoneName, zoneManager_, navigationManager);
                 includedZoneNavigationManagers_.push_back(navigationManager);
             }
@@ -1743,6 +1746,9 @@ void Zone::Initialize(vector<string> includedZones, vector<string> subZones)
         for(auto zoneName : subZones)
             if(ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForZone(zoneName))
             {
+                if(navigationManager->GetNavigators().size() == 0)
+                    navigationManager->AddNavigator(parentZone->GetNavigator());
+                
                 ProcessZoneFile(zoneName, zoneManager_, navigationManager);
                 subZoneNavigationManagers_[zoneName] = navigationManager;
             }
@@ -2026,25 +2032,29 @@ ZoneNavigationManager* ZoneManager::GetNavigationManagerForZone(string zoneName)
         
         return manager;
     }
-
+    else
+    {
+        manager = new ZoneNavigationManager(zoneName, this);
+    }
+    
+    
     return manager;
 }
 
 void ZoneManager::Initialize()
 {
     PreProcessZones();
-     
-    for(auto [zoneName, zoneInfo] : zoneFilePaths_)
-        if(ZoneNavigationManager* manager = GetNavigationManagerForZone(zoneName))
-            navigationManagers_[zoneName] = manager;
-    
-    if(navigationManagers_.count("Home") < 1)
+   
+    if(zoneFilePaths_.count("Home") < 1)
     {
         MessageBox(g_hwnd, (surface_->GetName() + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + surface_->GetName()).c_str(), MB_OK);
         return;
     }
-    else
-        ProcessZoneFile("Home", this, navigationManagers_["Home"]);
+        
+    ZoneNavigationManager* manager = GetNavigationManagerForZone("Home");
+    
+    if(manager)
+        ProcessZoneFile("Home", this, manager);
 
     
     
