@@ -477,7 +477,7 @@ private:
     map<string, string> touchIds_;
     map<string, bool> activeTouchIds_;
     
-    vector<Widget*> widgets_;
+    map<Widget*, bool> widgets_;
     
     vector<Zone*> includedZones_;
     vector<ZoneNavigationManager*> includedZoneNavigationManagers_;
@@ -506,7 +506,7 @@ public:
     void Activate();
     void Deactivate();
 
-    vector<Widget*> &GetWidgets() { return widgets_; }
+    map<Widget*, bool> &GetWidgets() { return widgets_; }
 
     void Toggle()
     {
@@ -531,7 +531,7 @@ public:
     
     void AddWidget(Widget* widget)
     {
-        GetWidgets().push_back(widget);
+        widgets_[widget] = true;
     }
     
     void AddActionContext(Widget* widget, string modifier, ActionContext* actionContext)
@@ -550,7 +550,7 @@ public:
         
         
         
-        for(auto widget : GetWidgets())
+        for(auto [widget, value] : GetWidgets())
         {
             if(usedWidgets[widget] == false)
             {
@@ -598,7 +598,7 @@ public:
         if(! isActive_ || isUsed)
             return;
         
-        if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        if(widgets_.count(widget) > 0)
         {
             isUsed = true;
             
@@ -615,7 +615,7 @@ public:
         if(! isActive_ || isUsed)
             return;
         
-        if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        if(widgets_.count(widget) > 0)
         {
             isUsed = true;
 
@@ -632,7 +632,7 @@ public:
         if(! isActive_ || isUsed)
             return;
 
-        if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        if(widgets_.count(widget) > 0)
         {
             isUsed = true;
 
@@ -649,7 +649,7 @@ public:
         if(! isActive_ || isUsed)
             return;
 
-        if(find(GetWidgets().begin(), GetWidgets().end(), widget) != GetWidgets().end())
+        if(widgets_.count(widget) > 0)
         {
             isUsed = true;
 
@@ -748,6 +748,24 @@ public:
     {
         for(auto zone : zones_)
             zone->DoAction(widget, isUsed, value);
+    }
+    
+    void DoRelativeAction(Widget* widget, bool &isUsed, double delta)
+    {
+        for(auto zone : zones_)
+            zone->DoRelativeAction(widget, isUsed, delta);
+    }
+    
+    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
+    {
+        for(auto zone : zones_)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    }
+    
+    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
+    {
+        for(auto zone : zones_)
+            zone->DoTouch(widget, widgetName, isUsed, value);
     }
 
     void RequestUpdate(map<Widget*, bool> &usedWidgets)
@@ -1121,21 +1139,6 @@ public:
         ZoneNavigationManager* manager = navigationManagers_["Home"];
         
         manager->DoAction(widget, isUsed, value);
-        
-        
-        
-        
-        /*
-        for(auto zone : focusedFXZones_)
-            zone->DoAction(widget, isUsed, value);
-
-        for(auto zone : fxZones_)
-            zone->DoAction(widget, isUsed, value);
-
-        for(vector<Zone*> zones : fixedZonesOld_)
-            for(auto zone : zones)
-                zone->DoAction(widget, isUsed, value);
-         */
     }
     
     void DoRelativeAction(Widget* widget, double delta)
@@ -1144,15 +1147,9 @@ public:
         
         bool isUsed = false;
         
-        for(auto zone : focusedFXZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
-
-        for(auto zone : fxZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
-
-        for(vector<Zone*> zones : fixedZonesOld_)
-            for(auto zone : zones)
-                zone->DoRelativeAction(widget, isUsed, delta);
+        ZoneNavigationManager* manager = navigationManagers_["Home"];
+        
+        manager->DoRelativeAction(widget, isUsed, delta);
     }
     
     void DoRelativeAction(Widget* widget, int accelerationIndex, double delta)
@@ -1160,16 +1157,10 @@ public:
         widget->LogInput(delta);
         
         bool isUsed = false;
-               
-        for(auto zone : focusedFXZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-
-        for(auto zone : fxZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-
-        for(vector<Zone*> zones : fixedZonesOld_)
-            for(auto zone : zones)
-                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+           
+        ZoneNavigationManager* manager = navigationManagers_["Home"];
+        
+        manager->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
     void DoTouch(Widget* widget, double value)
@@ -1178,15 +1169,10 @@ public:
         
         bool isUsed = false;
         
-        for(auto zone : focusedFXZones_)
-            zone->DoTouch(widget, widget->GetName(), isUsed, value);
+        ZoneNavigationManager* manager = navigationManagers_["Home"];
+        
+        manager->DoTouch(widget, widget->GetName(), isUsed, value);
 
-        for(auto zone : fxZones_)
-            zone->DoTouch(widget, widget->GetName(), isUsed, value);
-
-        for(vector<Zone*> zones : fixedZonesOld_)
-            for(auto zone : zones)
-                zone->DoTouch(widget, widget->GetName(), isUsed, value);
     }
 };
 
