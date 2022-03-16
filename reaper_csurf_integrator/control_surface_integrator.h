@@ -544,6 +544,12 @@ public:
         if(! isActive_)
             return;
       
+        
+        
+        
+        
+        
+        
         for(auto widget : GetWidgets())
         {
             if(usedWidgets[widget] == false)
@@ -555,6 +561,16 @@ public:
 
         for(auto zone : includedZones_)
             zone->RequestUpdate(usedWidgets);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
     }
 
     void Unmap()
@@ -703,15 +719,6 @@ public:
 class ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
-    void ClampToMaxSlot()
-    {
-        int maxSlot = GetMaxSlot();
-        
-        if(slot_ > maxSlot)
-            slot_ = maxSlot;
-    }
-    
 protected:
     string const zoneName_ = "";
     ZoneManager* const manager_ = nullptr;
@@ -721,14 +728,14 @@ protected:
     bool isActive_ = false;
 
     virtual void CheckFocusedFXState() {}
-    virtual int GetMaxSlot() { return 0; } // GAW TBD subclasses override to get proper value in context
+    virtual int GetNumSlots() { return 0; } // GAW TBD subclasses override to get proper value in context
     
 public:
     ZoneNavigationManager(string zoneName, ZoneManager* manager) : zoneName_(zoneName), manager_(manager) {}
     virtual ~ZoneNavigationManager() {}
 
     void SetIsActive(bool isActive) { isActive_ = isActive; }
-    virtual int GetSlot() { return 0; } // GAW TBD subclasses override to get proper slot in context
+    virtual int GetSlot() { return slot_; }
     
     vector<Navigator*> &GetNavigators() { return navigators_; }
     
@@ -745,11 +752,19 @@ public:
     void AdjustBank(int amount)
     {
         slot_ += amount;
+                
+        ClampSlot();
+    }
+    
+    void ClampSlot()
+    {
+        int maxSlot = GetNumSlots() - 1;
+        
+        if(slot_ > maxSlot)
+            slot_ = maxSlot;
         
         if(slot_ < 0)
             slot_ = 0;
-        
-        ClampToMaxSlot();
     }
 };
 
@@ -872,34 +887,14 @@ private:
     string const zoneFolder_ = "";
       
     map<Widget*, bool> usedWidgets_;
-
-    
-    map<string, CSIZoneInfo> zoneFilePaths_;
-
     map<string, ZoneNavigationManager*> navigationManagers_;
     
-    vector<ZoneNavigationManager*> orderedZones_;
+    map<string, CSIZoneInfo> zoneFilePaths_;
+    map<string, CSIZoneInfo> focusedFXZoneFilePaths_;
+    map<string, CSIZoneInfo> selectedTrackFXZoneFilePaths_;
     
     
     
-    
-    
-    
-    
-    int trackSendSlot_ = 0;
-    int trackReceiveSlot_ = 0;
-    int trackFXMenuSlot_ = 0;
-    
-    int maxSendSlot_ = 0;
-    int maxReceiveSlot_ = 0;
-    int maxFXMenuSlot_ = 0;
-    
-    int selectedTrackSendSlot_ = 0;
-    int selectedTrackReceiveSlot_ = 0;
-    int selectedTrackFXMenuSlot_ = 0;
-
-
-
     vector<Zone*> focusedFXZones_;
     map<int, map<int, int>> focusedFXDictionary;
     
@@ -968,18 +963,15 @@ public:
     Navigator* GetFocusedFXNavigator();
     Navigator* GetDefaultNavigator();
     
-    int GetTrackSendSlot() { return trackSendSlot_; }
-    int GetTrackReceiveSlot() { return trackReceiveSlot_; }
-    int GetTrackFXMenuSlot() { return trackFXMenuSlot_; }
-    
-    int GetSelectedTrackSendSlot() { return selectedTrackSendSlot_; }
-    int GetSelectedTrackReceiveSlot() { return selectedTrackReceiveSlot_; }
-    int GetSelectedTrackFXMenuSlot() { return selectedTrackFXMenuSlot_; }
-    
-    int GetSlot(string zoneName);
+    int GetSlot(string zoneName, int slotIndex)
+    {
+        if(navigationManagers_.count(zoneName) > 0)
+            return navigationManagers_[zoneName]->GetSlot();
+        else
+            return slotIndex;
+    }
+   
     int GetNumChannels();
-
-    
     void ReceiveActivate(ActivationType activationType, string zoneName);
     void GoHome();
     void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
@@ -990,72 +982,10 @@ public:
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
     
-    void SetFXMenuSlot(int fxMenuSlot) { trackFXMenuSlot_ = fxMenuSlot; }
-    
-    void AdjustSelectedTrackFXMenuBank(int amount)
+    void AdjustBank(string zoneName, int amount)
     {
-        selectedTrackFXMenuSlot_ += amount;
-        
-        if(selectedTrackFXMenuSlot_ < 0)
-            selectedTrackFXMenuSlot_ = 0;
-        
-        if(selectedTrackFXMenuSlot_ > maxFXMenuSlot_)
-            selectedTrackFXMenuSlot_ = 0;
-    }
-    
-    void AdjustSelectedTrackSendBank(int amount)
-    {
-        selectedTrackSendSlot_ += amount;
-        
-        if(selectedTrackSendSlot_ < 0)
-            selectedTrackSendSlot_ = 0;
-        
-        if(selectedTrackSendSlot_ > maxSendSlot_)
-            selectedTrackSendSlot_ = maxSendSlot_;
-    }
-
-    void AdjustSelectedTrackReceiveBank(int amount)
-    {
-        selectedTrackReceiveSlot_ += amount;
-        
-        if(selectedTrackReceiveSlot_ < 0)
-            selectedTrackReceiveSlot_ = 0;
-        
-        if(selectedTrackReceiveSlot_ > maxReceiveSlot_)
-            selectedTrackReceiveSlot_ = maxReceiveSlot_;
-    }
-    
-    void AdjustTrackFXMenuBank(int amount)
-    {
-        trackFXMenuSlot_ += amount;
-        
-        if(trackFXMenuSlot_ < 0)
-            trackFXMenuSlot_ = maxFXMenuSlot_;
-        
-        if(trackFXMenuSlot_ > maxFXMenuSlot_)
-            trackFXMenuSlot_ = 0;
-    }
-    
-    void AdjustTrackSendBank(int amount)
-    {
-        trackSendSlot_ += amount;
-        
-        if(trackSendSlot_ < 0)
-            trackSendSlot_ = 0;
-        
-        if(trackSendSlot_ > maxSendSlot_)
-            trackSendSlot_ = maxSendSlot_;
-    }
-
-    void AdjustTrackReceiveBank(int amount)
-    {
-        trackReceiveSlot_ += amount;
-        
-        if(trackReceiveSlot_ < 0)
-            trackReceiveSlot_ = 0;
-        
-        if(trackReceiveSlot_ > maxReceiveSlot_)
-            trackReceiveSlot_ = maxReceiveSlot_;
+        if(navigationManagers_.count(zoneName) > 0)
+            navigationManagers_[zoneName]->AdjustBank(amount);
     }
     
     void MapTrackFXSlotToWidgets(MediaTrack* track, int fxSlot)
@@ -1117,6 +1047,18 @@ public:
     {
         if(name != "")
             zoneFilePaths_[name] = info;
+    }
+    
+    void AddFocusedFXZoneFilePath(string name, struct CSIZoneInfo info)
+    {
+        if(name != "")
+            focusedFXZoneFilePaths_[name] = info;
+    }
+    
+    void AddSelectedTrackFXZoneFilePath(string name, struct CSIZoneInfo info)
+    {
+        if(name != "")
+            selectedTrackFXZoneFilePaths_[name] = info;
     }
     
     void CheckFocusedFXState()
@@ -1313,13 +1255,12 @@ public:
     Page* GetPage() { return page_; }
     string GetName() { return name_; }
     
-    virtual string GetSourceFileName() { return ""; }
     vector<Widget*> GetWidgets() { return widgets_; }
     
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
     
-    virtual void RequestUpdate()
+    void RequestUpdate()
     {
         zoneManager_->RequestUpdate();
     }
@@ -1519,8 +1460,6 @@ public:
     
     virtual ~Midi_ControlSurface() {}
     
-    virtual string GetSourceFileName() override { return "/CSI/Surfaces/Midi/" + templateFilename_; }
-    
     void SendMidiMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
 
@@ -1602,8 +1541,6 @@ public:
     }
     
     virtual ~OSC_ControlSurface() {}
-    
-    virtual string GetSourceFileName() override { return "/CSI/Surfaces/OSC/" + templateFilename_; }
     
     virtual void ActivatingZone(string zoneName) override;
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value);

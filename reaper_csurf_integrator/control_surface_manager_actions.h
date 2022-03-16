@@ -186,6 +186,22 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoHome : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoHome"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->GoHome();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ClearAllSolo : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -270,7 +286,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustBank("SelectedTrackSend", context->GetIntParam());
     }
 };
 
@@ -285,7 +301,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustBank("SelectedTrackReceive", context->GetIntParam());
     }
 };
 
@@ -300,7 +316,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustBank("SelectedTrackFXMenu", context->GetIntParam());
     }
 };
 
@@ -315,7 +331,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustBank("TrackSend", context->GetIntParam());
     }
 };
 
@@ -330,7 +346,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustBank("TrackReceive", context->GetIntParam());
     }
 };
 
@@ -345,7 +361,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustBank("TrackFXMenu", context->GetIntParam());
     }
 };
 
@@ -441,7 +457,6 @@ public:
     }
 };
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Broadcast  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -469,48 +484,4 @@ public:
     }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Activate  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "Activate"; }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->Activate(context->GetZoneNames());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Deactivate  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "Deactivate"; }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->Deactivate(context->GetZoneNames());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleActivation  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleActivation"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleActivation(context->GetZoneNames());
-    }
-};
 #endif /* control_surface_manager_actions_h */
