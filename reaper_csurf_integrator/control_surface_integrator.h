@@ -733,11 +733,28 @@ protected:
 public:
     ZoneNavigationManager(string zoneName, ZoneManager* manager) : zoneName_(zoneName), manager_(manager) {}
     virtual ~ZoneNavigationManager() {}
-
-    void SetIsActive(bool isActive) { isActive_ = isActive; }
     virtual int GetSlot() { return slot_; }
-    
     vector<Navigator*> &GetNavigators() { return navigators_; }
+    
+    void SetIsActive(bool isActive)
+    {
+        isActive_ = isActive;
+        
+        for(auto zone : zones_)
+            zone->Activate();
+    }
+
+    
+
+    
+    void RequestUpdate(map<Widget*, bool> &usedWidgets)
+    {
+        if(! isActive_)
+            return;
+        
+        for(auto zone : zones_)
+            zone->RequestUpdate(usedWidgets);
+    }
     
     void AddZone(Zone* zone)
     {

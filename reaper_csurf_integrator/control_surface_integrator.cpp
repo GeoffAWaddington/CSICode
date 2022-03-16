@@ -2053,9 +2053,9 @@ void ZoneManager::Initialize()
         
     if(ZoneNavigationManager* manager = GetNavigationManagerForZone("Home"))
     {
-        if(GetZoneFilePaths().count("Home") < 1)
+        if(navigationManagers_.count("Home") < 1)
         {
-            ProcessZoneFile(GetZoneFilePaths()["Home"].filePath, this, manager);
+            ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, manager);
             navigationManagers_["Home"] = manager;
             GoHome();
         }
@@ -2090,6 +2090,14 @@ void ZoneManager::RequestUpdate()
     for(auto &[key, value] : usedWidgets_)
         value = false;
     
+    if(navigationManagers_.count("Home") > 0)
+    {
+        ZoneNavigationManager* manager = navigationManagers_["Home"];
+        
+        manager->RequestUpdate(usedWidgets_);
+    }
+    
+    /*
     for(Zone* zone : focusedFXZones_)
         zone->RequestUpdate(usedWidgets_);
 
@@ -2099,6 +2107,9 @@ void ZoneManager::RequestUpdate()
     for(vector<Zone*> &zones : fixedZonesOld_)
         for(Zone* zone : zones)
             zone->RequestUpdate(usedWidgets_);
+    */
+    
+    
     
     // default is to zero unused Widgets -- e.g. you can override this by supplying an inverted NoAction context for an opposite sense device in the Home Zone
     for(auto &[key, value] : usedWidgets_)
@@ -2335,10 +2346,10 @@ void ZoneManager::GoHome()
 {
     UnmapFocusedFXFromWidgets();
 
+    if(navigationManagers_.count("Home") > 0)
+        navigationManagers_["Home"]->SetIsActive(true);
     
-    
-    
-    
+    /*
     for(auto zone : fxZones_)
         zone->Deactivate();
     
@@ -2347,6 +2358,7 @@ void ZoneManager::GoHome()
     
     for(auto zone : homeZone_)
         zone->Activate();
+     */
 }
 
 
