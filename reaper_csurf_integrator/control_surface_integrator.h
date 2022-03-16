@@ -744,9 +744,12 @@ public:
             zone->Activate();
     }
 
-    
+    void DoAction(Widget* widget, bool &isUsed, double value)
+    {
+        for(auto zone : zones_)
+            zone->DoAction(widget, isUsed, value);
+    }
 
-    
     void RequestUpdate(map<Widget*, bool> &usedWidgets)
     {
         if(! isActive_)
@@ -1115,6 +1118,14 @@ public:
         
         bool isUsed = false;
         
+        ZoneNavigationManager* manager = navigationManagers_["Home"];
+        
+        manager->DoAction(widget, isUsed, value);
+        
+        
+        
+        
+        /*
         for(auto zone : focusedFXZones_)
             zone->DoAction(widget, isUsed, value);
 
@@ -1124,6 +1135,7 @@ public:
         for(vector<Zone*> zones : fixedZonesOld_)
             for(auto zone : zones)
                 zone->DoAction(widget, isUsed, value);
+         */
     }
     
     void DoRelativeAction(Widget* widget, double delta)
