@@ -1741,7 +1741,7 @@ void Zone::Initialize(Zone* parentZone, vector<string> includedZones, vector<str
                 if(navigationManager->GetNavigators().size() == 0)
                     navigationManager->AddNavigator(zoneManager_->GetDefaultNavigator() );
 
-                if(zoneManager_->GetZoneFilePaths().count(zoneName) < 1)
+                if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
                 {
                     ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
                     includedZoneNavigationManagers_.push_back(navigationManager);
@@ -1756,7 +1756,7 @@ void Zone::Initialize(Zone* parentZone, vector<string> includedZones, vector<str
                     navigationManager->AddNavigator(parentZone->GetNavigator());
                 
                 
-                if(zoneManager_->GetZoneFilePaths().count(zoneName) < 1)
+                if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
                 {
                     ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
                     subZoneNavigationManagers_[zoneName] = navigationManager;
@@ -1770,8 +1770,8 @@ void Zone::Activate()
     
     zoneManager_->GetSurface()->ActivatingZone(GetName());
     
-    for(auto zone : includedZones_)
-        zone->Activate();
+    for(auto zone : includedZoneNavigationManagers_)
+        zone->SetIsActive(isActive_);
     
     for(auto [key, zone] : subZones_)
         zone->Deactivate();
@@ -1793,6 +1793,113 @@ void Zone::RequestUpdateWidget(Widget* widget)
         context->RequestUpdate();
     }
 }
+
+void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
+{
+    if(! isActive_)
+        return;
+  
+    
+    
+    
+    
+    
+    
+    for(auto [widget, value] : GetWidgets())
+    {
+        if(usedWidgets[widget] == false)
+        {
+            usedWidgets[widget] = true;
+            RequestUpdateWidget(widget);
+        }
+    }
+
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->RequestUpdate(usedWidgets);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+}
+
+void Zone::DoAction(Widget* widget, bool &isUsed, double value)
+{
+    if(! isActive_ || isUsed)
+        return;
+    
+    if(widgets_.count(widget) > 0)
+    {
+        isUsed = true;
+        
+        for(auto context : GetActionContexts(widget))
+            context->DoAction(value);
+    }
+    
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->DoAction(widget, isUsed, value);
+}
+   
+void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
+{
+    if(! isActive_ || isUsed)
+        return;
+    
+    if(widgets_.count(widget) > 0)
+    {
+        isUsed = true;
+
+        for(auto context : GetActionContexts(widget))
+            context->DoRelativeAction(delta);
+    }
+    
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->DoRelativeAction(widget, isUsed, delta);
+}
+
+void Zone::DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
+{
+    if(! isActive_ || isUsed)
+        return;
+
+    if(widgets_.count(widget) > 0)
+    {
+        isUsed = true;
+
+        for(auto context : GetActionContexts(widget))
+            context->DoRelativeAction(accelerationIndex, delta);
+    }
+    
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+}
+
+void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
+{
+    if(! isActive_ || isUsed)
+        return;
+
+    if(widgets_.count(widget) > 0)
+    {
+        isUsed = true;
+
+        activeTouchIds_[widgetName + "Touch"] = value;
+        activeTouchIds_[widgetName + "TouchPress"] = value;
+        activeTouchIds_[widgetName + "TouchRelease"] = ! value;
+
+        for(auto context : GetActionContexts(widget))
+            context->DoTouch(value);
+    }
+    
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->DoTouch(widget, widgetName, isUsed, value);
+}
+
 
 vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
 {
@@ -2008,13 +2115,11 @@ ZoneNavigationManager* ZoneManager::GetNavigationManagerForZone(string zoneName)
             manager = new SelectedTrackFXMenuZoneNavigationManager(zoneName, this);
         
         manager->AddNavigator(GetSelectedTrackNavigator());
-        return manager;
     }
     else if(zoneName == "MasterTrack")
     {
         manager = new MasterTrackZoneNavigationManager(zoneName, this);
         manager->AddNavigator(GetMasterTrackNavigator());
-        return manager;
     }
     else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
     {
@@ -2029,14 +2134,11 @@ ZoneNavigationManager* ZoneManager::GetNavigationManagerForZone(string zoneName)
         
         for(int i = 0; i < GetNumChannels(); i++)
             manager->AddNavigator(surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset()));
-        
-        return manager;
     }
     else
     {
         manager = new ZoneNavigationManager(zoneName, this);
     }
-    
     
     return manager;
 }
@@ -2090,6 +2192,8 @@ void ZoneManager::RequestUpdate()
     for(auto &[key, value] : usedWidgets_)
         value = false;
     
+    // GAW TBD -- expand this beyond "Home"
+    
     if(navigationManagers_.count("Home") > 0)
     {
         ZoneNavigationManager* manager = navigationManagers_["Home"];
@@ -2131,85 +2235,6 @@ void ZoneManager::DeactivateZones(vector<Zone*> &zones)
         zone->Deactivate();
 }
 
-void ZoneManager::Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones)
-{
-    if(broadcast_.count(zoneName) > 0)
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneName);
-/*
-    if(allowOverlay_ == false)
-    {
-        auto it = find(fixedZones_.begin(), fixedZones_.end(), zones);
-        
-        if(it != fixedZones_.end())
-        {
-            for(auto zone : focusedFXZones_)
-                zone->Activate();
-            
-            for(auto zone : fxZones_)
-                zone->Activate();
-           
-            for(int i = 0; i < it - fixedZones_.begin(); i++)
-                for(auto overlayedZone : fixedZones_[i])
-                    overlayedZone->Deactivate();
-        }
-    }
-    */
-    for(auto zone : zones)
-    {
-        switch (activationType)
-        {
-            case  ActivationType::Activating:
-                zone->Activate();
-                break;
-            
-            case  ActivationType::Deactivating:
-                zone->Deactivate();
-                break;
-            
-            case  ActivationType::TogglingActivation:
-                zone->Toggle();
-                break;
-        }
-    }
-}
-
-void ZoneManager::Activate(ActivationType activationType, vector<string> &zoneNames)
-{
-    for(string zoneName : zoneNames)
-    {
-        if(zoneName == "FocusedFX")
-            MapFocusedFXToWidgets();
-        else if(zoneName == "SelectedTrackFX")
-            MapSelectedTrackFXToWidgets();
-        
-        else if(zoneName == "SelectedTrack")
-            Activate(activationType, "SelectedTrack", selectedTrackZones_);
-        
-        else if(zoneName == "SelectedTrackFXMenu")
-            Activate(activationType, "SelectedTrackFXMenu", selectedTrackFXMenuZones_);
-        else if(zoneName == "TrackFXMenu")
-            Activate(activationType, "TrackFXMenu", trackFXMenuZones_);
-        
-        else if(zoneName == "SelectedTrackReceive")
-            Activate(activationType, "SelectedTrackReceive", selectedTrackReceivesZones_);
-        else if(zoneName == "TrackReceive")
-            Activate(activationType, "TrackReceive", trackReceivesZones_);
-        
-        else if(zoneName == "SelectedTrackSend")
-            Activate(activationType, "SelectedTrackSend", selectedTrackSendsZones_);
-        else if(zoneName == "TrackSend")
-            Activate(activationType, "TrackSend", trackSendsZones_);
-        
-        else if(zoneName == "Home")
-        {
-            if(broadcast_.count(zoneName) > 0)
-                surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, zoneName);
-
-            GoHome();
-        }
-    }
-}
-
 void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName)
 {
     if(receive_.count(zoneName) > 0)
@@ -2219,7 +2244,6 @@ void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName
         else
         {
             vector<string> zoneNames { zoneName };
-            Activate(activationType, zoneNames);
         }
     }
 }
@@ -2233,7 +2257,7 @@ void ZoneManager::UnmapFocusedFXFromWidgets()
     
     
     
-    focusedFXZones_.clear();
+    //focusedFXZones_.clear();
 }
 
 void ZoneManager::MapFocusedFXToWidgets()
@@ -2257,18 +2281,18 @@ void ZoneManager::MapFocusedFXToWidgets()
         char FXName[BUFSZ];
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
-        if(zoneFilePaths_.count(FXName) > 0)
-            ActivateFocusedFXZone(FXName, fxSlot, focusedFXZones_);
+        //if(zoneFilePaths_.count(FXName) > 0)
+            //ActivateFocusedFXZone(FXName, fxSlot, focusedFXZones_);
     }
 }
 
 void ZoneManager::MapSelectedTrackFXToWidgets()
 {
-    UnmapZones(fxZones_);
+    //UnmapZones(fxZones_);
     
-    if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
-        for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
-            MapSelectedTrackFXSlotToWidgets(fxZones_, i);
+    //if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
+        //for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
+            //MapSelectedTrackFXSlotToWidgets(fxZones_, i);
 }
 
 void ZoneManager::MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot)

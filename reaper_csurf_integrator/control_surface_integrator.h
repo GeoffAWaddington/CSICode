@@ -479,7 +479,7 @@ private:
     
     map<Widget*, bool> widgets_;
     
-    vector<Zone*> includedZones_;
+    //vector<Zone*> includedZones_;
     vector<ZoneNavigationManager*> includedZoneNavigationManagers_;
 
     map<string, Zone*> subZones_;
@@ -502,10 +502,14 @@ public:
     
     void Initialize(Zone* parentZone, vector<string> includedZones, vector<string> subZones);
     
+    void RequestUpdate(map<Widget*, bool> &usedWidgets);
     void RequestUpdateWidget(Widget* widget);
     void Activate();
     void Deactivate();
-
+    void DoAction(Widget* widget, bool &isUsed, double value);
+    void DoRelativeAction(Widget* widget, bool &isUsed, double delta);
+    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta);
+    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value);
     map<Widget*, bool> &GetWidgets() { return widgets_; }
 
     void Toggle()
@@ -539,40 +543,6 @@ public:
         actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
     
-    void RequestUpdate(map<Widget*, bool> &usedWidgets)
-    {
-        if(! isActive_)
-            return;
-      
-        
-        
-        
-        
-        
-        
-        for(auto [widget, value] : GetWidgets())
-        {
-            if(usedWidgets[widget] == false)
-            {
-                usedWidgets[widget] = true;
-                RequestUpdateWidget(widget);
-            }
-        }
-
-        for(auto zone : includedZones_)
-            zone->RequestUpdate(usedWidgets);
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    }
-
     void Unmap()
     {
         for(auto &[key, value] : actionContextDictionary_)
@@ -582,87 +552,15 @@ public:
         
         actionContextDictionary_.clear();
         
-        for(Zone* zone : includedZones_)
-            zone->Unmap();
+        //for(Zone* zone : includedZones_)
+            //zone->Unmap();
         
-        includedZones_.clear();
+        //includedZones_.clear();
         
         for(auto [name, zone] : subZones_)
             zone->Unmap();
         
         subZones_.clear();
-    }
-    
-    void DoAction(Widget* widget, bool &isUsed, double value)
-    {
-        if(! isActive_ || isUsed)
-            return;
-        
-        if(widgets_.count(widget) > 0)
-        {
-            isUsed = true;
-            
-            for(auto context : GetActionContexts(widget))
-                context->DoAction(value);
-        }
-        
-        for(auto zone : includedZones_)
-            zone->DoAction(widget, isUsed, value);
-    }
-       
-    void DoRelativeAction(Widget* widget, bool &isUsed, double delta)
-    {
-        if(! isActive_ || isUsed)
-            return;
-        
-        if(widgets_.count(widget) > 0)
-        {
-            isUsed = true;
-
-            for(auto context : GetActionContexts(widget))
-                context->DoRelativeAction(delta);
-        }
-        
-        for(auto zone : includedZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
-    }
-    
-    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
-    {
-        if(! isActive_ || isUsed)
-            return;
-
-        if(widgets_.count(widget) > 0)
-        {
-            isUsed = true;
-
-            for(auto context : GetActionContexts(widget))
-                context->DoRelativeAction(accelerationIndex, delta);
-        }
-        
-        for(auto zone : includedZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    }
-    
-    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
-    {
-        if(! isActive_ || isUsed)
-            return;
-
-        if(widgets_.count(widget) > 0)
-        {
-            isUsed = true;
-
-            activeTouchIds_[widgetName + "Touch"] = value;
-            activeTouchIds_[widgetName + "TouchPress"] = value;
-            activeTouchIds_[widgetName + "TouchRelease"] = ! value;
-
-            for(auto context : GetActionContexts(widget))
-                context->DoTouch(value);
-        }
-        
-        for(auto zone : includedZones_)
-            zone->DoTouch(widget, widgetName, isUsed, value);
     }
 };
 
@@ -931,10 +829,11 @@ private:
     map<string, CSIZoneInfo> focusedFXZoneFilePaths_;
     map<string, CSIZoneInfo> selectedTrackFXZoneFilePaths_;
     
-    
-    
-    vector<Zone*> focusedFXZones_;
     map<int, map<int, int>> focusedFXDictionary;
+    
+    /*
+    vector<Zone*> focusedFXZones_;
+
     
     vector<Zone*> fxZones_;
     
@@ -953,7 +852,10 @@ private:
     
     vector<vector<Zone*>> fixedZonesOld_;
     
-           
+         */
+    
+    
+    
     void MapFocusedFXToWidgets();
     void UnmapFocusedFXFromWidgets();
     
@@ -961,9 +863,9 @@ private:
     
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
     
-    void Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones);
+    //void Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones);
     
-    void Activate(ActivationType activationType, vector<string> &zoneNames);
+    //void Activate(ActivationType activationType, vector<string> &zoneNames);
     
     void DeactivateZones(vector<Zone*> &zones);
     
@@ -1032,8 +934,8 @@ public:
         
         DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
         
-        if(zoneFilePaths_.count(FXName) > 0)
-            ActivateFXZone(FXName, fxSlot, fxZones_);
+        //if(zoneFilePaths_.count(FXName) > 0)
+            //ActivateFXZone(FXName, fxSlot, fxZones_);
     }
 
     void AddWidget(Widget* widget)
@@ -1051,21 +953,6 @@ public:
     {
         for(string param : context->GetZoneNames())
             receive_[param] = param;
-    }
-
-    void Activate(vector<string> &zoneNames)
-    {
-        Activate(ActivationType::Activating, zoneNames);
-    }
-
-    void Deactivate(vector<string> &zoneNames)
-    {
-        Activate(ActivationType::Deactivating, zoneNames);
-    }
-
-    void ToggleActivation(vector<string> &zoneNames)
-    {
-        Activate(ActivationType::TogglingActivation, zoneNames);
     }
 
     string GetNameOrAlias(string name)
@@ -1129,6 +1016,9 @@ public:
             }
         }
     }
+    
+    
+    // GAW TBD -- expand this beyond "Home"
        
     void DoAction(Widget* widget, double value)
     {
