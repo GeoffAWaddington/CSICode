@@ -372,7 +372,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone = new Zone(zoneManager, navigationManager->GetNavigators()[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones);
+                        Zone* zone = new Zone(zoneManager, navigationManager, navigationManager->GetNavigators()[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones);
                         
                         for(auto [widgetName, modifierActions] : widgetActions)
                         {
@@ -553,7 +553,7 @@ static void ActivateFXZoneFile(string filePath, ZoneManager* zoneManager, int sl
                     
                     string numStr = "";
                     
-                    Zone * zone = new Zone(zoneManager, navigator, slotIndex, touchIds, zoneName, zoneAlias, filePath, includedZones, subZones);
+                    Zone * zone = new Zone(zoneManager, nullptr, navigator, slotIndex, touchIds, zoneName, zoneAlias, filePath, includedZones, subZones);
                     
                     for(auto [widgetName, modifierActions] : widgetActions)
                     {
@@ -1740,15 +1740,29 @@ int Zone::GetSlotIndex()
     return zoneManager_->GetSlot(name_, slotIndex_); // GAW TBD -- change this to ZoneNavigationManager
 }
 
+void Zone::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName)
+{
+    if(zoneName == "Buttons" || zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
+        manager->AddNavigator(zoneManager_->GetSelectedTrackNavigator());
+    else if(zoneName == "MasterTrack")
+        manager->AddNavigator(zoneManager_->GetMasterTrackNavigator());
+    else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+        for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
+            manager->AddNavigator(zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset()));
+    else
+        manager->AddNavigator(navigator);
+}
 
-Zone::Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones): zoneManager_(zoneManager), zoneNavigationManager_(zoneNavigationManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     for(auto zoneName : includedZones)
     {
         if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
         {
-            ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForZone(zoneManager_->GetDefaultNavigator(), zoneName);
-
+            ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
+          
+            AddNavigatorsForZone(navigationManager, navigator, zoneName);
+            
             ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
             includedZoneNavigationManagers_.push_back(navigationManager);
         }
@@ -1758,8 +1772,10 @@ Zone::Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex,
     {
         if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
         {
-            ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForSubZone(GetNavigator(), zoneName);
+            ZoneNavigationManager* navigationManager = new SubZoneNavigationManager(zoneNavigationManager, zoneName, zoneManager_);
             
+            AddNavigatorsForZone(navigationManager, navigator, zoneName);
+
             ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
             subZoneNavigationManagers_[zoneName] = navigationManager;
         }
@@ -2096,47 +2112,6 @@ void OSC_IntFeedbackProcessor::ForceValue(int param, double value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// GAW TBD -- refactor this to ZoneNavigationManager constructor
-
-ZoneNavigationManager* ZoneManager::GetNavigationManagerForZone(Navigator* navigator, string zoneName)
-{
-    ZoneNavigationManager* manager = new ZoneNavigationManager(zoneName, this);
-  
-    AddNavigatorsForZone(manager, navigator, zoneName);
-    
-    return manager;
-}
-
-ZoneNavigationManager* ZoneManager::GetNavigationManagerForSubZone(Navigator* navigator, string zoneName)
-{
-    ZoneNavigationManager* manager = new ZoneNavigationManager(zoneName, this);
-  
-    AddNavigatorsForZone(manager, navigator, zoneName);
-    
-    return manager;
-}
-
-void ZoneManager::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName)
-{
-    if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
-        manager->AddNavigator(GetSelectedTrackNavigator());
-    else if(zoneName == "MasterTrack")
-        manager->AddNavigator(GetMasterTrackNavigator());
-    else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
-        for(int i = 0; i < GetNumChannels(); i++)
-            manager->AddNavigator(surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset()));
-    else
-        manager->AddNavigator(navigator);
-}
-
-
-
-
-
-
-
 void ZoneManager::Initialize()
 {
     PreProcessZones();
@@ -2336,8 +2311,8 @@ void ZoneManager::ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> 
 
 void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones)
 {
-    if(zoneFilePaths_.count(zoneName) > 0)
-        ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
+    //if(zoneFilePaths_.count(zoneName) > 0)
+        //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
     
     // GAW TBD -- add a wrapeer that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
 }

@@ -467,6 +467,7 @@ class Zone
 {
 private:
     ZoneManager* const zoneManager_ = nullptr;
+    ZoneNavigationManager* const zoneNavigationManager_ = nullptr;
     Navigator* navigator_= nullptr;
     int slotIndex_ = 0;
     string const name_ = "";
@@ -488,8 +489,10 @@ private:
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
     vector<ActionContext*> defaultContexts_;
     
+    void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName);
+    
 public:
-    Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones); 
+    Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones);
     
     Zone() {}
    
@@ -728,7 +731,7 @@ public:
     
     virtual void GoSubZone(string zoneName) override
     {
-        // GAW TBD -- call GoSubZone on parent Zone.
+        parent_->GoSubZone(zoneName);
     }
 };
 
@@ -935,17 +938,13 @@ private:
     
         zones.clear();
     }
-
-    void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName);
-    
+   
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
 
     void ForceClearAllWidgets() { } // GAW TBD clear all widgets in context
     
     void Initialize();
-    ZoneNavigationManager* GetNavigationManagerForZone(Navigator* navigator, string zoneName);
-    ZoneNavigationManager* GetNavigationManagerForSubZone(Navigator* navigator, string zoneName);
 
     void RequestUpdate();
     
