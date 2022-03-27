@@ -489,7 +489,7 @@ private:
     vector<ActionContext*> defaultContexts_;
     
 public:
-    Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath) {}
+    Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones); 
     
     Zone() {}
    
@@ -499,9 +499,7 @@ public:
     int GetSlotIndex();
     
     vector<ActionContext*> &GetActionContexts(Widget* widget);
-    
-    void Initialize(Zone* parentZone, vector<string> includedZones, vector<string> subZones);
-    
+        
     void RequestUpdate(map<Widget*, bool> &usedWidgets);
     void RequestUpdateWidget(Widget* widget);
     void Activate();
@@ -528,7 +526,10 @@ public:
     string GetNameOrAlias()
     {
         if(alias_ != "")
+        {
+            // GAW TBD - replace any '|' with GetSlot value from zoneNav
             return alias_;
+        }
         else
             return name_;
     }
@@ -561,6 +562,12 @@ public:
             zone->Unmap();
         
         subZones_.clear();
+    }
+    
+    void GoSubZone(string zoneName)
+    {
+        if(subZones_.count(zoneName) > 0)
+            subZones_[zoneName]->Activate();
     }
 };
 
@@ -619,17 +626,17 @@ class ZoneNavigationManager
 {
 protected:
     string const zoneName_ = "";
-    ZoneManager* const manager_ = nullptr;
+    ZoneManager* const zoneManager_ = nullptr;
     int slot_ = 0;
     vector<Zone*> zones_;
     vector<Navigator*> navigators_;
     bool isActive_ = false;
 
     virtual void CheckFocusedFXState() {}
-    virtual int GetNumSlots() { return 0; } // GAW TBD subclasses override to get proper value in context
+    virtual int GetNumSlots() { return 0; } // GAW TBD need to get proper value in context (Sends, Receives, etc.)
     
 public:
-    ZoneNavigationManager(string zoneName, ZoneManager* manager) : zoneName_(zoneName), manager_(manager) {}
+    ZoneNavigationManager(string zoneName, ZoneManager* zoneManager) : zoneName_(zoneName), zoneManager_(zoneManager) {}
     virtual ~ZoneNavigationManager() {}
     virtual int GetSlot() { return slot_; }
     vector<Navigator*> &GetNavigators() { return navigators_; }
@@ -702,7 +709,50 @@ public:
         if(slot_ < 0)
             slot_ = 0;
     }
+    
+    virtual void GoSubZone(string zoneName)
+    {
+        for(auto zone : zones_)
+            zone->GoSubZone(zoneName);
+    }
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SubZoneNavigationManager : public ZoneNavigationManager
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    ZoneNavigationManager* const parent_ = nullptr;
+    
+public:
+    SubZoneNavigationManager(ZoneNavigationManager* parent, string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager), parent_(parent) {}
+    
+    virtual void GoSubZone(string zoneName) override
+    {
+        // GAW TBD -- call GoSubZone on parent Zone.
+    }
+};
+
+/*
+int Zone::GetSlotIndex()
+{
+    if(name_ == "TrackSend")
+        return zoneManager_->GetTrackSendSlot();
+    else if(name_ == "TrackReceive")
+        return zoneManager_->GetTrackReceiveSlot();
+    else if(name_ == "TrackFXMenu")
+        return slotIndex_ + zoneManager_->GetTrackFXMenuSlot();
+    else if(name_ == "SelectedTrackSend")
+        return slotIndex_ + zoneManager_->GetSelectedTrackSendSlot();
+    else if(name_ == "SelectedTrackReceive")
+        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveSlot();
+    else if(name_ == "SelectedTrackFXMenu")
+        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuSlot();
+    else
+        return slotIndex_;
+    return zoneManager_->GetSlot(name_, slotIndex_);
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackZoneNavigationManager : public ZoneNavigationManager
@@ -802,7 +852,7 @@ public:
     SelectedTrackFXMenuZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
 
 };
-
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct CSIZoneInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -886,14 +936,17 @@ private:
         zones.clear();
     }
 
+    void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName);
+    
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
 
     void ForceClearAllWidgets() { } // GAW TBD clear all widgets in context
     
     void Initialize();
-    ZoneNavigationManager* GetNavigationManagerForZone(string zoneName);
-   
+    ZoneNavigationManager* GetNavigationManagerForZone(Navigator* navigator, string zoneName);
+    ZoneNavigationManager* GetNavigationManagerForSubZone(Navigator* navigator, string zoneName);
+
     void RequestUpdate();
     
     void PreProcessZones();
@@ -903,6 +956,9 @@ public:
     Navigator* GetFocusedFXNavigator();
     Navigator* GetDefaultNavigator();
     
+    
+    
+    
     int GetSlot(string zoneName, int slotIndex)
     {
         if(navigationManagers_.count(zoneName) > 0)
@@ -910,6 +966,9 @@ public:
         else
             return slotIndex;
     }
+    
+    
+    
    
     int GetNumChannels();
     void ReceiveActivate(ActivationType activationType, string zoneName);

@@ -372,9 +372,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone = new Zone(zoneManager, navigationManager->GetNavigators()[i], i, expandedTouchIds, zoneName, zoneAlias, filePath);
-                        
-                        zone->Initialize(zone, includedZones, subZones);
+                        Zone* zone = new Zone(zoneManager, navigationManager->GetNavigators()[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones);
                         
                         for(auto [widgetName, modifierActions] : widgetActions)
                         {
@@ -492,6 +490,11 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
 
 static void ActivateFXZoneFile(string filePath, ZoneManager* zoneManager, int slotIndex, vector<Zone*> &zones)
 {
+    
+    vector<string> includedZones;
+    vector<string> subZones;
+    
+    
     map<string, string> touchIds;
     
     map<string, map<string, vector<ActionTemplate*>>> widgetActions;
@@ -550,7 +553,7 @@ static void ActivateFXZoneFile(string filePath, ZoneManager* zoneManager, int sl
                     
                     string numStr = "";
                     
-                    Zone * zone = new Zone(zoneManager, navigator, slotIndex, touchIds, zoneName, zoneAlias, filePath);
+                    Zone * zone = new Zone(zoneManager, navigator, slotIndex, touchIds, zoneName, zoneAlias, filePath, includedZones, subZones);
                     
                     for(auto [widgetName, modifierActions] : widgetActions)
                     {
@@ -1732,36 +1735,35 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Zone::Initialize(Zone* parentZone, vector<string> includedZones, vector<string> subZones)
+int Zone::GetSlotIndex()
 {
-    if(includedZones.size() > 0)
-        for(auto zoneName : includedZones)
-            if(ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForZone(zoneName))
-            {
-                if(navigationManager->GetNavigators().size() == 0)
-                    navigationManager->AddNavigator(zoneManager_->GetDefaultNavigator() );
+    return zoneManager_->GetSlot(name_, slotIndex_); // GAW TBD -- change this to ZoneNavigationManager
+}
 
-                if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
-                {
-                    ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
-                    includedZoneNavigationManagers_.push_back(navigationManager);
-                }
-            }
 
-    if(subZones.size() > 0)
-        for(auto zoneName : subZones)
-            if(ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForZone(zoneName))
-            {
-                if(navigationManager->GetNavigators().size() == 0)
-                    navigationManager->AddNavigator(parentZone->GetNavigator());
-                
-                
-                if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
-                {
-                    ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
-                    subZoneNavigationManagers_[zoneName] = navigationManager;
-                }
-            }
+Zone::Zone(ZoneManager* const zoneManager,  Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+{
+    for(auto zoneName : includedZones)
+    {
+        if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
+        {
+            ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForZone(zoneManager_->GetDefaultNavigator(), zoneName);
+
+            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
+            includedZoneNavigationManagers_.push_back(navigationManager);
+        }
+    }
+
+    for(auto zoneName : subZones)
+    {
+        if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
+        {
+            ZoneNavigationManager* navigationManager = zoneManager_->GetNavigationManagerForSubZone(GetNavigator(), zoneName);
+            
+            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager);
+            subZoneNavigationManagers_[zoneName] = navigationManager;
+        }
+    }
 }
 
 void Zone::Activate()
@@ -1900,7 +1902,6 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
         manager->DoTouch(widget, widgetName, isUsed, value);
 }
 
-
 vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
 {
     string widgetName = widget->GetName();
@@ -1917,11 +1918,6 @@ vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
         return actionContextDictionary_[widget][""];
     else
         return defaultContexts_;
-}
-
-int Zone::GetSlotIndex()
-{
-    return zoneManager_->GetSlot(name_, slotIndex_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2095,53 +2091,51 @@ void OSC_IntFeedbackProcessor::ForceValue(int param, double value)
     surface_->SendOSCMessage(this, oscAddress_, (int)value);
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-ZoneNavigationManager* ZoneManager::GetNavigationManagerForZone(string zoneName)
+
+
+// GAW TBD -- refactor this to ZoneNavigationManager constructor
+
+ZoneNavigationManager* ZoneManager::GetNavigationManagerForZone(Navigator* navigator, string zoneName)
 {
-    ZoneNavigationManager* manager = nullptr;
+    ZoneNavigationManager* manager = new ZoneNavigationManager(zoneName, this);
   
-    if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack" ||
-       zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
-    {
-        if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack")
-            manager = new SelectedTrackZoneNavigationManager(zoneName, this);
-        else if(zoneName == "SelectedTrackSend")
-            manager = new SelectedTrackSendZoneNavigationManager(zoneName, this);
-        else if(zoneName == "SelectedTrackReceive")
-            manager = new SelectedTrackReceiveZoneNavigationManager(zoneName, this);
-        else if(zoneName == "SelectedTrackFXMenu")
-            manager = new SelectedTrackFXMenuZoneNavigationManager(zoneName, this);
-        
-        manager->AddNavigator(GetSelectedTrackNavigator());
-    }
-    else if(zoneName == "MasterTrack")
-    {
-        manager = new MasterTrackZoneNavigationManager(zoneName, this);
-        manager->AddNavigator(GetMasterTrackNavigator());
-    }
-    else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
-    {
-        if(zoneName == "Track")
-            manager = new TrackZoneNavigationManager(zoneName, this);
-        else if(zoneName == "TrackSend")
-            manager = new TrackSendZoneNavigationManager(zoneName, this);
-        else if(zoneName == "TrackReceive")
-            manager = new TrackReceiveZoneNavigationManager(zoneName, this);
-        else if(zoneName == "TrackFXMenu")
-            manager = new TrackFXMenuZoneNavigationManager(zoneName, this);
-        
-        for(int i = 0; i < GetNumChannels(); i++)
-            manager->AddNavigator(surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset()));
-    }
-    else
-    {
-        manager = new ZoneNavigationManager(zoneName, this);
-    }
+    AddNavigatorsForZone(manager, navigator, zoneName);
     
     return manager;
 }
+
+ZoneNavigationManager* ZoneManager::GetNavigationManagerForSubZone(Navigator* navigator, string zoneName)
+{
+    ZoneNavigationManager* manager = new ZoneNavigationManager(zoneName, this);
+  
+    AddNavigatorsForZone(manager, navigator, zoneName);
+    
+    return manager;
+}
+
+void ZoneManager::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName)
+{
+    if(zoneName == "Home" || zoneName == "Buttons" || zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
+        manager->AddNavigator(GetSelectedTrackNavigator());
+    else if(zoneName == "MasterTrack")
+        manager->AddNavigator(GetMasterTrackNavigator());
+    else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+        for(int i = 0; i < GetNumChannels(); i++)
+            manager->AddNavigator(surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset()));
+    else
+        manager->AddNavigator(navigator);
+}
+
+
+
+
+
+
 
 void ZoneManager::Initialize()
 {
@@ -2153,14 +2147,14 @@ void ZoneManager::Initialize()
         return;
     }
         
-    if(ZoneNavigationManager* manager = GetNavigationManagerForZone("Home"))
+    ZoneNavigationManager* manager = new ZoneNavigationManager("Home", this);
+    manager->AddNavigator(GetSelectedTrackNavigator());
+    
+    if(navigationManagers_.count("Home") < 1)
     {
-        if(navigationManagers_.count("Home") < 1)
-        {
-            ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, manager);
-            navigationManagers_["Home"] = manager;
-            GoHome();
-        }
+        ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, manager);
+        navigationManagers_["Home"] = manager;
+        GoHome();
     }
 }
 
