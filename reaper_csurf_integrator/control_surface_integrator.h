@@ -486,13 +486,15 @@ private:
     map<string, Zone*> subZones_;
     map<string, ZoneNavigationManager*> subZoneNavigationManagers_;
 
+    map<string, ZoneNavigationManager*> associatedZoneNavigationManagers_;
+    
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
     vector<ActionContext*> defaultContexts_;
     
     void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName);
     
 public:
-    Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones);
+    Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones);
     
     Zone() {}
    
@@ -648,10 +650,19 @@ public:
     {
         isActive_ = isActive;
         
-        for(auto zone : zones_)
-            zone->Activate();
+        if(isActive)
+            for(auto zone : zones_)
+                zone->Activate();
+        else
+            for(auto zone : zones_)
+                zone->Deactivate();
     }
 
+    void Leave()
+    {
+        SetIsActive(false);
+    }
+    
     void DoAction(Widget* widget, bool &isUsed, double value)
     {
         for(auto zone : zones_)
@@ -713,10 +724,11 @@ public:
             slot_ = 0;
     }
     
-    virtual void GoSubZone(string zoneName)
+    virtual void GoSubZone(Zone* enclosingZone, string zoneName)
     {
         for(auto zone : zones_)
-            zone->GoSubZone(zoneName);
+            if(zone == enclosingZone)
+                zone->GoSubZone(zoneName);
     }
 };
 
@@ -729,9 +741,9 @@ class SubZoneNavigationManager : public ZoneNavigationManager
 public:
     SubZoneNavigationManager(ZoneNavigationManager* parent, string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager), parent_(parent) {}
     
-    virtual void GoSubZone(string zoneName) override
+    virtual void GoSubZone(Zone* enclosingZone, string zoneName) override
     {
-        parent_->GoSubZone(zoneName);
+        parent_->GoSubZone(enclosingZone, zoneName);
     }
 };
 
