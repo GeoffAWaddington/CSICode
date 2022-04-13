@@ -272,12 +272,13 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
             
             vector<string> tokens(GetTokens(line));
                        
-            if(lineNumber == 1 && tokens.size() > 0)
+            if(lineNumber == 1 && tokens.size() > 1)
             {
                 if(tokens[0] == "Zone" && tokens.size() > 1)
                 {
                     zoneName = tokens[1];
                     info.alias = tokens.size() > 2 ? tokens[2] : "";
+                    zoneManager->AddZoneFilePath(zoneName, info);
                 }
             }
             else if(lineNumber == 2 && tokens.size() > 0)
@@ -1097,12 +1098,15 @@ void Manager::InitActionsDictionary()
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();
     actions_["PageNameDisplay"] =                   new PageNameDisplay();
-    actions_["Broadcast"] =                         new Broadcast();
-    actions_["Receive"] =                           new Receive();
-    actions_["GoHome"] =                            new GoHome();
+    
+    
     actions_["GoSubZone"] =                         new GoSubZone();
     
     
+    actions_["Broadcast"] =                         new Broadcast();
+    actions_["Receive"] =                           new Receive();
+    
+    actions_["GoHome"] =                            new GoHome();
     actions_["GoTrack"] =                           new GoTrack();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
@@ -1153,7 +1157,6 @@ void Manager::InitActionsDictionary()
     actions_["TrackPanLPercent"] =                  new TrackPanLPercent();
     actions_["TrackPanR"] =                         new TrackPanR();
     actions_["TrackPanRPercent"] =                  new TrackPanRPercent();
-    actions_["TogglePin"] =                         new TogglePin();
     actions_["TrackNameDisplay"] =                  new TrackNameDisplay();
     actions_["TrackVolumeDisplay"] =                new TrackVolumeDisplay();
     actions_["MCUTrackPanDisplay"] =                new MCUTrackPanDisplay();
@@ -1278,10 +1281,6 @@ void Manager::Init()
             
             pages_[currentPageIndex_]->AdjustTrackBank(atoi(buf));
         }
-        
-        // Restore the Pinned Tracks
-        if(pages_.size() > 0)
-            pages_[currentPageIndex_]->RestorePinnedTracks();
     }
     catch (exception &e)
     {
@@ -1308,29 +1307,9 @@ void Manager::Init()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TrackNavigator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void TrackNavigator::PinChannel()
-{
-    if(pinnedTrack_ == nullptr)
-    {
-        pinnedTrack_ = GetTrack();
-        
-        manager_->IncChannelBias(channelNum_);
-    }
-}
-
-void TrackNavigator::UnpinChannel()
-{
-    if(pinnedTrack_ != nullptr)
-    {
-        manager_->DecChannelBias(channelNum_);
-        
-        pinnedTrack_ = nullptr;
-    }
-}
-
 MediaTrack* TrackNavigator::GetTrack()
 {
-    return manager_->GetTrackFromChannel(channelNum_, bias_, pinnedTrack_);
+    return manager_->GetTrackFromChannel(channelNum_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2207,9 +2186,8 @@ void ZoneManager::RequestUpdate()
     
     if(navigationManagers_.count("Home") > 0)
     {
-        ZoneNavigationManager* manager = navigationManagers_["Home"];
-        
-        manager->RequestUpdate(usedWidgets_);
+        if(ZoneNavigationManager* manager = navigationManagers_["Home"])
+            manager->RequestUpdate(usedWidgets_);
     }
     
     /*

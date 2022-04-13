@@ -160,12 +160,6 @@ public:
     virtual string GetName() { return "Navigator"; }
     virtual MediaTrack* GetTrack() { return nullptr; }
     virtual string GetChannelNumString() { return ""; }
-    virtual bool GetIsChannelPinned() { return false; }
-    virtual void IncBias() {}
-    virtual void DecBias() {}
-    virtual void PinChannel() {}
-    virtual void SetPinnedTrack(MediaTrack* track) { }
-    virtual void UnpinChannel() {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,8 +168,6 @@ class TrackNavigator : public Navigator
 {
 private:
     int const channelNum_ = 0;
-    int bias_ = 0;
-    MediaTrack* pinnedTrack_ = nullptr;
     
 protected:
     TrackNavigationManager* const manager_;
@@ -184,15 +176,6 @@ public:
     TrackNavigator(Page*  page, TrackNavigationManager* manager, int channelNum) : Navigator(page), manager_(manager), channelNum_(channelNum) {}
     virtual ~TrackNavigator() {}
     
-    virtual bool GetIsChannelPinned() override { return pinnedTrack_ != nullptr; }
-    virtual void IncBias() override { bias_++; }
-    virtual void DecBias() override { bias_--; }
-    
-    virtual void PinChannel() override;
-    virtual void UnpinChannel() override;
-    
-    virtual void SetPinnedTrack(MediaTrack* track) override { pinnedTrack_ = track; }
-
     virtual string GetName() override { return "TrackNavigator"; }
     
     virtual string GetChannelNumString() override { return to_string(channelNum_ + 1); }
@@ -1096,9 +1079,8 @@ public:
         
         bool isUsed = false;
         
-        ZoneNavigationManager* manager = navigationManagers_["Home"];
-        
-        manager->DoAction(widget, isUsed, value);
+        if(ZoneNavigationManager* manager = navigationManagers_["Home"])
+            manager->DoAction(widget, isUsed, value);
     }
     
     void DoRelativeAction(Widget* widget, double delta)
@@ -1559,7 +1541,6 @@ private:
     int targetScrollLinkChannel_ = 0;
     int trackOffset_ = 0;
     int vcaTrackOffset_ = 0;
-    vector<MediaTrack*> tracks_;
     vector<MediaTrack*> selectedTracks_;
     vector<MediaTrack*> vcaTopLeadTracks_;
     vector<MediaTrack*> vcaLeadTracks_;
@@ -1573,22 +1554,6 @@ private:
     vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     int autoModeIndex_ = 0;
     
-    void SavePinnedTracks()
-    {
-        string pinnedTracks = "";
-        
-        for(int i = 0; i < trackNavigators_.size(); i++)
-        {
-            if(trackNavigators_[i]->GetIsChannelPinned())
-            {
-                int trackNum = CSurf_TrackToID(trackNavigators_[i]->GetTrack(), followMCP_);
-                
-                pinnedTracks += to_string(i + 1) + "-" + to_string(trackNum) + "_";
-            }
-        }
-        
-        DAW:: SetProjExtState(0, "CSI", "PinnedTracks", pinnedTracks.c_str());
-    }
    
 public:
     TrackNavigationManager(Page* page, bool followMCP, bool synchPages, bool scrollLink) : page_(page), followMCP_(followMCP), synchPages_(synchPages), scrollLink_(scrollLink),
@@ -1670,8 +1635,8 @@ public:
                 if(selectedTrack == navigator->GetTrack())
                     return;
             
-            for(int i = 0; i < tracks_.size(); i++)
-                if(selectedTrack == tracks_[i])
+            for(int i = 1; i <= GetNumTracks(); i++)
+                if(selectedTrack == GetTrackFromId(i))
                     trackOffset_ = i;
             
             trackOffset_ -= targetScrollLinkChannel_;
@@ -1726,62 +1691,6 @@ public:
         }
     }
         
-    void TogglePin(MediaTrack* track)
-    {
-        for(auto  [key, navigator] : trackNavigators_)
-        {
-            if(track == navigator->GetTrack())
-            {
-                if(navigator->GetIsChannelPinned())
-                    navigator->UnpinChannel();
-                else
-                    navigator->PinChannel();
-                
-                SavePinnedTracks();
-                
-                break;
-            }
-        }
-    }
-    
-    void RestorePinnedTracks()
-    {
-        char buf[8192];
-        
-        int result = DAW::GetProjExtState(0, "CSI", "PinnedTracks", buf, sizeof(buf));
-        
-        if(result > 0)
-        {
-            istringstream kvpTokens(buf);
-            string kvp;
-            
-            while(getline(kvpTokens, kvp, '_'))
-            {
-                vector<string> tokens;
-                
-                istringstream iss(kvp);
-                string token;
-                
-                while(getline(iss, token, '-'))
-                    tokens.push_back(token);
-
-                if(tokens.size() == 2)
-                {
-                    int channelNum = atoi(tokens[0].c_str());
-                    channelNum--;
-                    
-                    channelNum = channelNum < 0 ? 0 : channelNum;
-                                        
-                    int trackNum = atoi(tokens[1].c_str());
-                   
-                    if(MediaTrack* track =  CSurf_TrackFromID(trackNum, followMCP_))
-                        if(trackNavigators_.size() > channelNum)
-                            trackNavigators_[channelNum]->SetPinnedTrack(track);
-                }
-            }
-        }
-    }
-    
     void ToggleVCAMode()
     {
         vcaMode_ = ! vcaMode_;
@@ -1795,24 +1704,16 @@ public:
         return trackNavigators_[channelNum];
     }
     
-    MediaTrack* GetTrackFromChannel(int channelNumber, int bias, MediaTrack* pinnedTrack)
+    MediaTrack* GetTrackFromChannel(int channelNumber)
     {
         if(! vcaMode_)
         {
-            if(pinnedTrack != nullptr)
-                return pinnedTrack;
-            else
-                channelNumber -= bias;
-            
-            int trackNumber = channelNumber + trackOffset_;
-            
-            if(tracks_.size() > trackNumber && DAW::ValidateTrackPtr(tracks_[trackNumber]))
-                return tracks_[trackNumber];
-            else
-                return nullptr;
+            return GetTrackFromId(channelNumber + trackOffset_ + 1);
         }
         else if(vcaLeadTracks_.size() == 0)
         {
+            
+            
             if(vcaTopLeadTracks_.size() > channelNumber && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
                 return vcaTopLeadTracks_[channelNumber];
             else
@@ -1880,7 +1781,7 @@ public:
         
         MediaTrack* track = nullptr;
         
-        for(int i = 0; i <= GetNumTracks(); i++)
+        for(int i = 1; i <= GetNumTracks(); i++)
         {
             if(DAW::GetMediaTrackInfo_Value(GetTrackFromId(i), "I_SELECTED"))
             {
@@ -1904,18 +1805,6 @@ public:
     {
         if(scrollLink_)
             ForceScrollLink();
-    }
-    
-    void IncChannelBias(int channelNum)
-    {
-        for(int i = channelNum + 1; i < trackNavigators_.size(); i++)
-            trackNavigators_[i]->IncBias();
-    }
-    
-    void DecChannelBias(int channelNum)
-    {
-        for(int i = channelNum + 1; i < trackNavigators_.size(); i++)
-            trackNavigators_[i]->DecBias();
     }
 
     void OnTrackSelectionBySurface(MediaTrack* track)
@@ -1969,10 +1858,10 @@ public:
     }
     
     // For vcaSpillTracks_.erase -- see Clean up vcaSpillTracks below
-    static bool IsTrackPointerStale(MediaTrack* track)
-    {
-        return ! DAW::ValidateTrackPtr(track);
-    }
+    //static bool IsTrackPointerStale(MediaTrack* track)
+    //{
+        //return ! DAW::ValidateTrackPtr(track);
+    //}
 
     void RebuildTrackList()
     {
@@ -1983,7 +1872,6 @@ public:
         else if(trackOffset_ >  top)
             trackOffset_ = top;
 
-        tracks_.clear();
         vcaTopLeadTracks_.clear();
         vcaSpillTracks_.clear();
         selectedTracks_.clear();
@@ -2032,8 +1920,6 @@ public:
                 */
                 if(DAW::GetMediaTrackInfo_Value(track, "I_SELECTED"))
                     selectedTracks_.push_back(track);
-                
-                tracks_.push_back(track);
                                
                 if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
                     vcaTopLeadTracks_.push_back(track);
@@ -2073,16 +1959,6 @@ public:
         if(fxMenuSlot_ > maxFXMenuSlot_)
             fxMenuSlot_ = maxFXMenuSlot_;
         */
-        for(auto  [key, navigator] : trackNavigators_)
-        {
-            if(navigator->GetIsChannelPinned())
-            {
-                if(DAW::ValidateTrackPtr(navigator->GetTrack()))
-                    remove(tracks_.begin(), tracks_.end(), navigator->GetTrack());
-                else
-                    navigator->UnpinChannel();
-            }
-        }
     }
     
     void EnterPage()
@@ -2226,9 +2102,9 @@ public:
         sprintf(msgBuffer, "%s - %s - %d microseconds\n", surface.c_str(), item.c_str(), duration);
         DAW::ShowConsoleMsg(msgBuffer);
     }
-    */
+   */
 
-
+//*
     void Run()
     {
         trackNavigationManager_->RebuildTrackList();
@@ -2239,7 +2115,7 @@ public:
         for(auto surface : surfaces_)
             surface->RequestUpdate();
     }
-
+//*/
     void ForceClearAllWidgets()
     {
         for(auto surface : surfaces_)
@@ -2386,8 +2262,6 @@ public:
     Navigator* GetDefaultNavigator() { return trackNavigationManager_->GetDefaultNavigator(); }
     void ForceScrollLink() { trackNavigationManager_->ForceScrollLink(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
-    void TogglePin(MediaTrack* track) { trackNavigationManager_->TogglePin(track); }
-    void RestorePinnedTracks() { trackNavigationManager_->RestorePinnedTracks(); }
     void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
