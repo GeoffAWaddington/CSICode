@@ -1577,7 +1577,6 @@ public:
         delete defaultNavigator_;
     }
     
-    vector<MediaTrack*> &GetSelectedTracks() { return selectedTracks_; }
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return scrollLink_; }
     bool GetVCAMode() { return vcaMode_; }
@@ -1624,6 +1623,17 @@ public:
         return autoModeDisplayNames__[modeIndex];
     }
 
+    vector<MediaTrack*> &GetSelectedTracks()
+    {
+        selectedTracks_.clear();
+        
+        for(int i = 0; i < DAW::CountSelectedTracks(NULL); i++)
+            selectedTracks_.push_back(DAW::GetSelectedTrack(NULL, i));
+        
+        return selectedTracks_;
+    }
+
+    
     void ForceScrollLink()
     {
         // Make sure selected track is visble on the control surface
@@ -1779,18 +1789,7 @@ public:
         if(DAW::CountSelectedTracks(NULL) != 1)
             return nullptr;
         
-        MediaTrack* track = nullptr;
-        
-        for(int i = 1; i <= GetNumTracks(); i++)
-        {
-            if(DAW::GetMediaTrackInfo_Value(GetTrackFromId(i), "I_SELECTED"))
-            {
-                track = GetTrackFromId(i);
-                break;
-            }
-        }
-        
-        return track;
+        return DAW::GetSelectedTrack(NULL, 0);
     }
     
 //  Page only uses the following:
@@ -1863,25 +1862,14 @@ public:
         //return ! DAW::ValidateTrackPtr(track);
     //}
 
-    void RebuildTrackList()
-    {
-        int top = GetNumTracks() - trackNavigators_.size();
-        
-        if(top < 0)
-            trackOffset_ = 0;
-        else if(trackOffset_ >  top)
-            trackOffset_ = top;
-
+    void RebuildVCASpill()
+    {   
+        if(! vcaMode_)
+            return;
+    
         vcaTopLeadTracks_.clear();
         vcaSpillTracks_.clear();
-        selectedTracks_.clear();
-        
-        // GAW TBD -- do on the realtime calc in Zone Manager, don't forget to check upon activation too !
-        /*
-        maxSendSlot_ = 0;
-        maxReceiveSlot_ = 0;
-        maxFXMenuSlot_ = 0;
-*/
+
         MediaTrack* leadTrack = nullptr;
         bitset<32> leadTrackVCALeaderGroup;
         bitset<32> leadTrackVCALeaderGroupHigh;
@@ -1898,67 +1886,33 @@ public:
         {
             MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_);
             
-            if(DAW::IsTrackVisible(track, followMCP_))
-            {/*
-                int maxSendSlot = DAW::GetTrackNumSends(track, 0) - 1;
-                if(maxSendSlot > maxSendSlot_)
-                {
-                    maxSendSlot_ = maxSendSlot;
-                    AdjustSendBank(0);
-                }
-             
-                int maxReceiveSlot = DAW::GetTrackNumSends(track, -1) - 1;
-                if(maxReceiveSlot > maxReceiveSlot_)
-                {
-                    maxReceiveSlot_ = maxReceiveSlot;
-                    AdjustReceiveBank(0);
-                }
-
-                int maxFXMenuSlot = DAW::TrackFX_GetCount(track) - 1;
-                if(maxFXMenuSlot > maxFXMenuSlot_)
-                    maxFXMenuSlot_ = maxFXMenuSlot;
-                */
-                if(DAW::GetMediaTrackInfo_Value(track, "I_SELECTED"))
-                    selectedTracks_.push_back(track);
-                               
-                if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
-                    vcaTopLeadTracks_.push_back(track);
+            if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
+                vcaTopLeadTracks_.push_back(track);
+            
+            if(DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW") == 0)
+                vcaTopLeadTracks_.push_back(track);
+            
+            if(leadTrack != nullptr)
+            {
+                bool isFollower = false;
                 
-                if(DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW") == 0)
-                    vcaTopLeadTracks_.push_back(track);
-                
-                if(leadTrack != nullptr)
-                {
-                    bool isFollower = false;
-                    
-                    bitset<32> leadTrackVCAFollowerGroup(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW"));
-                    bitset<32> leadTrackVCAFollowerGroupHigh(DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW"));
+                bitset<32> leadTrackVCAFollowerGroup(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW"));
+                bitset<32> leadTrackVCAFollowerGroupHigh(DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW"));
 
-                    for(int i = 0; i < 32; i++)
+                for(int i = 0; i < 32; i++)
+                {
+                    if((leadTrackVCALeaderGroup[i] == 1 && leadTrackVCAFollowerGroup[i] == 1)
+                       || (leadTrackVCALeaderGroupHigh[i] == 1 && leadTrackVCAFollowerGroupHigh[i] == 1))
                     {
-                        if((leadTrackVCALeaderGroup[i] == 1 && leadTrackVCAFollowerGroup[i] == 1)
-                           || (leadTrackVCALeaderGroupHigh[i] == 1 && leadTrackVCAFollowerGroupHigh[i] == 1))
-                        {
-                            isFollower = true;
-                            break;
-                        }
+                        isFollower = true;
+                        break;
                     }
-                    
-                    if(isFollower)
-                            vcaSpillTracks_.push_back(track);
                 }
+                
+                if(isFollower)
+                        vcaSpillTracks_.push_back(track);
             }
         }
-/*
-        if(sendSlot_ > maxSendSlot_)
-            sendSlot_ = maxSendSlot_;
-
-        if(receiveSlot_ > maxReceiveSlot_)
-            receiveSlot_ = maxReceiveSlot_;
-
-        if(fxMenuSlot_ > maxFXMenuSlot_)
-            fxMenuSlot_ = maxFXMenuSlot_;
-        */
     }
     
     void EnterPage()
@@ -2039,7 +1993,7 @@ public:
     {
         int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
-        trackNavigationManager_->RebuildTrackList();
+        trackNavigationManager_->RebuildVCASpill();
         
         for(auto surface : surfaces_)
             surface->HandleExternalInput();
@@ -2056,7 +2010,7 @@ public:
              int totalDuration = 0;
 
              start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-             trackNavigationManager_->RebuildTrackList();
+             trackNavigationManager_->RebuildVCASpill();
              int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
              totalDuration += duration;
              ShowDuration("Rebuild Track List", duration);
@@ -2107,7 +2061,7 @@ public:
 //*
     void Run()
     {
-        trackNavigationManager_->RebuildTrackList();
+        trackNavigationManager_->RebuildVCASpill();
         
         for(auto surface : surfaces_)
             surface->HandleExternalInput();
