@@ -500,7 +500,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
         DAW::ShowConsoleMsg(buffer);
     }
 }
-
+/*
 static void ActivateFXZoneFile(string filePath, ZoneManager* zoneManager, int slotIndex, vector<Zone*> &zones)
 {
     
@@ -660,6 +660,7 @@ static void ActivateFXZoneFile(string filePath, ZoneManager* zoneManager, int sl
         DAW::ShowConsoleMsg(buffer);
     }
 }
+*/
 
 void SetRGB(vector<string> params, bool &supportsRGB, bool &supportsTrackColor, vector<rgb_color> &RGBValues)
 {
@@ -1317,7 +1318,7 @@ MediaTrack* TrackNavigator::GetTrack()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MediaTrack* MasterTrackNavigator::GetTrack()
 {
-    return DAW::GetMasterTrack(0);
+    return DAW::GetMasterTrack();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2204,7 +2205,7 @@ void ZoneManager::RequestUpdate()
     
     
     
-    // default is to zero unused Widgets -- e.g. you can override this by supplying an inverted NoAction context for an opposite sense device in the Home Zone
+    // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
     for(auto &[key, value] : usedWidgets_)
         if(value == false)
             key->UpdateValue(0.0);
@@ -2218,29 +2219,16 @@ void ZoneManager::DeactivateZones(vector<Zone*> &zones)
     string zoneName = zones[0]->GetName();
     
     if(broadcast_.count(zoneName) > 0)
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, zoneName);
+        surface_->GetPage()->SignalActivation(surface_, zoneName);
 
     for(auto zone : zones)
         zone->Deactivate();
 }
 
-void ZoneManager::ReceiveActivate(ActivationType activationType, string zoneName)
-{
-    if(receive_.count(zoneName) > 0)
-    {
-        if(zoneName == "Home")
-            GoHome();
-        else
-        {
-            vector<string> zoneNames { zoneName };
-        }
-    }
-}
-
 void ZoneManager::UnmapFocusedFXFromWidgets()
 {
-    if(broadcast_.count("FocusedFX") > 0)
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, "FocusedFX");
+    //if(broadcast_.count("FocusedFX") > 0)
+        //surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, "FocusedFX");
 
     
     
@@ -2251,8 +2239,8 @@ void ZoneManager::UnmapFocusedFXFromWidgets()
 
 void ZoneManager::MapFocusedFXToWidgets()
 {
-    if(broadcast_.count("FocusedFX") > 0)
-        surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
+    //if(broadcast_.count("FocusedFX") > 0)
+        //surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
     
     UnmapFocusedFXFromWidgets();
     
@@ -2337,8 +2325,19 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
     // GAW TBD -- add a wrapeer that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
 }
 
+void ZoneManager::ReceiveActivation(string subZoneName)
+{
+    if(receive_.count(subZoneName) > 0 && navigationManagers_.count("Home") > 0)
+        if(navigationManagers_["Home"]->GetZones().size() > 0)
+            navigationManagers_["Home"]->GoSubZone(navigationManagers_["Home"]->GetZones()[0], subZoneName);
+}
+
+
 void ZoneManager::GoSubZone(Zone* enclosingZone, string subZoneName, double value)
 {
+    if(broadcast_.count(subZoneName) > 0)
+        GetSurface()->GetPage()->SignalActivation(GetSurface(), subZoneName);
+
     if(enclosingZone->GetName() == "Home")
     {
         if(subZoneName == "Track" || subZoneName == "TrackSend" || subZoneName == "TrackReceive" || subZoneName == "TrackFXMenu" ||
@@ -2353,27 +2352,6 @@ void ZoneManager::GoSubZone(Zone* enclosingZone, string subZoneName, double valu
         if(navigationManagers_.count(enclosingZone->GetName()) > 0)
             navigationManagers_[enclosingZone->GetName()]->GoSubZone(enclosingZone, subZoneName);
     }
-        
-    
-    
-    
-    // look in list for enclosingZone pointer.
-    
-    
-    /*
-    for(auto activeZones : allActiveZones_)
-    {
-        for(auto zone : *activeZones)
-        {
-            if(zone == enclosingZone)
-            {
-                GoZone(activeZones, zoneName, value);
-                if(zonesByName_.count(zoneName) > 0)
-                    zonesByName_[zoneName]->SetSlotIndex(enclosingZone->GetSlotIndex());
-            }
-        }
-    }
-     */
 }
 
 void ZoneManager::GoHome()
@@ -2382,17 +2360,6 @@ void ZoneManager::GoHome()
 
     if(navigationManagers_.count("Home") > 0)
         navigationManagers_["Home"]->SetIsActive(true);
-    
-    /*
-    for(auto zone : fxZones_)
-        zone->Deactivate();
-    
-    for(auto zones : fixedZonesOld_)
-        DeactivateZones(zones);
-    
-    for(auto zone : homeZone_)
-        zone->Activate();
-     */
 }
 
 

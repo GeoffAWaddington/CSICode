@@ -65,13 +65,6 @@ const string TabChars = "[\t]";
 
 const int TempDisplayTime = 1250;
 
-enum ActivationType
-{
-    Activating,
-    Deactivating,
-    TogglingActivation,
-};
-
 class Manager;
 extern Manager* TheManager;
 
@@ -628,6 +621,7 @@ public:
     virtual ~ZoneNavigationManager() {}
     virtual int GetSlot() { return slot_; }
     vector<Navigator*> &GetNavigators() { return navigators_; }
+    vector<Zone*> &GetZones() { return zones_; }
     
     void SetIsActive(bool isActive)
     {
@@ -750,107 +744,8 @@ int Zone::GetSlotIndex()
     return zoneManager_->GetSlot(name_, slotIndex_);
 }
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    TrackZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class MasterTrackZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    MasterTrackZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FocusedFXZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    FocusedFXZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackFXZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    SelectedTrackFXZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    SelectedTrackZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackSendZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    TrackSendZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackSendZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    SelectedTrackSendZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackReceiveZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    TrackReceiveZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackReceiveZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    SelectedTrackReceiveZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackFXMenuZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    TrackFXMenuZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackFXMenuZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    SelectedTrackFXMenuZoneNavigationManager(string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager) {}
-
-};
 */
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct CSIZoneInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -950,9 +845,6 @@ public:
     Navigator* GetFocusedFXNavigator();
     Navigator* GetDefaultNavigator();
     
-    
-    
-    
     int GetSlot(string zoneName, int slotIndex)
     {
         if(navigationManagers_.count(zoneName) > 0)
@@ -960,17 +852,14 @@ public:
         else
             return slotIndex;
     }
-    
-    
-    
-   
+
     int GetNumChannels();
-    void ReceiveActivate(ActivationType activationType, string zoneName);
     void GoHome();
     void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones);
     void GoSubZone(Zone* enclosingZone, string zoneName, double value);
+    void ReceiveActivation(string zoneName);
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }
@@ -1627,8 +1516,8 @@ public:
     {
         selectedTracks_.clear();
         
-        for(int i = 0; i < DAW::CountSelectedTracks(NULL); i++)
-            selectedTracks_.push_back(DAW::GetSelectedTrack(NULL, i));
+        for(int i = 0; i < DAW::CountSelectedTracks(); i++)
+            selectedTracks_.push_back(DAW::GetSelectedTrack(i));
         
         return selectedTracks_;
     }
@@ -1718,12 +1607,10 @@ public:
     {
         if(! vcaMode_)
         {
-            return GetTrackFromId(channelNumber + trackOffset_ + 1);
+            return GetTrackFromId(channelNumber + trackOffset_ + 1);    // Master Track is idx 0, so add 1
         }
         else if(vcaLeadTracks_.size() == 0)
         {
-            
-            
             if(vcaTopLeadTracks_.size() > channelNumber && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
                 return vcaTopLeadTracks_[channelNumber];
             else
@@ -1786,10 +1673,10 @@ public:
     
     MediaTrack* GetSelectedTrack()
     {
-        if(DAW::CountSelectedTracks(NULL) != 1)
+        if(DAW::CountSelectedTracks() != 1)
             return nullptr;
-        
-        return DAW::GetSelectedTrack(NULL, 0);
+        else
+            return DAW::GetSelectedTrack(0);
     }
     
 //  Page only uses the following:
@@ -1856,12 +1743,6 @@ public:
         return false;
     }
     
-    // For vcaSpillTracks_.erase -- see Clean up vcaSpillTracks below
-    //static bool IsTrackPointerStale(MediaTrack* track)
-    //{
-        //return ! DAW::ValidateTrackPtr(track);
-    //}
-
     void RebuildVCASpill()
     {   
         if(! vcaMode_)
@@ -2195,11 +2076,11 @@ public:
             surface->OnInitialization();
     }
     
-    void SignalActivation(ControlSurface* originatingSurface, ActivationType activationType, string zoneName)
+    void SignalActivation(ControlSurface* originatingSurface, string zoneName)
     {
         for(auto surface : surfaces_)
             if(surface != originatingSurface)
-                surface->GetZoneManager()->ReceiveActivate(activationType, zoneName);
+                surface->GetZoneManager()->ReceiveActivation(zoneName);
 
     }
     

@@ -136,11 +136,11 @@ public:
     
     static int GetSetRepeatEx(ReaProject* proj, int val) { return ::GetSetRepeatEx(proj, val); }
     
-    static MediaTrack* GetMasterTrack(ReaProject* proj) { return ::GetMasterTrack(proj); };
+    static MediaTrack* GetMasterTrack() { return ::GetMasterTrack(NULL); };
     
-    static int CountSelectedTracks(ReaProject* proj) { return ::CountSelectedTracks2(proj, false); }
+    static int CountSelectedTracks() { return ::CountSelectedTracks2(NULL, false); }
     
-    static MediaTrack* GetSelectedTrack(ReaProject* proj, int seltrackidx) { return ::GetSelectedTrack(proj, seltrackidx); } 
+    static MediaTrack* GetSelectedTrack(int seltrackidx) { return ::GetSelectedTrack(NULL, seltrackidx); } 
     
     // Runs the system color chooser dialog.  Returns 0 if the user cancels the dialog.
     static int GR_SelectColor(HWND hwnd, int* colorOut) { return ::GR_SelectColor(hwnd, colorOut); }
