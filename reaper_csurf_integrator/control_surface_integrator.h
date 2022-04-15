@@ -456,7 +456,6 @@ private:
     
     map<Widget*, bool> widgets_;
     
-    //vector<Zone*> includedZones_;
     vector<ZoneNavigationManager*> includedZoneNavigationManagers_;
 
     map<string, Zone*> subZones_;
@@ -467,7 +466,7 @@ private:
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
     vector<ActionContext*> defaultContexts_;
     
-    void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName);
+    void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName, vector<Navigator*> &navigators);
     
 public:
     Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones);
@@ -612,7 +611,6 @@ protected:
     ZoneManager* const zoneManager_ = nullptr;
     int slot_ = 0;
     vector<Zone*> zones_;
-    vector<Navigator*> navigators_;
     bool isActive_ = false;
 
     virtual void CheckFocusedFXState() {}
@@ -622,7 +620,6 @@ public:
     ZoneNavigationManager(string zoneName, ZoneManager* zoneManager) : zoneName_(zoneName), zoneManager_(zoneManager) {}
     virtual ~ZoneNavigationManager() {}
     virtual int GetSlot() { return slot_; }
-    vector<Navigator*> &GetNavigators() { return navigators_; }
     vector<Zone*> &GetZones() { return zones_; }
     
     void Activate()
@@ -683,12 +680,7 @@ public:
     {
         zones_.push_back(zone);
     }
-    
-    void AddNavigator(Navigator* navigator)
-    {
-        navigators_.push_back(navigator);
-    }
-    
+
     void AdjustBank(int amount)
     {
         slot_ += amount;
