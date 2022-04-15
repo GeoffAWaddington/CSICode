@@ -474,6 +474,8 @@ public:
     
     Zone() {}
    
+    void GoAssociatedZone(string associatedZoneName);
+    
     void SetNavigator(Navigator* navigator) { navigator_ = navigator; }
     Navigator* GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
@@ -545,10 +547,10 @@ public:
         subZones_.clear();
     }
     
-    void GoSubZone(string zoneName)
+    void GoSubZone(string subZoneName)
     {
-        if(subZones_.count(zoneName) > 0)
-            subZones_[zoneName]->Activate();
+        if(subZones_.count(subZoneName) > 0)
+            subZones_[subZoneName]->Activate();
     }
 };
 
@@ -623,21 +625,25 @@ public:
     vector<Navigator*> &GetNavigators() { return navigators_; }
     vector<Zone*> &GetZones() { return zones_; }
     
-    void SetIsActive(bool isActive)
+    void Activate()
     {
-        isActive_ = isActive;
-        
-        if(isActive)
-            for(auto zone : zones_)
-                zone->Activate();
-        else
-            for(auto zone : zones_)
-                zone->Deactivate();
+        isActive_ = true;
+
+        for(auto zone : zones_)
+            zone->Activate();
+    }
+
+    void Deactivate()
+    {
+        isActive_ = false;
+
+        for(auto zone : zones_)
+            zone->Deactivate();
     }
 
     void Leave()
     {
-        SetIsActive(false);
+        Deactivate();
     }
     
     void DoAction(Widget* widget, bool &isUsed, double value)
@@ -699,28 +705,6 @@ public:
         
         if(slot_ < 0)
             slot_ = 0;
-    }
-    
-    virtual void GoSubZone(Zone* enclosingZone, string zoneName)
-    {
-        for(auto zone : zones_)
-            if(zone == enclosingZone)
-                zone->GoSubZone(zoneName);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SubZoneNavigationManager : public ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    ZoneNavigationManager* const parent_ = nullptr;
-    
-public:
-    SubZoneNavigationManager(ZoneNavigationManager* parent, string zoneName, ZoneManager* manager) : ZoneNavigationManager(zoneName, manager), parent_(parent) {}
-    
-    virtual void GoSubZone(Zone* enclosingZone, string zoneName) override
-    {
-        parent_->GoSubZone(enclosingZone, zoneName);
     }
 };
 
@@ -858,7 +842,7 @@ public:
     void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones);
-    void GoSubZone(Zone* enclosingZone, string zoneName, double value);
+    void GoAssociatedZone(Zone* enclosingZone, string zoneName);
     void ReceiveActivation(string zoneName);
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }

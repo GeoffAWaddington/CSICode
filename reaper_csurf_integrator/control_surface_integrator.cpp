@@ -1767,7 +1767,7 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
         {
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
-                ZoneNavigationManager* navigationManager = new SubZoneNavigationManager(zoneNavigationManager, zoneName, zoneManager_);
+                ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
                 
                 AddNavigatorsForZone(navigationManager, navigator, zoneName);
 
@@ -1782,7 +1782,7 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
         {
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
-                ZoneNavigationManager* navigationManager = new SubZoneNavigationManager(zoneNavigationManager, zoneName, zoneManager_);
+                ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
                 
                 AddNavigatorsForZone(navigationManager, navigator, zoneName);
 
@@ -1791,6 +1791,12 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
             }
         }
     }
+}
+
+void Zone::GoAssociatedZone(string associatedZoneName)
+{
+    if(associatedZoneNavigationManagers_.count(associatedZoneName) > 0)
+        associatedZoneNavigationManagers_[associatedZoneName]->Activate();
 }
 
 void Zone::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName)
@@ -1813,7 +1819,7 @@ void Zone::Activate()
     zoneManager_->GetSurface()->ActivatingZone(GetName());
     
     for(auto zone : includedZoneNavigationManagers_)
-        zone->SetIsActive(isActive_);
+        zone->Activate();
     
     for(auto [key, zone] : subZones_)
         zone->Deactivate();
@@ -1856,9 +1862,14 @@ void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
         }
     }
 
-    for(auto manager : includedZoneNavigationManagers_)
+    
+    
+    for(auto [key, manager] : associatedZoneNavigationManagers_)
         manager->RequestUpdate(usedWidgets);
     
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->RequestUpdate(usedWidgets);
+
     
     
     
@@ -2325,32 +2336,22 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
     // GAW TBD -- add a wrapeer that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
 }
 
-void ZoneManager::ReceiveActivation(string subZoneName)
+void ZoneManager::ReceiveActivation(string associatedZoneName)
 {
-    if(receive_.count(subZoneName) > 0 && navigationManagers_.count("Home") > 0)
+    if(receive_.count(associatedZoneName) > 0 && navigationManagers_.count("Home") > 0)
         if(navigationManagers_["Home"]->GetZones().size() > 0)
-            navigationManagers_["Home"]->GoSubZone(navigationManagers_["Home"]->GetZones()[0], subZoneName);
+            GoAssociatedZone(navigationManagers_["Home"]->GetZones()[0], associatedZoneName);
 }
 
 
-void ZoneManager::GoSubZone(Zone* enclosingZone, string subZoneName, double value)
+void ZoneManager::GoAssociatedZone(Zone* enclosingZone, string subZoneName)
 {
-    if(broadcast_.count(subZoneName) > 0)
-        GetSurface()->GetPage()->SignalActivation(GetSurface(), subZoneName);
-
-    if(enclosingZone->GetName() == "Home")
+    if(navigationManagers_.count("Home") > 0 && navigationManagers_["Home"]->GetZones().size() > 0)
     {
-        if(subZoneName == "Track" || subZoneName == "TrackSend" || subZoneName == "TrackReceive" || subZoneName == "TrackFXMenu" ||
-           subZoneName == "SelectedTrack" || subZoneName == "SelectedTrackSend" || subZoneName == "SelectedTrackReceive" || subZoneName == "SelectedTrackFXMenu")
-        {
-            if(navigationManagers_.count(subZoneName) > 0)
-                navigationManagers_[subZoneName]->GoSubZone(enclosingZone, subZoneName);
-        }
-    }
-    else
-    {
-        if(navigationManagers_.count(enclosingZone->GetName()) > 0)
-            navigationManagers_[enclosingZone->GetName()]->GoSubZone(enclosingZone, subZoneName);
+        if(broadcast_.count(subZoneName) > 0)
+            GetSurface()->GetPage()->SignalActivation(GetSurface(), subZoneName);
+        
+        navigationManagers_["Home"]->GetZones()[0]->GoSubZone(subZoneName);
     }
 }
 
@@ -2359,7 +2360,7 @@ void ZoneManager::GoHome()
     UnmapFocusedFXFromWidgets();
 
     if(navigationManagers_.count("Home") > 0)
-        navigationManagers_["Home"]->SetIsActive(true);
+        navigationManagers_["Home"]->Activate();
 }
 
 
