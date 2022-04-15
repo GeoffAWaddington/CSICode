@@ -1755,11 +1755,10 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
             ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
           
             vector<Navigator*> navigators;
-
             AddNavigatorsForZone(navigationManager, navigator, zoneName, navigators);
             
             ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager, navigators);
-            includedZoneNavigationManagers_.push_back(navigationManager);
+            includedZoneNavigationManagers_.push_back(navigationManager); // We want these to be in user order, so we use a vector here
         }
     }
 
@@ -1772,8 +1771,6 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
                 ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
                 
                 vector<Navigator*> navigators;
-
-                
                 AddNavigatorsForZone(navigationManager, navigator, zoneName, navigators);
 
                 ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager, navigators);
@@ -1790,8 +1787,6 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
                 ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
                 
                 vector<Navigator*> navigators;
-
-                
                 AddNavigatorsForZone(navigationManager, navigator, zoneName, navigators);
 
                 ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager, navigators);
@@ -1826,8 +1821,8 @@ void Zone::Activate()
     
     zoneManager_->GetSurface()->ActivatingZone(GetName());
     
-    for(auto zone : includedZoneNavigationManagers_)
-        zone->Activate();
+    for(auto zoneManager : includedZoneNavigationManagers_)
+        zoneManager->Activate();
     
     for(auto [key, zone] : subZones_)
         zone->Deactivate();
@@ -1836,6 +1831,12 @@ void Zone::Activate()
 void Zone::Deactivate()
 {
     isActive_ = false;
+    
+    for(auto zoneManager : includedZoneNavigationManagers_)
+        zoneManager->Deactivate();
+
+    for(auto [key, zone] : subZones_)
+        zone->Deactivate();
 }
 
 void Zone::RequestUpdateWidget(Widget* widget)
