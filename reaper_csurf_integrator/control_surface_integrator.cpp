@@ -1807,13 +1807,16 @@ void Zone::GoAssociatedZone(string associatedZoneName)
 
 void Zone::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName, vector<Navigator*> &navigators)
 {
-    if(zoneName == "Buttons" || zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
+    if(zoneName == "Buttons")
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
     else if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
     else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset()));
+    else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
+        for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
+            navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
     else
         navigators.push_back(navigator);
 }
