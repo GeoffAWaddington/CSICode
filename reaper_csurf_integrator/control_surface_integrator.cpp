@@ -2336,12 +2336,21 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
     // GAW TBD -- add a wrapeer that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
 }
 
-void ZoneManager::ReceiveActivation(string associatedZoneName)
+void ZoneManager::ReceiveActivation(string zoneName)
 {
-    if(receive_.count(associatedZoneName) > 0 && homeZone_ != nullptr)
-        GoAssociatedZone(homeZone_, associatedZoneName);
-}
+    if(homeZone_ != nullptr && receive_.count(zoneName) > 0)
+    {
+        if(zoneName == "Home")
+        {
+            UnmapFocusedFXFromWidgets();
 
+            if(navigationManagers_.count(zoneName) > 0)
+                navigationManagers_[zoneName]->Activate();;
+        }
+        else
+            homeZone_->GoAssociatedZone(zoneName);
+    }
+}
 
 void ZoneManager::GoAssociatedZone(Zone* enclosingZone, string associatedZoneName)
 {
@@ -2356,12 +2365,16 @@ void ZoneManager::GoAssociatedZone(Zone* enclosingZone, string associatedZoneNam
 
 void ZoneManager::GoHome()
 {
+    string zoneName = "Home";
+    
+    if(broadcast_.count(zoneName) > 0)
+        GetSurface()->GetPage()->SignalActivation(GetSurface(), zoneName);
+    
     UnmapFocusedFXFromWidgets();
 
-    if(navigationManagers_.count("Home") > 0)
-        navigationManagers_["Home"]->Activate();
+    if(navigationManagers_.count(zoneName) > 0)
+        navigationManagers_[zoneName]->Activate();
 }
-
 
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
 Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
