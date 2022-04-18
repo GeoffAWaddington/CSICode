@@ -1801,6 +1801,9 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
 
 void Zone::GoAssociatedZone(string associatedZoneName)
 {
+    for(auto [key, associatedZoneNavigationManager] : associatedZoneNavigationManagers_)
+        associatedZoneNavigationManager->Deactivate();
+        
     if(associatedZoneNavigationManagers_.count(associatedZoneName) > 0)
         associatedZoneNavigationManagers_[associatedZoneName]->Activate();
 }
@@ -2338,7 +2341,7 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
 
 void ZoneManager::ReceiveActivation(string zoneName)
 {
-    if(homeZone_ != nullptr && receive_.count(zoneName) > 0)
+    if(receive_.count(zoneName) > 0)
     {
         if(zoneName == "Home")
         {
@@ -2347,7 +2350,7 @@ void ZoneManager::ReceiveActivation(string zoneName)
             if(navigationManagers_.count(zoneName) > 0)
                 navigationManagers_[zoneName]->Activate();;
         }
-        else
+        else if(homeZone_ != nullptr)
             homeZone_->GoAssociatedZone(zoneName);
     }
 }
