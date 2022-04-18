@@ -620,7 +620,6 @@ public:
     ZoneNavigationManager(string zoneName, ZoneManager* zoneManager) : zoneName_(zoneName), zoneManager_(zoneManager) {}
     virtual ~ZoneNavigationManager() {}
     virtual int GetSlot() { return slot_; }
-    vector<Zone*> &GetZones() { return zones_; }
     
     void Activate()
     {
@@ -744,6 +743,8 @@ private:
     map<Widget*, bool> usedWidgets_;
     map<string, ZoneNavigationManager*> navigationManagers_;
     
+    Zone* homeZone_ = nullptr;
+    
     map<string, CSIZoneInfo> zoneFilePaths_;
     map<string, CSIZoneInfo> focusedFXZoneFilePaths_;
     map<string, CSIZoneInfo> selectedTrackFXZoneFilePaths_;
@@ -821,14 +822,6 @@ public:
     Navigator* GetFocusedFXNavigator();
     Navigator* GetDefaultNavigator();
     
-    int GetSlot(string zoneName, int slotIndex)
-    {
-        if(navigationManagers_.count(zoneName) > 0)
-            return navigationManagers_[zoneName]->GetSlot();
-        else
-            return slotIndex;
-    }
-
     int GetNumChannels();
     void GoHome();
     void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
@@ -836,9 +829,19 @@ public:
     void ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones);
     void GoAssociatedZone(Zone* enclosingZone, string zoneName);
     void ReceiveActivation(string zoneName);
-    
+
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
-    ControlSurface* GetSurface() { return surface_; }
+    ControlSurface* GetSurface() { return surface_; }   
+    
+    void SetHomeZone(Zone* homeZone) { homeZone_ = homeZone; }
+    
+    int GetSlot(string zoneName, int slotIndex)
+    {
+        if(navigationManagers_.count(zoneName) > 0)
+            return navigationManagers_[zoneName]->GetSlot();
+        else
+            return slotIndex;
+    }
     
     void AdjustBank(string zoneName, int amount)
     {

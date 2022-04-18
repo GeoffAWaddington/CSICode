@@ -377,6 +377,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
                         
                         Zone* zone = new Zone(zoneManager, navigationManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
                         
+                        if(zoneName == "Home")
+                            zoneManager->SetHomeZone(zone);
+                        
                         for(auto [widgetName, modifierActions] : widgetActions)
                         {
                             string surfaceWidgetName = widgetName;
@@ -1823,6 +1826,9 @@ void Zone::Activate()
     
     for(auto zoneManager : includedZoneNavigationManagers_)
         zoneManager->Activate();
+   
+    for(auto [key, zoneManager] : associatedZoneNavigationManagers_)
+        zoneManager->Deactivate();
     
     for(auto [key, zone] : subZones_)
         zone->Deactivate();
@@ -1833,6 +1839,9 @@ void Zone::Deactivate()
     isActive_ = false;
     
     for(auto zoneManager : includedZoneNavigationManagers_)
+        zoneManager->Deactivate();
+
+    for(auto [key, zoneManager] : associatedZoneNavigationManagers_)
         zoneManager->Deactivate();
 
     for(auto [key, zone] : subZones_)
@@ -1856,11 +1865,14 @@ void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
     if(! isActive_)
         return;
   
+    for(auto [key, manager] : subZoneNavigationManagers_)
+        manager->RequestUpdate(usedWidgets);
     
-    
-    
-    
-    
+    for(auto [key, manager] : associatedZoneNavigationManagers_)
+        manager->RequestUpdate(usedWidgets);
+
+    for(auto manager : includedZoneNavigationManagers_)
+        manager->RequestUpdate(usedWidgets);
     
     for(auto [widget, value] : GetWidgets())
     {
@@ -1870,24 +1882,6 @@ void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
             RequestUpdateWidget(widget);
         }
     }
-
-    
-    
-    for(auto [key, manager] : associatedZoneNavigationManagers_)
-        manager->RequestUpdate(usedWidgets);
-    
-    for(auto manager : includedZoneNavigationManagers_)
-        manager->RequestUpdate(usedWidgets);
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
 
 void Zone::DoAction(Widget* widget, bool &isUsed, double value)
@@ -2235,14 +2229,6 @@ void ZoneManager::RequestUpdate()
 
 void ZoneManager::DeactivateZones(vector<Zone*> &zones)
 {
-    if(zones.size() == 0)
-        return;
-    
-    string zoneName = zones[0]->GetName();
-    
-    if(broadcast_.count(zoneName) > 0)
-        surface_->GetPage()->SignalActivation(surface_, zoneName);
-
     for(auto zone : zones)
         zone->Deactivate();
 }
@@ -2349,20 +2335,19 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
 
 void ZoneManager::ReceiveActivation(string associatedZoneName)
 {
-    if(receive_.count(associatedZoneName) > 0 && navigationManagers_.count("Home") > 0)
-        if(navigationManagers_["Home"]->GetZones().size() > 0)
-            GoAssociatedZone(navigationManagers_["Home"]->GetZones()[0], associatedZoneName);
+    if(receive_.count(associatedZoneName) > 0 && homeZone_ != nullptr)
+        GoAssociatedZone(homeZone_, associatedZoneName);
 }
 
 
-void ZoneManager::GoAssociatedZone(Zone* enclosingZone, string subZoneName)
+void ZoneManager::GoAssociatedZone(Zone* enclosingZone, string associatedZoneName)
 {
-    if(navigationManagers_.count("Home") > 0 && navigationManagers_["Home"]->GetZones().size() > 0)
+    if(homeZone_ != nullptr)
     {
-        if(broadcast_.count(subZoneName) > 0)
-            GetSurface()->GetPage()->SignalActivation(GetSurface(), subZoneName);
+        if(broadcast_.count(associatedZoneName) > 0)
+            GetSurface()->GetPage()->SignalActivation(GetSurface(), associatedZoneName);
         
-        navigationManagers_["Home"]->GetZones()[0]->GoSubZone(subZoneName);
+        homeZone_->GoAssociatedZone(associatedZoneName);
     }
 }
 
