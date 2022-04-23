@@ -443,8 +443,7 @@ class Zone
 {
 private:
     ZoneManager* const zoneManager_ = nullptr;
-    ZoneNavigationManager* const zoneNavigationManager_ = nullptr;
-    Navigator* navigator_= nullptr;
+    Navigator* const navigator_= nullptr;
     int slotIndex_ = 0;
     string const name_ = "";
     string const alias_ = "";
@@ -456,28 +455,23 @@ private:
     
     map<Widget*, bool> widgets_;
     
-    vector<ZoneNavigationManager*> includedZoneNavigationManagers_;
-
+    vector<Zone*> includedZones_;
     map<string, Zone*> subZones_;
-    map<string, ZoneNavigationManager*> subZoneNavigationManagers_;
-
-    map<string, ZoneNavigationManager*> associatedZoneNavigationManagers_;
+    map<string, Zone*> associatedZones_;
     
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
     vector<ActionContext*> defaultContexts_;
     
-    void AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName, vector<Navigator*> &navigators);
+    void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     
 public:
-    Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones);
+    Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones);
     
     Zone() {}
    
     void GoAssociatedZone(string associatedZoneName);
-    
-    void SetNavigator(Navigator* navigator) { navigator_ = navigator; }
+
     Navigator* GetNavigator() { return navigator_; }
-    void SetSlotIndex(int index) { slotIndex_ = index; }
     int GetSlotIndex();
     
     vector<ActionContext*> &GetActionContexts(Widget* widget);
@@ -602,6 +596,7 @@ public:
     }
 };
 
+/*
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -614,7 +609,6 @@ protected:
     bool isActive_ = false;
 
     virtual void CheckFocusedFXState() {}
-    virtual int GetNumSlots() { return 0; } // GAW TBD need to get proper value in context (Sends, Receives, etc.)
     
 public:
     ZoneNavigationManager(string zoneName, ZoneManager* zoneManager) : zoneName_(zoneName), zoneManager_(zoneManager) {}
@@ -633,6 +627,8 @@ public:
     {
         isActive_ = false;
 
+        slot_ = 0;
+        
         for(auto zone : zones_)
             zone->Deactivate();
     }
@@ -689,36 +685,15 @@ public:
     
     void ClampSlot()
     {
-        int maxSlot = GetNumSlots() - 1;
+        //int maxSlot = GetNumSlots() - 1;
         
-        if(slot_ > maxSlot)
-            slot_ = maxSlot;
+        //if(slot_ > maxSlot)
+            //slot_ = maxSlot;
         
         if(slot_ < 0)
             slot_ = 0;
     }
 };
-
-/*
-int Zone::GetSlotIndex()
-{
-    if(name_ == "TrackSend")
-        return zoneManager_->GetTrackSendSlot();
-    else if(name_ == "TrackReceive")
-        return zoneManager_->GetTrackReceiveSlot();
-    else if(name_ == "TrackFXMenu")
-        return slotIndex_ + zoneManager_->GetTrackFXMenuSlot();
-    else if(name_ == "SelectedTrackSend")
-        return slotIndex_ + zoneManager_->GetSelectedTrackSendSlot();
-    else if(name_ == "SelectedTrackReceive")
-        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveSlot();
-    else if(name_ == "SelectedTrackFXMenu")
-        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuSlot();
-    else
-        return slotIndex_;
-    return zoneManager_->GetSlot(name_, slotIndex_);
-}
-
 */
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -741,7 +716,6 @@ private:
     string const zoneFolder_ = "";
       
     map<Widget*, bool> usedWidgets_;
-    map<string, ZoneNavigationManager*> navigationManagers_;
     
     Zone* homeZone_ = nullptr;
     
@@ -751,29 +725,21 @@ private:
     
     map<int, map<int, int>> focusedFXDictionary;
     
-    /*
-    vector<Zone*> focusedFXZones_;
+    int trackSendOffset_ = 0;
+    int trackReceiveOffset_ = 0;
+    int trackFXMenuOffset_ = 0;
+    int selectedTrackOffset_ = 0;
+    int selectedTrackSendOffset_ = 0;
+    int selectedTrackReceiveOffset_ = 0;
+    int selectedTrackFXMenuOffset_ = 0;
 
-    
-    vector<Zone*> fxZones_;
-    
-    vector<Zone*> selectedTrackZones_;
-    
-    vector<Zone*> selectedTrackFXMenuZones_;
+    vector<Zone*> trackSendZones_;
+    vector<Zone*> trackReceiveZones_;
     vector<Zone*> trackFXMenuZones_;
-    
-    vector<Zone*> selectedTrackReceivesZones_;
-    vector<Zone*> trackReceivesZones_;
-    
-    vector<Zone*> selectedTrackSendsZones_;
-    vector<Zone*> trackSendsZones_;
-
-    vector<Zone*> homeZone_;
-    
-    vector<vector<Zone*>> fixedZonesOld_;
-    
-         */
-    
+    vector<Zone*> selectedTrackZones_;
+    vector<Zone*> selectedTrackSendZones_;
+    vector<Zone*> selectedTrackReceiveZones_;
+    vector<Zone*> selectedTrackFXMenuZones_;
     
     
     void MapFocusedFXToWidgets();
@@ -782,30 +748,7 @@ private:
     void MapSelectedTrackFXToWidgets();
     
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
-    
-    //void Activate(ActivationType activationType, string zoneName, vector<Zone*> &zones);
-    
-    //void Activate(ActivationType activationType, vector<string> &zoneNames);
-    
-    void DeactivateZones(vector<Zone*> &zones);
-    
-    void ActivatingZone(string zoneName)
-    {
-        
-        
-    }
-    
-    void UnmapZones(vector<Zone*> &zones)
-    {
-        for(auto zone : zones)
-            zone->Unmap();
-
-        for(auto zone : zones)
-            delete zone;
-    
-        zones.clear();
-    }
-   
+       
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
 
@@ -835,18 +778,82 @@ public:
     
     void SetHomeZone(Zone* homeZone) { homeZone_ = homeZone; }
     
-    int GetSlot(string zoneName, int slotIndex)
+    int GetTrackSendOffset() { return trackSendOffset_; }
+    int GetTrackReceiveOffset() { return trackReceiveOffset_; }
+    int GetTrackFXMenuOffset() { return trackFXMenuOffset_; }
+    int GetSelectedTrackOffset() { return selectedTrackOffset_; }
+    int GetSelectedTrackSendOffset() { return selectedTrackSendOffset_; }
+    int GetSelectedTrackReceiveOffset() { return selectedTrackReceiveOffset_; }
+    int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
+
+    void AdjustTrackSendBank(int amount)
     {
-        if(navigationManagers_.count(zoneName) > 0)
-            return navigationManagers_[zoneName]->GetSlot();
-        else
-            return slotIndex;
+        // GAW TBD -- calc max and clamp
+        
+        trackSendOffset_ += amount;
+        
+        if(trackSendOffset_ < 0)
+            trackSendOffset_ = 0;
     }
     
-    void AdjustBank(string zoneName, int amount)
+    void AdjustTrackReceiveBank(int amount)
     {
-        if(navigationManagers_.count(zoneName) > 0)
-            navigationManagers_[zoneName]->AdjustBank(amount);
+        // GAW TBD -- calc max and clamp
+        
+        trackReceiveOffset_ += amount;
+        
+        if(trackReceiveOffset_ < 0)
+            trackReceiveOffset_ = 0;
+    }
+    
+    void AdjustTrackFXMenuBank(int amount)
+    {
+        // GAW TBD -- calc max and clamp
+        
+        trackFXMenuOffset_ += amount;
+        
+        if(trackFXMenuOffset_ < 0)
+            trackFXMenuOffset_ = 0;
+    }
+    
+    void AdjustSelectedTrackBank(int amount)
+    {
+        // GAW TBD -- calc max and clamp
+        
+        selectedTrackOffset_ += amount;
+        
+        if(selectedTrackOffset_ < 0)
+            selectedTrackOffset_ = 0;
+    }
+    
+    void AdjustSelectedTrackSendBank(int amount)
+    {
+        // GAW TBD -- calc max and clamp
+        
+        selectedTrackSendOffset_ += amount;
+        
+        if(selectedTrackSendOffset_ < 0)
+            selectedTrackSendOffset_ = 0;
+    }
+    
+    void AdjustSelectedTrackReceiveBank(int amount)
+    {
+        // GAW TBD -- calc max and clamp
+        
+        selectedTrackReceiveOffset_ += amount;
+        
+        if(selectedTrackReceiveOffset_ < 0)
+            selectedTrackReceiveOffset_ = 0;
+    }
+    
+    void AdjustSelectedTrackFXMenuBank(int amount)
+    {
+        // GAW TBD -- calc max and clamp
+        
+        selectedTrackFXMenuOffset_ += amount;
+        
+        if(selectedTrackFXMenuOffset_ < 0)
+            selectedTrackFXMenuOffset_ = 0;
     }
     
     void MapTrackFXSlotToWidgets(MediaTrack* track, int fxSlot)
@@ -907,6 +914,11 @@ public:
             selectedTrackFXZoneFilePaths_[name] = info;
     }
     
+    void AddZone(Zone* zone)
+    {
+        
+    }
+    
     void CheckFocusedFXState()
     {
         int trackNumber = 0;
@@ -947,8 +959,8 @@ public:
         
         bool isUsed = false;
         
-        if(ZoneNavigationManager* manager = navigationManagers_["Home"])
-            manager->DoAction(widget, isUsed, value);
+        if(homeZone_ != nullptr)
+            homeZone_->DoAction(widget, isUsed, value);
     }
     
     void DoRelativeAction(Widget* widget, double delta)
@@ -957,9 +969,8 @@ public:
         
         bool isUsed = false;
         
-        ZoneNavigationManager* manager = navigationManagers_["Home"];
-        
-        manager->DoRelativeAction(widget, isUsed, delta);
+        if(homeZone_ != nullptr)
+            homeZone_->DoRelativeAction(widget, isUsed, delta);
     }
     
     void DoRelativeAction(Widget* widget, int accelerationIndex, double delta)
@@ -968,9 +979,8 @@ public:
         
         bool isUsed = false;
            
-        ZoneNavigationManager* manager = navigationManagers_["Home"];
-        
-        manager->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        if(homeZone_ != nullptr)
+            homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
     void DoTouch(Widget* widget, double value)
@@ -979,10 +989,8 @@ public:
         
         bool isUsed = false;
         
-        ZoneNavigationManager* manager = navigationManagers_["Home"];
-        
-        manager->DoTouch(widget, widget->GetName(), isUsed, value);
-
+        if(homeZone_ != nullptr)
+            homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     }
 };
 

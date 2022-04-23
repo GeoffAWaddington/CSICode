@@ -303,7 +303,7 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
     }
 }
 
-static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavigationManager* navigationManager, vector<Navigator*> &navigators)
+static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -375,7 +375,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone = new Zone(zoneManager, navigationManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
+                        Zone* zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
                         
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
@@ -423,7 +423,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, ZoneNavig
                             }
                         }
                         
-                        navigationManager->AddZone(zone);
+                        zoneManager->AddZone(zone);
                     }
                                     
                     includedZones.clear();
@@ -1746,22 +1746,33 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Zone::GetSlotIndex()
 {
-    return zoneManager_->GetSlot(name_, slotIndex_); // GAW TBD -- change this to ZoneNavigationManager
+    if(name_ == "TrackSend")
+        return zoneManager_->GetTrackSendOffset();
+    if(name_ == "TrackReceive")
+        return zoneManager_->GetTrackReceiveOffset();
+    if(name_ == "TrackFXMenu")
+        return zoneManager_->GetTrackFXMenuOffset();
+    if(name_ == "SelectedTrack")
+        return slotIndex_ + zoneManager_->GetSelectedTrackOffset();
+    if(name_ == "SelectedTrackSend")
+        return slotIndex_ + zoneManager_->GetSelectedTrackSendOffset();
+    if(name_ == "SelectedTrackReceive")
+        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveOffset();
+    if(name_ == "SelectedTrackFXMenu")
+        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset();
+    else return slotIndex_;
 }
 
-Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigationManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones): zoneManager_(zoneManager), zoneNavigationManager_(zoneNavigationManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     for(auto zoneName : includedZones)
     {
         if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
         {
-            ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
-          
             vector<Navigator*> navigators;
-            AddNavigatorsForZone(navigationManager, navigator, zoneName, navigators);
+            AddNavigatorsForZone(zoneName, navigators);
             
-            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager, navigators);
-            includedZoneNavigationManagers_.push_back(navigationManager); // We want these to be in user order, so we use a vector here
+            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators);
         }
     }
 
@@ -1771,13 +1782,10 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
         {
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
-                ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
-                
                 vector<Navigator*> navigators;
-                AddNavigatorsForZone(navigationManager, navigator, zoneName, navigators);
+                AddNavigatorsForZone(zoneName, navigators);
 
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager, navigators);
-                associatedZoneNavigationManagers_[zoneName] = navigationManager;
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators);
             }
         }
     }
@@ -1787,28 +1795,25 @@ Zone::Zone(ZoneManager* const zoneManager, ZoneNavigationManager* zoneNavigation
         {
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
-                ZoneNavigationManager* navigationManager = new ZoneNavigationManager(zoneName, zoneManager_);
-                
                 vector<Navigator*> navigators;
-                AddNavigatorsForZone(navigationManager, navigator, zoneName, navigators);
+                AddNavigatorsForZone(zoneName, navigators);
 
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigationManager, navigators);
-                subZoneNavigationManagers_[zoneName] = navigationManager;
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators);
             }
         }
     }
 }
 
-void Zone::GoAssociatedZone(string associatedZoneName)
+void Zone::GoAssociatedZone(string zoneName)
 {
-    for(auto [key, associatedZoneNavigationManager] : associatedZoneNavigationManagers_)
-        associatedZoneNavigationManager->Deactivate();
+    for(auto [key, zone] : associatedZones_)
+        zone->Deactivate();
         
-    if(associatedZoneNavigationManagers_.count(associatedZoneName) > 0)
-        associatedZoneNavigationManagers_[associatedZoneName]->Activate();
+    if(associatedZones_.count(zoneName) > 0)
+        associatedZones_[zoneName]->Activate();
 }
 
-void Zone::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navigator, string zoneName, vector<Navigator*> &navigators)
+void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
 {
     if(zoneName == "Buttons")
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
@@ -1820,8 +1825,6 @@ void Zone::AddNavigatorsForZone(ZoneNavigationManager* manager, Navigator* navig
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
-    else
-        navigators.push_back(navigator);
 }
 
 void Zone::Activate()
@@ -1830,11 +1833,11 @@ void Zone::Activate()
     
     zoneManager_->GetSurface()->ActivatingZone(GetName());
     
-    for(auto zoneManager : includedZoneNavigationManagers_)
-        zoneManager->Activate();
+    for(auto zone : includedZones_)
+        zone->Activate();
    
-    for(auto [key, zoneManager] : associatedZoneNavigationManagers_)
-        zoneManager->Deactivate();
+    for(auto [key, zone] : associatedZones_)
+        zone->Deactivate();
     
     for(auto [key, zone] : subZones_)
         zone->Deactivate();
@@ -1844,11 +1847,11 @@ void Zone::Deactivate()
 {
     isActive_ = false;
     
-    for(auto zoneManager : includedZoneNavigationManagers_)
-        zoneManager->Deactivate();
+    for(auto zone : includedZones_)
+        zone->Deactivate();
 
-    for(auto [key, zoneManager] : associatedZoneNavigationManagers_)
-        zoneManager->Deactivate();
+    for(auto [key, zone] : associatedZones_)
+        zone->Deactivate();
 
     for(auto [key, zone] : subZones_)
         zone->Deactivate();
@@ -1871,14 +1874,14 @@ void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
     if(! isActive_)
         return;
   
-    for(auto [key, manager] : subZoneNavigationManagers_)
-        manager->RequestUpdate(usedWidgets);
+    for(auto [key, zone] : subZones_)
+        zone->RequestUpdate(usedWidgets);
     
-    for(auto [key, manager] : associatedZoneNavigationManagers_)
-        manager->RequestUpdate(usedWidgets);
+    for(auto [key, zone] : associatedZones_)
+        zone->RequestUpdate(usedWidgets);
 
-    for(auto manager : includedZoneNavigationManagers_)
-        manager->RequestUpdate(usedWidgets);
+    for(auto zone : includedZones_)
+        zone->RequestUpdate(usedWidgets);
     
     for(auto [widget, value] : GetWidgets())
     {
@@ -1895,6 +1898,18 @@ void Zone::DoAction(Widget* widget, bool &isUsed, double value)
     if(! isActive_ || isUsed)
         return;
     
+    for(auto [key, zone] : subZones_)
+        zone->DoAction(widget, isUsed, value);
+    
+    if(isUsed)
+        return;
+
+    for(auto [key, zone] : associatedZones_)
+        zone->DoAction(widget, isUsed, value);
+    
+    if(isUsed)
+        return;
+
     if(widgets_.count(widget) > 0)
     {
         isUsed = true;
@@ -1902,9 +1917,11 @@ void Zone::DoAction(Widget* widget, bool &isUsed, double value)
         for(auto context : GetActionContexts(widget))
             context->DoAction(value);
     }
-    
-    for(auto manager : includedZoneNavigationManagers_)
-        manager->DoAction(widget, isUsed, value);
+    else
+    {
+        for(auto zone : includedZones_)
+            zone->DoAction(widget, isUsed, value);
+    }
 }
    
 void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
@@ -1912,6 +1929,18 @@ void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
     if(! isActive_ || isUsed)
         return;
     
+    for(auto [key, zone] : subZones_)
+        zone->DoRelativeAction(widget, isUsed, delta);
+    
+    if(isUsed)
+        return;
+
+    for(auto [key, zone] : associatedZones_)
+        zone->DoRelativeAction(widget, isUsed, delta);
+
+    if(isUsed)
+        return;
+
     if(widgets_.count(widget) > 0)
     {
         isUsed = true;
@@ -1919,14 +1948,28 @@ void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
         for(auto context : GetActionContexts(widget))
             context->DoRelativeAction(delta);
     }
-    
-    for(auto manager : includedZoneNavigationManagers_)
-        manager->DoRelativeAction(widget, isUsed, delta);
+    else
+    {
+        for(auto zone : includedZones_)
+            zone->DoRelativeAction(widget, isUsed, delta);
+    }
 }
 
 void Zone::DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
 {
     if(! isActive_ || isUsed)
+        return;
+
+    for(auto [key, zone] : subZones_)
+        zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    
+    if(isUsed)
+        return;
+    
+    for(auto [key, zone] : associatedZones_)
+        zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+
+    if(isUsed)
         return;
 
     if(widgets_.count(widget) > 0)
@@ -1936,14 +1979,28 @@ void Zone::DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex,
         for(auto context : GetActionContexts(widget))
             context->DoRelativeAction(accelerationIndex, delta);
     }
-    
-    for(auto manager : includedZoneNavigationManagers_)
-        manager->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    else
+    {
+        for(auto zone : includedZones_)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    }
 }
 
 void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
 {
     if(! isActive_ || isUsed)
+        return;
+
+    for(auto [key, zone] : subZones_)
+        zone->DoTouch(widget, widgetName, isUsed, value);
+    
+    if(isUsed)
+        return;
+    
+    for(auto [key, zone] : associatedZones_)
+        zone->DoTouch(widget, widgetName, isUsed, value);
+
+    if(isUsed)
         return;
 
     if(widgets_.count(widget) > 0)
@@ -1957,9 +2014,11 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
         for(auto context : GetActionContexts(widget))
             context->DoTouch(value);
     }
-    
-    for(auto manager : includedZoneNavigationManagers_)
-        manager->DoTouch(widget, widgetName, isUsed, value);
+    else
+    {
+        for(auto zone : includedZones_)
+            zone->DoTouch(widget, widgetName, isUsed, value);
+    }
 }
 
 vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
@@ -2164,17 +2223,10 @@ void ZoneManager::Initialize()
         return;
     }
         
-    ZoneNavigationManager* manager = new ZoneNavigationManager("Home", this);
-
     vector<Navigator*> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
-    
-    if(navigationManagers_.count("Home") < 1)
-    {
-        ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, manager, navigators);
-        navigationManagers_["Home"] = manager;
-        GoHome();
-    }
+    ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators);
+    GoHome();
 }
 
 void ZoneManager::RequestUpdate()
@@ -2207,11 +2259,8 @@ void ZoneManager::RequestUpdate()
     
     // GAW TBD -- expand this beyond "Home"
     
-    if(navigationManagers_.count("Home") > 0)
-    {
-        if(ZoneNavigationManager* manager = navigationManagers_["Home"])
-            manager->RequestUpdate(usedWidgets_);
-    }
+    if(homeZone_ != nullptr)
+        homeZone_->RequestUpdate(usedWidgets_);
     
     /*
     for(Zone* zone : focusedFXZones_)
@@ -2231,12 +2280,6 @@ void ZoneManager::RequestUpdate()
     for(auto &[key, value] : usedWidgets_)
         if(value == false)
             key->UpdateValue(0.0);
-}
-
-void ZoneManager::DeactivateZones(vector<Zone*> &zones)
-{
-    for(auto zone : zones)
-        zone->Deactivate();
 }
 
 void ZoneManager::UnmapFocusedFXFromWidgets()
@@ -2344,12 +2387,7 @@ void ZoneManager::ReceiveActivation(string zoneName)
     if(receive_.count(zoneName) > 0)
     {
         if(zoneName == "Home")
-        {
-            UnmapFocusedFXFromWidgets();
-
-            if(navigationManagers_.count(zoneName) > 0)
-                navigationManagers_[zoneName]->Activate();;
-        }
+            GoHome();
         else if(homeZone_ != nullptr)
             homeZone_->GoAssociatedZone(zoneName);
     }
@@ -2375,8 +2413,8 @@ void ZoneManager::GoHome()
     
     UnmapFocusedFXFromWidgets();
 
-    if(navigationManagers_.count(zoneName) > 0)
-        navigationManagers_[zoneName]->Activate();
+    if(homeZone_ != nullptr)
+        homeZone_->Activate();
 }
 
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }

@@ -393,7 +393,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustBank("SelectedTrackSend", context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
     }
 };
 
@@ -408,7 +408,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustBank("SelectedTrackReceive", context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
     }
 };
 
@@ -423,7 +423,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustBank("SelectedTrackFXMenu", context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
     }
 };
 
@@ -438,7 +438,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustBank("TrackSend", context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
     }
 };
 
@@ -453,7 +453,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustBank("TrackReceive", context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
     }
 };
 
@@ -468,7 +468,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AdjustBank("TrackFXMenu", context->GetIntParam());
+        context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
     }
 };
 
