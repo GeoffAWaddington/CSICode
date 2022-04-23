@@ -723,6 +723,16 @@ private:
     vector<Zone*> selectedTrackReceiveZones_;
     vector<Zone*> selectedTrackFXMenuZones_;
     
+    void ResetOffsets()
+    {
+        trackSendOffset_ = 0;
+        trackReceiveOffset_ = 0;
+        trackFXMenuOffset_ = 0;
+        selectedTrackOffset_ = 0;
+        selectedTrackSendOffset_ = 0;
+        selectedTrackReceiveOffset_ = 0;
+        selectedTrackFXMenuOffset_ = 0;
+    }
     
     void MapFocusedFXToWidgets();
     void UnmapFocusedFXFromWidgets();
@@ -758,7 +768,7 @@ public:
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }   
     
-    void SetHomeZone(Zone* homeZone) { homeZone_ = homeZone; }
+    void SetHomeZone(Zone* zone) { homeZone_ = zone; }
     
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
@@ -894,11 +904,6 @@ public:
     {
         if(name != "")
             selectedTrackFXZoneFilePaths_[name] = info;
-    }
-    
-    void AddZone(Zone* zone)
-    {
-        
     }
     
     void CheckFocusedFXState()
