@@ -456,8 +456,8 @@ private:
     map<Widget*, bool> widgets_;
     
     vector<Zone*> includedZones_;
-    map<string, Zone*> subZones_;
-    map<string, Zone*> associatedZones_;
+    map<string, vector<Zone*>> subZones_;
+    map<string, vector<Zone*>> associatedZones_;
     
     map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
     vector<ActionContext*> defaultContexts_;
@@ -520,30 +520,12 @@ public:
         actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
     
-    void Unmap()
-    {
-        for(auto &[key, value] : actionContextDictionary_)
-            for(auto &[key, value] : value)
-                for(ActionContext* context : value)
-                    delete context;
-        
-        actionContextDictionary_.clear();
-        
-        //for(Zone* zone : includedZones_)
-            //zone->Unmap();
-        
-        //includedZones_.clear();
-        
-        for(auto [name, zone] : subZones_)
-            zone->Unmap();
-        
-        subZones_.clear();
-    }
     
     void GoSubZone(string subZoneName)
     {
         if(subZones_.count(subZoneName) > 0)
-            subZones_[subZoneName]->Activate();
+            for(auto zone : subZones_[subZoneName])
+                zone->Activate();
     }
 };
 

@@ -1806,11 +1806,13 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
 
 void Zone::GoAssociatedZone(string zoneName)
 {
-    for(auto [key, zone] : associatedZones_)
-        zone->Deactivate();
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
         
     if(associatedZones_.count(zoneName) > 0)
-        associatedZones_[zoneName]->Activate();
+        for(auto zone : associatedZones_[zoneName])
+            zone->Activate();
 }
 
 void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
@@ -1836,11 +1838,13 @@ void Zone::Activate()
     for(auto zone : includedZones_)
         zone->Activate();
    
-    for(auto [key, zone] : associatedZones_)
-        zone->Deactivate();
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
     
-    for(auto [key, zone] : subZones_)
-        zone->Deactivate();
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
 }
 
 void Zone::Deactivate()
@@ -1850,11 +1854,13 @@ void Zone::Deactivate()
     for(auto zone : includedZones_)
         zone->Deactivate();
 
-    for(auto [key, zone] : associatedZones_)
-        zone->Deactivate();
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
 
-    for(auto [key, zone] : subZones_)
-        zone->Deactivate();
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
 }
 
 void Zone::RequestUpdateWidget(Widget* widget)
@@ -1874,11 +1880,13 @@ void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
     if(! isActive_)
         return;
   
-    for(auto [key, zone] : subZones_)
-        zone->RequestUpdate(usedWidgets);
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->RequestUpdate(usedWidgets);
     
-    for(auto [key, zone] : associatedZones_)
-        zone->RequestUpdate(usedWidgets);
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->RequestUpdate(usedWidgets);
 
     for(auto zone : includedZones_)
         zone->RequestUpdate(usedWidgets);
@@ -1898,14 +1906,13 @@ void Zone::DoAction(Widget* widget, bool &isUsed, double value)
     if(! isActive_ || isUsed)
         return;
     
-    for(auto [key, zone] : subZones_)
-        zone->DoAction(widget, isUsed, value);
-    
-    if(isUsed)
-        return;
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->DoAction(widget, isUsed, value);
 
-    for(auto [key, zone] : associatedZones_)
-        zone->DoAction(widget, isUsed, value);
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->DoAction(widget, isUsed, value);
     
     if(isUsed)
         return;
@@ -1929,14 +1936,13 @@ void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
     if(! isActive_ || isUsed)
         return;
     
-    for(auto [key, zone] : subZones_)
-        zone->DoRelativeAction(widget, isUsed, delta);
-    
-    if(isUsed)
-        return;
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->DoRelativeAction(widget, isUsed, delta);
 
-    for(auto [key, zone] : associatedZones_)
-        zone->DoRelativeAction(widget, isUsed, delta);
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->DoRelativeAction(widget, isUsed, delta);
 
     if(isUsed)
         return;
@@ -1960,14 +1966,13 @@ void Zone::DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex,
     if(! isActive_ || isUsed)
         return;
 
-    for(auto [key, zone] : subZones_)
-        zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     
-    if(isUsed)
-        return;
-    
-    for(auto [key, zone] : associatedZones_)
-        zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 
     if(isUsed)
         return;
@@ -1991,14 +1996,13 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
     if(! isActive_ || isUsed)
         return;
 
-    for(auto [key, zone] : subZones_)
-        zone->DoTouch(widget, widgetName, isUsed, value);
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->DoTouch(widget, widgetName, isUsed, value);
     
-    if(isUsed)
-        return;
-    
-    for(auto [key, zone] : associatedZones_)
-        zone->DoTouch(widget, widgetName, isUsed, value);
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->DoTouch(widget, widgetName, isUsed, value);
 
     if(isUsed)
         return;
