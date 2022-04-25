@@ -2367,7 +2367,7 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
     // GAW TBD -- add a wrapper that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
 }
 
-void ZoneManager::ReceiveActivation(string zoneName)
+void ZoneManager::HandleActivation(string zoneName)
 {
     if(receive_.count(zoneName) > 0)
     {
@@ -2405,6 +2405,30 @@ void ZoneManager::GoHome()
         ResetOffsets();
         homeZone_->Activate();
     }
+}
+
+void ZoneManager::AdjustTrackSendBank(int amount)
+{
+    if(broadcast_.count("TrackSend") > 0)
+        GetSurface()->GetPage()->SignalTrackSendBank(GetSurface(), amount);
+    
+    AdjustTrackSendOffset(amount);
+}
+
+void ZoneManager::AdjustTrackReceiveBank(int amount)
+{
+    if(broadcast_.count("TrackReceive") > 0)
+        GetSurface()->GetPage()->SignalTrackReceiveBank(GetSurface(), amount);
+    
+    AdjustTrackReceiveOffset(amount);
+}
+
+void ZoneManager::AdjustTrackFXMenuBank(int amount)
+{
+    if(broadcast_.count("TrackFXMenu") > 0)
+        GetSurface()->GetPage()->SignalTrackFXMenuBank(GetSurface(), amount);
+    
+    AdjustTrackFXMenuOffset(amount);
 }
 
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }

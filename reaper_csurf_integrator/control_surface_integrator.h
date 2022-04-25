@@ -659,8 +659,11 @@ public:
     void ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones);
     void GoAssociatedZone(Zone* enclosingZone, string zoneName);
-    void ReceiveActivation(string zoneName);
-
+    void HandleActivation(string zoneName);
+    void AdjustTrackSendBank(int amount);
+    void AdjustTrackReceiveBank(int amount);
+    void AdjustTrackFXMenuBank(int amount);
+    
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     ControlSurface* GetSurface() { return surface_; }   
     
@@ -673,8 +676,26 @@ public:
     int GetSelectedTrackSendOffset() { return selectedTrackSendOffset_; }
     int GetSelectedTrackReceiveOffset() { return selectedTrackReceiveOffset_; }
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
+    
+    void HandleTrackSendBank(int amount)
+    {
+        if(receive_.count("TrackSend") > 0)
+            AdjustTrackSendOffset(amount);
+    }
 
-    void AdjustTrackSendBank(int amount)
+    void HandleTrackReceiveBank(int amount)
+    {
+        if(receive_.count("TrackReceive") > 0)
+            AdjustTrackReceiveOffset(amount);
+    }
+
+    void HandleTrackFXMenuBank(int amount)
+    {
+        if(receive_.count("TTrackFXMenu") > 0)
+            AdjustTrackFXMenuOffset(amount);
+    }
+    
+    void AdjustTrackSendOffset(int amount)
     {
         // GAW TBD -- calc max and clamp
         
@@ -683,8 +704,8 @@ public:
         if(trackSendOffset_ < 0)
             trackSendOffset_ = 0;
     }
-    
-    void AdjustTrackReceiveBank(int amount)
+
+    void AdjustTrackReceiveOffset(int amount)
     {
         // GAW TBD -- calc max and clamp
         
@@ -694,7 +715,7 @@ public:
             trackReceiveOffset_ = 0;
     }
     
-    void AdjustTrackFXMenuBank(int amount)
+    void AdjustTrackFXMenuOffset(int amount)
     {
         // GAW TBD -- calc max and clamp
         
@@ -1943,8 +1964,29 @@ public:
     {
         for(auto surface : surfaces_)
             if(surface != originatingSurface)
-                surface->GetZoneManager()->ReceiveActivation(zoneName);
+                surface->GetZoneManager()->HandleActivation(zoneName);
 
+    }
+    
+    void SignalTrackSendBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleTrackSendBank(amount);
+    }
+    
+    void SignalTrackReceiveBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleTrackReceiveBank(amount);
+    }
+    
+    void SignalTrackFXMenuBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleTrackFXMenuBank(amount);
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
