@@ -1099,14 +1099,9 @@ void Manager::InitActionsDictionary()
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();
     actions_["PageNameDisplay"] =                   new PageNameDisplay();
-    
-    
     actions_["GoSubZone"] =                         new GoSubZone();
-    
-    
     actions_["Broadcast"] =                         new Broadcast();
     actions_["Receive"] =                           new Receive();
-    
     actions_["GoHome"] =                            new GoHome();
     actions_["GoTrack"] =                           new GoTrack();
     actions_["GoTrackSend"] =                       new GoTrackSend();
@@ -1116,8 +1111,6 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackSend"] =               new GoSelectedTrackSend();
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
-
-
     actions_["TrackBank"] =                         new TrackBank();
     actions_["TrackSendBank"] =                     new TrackSendBank();
     actions_["TrackReceiveBank"] =                  new TrackReceiveBank();
@@ -1126,8 +1119,6 @@ void Manager::InitActionsDictionary()
     actions_["SelectedTrackSendBank"] =             new SelectedTrackSendBank();
     actions_["SelectedTrackReceiveBank"] =          new SelectedTrackReceiveBank();
     actions_["SelectedTrackFXMenuBank"] =           new SelectedTrackFXMenuBank();
-
-    
     actions_["ClearAllSolo"] =                      new ClearAllSolo();
     actions_["Shift"] =                             new SetShift();
     actions_["Option"] =                            new SetOption();
@@ -1168,9 +1159,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeter"] =                  new TrackOutputMeter();
     actions_["TrackOutputMeterAverageLR"] =         new TrackOutputMeterAverageLR();
     actions_["TrackOutputMeterMaxPeakLR"] =         new TrackOutputMeterMaxPeakLR();
-    
     actions_["GoFXSlot"] =                          new GoFXSlot();
-    
     actions_["FXParam"] =                           new FXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["FXNameDisplay"] =                     new FXNameDisplay();
@@ -2111,18 +2100,6 @@ void  Widget::Clear()
         processor->Clear();
 }
 
-void  Widget::ForceClear()
-{
-    for(auto processor : feedbackProcessors_)
-        processor->ForceClear();
-}
-
-void Widget::ClearCache()
-{
-    for(auto processor : feedbackProcessors_)
-        processor->ClearCache();
-}
-
 void Widget::LogInput(double value)
 {
     if(TheManager->GetSurfaceInDisplay())
@@ -2387,7 +2364,7 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
     //if(zoneFilePaths_.count(zoneName) > 0)
         //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
     
-    // GAW TBD -- add a wrapeer that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
+    // GAW TBD -- add a wrapper that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
 }
 
 void ZoneManager::ReceiveActivation(string zoneName)

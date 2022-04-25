@@ -734,12 +734,7 @@ private:
 public:
     virtual ~MCUDisplay_Midi_FeedbackProcessor() {}
     MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
-    
-    virtual void ClearCache() override
-    {
-        lastStringSent_ = " ";
-    }
-    
+        
     virtual void SetValue(string displayText) override
     {
         if(displayText != lastStringSent_) // changes since last send
@@ -1284,17 +1279,6 @@ public:
     virtual int GetMaxCharacters() override
     {
         return maxChars.GetMaxCharacters(displayType_);
-    }
-    
-    virtual void ClearCache() override
-    {
-        lastDoubleValue_ = 0;
-        lastStringValue_ = "";
-    }
-    
-    virtual void ForceClear() override
-    {
-        ForceValue(0.0);
     }
     
     virtual void SetValue(double value) override

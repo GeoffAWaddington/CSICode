@@ -562,9 +562,7 @@ public:
     void UpdateRGBValue(int r, int g, int b);
     void ForceValue(double value);
     void ForceRGBValue(int r, int g, int b);
-    void ClearCache();
     void Clear();
-    void ForceClear();
     void LogInput(double value);
 
     void GetFormattedFXParamValue(char *buffer, int bufferSize)
@@ -577,106 +575,6 @@ public:
         feedbackProcessors_.push_back(feedbackProcessor);
     }
 };
-
-/*
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ZoneNavigationManager
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-protected:
-    string const zoneName_ = "";
-    ZoneManager* const zoneManager_ = nullptr;
-    int slot_ = 0;
-    vector<Zone*> zones_;
-    bool isActive_ = false;
-
-    virtual void CheckFocusedFXState() {}
-    
-public:
-    ZoneNavigationManager(string zoneName, ZoneManager* zoneManager) : zoneName_(zoneName), zoneManager_(zoneManager) {}
-    virtual ~ZoneNavigationManager() {}
-    virtual int GetSlot() { return slot_; }
-    
-    void Activate()
-    {
-        isActive_ = true;
-
-        for(auto zone : zones_)
-            zone->Activate();
-    }
-
-    void Deactivate()
-    {
-        isActive_ = false;
-
-        slot_ = 0;
-        
-        for(auto zone : zones_)
-            zone->Deactivate();
-    }
-
-    void Leave()
-    {
-        Deactivate();
-    }
-    
-    void DoAction(Widget* widget, bool &isUsed, double value)
-    {
-        for(auto zone : zones_)
-            zone->DoAction(widget, isUsed, value);
-    }
-    
-    void DoRelativeAction(Widget* widget, bool &isUsed, double delta)
-    {
-        for(auto zone : zones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
-    }
-    
-    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
-    {
-        for(auto zone : zones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    }
-    
-    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
-    {
-        for(auto zone : zones_)
-            zone->DoTouch(widget, widgetName, isUsed, value);
-    }
-
-    void RequestUpdate(map<Widget*, bool> &usedWidgets)
-    {
-        if(! isActive_)
-            return;
-        
-        for(auto zone : zones_)
-            zone->RequestUpdate(usedWidgets);
-    }
-    
-    void AddZone(Zone* zone)
-    {
-        zones_.push_back(zone);
-    }
-
-    void AdjustBank(int amount)
-    {
-        slot_ += amount;
-                
-        ClampSlot();
-    }
-    
-    void ClampSlot()
-    {
-        //int maxSlot = GetNumSlots() - 1;
-        
-        //if(slot_ > maxSlot)
-            //slot_ = maxSlot;
-        
-        if(slot_ < 0)
-            slot_ = 0;
-    }
-};
-*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct CSIZoneInfo
@@ -744,8 +642,6 @@ private:
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
 
-    void ForceClearAllWidgets() { } // GAW TBD clear all widgets in context
-    
     void Initialize();
 
     void RequestUpdate();
@@ -1085,9 +981,10 @@ public:
         zoneManager_->RequestUpdate();
     }
 
-    virtual void ForceClearAllWidgets()
+    void ClearAllWidgets()
     {
-        zoneManager_->ForceClearAllWidgets();
+        for(auto widget : widgets_)
+            widget->Clear();
     }
        
     void AddWidget(Widget* widget)
@@ -1182,20 +1079,12 @@ public:
         lastStringValue_ = "";
     }
     
-    virtual void Clear()
+    void Clear()
     {
         SetValue(0.0);
         SetValue(0, 0.0);
         SetValue("");
         SetRGBValue(0, 0, 0);
-    }
-    
-    virtual void ForceClear()
-    {
-        ForceValue(0.0);
-        ForceValue(0, 0.0);
-        ForceValue("");
-        ForceRGBValue(0, 0, 0);
     }
 };
 
@@ -1925,10 +1814,10 @@ public:
             surface->RequestUpdate();
     }
 //*/
-    void ForceClearAllWidgets()
+    void ClearAllWidgets()
     {
         for(auto surface : surfaces_)
-            surface->ForceClearAllWidgets();
+            surface->ClearAllWidgets();
     }
     
     void ForceRefreshTimeDisplay()
@@ -2171,7 +2060,7 @@ public:
         shouldRun_ = false;
         
         if(pages_.size() > 0)
-            pages_[currentPageIndex_]->ForceClearAllWidgets();
+            pages_[currentPageIndex_]->ClearAllWidgets();
     }
     
     void Init();
