@@ -966,6 +966,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
             if(iniFile.is_open())
             {
+                iniFile << "Version 2.0" + GetLineEnding();
+                
                 string line = "";
                 
                 for(auto page : pages)

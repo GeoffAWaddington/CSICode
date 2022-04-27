@@ -655,9 +655,11 @@ public:
     
     int GetNumChannels();
     void GoHome();
+    /*
     void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones);
+     */
     void GoAssociatedZone(Zone* enclosingZone, string zoneName);
     void HandleActivation(string zoneName);
     void AdjustTrackSendBank(int amount);
@@ -665,6 +667,9 @@ public:
     void AdjustTrackFXMenuBank(int amount);
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
+    map<string, CSIZoneInfo> &GetFocusedFXZoneFilePaths() { return focusedFXZoneFilePaths_; }
+    map<string, CSIZoneInfo> &GetSelectedTrackFXZoneFilePaths() { return selectedTrackFXZoneFilePaths_; }
+    
     ControlSurface* GetSurface() { return surface_; }   
     
     void SetHomeZone(Zone* zone) { homeZone_ = zone; }

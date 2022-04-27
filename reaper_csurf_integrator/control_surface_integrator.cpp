@@ -1211,6 +1211,17 @@ void Manager::Init()
             line = regex_replace(line, regex(TabChars), " ");
             line = regex_replace(line, regex(CRLFChars), "");
             
+            if(lineNumber == 0 && line != "Version 2.0")
+            {
+                MessageBox(g_hwnd, "Version mismatch -- Your CSI.ini file is not Version 2.0", "This is CSI Version 2.0", MB_OK);
+                
+                iniFile.close();
+                
+                return;
+            }
+            
+            lineNumber++;
+            
             vector<string> tokens(GetTokens(line));
             
             if(tokens.size() > 4) // ignore comment lines and blank lines
@@ -1781,12 +1792,20 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
     }
     else
     {
+        // GAW -- TBD -- Maybe don't even process SubZones until called -- context (parent, navigator) will be apparent then
+        
         for(auto zoneName : subZones)
         {
+            
+            // GAW - TBD --check zoneFilePaths_, focusedFXZoneFilePaths_, selectedTrackFXZoneFilePaths
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
                 vector<Navigator*> navigators;
-                AddNavigatorsForZone(zoneName, navigators);
+                
+                // GAW TBD -- pick either
+                
+                
+                //AddNavigatorsForZone(zoneName, navigators);
 
                 subZones_[zoneName] = vector<Zone*>();
                 
@@ -2325,8 +2344,8 @@ void ZoneManager::MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSl
     
     DAW::TrackFX_GetFXName(selectedTrack, fxSlot, FXName, sizeof(FXName));
     
-    if(zoneFilePaths_.count(FXName) > 0)
-        ActivateFXZone(FXName, fxSlot, zones);
+    //if(zoneFilePaths_.count(FXName) > 0)
+        //ActivateFXZone(FXName, fxSlot, zones);
 }
 
 void ZoneManager::PreProcessZones()
@@ -2346,7 +2365,7 @@ void ZoneManager::PreProcessZones()
         DAW::ShowConsoleMsg(buffer);
     }
 }
-
+/*
 void ZoneManager::ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones)
 {
     //if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator == "FocusedFXNavigator")
@@ -2365,8 +2384,7 @@ void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int 
         //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
     
     // GAW TBD -- add a wrapper that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
-}
-
+}*/
 void ZoneManager::HandleActivation(string zoneName)
 {
     if(receive_.count(zoneName) > 0)
