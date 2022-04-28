@@ -1103,7 +1103,6 @@ void Manager::InitActionsDictionary()
     actions_["Broadcast"] =                         new Broadcast();
     actions_["Receive"] =                           new Receive();
     actions_["GoHome"] =                            new GoHome();
-    actions_["GoTrack"] =                           new GoTrack();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
     actions_["GoTrackFXMenu"] =                     new GoTrackFXMenu();
@@ -1858,6 +1857,19 @@ void Zone::Activate()
             zone->Deactivate();
 }
 
+void Zone::TrackDeselected()
+{
+    isActive_ = true;
+    
+    for(auto zone : includedZones_)
+        zone->Activate();
+   
+    for(auto [key, zones] : associatedZones_)
+        if(key == "SelectedTrack" || key == "SelectedTrackSend" || key == "SelectedTrackReceive" || key == "SelectedTrackFXMenu")
+            for(auto zone : zones)
+                zone->Deactivate();
+}
+
 void Zone::Deactivate()
 {
     isActive_ = false;
@@ -2425,6 +2437,21 @@ void ZoneManager::GoHome()
     }
 }
 
+void ZoneManager::TrackDeselected()
+{
+    if(homeZone_ != nullptr)
+    {
+        selectedTrackOffset_ = 0;
+        selectedTrackSendOffset_ = 0;
+        selectedTrackReceiveOffset_ = 0;
+        selectedTrackFXMenuOffset_ = 0;
+        
+        // GAW TBD -- clear SelectedTrackFX
+        
+        homeZone_->TrackDeselected();
+    }
+}
+
 void ZoneManager::AdjustTrackSendBank(int amount)
 {
     if(broadcast_.count("TrackSend") > 0)
@@ -2476,7 +2503,7 @@ void ControlSurface::OnTrackSelection()
         if(page_->GetSelectedTrack())
             zoneManager_->DoAction(widgetsByName_["OnTrackSelection"], 1.0);
         else
-            zoneManager_->DoAction(widgetsByName_["OnTrackSelection"], 0.0);
+            zoneManager_->TrackDeselected();
     }
 }
 

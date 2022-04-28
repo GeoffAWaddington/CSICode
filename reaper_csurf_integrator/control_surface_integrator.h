@@ -480,6 +480,7 @@ public:
     void RequestUpdateWidget(Widget* widget);
     void Activate();
     void Deactivate();
+    void TrackDeselected();
     void DoAction(Widget* widget, bool &isUsed, double value);
     void DoRelativeAction(Widget* widget, bool &isUsed, double delta);
     void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta);
@@ -655,6 +656,7 @@ public:
     
     int GetNumChannels();
     void GoHome();
+    void TrackDeselected();
     /*
     void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
     void ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
