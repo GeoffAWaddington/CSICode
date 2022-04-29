@@ -441,7 +441,7 @@ public:
 class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     ZoneManager* const zoneManager_ = nullptr;
     Navigator* const navigator_= nullptr;
     int slotIndex_ = 0;
@@ -466,9 +466,9 @@ private:
     
 public:
     Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones);
+
+    virtual ~Zone() {}
     
-    Zone() {}
-   
     void GoAssociatedZone(string associatedZoneName);
 
     Navigator* GetNavigator() { return navigator_; }
@@ -521,12 +521,29 @@ public:
         actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
     
-    
-    void GoSubZone(string subZoneName)
+    virtual void GoSubZone(string subZoneName)
     {
         if(subZones_.count(subZoneName) > 0)
             for(auto zone : subZones_[subZoneName])
                 zone->Activate();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SubZone : public Zone
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    Zone* const originatingZone_ = nullptr;
+    
+public:
+    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones, Zone* orginatingZone) : Zone(zoneManager, navigator, slotIndex, touchIds, name, alias, sourceFilePath, includedZones, subZones, associatedZones), originatingZone_(orginatingZone) {}
+
+    virtual ~SubZone() {}
+    
+    virtual void GoSubZone(string subZoneName) override
+    {
+        originatingZone_->GoSubZone(subZoneName);
     }
 };
 
@@ -601,8 +618,6 @@ private:
     Zone* homeZone_ = nullptr;
     
     map<string, CSIZoneInfo> zoneFilePaths_;
-    map<string, CSIZoneInfo> focusedFXZoneFilePaths_;
-    map<string, CSIZoneInfo> selectedTrackFXZoneFilePaths_;
     
     map<int, map<int, int>> focusedFXDictionary;
     
@@ -633,11 +648,8 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
-    void MapFocusedFXToWidgets();
     void UnmapFocusedFXFromWidgets();
-    
-    void MapSelectedTrackFXToWidgets();
-    
+
     void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
        
 public:
@@ -657,11 +669,8 @@ public:
     int GetNumChannels();
     void GoHome();
     void TrackDeselected();
-    /*
-    void ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
-    void ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones);
-    void ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones);
-     */
+    void GoFocusedFX();
+    void GoSelectedTrackFX();
     void GoAssociatedZone(Zone* enclosingZone, string zoneName);
     void HandleActivation(string zoneName);
     void AdjustTrackSendBank(int amount);
@@ -669,8 +678,6 @@ public:
     void AdjustTrackFXMenuBank(int amount);
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
-    map<string, CSIZoneInfo> &GetFocusedFXZoneFilePaths() { return focusedFXZoneFilePaths_; }
-    map<string, CSIZoneInfo> &GetSelectedTrackFXZoneFilePaths() { return selectedTrackFXZoneFilePaths_; }
     
     ControlSurface* GetSurface() { return surface_; }   
     
@@ -772,7 +779,7 @@ public:
             selectedTrackFXMenuOffset_ = 0;
     }
     
-    void MapTrackFXSlotToWidgets(MediaTrack* track, int fxSlot)
+    void GoTrackFXSlot(MediaTrack* track, int fxSlot)
     {
         char FXName[BUFSZ];
         
@@ -818,18 +825,6 @@ public:
             zoneFilePaths_[name] = info;
     }
     
-    void AddFocusedFXZoneFilePath(string name, struct CSIZoneInfo info)
-    {
-        if(name != "")
-            focusedFXZoneFilePaths_[name] = info;
-    }
-    
-    void AddSelectedTrackFXZoneFilePath(string name, struct CSIZoneInfo info)
-    {
-        if(name != "")
-            selectedTrackFXZoneFilePaths_[name] = info;
-    }
-    
     void CheckFocusedFXState()
     {
         int trackNumber = 0;
@@ -848,7 +843,7 @@ public:
             if(lastRetval != retval)
             {
                 if(retval == 1)
-                    MapFocusedFXToWidgets();
+                    GoFocusedFX();
                 
                 else if(retval & 4)
                     UnmapFocusedFXFromWidgets();

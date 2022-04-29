@@ -246,7 +246,6 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
 {
     string zoneName = "";
-    int lineNumber = 0;
     
     try
     {
@@ -262,8 +261,6 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
             
             line = line.substr(0, line.find("//")); // remove trailing commewnts
             
-            lineNumber++;
-            
             // Trim leading and trailing spaces
             line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
             
@@ -272,38 +269,25 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
             
             vector<string> tokens(GetTokens(line));
                        
-            if(lineNumber == 1 && tokens.size() > 1)
+            if(tokens[0] == "Zone" && tokens.size() > 1)
             {
-                if(tokens[0] == "Zone" && tokens.size() > 1)
-                {
-                    zoneName = tokens[1];
-                    info.alias = tokens.size() > 2 ? tokens[2] : "";
-                    zoneManager->AddZoneFilePath(zoneName, info);
-                }
+                zoneName = tokens[1];
+                info.alias = tokens.size() > 2 ? tokens[2] : zoneName;
+                zoneManager->AddZoneFilePath(zoneName, info);
             }
-            else if(lineNumber == 2 && tokens.size() > 0)
-            {
-                if(tokens.size() == 1 && tokens[0] == "FocusedFXNavigator")
-                    zoneManager->AddFocusedFXZoneFilePath(zoneName, info);
-                else if(tokens.size() == 1 && tokens[0] == "SelectedTrackNavigator")
-                    zoneManager->AddSelectedTrackFXZoneFilePath(zoneName, info);
-                else
-                    zoneManager->AddZoneFilePath(zoneName, info);
-            }
-                
-            if(lineNumber > 1)
-                break;
+
+            break;
         }
     }
     catch (exception &e)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
         DAW::ShowConsoleMsg(buffer);
     }
 }
 
-static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<Zone*> &zones)
+static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<Zone*> &zones, Zone* originatingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -375,7 +359,12 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
+                        Zone* zone;
+                        
+                        if(originatingZone == nullptr)
+                            zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
+                        else
+                            zone = new SubZone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones, originatingZone);
                         
                         zones.push_back(zone);
                         
@@ -1099,10 +1088,14 @@ void Manager::InitActionsDictionary()
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();
     actions_["PageNameDisplay"] =                   new PageNameDisplay();
-    actions_["GoSubZone"] =                         new GoSubZone();
     actions_["Broadcast"] =                         new Broadcast();
     actions_["Receive"] =                           new Receive();
     actions_["GoHome"] =                            new GoHome();
+    actions_["GoSubZone"] =                         new GoSubZone();
+    actions_["LeaveZone"] =                         new LeaveZone();
+    actions_["GoFXSlot"] =                          new GoFXSlot();
+    actions_["GoFocusedFX"] =                       new GoFocusedFX();
+    actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
     actions_["GoTrackFXMenu"] =                     new GoTrackFXMenu();
@@ -1158,7 +1151,6 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeter"] =                  new TrackOutputMeter();
     actions_["TrackOutputMeterAverageLR"] =         new TrackOutputMeterAverageLR();
     actions_["TrackOutputMeterMaxPeakLR"] =         new TrackOutputMeterMaxPeakLR();
-    actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["FXParam"] =                           new FXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["FXNameDisplay"] =                     new FXNameDisplay();
@@ -1772,7 +1764,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                 vector<Navigator*> navigators;
                 AddNavigatorsForZone(zoneName, navigators);
                 
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, includedZones_);
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, includedZones_, nullptr);
             }
         }
         
@@ -1785,30 +1777,22 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
 
                 associatedZones_[zoneName] = vector<Zone*>();
                 
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName]);
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName], nullptr);
             }
         }
     }
     else
     {
-        // GAW -- TBD -- Maybe don't even process SubZones until called -- context (parent, navigator) will be apparent then
-        
         for(auto zoneName : subZones)
         {
-            
-            // GAW - TBD --check zoneFilePaths_, focusedFXZoneFilePaths_, selectedTrackFXZoneFilePaths
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
                 vector<Navigator*> navigators;
-                
-                // GAW TBD -- pick either
-                
-                
-                //AddNavigatorsForZone(zoneName, navigators);
+                navigators.push_back(GetNavigator());
 
                 subZones_[zoneName] = vector<Zone*>();
-                
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, subZones_[zoneName]);
+            
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, subZones_[zoneName], this);
             }
         }
     }
@@ -2241,7 +2225,7 @@ void ZoneManager::Initialize()
     vector<Navigator*> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
     vector<Zone*> dummy; // Needed to satify protcol, Home has special Zone handling
-    ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy);
+    ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
     GoHome();
 }
 
@@ -2310,7 +2294,7 @@ void ZoneManager::UnmapFocusedFXFromWidgets()
     //focusedFXZones_.clear();
 }
 
-void ZoneManager::MapFocusedFXToWidgets()
+void ZoneManager::GoFocusedFX()
 {
     //if(broadcast_.count("FocusedFX") > 0)
         //surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
@@ -2336,7 +2320,7 @@ void ZoneManager::MapFocusedFXToWidgets()
     }
 }
 
-void ZoneManager::MapSelectedTrackFXToWidgets()
+void ZoneManager::GoSelectedTrackFX()
 {
     //UnmapZones(fxZones_);
     
