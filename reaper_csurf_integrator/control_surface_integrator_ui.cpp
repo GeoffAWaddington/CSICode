@@ -199,7 +199,7 @@ struct PageLine
     //bool trackColouring = false;
     //int green = 0;
     //int blue = 0;
-    vector<SurfaceLine*> surfaces;
+    vector<shared_ptr<SurfaceLine>> surfaces;
 };
 
 // Scratch pad to get in and out of dialogs easily
@@ -224,7 +224,7 @@ static bool synchPages = false;
 //static bool trackColouring = false;
 static bool useScrollLink = false;
 
-static vector<PageLine*> pages;
+static vector<shared_ptr<PageLine>> pages;
 
 void AddComboEntry(HWND hwndDlg, int x, char * buf, int comboId)
 {
@@ -640,7 +640,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                                 pageIndex = index;
 
-                                for (auto* surface : pages[index]->surfaces)
+                                for (auto surface : pages[index]->surfaces)
                                     AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                             }
                             else
@@ -668,7 +668,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                             if(dlgResult == IDOK)
                             {
-                                PageLine* page = new PageLine();
+                                shared_ptr<PageLine> page = make_shared<PageLine>();
                                 page->name = name;
                                 page->followMCP = followMCP;
                                 page->synchPages = synchPages;
@@ -691,7 +691,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
                                 if(dlgResult == IDOK)
                                 {
-                                    SurfaceLine* surface = new SurfaceLine();
+                                    shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
                                     surface->type = MidiSurfaceToken;
                                     surface->name = name;
                                     surface->inPort = inPort;
@@ -720,7 +720,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface1), hwndDlg, dlgProcOSCSurface);
                                 if(dlgResult == IDOK)
                                 {
-                                    SurfaceLine* surface = new SurfaceLine();
+                                    shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
                                     surface->type = OSCSurfaceToken;
                                     surface->name = name;
                                     surface->remoteDeviceIP = remoteDeviceIP;
@@ -762,7 +762,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     pages[index]->synchPages = synchPages;
                                     pages[index]->useScrollLink = useScrollLink;
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
-                                    for(auto* page :  pages)
+                                    for(auto page :  pages)
                                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                                 }
@@ -822,7 +822,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
                                 
-                                for(auto* page: pages)
+                                for(auto page: pages)
                                     AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                             }
@@ -838,7 +838,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 pages[pageIndex]->surfaces.erase(pages[pageIndex]->surfaces.begin() + index);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
-                                for(auto* surface: pages[pageIndex]->surfaces)
+                                for(auto surface: pages[pageIndex]->surfaces)
                                     AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
                             }
@@ -900,7 +900,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if(tokens.size() != 5)
                             continue;
  
-                        PageLine* page = new PageLine();
+                        shared_ptr<PageLine> page = make_shared<PageLine>();
                         page->name = tokens[1];
                         
                         if(tokens[2] == "FollowMCP")
@@ -925,7 +925,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     
                     else if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
                     {
-                        SurfaceLine* surface = new SurfaceLine();
+                        shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
