@@ -1726,10 +1726,10 @@ private:
     bool isAlt_ = false;
     double altPressedTime_ = 0;
     
-    TrackNavigationManager* const trackNavigationManager_ = nullptr;
+    unique_ptr<TrackNavigationManager> const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name, bool followMCP, bool synchPages, bool scrollLink) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, scrollLink)) {}
+    Page(string name, bool followMCP, bool synchPages, bool scrollLink) : name_(name),  trackNavigationManager_(make_unique<TrackNavigationManager>(this, followMCP, synchPages, scrollLink)) {}
     
     ~Page()
     {
@@ -1738,8 +1738,6 @@ public:
             delete surface;
             surface = nullptr;
         }
-        
-        delete trackNavigationManager_;
     }
     
     string GetName() { return name_; }
