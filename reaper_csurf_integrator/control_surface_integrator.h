@@ -935,9 +935,8 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(CSurfIntegrator* CSurfIntegrator, shared_ptr<Page> page, const string name, string zoneFolder, int numChannels, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
+    ControlSurface(shared_ptr<Page> page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
     
-    CSurfIntegrator* const CSurfIntegrator_ ;
     shared_ptr<Page> const page_;
     string const name_;
     ZoneManager* const zoneManager_;
@@ -1182,8 +1181,8 @@ private:
     }
 
 public:
-    Midi_ControlSurface(CSurfIntegrator* CSurfIntegrator, shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
-    : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
+    Midi_ControlSurface(shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
+    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -1264,8 +1263,8 @@ private:
     void ProcessOSCMessage(string message, double value);
 
 public:
-    OSC_ControlSurface(CSurfIntegrator* CSurfIntegrator, shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
-    : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
+    OSC_ControlSurface(shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
+    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -2021,8 +2020,6 @@ class Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    CSurfIntegrator* const CSurfIntegrator_ = nullptr;
-
     map<string, shared_ptr<Action>> actions_;
 
     vector <shared_ptr<Page>> pages_;
@@ -2055,7 +2052,7 @@ private:
     }
     
 public:
-    Manager(CSurfIntegrator* CSurfIntegrator) : CSurfIntegrator_(CSurfIntegrator)
+    Manager()
     {
         InitActionsDictionary();
 

@@ -1076,11 +1076,12 @@ void Manager::Init()
                         ControlSurface* surface = nullptr;
                         
                         if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
-                            surface = new Midi_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
+                            surface = new Midi_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
                         else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
-                            surface = new OSC_ControlSurface(CSurfIntegrator_, currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], outPort));
+                            surface = new OSC_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], outPort));
 
-                        currentPage->AddSurface(surface);
+                        if(surface != nullptr)
+                            currentPage->AddSurface(surface);
                     }
                 }
             }
