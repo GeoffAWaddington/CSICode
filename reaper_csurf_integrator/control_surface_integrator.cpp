@@ -47,8 +47,8 @@ struct MidiOutputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<int, MidiInputPort*> midiInputs_;
-static map<int, MidiOutputPort*> midiOutputs_;
+static map<int, shared_ptr<MidiInputPort>> midiInputs_;
+static map<int, shared_ptr<MidiOutputPort>> midiOutputs_;
 
 static midi_Input* GetMidiInputForPort(int inputPort)
 {
@@ -61,7 +61,7 @@ static midi_Input* GetMidiInputForPort(int inputPort)
     if(newInput)
     {
         newInput->start();
-        midiInputs_[inputPort] = new MidiInputPort(inputPort, newInput);
+        midiInputs_[inputPort] = make_shared<MidiInputPort>(inputPort, newInput);
         return newInput;
     }
     
@@ -78,7 +78,7 @@ static midi_Output* GetMidiOutputForPort(int outputPort)
     
     if(newOutput)
     {
-        midiOutputs_[outputPort] = new MidiOutputPort(outputPort, newOutput);
+        midiOutputs_[outputPort] = make_shared<MidiOutputPort>(outputPort, newOutput);
         return newOutput;
     }
     
