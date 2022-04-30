@@ -459,8 +459,8 @@ protected:
     map<string, vector<Zone*>> subZones_;
     map<string, vector<Zone*>> associatedZones_;
     
-    map<Widget*, map<string, vector<ActionContext*>>> actionContextDictionary_;
-    vector<ActionContext*> defaultContexts_;
+    map<Widget*, map<string, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     
@@ -474,7 +474,7 @@ public:
     Navigator* GetNavigator() { return navigator_; }
     int GetSlotIndex();
     
-    vector<ActionContext*> &GetActionContexts(Widget* widget);
+    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
         
     void RequestUpdate(map<Widget*, bool> &usedWidgets);
     void RequestUpdateWidget(Widget* widget);
@@ -516,7 +516,7 @@ public:
         widgets_[widget] = true;
     }
     
-    void AddActionContext(Widget* widget, string modifier, ActionContext* actionContext)
+    void AddActionContext(Widget* widget, string modifier, shared_ptr<ActionContext> actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
@@ -2108,12 +2108,12 @@ public:
     double *GetTimeOffsPtr() { return timeOffsPtr_; }
     int GetProjectPanMode() { return *projectPanModePtr_; }
    
-    ActionContext* GetActionContext(string actionName, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties)
+    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties)
     {
         if(actions_.count(actionName) > 0)
-            return new ActionContext(actions_[actionName], widget, zone, params, properties);
+            return make_shared<ActionContext>(actions_[actionName], widget, zone, params, properties);
         else
-            return new ActionContext(actions_["NoAction"], widget, zone, params, properties);
+            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params, properties);
     }
 
     void OnTrackSelection(MediaTrack *track)

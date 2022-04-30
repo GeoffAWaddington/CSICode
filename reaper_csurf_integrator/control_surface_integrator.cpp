@@ -287,7 +287,7 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
     }
 }
 
-static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<Zone*> &zones, Zone* originatingZone)
+static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<Zone*> &zones, Zone* enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -361,10 +361,10 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         
                         Zone* zone;
                         
-                        if(originatingZone == nullptr)
+                        if(enclosingZone == nullptr)
                             zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
                         else
-                            zone = new SubZone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones, originatingZone);
+                            zone = new SubZone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones, enclosingZone);
                         
                         zones.push_back(zone);
                         
@@ -394,7 +394,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                     for(int j = 0; j < action->params.size(); j++)
                                         memberParams.push_back(regex_replace(action->params[j], regex("[|]"), numStr));
                                     
-                                    ActionContext* context = TheManager->GetActionContext(actionName, widget, zone, memberParams, action->properties);
+                                    shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams, action->properties);
                                                                         
                                     if(action->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
@@ -1716,7 +1716,7 @@ void Zone::RequestUpdateWidget(Widget* widget)
     
     if(GetActionContexts(widget).size() > 0)
     {
-        ActionContext* context = GetActionContexts(widget)[0];
+        shared_ptr<ActionContext> context = GetActionContexts(widget)[0];
         context->RequestUpdate();
     }
 }
@@ -1871,7 +1871,7 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
     }
 }
 
-vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
+vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
     string widgetName = widget->GetName();
     string modifier = "";
