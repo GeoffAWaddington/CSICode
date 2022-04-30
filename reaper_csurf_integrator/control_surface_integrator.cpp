@@ -297,14 +297,14 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
     vector<string> associatedZones;
     map<string, string> touchIds;
     
-    map<string, map<string, vector<ActionTemplate*>>> widgetActions;
+    map<string, map<string, vector<shared_ptr<ActionTemplate>>>> widgetActions;
     
     string zoneName = "";
     string zoneAlias = "";
     string actionName = "";
     int lineNumber = 0;
     
-    ActionTemplate* currentActionTemplate = nullptr;
+    shared_ptr<ActionTemplate> currentActionTemplate = nullptr;
     
     try
     {
@@ -474,7 +474,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     }
                     else
                     {
-                        currentActionTemplate = new ActionTemplate(actionName, params, isFeedbackInverted, holdDelayAmount);
+                        currentActionTemplate = make_shared<ActionTemplate>(actionName, params, isFeedbackInverted, holdDelayAmount);
                         widgetActions[widgetName][modifier].push_back(currentActionTemplate);
                     }
                 }
