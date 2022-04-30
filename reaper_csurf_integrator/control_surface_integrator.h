@@ -561,7 +561,7 @@ public:
     
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
-    ZoneManager* GetZoneManager();
+    shared_ptr<ZoneManager> GetZoneManager();
     
     bool GetIsModifier() { return isModifier_; }
     void SetIsModifier() { isModifier_ = true; }
@@ -937,11 +937,11 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(shared_ptr<Page> page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
+    ControlSurface(shared_ptr<Page> page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(make_shared<ZoneManager>(this, zoneFolder)) { }
     
     shared_ptr<Page> const page_;
     string const name_;
-    ZoneManager* const zoneManager_;
+    shared_ptr<ZoneManager>const zoneManager_;
     
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
@@ -983,7 +983,7 @@ public:
     virtual bool GetIsEuConFXAreaFocused() { return false; }
     virtual void ForceRefreshTimeDisplay() {}
     
-    ZoneManager* GetZoneManager() { return zoneManager_; }
+    shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
     shared_ptr<Page> GetPage() { return page_; }
     string GetName() { return name_; }
     
