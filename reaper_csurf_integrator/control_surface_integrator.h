@@ -221,10 +221,10 @@ class ActionContext
 {
 private:
     shared_ptr<Action> const action_ = nullptr;
-    Widget* const widget_ = nullptr;
+    shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
     
-    Widget* associatedWidget_ = nullptr;
+    shared_ptr<Widget> associatedWidget_ = nullptr;
     
     string lastStringValue_ = "";
     
@@ -271,17 +271,17 @@ private:
     vector<string> zoneNames_;
 
 public:
-    ActionContext(shared_ptr<Action> action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
 
     virtual ~ActionContext() {}
     
-    Widget* GetWidget() { return widget_; }
+    shared_ptr<Widget> GetWidget() { return widget_; }
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
     string GetName();
 
-    void SetAssociatedWidget(Widget* widget) { associatedWidget_ = widget; }
-    Widget* GetAssociatedWidget() { return associatedWidget_; }
+    void SetAssociatedWidget(shared_ptr<Widget> widget) { associatedWidget_ = widget; }
+    shared_ptr<Widget> GetAssociatedWidget() { return associatedWidget_; }
 
     vector<string> &GetZoneNames() { return  zoneNames_; }
 
@@ -453,13 +453,13 @@ protected:
     map<string, string> touchIds_;
     map<string, bool> activeTouchIds_;
     
-    map<Widget*, bool> widgets_;
+    map<shared_ptr<Widget>, bool> widgets_;
     
     vector<shared_ptr<Zone>> includedZones_;
     map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
-    map<Widget*, map<string, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    map<shared_ptr<Widget>, map<string, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
@@ -474,18 +474,18 @@ public:
     Navigator* GetNavigator() { return navigator_; }
     int GetSlotIndex();
     
-    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
+    vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget);
         
-    void RequestUpdate(map<Widget*, bool> &usedWidgets);
-    void RequestUpdateWidget(Widget* widget);
+    void RequestUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
+    void RequestUpdateWidget(shared_ptr<Widget> widget);
     void Activate();
     void Deactivate();
     void TrackDeselected();
-    void DoAction(Widget* widget, bool &isUsed, double value);
-    void DoRelativeAction(Widget* widget, bool &isUsed, double delta);
-    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta);
-    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value);
-    map<Widget*, bool> &GetWidgets() { return widgets_; }
+    void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
+    void DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, double delta);
+    void DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, int accelerationIndex, double delta);
+    void DoTouch(shared_ptr<Widget> widget, string widgetName, bool &isUsed, double value);
+    map<shared_ptr<Widget>, bool> &GetWidgets() { return widgets_; }
 
     void Toggle()
     {
@@ -511,12 +511,12 @@ public:
             return name_;
     }
     
-    void AddWidget(Widget* widget)
+    void AddWidget(shared_ptr<Widget> widget)
     {
         widgets_[widget] = true;
     }
     
-    void AddActionContext(Widget* widget, string modifier, shared_ptr<ActionContext> actionContext)
+    void AddActionContext(shared_ptr<Widget> widget, string modifier, shared_ptr<ActionContext> actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
@@ -609,7 +609,7 @@ private:
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
       
-    map<Widget*, bool> usedWidgets_;
+    map<shared_ptr<Widget>, bool> usedWidgets_;
     
     Zone* homeZone_ = nullptr;
     
@@ -794,7 +794,7 @@ public:
         // GAW TBD -- find the enclosing Zone in the active FX Zones
     }
 
-    void AddWidget(Widget* widget)
+    void AddWidget(shared_ptr<Widget> widget)
     {
         usedWidgets_[widget] = false;
     }
@@ -859,7 +859,7 @@ public:
     
     // GAW TBD -- expand this beyond "Home"
        
-    void DoAction(Widget* widget, double value)
+    void DoAction(shared_ptr<Widget> widget, double value)
     {
         widget->LogInput(value);
         
@@ -869,7 +869,7 @@ public:
             homeZone_->DoAction(widget, isUsed, value);
     }
     
-    void DoRelativeAction(Widget* widget, double delta)
+    void DoRelativeAction(shared_ptr<Widget> widget, double delta)
     {
         widget->LogInput(delta);
         
@@ -879,7 +879,7 @@ public:
             homeZone_->DoRelativeAction(widget, isUsed, delta);
     }
     
-    void DoRelativeAction(Widget* widget, int accelerationIndex, double delta)
+    void DoRelativeAction(shared_ptr<Widget> widget, int accelerationIndex, double delta)
     {
         widget->LogInput(delta);
         
@@ -889,7 +889,7 @@ public:
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
-    void DoTouch(Widget* widget, double value)
+    void DoTouch(shared_ptr<Widget> widget, double value)
     {
         widget->LogInput(value);
         
@@ -905,11 +905,11 @@ class CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Widget* const widget_;
-    CSIMessageGenerator(Widget* widget) : widget_(widget) {}
+    shared_ptr<Widget> const widget_;
+    CSIMessageGenerator(shared_ptr<Widget> widget) : widget_(widget) {}
     
 public:
-    CSIMessageGenerator(Widget* widget, string message);
+    CSIMessageGenerator(shared_ptr<Widget> widget, string message);
     virtual ~CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value)
@@ -923,7 +923,7 @@ class Touch_CSIMessageGenerator : CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    Touch_CSIMessageGenerator(Widget* widget, string message) : CSIMessageGenerator(widget, message) {}
+    Touch_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
     virtual ~Touch_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -946,20 +946,20 @@ protected:
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
     
-    vector<Widget*> widgets_;
-    map<string, Widget*> widgetsByName_;
+    vector<shared_ptr<Widget>> widgets_;
+    map<string, shared_ptr<Widget>> widgetsByName_;
     
     map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
 
-    virtual void SurfaceOutMonitor(Widget* widget, string address, string value);
+    virtual void SurfaceOutMonitor(shared_ptr<Widget> widget, string address, string value);
     
     virtual void InitHardwiredWidgets()
     {
         // Add the "hardwired" widgets
-        AddWidget(new Widget(this, "OnTrackSelection"));
-        AddWidget(new Widget(this, "OnPageEnter"));
-        AddWidget(new Widget(this, "OnPageLeave"));
-        AddWidget(new Widget(this, "OnInitialization"));
+        AddWidget(make_shared<Widget>(this, "OnTrackSelection"));
+        AddWidget(make_shared<Widget>(this, "OnPageEnter"));
+        AddWidget(make_shared<Widget>(this, "OnPageLeave"));
+        AddWidget(make_shared<Widget>(this, "OnInitialization"));
     }
             
 public:
@@ -969,12 +969,6 @@ public:
         {
             delete messageGenerator;
             messageGenerator = nullptr;
-        }
-        
-        for(auto widget : widgets_)
-        {
-            delete widget;
-            widget = nullptr;
         }
     };
     
@@ -993,7 +987,7 @@ public:
     shared_ptr<Page> GetPage() { return page_; }
     string GetName() { return name_; }
     
-    vector<Widget*> GetWidgets() { return widgets_; }
+    vector<shared_ptr<Widget>> GetWidgets() { return widgets_; }
     
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
@@ -1009,7 +1003,7 @@ public:
             widget->Clear();
     }
        
-    void AddWidget(Widget* widget)
+    void AddWidget(shared_ptr<Widget> widget)
     {
         widgets_.push_back(widget);
         widgetsByName_[widget->GetName()] = widget;
@@ -1021,7 +1015,7 @@ public:
         CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
 
-    Widget* GetWidgetByName(string name)
+    shared_ptr<Widget> GetWidgetByName(string name)
     {
         if(widgetsByName_.count(name) > 0)
             return widgetsByName_[name];
@@ -1059,12 +1053,12 @@ protected:
     int lastGValue = 0;
     int lastBValue = 0;
 
-    Widget* const widget_ = nullptr;
+    shared_ptr<Widget> const widget_ = nullptr;
     
 public:
-    FeedbackProcessor(Widget* widget) : widget_(widget) {}
+    FeedbackProcessor(shared_ptr<Widget> widget) : widget_(widget) {}
     virtual ~FeedbackProcessor() {}
-    Widget* GetWidget() { return widget_; }
+    shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetRGBValue(int r, int g, int b) {}
     virtual void ForceValue() {}
     virtual void ForceValue(double value) {}
@@ -1115,7 +1109,7 @@ class Midi_CSIMessageGenerator : public CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Midi_CSIMessageGenerator(Widget* widget) : CSIMessageGenerator(widget) {}
+    Midi_CSIMessageGenerator(shared_ptr<Widget> widget) : CSIMessageGenerator(widget) {}
     
 public:
     virtual ~Midi_CSIMessageGenerator() {}
@@ -1133,9 +1127,9 @@ protected:
     MIDI_event_ex_t* midiFeedbackMessage1_ = new MIDI_event_ex_t(0, 0, 0);
     MIDI_event_ex_t* midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : FeedbackProcessor(widget), surface_(surface) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
     
     void SendMidiMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
@@ -1229,7 +1223,7 @@ protected:
     
 public:
     
-    OSC_FeedbackProcessor(OSC_ControlSurface* surface, Widget* widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(OSC_ControlSurface* surface, shared_ptr<Widget> widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual void SetRGBValue(int r, int g, int b) override;
@@ -1243,7 +1237,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, Widget* widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, shared_ptr<Widget> widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual void ForceValue(double value) override;
@@ -2110,7 +2104,7 @@ public:
     double *GetTimeOffsPtr() { return timeOffsPtr_; }
     int GetProjectPanMode() { return *projectPanModePtr_; }
    
-    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties)
+    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, params, properties);

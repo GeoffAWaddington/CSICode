@@ -22,12 +22,12 @@ private:
     
 public:
     virtual ~PressRelease_Midi_CSIMessageGenerator() {}
-    PressRelease_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
+    PressRelease_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
     {
         surface->AddCSIMessageGenerator(press->midi_message[0] * 0x10000 + press->midi_message[1] * 0x100 + press->midi_message[2], this);
     }
     
-    PressRelease_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release)
+    PressRelease_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release)
     {
         surface->AddCSIMessageGenerator(press->midi_message[0] * 0x10000 + press->midi_message[1] * 0x100 + press->midi_message[2], this);
         surface->AddCSIMessageGenerator(release->midi_message[0] * 0x10000 + release->midi_message[1] * 0x100 + release->midi_message[2], this);
@@ -50,7 +50,7 @@ private:
 public:
     virtual ~Touch_Midi_CSIMessageGenerator() {}
     
-    Touch_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release)
+    Touch_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release)
     {
         surface->AddCSIMessageGenerator(press->midi_message[0] * 0x10000 + press->midi_message[1] * 0x100 + press->midi_message[2], this);
         surface->AddCSIMessageGenerator(release->midi_message[0] * 0x10000 + release->midi_message[1] * 0x100 + release->midi_message[2], this);
@@ -72,7 +72,7 @@ private:
 public:
     virtual ~Toggle_Midi_CSIMessageGenerator() {}
     
-    Toggle_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
+    Toggle_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
     {
         surface->AddCSIMessageGenerator(press->midi_message[0] * 0x10000 + press->midi_message[1] * 0x100 + press->midi_message[2], this);
     }
@@ -93,7 +93,7 @@ private:
     
 public:
     virtual ~AnyPress_Midi_CSIMessageGenerator() {}
-    AnyPress_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
+    AnyPress_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
     {
         surface->AddCSIMessageGenerator(press->midi_message[0] * 0x10000 + press->midi_message[1] * 0x100, this);
     }
@@ -111,7 +111,7 @@ class Fader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader14Bit_Midi_CSIMessageGenerator() {}
-    Fader14Bit_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    Fader14Bit_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000, this);
     }
@@ -128,7 +128,7 @@ class Fader7Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader7Bit_Midi_CSIMessageGenerator() {}
-    Fader7Bit_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    Fader7Bit_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
     }
@@ -149,7 +149,7 @@ private:
 
 public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
+    AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
         
@@ -267,7 +267,7 @@ private:
     
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
+    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
     
@@ -312,7 +312,7 @@ class Encoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Encoder_Midi_CSIMessageGenerator() {}
-    Encoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    Encoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
     }
@@ -336,7 +336,7 @@ class EncoderPlain_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~EncoderPlain_Midi_CSIMessageGenerator() {}
-    EncoderPlain_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    EncoderPlain_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
     }
@@ -362,7 +362,7 @@ class TwoState_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~TwoState_Midi_FeedbackProcessor() {}
-    TwoState_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
+    TwoState_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
     
     virtual void SetValue(double value) override
     {
@@ -402,7 +402,7 @@ private:
     
 public:
     virtual ~NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor() {}
-    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetRGBValue(int r, int g, int b) override
     {
@@ -457,7 +457,7 @@ private:
     
 public:
     virtual ~FaderportRGB7Bit_Midi_FeedbackProcessor() {}
-    FaderportRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    FaderportRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetRGBValue(int r, int g, int b) override
     {
@@ -486,7 +486,7 @@ class Fader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
-    Fader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Fader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
@@ -517,7 +517,7 @@ class Fader7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Fader7Bit_Midi_FeedbackProcessor() {}
-    Fader7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Fader7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
@@ -546,7 +546,7 @@ class Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Encoder_Midi_FeedbackProcessor() {}
-    Encoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Encoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
@@ -587,7 +587,7 @@ class VUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~VUMeter_Midi_FeedbackProcessor() {}
-    VUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    VUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
@@ -624,7 +624,7 @@ private:
     
 public:
     virtual ~GainReductionMeter_Midi_FeedbackProcessor() {}
-    GainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    GainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
@@ -648,7 +648,7 @@ private:
     
 public:
     virtual ~QConProXMasterVUMeter_Midi_FeedbackProcessor() {}
-    QConProXMasterVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param) { }
+    QConProXMasterVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param) { }
     
     virtual void SetValue(double value) override
     {
@@ -697,7 +697,7 @@ private:
 
 public:
     virtual ~MCUVUMeter_Midi_FeedbackProcessor() {}
-    MCUVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber) {}
+    MCUVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber) {}
     
     virtual void SetValue(double value) override
     {
@@ -733,7 +733,7 @@ private:
 
 public:
     virtual ~MCUDisplay_Midi_FeedbackProcessor() {}
-    MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
         
     virtual void SetValue(string displayText) override
     {
@@ -969,9 +969,9 @@ protected:
     
     rgb_color currentColor_ = { 0, 0, 0 } ;
 
-    SCE24_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber) : Midi_FeedbackProcessor(surface, widget), cellNumber_(cellNumber) {}
+    SCE24_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber) : Midi_FeedbackProcessor(surface, widget), cellNumber_(cellNumber) {}
     
-    SCE24_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber, int itemNumber) : Midi_FeedbackProcessor(surface, widget), cellNumber_(cellNumber), itemNumber_(itemNumber) {}
+    SCE24_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber, int itemNumber) : Midi_FeedbackProcessor(surface, widget), cellNumber_(cellNumber), itemNumber_(itemNumber) {}
 
     virtual void SetCurrentColor(double value) override
     {
@@ -1067,7 +1067,7 @@ private:
     
 public:
     virtual ~SCE24_Text_Midi_FeedbackProcessor() {}
-    SCE24_Text_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber, int itemNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber, itemNumber) { }
+    SCE24_Text_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber, int itemNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber, itemNumber) { }
     
     virtual int GetMaxCharacters() override
     {
@@ -1165,7 +1165,7 @@ class SCE24_Bar_Midi_FeedbackProcessor : public SCE24_Midi_FeedbackProcessor
 {
 public:
     virtual ~SCE24_Bar_Midi_FeedbackProcessor() {}
-    SCE24_Bar_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber, int itemNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber, itemNumber) { }
+    SCE24_Bar_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber, int itemNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber, itemNumber) { }
        
     virtual void ClearCache() override
     {
@@ -1219,7 +1219,7 @@ class SCE24_Ring_Midi_FeedbackProcessor : public SCE24_Midi_FeedbackProcessor
 {
 public:
     virtual ~SCE24_Ring_Midi_FeedbackProcessor() {}
-    SCE24_Ring_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber) { }
+    SCE24_Ring_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber) { }
        
     virtual void ClearCache() override
     {
@@ -1274,7 +1274,7 @@ private:
 
 public:
     virtual ~SCE24_OLEDButton_Midi_FeedbackProcessor() {}
-    SCE24_OLEDButton_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber, int itemNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber, itemNumber) {}
+    SCE24_OLEDButton_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber, int itemNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber, itemNumber) {}
     
     virtual int GetMaxCharacters() override
     {
@@ -1371,7 +1371,7 @@ class SCE24_LEDButton_Midi_FeedbackProcessor : public SCE24_Midi_FeedbackProcess
 {
 public:
     virtual ~SCE24_LEDButton_Midi_FeedbackProcessor() {}
-    SCE24_LEDButton_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber) { }
+    SCE24_LEDButton_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber) { }
     
     virtual void ClearCache() override
     {
@@ -1428,7 +1428,7 @@ class SCE24_Background_Midi_FeedbackProcessor : public  SCE24_Midi_FeedbackProce
 {
 public:
     virtual ~SCE24_Background_Midi_FeedbackProcessor() {}
-    SCE24_Background_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber) { }
+    SCE24_Background_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int cellNumber) : SCE24_Midi_FeedbackProcessor(surface, widget, cellNumber) { }
     
     virtual void ClearCache() override
     {
@@ -1491,7 +1491,7 @@ private:
     
 public:
     virtual ~FPDisplay_Midi_FeedbackProcessor() {}
-    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow) { }
+    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow) { }
     
     virtual void ClearCache() override
     {
@@ -1566,7 +1566,7 @@ private:
     
 public:
     virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
-    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
     
     virtual void ClearCache() override
     {
@@ -1636,7 +1636,7 @@ class MCU_TimeDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : Midi_FeedbackProcessor(surface, widget) {}
+    MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : Midi_FeedbackProcessor(surface, widget) {}
     
     virtual void SetValue(double value) override
     {
@@ -1986,7 +1986,7 @@ private:
     
 public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
-    MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void ForceRGBValue(int r, int g, int b) override
     {
