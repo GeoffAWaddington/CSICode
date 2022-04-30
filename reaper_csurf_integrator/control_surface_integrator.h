@@ -220,7 +220,7 @@ class ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Action* const action_ = nullptr;
+    shared_ptr<Action> const action_ = nullptr;
     Widget* const widget_ = nullptr;
     Zone* const zone_ = nullptr;
     
@@ -271,7 +271,7 @@ private:
     vector<string> zoneNames_;
 
 public:
-    ActionContext(Action* action, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties);
+    ActionContext(shared_ptr<Action> action, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties);
 
     virtual ~ActionContext() {}
     
@@ -2024,7 +2024,7 @@ class Manager
 private:
     CSurfIntegrator* const CSurfIntegrator_ = nullptr;
 
-    map<string, Action*> actions_;
+    map<string, shared_ptr<Action>> actions_;
 
     vector <shared_ptr<Page>> pages_;
     
@@ -2056,15 +2056,6 @@ private:
     }
     
 public:
-    ~Manager()
-    {       
-        for(auto [key, action] : actions_)
-        {
-            delete action;
-            action = nullptr;
-        }
-    }
-    
     Manager(CSurfIntegrator* CSurfIntegrator) : CSurfIntegrator_(CSurfIntegrator)
     {
         InitActionsDictionary();
