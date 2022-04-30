@@ -534,17 +534,14 @@ class SubZone : public Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Zone* const originatingZone_ = nullptr;
+    string const enclosingZone_ = nullptr;
     
 public:
-    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones, Zone* orginatingZone) : Zone(zoneManager, navigator, slotIndex, touchIds, name, alias, sourceFilePath, includedZones, subZones, associatedZones), originatingZone_(orginatingZone) {}
+    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones, string enclosingZone) : Zone(zoneManager, navigator, slotIndex, touchIds, name, alias, sourceFilePath, includedZones, subZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
-    virtual void GoSubZone(string subZoneName) override
-    {
-        originatingZone_->GoSubZone(subZoneName);
-    }
+    virtual void GoSubZone(string subZoneName) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -790,6 +787,11 @@ public:
             
             //ActivateFXZone(FXName, fxSlot, fxZones_);
         }
+    }
+    
+    void GoFXSubZone(string enclosingZone, string SubZone)
+    {
+        // GAW TBD -- find the enclosing Zone in the active FX Zones
     }
 
     void AddWidget(Widget* widget)
