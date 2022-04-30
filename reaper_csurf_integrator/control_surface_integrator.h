@@ -298,7 +298,7 @@ public:
     void DoAcceleratedSteppedValueAction(int accelerationIndex, double value);
     void DoAcceleratedDeltaValueAction(int accelerationIndex, double value);
     
-    Page* GetPage();
+    shared_ptr<Page> GetPage();
     ControlSurface* GetSurface();
     int GetParamIndex() { return paramIndex_; }
     
@@ -936,10 +936,10 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
+    ControlSurface(CSurfIntegrator* CSurfIntegrator, shared_ptr<Page> page, const string name, string zoneFolder, int numChannels, int channelOffset) :  CSurfIntegrator_(CSurfIntegrator), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
     
     CSurfIntegrator* const CSurfIntegrator_ ;
-    Page* const page_;
+    shared_ptr<Page> const page_;
     string const name_;
     ZoneManager* const zoneManager_;
     
@@ -990,7 +990,7 @@ public:
     virtual void ForceRefreshTimeDisplay() {}
     
     ZoneManager* GetZoneManager() { return zoneManager_; }
-    Page* GetPage() { return page_; }
+    shared_ptr<Page> GetPage() { return page_; }
     string GetName() { return name_; }
     
     vector<Widget*> GetWidgets() { return widgets_; }
@@ -1183,7 +1183,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
+    Midi_ControlSurface(CSurfIntegrator* CSurfIntegrator, shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
     : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
     {
         Initialize(templateFilename, zoneFolder);
@@ -1265,7 +1265,7 @@ private:
     void ProcessOSCMessage(string message, double value);
 
 public:
-    OSC_ControlSurface(CSurfIntegrator* CSurfIntegrator, Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
+    OSC_ControlSurface(CSurfIntegrator* CSurfIntegrator, shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
     : ControlSurface(CSurfIntegrator, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
     {
         Initialize(templateFilename, zoneFolder);
@@ -2026,7 +2026,7 @@ private:
 
     map<string, Action*> actions_;
 
-    vector <Page*> pages_;
+    vector <shared_ptr<Page>> pages_;
     
     int currentPageIndex_ = 0;
     bool surfaceInDisplay_ = false;
@@ -2057,13 +2057,7 @@ private:
     
 public:
     ~Manager()
-    {
-        for(auto page : pages_)
-        {
-            delete page;
-            page = nullptr;
-        }
-        
+    {       
         for(auto [key, action] : actions_)
         {
             delete action;
@@ -2174,7 +2168,7 @@ public:
             pages_[currentPageIndex_]->ForceRefreshTimeDisplay();
     }
     
-    void AdjustTrackBank(Page* sendingPage, int amount)
+    void AdjustTrackBank(shared_ptr<Page> sendingPage, int amount)
     {
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustTrackBank(amount);

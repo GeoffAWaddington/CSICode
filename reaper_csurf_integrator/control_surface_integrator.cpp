@@ -1025,7 +1025,7 @@ void Manager::Init()
 {
     pages_.clear();
 
-    Page* currentPage = nullptr;
+    shared_ptr<Page> currentPage = nullptr;
     
     string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
     
@@ -1060,7 +1060,7 @@ void Manager::Init()
                     if(tokens.size() != 5)
                         continue;
 
-                    currentPage = new Page(tokens[1], tokens[2] == "FollowMCP" ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false);
+                    currentPage = make_shared<Page>(tokens[1], tokens[2] == "FollowMCP" ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false);
                     pages_.push_back(currentPage);
                 }
                 else if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
@@ -1283,7 +1283,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, Zone* zone, vector<
 
 }
 
-Page* ActionContext::GetPage()
+shared_ptr<Page> ActionContext::GetPage()
 {
     return widget_->GetSurface()->GetPage();
 }
