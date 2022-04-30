@@ -677,102 +677,102 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             new Toggle_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
 
         // Feedback Processors
-        FeedbackProcessor* feedbackProcessor = nullptr;
+        shared_ptr<FeedbackProcessor> feedbackProcessor = nullptr;
 
         if(widgetClass == "FB_TwoState" && size == 7)
         {
-            feedbackProcessor = new TwoState_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
+            feedbackProcessor = make_shared<TwoState_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
         }
         else if(widgetClass == "FB_NovationLaunchpadMiniRGB7Bit" && size == 4)
         {
-            feedbackProcessor = new NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_MFT_RGB" && size == 4)
         {
-            feedbackProcessor = new MFT_RGB_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<MFT_RGB_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_FaderportRGB7Bit" && size == 4)
         {
-            feedbackProcessor = new FaderportRGB7Bit_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<FaderportRGB7Bit_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_Fader14Bit" && size == 4)
         {
-            feedbackProcessor = new Fader14Bit_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<Fader14Bit_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_Fader7Bit" && size == 4)
         {
-            feedbackProcessor = new Fader7Bit_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<Fader7Bit_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_Encoder" && size == 4)
         {
-            feedbackProcessor = new Encoder_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<Encoder_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_VUMeter" && size == 4)
         {
-            feedbackProcessor = new VUMeter_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<VUMeter_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_GainReductionMeter" && size == 4)
         {
-            feedbackProcessor = new GainReductionMeter_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<GainReductionMeter_Midi_FeedbackProcessor>(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_MCUTimeDisplay" && size == 1)
         {
-            feedbackProcessor = new MCU_TimeDisplay_Midi_FeedbackProcessor(surface, widget);
+            feedbackProcessor = make_shared<MCU_TimeDisplay_Midi_FeedbackProcessor>(surface, widget);
         }
         else if(widgetClass == "FB_QConProXMasterVUMeter" && size == 2)
         {
-            feedbackProcessor = new QConProXMasterVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = make_shared<QConProXMasterVUMeter_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]));
         }
         else if((widgetClass == "FB_MCUVUMeter" || widgetClass == "FB_MCUXTVUMeter") && size == 2)
         {
             int displayType = widgetClass == "FB_MCUVUMeter" ? 0x14 : 0x15;
             
-            feedbackProcessor = new MCUVUMeter_Midi_FeedbackProcessor(surface, widget, displayType, stoi(tokenLines[i][1]));
+            feedbackProcessor = make_shared<MCUVUMeter_Midi_FeedbackProcessor>(surface, widget, displayType, stoi(tokenLines[i][1]));
             
             surface->SetHasMCUMeters(displayType);
         }
         else if(widgetClass == "FB_SCE24_Text" && size == 3)
         {
-            feedbackProcessor = new SCE24_Text_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]), stoi(tokenLines[i][2]));
+            feedbackProcessor = make_shared<SCE24_Text_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]), stoi(tokenLines[i][2]));
         }
         else if(widgetClass == "FB_SCE24_Bar" && size == 3)
         {
-            feedbackProcessor = new SCE24_Bar_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]), stoi(tokenLines[i][2]));
+            feedbackProcessor = make_shared<SCE24_Bar_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]), stoi(tokenLines[i][2]));
         }
         else if(widgetClass == "FB_SCE24_OLEDButton" && size == 3)
         {
-            feedbackProcessor = new SCE24_OLEDButton_Midi_FeedbackProcessor(surface, widget, strToHex(tokenLines[i][1]), stoi(tokenLines[i][2]));
+            feedbackProcessor = make_shared<SCE24_OLEDButton_Midi_FeedbackProcessor>(surface, widget, strToHex(tokenLines[i][1]), stoi(tokenLines[i][2]));
         }
         else if(widgetClass == "FB_SCE24_LEDButton" && size == 2)
         {
-            feedbackProcessor = new SCE24_LEDButton_Midi_FeedbackProcessor(surface, widget, strToHex(tokenLines[i][1]));
+            feedbackProcessor = make_shared<SCE24_LEDButton_Midi_FeedbackProcessor>(surface, widget, strToHex(tokenLines[i][1]));
         }
         else if(widgetClass == "FB_SCE24_Background" && size == 2)
         {
-            feedbackProcessor = new SCE24_Background_Midi_FeedbackProcessor(surface, widget, strToHex(tokenLines[i][1]));
+            feedbackProcessor = make_shared<SCE24_Background_Midi_FeedbackProcessor>(surface, widget, strToHex(tokenLines[i][1]));
         }
         else if(widgetClass == "FB_SCE24_Ring" && size == 2)
         {
-            feedbackProcessor = new SCE24_Ring_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = make_shared<SCE24_Ring_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]));
         }
         else if((widgetClass == "FB_MCUDisplayUpper" || widgetClass == "FB_MCUDisplayLower" || widgetClass == "FB_MCUXTDisplayUpper" || widgetClass == "FB_MCUXTDisplayLower") && size == 2)
         {
             if(widgetClass == "FB_MCUDisplayUpper")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetClass == "FB_MCUDisplayLower")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetClass == "FB_MCUXTDisplayUpper")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
             else if(widgetClass == "FB_MCUXTDisplayLower")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
         }
         
         else if((widgetClass == "FB_C4DisplayUpper" || widgetClass == "FB_C4DisplayLower") && size == 3)
         {
             if(widgetClass == "FB_C4DisplayUpper")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
+                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
             else if(widgetClass == "FB_C4DisplayLower")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
+                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
         }
         
         else if((widgetClass == "FB_FP8Display" || widgetClass == "FB_FP16Display"
@@ -782,34 +782,34 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
                  || widgetClass == "FB_FP8DisplayLower" || widgetClass == "FB_FP16DisplayLower") && size == 2)
         {
             if(widgetClass == "FB_FP8Display" || widgetClass == "FB_FP8DisplayUpper")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
             else if(widgetClass == "FB_FP8DisplayUpperMiddle")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
             else if(widgetClass == "FB_FP8DisplayLowerMiddle")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
             else if(widgetClass == "FB_FP8DisplayLower")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
 
             else if(widgetClass == "FB_FP16Display" ||  widgetClass == "FB_FP16DisplayUpper")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
             else if(widgetClass == "FB_FP16DisplayUpperMiddle")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
             else if(widgetClass == "FB_FP16DisplayLowerMiddle")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
             else if(widgetClass == "FB_FP16DisplayLower")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
+                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
         }
         
         else if((widgetClass == "FB_QConLiteDisplayUpper" || widgetClass == "FB_QConLiteDisplayUpperMid" || widgetClass == "FB_QConLiteDisplayLowerMid" || widgetClass == "FB_QConLiteDisplayLower") && size == 2)
         {
             if(widgetClass == "FB_QConLiteDisplayUpper")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetClass == "FB_QConLiteDisplayUpperMid")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetClass == "FB_QConLiteDisplayLowerMid")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 2, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 2, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetClass == "FB_QConLiteDisplayLower")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 3, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 3, 0x14, 0x12, stoi(tokenLines[i][1]));
         }
 
         if(feedbackProcessor != nullptr)
@@ -856,9 +856,9 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
         else if(tokenLine.size() > 1 && tokenLine[0] == "Touch")
             new Touch_CSIMessageGenerator(widget, tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "FB_Processor")
-            widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(surface, widget, tokenLine[1]));
+            widget->AddFeedbackProcessor(make_shared<OSC_FeedbackProcessor>(surface, widget, tokenLine[1]));
         else if(tokenLine.size() > 1 && tokenLine[0] == "FB_IntProcessor")
-            widget->AddFeedbackProcessor(new OSC_IntFeedbackProcessor(surface, widget, tokenLine[1]));
+            widget->AddFeedbackProcessor(make_shared<OSC_IntFeedbackProcessor>(surface, widget, tokenLine[1]));
     }
 }
 
@@ -904,121 +904,121 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {    
-    actions_["TrackAutoMode"] =                     shared_ptr<TrackAutoMode>();
-    actions_["GlobalAutoMode"] =                    shared_ptr<GlobalAutoMode>();
-    actions_["TrackAutoModeDisplay"] =              shared_ptr<TrackAutoModeDisplay>();
-    actions_["TimeDisplay"] =                       shared_ptr<TimeDisplay>();
-    actions_["EuConTimeDisplay"] =                  shared_ptr<EuConTimeDisplay>();
-    actions_["NoAction"] =                          shared_ptr<NoAction>();
-    actions_["Reaper"] =                            shared_ptr<ReaperAction>();
-    actions_["FixedTextDisplay"] =                  shared_ptr<FixedTextDisplay>(); ;
-    actions_["FixedRGBColourDisplay"] =             shared_ptr<FixedRGBColourDisplay>();
-    actions_["Rewind"] =                            shared_ptr<Rewind>();
-    actions_["FastForward"] =                       shared_ptr<FastForward>();
-    actions_["Play"] =                              shared_ptr<Play>();
-    actions_["Stop"] =                              shared_ptr<Stop>();
-    actions_["Record"] =                            shared_ptr<Record>();
-    actions_["CycleTimeline"] =                     shared_ptr<CycleTimeline>();
-    actions_["ToggleScrollLink"] =                  shared_ptr<ToggleScrollLink>();
-    actions_["ForceScrollLink"] =                   shared_ptr<ForceScrollLink>();
-    actions_["ToggleVCAMode"] =                     shared_ptr<ToggleVCAMode>();
-    actions_["CycleTimeDisplayModes"] =             shared_ptr<CycleTimeDisplayModes>();
-    actions_["NextPage"] =                          shared_ptr<GoNextPage>();
-    actions_["GoPage"] =                            shared_ptr<GoPage>();
-    actions_["PageNameDisplay"] =                   shared_ptr<PageNameDisplay>();
-    actions_["Broadcast"] =                         shared_ptr<Broadcast>();
-    actions_["Receive"] =                           shared_ptr<Receive>();
-    actions_["GoHome"] =                            shared_ptr<GoHome>();
-    actions_["GoSubZone"] =                         shared_ptr<GoSubZone>();
-    actions_["LeaveZone"] =                         shared_ptr<LeaveZone>();
-    actions_["GoFXSlot"] =                          shared_ptr<GoFXSlot>();
-    actions_["GoFocusedFX"] =                       shared_ptr<GoFocusedFX>();
-    actions_["GoSelectedTrackFX"] =                 shared_ptr<GoSelectedTrackFX>();
-    actions_["GoTrackSend"] =                       shared_ptr<GoTrackSend>();
-    actions_["GoTrackReceive"] =                    shared_ptr<GoTrackReceive>();
-    actions_["GoTrackFXMenu"] =                     shared_ptr<GoTrackFXMenu>();
-    actions_["GoSelectedTrack"] =                   shared_ptr<GoSelectedTrack>();
-    actions_["GoSelectedTrackSend"] =               shared_ptr<GoSelectedTrackSend>();
-    actions_["GoSelectedTrackReceive"] =            shared_ptr<GoSelectedTrackReceive>();
-    actions_["GoSelectedTrackFXMenu"] =             shared_ptr<GoSelectedTrackFXMenu>();
-    actions_["TrackBank"] =                         shared_ptr<TrackBank>();
-    actions_["TrackSendBank"] =                     shared_ptr<TrackSendBank>();
-    actions_["TrackReceiveBank"] =                  shared_ptr<TrackReceiveBank>();
-    actions_["TrackFXMenuBank"] =                   shared_ptr<TrackFXMenuBank>();
-    actions_["SelectedTrackBank"] =                 shared_ptr<SelectedTrackBank>();
-    actions_["SelectedTrackSendBank"] =             shared_ptr<SelectedTrackSendBank>();
-    actions_["SelectedTrackReceiveBank"] =          shared_ptr<SelectedTrackReceiveBank>();
-    actions_["SelectedTrackFXMenuBank"] =           shared_ptr<SelectedTrackFXMenuBank>();
-    actions_["ClearAllSolo"] =                      shared_ptr<ClearAllSolo>();
-    actions_["Shift"] =                             shared_ptr<SetShift>();
-    actions_["Option"] =                            shared_ptr<SetOption>();
-    actions_["Control"] =                           shared_ptr<SetControl>();
-    actions_["Alt"] =                               shared_ptr<SetAlt>();
-    actions_["CycleTrackAutoMode"] =                shared_ptr<CycleTrackAutoMode>();
-    actions_["FocusedFXParam"] =                    shared_ptr<FocusedFXParam>();
-    actions_["FocusedFXParamNameDisplay"] =         shared_ptr<FocusedFXParamNameDisplay>();
-    actions_["FocusedFXParamValueDisplay"] =        shared_ptr<FocusedFXParamValueDisplay>();
-    actions_["TrackVolume"] =                       shared_ptr<TrackVolume>();
-    actions_["SoftTakeover7BitTrackVolume"] =       shared_ptr<SoftTakeover7BitTrackVolume>();
-    actions_["SoftTakeover14BitTrackVolume"] =      shared_ptr<SoftTakeover14BitTrackVolume>();
-    actions_["TrackVolumeDB"] =                     shared_ptr<TrackVolumeDB>();
-    actions_["TrackToggleVCASpill"] =               shared_ptr<TrackToggleVCASpill>();
-    actions_["TrackSelect"] =                       shared_ptr<TrackSelect>();
-    actions_["TrackUniqueSelect"] =                 shared_ptr<TrackUniqueSelect>();
-    actions_["TrackRangeSelect"] =                  shared_ptr<TrackRangeSelect>();
-    actions_["TrackRecordArm"] =                    shared_ptr<TrackRecordArm>();
-    actions_["TrackMute"] =                         shared_ptr<TrackMute>();
-    actions_["TrackSolo"] =                         shared_ptr<TrackSolo>();
-    actions_["TrackInvertPolarity"] =               shared_ptr<TrackInvertPolarity>();
-    actions_["MCUTrackPan"] =                       shared_ptr<MCUTrackPan>();
-    actions_["TrackPan"] =                          shared_ptr<TrackPan>();
-    actions_["TrackPanPercent"] =                   shared_ptr<TrackPanPercent>();
-    actions_["TrackPanWidth"] =                     shared_ptr<TrackPanWidth>();
-    actions_["TrackPanWidthPercent"] =              shared_ptr<TrackPanWidthPercent>();
-    actions_["TrackPanL"] =                         shared_ptr<TrackPanL>();
-    actions_["TrackPanLPercent"] =                  shared_ptr<TrackPanLPercent>();
-    actions_["TrackPanR"] =                         shared_ptr<TrackPanR>();
-    actions_["TrackPanRPercent"] =                  shared_ptr<TrackPanRPercent>();
-    actions_["TrackNameDisplay"] =                  shared_ptr<TrackNameDisplay>();
-    actions_["TrackVolumeDisplay"] =                shared_ptr<TrackVolumeDisplay>();
-    actions_["MCUTrackPanDisplay"] =                shared_ptr<MCUTrackPanDisplay>();
-    actions_["TrackPanDisplay"] =                   shared_ptr<TrackPanDisplay>();
-    actions_["TrackPanWidthDisplay"] =              shared_ptr<TrackPanWidthDisplay>();
-    actions_["TrackPanLeftDisplay"] =               shared_ptr<TrackPanLeftDisplay>();
-    actions_["TrackPanRightDisplay"] =              shared_ptr<TrackPanRightDisplay>();
-    actions_["TrackOutputMeter"] =                  shared_ptr<TrackOutputMeter>();
-    actions_["TrackOutputMeterAverageLR"] =         shared_ptr<TrackOutputMeterAverageLR>();
-    actions_["TrackOutputMeterMaxPeakLR"] =         shared_ptr<TrackOutputMeterMaxPeakLR>();
-    actions_["FXParam"] =                           shared_ptr<FXParam>();
-    actions_["FXParamRelative"] =                   shared_ptr<FXParamRelative>();
-    actions_["FXNameDisplay"] =                     shared_ptr<FXNameDisplay>();
-    actions_["FXMenuNameDisplay"] =                 shared_ptr<FXMenuNameDisplay>();
-    actions_["FXParamNameDisplay"] =                shared_ptr<FXParamNameDisplay>();
-    actions_["FXParamValueDisplay"] =               shared_ptr<FXParamValueDisplay>();
-    actions_["FXGainReductionMeter"] =              shared_ptr<FXGainReductionMeter>();
-    actions_["TrackSendVolume"] =                   shared_ptr<TrackSendVolume>();
-    actions_["TrackSendVolumeDB"] =                 shared_ptr<TrackSendVolumeDB>();
-    actions_["TrackSendPan"] =                      shared_ptr<TrackSendPan>();
-    actions_["TrackSendPanPercent"] =               shared_ptr<TrackSendPanPercent>();
-    actions_["TrackSendMute"] =                     shared_ptr<TrackSendMute>();
-    actions_["TrackSendInvertPolarity"] =           shared_ptr<TrackSendInvertPolarity>();
-    actions_["TrackSendStereoMonoToggle"] =         shared_ptr<TrackSendStereoMonoToggle>();
-    actions_["TrackSendPrePost"] =                  shared_ptr<TrackSendPrePost>();
-    actions_["TrackSendNameDisplay"] =              shared_ptr<TrackSendNameDisplay>();
-    actions_["TrackSendVolumeDisplay"] =            shared_ptr<TrackSendVolumeDisplay>();
-    actions_["TrackSendPanDisplay"] =               shared_ptr<TrackSendPanDisplay>();
-    actions_["TrackSendPrePostDisplay"] =           shared_ptr<TrackSendPrePostDisplay>();
-    actions_["TrackReceiveVolume"] =                shared_ptr<TrackReceiveVolume>();
-    actions_["TrackReceiveVolumeDB"] =              shared_ptr<TrackReceiveVolumeDB>();
-    actions_["TrackReceivePan"] =                   shared_ptr<TrackReceivePan>();
-    actions_["TrackReceivePanPercent"] =            shared_ptr<TrackReceivePanPercent>();
-    actions_["TrackReceiveMute"] =                  shared_ptr<TrackReceiveMute>();
-    actions_["TrackReceiveInvertPolarity"] =        shared_ptr<TrackReceiveInvertPolarity>();
-    actions_["TrackReceivePrePost"] =               shared_ptr<TrackReceivePrePost>();
-    actions_["TrackReceiveNameDisplay"] =           shared_ptr<TrackReceiveNameDisplay>();
-    actions_["TrackReceiveVolumeDisplay"] =         shared_ptr<TrackReceiveVolumeDisplay>();
-    actions_["TrackReceivePanDisplay"] =            shared_ptr<TrackReceivePanDisplay>();
-    actions_["TrackReceivePrePostDisplay"] =        shared_ptr<TrackReceivePrePostDisplay>();
+    actions_["TrackAutoMode"] =                     make_shared<TrackAutoMode>();
+    actions_["GlobalAutoMode"] =                    make_shared<GlobalAutoMode>();
+    actions_["TrackAutoModeDisplay"] =              make_shared<TrackAutoModeDisplay>();
+    actions_["TimeDisplay"] =                       make_shared<TimeDisplay>();
+    actions_["EuConTimeDisplay"] =                  make_shared<EuConTimeDisplay>();
+    actions_["NoAction"] =                          make_shared<NoAction>();
+    actions_["Reaper"] =                            make_shared<ReaperAction>();
+    actions_["FixedTextDisplay"] =                  make_shared<FixedTextDisplay>(); ;
+    actions_["FixedRGBColourDisplay"] =             make_shared<FixedRGBColourDisplay>();
+    actions_["Rewind"] =                            make_shared<Rewind>();
+    actions_["FastForward"] =                       make_shared<FastForward>();
+    actions_["Play"] =                              make_shared<Play>();
+    actions_["Stop"] =                              make_shared<Stop>();
+    actions_["Record"] =                            make_shared<Record>();
+    actions_["CycleTimeline"] =                     make_shared<CycleTimeline>();
+    actions_["ToggleScrollLink"] =                  make_shared<ToggleScrollLink>();
+    actions_["ForceScrollLink"] =                   make_shared<ForceScrollLink>();
+    actions_["ToggleVCAMode"] =                     make_shared<ToggleVCAMode>();
+    actions_["CycleTimeDisplayModes"] =             make_shared<CycleTimeDisplayModes>();
+    actions_["NextPage"] =                          make_shared<GoNextPage>();
+    actions_["GoPage"] =                            make_shared<GoPage>();
+    actions_["PageNameDisplay"] =                   make_shared<PageNameDisplay>();
+    actions_["Broadcast"] =                         make_shared<Broadcast>();
+    actions_["Receive"] =                           make_shared<Receive>();
+    actions_["GoHome"] =                            make_shared<GoHome>();
+    actions_["GoSubZone"] =                         make_shared<GoSubZone>();
+    actions_["LeaveZone"] =                         make_shared<LeaveZone>();
+    actions_["GoFXSlot"] =                          make_shared<GoFXSlot>();
+    actions_["GoFocusedFX"] =                       make_shared<GoFocusedFX>();
+    actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
+    actions_["GoTrackSend"] =                       make_shared<GoTrackSend>();
+    actions_["GoTrackReceive"] =                    make_shared<GoTrackReceive>();
+    actions_["GoTrackFXMenu"] =                     make_shared<GoTrackFXMenu>();
+    actions_["GoSelectedTrack"] =                   make_shared<GoSelectedTrack>();
+    actions_["GoSelectedTrackSend"] =               make_shared<GoSelectedTrackSend>();
+    actions_["GoSelectedTrackReceive"] =            make_shared<GoSelectedTrackReceive>();
+    actions_["GoSelectedTrackFXMenu"] =             make_shared<GoSelectedTrackFXMenu>();
+    actions_["TrackBank"] =                         make_shared<TrackBank>();
+    actions_["TrackSendBank"] =                     make_shared<TrackSendBank>();
+    actions_["TrackReceiveBank"] =                  make_shared<TrackReceiveBank>();
+    actions_["TrackFXMenuBank"] =                   make_shared<TrackFXMenuBank>();
+    actions_["SelectedTrackBank"] =                 make_shared<SelectedTrackBank>();
+    actions_["SelectedTrackSendBank"] =             make_shared<SelectedTrackSendBank>();
+    actions_["SelectedTrackReceiveBank"] =          make_shared<SelectedTrackReceiveBank>();
+    actions_["SelectedTrackFXMenuBank"] =           make_shared<SelectedTrackFXMenuBank>();
+    actions_["ClearAllSolo"] =                      make_shared<ClearAllSolo>();
+    actions_["Shift"] =                             make_shared<SetShift>();
+    actions_["Option"] =                            make_shared<SetOption>();
+    actions_["Control"] =                           make_shared<SetControl>();
+    actions_["Alt"] =                               make_shared<SetAlt>();
+    actions_["CycleTrackAutoMode"] =                make_shared<CycleTrackAutoMode>();
+    actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
+    actions_["FocusedFXParamNameDisplay"] =         make_shared<FocusedFXParamNameDisplay>();
+    actions_["FocusedFXParamValueDisplay"] =        make_shared<FocusedFXParamValueDisplay>();
+    actions_["TrackVolume"] =                       make_shared<TrackVolume>();
+    actions_["SoftTakeover7BitTrackVolume"] =       make_shared<SoftTakeover7BitTrackVolume>();
+    actions_["SoftTakeover14BitTrackVolume"] =      make_shared<SoftTakeover14BitTrackVolume>();
+    actions_["TrackVolumeDB"] =                     make_shared<TrackVolumeDB>();
+    actions_["TrackToggleVCASpill"] =               make_shared<TrackToggleVCASpill>();
+    actions_["TrackSelect"] =                       make_shared<TrackSelect>();
+    actions_["TrackUniqueSelect"] =                 make_shared<TrackUniqueSelect>();
+    actions_["TrackRangeSelect"] =                  make_shared<TrackRangeSelect>();
+    actions_["TrackRecordArm"] =                    make_shared<TrackRecordArm>();
+    actions_["TrackMute"] =                         make_shared<TrackMute>();
+    actions_["TrackSolo"] =                         make_shared<TrackSolo>();
+    actions_["TrackInvertPolarity"] =               make_shared<TrackInvertPolarity>();
+    actions_["MCUTrackPan"] =                       make_shared<MCUTrackPan>();
+    actions_["TrackPan"] =                          make_shared<TrackPan>();
+    actions_["TrackPanPercent"] =                   make_shared<TrackPanPercent>();
+    actions_["TrackPanWidth"] =                     make_shared<TrackPanWidth>();
+    actions_["TrackPanWidthPercent"] =              make_shared<TrackPanWidthPercent>();
+    actions_["TrackPanL"] =                         make_shared<TrackPanL>();
+    actions_["TrackPanLPercent"] =                  make_shared<TrackPanLPercent>();
+    actions_["TrackPanR"] =                         make_shared<TrackPanR>();
+    actions_["TrackPanRPercent"] =                  make_shared<TrackPanRPercent>();
+    actions_["TrackNameDisplay"] =                  make_shared<TrackNameDisplay>();
+    actions_["TrackVolumeDisplay"] =                make_shared<TrackVolumeDisplay>();
+    actions_["MCUTrackPanDisplay"] =                make_shared<MCUTrackPanDisplay>();
+    actions_["TrackPanDisplay"] =                   make_shared<TrackPanDisplay>();
+    actions_["TrackPanWidthDisplay"] =              make_shared<TrackPanWidthDisplay>();
+    actions_["TrackPanLeftDisplay"] =               make_shared<TrackPanLeftDisplay>();
+    actions_["TrackPanRightDisplay"] =              make_shared<TrackPanRightDisplay>();
+    actions_["TrackOutputMeter"] =                  make_shared<TrackOutputMeter>();
+    actions_["TrackOutputMeterAverageLR"] =         make_shared<TrackOutputMeterAverageLR>();
+    actions_["TrackOutputMeterMaxPeakLR"] =         make_shared<TrackOutputMeterMaxPeakLR>();
+    actions_["FXParam"] =                           make_shared<FXParam>();
+    actions_["FXParamRelative"] =                   make_shared<FXParamRelative>();
+    actions_["FXNameDisplay"] =                     make_shared<FXNameDisplay>();
+    actions_["FXMenuNameDisplay"] =                 make_shared<FXMenuNameDisplay>();
+    actions_["FXParamNameDisplay"] =                make_shared<FXParamNameDisplay>();
+    actions_["FXParamValueDisplay"] =               make_shared<FXParamValueDisplay>();
+    actions_["FXGainReductionMeter"] =              make_shared<FXGainReductionMeter>();
+    actions_["TrackSendVolume"] =                   make_shared<TrackSendVolume>();
+    actions_["TrackSendVolumeDB"] =                 make_shared<TrackSendVolumeDB>();
+    actions_["TrackSendPan"] =                      make_shared<TrackSendPan>();
+    actions_["TrackSendPanPercent"] =               make_shared<TrackSendPanPercent>();
+    actions_["TrackSendMute"] =                     make_shared<TrackSendMute>();
+    actions_["TrackSendInvertPolarity"] =           make_shared<TrackSendInvertPolarity>();
+    actions_["TrackSendStereoMonoToggle"] =         make_shared<TrackSendStereoMonoToggle>();
+    actions_["TrackSendPrePost"] =                  make_shared<TrackSendPrePost>();
+    actions_["TrackSendNameDisplay"] =              make_shared<TrackSendNameDisplay>();
+    actions_["TrackSendVolumeDisplay"] =            make_shared<TrackSendVolumeDisplay>();
+    actions_["TrackSendPanDisplay"] =               make_shared<TrackSendPanDisplay>();
+    actions_["TrackSendPrePostDisplay"] =           make_shared<TrackSendPrePostDisplay>();
+    actions_["TrackReceiveVolume"] =                make_shared<TrackReceiveVolume>();
+    actions_["TrackReceiveVolumeDB"] =              make_shared<TrackReceiveVolumeDB>();
+    actions_["TrackReceivePan"] =                   make_shared<TrackReceivePan>();
+    actions_["TrackReceivePanPercent"] =            make_shared<TrackReceivePanPercent>();
+    actions_["TrackReceiveMute"] =                  make_shared<TrackReceiveMute>();
+    actions_["TrackReceiveInvertPolarity"] =        make_shared<TrackReceiveInvertPolarity>();
+    actions_["TrackReceivePrePost"] =               make_shared<TrackReceivePrePost>();
+    actions_["TrackReceiveNameDisplay"] =           make_shared<TrackReceiveNameDisplay>();
+    actions_["TrackReceiveVolumeDisplay"] =         make_shared<TrackReceiveVolumeDisplay>();
+    actions_["TrackReceivePanDisplay"] =            make_shared<TrackReceivePanDisplay>();
+    actions_["TrackReceivePrePostDisplay"] =        make_shared<TrackReceivePrePostDisplay>();
 }
 
 void Manager::Init()
@@ -1891,15 +1891,6 @@ vector<ActionContext*> &Zone::GetActionContexts(Widget* widget)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Widget::~Widget()
-{
-    for(auto feedbackProcessor :feedbackProcessors_)
-    {
-        delete feedbackProcessor;
-        feedbackProcessor = nullptr;
-    }
-};
-
 ZoneManager* Widget::GetZoneManager()
 {
     return surface_->GetZoneManager();
