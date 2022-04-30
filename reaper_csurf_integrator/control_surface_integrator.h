@@ -1250,8 +1250,8 @@ class OSC_ControlSurface : public ControlSurface
 {
 private:
     string templateFilename_ = "";
-    oscpkt::UdpSocket* const inSocket_ = nullptr;
-    oscpkt::UdpSocket* const outSocket_ = nullptr;
+    shared_ptr<oscpkt::UdpSocket> const inSocket_ = nullptr;
+    shared_ptr<oscpkt::UdpSocket> const outSocket_ = nullptr;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
     
@@ -1259,7 +1259,7 @@ private:
     void ProcessOSCMessage(string message, double value);
 
 public:
-    OSC_ControlSurface(shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, oscpkt::UdpSocket* inSocket, oscpkt::UdpSocket* outSocket)
+    OSC_ControlSurface(shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, shared_ptr<oscpkt::UdpSocket> inSocket, shared_ptr<oscpkt::UdpSocket> outSocket)
     : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
     {
         Initialize(templateFilename, zoneFolder);
