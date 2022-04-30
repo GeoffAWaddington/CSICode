@@ -23,6 +23,7 @@
 #include <fstream>
 #include <regex>
 #include <cmath>
+#include <memory>
 
 #ifdef _WIN32
 #include "oscpkt.hh"
@@ -33,7 +34,6 @@
 #include "control_surface_integrator_Reaper.h"
 
 #ifdef _WIN32
-#include <memory>
 #include "direntWin.h"
 #include <functional>
 #include "commctrl.h"
@@ -66,7 +66,7 @@ const string TabChars = "[\t]";
 const int TempDisplayTime = 1250;
 
 class Manager;
-extern Manager* TheManager;
+extern shared_ptr<Manager> TheManager;
 
 static vector<string> GetTokens(string line)
 {
@@ -779,14 +779,18 @@ public:
             selectedTrackFXMenuOffset_ = 0;
     }
     
-    void GoTrackFXSlot(MediaTrack* track, int fxSlot)
+    void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
     {
         char FXName[BUFSZ];
         
         DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
         
-        //if(zoneFilePaths_.count(FXName) > 0)
+        if(zoneFilePaths_.count(FXName) > 0)
+        {
+            // GAW TBD -- ProcessZoneFile and add to active FX Zones;
+            
             //ActivateFXZone(FXName, fxSlot, fxZones_);
+        }
     }
 
     void AddWidget(Widget* widget)
@@ -809,14 +813,9 @@ public:
     string GetNameOrAlias(string name)
     {
         if(zoneFilePaths_.count(name) > 0)
-        {
-            if(zoneFilePaths_[name].alias != "")
-                return zoneFilePaths_[name].alias;
-            else
-                return name;
-        }
-                
-        return "";
+            return zoneFilePaths_[name].alias;
+        else
+            return "No Map";
     }
     
     void AddZoneFilePath(string name, struct CSIZoneInfo info)

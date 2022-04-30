@@ -192,7 +192,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->GoTrackFXSlot(track, context->GetSlotIndex());
+            context->GetSurface()->GetZoneManager()->GoTrackFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
     }
 };
 
