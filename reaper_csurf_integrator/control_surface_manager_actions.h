@@ -240,7 +240,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "TrackSend");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TrackSend");
     }
 };
 
@@ -256,7 +256,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "TrackReceive");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TrackReceive");
     }
 };
 
@@ -272,7 +272,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "TrackFXMenu");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TrackFXMenu");
     }
 };
 
@@ -288,7 +288,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "SelectedTrack");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrack");
     }
 };
 
@@ -304,7 +304,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "SelectedTrackSend");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackSend");
     }
 };
 
@@ -320,7 +320,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "SelectedTrackReceive");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackReceive");
     }
 };
 
@@ -336,7 +336,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetZone(), "SelectedTrackFXMenu");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackFXMenu");
     }
 };
 

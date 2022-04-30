@@ -222,7 +222,7 @@ class ActionContext
 private:
     shared_ptr<Action> const action_ = nullptr;
     Widget* const widget_ = nullptr;
-    Zone* const zone_ = nullptr;
+    shared_ptr<Zone> const zone_ = nullptr;
     
     Widget* associatedWidget_ = nullptr;
     
@@ -271,12 +271,12 @@ private:
     vector<string> zoneNames_;
 
 public:
-    ActionContext(shared_ptr<Action> action, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties);
+    ActionContext(shared_ptr<Action> action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
 
     virtual ~ActionContext() {}
     
     Widget* GetWidget() { return widget_; }
-    Zone* GetZone() { return zone_; }
+    shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
     string GetName();
 
@@ -455,9 +455,9 @@ protected:
     
     map<Widget*, bool> widgets_;
     
-    vector<Zone*> includedZones_;
-    map<string, vector<Zone*>> subZones_;
-    map<string, vector<Zone*>> associatedZones_;
+    vector<shared_ptr<Zone>> includedZones_;
+    map<string, vector<shared_ptr<Zone>>> subZones_;
+    map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
     map<Widget*, map<string, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
@@ -667,7 +667,7 @@ public:
     void TrackDeselected();
     void GoFocusedFX();
     void GoSelectedTrackFX();
-    void GoAssociatedZone(Zone* enclosingZone, string zoneName);
+    void GoAssociatedZone(string zoneName);
     void HandleActivation(string zoneName);
     void AdjustTrackSendBank(int amount);
     void AdjustTrackReceiveBank(int amount);
@@ -2110,7 +2110,7 @@ public:
     double *GetTimeOffsPtr() { return timeOffsPtr_; }
     int GetProjectPanMode() { return *projectPanModePtr_; }
    
-    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties)
+    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, params, properties);

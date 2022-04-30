@@ -287,7 +287,7 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
     }
 }
 
-static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<Zone*> &zones, string enclosingZone)
+static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, string enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -359,12 +359,12 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             expandedTouchIds = touchIds;
                         }
                         
-                        Zone* zone;
+                        shared_ptr<Zone> zone;
                         
                         if(enclosingZone == "")
-                            zone = new Zone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
+                            zone = make_shared<Zone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones);
                         else
-                            zone = new SubZone(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones, enclosingZone);
+                            zone = make_shared<SubZone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones, enclosingZone);
                         
                         zones.push_back(zone);
                         
@@ -1177,7 +1177,7 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(shared_ptr<Action> action, Widget* widget, Zone* zone, vector<string> params, vector<vector<string>> properties): action_(action), widget_(widget), zone_(zone), properties_(properties)
+ActionContext::ActionContext(shared_ptr<Action> action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties): action_(action), widget_(widget), zone_(zone), properties_(properties)
 {
     for(auto property : properties)
     {
@@ -1614,7 +1614,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                 vector<Navigator*> navigators;
                 AddNavigatorsForZone(zoneName, navigators);
 
-                associatedZones_[zoneName] = vector<Zone*>();
+                associatedZones_[zoneName] = vector<shared_ptr<Zone>>();
                 
                 ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName], "");
             }
@@ -1629,7 +1629,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                 vector<Navigator*> navigators;
                 navigators.push_back(GetNavigator());
 
-                subZones_[zoneName] = vector<Zone*>();
+                subZones_[zoneName] = vector<shared_ptr<Zone>>();
             
                 ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, subZones_[zoneName], GetName());
             }
@@ -2062,7 +2062,7 @@ void ZoneManager::Initialize()
         
     vector<Navigator*> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
-    vector<Zone*> dummy; // Needed to satify protcol, Home has special Zone handling
+    vector<shared_ptr<Zone>> dummy; // Needed to satify protcol, Home has special Zone handling
     ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, "");
     GoHome();
 }
@@ -2230,7 +2230,7 @@ void ZoneManager::HandleActivation(string zoneName)
     }
 }
 
-void ZoneManager::GoAssociatedZone(Zone* enclosingZone, string associatedZoneName)
+void ZoneManager::GoAssociatedZone(string associatedZoneName)
 {
     if(homeZone_ != nullptr)
     {
