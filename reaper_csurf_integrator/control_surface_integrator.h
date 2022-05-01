@@ -220,7 +220,7 @@ class ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Action> const action_ = nullptr;
+    Action* const action_ = nullptr;
     shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
     
@@ -271,7 +271,7 @@ private:
     vector<string> zoneNames_;
 
 public:
-    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
+    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
 
     virtual ~ActionContext() {}
     
@@ -561,7 +561,7 @@ public:
     
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
-    shared_ptr<ZoneManager> GetZoneManager();
+    ZoneManager* GetZoneManager();
     
     bool GetIsModifier() { return isModifier_; }
     void SetIsModifier() { isModifier_ = true; }
@@ -929,11 +929,11 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(make_shared<ZoneManager>(this, zoneFolder)) { }
+    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
     
     Page* const page_;
     string const name_;
-    shared_ptr<ZoneManager>const zoneManager_;
+    ZoneManager* const zoneManager_;
     
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
@@ -975,7 +975,7 @@ public:
     virtual bool GetIsEuConFXAreaFocused() { return false; }
     virtual void ForceRefreshTimeDisplay() {}
     
-    shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
+    ZoneManager* GetZoneManager() { return zoneManager_; }
     Page* GetPage() { return page_; }
     string GetName() { return name_; }
     
@@ -2006,7 +2006,7 @@ class Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, shared_ptr<Action>> actions_;
+    map<string, Action*> actions_;
 
     vector <Page*> pages_;
     
