@@ -8,7 +8,7 @@
 #include "control_surface_integrator_ui.h"
 #include <memory>
 
-shared_ptr<Manager> TheManager;
+Manager* TheManager;
 extern string GetLineEnding();
 
 const string Control_Surface_Integrator = "Control Surface Integrator";
@@ -57,13 +57,17 @@ bool hookCommandProc(int command, int flag)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 CSurfIntegrator::CSurfIntegrator()
 {
-    TheManager = make_shared<Manager>();
+    TheManager = new Manager();
 }
 
 CSurfIntegrator::~CSurfIntegrator()
 {
     if(TheManager)
+    {
         TheManager->Shutdown();
+        delete TheManager;
+        TheManager= nullptr;
+    }
 }
 
 void CSurfIntegrator::OnTrackSelection(MediaTrack *trackid)

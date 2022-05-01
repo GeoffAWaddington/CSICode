@@ -66,7 +66,7 @@ const string TabChars = "[\t]";
 const int TempDisplayTime = 1250;
 
 class Manager;
-extern shared_ptr<Manager> TheManager;
+extern Manager* TheManager;
 
 static vector<string> GetTokens(string line)
 {
@@ -2065,6 +2065,12 @@ public:
         {
             delete page;
             page = nullptr;
+        }
+        
+        for(auto [key, action] : actions_)
+        {
+            delete action;
+            action = nullptr;
         }
     }
 
