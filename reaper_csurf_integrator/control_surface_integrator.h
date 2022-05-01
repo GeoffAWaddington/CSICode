@@ -551,13 +551,14 @@ class Widget
 private:
     ControlSurface* const surface_;
     string const name_;
-    vector<shared_ptr<FeedbackProcessor>> feedbackProcessors_;
+    vector<FeedbackProcessor*> feedbackProcessors_;
     
     bool isModifier_ = false;
     bool isToggled_ = false;
     
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name) {}
+    ~Widget();
     
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
@@ -584,7 +585,7 @@ public:
         //currentWidgetContext_.GetFormattedFXParamValue(buffer, bufferSize);
     }
     
-    void AddFeedbackProcessor(shared_ptr<FeedbackProcessor> feedbackProcessor)
+    void AddFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
     {
         feedbackProcessors_.push_back(feedbackProcessor);
     }
