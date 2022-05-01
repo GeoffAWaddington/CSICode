@@ -612,7 +612,7 @@ static int strToHex(string valueStr)
     return strtol(valueStr.c_str(), nullptr, 16);
 }
 
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens,  Midi_ControlSurface* surface)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface)
 {
     if(tokens.size() < 2)
         return;
