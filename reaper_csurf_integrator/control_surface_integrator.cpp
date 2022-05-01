@@ -378,7 +378,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             if(navigators.size() > 1)
                                 surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(i + 1));
                             
-                            shared_ptr<Widget> widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
+                            Widget* widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
                             
                             if(widget == nullptr)
                                 continue;
@@ -619,7 +619,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     
     string widgetName = tokens[1];
 
-    shared_ptr<Widget> widget = make_shared<Widget>(surface, widgetName);
+    Widget* widget = new Widget(surface, widgetName);
     
     surface->AddWidget(widget);
 
@@ -822,7 +822,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     if(tokens.size() < 2)
         return;
     
-    shared_ptr<Widget> widget = make_shared<Widget>(surface, tokens[1]);
+    Widget* widget = new Widget(surface, tokens[1]);
     
     surface->AddWidget(widget);
 
@@ -1174,7 +1174,7 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties): action_(action), widget_(widget), zone_(zone), properties_(properties)
+ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties): action_(action), widget_(widget), zone_(zone), properties_(properties)
 {
     for(auto property : properties)
     {
@@ -1704,7 +1704,7 @@ void Zone::Deactivate()
             zone->Deactivate();
 }
 
-void Zone::RequestUpdateWidget(shared_ptr<Widget> widget)
+void Zone::RequestUpdateWidget(Widget* widget)
 {
     for(auto context : GetActionContexts(widget))
         context->RunDeferredActions();
@@ -1716,7 +1716,7 @@ void Zone::RequestUpdateWidget(shared_ptr<Widget> widget)
     }
 }
 
-void Zone::RequestUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
+void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
 {
     if(! isActive_)
         return;
@@ -1742,7 +1742,7 @@ void Zone::RequestUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
     }
 }
 
-void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
+void Zone::DoAction(Widget* widget, bool &isUsed, double value)
 {
     if(! isActive_ || isUsed)
         return;
@@ -1772,7 +1772,7 @@ void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
     }
 }
    
-void Zone::DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, double delta)
+void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
 {
     if(! isActive_ || isUsed)
         return;
@@ -1802,7 +1802,7 @@ void Zone::DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, double delt
     }
 }
 
-void Zone::DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, int accelerationIndex, double delta)
+void Zone::DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
 {
     if(! isActive_ || isUsed)
         return;
@@ -1832,7 +1832,7 @@ void Zone::DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, int acceler
     }
 }
 
-void Zone::DoTouch(shared_ptr<Widget> widget, string widgetName, bool &isUsed, double value)
+void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
 {
     if(! isActive_ || isUsed)
         return;
@@ -1866,7 +1866,7 @@ void Zone::DoTouch(shared_ptr<Widget> widget, string widgetName, bool &isUsed, d
     }
 }
 
-vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(shared_ptr<Widget> widget)
+vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
     string widgetName = widget->GetName();
     string modifier = "";
@@ -1961,7 +1961,7 @@ void Widget::LogInput(double value)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CSIMessageGenerator::CSIMessageGenerator(shared_ptr<Widget> widget, string message) : widget_(widget)
+CSIMessageGenerator::CSIMessageGenerator(Widget* widget, string message) : widget_(widget)
 {
     widget->GetSurface()->AddCSIMessageGenerator(message, this);
 }
@@ -2302,7 +2302,7 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ControlSurface::SurfaceOutMonitor(shared_ptr<Widget> widget, string address, string value)
+void ControlSurface::SurfaceOutMonitor(Widget* widget, string address, string value)
 {
     if(TheManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + address + " " + value + "\n").c_str());
