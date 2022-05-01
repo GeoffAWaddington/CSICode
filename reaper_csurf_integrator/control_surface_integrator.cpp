@@ -366,6 +366,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         else
                             zone = make_shared<SubZone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, subZones, associatedZones, enclosingZone);
                         
+                        if(zoneName == "Home")
+                            zoneManager->SetHomeZone(zone);
+                        
                         zones.push_back(zone);
                         
                         for(auto [widgetName, modifierActions] : widgetActions)
@@ -1587,9 +1590,7 @@ int Zone::GetSlotIndex()
 Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     if(name == "Home")
-    {
-        zoneManager_->SetHomeZone(this);
-        
+    {       
         for(auto zoneName : includedZones)
         {
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
@@ -2160,7 +2161,7 @@ void ZoneManager::GoSelectedTrackFX()
         //for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
             //MapSelectedTrackFXSlotToWidgets(fxZones_, i);
 }
-
+/*
 void ZoneManager::MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot)
 {
     MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack();
@@ -2175,7 +2176,7 @@ void ZoneManager::MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSl
     //if(zoneFilePaths_.count(FXName) > 0)
         //ActivateFXZone(FXName, fxSlot, zones);
 }
-
+*/
 void ZoneManager::PreProcessZones()
 {
     try

@@ -611,7 +611,7 @@ private:
       
     map<shared_ptr<Widget>, bool> usedWidgets_;
     
-    Zone* homeZone_ = nullptr;
+    shared_ptr<Zone> homeZone_ = nullptr;
     
     map<string, CSIZoneInfo> zoneFilePaths_;
     
@@ -625,14 +625,6 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
-    vector<Zone*> trackSendZones_;
-    vector<Zone*> trackReceiveZones_;
-    vector<Zone*> trackFXMenuZones_;
-    vector<Zone*> selectedTrackZones_;
-    vector<Zone*> selectedTrackSendZones_;
-    vector<Zone*> selectedTrackReceiveZones_;
-    vector<Zone*> selectedTrackFXMenuZones_;
-    
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
@@ -646,7 +638,7 @@ private:
     
     void UnmapFocusedFXFromWidgets();
 
-    void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
+   // void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
        
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
@@ -677,7 +669,7 @@ public:
     
     ControlSurface* GetSurface() { return surface_; }   
     
-    void SetHomeZone(Zone* zone) { homeZone_ = zone; }
+    void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
     
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
