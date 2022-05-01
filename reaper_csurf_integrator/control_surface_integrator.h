@@ -298,7 +298,7 @@ public:
     void DoAcceleratedSteppedValueAction(int accelerationIndex, double value);
     void DoAcceleratedDeltaValueAction(int accelerationIndex, double value);
     
-    shared_ptr<Page> GetPage();
+    Page* GetPage();
     ControlSurface* GetSurface();
     int GetParamIndex() { return paramIndex_; }
     
@@ -929,9 +929,9 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ControlSurface(shared_ptr<Page> page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(make_shared<ZoneManager>(this, zoneFolder)) { }
+    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(make_shared<ZoneManager>(this, zoneFolder)) { }
     
-    shared_ptr<Page> const page_;
+    Page* const page_;
     string const name_;
     shared_ptr<ZoneManager>const zoneManager_;
     
@@ -976,7 +976,7 @@ public:
     virtual void ForceRefreshTimeDisplay() {}
     
     shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
-    shared_ptr<Page> GetPage() { return page_; }
+    Page* GetPage() { return page_; }
     string GetName() { return name_; }
     
     vector<shared_ptr<Widget>> GetWidgets() { return widgets_; }
@@ -1169,7 +1169,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
+    Midi_ControlSurface(Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
     : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
     {
         Initialize(templateFilename, zoneFolder);
@@ -1251,7 +1251,7 @@ private:
     void ProcessOSCMessage(string message, double value);
 
 public:
-    OSC_ControlSurface(shared_ptr<Page> page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, shared_ptr<oscpkt::UdpSocket> inSocket, shared_ptr<oscpkt::UdpSocket> outSocket)
+    OSC_ControlSurface(Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, shared_ptr<oscpkt::UdpSocket> inSocket, shared_ptr<oscpkt::UdpSocket> outSocket)
     : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
     {
         Initialize(templateFilename, zoneFolder);
@@ -1714,10 +1714,10 @@ private:
     bool isAlt_ = false;
     double altPressedTime_ = 0;
     
-    unique_ptr<TrackNavigationManager> const trackNavigationManager_ = nullptr;
+    TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name, bool followMCP, bool synchPages, bool scrollLink) : name_(name),  trackNavigationManager_(make_unique<TrackNavigationManager>(this, followMCP, synchPages, scrollLink)) {}
+    Page(string name, bool followMCP, bool synchPages, bool scrollLink) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, scrollLink)) {}
     
     ~Page()
     {
@@ -2008,7 +2008,7 @@ class Manager
 private:
     map<string, shared_ptr<Action>> actions_;
 
-    vector <shared_ptr<Page>> pages_;
+    vector <Page*> pages_;
     
     int currentPageIndex_ = 0;
     bool surfaceInDisplay_ = false;
@@ -2058,6 +2058,16 @@ public:
         index = projectconfig_var_getoffs("panmode", &size);
         projectPanModePtr_ = (int*)projectconfig_var_addr(nullptr, index);
     }
+    
+    ~Manager()
+    {
+        for(auto page: pages_)
+        {
+            delete page;
+            page = nullptr;
+        }
+    }
+
     
     void Shutdown()
     {
@@ -2141,7 +2151,7 @@ public:
             pages_[currentPageIndex_]->ForceRefreshTimeDisplay();
     }
     
-    void AdjustTrackBank(shared_ptr<Page> sendingPage, int amount)
+    void AdjustTrackBank(Page* sendingPage, int amount)
     {
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustTrackBank(amount);
