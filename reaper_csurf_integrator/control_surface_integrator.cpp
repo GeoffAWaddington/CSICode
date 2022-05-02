@@ -930,6 +930,8 @@ void Manager::InitActionsDictionary()
     actions_["LeaveZone"] =                         new LeaveZone();
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["GoFocusedFX"] =                       new GoFocusedFX();
+    actions_["PreventFocusedFXMapping"] =           new PreventFocusedFXMapping();
+    actions_["TogggleFocusedFXMapping"] =           new TogggleFocusedFXMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
@@ -2124,18 +2126,6 @@ void ZoneManager::RequestUpdate()
             key->UpdateValue(0.0);
 }
 
-void ZoneManager::UnmapFocusedFXFromWidgets()
-{
-    //if(broadcast_.count("FocusedFX") > 0)
-        //surface_->GetPage()->SignalActivation(surface_, ActivationType::Deactivating, "FocusedFX");
-
-    
-    
-    
-    
-    //focusedFXZones_.clear();
-}
-
 void ZoneManager::GoFocusedFX()
 {
     //if(broadcast_.count("FocusedFX") > 0)
@@ -2164,7 +2154,7 @@ void ZoneManager::GoFocusedFX()
 
 void ZoneManager::GoSelectedTrackFX()
 {
-    //UnmapZones(fxZones_);
+    UnmapFocusedFXFromWidgets();
     
     //if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
         //for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
