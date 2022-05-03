@@ -616,9 +616,11 @@ private:
     map<Widget*, bool> usedWidgets_;
 
     shared_ptr<Zone> homeZone_ = nullptr;
-    vector<shared_ptr<Zone>> focusedFXZones_;
     
+    vector<shared_ptr<Zone>> focusedFXZones_;
+    map<int, map<int, int>> focusedFXDictionary_;
     bool shouldMapFocusedFX_ = true;
+    bool shouldLockoutFocusedFXMapping_ = false;
     
     int trackSendOffset_ = 0;
     int trackReceiveOffset_ = 0;
@@ -639,7 +641,11 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
-    void UnmapFocusedFXFromWidgets() { focusedFXZones_.clear(); }
+    void LockoutFocusedFXMapping()
+    {
+        focusedFXZones_.clear();
+        shouldLockoutFocusedFXMapping_ = true;
+    }
 
    // void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
        
@@ -685,6 +691,12 @@ public:
     void PreventFocusedFXMapping() { shouldMapFocusedFX_ = false; }
     void TogggleFocusedFXMapping() { shouldMapFocusedFX_ = ! shouldMapFocusedFX_; }
     bool GetFocusedFXMapping() { return shouldMapFocusedFX_; } 
+    
+    void ResetFocusedFXMapping()
+    {
+        focusedFXZones_.clear();
+        shouldLockoutFocusedFXMapping_ = false;
+    }
     
     void HandleTrackSendBank(int amount)
     {
@@ -776,7 +788,7 @@ public:
     
     void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
     {
-        UnmapFocusedFXFromWidgets();
+        LockoutFocusedFXMapping();
         
         char FXName[BUFSZ];
         
@@ -828,7 +840,7 @@ public:
     
     void CheckFocusedFXState()
     {
-        if(! shouldMapFocusedFX_)
+        if(shouldLockoutFocusedFXMapping_ || ! shouldMapFocusedFX_)
             return;
         
         int trackNumber = 0;
@@ -841,8 +853,8 @@ public:
         {
             int lastRetval = -1;
 
-            //if(focusedFXDictionary.count(trackNumber) > 0 && focusedFXDictionary[trackNumber].count(fxIndex) > 0)
-                //lastRetval = focusedFXDictionary[trackNumber][fxIndex];
+            if(focusedFXDictionary_.count(trackNumber) > 0 && focusedFXDictionary_[trackNumber].count(fxIndex) > 0)
+                lastRetval = focusedFXDictionary_[trackNumber][fxIndex];
             
             if(lastRetval != retval)
             {
@@ -850,12 +862,12 @@ public:
                     GoFocusedFX();
                 
                 else if(retval & 4)
-                    UnmapFocusedFXFromWidgets();
+                    focusedFXZones_.clear();
                 
-                //if(focusedFXDictionary[trackNumber].count(trackNumber) < 1)
-                    //focusedFXDictionary[trackNumber] = map<int, int>();
+                if(focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
+                    focusedFXDictionary_[trackNumber] = map<int, int>();
                                    
-                //focusedFXDictionary[trackNumber][fxIndex] = retval;;
+                focusedFXDictionary_[trackNumber][fxIndex] = retval;;
             }
         }
     }

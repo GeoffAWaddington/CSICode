@@ -2131,7 +2131,7 @@ void ZoneManager::GoFocusedFX()
     //if(broadcast_.count("FocusedFX") > 0)
         //surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
     
-    UnmapFocusedFXFromWidgets();
+    focusedFXZones_.clear();
     
     int trackNumber = 0;
     int itemNumber = 0;
@@ -2154,7 +2154,7 @@ void ZoneManager::GoFocusedFX()
 
 void ZoneManager::GoSelectedTrackFX()
 {
-    UnmapFocusedFXFromWidgets();
+    LockoutFocusedFXMapping();
     
     //if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
         //for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
@@ -2244,7 +2244,7 @@ void ZoneManager::GoHome()
     if(broadcast_.count(zoneName) > 0)
         GetSurface()->GetPage()->SignalActivation(GetSurface(), zoneName);
     
-    UnmapFocusedFXFromWidgets();
+    ResetFocusedFXMapping();
 
     if(homeZone_ != nullptr)
     {
