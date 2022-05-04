@@ -2339,12 +2339,6 @@ public:
                         fxFile << "Zone \"" + string(fxName) + "\"" + GetLineEnding();
                 }
 
-                if(fxParamsDisplay_)
-                    DAW::ShowConsoleMsg("\n\n\tSelectedTrackNavigator\n");
-                
-                if(fxParamsWrite_ && fxFile.is_open())
-                    fxFile << "\tSelectedTrackNavigator" + GetLineEnding();
-
                 for(int j = 0; j < DAW::TrackFX_GetNumParams(track, i); j++)
                 {
                     DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
