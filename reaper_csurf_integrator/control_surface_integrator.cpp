@@ -2075,35 +2075,18 @@ void ZoneManager::Initialize()
 
 void ZoneManager::RequestUpdate()
 {
-    // GAW TBD -- access this from every Zone to get realtime values
-    /*
-    int maxSendSlot = DAW::GetTrackNumSends(track, 0) - 1;
-    if(maxSendSlot > maxSendSlot_)
-    {
-        maxSendSlot_ = maxSendSlot;
-        AdjustSendBank(0);
-    }
- 
-    int maxReceiveSlot = DAW::GetTrackNumSends(track, -1) - 1;
-    if(maxReceiveSlot > maxReceiveSlot_)
-    {
-        maxReceiveSlot_ = maxReceiveSlot;
-        AdjustReceiveBank(0);
-    }
-
-    int maxFXMenuSlot = DAW::TrackFX_GetCount(track) - 1;
-    if(maxFXMenuSlot > maxFXMenuSlot_)
-        maxFXMenuSlot_ = maxFXMenuSlot;
-     */
-
     CheckFocusedFXState();
     
     for(auto &[key, value] : usedWidgets_)
         value = false;
     
-    // GAW TBD -- expand this beyond "Home"
-    
     for(auto zone : focusedFXZones_)
+        zone->RequestUpdate(usedWidgets_);
+    
+    for(auto zone : selectedTrackFXZones_)
+        zone->RequestUpdate(usedWidgets_);
+    
+    for(auto zone : fxSlotZones_)
         zone->RequestUpdate(usedWidgets_);
     
     if(homeZone_ != nullptr)
@@ -2111,8 +2094,15 @@ void ZoneManager::RequestUpdate()
     
     // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
     for(auto &[key, value] : usedWidgets_)
+    {
         if(value == false)
+        {
             key->UpdateValue(0.0);
+            key->UpdateValue(0, 0.0);
+            key->UpdateValue("");
+            key->UpdateRGBValue(0, 0, 0);
+        }
+    }
 }
 
 void ZoneManager::GoFocusedFX()
@@ -2153,26 +2143,50 @@ void ZoneManager::GoSelectedTrackFX()
 {
     LockoutFocusedFXMapping();
     
-    //if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
-        //for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
-            //MapSelectedTrackFXSlotToWidgets(fxZones_, i);
-}
-/*
-void ZoneManager::MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot)
-{
-    MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack();
+    selectedTrackFXZones_.clear();
     
-    if(selectedTrack == nullptr)
-        return;
+    if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
+    {
+        for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
+        {
+            char FXName[BUFSZ];
+            
+            DAW::TrackFX_GetFXName(selectedTrack, i, FXName, sizeof(FXName));
+            
+            if(zoneFilePaths_.count(FXName) > 0)
+            {
+                vector<Navigator*> navigators;
+                navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
+                
+                ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, "");
+                
+                selectedTrackFXZones_.back()->SetSlotIndex(i);
+                selectedTrackFXZones_.back()->Activate();
+            }
+        }
+    }
+}
+
+void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+{
+    LockoutFocusedFXMapping();
     
     char FXName[BUFSZ];
     
-    DAW::TrackFX_GetFXName(selectedTrack, fxSlot, FXName, sizeof(FXName));
+    DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
     
-    //if(zoneFilePaths_.count(FXName) > 0)
-        //ActivateFXZone(FXName, fxSlot, zones);
+    if(zoneFilePaths_.count(FXName) > 0)
+    {
+        vector<Navigator*> navigators;
+        navigators.push_back(navigator);
+        
+        ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, fxSlotZones_, "");
+        
+        fxSlotZones_.back()->SetSlotIndex(fxSlot);
+        fxSlotZones_.back()->Activate();
+    }
 }
-*/
+
 void ZoneManager::PreProcessZones()
 {
     try
@@ -2190,26 +2204,7 @@ void ZoneManager::PreProcessZones()
         DAW::ShowConsoleMsg(buffer);
     }
 }
-/*
-void ZoneManager::ActivateFocusedFXZone(string zoneName, int slotNumber, vector<Zone*> &zones)
-{
-    //if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator == "FocusedFXNavigator")
-        //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
-}
 
-void ZoneManager::ActivateFXZone(string zoneName, int slotNumber, vector<Zone*> &zones)
-{
-    //if(zoneFilePaths_.count(zoneName) > 0 && zoneFilePaths_[zoneName].navigator != "FocusedFXNavigator")
-        //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
-}
-
-void ZoneManager::ActivateFXSubZone(string zoneName, Zone &originatingZone, int slotNumber, vector<Zone*> &zones)
-{
-    //if(zoneFilePaths_.count(zoneName) > 0)
-        //ActivateFXZoneFile(zoneFilePaths_[zoneName].filePath, this, slotNumber, zones);
-    
-    // GAW TBD -- add a wrapper that also sets the context -- nav and slot -- ActivateFXSubZoneFile ?
-}*/
 void ZoneManager::HandleActivation(string zoneName)
 {
     if(receive_.count(zoneName) > 0)
@@ -2241,7 +2236,7 @@ void ZoneManager::GoHome()
     if(broadcast_.count(zoneName) > 0)
         GetSurface()->GetPage()->SignalActivation(GetSurface(), zoneName);
     
-    ResetFocusedFXMapping();
+    ClearFXMapping();
 
     if(homeZone_ != nullptr)
     {
@@ -2259,7 +2254,7 @@ void ZoneManager::TrackDeselected()
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
         
-        // GAW TBD -- clear SelectedTrackFX
+        selectedTrackFXZones_.clear();
         
         homeZone_->TrackDeselected();
     }

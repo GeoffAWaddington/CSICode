@@ -617,11 +617,15 @@ private:
 
     shared_ptr<Zone> homeZone_ = nullptr;
     
-    vector<shared_ptr<Zone>> focusedFXZones_;
+    
     map<int, map<int, int>> focusedFXDictionary_;
+    vector<shared_ptr<Zone>> focusedFXZones_;
     bool shouldMapFocusedFX_ = true;
     bool shouldLockoutFocusedFXMapping_ = false;
     
+    vector<shared_ptr<Zone>> selectedTrackFXZones_;
+    vector<shared_ptr<Zone>> fxSlotZones_;
+
     int trackSendOffset_ = 0;
     int trackReceiveOffset_ = 0;
     int trackFXMenuOffset_ = 0;
@@ -646,8 +650,6 @@ private:
         focusedFXZones_.clear();
         shouldLockoutFocusedFXMapping_ = true;
     }
-
-   // void MapSelectedTrackFXSlotToWidgets(vector<Zone*> &zones, int fxSlot);
        
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
@@ -668,6 +670,7 @@ public:
     void TrackDeselected();
     void GoFocusedFX();
     void GoSelectedTrackFX();
+    void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
     void GoAssociatedZone(string zoneName);
     void HandleActivation(string zoneName);
     void AdjustTrackSendBank(int amount);
@@ -692,10 +695,12 @@ public:
     void TogggleFocusedFXMapping() { shouldMapFocusedFX_ = ! shouldMapFocusedFX_; }
     bool GetFocusedFXMapping() { return shouldMapFocusedFX_; } 
     
-    void ResetFocusedFXMapping()
+    void ClearFXMapping()
     {
-        focusedFXZones_.clear();
         shouldLockoutFocusedFXMapping_ = false;
+        focusedFXZones_.clear();
+        selectedTrackFXZones_.clear();
+        fxSlotZones_.clear();
     }
     
     void HandleTrackSendBank(int amount)
@@ -785,23 +790,7 @@ public:
         if(selectedTrackFXMenuOffset_ < 0)
             selectedTrackFXMenuOffset_ = 0;
     }
-    
-    void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
-    {
-        LockoutFocusedFXMapping();
         
-        char FXName[BUFSZ];
-        
-        DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
-        
-        if(zoneFilePaths_.count(FXName) > 0)
-        {
-            // GAW TBD -- ProcessZoneFile and add to active FX Zones;
-            
-            //ActivateFXZone(FXName, fxSlot, fxZones_);
-        }
-    }
-    
     void GoFXSubZone(string enclosingZone, string SubZone)
     {
         // GAW TBD -- find the enclosing Zone in the active FX Zones
@@ -871,9 +860,6 @@ public:
             }
         }
     }
-    
-    
-    // GAW TBD -- expand this beyond "Home"
        
     void DoAction(Widget* widget, double value)
     {
@@ -887,6 +873,18 @@ public:
         if(isUsed)
             return;
         
+        for(auto zone : selectedTrackFXZones_)
+            zone->DoAction(widget, isUsed, value);
+        
+        if(isUsed)
+            return;
+   
+        for(auto zone : fxSlotZones_)
+            zone->DoAction(widget, isUsed, value);
+        
+        if(isUsed)
+            return;
+
         if(homeZone_ != nullptr)
             homeZone_->DoAction(widget, isUsed, value);
     }
@@ -903,6 +901,18 @@ public:
         if(isUsed)
             return;
         
+        for(auto zone : selectedTrackFXZones_)
+            zone->DoRelativeAction(widget, isUsed, delta);
+        
+        if(isUsed)
+            return;
+
+        for(auto zone : fxSlotZones_)
+            zone->DoRelativeAction(widget, isUsed, delta);
+        
+        if(isUsed)
+            return;
+
         if(homeZone_ != nullptr)
             homeZone_->DoRelativeAction(widget, isUsed, delta);
     }
@@ -919,6 +929,18 @@ public:
         if(isUsed)
             return;
         
+        for(auto zone : selectedTrackFXZones_)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        
+        if(isUsed)
+            return;
+
+        for(auto zone : fxSlotZones_)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        
+        if(isUsed)
+            return;
+
         if(homeZone_ != nullptr)
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
@@ -930,6 +952,18 @@ public:
         bool isUsed = false;
         
         for(auto zone : focusedFXZones_)
+            zone->DoTouch(widget, widget->GetName(), isUsed, value);
+        
+        if(isUsed)
+            return;
+
+        for(auto zone : selectedTrackFXZones_)
+            zone->DoTouch(widget, widget->GetName(), isUsed, value);
+        
+        if(isUsed)
+            return;
+
+        for(auto zone : fxSlotZones_)
             zone->DoTouch(widget, widget->GetName(), isUsed, value);
         
         if(isUsed)
