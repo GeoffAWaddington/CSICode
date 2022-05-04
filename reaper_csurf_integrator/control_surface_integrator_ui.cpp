@@ -825,7 +825,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 pages.erase(pages.begin() + index);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
-                                
+#ifdef WIN32
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
+#endif
                                 for(auto page: pages)
                                     AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
