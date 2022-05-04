@@ -504,10 +504,7 @@ public:
     string GetNameOrAlias()
     {
         if(alias_ != "")
-        {
-            // GAW TBD - replace any '|' with GetSlot value from zoneNav
             return alias_;
-        }
         else
             return name_;
     }
@@ -791,9 +788,34 @@ public:
             selectedTrackFXMenuOffset_ = 0;
     }
         
-    void GoFXSubZone(string enclosingZone, string SubZone)
+    void GoFXSubZone(string enclosingZoneName, string subZoneName)
     {
-        // GAW TBD -- find the enclosing Zone in the active FX Zones
+        for(auto zone : focusedFXZones_)
+        {
+            if(zone->GetName() == enclosingZoneName)
+            {
+                zone->GoSubZone(subZoneName);
+                return;
+            }
+        }
+        
+        for(auto zone : selectedTrackFXZones_)
+        {
+            if(zone->GetName() == enclosingZoneName)
+            {
+                zone->GoSubZone(subZoneName);
+                return;
+            }
+        }
+        
+        for(auto zone : fxSlotZones_)
+        {
+            if(zone->GetName() == enclosingZoneName)
+            {
+                zone->GoSubZone(subZoneName);
+                return;
+            }
+        }
     }
 
     void AddWidget(Widget* widget)
