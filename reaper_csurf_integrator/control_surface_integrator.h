@@ -881,6 +881,12 @@ public:
         
         bool isUsed = false;
         
+        for(auto zone : focusedFXZones_)
+            zone->DoAction(widget, isUsed, value);
+        
+        if(isUsed)
+            return;
+        
         if(homeZone_ != nullptr)
             homeZone_->DoAction(widget, isUsed, value);
     }
@@ -890,6 +896,12 @@ public:
         widget->LogInput(delta);
         
         bool isUsed = false;
+        
+        for(auto zone : focusedFXZones_)
+            zone->DoRelativeAction(widget, isUsed, delta);
+        
+        if(isUsed)
+            return;
         
         if(homeZone_ != nullptr)
             homeZone_->DoRelativeAction(widget, isUsed, delta);
@@ -901,6 +913,12 @@ public:
         
         bool isUsed = false;
            
+        for(auto zone : focusedFXZones_)
+            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        
+        if(isUsed)
+            return;
+        
         if(homeZone_ != nullptr)
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
@@ -911,6 +929,12 @@ public:
         
         bool isUsed = false;
         
+        for(auto zone : focusedFXZones_)
+            zone->DoTouch(widget, widget->GetName(), isUsed, value);
+        
+        if(isUsed)
+            return;
+
         if(homeZone_ != nullptr)
             homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     }

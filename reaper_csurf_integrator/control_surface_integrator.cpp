@@ -2103,22 +2103,11 @@ void ZoneManager::RequestUpdate()
     
     // GAW TBD -- expand this beyond "Home"
     
+    for(auto zone : focusedFXZones_)
+        zone->RequestUpdate(usedWidgets_);
+    
     if(homeZone_ != nullptr)
         homeZone_->RequestUpdate(usedWidgets_);
-    
-    /*
-    for(Zone* zone : focusedFXZones_)
-        zone->RequestUpdate(usedWidgets_);
-
-    for(Zone* zone : fxZones_)
-        zone->RequestUpdate(usedWidgets_);
-   
-    for(vector<Zone*> &zones : fixedZonesOld_)
-        for(Zone* zone : zones)
-            zone->RequestUpdate(usedWidgets_);
-    */
-    
-    
     
     // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
     for(auto &[key, value] : usedWidgets_)
@@ -2128,9 +2117,6 @@ void ZoneManager::RequestUpdate()
 
 void ZoneManager::GoFocusedFX()
 {
-    //if(broadcast_.count("FocusedFX") > 0)
-        //surface_->GetPage()->SignalActivation(surface_, ActivationType::Activating, "FocusedFX");
-    
     focusedFXZones_.clear();
     
     int trackNumber = 0;
@@ -2147,8 +2133,19 @@ void ZoneManager::GoFocusedFX()
         char FXName[BUFSZ];
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
-        //if(zoneFilePaths_.count(FXName) > 0)
-            //ActivateFocusedFXZone(FXName, fxSlot, focusedFXZones_);
+        if(zoneFilePaths_.count(FXName) > 0)
+        {
+            vector<Navigator*> navigators;
+            navigators.push_back(GetSurface()->GetPage()->GetFocusedFXNavigator());
+            
+            ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, "");
+            
+            for(auto zone :focusedFXZones_)
+            {
+                zone->SetSlotIndex(fxSlot);
+                zone->Activate();
+            }
+        }
     }
 }
 
