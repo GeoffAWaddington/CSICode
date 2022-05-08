@@ -931,7 +931,7 @@ void Manager::InitActionsDictionary()
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["GoFocusedFX"] =                       new GoFocusedFX();
     actions_["PreventFocusedFXMapping"] =           new PreventFocusedFXMapping();
-    actions_["TogggleFocusedFXMapping"] =           new TogggleFocusedFXMapping();
+    actions_["ToggleFocusedFXMapping"] =            new ToggleFocusedFXMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
@@ -2207,11 +2207,15 @@ void ZoneManager::PreProcessZones()
 
 void ZoneManager::HandleActivation(string zoneName)
 {
-    if(receive_.count(zoneName) > 0)
+    if(receive_.count(zoneName) > 0  && homeZone_ != nullptr)
     {
         if(zoneName == "Home")
-            GoHome();
-        else if(homeZone_ != nullptr)
+        {
+            ClearFXMapping();
+            ResetOffsets();
+            homeZone_->Activate();
+        }
+        else
             homeZone_->GoAssociatedZone(zoneName);
     }
 }
