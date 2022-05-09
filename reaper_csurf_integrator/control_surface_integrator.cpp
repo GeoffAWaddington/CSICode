@@ -1026,6 +1026,17 @@ void Manager::Init()
 
     Page* currentPage = nullptr;
     
+    string CSIFolderPath = string(DAW::GetResourcePath()) + "/LSI";
+    
+    filesystem::path CSIFolder { CSIFolderPath };
+    
+    if (! exists(CSIFolder) || ! is_directory(CSIFolder))
+    {       
+        MessageBox(g_hwnd, ("Cannot find " + CSIFolderPath).c_str(), "Missing CSI Folder", MB_OK);
+        
+        return;
+    }
+    
     string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
     
     int lineNumber = 0;

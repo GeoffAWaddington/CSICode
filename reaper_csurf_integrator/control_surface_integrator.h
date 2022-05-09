@@ -24,6 +24,7 @@
 #include <regex>
 #include <cmath>
 #include <memory>
+#include <filesystem>
 
 #ifdef _WIN32
 #include "oscpkt.hh"
