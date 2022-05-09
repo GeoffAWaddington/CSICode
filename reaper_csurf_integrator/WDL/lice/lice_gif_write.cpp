@@ -212,7 +212,7 @@ bool LICE_WriteGIFFrame(void *handle, LICE_IBitmap *frame, int xpos, int ypos, b
   }
 
   int a = frame_delay/10;
-  if(a<1&&frame_delay)a=1;
+  if(a<2&&frame_delay)a=2; // https://www.biphelps.com/blog/The-Fastest-GIF-Does-Not-Exist
   else if (a>60000) a=60000;
   gce[1]=(a)&255;
   gce[2]=(a)>>8;
@@ -340,7 +340,7 @@ bool LICE_WriteGIFFrame(void *handle, LICE_IBitmap *frame, int xpos, int ypos, b
   }
   else if (wr->transalpha>0)
   {
-    const int al = wr->transalpha&0xff;
+    const unsigned int al = wr->transalpha&0xff;
     for(y=0;y<useh;y++)
     {
       int rdy=y;
@@ -470,7 +470,7 @@ bool LICE_WriteGIF(const char *filename, LICE_IBitmap *bmp, int transparent_alph
       int x=w;
       while(x--)
       {
-        if (LICE_GETA(*p) < transparent_alpha) 
+        if (LICE_GETA(*p) < (unsigned int)transparent_alpha)
         {
           has_transparent=1;
           break;

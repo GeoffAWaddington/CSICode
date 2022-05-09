@@ -47,8 +47,9 @@ static unsigned int genrand_int32(void)
     /* mag01[x] = x * MATRIX_A  for x=0,1 */
 
     static unsigned int mt[N]; /* the array for the state vector  */
-    static int mti; /* mti==N+1 means mt[N] is not initialized */
+    static unsigned int __idx;
 
+    unsigned int mti = __idx;
 
     if (!mti)
     { 
@@ -65,10 +66,12 @@ static unsigned int genrand_int32(void)
           mt[mti] &= 0xffffffffUL;
           /* for >32 bit machines */
       }
+      __idx = N; // mti = N (from loop)
     }
 
     if (mti >= N) { /* generate N words at one time */
         int kk;
+        __idx = 1;
 
         for (kk=0;kk<N-M;kk++) {
             y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
@@ -83,8 +86,10 @@ static unsigned int genrand_int32(void)
 
         mti = 0;
     }
+    else
+      __idx++;
   
-    y = mt[mti++];
+    y = mt[mti];
 
     /* Tempering */
     y ^= (y >> 11);
@@ -129,59 +134,11 @@ EEL_F NSEEL_CGEN_CALL nseel_int_rand(EEL_F f)
       //nasm
     #else
       #include "asm-nseel-x86-msvc.c"
-
-      void eel_setfp_round() 
-      { 
-        short oldsw;
-        __asm
-        {
-          fnstcw [oldsw]
-          mov ax, [oldsw]
-          and ax, 0xF3FF // round to nearest
-          mov [oldsw], ax
-          fldcw [oldsw]
-        }
-      }
-      void eel_setfp_trunc() 
-      { 
-        short oldsw;
-        __asm
-        {
-          fnstcw [oldsw]
-          mov ax, [oldsw]
-          or ax, 0xC00 // truncate
-          mov [oldsw], ax
-          fldcw [oldsw]
-        }
-      }
     #endif
-  #elif !defined(__LP64__)
+  #elif !defined(__LP64__) && !defined(_WIN64)
+    #define EEL_F_SUFFIX "l"
     #define FUNCTION_MARKER "\n.byte 0x89,0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90,0x90\n"
     #include "asm-nseel-x86-gcc.c"
-    void eel_setfp_round()
-    {
-	__asm__(
-		"subl $16, %esp\n"
-		"fnstcw (%esp)\n"
-		"mov (%esp), %ax\n"
-		"and $0xF3FF, %ax\n" // set round to nearest
-		"mov %ax, 4(%esp)\n"
-		"fldcw 4(%esp)\n"
-		"addl $16, %esp\n"
-	);
-    }
-    void eel_setfp_trunc()
-    {
-	__asm__(
-		"subl $16, %esp\n"
-		"fnstcw (%esp)\n"
-		"mov (%esp), %ax\n"
-		"or $0xC00, %ax\n" // set to truncate
-		"mov %ax, 4(%esp)\n"
-		"fldcw 4(%esp)\n"
-		"addl $16, %esp\n"
-	);
-   }
   #endif
 #endif
 

@@ -16,6 +16,9 @@ extern "C" {
 #include <sys/stat.h>
 #include <stdio.h>
 
+#define LB_GETTEXTUTF8 (LB_GETTEXT|0x8000)
+#define LB_GETTEXTLENUTF8 (LB_GETTEXTLEN|0x8000)
+
 WDL_WIN32_UTF8_IMPL BOOL SetWindowTextUTF8(HWND hwnd, LPCTSTR str);
 WDL_WIN32_UTF8_IMPL BOOL SetDlgItemTextUTF8(HWND hDlg, int nIDDlgItem, LPCTSTR lpString);
 WDL_WIN32_UTF8_IMPL int GetWindowTextUTF8(HWND hWnd, LPTSTR lpString, int nMaxCount);
@@ -257,7 +260,22 @@ WDL_WIN32_UTF8_IMPL BOOL CreateProcessUTF8( LPCTSTR lpApplicationName, LPTSTR lp
 #endif
 #define CreateProcess CreateProcessUTF8
 
+#ifdef fopen
+#undef fopen
+#endif
+#define fopen fopenUTF8
+
+#ifdef stat
+#undef stat
+#endif
+#define stat(fn,s) statUTF8(fn,s)
+typedef char wdl_utf8_chk_stat_types_assert_failed[sizeof(struct stat) == sizeof(struct _stat) ? 1 : -1];
+
 #else
+
+#if defined(WDL_CHECK_FOR_NON_UTF8_FOPEN) && defined(fopen)
+  #undef fopen
+#endif
 
 // compat defines for when UTF disabled
 #define DrawTextUTF8 DrawText
@@ -269,6 +287,10 @@ WDL_WIN32_UTF8_IMPL BOOL CreateProcessUTF8( LPCTSTR lpApplicationName, LPTSTR lp
 #define WDL_UTF8_HookTreeView(x)
 #define WDL_UTF8_HookTabCtrl(x)
 #define WDL_UTF8_ListViewConvertDispInfoToW(x)
+
+#define LB_GETTEXTUTF8 LB_GETTEXT
+#define LB_GETTEXTLENUTF8 LB_GETTEXTLEN
+
 
 #endif
 

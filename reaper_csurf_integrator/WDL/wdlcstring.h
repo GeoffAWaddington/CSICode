@@ -83,7 +83,10 @@ extern "C" {
   char WDL_remove_filepart(char *str); // returns dir character that was zeroed, or 0 if new string is empty
   int WDL_remove_trailing_dirchars(char *str); // returns trailing dirchar count removed, will not convert "/" into ""
   size_t WDL_remove_trailing_crlf(char *str); // returns new length
+  size_t WDL_remove_trailing_whitespace(char *str); // returns new length, removes crlf space tab
+  const char *WDL_sanitize_ini_key_start(const char *p); // used for sanitizing the start of the "key" parameter to Write/GetPrivateProfile*. note does not fully santiize
 
+  char *WDL_remove_trailing_decimal_zeros(char *str, unsigned int keep); // returns pointer to decimal point or end of string. removes final zeros after final decimal point only, keep=0 makes min length X, keep=1 X., keep=2 X.0, keep=3 X.00 etc, and also treats commas as decimal points
 
   #if defined(_WIN32) && defined(_MSC_VER)
     void WDL_vsnprintf(char *o, size_t count, const char *format, va_list args);
@@ -91,6 +94,7 @@ extern "C" {
   #endif
 
   int WDL_strcmp_logical(const char *s1, const char *s2, int case_sensitive);
+  const char *WDL_stristr(const char* a, const char* b);
 #else
 
 
@@ -218,6 +222,44 @@ extern "C" {
     return p-str;
   }
 
+  _WDL_CSTRING_PREFIX size_t WDL_remove_trailing_whitespace(char *str) // returns new length
+  {
+    char *p=str;
+    while (*p) p++;
+    while (p > str && (p[-1] == '\r' || p[-1] == '\n' || p[-1] == ' '|| p[-1] == '\t')) p--;
+    *p = 0;
+    return p-str;
+  }
+
+  _WDL_CSTRING_PREFIX char *WDL_remove_trailing_decimal_zeros(char *str, unsigned int keep)
+     // returns pointer to decimal point or end of string. removes final zeros after final decimal point only, keep=0 makes min length X, keep=1 X., keep=2 X.0, keep=3 X.00 etc
+     // treats commas as decimal points
+  {
+    char *end = str, *decimal, *last_z=NULL;
+    while (*end) end++;
+    decimal = end;
+    while (--decimal >= str && *decimal >= '0' && *decimal <= '9') if (!last_z && *decimal != '0') last_z = decimal+1;
+    if (decimal < str || (*decimal != '.' && *decimal != ',')) return end;
+    if (!last_z || last_z < decimal+keep) last_z = decimal+keep;
+    if (last_z < end)
+    {
+      *last_z=0;
+      if (!str[0] || ((str[0] == '.' || str[0] == ',') && !str[1]))
+      {
+        str[0]='0';
+        str[1]=0;
+        return str+1;
+      }
+    }
+    return decimal;
+  }
+
+  _WDL_CSTRING_PREFIX const char *WDL_sanitize_ini_key_start(const char *p) // used for sanitizing the beginning of "key" parameter to Write/GetPrivateProfile*. does not fully sanitize
+  {
+    while (*p == ' ' || *p == '\t' || *p == '[') p++;
+    return p;
+  }
+
   _WDL_CSTRING_PREFIX void WDL_VARARG_WARN(printf,3,4) snprintf_append(char *o, INT_PTR count, const char *format, ...)
   {
     if (count>0)
@@ -239,70 +281,66 @@ extern "C" {
     }
   }
 
+  static WDL_STATICFUNC_UNUSED int logical_char_order(int ch, int case_sensitive)
+  {
+    // _-<>etc, numbers, utf-8 chars, alpha chars
+    if (ch<0) return ch + 384; // utf-8 maps to 256..383
+    if (ch >= '0' && ch <= '9') return ch + 128; // numbers map to 128+'0' etc
+    if (ch >= 'A' && ch <= 'Z') return ch + 384; // alpha goes to 384+'A' or 384+'a' if not ignoring case
+    if (ch >= 'a' && ch <= 'z') return case_sensitive ? (ch + 384) : (ch + 'A' - 'a' + 384);
+    return ch;
+  }
+
   _WDL_CSTRING_PREFIX int WDL_strcmp_logical(const char *s1, const char *s2, int case_sensitive)
   {
     // also exists as WDL_LogicalSortStringKeyedArray::_cmpstr()
 
-    char lastNonZeroChar=0;
-    // last matching character, updated if not 0. this allows us to track whether
-    // we are inside of a number with the same leading digits
-
     for (;;)
     {
-      char c1=*s1++, c2=*s2++;
-      if (!c1) return c1-c2;
-      
-      if (c1!=c2)
+      if (*s1 >= '0' && *s1 <= '9' && *s2 >= '0' && *s2 <= '9')
       {
-        if (c1 >= '0' && c1 <= '9' && c2 >= '0' && c2 <= '9')
+        int lzdiff=0, len1=0, len2=0;
+
+        while (*s1 == '0') { s1++; lzdiff--; }
+        while (*s2 == '0') { s2++; lzdiff++; }
+
+        while (s1[len1] >= '0' && s1[len1] <= '9') len1++;
+        while (s2[len2] >= '0' && s2[len2] <= '9') len2++;
+
+        if (len1 != len2) return len1-len2;
+
+        while (len1--)
         {
-          int lzdiff=0, cnt=0;
-          if (lastNonZeroChar < '1' || lastNonZeroChar > '9')
-          {
-            while (c1 == '0') { c1=*s1++; lzdiff--; }
-            while (c2 == '0') { c2=*s2++; lzdiff++; } // lzdiff = lz2-lz1, more leading 0s = earlier in list
-          }
-
-          for (;;)
-          {
-            if (c1 >= '0' && c1 <= '9')
-            {
-              if (c2 < '0' || c2 > '9') return 1;
-
-              c1=s1[cnt];
-              c2=s2[cnt++];
-            }
-            else
-            {
-              if (c2 >= '0' && c2 <= '9') return -1;
-              break;
-            }
-          }
-
-          s1--;
-          s2--;
-        
-          while (cnt--)
-          {
-            const int d = *s1++ - *s2++;
-            if (d) return d;
-          }
-
-          if (lzdiff) return lzdiff;
+          const int d = *s1++ - *s2++;
+          if (d) return d;
         }
-        else
+
+        if (lzdiff) return lzdiff;
+      }
+      else
+      {
+        int c1 = *s1++, c2 = *s2++;
+        if (c1 != c2)
         {
-          if (!case_sensitive)
-          {
-            if (c1>='a' && c1<='z') c1+='A'-'a';
-            if (c2>='a' && c2<='z') c2+='A'-'a';
-          }
+          c1 = logical_char_order(c1, case_sensitive);
+          c2 = logical_char_order(c2, case_sensitive);
           if (c1 != c2) return c1-c2;
         }
+        else if (!c1) return 0;
       }
-      else if (c1 != '0') lastNonZeroChar=c1;
     }
   }
+  _WDL_CSTRING_PREFIX const char *WDL_stristr(const char* a, const char* b)
+  {
+    const size_t blen = strlen(b);
+    while (*a)
+    {
+      if (!strnicmp(a, b, blen)) return a;
+      a++;
+    }
+    return NULL;
+  }
+
 
 #endif
 

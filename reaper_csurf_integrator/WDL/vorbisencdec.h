@@ -42,6 +42,18 @@
 #include "vorbis/vorbisenc.h"
 #include "vorbis/codec.h"
 
+#include "assocarray.h"
+#include "lice/lice.h"
+
+bool ParseUserDefMetadata(const char *id, const char *val,
+  const char **k, const char **v, int *klen, int *vlen);
+bool HasScheme(const char *scheme, WDL_StringKeyedArray<char*> *metadata);
+bool PackFlacPicBase64(WDL_StringKeyedArray<char*> *metadata,
+  int img_w, int img_h, int bpp, WDL_HeapBuf *hb);
+
+extern LICE_IBitmap* (*_LICE_LoadImage)(const char* filename, LICE_IBitmap* bmp, bool tryIgnoreExtension);
+
+
 class VorbisDecoderInterface
 {
 public:
@@ -74,7 +86,7 @@ public:
 #ifndef WDL_VORBIS_INTERFACE_ONLY
 
 #include "../WDL/queue.h"
-
+#include "../WDL/assocarray.h"
 
 class VorbisDecoder : public VorbisDecoderInterface
 {
@@ -183,6 +195,12 @@ class VorbisDecoder : public VorbisDecoderInterface
     }
     int GenerateLappingSamples()
     {
+      if (vd.pcm_returned<0 ||
+          !vd.vi ||
+          !vd.vi->codec_setup)
+      {
+        return 0;
+      }
       float ** pcm;
       int samples = vorbis_synthesis_lapout(&vd,&pcm);
       if (samples <= 0) return 0;
@@ -234,7 +252,8 @@ class VorbisEncoder : public VorbisEncoderInterface
 {
 public:
 #ifdef VORBISENC_WANT_FULLCONFIG
-  VorbisEncoder(int srate, int nch, int serno, float qv, int cbr=-1, int minbr=-1, int maxbr=-1, const char *encname=NULL)
+  VorbisEncoder(int srate, int nch, int serno, float qv, int cbr=-1, int minbr=-1, int maxbr=-1,
+    const char *encname=NULL, WDL_StringKeyedArray<char*> *metadata=NULL)
 #elif defined(VORBISENC_WANT_QVAL)
   VorbisEncoder(int srate, int nch, float qv, int serno, const char *encname=NULL)
 #else
@@ -261,7 +280,7 @@ public:
     else
       m_err=vorbis_encode_init_vbr(&vi,nch,srate,qv);
 
-#else
+#else // VORBISENC_WANT_FULLCONFIG
 
   #ifndef VORBISENC_WANT_QVAL
       float qv=0.0;
@@ -290,13 +309,65 @@ public:
 
       if (qv<-0.10f)qv=-0.10f;
       if (qv>1.0f)qv=1.0f;
-  #endif
+  #endif // !VORBISENC_WANT_QVAL
 
       m_err=vorbis_encode_init_vbr(&vi,nch,srate>>m_ds,qv);
-#endif
+#endif // !VORBISENC_WANT_FULLCONFIG
 
     vorbis_comment_init(&vc);
     if (encname) vorbis_comment_add_tag(&vc,"ENCODER",(char *)encname);
+
+#ifdef VORBISENC_WANT_FULLCONFIG
+    if (metadata)
+    {
+      char buf[512];
+      for (int i=0; i < metadata->GetSize(); ++i)
+      {
+        const char *key;
+        const char *val=metadata->Enumerate(i, &key);
+        if (key && val && key[0] && val[0])
+        {
+          if (strncmp(key, "VORBIS:", 7)) continue;
+          key += 7;
+
+          if (!strncmp(key, "USER", 4))
+          {
+            const char *k, *v;
+            int klen, vlen;
+            ParseUserDefMetadata(key, val, &k, &v, &klen, &vlen);
+            lstrcpyn(buf, k, sizeof(buf));
+            for (char *p=buf; *p; ++p) // make vorbis-compliant
+            {
+              if (*p < ' ' || *p > '}' || *p == '=' || *p == '~') *p=' ';
+            }
+            vorbis_comment_add_tag(&vc, buf, val);
+          }
+          else
+          {
+            vorbis_comment_add_tag(&vc, key, val);
+          }
+        }
+      }
+
+      if (HasScheme("FLACPIC", metadata) && _LICE_LoadImage)
+      {
+        const char *picfn=metadata->Get("FLACPIC:APIC_FILE");
+        LICE_IBitmap *bmp = picfn && picfn[0] ? _LICE_LoadImage(picfn, NULL, false) : NULL;
+        int img_w = bmp ? bmp->getWidth() : 0, img_h = bmp ? bmp->getHeight() : 0;
+        if (bmp) delete bmp;
+        if (img_w > 0 && img_h > 0)
+        {
+          WDL_HeapBuf hb;
+          if (PackFlacPicBase64(metadata, img_w, img_h, 32, &hb) && hb.GetSize())
+          {
+            vorbis_comment_add_tag(&vc, "METADATA_BLOCK_PICTURE", (const char*)hb.Get());
+          }
+        }
+      }
+    }
+
+#endif // VORBISENC_WANT_FULLCONFIG
+
     vorbis_analysis_init(&vd,&vi);
     vorbis_block_init(&vd,&vb);
     ogg_stream_init(&os,m_ser=serno);
@@ -459,8 +530,10 @@ private:
 
 public:
   bool m_flushmode;
+
 } WDL_FIXALIGN;
 
-#endif//WDL_VORBIS_INTERFACE_ONLY
+
+#endif//!WDL_VORBIS_INTERFACE_ONLY
 
 #endif//_VORBISENCDEC_H_
