@@ -1026,13 +1026,13 @@ void Manager::Init()
 
     Page* currentPage = nullptr;
     
-    string CSIFolderPath = string(DAW::GetResourcePath()) + "/LSI";
+    string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
     
     filesystem::path CSIFolder { CSIFolderPath };
     
     if (! exists(CSIFolder) || ! is_directory(CSIFolder))
     {       
-        MessageBox(g_hwnd, ("Cannot find " + CSIFolderPath).c_str(), "Missing CSI Folder", MB_OK);
+        MessageBox(g_hwnd, ("Please check your installation, cannot find " + CSIFolderPath).c_str(), "Missing CSI Folder", MB_OK);
         
         return;
     }

@@ -168,6 +168,7 @@
 				TargetAttributes = {
 					03464ADF1EB53E7A00EAD095 = {
 						CreatedOnToolsVersion = 8.3.2;
+						DevelopmentTeam = 36M3KR9P73;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -334,7 +335,9 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = NO;
 				CLANG_WARN__EXIT_TIME_DESTRUCTORS = NO;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				DEPLOYMENT_LOCATION = YES;
+				DEVELOPMENT_TEAM = 36M3KR9P73;
 				DSTROOT = "/Users/geoffwaddington/Library/Application Support/REAPER/UserPlugins";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -360,7 +363,9 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = NO;
 				CLANG_WARN__EXIT_TIME_DESTRUCTORS = NO;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				DEPLOYMENT_LOCATION = YES;
+				DEVELOPMENT_TEAM = 36M3KR9P73;
 				DSTROOT = "/Users/geoffwaddington/Library/Application Support/REAPER/UserPlugins";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
