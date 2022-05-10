@@ -143,33 +143,28 @@ class FileSystem
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    static vector<string> GetDirectoryFilenames(const string& dir)
+    static vector<string> GetDirectoryFilenames(const string& path)
     {
         vector<string> filenames;
-        shared_ptr<DIR> directory_ptr(opendir(dir.c_str()), [](DIR* dir){ dir && closedir(dir); });
-        struct dirent *dirent_ptr;
+        filesystem::path files {path};
         
-        if(directory_ptr == nullptr)
-            return filenames;
-        
-        while ((dirent_ptr = readdir(directory_ptr.get())) != nullptr)
-            filenames.push_back(string(dirent_ptr->d_name));
+        if (std::filesystem::exists(files) && std::filesystem::is_directory(files))
+            for (auto& file : std::filesystem::directory_iterator(files))
+                if(file.path().extension() == ".mst")
+                    filenames.push_back(file.path().filename());
         
         return filenames;
     }
     
-    static vector<string> GetDirectoryFolderNames(const string& dir)
+    static vector<string> GetDirectoryFolderNames(const string& path)
     {
         vector<string> folderNames;
-        shared_ptr<DIR> directory_ptr(opendir(dir.c_str()), [](DIR* dir){ dir && closedir(dir); });
-        struct dirent *dirent_ptr;
+        filesystem::path folders {path};
         
-        if(directory_ptr == nullptr)
-            return folderNames;
-        
-        while ((dirent_ptr = readdir(directory_ptr.get())) != nullptr)
-            if(dirent_ptr->d_type == DT_DIR)
-                folderNames.push_back(string(dirent_ptr->d_name));
+        if (std::filesystem::exists(folders) && std::filesystem::is_directory(folders))
+            for (auto& folder : std::filesystem::directory_iterator(folders))
+                if(folder.is_directory())
+                    folderNames.push_back(folder.path().filename());
         
         return folderNames;
     }
@@ -363,15 +358,10 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             int i = 0;
             for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/"))
-            {
-                int length = filename.length();
-                if(length > 4 && filename[0] != '.' && filename[length - 4] == '.' && filename[length - 3] == 'm' && filename[length - 2] == 's' &&filename[length - 1] == 't')
-                    AddComboEntry(hwndDlg, i++, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
-            }
+                AddComboEntry(hwndDlg, i++, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
             
             for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                if(foldername[0] != '.')
-                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+                AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
             
             if(editMode)
             {
@@ -494,15 +484,10 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             
             int i = 0;
             for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/"))
-            {
-                int length = filename.length();
-                if(length > 4 && filename[0] != '.' && filename[length - 4] == '.' && filename[length - 3] == 'o' && filename[length - 2] == 's' &&filename[length - 1] == 't')
-                    AddComboEntry(hwndDlg, i++, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
-            }
+                AddComboEntry(hwndDlg, i++, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
             
             for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                if(foldername[0] != '.')
-                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+                AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
             
             if(editMode)
             {

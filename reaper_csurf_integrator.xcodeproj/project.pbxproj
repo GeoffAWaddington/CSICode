@@ -17,7 +17,6 @@
 		0326FA6E2122E6C4000D5794 /* oscpkt.hh in Headers */ = {isa = PBXBuildFile; fileRef = 0326FA6C2122E6C3000D5794 /* oscpkt.hh */; };
 		0355636B1F814C0600583062 /* reaper_plugin_functions.h in Headers */ = {isa = PBXBuildFile; fileRef = 0355636A1F814C0600583062 /* reaper_plugin_functions.h */; };
 		03644D1E1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03644D1D1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp */; };
-		036D522A20272890005FD920 /* direntWin.h in Headers */ = {isa = PBXBuildFile; fileRef = 036D522920272890005FD920 /* direntWin.h */; };
 		037FB6771EB8C96C0012F4C1 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 037FB6761EB8C96C0012F4C1 /* Carbon.framework */; };
 		03C7D8BB1EB78AF500DBBD98 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03C7D8BA1EB78AF500DBBD98 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
@@ -43,7 +42,6 @@
 		0362B03D1FD80DD500E37C2F /* res.rc_mac_dlg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = res.rc_mac_dlg; sourceTree = "<group>"; };
 		03644D1C1F8FAA61001F9ED9 /* control_surface_integrator_ui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = control_surface_integrator_ui.h; sourceTree = "<group>"; };
 		03644D1D1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = control_surface_integrator_ui.cpp; sourceTree = "<group>"; };
-		036D522920272890005FD920 /* direntWin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = direntWin.h; sourceTree = "<group>"; };
 		03719C611F8FC43E009C8F2E /* control_surface_integrator_Reaper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = control_surface_integrator_Reaper.h; sourceTree = "<group>"; };
 		037FB6761EB8C96C0012F4C1 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		0393E6B11F7501F100BC2E2E /* handy_functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = handy_functions.h; sourceTree = "<group>"; };
@@ -86,7 +84,6 @@
 			children = (
 				0326FA6C2122E6C3000D5794 /* oscpkt.hh */,
 				0326FA6B2122E6C3000D5794 /* udp.hh */,
-				036D522920272890005FD920 /* direntWin.h */,
 				0352CFFE1FD95CDE002AE18C /* res.rc */,
 				0362B03D1FD80DD500E37C2F /* res.rc_mac_dlg */,
 				0362B03B1FD80DD500E37C2F /* res.rc_mac_menu */,
@@ -130,7 +127,6 @@
 				0355636B1F814C0600583062 /* reaper_plugin_functions.h in Headers */,
 				0310E4D21EB5403C00040D1A /* resource.h in Headers */,
 				0310E4D11EB5403C00040D1A /* reaper_plugin.h in Headers */,
-				036D522A20272890005FD920 /* direntWin.h in Headers */,
 				0326FA6E2122E6C4000D5794 /* oscpkt.hh in Headers */,
 				0310E4CE1EB5403C00040D1A /* control_surface_integrator.h in Headers */,
 				0326FA6D2122E6C4000D5794 /* udp.hh in Headers */,

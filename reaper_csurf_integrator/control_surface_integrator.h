@@ -35,11 +35,9 @@
 #include "control_surface_integrator_Reaper.h"
 
 #ifdef _WIN32
-#include "direntWin.h"
 #include <functional>
 #include "commctrl.h"
 #else
-#include <dirent.h>
 #include "oscpkt.hh"
 #include "udp.hh"
 #endif

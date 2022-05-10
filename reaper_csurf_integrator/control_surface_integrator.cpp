@@ -185,20 +185,12 @@ struct ActionTemplate
 
 static void listZoneFiles(const string &path, vector<string> &results)
 {
-    regex rx(".*\\.zon$");
+    filesystem::path zonePath { path };
     
-    if (auto dir = opendir(path.c_str())) {
-        while (auto f = readdir(dir)) {
-            if (!f->d_name || f->d_name[0] == '.') continue;
-            if (f->d_type == DT_DIR)
-                listZoneFiles(path + f->d_name + "/", results);
-            
-            if (f->d_type == DT_REG)
-                if(regex_match(f->d_name, rx))
-                    results.push_back(path + f->d_name);
-        }
-        closedir(dir);
-    }
+    if(filesystem::exists(path) && filesystem::is_directory(path))
+        for(auto& file : filesystem::recursive_directory_iterator(path))
+            if(file.path().extension() == ".zon")
+                results.push_back(file.path());
 }
 
 static void GetWidgetNameAndProperties(string line, string &widgetName, string &modifier, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty)
@@ -1030,7 +1022,7 @@ void Manager::Init()
     
     filesystem::path CSIFolder { CSIFolderPath };
     
-    if (! exists(CSIFolder) || ! is_directory(CSIFolder))
+    if (! filesystem::exists(CSIFolder) || ! filesystem::is_directory(CSIFolder))
     {       
         MessageBox(g_hwnd, ("Please check your installation, cannot find " + CSIFolderPath).c_str(), "Missing CSI Folder", MB_OK);
         
@@ -1038,6 +1030,15 @@ void Manager::Init()
     }
     
     string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
+    
+    filesystem::path iniFile { iniFilePath };
+
+    if (! filesystem::exists(iniFile))
+    {
+        MessageBox(g_hwnd, ("Please check your installation, cannot find " + iniFilePath).c_str(), "Missing CSI.ini", MB_OK);
+        
+        return;
+    }
     
     int lineNumber = 0;
     
@@ -2200,20 +2201,18 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxS
 
 void ZoneManager::PreProcessZones()
 {
-    try
+    vector<string> zoneFilesToProcess;
+    listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // recursively find all .zon files, starting at zoneFolder
+    
+    if(zoneFilesToProcess.size() == 0)
     {
-        vector<string> zoneFilesToProcess;
-        listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // find all the .zon files to full folder depth, starting at zoneFolder
-        
-        for(auto zoneFilename : zoneFilesToProcess)
-            PreProcessZoneFile(zoneFilename, this);
+        MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (GetSurface()->GetName() + " Zone folder is missing or empty").c_str(), MB_OK);
+
+        return;
     }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble parsing Zone folders\n");
-        DAW::ShowConsoleMsg(buffer);
-    }
+    
+    for(auto zoneFilename : zoneFilesToProcess)
+        PreProcessZoneFile(zoneFilename, this);
 }
 
 void ZoneManager::HandleActivation(string zoneName)
