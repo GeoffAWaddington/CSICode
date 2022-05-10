@@ -48,15 +48,17 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 const string ControlSurfaceIntegrator = "ControlSurfaceIntegrator";
 
+const string PageToken = "Page";
 const string FollowMCPToken = "FollowMCP";
+const string SynchPagesToken = "SynchPages";
+const string UseScrollLinkToken = "UseScrollLink";
 const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
-const string PageToken = "Page";
 
-const string Shift = "Shift";
-const string Option = "Option";
-const string Control = "Control";
-const string Alt = "Alt";
+const string ShiftToken = "Shift";
+const string OptionToken = "Option";
+const string ControlToken = "Control";
+const string AltToken = "Alt";
 
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
@@ -1992,13 +1994,13 @@ public:
         string modifier = "";
         
         if(isShift_)
-            modifier += Shift + "+";
+            modifier += ShiftToken + "+";
         if(isOption_)
-            modifier += Option + "+";
+            modifier += OptionToken + "+";
         if(isControl_)
-            modifier +=  Control + "+";
+            modifier +=  ControlToken + "+";
         if(isAlt_)
-            modifier += Alt + "+";
+            modifier += AltToken + "+";
         
         return modifier;
     }

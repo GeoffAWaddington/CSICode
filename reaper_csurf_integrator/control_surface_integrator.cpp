@@ -212,14 +212,14 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 touchId = modifier_tokens[i];
                 modifierSlots[0] = modifier_tokens[i] + "+";
             }
-            else if(modifier_tokens[i] == Shift)
-                modifierSlots[1] = Shift + "+";
-            else if(modifier_tokens[i] == Option)
-                modifierSlots[2] = Option + "+";
-            else if(modifier_tokens[i] == Control)
-                modifierSlots[3] = Control + "+";
-            else if(modifier_tokens[i] == Alt)
-                modifierSlots[4] = Alt + "+";
+            else if(modifier_tokens[i] == ShiftToken)
+                modifierSlots[1] = ShiftToken + "+";
+            else if(modifier_tokens[i] == OptionToken)
+                modifierSlots[2] = OptionToken + "+";
+            else if(modifier_tokens[i] == ControlToken)
+                modifierSlots[3] = ControlToken + "+";
+            else if(modifier_tokens[i] == AltToken)
+                modifierSlots[4] = AltToken + "+";
 
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
@@ -375,7 +375,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             if(widget == nullptr)
                                 continue;
                             
-                            if(actionName == Shift || actionName == Option || actionName == Control || actionName == Alt)
+                            if(actionName == ShiftToken || actionName == OptionToken || actionName == ControlToken || actionName == AltToken)
                                 widget->SetIsModifier();
                             
                             zone->AddWidget(widget);
@@ -1051,16 +1051,20 @@ void Manager::Init()
             line = regex_replace(line, regex(TabChars), " ");
             line = regex_replace(line, regex(CRLFChars), "");
             
-            if(lineNumber == 0 && line != "Version 2.0")
+            if(lineNumber == 0)
             {
-                MessageBox(g_hwnd, "Version mismatch -- Your CSI.ini file is not Version 2.0", "This is CSI Version 2.0", MB_OK);
-                
-                iniFile.close();
-                
-                return;
+                if(line != "Version 2.0")
+                {
+                    MessageBox(g_hwnd, "Version mismatch -- Your CSI.ini file is not Version 2.0", "This is CSI Version 2.0", MB_OK);
+                    iniFile.close();
+                    return;
+                }
+                else
+                {
+                    lineNumber++;
+                    continue;
+                }
             }
-            
-            lineNumber++;
             
             vector<string> tokens(GetTokens(line));
             
@@ -1068,34 +1072,32 @@ void Manager::Init()
             {
                 if(tokens[0] == PageToken)
                 {
-                    if(tokens.size() != 5)
-                        continue;
-
-                    currentPage = new Page(tokens[1], tokens[2] == "FollowMCP" ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false);
-                    pages_.push_back(currentPage);
+                    currentPage = nullptr;
+                    
+                    if(tokens.size() == 5)
+                    {
+                        currentPage = new Page(tokens[1], tokens[2] == FollowMCPToken ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false);
+                        pages_.push_back(currentPage);
+                    }
                 }
                 else if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
                 {
-                    int inPort = 0;
-                    int outPort = 0;
-                    
-                    inPort = atoi(tokens[2].c_str());
-                    outPort = atoi(tokens[3].c_str());
-
                     if(currentPage)
                     {
                         ControlSurface* surface = nullptr;
                         
                         if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
-                            surface = new Midi_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(inPort), GetMidiOutputForPort(outPort));
+                            surface = new Midi_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                         else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
-                            surface = new OSC_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], inPort), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], outPort));
+                            surface = new OSC_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], atoi(tokens[3].c_str())));
 
                         if(surface != nullptr)
                             currentPage->AddSurface(surface);
                     }
                 }
             }
+            
+            lineNumber++;
         }
         
         // Restore the PageIndex
@@ -1116,7 +1118,7 @@ void Manager::Init()
         // Restore the BankIndex
         result = DAW::GetProjExtState(0, "CSI", "BankIndex", buf, sizeof(buf));
         
-        if(result > 0 && pages_.size() > 0)
+        if(result > 0 && pages_.size() > currentPageIndex_)
         {
             if(MediaTrack* leftmosttrack = DAW::GetTrack(atoi(buf) + 1))
                 DAW::SetMixerScroll(leftmosttrack);
