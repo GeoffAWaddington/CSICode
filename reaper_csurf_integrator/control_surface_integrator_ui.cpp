@@ -151,7 +151,7 @@ public:
         if (std::filesystem::exists(files) && std::filesystem::is_directory(files))
             for (auto& file : std::filesystem::directory_iterator(files))
                 if(file.path().extension() == ".mst")
-                    filenames.push_back(file.path().filename());
+                    filenames.push_back(file.path().filename().string());
         
         return filenames;
     }
@@ -164,7 +164,7 @@ public:
         if (std::filesystem::exists(folders) && std::filesystem::is_directory(folders))
             for (auto& folder : std::filesystem::directory_iterator(folders))
                 if(folder.is_directory())
-                    folderNames.push_back(folder.path().filename());
+                    folderNames.push_back(folder.path().filename().string());
         
         return folderNames;
     }

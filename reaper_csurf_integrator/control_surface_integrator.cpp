@@ -190,7 +190,7 @@ static void listZoneFiles(const string &path, vector<string> &results)
     if(filesystem::exists(path) && filesystem::is_directory(path))
         for(auto& file : filesystem::recursive_directory_iterator(path))
             if(file.path().extension() == ".zon")
-                results.push_back(file.path());
+                results.push_back(file.path().string());
 }
 
 static void GetWidgetNameAndProperties(string line, string &widgetName, string &modifier, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty)
