@@ -1047,8 +1047,6 @@ protected:
     map<string, Widget*> widgetsByName_;
     
     map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
-
-    virtual void SurfaceOutMonitor(Widget* widget, string address, string value);
     
     virtual void InitHardwiredWidgets()
     {

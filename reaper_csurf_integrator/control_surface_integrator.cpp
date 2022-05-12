@@ -2021,19 +2021,19 @@ void OSC_FeedbackProcessor::SetRGBValue(int r, int g, int b)
     if(lastRValue != r)
     {
         lastRValue = r;
-        surface_->SendOSCMessage(this, oscAddress_ + "/rColor", r);
+        surface_->SendOSCMessage(this, oscAddress_ + "/rColor", (double)r);
     }
     
     if(lastGValue != g)
     {
         lastGValue = g;
-        surface_->SendOSCMessage(this, oscAddress_ + "/gColor", g);
+        surface_->SendOSCMessage(this, oscAddress_ + "/gColor", (double)g);
     }
     
     if(lastBValue != b)
     {
         lastBValue = b;
-        surface_->SendOSCMessage(this, oscAddress_ + "/bColor", b);
+        surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)b);
     }
 }
 
@@ -2309,12 +2309,6 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ControlSurface::SurfaceOutMonitor(Widget* widget, string address, string value)
-{
-    if(TheManager->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + address + " " + value + "\n").c_str());
-}
-
 void ControlSurface::TrackFXListChanged()
 {
     OnTrackSelection();
@@ -2457,7 +2451,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
     if(outSocket_ != nullptr && outSocket_->isOk())
     {
         oscpkt::Message message;
-        message.init(oscAddress).pushFloat(value);
+        message.init(oscAddress).pushFloat((float)value);
         packetWriter_.init().addMessage(message);
         outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
     }
@@ -2465,7 +2459,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
     if(TheManager->GetSurfaceOutDisplay())
     {
         if(TheManager->GetSurfaceOutDisplay())
-            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
     }
 }
 
@@ -2482,7 +2476,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
     if(TheManager->GetSurfaceOutDisplay())
     {
         if(TheManager->GetSurfaceOutDisplay())
-            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
     }
 }
 
@@ -2496,7 +2490,11 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
         outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
     }
     
-    SurfaceOutMonitor(feedbackProcessor->GetWidget(), oscAddress, value);
+    if(TheManager->GetSurfaceOutDisplay())
+    {
+        if(TheManager->GetSurfaceOutDisplay())
+            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + value + "\n").c_str());
+    }
     
 }
 
