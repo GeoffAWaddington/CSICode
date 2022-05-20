@@ -150,7 +150,7 @@ public:
         
         if (std::filesystem::exists(files) && std::filesystem::is_directory(files))
             for (auto& file : std::filesystem::directory_iterator(files))
-                if(file.path().extension() == ".mst")
+                if(file.path().extension() == ".mst" || file.path().extension() == ".ost")
                     filenames.push_back(file.path().filename().string());
         
         return filenames;

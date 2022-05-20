@@ -131,6 +131,7 @@ protected:
     bool isPanWidthTouched_ = false;
     bool isPanLeftTouched_ = false;
     bool isPanRightTouched_ = false;
+    bool isMCUTrackPanWidth_ = false;
 
 public:
     Navigator(Page*  page) : page_(page) {}
@@ -151,9 +152,11 @@ public:
     void SetIsPanRightTouched(bool isPanRightTouched) { isPanRightTouched_ = isPanRightTouched; }
     bool GetIsPanRightTouched() { return isPanRightTouched_;  }
     
+    void ToggleIsMCUTrackPanWidth() { isMCUTrackPanWidth_ = ! isMCUTrackPanWidth_; }
+    bool GetIsMCUTrackPanWidth() { return isMCUTrackPanWidth_;  }
+    
     virtual string GetName() { return "Navigator"; }
     virtual MediaTrack* GetTrack() { return nullptr; }
-    virtual string GetChannelNumString() { return ""; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,9 +174,7 @@ public:
     virtual ~TrackNavigator() {}
     
     virtual string GetName() override { return "TrackNavigator"; }
-    
-    virtual string GetChannelNumString() override { return to_string(channelNum_ + 1); }
-    
+   
     virtual MediaTrack* GetTrack() override;
 };
 
@@ -224,8 +225,6 @@ private:
     Action* const action_ = nullptr;
     Widget* const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
-    
-    Widget* associatedWidget_ = nullptr;
     
     string lastStringValue_ = "";
     
@@ -280,9 +279,6 @@ public:
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
     string GetName();
-
-    void SetAssociatedWidget(Widget* widget) { associatedWidget_ = widget; }
-    Widget* GetAssociatedWidget() { return associatedWidget_; }
 
     vector<string> &GetZoneNames() { return  zoneNames_; }
 
@@ -553,7 +549,6 @@ private:
     vector<FeedbackProcessor*> feedbackProcessors_;
     
     bool isModifier_ = false;
-    bool isToggled_ = false;
     
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name) {}
@@ -565,9 +560,6 @@ public:
     
     bool GetIsModifier() { return isModifier_; }
     void SetIsModifier() { isModifier_ = true; }
-    
-    void Toggle() { isToggled_ = ! isToggled_; }
-    bool GetIsToggled() { return isToggled_; }
 
     void SetProperties(vector<vector<string>> properties);
     void UpdateValue(double value);
@@ -1148,9 +1140,9 @@ class FeedbackProcessor
 protected:
     double lastDoubleValue_ = 0.0;
     string lastStringValue_ = "";
-    int lastRValue = 0;
-    int lastGValue = 0;
-    int lastBValue = 0;
+    int lastRValue_ = 0;
+    int lastGValue_ = 0;
+    int lastBValue_ = 0;
 
     Widget* const widget_ = nullptr;
     

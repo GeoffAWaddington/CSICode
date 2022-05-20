@@ -665,9 +665,6 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             new EncoderPlain_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         else if(widgetClass == "Touch" && size == 7)
             new Touch_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
-        else if(widgetClass == "Toggle" && size == 4)
-            new Toggle_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
-
         // Feedback Processors
         FeedbackProcessor* feedbackProcessor = nullptr;
 
@@ -962,6 +959,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackSolo"] =                         new TrackSolo();
     actions_["TrackInvertPolarity"] =               new TrackInvertPolarity();
     actions_["MCUTrackPan"] =                       new MCUTrackPan();
+    actions_["ToggleMCUTrackPanWidth"] =            new ToggleMCUTrackPanWidth();
     actions_["TrackPan"] =                          new TrackPan();
     actions_["TrackPanPercent"] =                   new TrackPanPercent();
     actions_["TrackPanWidth"] =                     new TrackPanWidth();
@@ -1273,11 +1271,6 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
         
         if(params.size() > 2 && params[2] != "{" && params[2] != "[")
             fxParamDisplayName_ = params[2];
-    }
-    
-    if(actionName == "MCUTrackPanDisplay" && params.size() > 1)
-    {
-        SetAssociatedWidget(GetSurface()->GetWidgetByName(params[1]));
     }
     
     if(params.size() > 1 && (actionName == "Broadcast" || actionName == "Receive" || actionName == "Activate" || actionName == "Deactivate" || actionName == "ToggleActivation"))
@@ -2018,21 +2011,21 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void OSC_FeedbackProcessor::SetRGBValue(int r, int g, int b)
 {
-    if(lastRValue != r)
+    if(lastRValue_ != r)
     {
-        lastRValue = r;
+        lastRValue_ = r;
         surface_->SendOSCMessage(this, oscAddress_ + "/rColor", (double)r);
     }
     
-    if(lastGValue != g)
+    if(lastGValue_ != g)
     {
-        lastGValue = g;
+        lastGValue_ = g;
         surface_->SendOSCMessage(this, oscAddress_ + "/gColor", (double)g);
     }
     
-    if(lastBValue != b)
+    if(lastBValue_ != b)
     {
-        lastBValue = b;
+        lastBValue_ = b;
         surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)b);
     }
 }
