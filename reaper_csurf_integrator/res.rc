@@ -76,11 +76,12 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,117,134,44,14
     EDITTEXT        IDC_EDIT_PageName,50,3,111,14,ES_AUTOHSCROLL
     RTEXT           "Page Name",IDC_STATIC,2,6,39,9
-    GROUPBOX        "Track visibility on Surface follows:",IDC_STATIC,2,21,159,51,WS_GROUP
-    CONTROL         "Mixer Control Panel",IDC_RADIO_MCP,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,37,75,10
-    CONTROL         "Track Control Panel",IDC_RADIO_TCP,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,54,74,10
-    CONTROL         "Synchronize Banking",IDC_CHECK_SynchPages,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,87,128,10
-    CONTROL         "Scroll Reaper on Bank",IDC_CHECK_ScrollLink,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,104,102,10
+    GROUPBOX        "Track visibility on Surface follows:",IDC_STATIC,7,25,159,47,WS_GROUP
+    CONTROL         "Mixer Control Panel",IDC_RADIO_MCP,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,41,75,10
+    CONTROL         "Track Control Panel",IDC_RADIO_TCP,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,58,74,10
+    CONTROL         "Synchronize Pages",IDC_CHECK_SynchPages,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,108,128,10
+    CONTROL         "Synchronize with Reaper",IDC_CHECK_ScrollLink,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,91,102,10
+    GROUPBOX        "Banking",IDC_STATIC,7,77,159,51,WS_GROUP
 END
 
 IDD_DIALOG_MidiSurface DIALOGEX 0, 0, 219, 225
