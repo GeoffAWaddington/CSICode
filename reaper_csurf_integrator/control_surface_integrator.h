@@ -484,7 +484,28 @@ public:
     void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta);
     void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value);
     map<Widget*, bool> &GetWidgets() { return widgets_; }
-
+    bool IsActive() { return isActive_; }
+    
+    bool GetIsMainZoneOnlyActive()
+    {
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                if(zone->IsActive())
+                    return false;
+        
+        return true;
+    }
+    
+    bool GetIsAssociatedZoneActive(string zoneName)
+    {
+        if(associatedZones_.count(zoneName) > 0)
+            for(auto zone : associatedZones_[zoneName])
+                if(zone->IsActive())
+                    return true;
+        
+        return false;
+    }
+    
     void Toggle()
     {
         if(isActive_)
@@ -610,8 +631,8 @@ private:
     
     map<int, map<int, int>> focusedFXDictionary_;
     vector<shared_ptr<Zone>> focusedFXZones_;
-    bool shouldMapFocusedFX_ = true;
-    bool shouldLockoutFocusedFXMapping_ = false;
+    bool isFocusedFXMappingEnabled_ = true;
+    bool isFocusedFXMappingLockedOut_ = false;
     
     vector<shared_ptr<Zone>> selectedTrackFXZones_;
     vector<shared_ptr<Zone>> fxSlotZones_;
@@ -638,7 +659,7 @@ private:
     void LockoutFocusedFXMapping()
     {
         focusedFXZones_.clear();
-        shouldLockoutFocusedFXMapping_ = true;
+        isFocusedFXMappingLockedOut_ = true;
     }
        
 public:
@@ -681,13 +702,29 @@ public:
     int GetSelectedTrackReceiveOffset() { return selectedTrackReceiveOffset_; }
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
     
-    void PreventFocusedFXMapping() { shouldMapFocusedFX_ = false; }
-    void TogggleFocusedFXMapping() { shouldMapFocusedFX_ = ! shouldMapFocusedFX_; }
-    bool GetFocusedFXMapping() { return shouldMapFocusedFX_; } 
+    void PreventFocusedFXMapping() { isFocusedFXMappingEnabled_ = false; }
+    void ToggleEnableFocusedFXMapping() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
+    bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; } 
+    
+    bool GetIsHomeZoneOnlyActive()
+    {
+        if(homeZone_ !=  nullptr)
+            return homeZone_->GetIsMainZoneOnlyActive();
+        else
+            return false;
+    }
+    
+    bool GetIsAssociatedZoneActive(string zoneName)
+    {
+        if(homeZone_ !=  nullptr)
+            return homeZone_->GetIsAssociatedZoneActive(zoneName);
+        else
+            return false;
+    }
     
     void ClearFXMapping()
     {
-        shouldLockoutFocusedFXMapping_ = false;
+        isFocusedFXMappingLockedOut_ = false;
         focusedFXZones_.clear();
         selectedTrackFXZones_.clear();
         fxSlotZones_.clear();
@@ -844,7 +881,7 @@ public:
     
     void CheckFocusedFXState()
     {
-        if(shouldLockoutFocusedFXMapping_ || ! shouldMapFocusedFX_)
+        if(isFocusedFXMappingLockedOut_ || ! isFocusedFXMappingEnabled_)
             return;
         
         int trackNumber = 0;

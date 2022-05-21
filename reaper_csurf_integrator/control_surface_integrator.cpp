@@ -920,7 +920,7 @@ void Manager::InitActionsDictionary()
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["GoFocusedFX"] =                       new GoFocusedFX();
     actions_["PreventFocusedFXMapping"] =           new PreventFocusedFXMapping();
-    actions_["ToggleFocusedFXMapping"] =            new ToggleFocusedFXMapping();
+    actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();

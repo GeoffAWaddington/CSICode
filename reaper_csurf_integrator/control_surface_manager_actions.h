@@ -139,6 +139,14 @@ class GoHome : public Action
 public:
     virtual string GetName() override { return "GoHome"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsHomeZoneOnlyActive())
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -228,22 +236,22 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleFocusedFXMapping  : public Action
+class ToggleEnableFocusedFXMapping  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleFocusedFXMapping"; }
+    virtual string GetName() override { return "ToggleEnableFocusedFXMapping"; }
 
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetFocusedFXMapping());
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXMappingEnabled());
     }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->TogggleFocusedFXMapping();
+        context->GetSurface()->GetZoneManager()->ToggleEnableFocusedFXMapping();
     }
 };
 
@@ -253,6 +261,14 @@ class GoSelectedTrackFX  : public Action
 {
 public:
     virtual string GetName() override { return "GoSelectedTrackFX"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFX"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
 
     void Do(ActionContext* context, double value) override
     {
@@ -270,6 +286,14 @@ class GoTrackSend : public Action
 public:
     virtual string GetName() override { return "GoTrackSend"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackSend"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -286,6 +310,14 @@ class GoTrackReceive : public Action
 public:
     virtual string GetName() override { return "GoTrackReceive"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackReceive"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -302,6 +334,14 @@ class GoTrackFXMenu : public Action
 public:
     virtual string GetName() override { return "GoTrackFXMenu"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackFXMenu"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -318,6 +358,14 @@ class GoSelectedTrack : public Action
 public:
     virtual string GetName() override { return "GoSelectedTrack"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrack"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -334,6 +382,14 @@ class GoSelectedTrackSend : public Action
 public:
     virtual string GetName() override { return "GoSelectedTrackSend"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackSend"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -350,6 +406,14 @@ class GoSelectedTrackReceive : public Action
 public:
     virtual string GetName() override { return "GoSelectedTrackReceive"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackReceive"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -366,6 +430,14 @@ class GoSelectedTrackFXMenu : public Action
 public:
     virtual string GetName() override { return "GoSelectedTrackFXMenu"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFXMenu"))
+           context->UpdateWidgetValue(1.0);
+        else
+            context->ClearWidget();
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
