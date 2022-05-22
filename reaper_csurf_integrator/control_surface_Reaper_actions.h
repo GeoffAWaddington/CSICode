@@ -1016,28 +1016,7 @@ class TrackSendPrePost : public Action
 {
 public:
     virtual string GetName() override { return "TrackSendPrePost"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
-        else
-            return 0.0;
-    }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            if(GetCurrentNormalizedValue(context) == 0)
-                context->UpdateWidgetValue(0);
-            else
-                context->UpdateWidgetValue(1);
-        }
-        else
-            context->ClearWidget();
-    }
-    
+       
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -1047,9 +1026,11 @@ public:
             int mode = DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
             
             if(mode == 0)
+                mode = 1; // switch to pre FX
+            else if(mode == 1)
                 mode = 3; // switch to post FX
             else
-                mode = 0; // switch to post fader
+                mode = 0; // switch to post pan
             
             DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "I_SENDMODE", &mode);
         }
@@ -1317,28 +1298,7 @@ class TrackReceivePrePost : public Action
 {
 public:
     virtual string GetName() override { return "TrackReceivePrePost"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "I_SENDMODE");
-        else
-            return 0.0;
-    }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            if(GetCurrentNormalizedValue(context) == 0)
-                context->UpdateWidgetValue(0);
-            else
-                context->UpdateWidgetValue(1);
-        }
-        else
-            context->ClearWidget();
-    }
-    
+        
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -1348,10 +1308,12 @@ public:
             int mode = DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "I_SENDMODE");
             
             if(mode == 0)
+                mode = 1; // switch to pre FX
+            else if(mode == 1)
                 mode = 3; // switch to post FX
             else
-                mode = 0; // switch to post fader
-            
+                mode = 0; // switch to post pan
+
             DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "I_SENDMODE", &mode);
         }
     }
@@ -1593,7 +1555,7 @@ public:
                 string prePostValueString = "";
                 
                 if(prePostVal == 0)
-                    prePostValueString = "PostFader";
+                    prePostValueString = "PostPan";
                 else if(prePostVal == 1)
                     prePostValueString = "PreFX";
                 else if(prePostVal == 2 || prePostVal == 3)
@@ -1708,7 +1670,7 @@ public:
                 string prePostValueString = "";
                 
                 if(prePostVal == 0)
-                    prePostValueString = "PostFader";
+                    prePostValueString = "PostPan";
                 else if(prePostVal == 1)
                     prePostValueString = "PreFX";
                 else if(prePostVal == 2 || prePostVal == 3)
