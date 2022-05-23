@@ -916,7 +916,7 @@ void Manager::InitActionsDictionary()
     actions_["Receive"] =                           new Receive();
     actions_["GoHome"] =                            new GoHome();
     actions_["GoSubZone"] =                         new GoSubZone();
-    actions_["LeaveZone"] =                         new LeaveZone();
+    actions_["LeaveSubZone"] =                      new LeaveSubZone();
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["GoFocusedFX"] =                       new GoFocusedFX();
     actions_["PreventFocusedFXMapping"] =           new PreventFocusedFXMapping();
@@ -943,9 +943,6 @@ void Manager::InitActionsDictionary()
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
-    actions_["FocusedFXParam"] =                    new FocusedFXParam();
-    actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
-    actions_["FocusedFXParamValueDisplay"] =        new FocusedFXParamValueDisplay();
     actions_["TrackVolume"] =                       new TrackVolume();
     actions_["SoftTakeover7BitTrackVolume"] =       new SoftTakeover7BitTrackVolume();
     actions_["SoftTakeover14BitTrackVolume"] =      new SoftTakeover14BitTrackVolume();
@@ -978,12 +975,17 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeter"] =                  new TrackOutputMeter();
     actions_["TrackOutputMeterAverageLR"] =         new TrackOutputMeterAverageLR();
     actions_["TrackOutputMeterMaxPeakLR"] =         new TrackOutputMeterMaxPeakLR();
+    actions_["FocusedFXParam"] =                    new FocusedFXParam();
     actions_["FXParam"] =                           new FXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
+    actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
     actions_["FXNameDisplay"] =                     new FXNameDisplay();
     actions_["FXMenuNameDisplay"] =                 new FXMenuNameDisplay();
     actions_["FXParamNameDisplay"] =                new FXParamNameDisplay();
     actions_["FXParamValueDisplay"] =               new FXParamValueDisplay();
+    actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
+    actions_["FocusedFXParamValueDisplay"] =        new FocusedFXParamValueDisplay();
+    actions_["FXBypassedDisplay"] =                  new FXBypassedDisplay();
     actions_["FXGainReductionMeter"] =              new FXGainReductionMeter();
     actions_["TrackSendVolume"] =                   new TrackSendVolume();
     actions_["TrackSendVolumeDB"] =                 new TrackSendVolumeDB();

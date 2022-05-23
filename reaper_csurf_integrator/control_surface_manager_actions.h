@@ -173,11 +173,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class LeaveZone : public Action
+class LeaveSubZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "LeaveZone"; }
+    virtual string GetName() override { return "LeaveSubZone"; }
     
     void Do(ActionContext* context, double value) override
     {
@@ -185,6 +185,8 @@ public:
             return; // ignore button releases
         
         context->GetZone()->Deactivate();
+        
+        // GAW TBD should dump it from any collections it is a member of too
     }
 };
 

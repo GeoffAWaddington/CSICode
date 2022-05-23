@@ -126,6 +126,40 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ToggleFXBypass : public FXAction
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ToggleFXBypass"; }
+   
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            {
+                if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
+                    context->UpdateWidgetValue(0.0);
+                else
+                    context->UpdateWidgetValue(1.0);
+            }
+            else
+                context->ClearWidget();
+        }
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+
+        if(MediaTrack* track = context->GetTrack())
+            DAW::TrackFX_SetEnabled(track, context->GetSlotIndex(), ! DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()));
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1450,6 +1484,32 @@ public:
                 DAW::TrackFX_GetFormattedParamValue(track, fxSlotNum, fxParamNum, fxParamValue, sizeof(fxParamValue));
                 context->UpdateWidgetValue(string(fxParamValue));
             }
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FXBypassedDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "FXBypassedDisplay"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            {
+                if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
+                    context->UpdateWidgetValue("Enabled");
+                else
+                    context->UpdateWidgetValue("Bypassd");
+            }
+            else
+                context->UpdateWidgetValue("");
         }
         else
             context->ClearWidget();

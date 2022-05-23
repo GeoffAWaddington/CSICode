@@ -249,6 +249,20 @@ public:
             return false;
     }
     
+    static bool TrackFX_GetEnabled(MediaTrack* track, int fx)
+    {
+        if(ValidateTrackPtr(track))
+            return ::TrackFX_GetEnabled(track, fx);
+        else
+            return false;
+    }
+    
+    static void TrackFX_SetEnabled(MediaTrack* track, int fx, bool enabled)
+    {
+        if(ValidateTrackPtr(track))
+            ::TrackFX_SetEnabled(track, fx, enabled);
+    }
+    
     static bool GetTrackName(MediaTrack* track, char* buf, int buf_sz)
     {
         if(ValidateTrackPtr(track))
