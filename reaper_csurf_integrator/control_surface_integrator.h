@@ -462,8 +462,10 @@ protected:
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     
 public:
-    Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones);
+    Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
 
+    void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
+    
     virtual ~Zone() {}
     
     void GoAssociatedZone(string associatedZoneName);
@@ -550,10 +552,10 @@ class SubZone : public Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const enclosingZone_ = nullptr;
+    shared_ptr<Zone> const enclosingZone_ = nullptr;
     
 public:
-    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> subZones, vector<string> associatedZones, string enclosingZone) : Zone(zoneManager, navigator, slotIndex, touchIds, name, alias, sourceFilePath, includedZones, subZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, touchIds, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -818,36 +820,6 @@ public:
             selectedTrackFXMenuOffset_ = 0;
     }
         
-    void GoFXSubZone(string enclosingZoneName, string subZoneName)
-    {
-        for(auto zone : focusedFXZones_)
-        {
-            if(zone->GetName() == enclosingZoneName)
-            {
-                zone->GoSubZone(subZoneName);
-                return;
-            }
-        }
-        
-        for(auto zone : selectedTrackFXZones_)
-        {
-            if(zone->GetName() == enclosingZoneName)
-            {
-                zone->GoSubZone(subZoneName);
-                return;
-            }
-        }
-        
-        for(auto zone : fxSlotZones_)
-        {
-            if(zone->GetName() == enclosingZoneName)
-            {
-                zone->GoSubZone(subZoneName);
-                return;
-            }
-        }
-    }
-
     void AddWidget(Widget* widget)
     {
         usedWidgets_[widget] = false;
