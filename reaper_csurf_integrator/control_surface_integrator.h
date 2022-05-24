@@ -629,8 +629,9 @@ private:
     map<Widget*, bool> usedWidgets_;
 
     shared_ptr<Zone> homeZone_ = nullptr;
-    
-    
+    shared_ptr<Zone> focusedFXParamZone_ = nullptr;
+    bool isFocusedFXParamMappingEnabled_ = true;
+
     map<int, map<int, int>> focusedFXDictionary_;
     vector<shared_ptr<Zone>> focusedFXZones_;
     bool isFocusedFXMappingEnabled_ = true;
@@ -695,7 +696,8 @@ public:
     ControlSurface* GetSurface() { return surface_; }   
     
     void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
-    
+    void SetFocusedFXParamZone(shared_ptr<Zone> zone) { focusedFXParamZone_ = zone; }
+
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
     int GetTrackFXMenuOffset() { return trackFXMenuOffset_; }
@@ -705,9 +707,25 @@ public:
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
     
     void PreventFocusedFXMapping() { isFocusedFXMappingEnabled_ = false; }
+    bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     void ToggleEnableFocusedFXMapping() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
-    bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; } 
     
+    void PreventFocusedFXParamMapping() { isFocusedFXParamMappingEnabled_ = false; }
+    bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
+    
+    void ToggleEnableFocusedFXParamMapping()
+    {
+        isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
+        
+        if(focusedFXParamZone_ != nullptr)
+        {
+            if(isFocusedFXParamMappingEnabled_)
+                focusedFXParamZone_->Activate();
+            else
+                focusedFXParamZone_->Deactivate();
+        }
+    }
+
     bool GetIsHomeZoneOnlyActive()
     {
         if(homeZone_ !=  nullptr)
@@ -891,6 +909,9 @@ public:
         
         bool isUsed = false;
         
+        if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+            focusedFXParamZone_->DoAction(widget, isUsed, value);
+
         for(auto zone : focusedFXZones_)
             zone->DoAction(widget, isUsed, value);
         
@@ -919,6 +940,9 @@ public:
         
         bool isUsed = false;
         
+        if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+            focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
+
         for(auto zone : focusedFXZones_)
             zone->DoRelativeAction(widget, isUsed, delta);
         
@@ -947,6 +971,9 @@ public:
         
         bool isUsed = false;
            
+        if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+            focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        
         for(auto zone : focusedFXZones_)
             zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
@@ -974,6 +1001,9 @@ public:
         widget->LogInput(value);
         
         bool isUsed = false;
+        
+        if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+            focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
         
         for(auto zone : focusedFXZones_)
             zone->DoTouch(widget, widget->GetName(), isUsed, value);

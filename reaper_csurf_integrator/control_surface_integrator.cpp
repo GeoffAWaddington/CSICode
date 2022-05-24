@@ -364,6 +364,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
                         
+                        if(zoneName == "FocusedFXParam")
+                            zoneManager->SetFocusedFXParamZone(zone);
+                        
                         zones.push_back(zone);
                         
                         for(auto [widgetName, modifierActions] : widgetActions)
@@ -921,9 +924,10 @@ void Manager::InitActionsDictionary()
     actions_["GoSubZone"] =                         new GoSubZone();
     actions_["LeaveSubZone"] =                      new LeaveSubZone();
     actions_["GoFXSlot"] =                          new GoFXSlot();
-    actions_["GoFocusedFX"] =                       new GoFocusedFX();
     actions_["PreventFocusedFXMapping"] =           new PreventFocusedFXMapping();
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
+    actions_["PreventFocusedFXParamMapping"] =      new PreventFocusedFXParamMapping();
+    actions_["ToggleEnableFocusedFXParamMapping"] = new ToggleEnableFocusedFXParamMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
@@ -2082,18 +2086,23 @@ void ZoneManager::Initialize()
         
     vector<Navigator*> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
-    vector<shared_ptr<Zone>> dummy; // Needed to satify protcol, Home has special Zone handling
+    vector<shared_ptr<Zone>> dummy; // Needed to satify protcol, Home and FocusedFXParam have special Zone handling
     ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
+    if(zoneFilePaths_.count("FocusedFXParam") > 0)
+        ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
     GoHome();
 }
 
 void ZoneManager::RequestUpdate()
 {
     CheckFocusedFXState();
-    
+        
     for(auto &[key, value] : usedWidgets_)
         value = false;
     
+    if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+        focusedFXParamZone_->RequestUpdate(usedWidgets_);
+
     for(auto zone : focusedFXZones_)
         zone->RequestUpdate(usedWidgets_);
     
