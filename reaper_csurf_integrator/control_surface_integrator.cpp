@@ -960,6 +960,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackRecordArm"] =                    new TrackRecordArm();
     actions_["TrackMute"] =                         new TrackMute();
     actions_["TrackSolo"] =                         new TrackSolo();
+    actions_["ClearAllSolo"] =                      new ClearAllSolo();
     actions_["TrackInvertPolarity"] =               new TrackInvertPolarity();
     actions_["MCUTrackPan"] =                       new MCUTrackPan();
     actions_["ToggleMCUTrackPanWidth"] =            new ToggleMCUTrackPanWidth();
