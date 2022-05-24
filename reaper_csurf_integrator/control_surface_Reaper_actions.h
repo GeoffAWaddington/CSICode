@@ -1365,7 +1365,7 @@ public:
         if(MediaTrack* track = context->GetTrack())
             context->UpdateWidgetValue(context->GetName());
         else
-            context->GetWidget()->Clear();
+            context->ClearWidget();
     }
 };
 
@@ -1396,7 +1396,7 @@ public:
             context->UpdateWidgetValue(name);
         }
         else
-            context->GetWidget()->Clear();
+            context->ClearWidget();
     }
 };
 

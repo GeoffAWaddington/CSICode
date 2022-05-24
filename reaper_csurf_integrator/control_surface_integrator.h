@@ -314,7 +314,6 @@ public:
     void UpdateWidgetValue(double value);
     void UpdateWidgetValue(int param, double value);
     void UpdateWidgetValue(string value);
-    void ForceWidgetValue(double value);
     
     void DoTouch(double value)
     {
@@ -589,15 +588,8 @@ public:
     void UpdateValue(int mode, double value);
     void UpdateValue(string value);
     void UpdateRGBValue(int r, int g, int b);
-    void ForceValue(double value);
-    void ForceRGBValue(int r, int g, int b);
     void Clear();
     void LogInput(double value);
-
-    void GetFormattedFXParamValue(char *buffer, int bufferSize)
-    {
-        //currentWidgetContext_.GetFormattedFXParamValue(buffer, bufferSize);
-    }
     
     void AddFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
     {
