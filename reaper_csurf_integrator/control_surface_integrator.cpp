@@ -197,7 +197,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
 {
     istringstream modified_role(line);
     vector<string> modifier_tokens;
-    vector<string> modifierSlots = { "", "", "", "", ""};
+    vector<string> modifierSlots = { "", "", "", "", "", ""};
     string modifier_token;
     
     while (getline(modified_role, modifier_token, '+'))
@@ -220,6 +220,8 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 modifierSlots[3] = ControlToken + "+";
             else if(modifier_tokens[i] == AltToken)
                 modifierSlots[4] = AltToken + "+";
+            else if(modifier_tokens[i] == FlipToken)
+                modifierSlots[5] = FlipToken + "+";
 
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
@@ -232,7 +234,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
 
     widgetName = modifier_tokens[modifier_tokens.size() - 1];
     
-    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4];
+    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5];
 }
 
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
@@ -951,6 +953,7 @@ void Manager::InitActionsDictionary()
     actions_["Option"] =                            new SetOption();
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
+    actions_["Flip"] =                              new SetFlip();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
     actions_["TrackVolume"] =                       new TrackVolume();
     actions_["SoftTakeover7BitTrackVolume"] =       new SoftTakeover7BitTrackVolume();

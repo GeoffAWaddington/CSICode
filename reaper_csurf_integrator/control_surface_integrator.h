@@ -59,6 +59,7 @@ const string ShiftToken = "Shift";
 const string OptionToken = "Option";
 const string ControlToken = "Control";
 const string AltToken = "Alt";
+const string FlipToken = "Flip";
 
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
@@ -1843,6 +1844,8 @@ private:
     double controlPressedTime_ = 0;
     bool isAlt_ = false;
     double altPressedTime_ = 0;
+    bool isFlip_ = false;
+    double flipPressedTime_ = 0;
     
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
@@ -1864,6 +1867,7 @@ public:
     bool GetOption() { return isOption_; }
     bool GetControl() { return isControl_; }
     bool GetAlt() { return isAlt_; }
+    bool GetFlip() { return isFlip_; }
 
                    
     /*
@@ -1992,6 +1996,11 @@ public:
         SetModifier(value, isAlt_, altPressedTime_);
     }
   
+    void SetFlip(bool value)
+    {
+        SetModifier(value, isFlip_, flipPressedTime_);
+    }
+  
     void SetModifier(bool value, bool &modifier, double &modifierPressedTime)
     {
         if(value && modifier == false)
@@ -2022,7 +2031,9 @@ public:
             modifier +=  ControlToken + "+";
         if(isAlt_)
             modifier += AltToken + "+";
-        
+        if(isFlip_)
+            modifier += FlipToken + "+";
+
         return modifier;
     }
     
