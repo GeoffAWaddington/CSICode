@@ -75,6 +75,10 @@ public:
     
     static void MarkProjectDirty(ReaProject* proj) { ::MarkProjectDirty(proj); }
     
+    static int IsProjectDirty() { return ::IsProjectDirty(nullptr); }
+    
+    static void SaveProject() { ::Main_SaveProject(nullptr, false); }
+    
     static const char* get_ini_file() { return ::get_ini_file(); }
 
     static DWORD GetPrivateProfileString(const char *appname, const char *keyname, const char *def, char *ret, int retsize, const char *fn) { return ::GetPrivateProfileString(appname, keyname, def, ret, retsize, fn); }
@@ -93,7 +97,7 @@ public:
     static int NamedCommandLookup(const char* command_name) { return ::NamedCommandLookup(command_name);  }
 
     static void SendCommandMessage(WPARAM wparam) { ::SendMessage(g_hwnd, WM_COMMAND, wparam, 0); }
-    
+        
     static int GetToggleCommandState(int commandId) { return ::GetToggleCommandState(commandId); }
     
     static void ShowConsoleMsg(const char* msg) { ::ShowConsoleMsg(msg); }
@@ -150,6 +154,34 @@ public:
     static int ColorToNative(int r, int g, int b) { return ::ColorToNative(r, g, b); }
 
     static bool ValidateTrackPtr(MediaTrack* track) { return ValidatePtr(track, "MediaTrack*"); }
+    
+    static bool CanUndo()
+    {
+        if(::Undo_CanUndo2(nullptr))
+           return true;
+        else
+            return false;
+    }
+    
+    static bool CanRedo()
+    {
+        if(::Undo_CanRedo2(nullptr))
+           return true;
+        else
+            return false;
+    }
+    
+    static void Undo()
+    {
+        if(CanUndo())
+            ::Undo_DoUndo2(nullptr);
+    }
+    
+    static void Redo()
+    {
+        if(CanRedo())
+            ::Undo_DoRedo2(nullptr);
+    }
     
     static MediaTrack* GetTrack(int trackidx)
     {

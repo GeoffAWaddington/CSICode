@@ -895,7 +895,10 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 // Manager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
-{    
+{
+    actions_["SaveProject"] =                       new SaveProject();
+    actions_["Undo"] =                              new Undo();
+    actions_["Redo"] =                              new Redo();
     actions_["TrackAutoMode"] =                     new TrackAutoMode();
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();

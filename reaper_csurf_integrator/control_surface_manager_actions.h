@@ -10,6 +10,78 @@
 #include "control_surface_integrator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SaveProject : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SaveProject"; }
+    
+    void RequestUpdate(ActionContext* context) override
+    {
+        if(DAW::IsProjectDirty())
+            context->UpdateWidgetValue(1);
+        else
+            context->UpdateWidgetValue(0);
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(DAW::IsProjectDirty())
+            DAW::SaveProject();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class Undo : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "Undo"; }
+    
+    void RequestUpdate(ActionContext* context) override
+    {
+        if(DAW::CanUndo())
+            context->UpdateWidgetValue(1);
+        else
+            context->UpdateWidgetValue(0);
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(DAW::CanUndo())
+            DAW::Undo();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class Redo : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "Redo"; }
+    
+    void RequestUpdate(ActionContext* context) override
+    {
+        if(DAW::CanRedo())
+            context->UpdateWidgetValue(1);
+        else
+            context->UpdateWidgetValue(0);
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(DAW::CanRedo())
+            DAW::Redo();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ToggleScrollLink : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
