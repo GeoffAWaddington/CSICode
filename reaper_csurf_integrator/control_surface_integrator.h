@@ -480,7 +480,6 @@ public:
     void RequestUpdateWidget(Widget* widget);
     void Activate();
     void Deactivate();
-    void OnTrackSelection();
     void OnTrackDeselection();
     void DoAction(Widget* widget, bool &isUsed, double value);
     void DoRelativeAction(Widget* widget, bool &isUsed, double delta);

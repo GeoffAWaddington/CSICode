@@ -1671,11 +1671,6 @@ void Zone::Activate()
             zone->Deactivate();
 }
 
-void Zone::OnTrackSelection()
-{
-    // GAW TBD -- reset FXMenu
-}
-
 void Zone::OnTrackDeselection()
 {
     isActive_ = true;
@@ -2223,6 +2218,8 @@ void ZoneManager::GoAssociatedZone(string associatedZoneName)
         
         ResetOffsets();
         
+        fxSlotZones_.clear();
+        
         homeZone_->GoAssociatedZone(associatedZoneName);
     }
 }
@@ -2245,7 +2242,7 @@ void ZoneManager::GoHome()
 
 void ZoneManager::OnTrackSelection()
 {
-    // GAW TBD -- reset FXMenu
+    fxSlotZones_.clear();
 }
 
 void ZoneManager::OnTrackDeselection()
