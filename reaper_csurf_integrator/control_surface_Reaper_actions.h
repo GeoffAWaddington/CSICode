@@ -1956,9 +1956,10 @@ public:
 
     virtual void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        DAW::CSurf_OnRew(1);
+        if(value == 0.0)
+            context->GetSurface()->StopRewinding();
+        else
+            context->GetSurface()->StartRewinding();
     }
 };
 
@@ -1971,9 +1972,10 @@ public:
 
     virtual void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        DAW::CSurf_OnFwd(1);
+        if(value == 0.0)
+            context->GetSurface()->StopFastForwarding();
+        else
+            context->GetSurface()->StartFastForwarding();
     }
 };
 

@@ -1077,6 +1077,9 @@ protected:
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
     
+    bool isRewinding_ = false;
+    bool isFastForwarding_ = false;
+    
     vector<Widget*> widgets_;
     map<string, Widget*> widgetsByName_;
     
@@ -1125,9 +1128,19 @@ public:
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
     
+    void StartRewinding() { isRewinding_ = true; }
+    void StopRewinding() { isRewinding_ = false; }
+    void StartFastForwarding() { isFastForwarding_ = true; }
+    void StopFastForwarding() { isFastForwarding_ = false; }
+
     void RequestUpdate()
     {
         zoneManager_->RequestUpdate();
+        
+        if(isRewinding_)
+            DAW::CSurf_OnRew(1);
+        else if(isFastForwarding_)
+            DAW::CSurf_OnFwd(1);
     }
 
     void ClearAllWidgets()
