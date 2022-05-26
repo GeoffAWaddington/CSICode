@@ -1065,9 +1065,50 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
+{    
+private:
+    double* scrubRelGainPtr = nullptr;
+    double configScrubRelGain = 0.0;
+    
+    int* scrubModePtr = nullptr;
+    int configScrubMode = 0;
+    
+    double shuttleStartTime = 0.0;
+    bool isRewinding_ = false;
+    bool isFastForwarding_ = false;
+    
+    void InitShuttle()
+    {
+        shuttleStartTime = DAW::GetCurrentNumberOfMilliseconds();
+        configScrubRelGain = *scrubRelGainPtr;
+        configScrubMode = *scrubModePtr;
+    }
+
+    void ResetShuttle()
+    {
+        shuttleStartTime = 0.0;
+        *scrubRelGainPtr = configScrubRelGain;
+        *scrubModePtr = configScrubMode;
+    }
+        
+    void SetCurrentShuttleSpeed()
+    {
+        if((DAW::GetCurrentNumberOfMilliseconds() - shuttleStartTime) < 2500)
+            *scrubModePtr = 1;
+        else
+        {
+            *scrubModePtr = 2;
+            *scrubRelGainPtr = 6.0;
+        }
+    }
+
 protected:
-    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder)) { }
+    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
+    {
+        int size = 0;
+        scrubRelGainPtr = (double*)get_config_var("scrubrelgain", &size);
+        scrubModePtr = (int*)get_config_var("scrubmode", &size);
+    }
     
     Page* const page_;
     string const name_;
@@ -1075,9 +1116,6 @@ protected:
     
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
-    
-    bool isRewinding_ = false;
-    bool isFastForwarding_ = false;
     
     vector<Widget*> widgets_;
     map<string, Widget*> widgetsByName_;
@@ -1109,7 +1147,6 @@ public:
         }
     };
     
-    
     void TrackFXListChanged();
     void OnTrackSelection();
     virtual void SetHasMCUMeters(int displayType) {}
@@ -1127,19 +1164,43 @@ public:
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
     
-    void StartRewinding() { isRewinding_ = true; }
-    void StopRewinding() { isRewinding_ = false; }
-    void StartFastForwarding() { isFastForwarding_ = true; }
-    void StopFastForwarding() { isFastForwarding_ = false; }
+    void StartRewinding()
+    {
+        isRewinding_ = true;
+        InitShuttle();
+    }
+    void StopRewinding()
+    {
+        isRewinding_ = false;
+        ResetShuttle();
+    }
+    
+    void StartFastForwarding()
+    {
+        isFastForwarding_ = true;
+        InitShuttle();
+    }
+    
+    void StopFastForwarding()
+    {
+        isFastForwarding_ = false;
+        ResetShuttle();
+    }
 
     void RequestUpdate()
     {
         zoneManager_->RequestUpdate();
         
         if(isRewinding_)
+        {
+            SetCurrentShuttleSpeed();
             DAW::CSurf_OnRew(1);
+        }
         else if(isFastForwarding_)
+        {
+            SetCurrentShuttleSpeed();
             DAW::CSurf_OnFwd(1);
+        }
     }
 
     void ClearAllWidgets()
