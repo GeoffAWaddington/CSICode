@@ -480,19 +480,20 @@ public:
     void RequestUpdateWidget(Widget* widget);
     void Activate();
     void Deactivate();
-    void TrackDeselected();
+    void OnTrackSelection();
+    void OnTrackDeselection();
     void DoAction(Widget* widget, bool &isUsed, double value);
     void DoRelativeAction(Widget* widget, bool &isUsed, double delta);
     void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta);
     void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value);
     map<Widget*, bool> &GetWidgets() { return widgets_; }
-    bool IsActive() { return isActive_; }
+    bool GetIsActive() { return isActive_; }
     
     bool GetIsMainZoneOnlyActive()
     {
         for(auto [key, zones] : associatedZones_)
             for(auto zone : zones)
-                if(zone->IsActive())
+                if(zone->GetIsActive())
                     return false;
         
         return true;
@@ -502,7 +503,7 @@ public:
     {
         if(associatedZones_.count(zoneName) > 0)
             for(auto zone : associatedZones_[zoneName])
-                if(zone->IsActive())
+                if(zone->GetIsActive())
                     return true;
         
         return false;
@@ -652,6 +653,14 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
+    void ResetSelectedTrackOffsets()
+    {
+        selectedTrackOffset_ = 0;
+        selectedTrackSendOffset_ = 0;
+        selectedTrackReceiveOffset_ = 0;
+        selectedTrackFXMenuOffset_ = 0;
+    }
+    
     void LockoutFocusedFXMapping()
     {
         focusedFXZones_.clear();
@@ -674,7 +683,8 @@ public:
     
     int GetNumChannels();
     void GoHome();
-    void TrackDeselected();
+    void OnTrackSelection();
+    void OnTrackDeselection();
     void GoFocusedFX();
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);

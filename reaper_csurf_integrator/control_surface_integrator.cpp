@@ -1671,7 +1671,12 @@ void Zone::Activate()
             zone->Deactivate();
 }
 
-void Zone::TrackDeselected()
+void Zone::OnTrackSelection()
+{
+    // GAW TBD -- reset FXMenu
+}
+
+void Zone::OnTrackDeselection()
 {
     isActive_ = true;
     
@@ -2238,18 +2243,20 @@ void ZoneManager::GoHome()
     }
 }
 
-void ZoneManager::TrackDeselected()
+void ZoneManager::OnTrackSelection()
+{
+    // GAW TBD -- reset FXMenu
+}
+
+void ZoneManager::OnTrackDeselection()
 {
     if(homeZone_ != nullptr)
     {
-        selectedTrackOffset_ = 0;
-        selectedTrackSendOffset_ = 0;
-        selectedTrackReceiveOffset_ = 0;
-        selectedTrackFXMenuOffset_ = 0;
+        ResetSelectedTrackOffsets();
         
         selectedTrackFXZones_.clear();
         
-        homeZone_->TrackDeselected();
+        homeZone_->OnTrackDeselection();
     }
 }
 
@@ -2298,7 +2305,9 @@ void ControlSurface::OnTrackSelection()
         if(page_->GetSelectedTrack())
             zoneManager_->DoAction(widgetsByName_["OnTrackSelection"], 1.0);
         else
-            zoneManager_->TrackDeselected();
+            zoneManager_->OnTrackDeselection();
+        
+        zoneManager_->OnTrackSelection();
     }
 }
 
