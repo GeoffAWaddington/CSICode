@@ -235,6 +235,11 @@ class GoSubZone : public Action
 public:
     virtual string GetName() override { return "GoSubZone"; }
     
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(0.0);
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
@@ -251,14 +256,17 @@ class LeaveSubZone : public Action
 public:
     virtual string GetName() override { return "LeaveSubZone"; }
     
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(1.0);
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
             return; // ignore button releases
         
         context->GetZone()->Deactivate();
-        
-        // GAW TBD should dump it from any collections it is a member of too
     }
 };
 
