@@ -912,6 +912,8 @@ void Manager::InitActionsDictionary()
     actions_["FixedRGBColourDisplay"] =             new FixedRGBColourDisplay();
     actions_["Rewind"] =                            new Rewind();
     actions_["FastForward"] =                       new FastForward();
+    actions_["ShuttleLeft"] =                            new ShuttleLeft();
+    actions_["ShuttleRight"] =                      new ShuttleRight();
     actions_["Play"] =                              new Play();
     actions_["Stop"] =                              new Stop();
     actions_["Record"] =                            new Record();

@@ -1069,16 +1069,18 @@ class ControlSurface
 private:
     double* scrubRelGainPtr = nullptr;
     double configScrubRelGain = 0.0;
-    
     int* scrubModePtr = nullptr;
     int configScrubMode = 0;
-    
     double shuttleStartTime = 0.0;
+    
+    bool isShuttling_ = false;
+    
     bool isRewinding_ = false;
     bool isFastForwarding_ = false;
     
     void InitShuttle()
     {
+        isShuttling_ = true;
         shuttleStartTime = DAW::GetCurrentNumberOfMilliseconds();
         configScrubRelGain = *scrubRelGainPtr;
         configScrubMode = *scrubModePtr;
@@ -1086,6 +1088,7 @@ private:
 
     void ResetShuttle()
     {
+        isShuttling_ = false;
         shuttleStartTime = 0.0;
         *scrubRelGainPtr = configScrubRelGain;
         *scrubModePtr = configScrubMode;
@@ -1164,43 +1167,67 @@ public:
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
     
+    void StartShuttlingLeft()
+    {
+        InitShuttle();
+        isRewinding_ = true;
+    }
+    
+    void StopShuttlingLeft()
+    {
+        ResetShuttle();
+        isRewinding_ = false;
+    }
+    
+    void StartShuttlingRight()
+    {
+        InitShuttle();
+        isFastForwarding_ = true;
+    }
+    
+    void StopShuttlingRight()
+    {
+        ResetShuttle();
+        isFastForwarding_ = false;
+    }
+
     void StartRewinding()
     {
         isRewinding_ = true;
-        InitShuttle();
+        configScrubMode = *scrubModePtr;
+        *scrubModePtr = 2;
     }
+    
     void StopRewinding()
     {
         isRewinding_ = false;
-        ResetShuttle();
+        *scrubModePtr = configScrubMode;
     }
     
     void StartFastForwarding()
     {
         isFastForwarding_ = true;
-        InitShuttle();
+        configScrubMode = *scrubModePtr;
+        *scrubModePtr = 2;
     }
     
     void StopFastForwarding()
     {
         isFastForwarding_ = false;
-        ResetShuttle();
+        *scrubModePtr = configScrubMode;
     }
 
     void RequestUpdate()
     {
         zoneManager_->RequestUpdate();
         
+        if(isShuttling_)
+            SetCurrentShuttleSpeed();
+        
         if(isRewinding_)
-        {
-            SetCurrentShuttleSpeed();
             DAW::CSurf_OnRew(1);
-        }
         else if(isFastForwarding_)
-        {
-            SetCurrentShuttleSpeed();
             DAW::CSurf_OnFwd(1);
-        }
     }
 
     void ClearAllWidgets()
@@ -2061,30 +2088,30 @@ public:
     
     void SetShift(bool value)
     {
-        SetModifier(value, isShift_, shiftPressedTime_);
+        SetLatchModifier(value, isShift_, shiftPressedTime_);
     }
  
     void SetOption(bool value)
     {
-        SetModifier(value, isOption_, optionPressedTime_);
+        SetLatchModifier(value, isOption_, optionPressedTime_);
     }
     
     void SetControl(bool value)
     {
-        SetModifier(value, isControl_, controlPressedTime_);
+        SetLatchModifier(value, isControl_, controlPressedTime_);
     }
     
     void SetAlt(bool value)
     {
-        SetModifier(value, isAlt_, altPressedTime_);
+        SetLatchModifier(value, isAlt_, altPressedTime_);
     }
   
     void SetFlip(bool value)
     {
-        SetModifier(value, isFlip_, flipPressedTime_);
+        SetLatchModifier(value, isFlip_, flipPressedTime_);
     }
   
-    void SetModifier(bool value, bool &modifier, double &modifierPressedTime)
+    void SetLatchModifier(bool value, bool &modifier, double &modifierPressedTime)
     {
         if(value && modifier == false)
         {
@@ -2096,9 +2123,7 @@ public:
             double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
             
             if(keyReleasedTime - modifierPressedTime > 100)
-            {
                 modifier = value;
-            }
         }
     }
 
