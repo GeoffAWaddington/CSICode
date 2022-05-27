@@ -623,7 +623,7 @@ private:
 
     shared_ptr<Zone> homeZone_ = nullptr;
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
-    bool isFocusedFXParamMappingEnabled_ = true;
+    bool isFocusedFXParamMappingEnabled_ = false;
 
     map<int, map<int, int>> focusedFXDictionary_;
     vector<shared_ptr<Zone>> focusedFXZones_;
@@ -708,7 +708,6 @@ public:
     int GetSelectedTrackReceiveOffset() { return selectedTrackReceiveOffset_; }
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
     
-    void PreventFocusedFXMapping() { isFocusedFXMappingEnabled_ = false; }
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     void ToggleEnableFocusedFXMapping() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
@@ -1067,49 +1066,16 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
-    double* scrubRelGainPtr = nullptr;
-    double configScrubRelGain = 0.0;
     int* scrubModePtr = nullptr;
     int configScrubMode = 0;
-    double shuttleStartTime = 0.0;
-    
-    bool isShuttling_ = false;
-    
+
     bool isRewinding_ = false;
     bool isFastForwarding_ = false;
-    
-    void InitShuttle()
-    {
-        isShuttling_ = true;
-        shuttleStartTime = DAW::GetCurrentNumberOfMilliseconds();
-        configScrubRelGain = *scrubRelGainPtr;
-        configScrubMode = *scrubModePtr;
-    }
-
-    void ResetShuttle()
-    {
-        isShuttling_ = false;
-        shuttleStartTime = 0.0;
-        *scrubRelGainPtr = configScrubRelGain;
-        *scrubModePtr = configScrubMode;
-    }
-        
-    void SetCurrentShuttleSpeed()
-    {
-        if((DAW::GetCurrentNumberOfMilliseconds() - shuttleStartTime) < 2500)
-            *scrubModePtr = 1;
-        else
-        {
-            *scrubModePtr = 2;
-            *scrubRelGainPtr = 6.0;
-        }
-    }
 
 protected:
     ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
     {
         int size = 0;
-        scrubRelGainPtr = (double*)get_config_var("scrubrelgain", &size);
         scrubModePtr = (int*)get_config_var("scrubmode", &size);
     }
     
@@ -1167,30 +1133,6 @@ public:
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
     
-    void StartShuttlingLeft()
-    {
-        InitShuttle();
-        isRewinding_ = true;
-    }
-    
-    void StopShuttlingLeft()
-    {
-        ResetShuttle();
-        isRewinding_ = false;
-    }
-    
-    void StartShuttlingRight()
-    {
-        InitShuttle();
-        isFastForwarding_ = true;
-    }
-    
-    void StopShuttlingRight()
-    {
-        ResetShuttle();
-        isFastForwarding_ = false;
-    }
-
     void StartRewinding()
     {
         isRewinding_ = true;
@@ -1220,9 +1162,6 @@ public:
     void RequestUpdate()
     {
         zoneManager_->RequestUpdate();
-        
-        if(isShuttling_)
-            SetCurrentShuttleSpeed();
         
         if(isRewinding_)
             DAW::CSurf_OnRew(1);

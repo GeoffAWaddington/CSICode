@@ -912,8 +912,6 @@ void Manager::InitActionsDictionary()
     actions_["FixedRGBColourDisplay"] =             new FixedRGBColourDisplay();
     actions_["Rewind"] =                            new Rewind();
     actions_["FastForward"] =                       new FastForward();
-    actions_["ShuttleLeft"] =                            new ShuttleLeft();
-    actions_["ShuttleRight"] =                      new ShuttleRight();
     actions_["Play"] =                              new Play();
     actions_["Stop"] =                              new Stop();
     actions_["Record"] =                            new Record();
@@ -931,7 +929,6 @@ void Manager::InitActionsDictionary()
     actions_["GoSubZone"] =                         new GoSubZone();
     actions_["LeaveSubZone"] =                      new LeaveSubZone();
     actions_["GoFXSlot"] =                          new GoFXSlot();
-    actions_["PreventFocusedFXMapping"] =           new PreventFocusedFXMapping();
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
     actions_["PreventFocusedFXParamMapping"] =      new PreventFocusedFXParamMapping();
     actions_["ToggleEnableFocusedFXParamMapping"] = new ToggleEnableFocusedFXParamMapping();
