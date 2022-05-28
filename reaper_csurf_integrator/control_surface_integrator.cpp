@@ -716,6 +716,10 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         {
             feedbackProcessor = new MCU_TimeDisplay_Midi_FeedbackProcessor(surface, widget);
         }
+        else if(widgetClass == "FB_MCUAssigmentDisplay" && size == 1)
+        {
+            feedbackProcessor = new FB_MCU_AssigmentDisplay_Midi_FeedbackProcessor(surface, widget);
+        }
         else if(widgetClass == "FB_QConProXMasterVUMeter" && size == 2)
         {
             feedbackProcessor = new QConProXMasterVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
@@ -919,6 +923,8 @@ void Manager::InitActionsDictionary()
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
     actions_["ForceScrollLink"] =                   new ForceScrollLink();
     actions_["ToggleVCAMode"] =                     new ToggleVCAMode();
+    actions_["CycleTrackVCAFolderModes"] =          new CycleTrackVCAFolderModes();
+    actions_["TrackVCAFolderModeDisplay"] =         new TrackVCAFolderModeDisplay();
     actions_["CycleTimeDisplayModes"] =             new CycleTimeDisplayModes();
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();

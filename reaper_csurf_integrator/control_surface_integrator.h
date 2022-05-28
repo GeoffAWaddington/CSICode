@@ -1476,15 +1476,19 @@ private:
     Page* const page_ = nullptr;
     bool followMCP_ = true;
     bool synchPages_ = false;
-    bool scrollLink_ = false;
-    bool vcaMode_ = false;
+    bool isScrollLinkEnabled_ = false;
+    bool isVCAModeEnabled_ = false;
+    bool isFolderModeEnabled_ = false;
+    int currentTrackVCAFolderMode_ = 0;
     int targetScrollLinkChannel_ = 0;
     int trackOffset_ = 0;
     int vcaTrackOffset_ = 0;
+    int folderTrackOffset_ = 0;
     vector<MediaTrack*> selectedTracks_;
     vector<MediaTrack*> vcaTopLeadTracks_;
     vector<MediaTrack*> vcaLeadTracks_;
     vector<MediaTrack*> vcaSpillTracks_;
+    vector<MediaTrack*> folderTracks_;
     map<int, Navigator*> trackNavigators_;
     Navigator* const masterTrackNavigator_ = nullptr;
     Navigator* const selectedTrackNavigator_ = nullptr;
@@ -1496,7 +1500,7 @@ private:
     
    
 public:
-    TrackNavigationManager(Page* page, bool followMCP, bool synchPages, bool scrollLink) : page_(page), followMCP_(followMCP), synchPages_(synchPages), scrollLink_(scrollLink),
+    TrackNavigationManager(Page* page, bool followMCP, bool synchPages, bool scrollLink) : page_(page), followMCP_(followMCP), synchPages_(synchPages), isScrollLinkEnabled_(scrollLink),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
     focusedFXNavigator_(new FocusedFXNavigator(page_)),
@@ -1518,13 +1522,32 @@ public:
     }
     
     bool GetSynchPages() { return synchPages_; }
-    bool GetScrollLink() { return scrollLink_; }
-    bool GetVCAMode() { return vcaMode_; }
+    bool GetScrollLink() { return isScrollLinkEnabled_; }
+    bool GetVCAMode() { return isVCAModeEnabled_; }
+    int GetCurrentTrackVCAFolderMode() { return currentTrackVCAFolderMode_; }
     int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
     Navigator* GetMasterTrackNavigator() { return masterTrackNavigator_; }
     Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
     Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
     Navigator* GetDefaultNavigator() { return defaultNavigator_; }
+    
+    void NextTrackVCAFolderMode()
+    {
+        currentTrackVCAFolderMode_ += 1;
+        
+        if(currentTrackVCAFolderMode_ > 2)
+            currentTrackVCAFolderMode_ = 0;
+        
+        if(currentTrackVCAFolderMode_ == 1)
+            isVCAModeEnabled_ = true;
+        else
+            isVCAModeEnabled_ = false;
+        
+        if(currentTrackVCAFolderMode_ == 2)
+            isFolderModeEnabled_ = true;
+        else
+            isFolderModeEnabled_ = false;
+    }
     
     void SetAutoModeIndex()
     {
@@ -1603,7 +1626,7 @@ public:
     
     void AdjustTrackBank(int amount)
     {
-        if(!vcaMode_)
+        if(! isVCAModeEnabled_ && ! isFolderModeEnabled_)
         {
             int numTracks = GetNumTracks();
             
@@ -1622,7 +1645,7 @@ public:
             
             DAW:: SetProjExtState(0, "CSI", "BankIndex", to_string(trackOffset_).c_str());
         }
-        else
+        else if(isVCAModeEnabled_)
         {
             int numTracks = vcaSpillTracks_.size() + vcaLeadTracks_.size();
             
@@ -1639,11 +1662,28 @@ public:
             if(vcaTrackOffset_ >  top)
                 vcaTrackOffset_ = top;
         }
+        else if(isFolderModeEnabled_)
+        {
+            int numTracks = folderTracks_.size();
+            
+            if(numTracks <= trackNavigators_.size())
+                return;
+           
+            folderTrackOffset_ += amount;
+            
+            if(folderTrackOffset_ <  0)
+                folderTrackOffset_ =  0;
+            
+            int top = numTracks - trackNavigators_.size();
+            
+            if(folderTrackOffset_ >  top)
+                folderTrackOffset_ = top;
+        }
     }
         
     void ToggleVCAMode()
     {
-        vcaMode_ = ! vcaMode_;
+        isVCAModeEnabled_ = ! isVCAModeEnabled_;
     }
     
     Navigator* GetNavigatorForChannel(int channelNum)
@@ -1656,29 +1696,39 @@ public:
     
     MediaTrack* GetTrackFromChannel(int channelNumber)
     {
-        if(! vcaMode_)
+        if(! isVCAModeEnabled_ && ! isFolderModeEnabled_)
         {
             return GetTrackFromId(channelNumber + trackOffset_ + 1);    // Master Track is idx 0, so add 1
         }
-        else if(vcaLeadTracks_.size() == 0)
+        else if(isFolderModeEnabled_)
         {
-            if(vcaTopLeadTracks_.size() > channelNumber && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
-                return vcaTopLeadTracks_[channelNumber];
+            if(channelNumber < folderTracks_.size())
+                return folderTracks_[channelNumber];
             else
                 return nullptr;
         }
-        else
+        else if(isVCAModeEnabled_)
         {
-            if(channelNumber < vcaLeadTracks_.size())
-                return vcaLeadTracks_[channelNumber];
+            if(vcaLeadTracks_.size() == 0)
+            {
+                if(vcaTopLeadTracks_.size() > channelNumber && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
+                    return vcaTopLeadTracks_[channelNumber];
+                else
+                    return nullptr;
+            }
             else
             {
-                channelNumber -= vcaLeadTracks_.size();
-                
-                channelNumber += vcaTrackOffset_;
-                
-                if(channelNumber < vcaSpillTracks_.size())
-                    return vcaSpillTracks_[channelNumber];
+                if(channelNumber < vcaLeadTracks_.size())
+                    return vcaLeadTracks_[channelNumber];
+                else
+                {
+                    channelNumber -= vcaLeadTracks_.size();
+                    
+                    channelNumber += vcaTrackOffset_;
+                    
+                    if(channelNumber < vcaSpillTracks_.size())
+                        return vcaSpillTracks_[channelNumber];
+                }
             }
         }
         
@@ -1700,6 +1750,9 @@ public:
     
     void ToggleVCASpill(MediaTrack* track)
     {
+        if(! isVCAModeEnabled_)
+            return;
+        
         if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") == 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") == 0)
             return;
                
@@ -1717,7 +1770,7 @@ public:
     {
         targetScrollLinkChannel_ = targetChannel - 1 < 0 ? 0 : targetChannel - 1;
         
-        scrollLink_ = ! scrollLink_;
+        isScrollLinkEnabled_ = ! isScrollLinkEnabled_;
         
         OnTrackSelection();
     }
@@ -1734,19 +1787,19 @@ public:
        
     void OnTrackSelection()
     {
-        if(scrollLink_)
+        if(isScrollLinkEnabled_)
             ForceScrollLink();
     }
     
     void OnTrackListChange()
     {
-        if(scrollLink_)
+        if(isScrollLinkEnabled_)
             ForceScrollLink();
     }
 
     void OnTrackSelectionBySurface(MediaTrack* track)
     {
-        if(scrollLink_)
+        if(isScrollLinkEnabled_)
         {
             if(DAW::IsTrackVisible(track, true))
                 DAW::SetMixerScroll(track); // scroll selected MCP tracks into view
@@ -1796,7 +1849,7 @@ public:
     
     void RebuildVCASpill()
     {   
-        if(! vcaMode_)
+        if(! isVCAModeEnabled_)
             return;
     
         vcaTopLeadTracks_.clear();
@@ -1844,6 +1897,21 @@ public:
                 if(isFollower)
                         vcaSpillTracks_.push_back(track);
             }
+        }
+    }
+    
+    void RebuildFolderTracks()
+    {
+        if(! isFolderModeEnabled_)
+            return;
+        
+        folderTracks_.clear();
+        
+        for (int i = 1; i <= GetNumTracks(); i++)
+        {
+            if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
+                if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+                    folderTracks_.push_back(track);
         }
     }
     
@@ -1927,7 +1995,8 @@ public:
         int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
         trackNavigationManager_->RebuildVCASpill();
-        
+        trackNavigationManager_->RebuildFolderTracks();
+     
         for(auto surface : surfaces_)
             surface->HandleExternalInput();
         
@@ -1995,6 +2064,7 @@ public:
     void Run()
     {
         trackNavigationManager_->RebuildVCASpill();
+        trackNavigationManager_->RebuildFolderTracks();
         
         for(auto surface : surfaces_)
             surface->HandleExternalInput();
@@ -2176,6 +2246,8 @@ public:
     void ForceScrollLink() { trackNavigationManager_->ForceScrollLink(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
     void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
+    void NextTrackVCAFolderMode() { trackNavigationManager_->NextTrackVCAFolderMode(); }
+    int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }

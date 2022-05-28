@@ -1606,14 +1606,42 @@ public:
     }
 };
 
-char m_mackie_lasttime[10];
-int m_mackie_lasttime_mode;
-DWORD m_mcu_timedisp_lastforce, m_mcu_meter_lastrun;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FB_MCU_AssigmentDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    FB_MCU_AssigmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : Midi_FeedbackProcessor(surface, widget) {}
+    
+    virtual void SetValue(double value) override
+    {
+        if(value == 0.0) // Track
+        {
+            SendMidiMessage(0xB0, 0x4B, 0x14); // T
+            SendMidiMessage(0xB0, 0x4A, 0x12); // R
+        }
+        else if(value == 1.0) // VCA
+        {
+            SendMidiMessage(0xB0, 0x4B, 0x03); // C
+            SendMidiMessage(0xB0, 0x4A, 0x01); // A
+        }
+        else if(value == 2.0) // Folder
+        {
+            SendMidiMessage(0xB0, 0x4B, 0x06); // F
+            SendMidiMessage(0xB0, 0x4A, 0x0C); // L
+        }
+    }
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class MCU_TimeDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
+private:
+    char m_mackie_lasttime[10];
+    int m_mackie_lasttime_mode;
+    DWORD m_mcu_timedisp_lastforce, m_mcu_meter_lastrun;
+    
 public:
     MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : Midi_FeedbackProcessor(surface, widget) {}
     
