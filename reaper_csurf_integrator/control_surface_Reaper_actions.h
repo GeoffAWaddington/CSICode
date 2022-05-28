@@ -2564,7 +2564,12 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(volToNormalized(DAW::Track_GetPeakInfo(track, context->GetIntParam())));
+        {           
+            if(DAW::AnyTrackSolo(nullptr) && ! GetMediaTrackInfo_Value(track, "I_SOLO"))
+                context->ClearWidget();
+            else
+                context->UpdateWidgetValue(volToNormalized(DAW::Track_GetPeakInfo(track, context->GetIntParam())));
+        }
         else
             context->ClearWidget();
     }
@@ -2583,7 +2588,10 @@ public:
         {
             double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
             
-            context->UpdateWidgetValue(volToNormalized(lrVol));
+            if(DAW::AnyTrackSolo(nullptr) && ! GetMediaTrackInfo_Value(track, "I_SOLO"))
+                context->ClearWidget();
+            else
+                context->UpdateWidgetValue(volToNormalized(lrVol));
         }
         else
             context->ClearWidget();
@@ -2606,7 +2614,10 @@ public:
             
             double lrVol =  lVol > rVol ? lVol : rVol;
             
-            context->UpdateWidgetValue(volToNormalized(lrVol));
+            if(DAW::AnyTrackSolo(nullptr) && ! GetMediaTrackInfo_Value(track, "I_SOLO"))
+                context->ClearWidget();
+            else
+                context->UpdateWidgetValue(volToNormalized(lrVol));
         }
         else
             context->ClearWidget();
