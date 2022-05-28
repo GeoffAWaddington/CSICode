@@ -2565,7 +2565,7 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {           
-            if(DAW::AnyTrackSolo(nullptr) && ! GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(DAW::Track_GetPeakInfo(track, context->GetIntParam())));
@@ -2588,7 +2588,7 @@ public:
         {
             double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
             
-            if(DAW::AnyTrackSolo(nullptr) && ! GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -2614,7 +2614,7 @@ public:
             
             double lrVol =  lVol > rVol ? lVol : rVol;
             
-            if(DAW::AnyTrackSolo(nullptr) && ! GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(lrVol));
