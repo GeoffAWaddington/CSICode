@@ -909,7 +909,6 @@ void Manager::InitActionsDictionary()
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();
     actions_["TimeDisplay"] =                       new TimeDisplay();
-    actions_["EuConTimeDisplay"] =                  new EuConTimeDisplay();
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
     actions_["FixedTextDisplay"] =                  new FixedTextDisplay(); ;
@@ -936,7 +935,6 @@ void Manager::InitActionsDictionary()
     actions_["LeaveSubZone"] =                      new LeaveSubZone();
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
-    actions_["PreventFocusedFXParamMapping"] =      new PreventFocusedFXParamMapping();
     actions_["ToggleEnableFocusedFXParamMapping"] = new ToggleEnableFocusedFXParamMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoTrackSend"] =                       new GoTrackSend();

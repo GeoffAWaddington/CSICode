@@ -711,7 +711,6 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     void ToggleEnableFocusedFXMapping() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
-    void PreventFocusedFXParamMapping() { isFocusedFXParamMappingEnabled_ = false; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
     
     void ToggleEnableFocusedFXParamMapping()
