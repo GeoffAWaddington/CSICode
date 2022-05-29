@@ -908,7 +908,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackAutoMode"] =                     new TrackAutoMode();
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();
-    actions_["TimeDisplay"] =                       new TimeDisplay();
+    actions_["MCUTimeDisplay"] =                    new MCUTimeDisplay();
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
     actions_["FixedTextDisplay"] =                  new FixedTextDisplay(); ;
@@ -1021,6 +1021,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackReceivePanPercent"] =            new TrackReceivePanPercent();
     actions_["TrackReceiveMute"] =                  new TrackReceiveMute();
     actions_["TrackReceiveInvertPolarity"] =        new TrackReceiveInvertPolarity();
+    actions_["TrackReceiveStereoMonoToggle"] =      new TrackReceiveStereoMonoToggle();
     actions_["TrackReceivePrePost"] =               new TrackReceivePrePost();
     actions_["TrackReceiveNameDisplay"] =           new TrackReceiveNameDisplay();
     actions_["TrackReceiveVolumeDisplay"] =         new TrackReceiveVolumeDisplay();
