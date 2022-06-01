@@ -2230,6 +2230,8 @@ void ZoneManager::GoAssociatedZone(string associatedZoneName)
 
 void ZoneManager::GoHome()
 {
+    surface_->GetPage()->ResetTrackVCAFolderMode();
+    
     string zoneName = "Home";
     
     if(broadcast_.count(zoneName) > 0)

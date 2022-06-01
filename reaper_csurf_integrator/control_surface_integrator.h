@@ -1548,6 +1548,13 @@ public:
             isFolderModeEnabled_ = false;
     }
     
+    void ResetTrackVCAFolderMode()
+    {
+        currentTrackVCAFolderMode_ = 0;
+        isVCAModeEnabled_ = false;
+        isFolderModeEnabled_ = false;
+    }
+    
     void SetAutoModeIndex()
     {
         if(MediaTrack* track =  GetSelectedTrackNavigator()->GetTrack())
@@ -2246,6 +2253,7 @@ public:
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
     void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
     void NextTrackVCAFolderMode() { trackNavigationManager_->NextTrackVCAFolderMode(); }
+    void ResetTrackVCAFolderMode() { trackNavigationManager_->ResetTrackVCAFolderMode(); }
     int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
