@@ -559,7 +559,11 @@ public:
 
     virtual ~SubZone() {}
     
-    virtual void GoSubZone(string subZoneName) override;
+    virtual void GoSubZone(string subZoneName) override
+    {
+        Deactivate();
+        enclosingZone_->GoSubZone(subZoneName);
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
