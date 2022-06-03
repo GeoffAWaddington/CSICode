@@ -1001,7 +1001,7 @@ void Manager::InitActionsDictionary()
     actions_["FXParamValueDisplay"] =               new FXParamValueDisplay();
     actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
     actions_["FocusedFXParamValueDisplay"] =        new FocusedFXParamValueDisplay();
-    actions_["FXBypassedDisplay"] =                  new FXBypassedDisplay();
+    actions_["FXBypassedDisplay"] =                 new FXBypassedDisplay();
     actions_["FXGainReductionMeter"] =              new FXGainReductionMeter();
     actions_["TrackSendVolume"] =                   new TrackSendVolume();
     actions_["TrackSendVolumeDB"] =                 new TrackSendVolumeDB();
