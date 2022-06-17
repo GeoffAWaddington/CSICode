@@ -1634,6 +1634,13 @@ void Zone::InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone)
 
 void Zone::GoAssociatedZone(string zoneName)
 {
+    if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
+    {
+        for(auto zone : associatedZones_[zoneName])
+            zone->Deactivate();
+        return;
+    }
+    
     for(auto [key, zones] : associatedZones_)
         for(auto zone : zones)
             zone->Deactivate();
