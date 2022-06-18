@@ -1069,8 +1069,8 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
-    int* scrubModePtr = nullptr;
-    int configScrubMode = 0;
+    int* scrubModePtr_ = nullptr;
+    int configScrubMode_ = 0;
 
     bool isRewinding_ = false;
     bool isFastForwarding_ = false;
@@ -1079,7 +1079,7 @@ protected:
     ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
     {
         int size = 0;
-        scrubModePtr = (int*)get_config_var("scrubmode", &size);
+        scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
     }
     
     Page* const page_;
@@ -1099,13 +1099,13 @@ protected:
     void StopRewinding()
     {
         isRewinding_ = false;
-        *scrubModePtr = configScrubMode;
+        *scrubModePtr_ = configScrubMode_;
     }
     
     void StopFastForwarding()
     {
         isFastForwarding_ = false;
-        *scrubModePtr = configScrubMode;
+        *scrubModePtr_ = configScrubMode_;
     }
         
     void CancelRewindAndFastForward()
@@ -1203,8 +1203,8 @@ public:
         DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
         
         isRewinding_ = true;
-        configScrubMode = *scrubModePtr;
-        *scrubModePtr = 2;
+        configScrubMode_ = *scrubModePtr_;
+        *scrubModePtr_ = 2;
     }
        
     void StartFastForwarding()
@@ -1226,8 +1226,8 @@ public:
         DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
         
         isFastForwarding_ = true;
-        configScrubMode = *scrubModePtr;
-        *scrubModePtr = 2;
+        configScrubMode_ = *scrubModePtr_;
+        *scrubModePtr_ = 2;
     }
     
     void RequestUpdate()
