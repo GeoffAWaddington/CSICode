@@ -1094,14 +1094,7 @@ protected:
     
     map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     
-    virtual void InitHardwiredWidgets()
-    {
-        // Add the "hardwired" widgets
-        AddWidget(new Widget(this, "OnTrackSelection"));
-        AddWidget(new Widget(this, "OnPageEnter"));
-        AddWidget(new Widget(this, "OnPageLeave"));
-        AddWidget(new Widget(this, "OnInitialization"));
-    }
+    bool speedX5_ = false;
     
     void StopRewinding()
     {
@@ -1121,6 +1114,17 @@ protected:
             StopRewinding();
         else if(isFastForwarding_)
             StopFastForwarding();
+
+        speedX5_ = false;
+    }
+    
+    virtual void InitHardwiredWidgets()
+    {
+        // Add the "hardwired" widgets
+        AddWidget(new Widget(this, "OnTrackSelection"));
+        AddWidget(new Widget(this, "OnPageEnter"));
+        AddWidget(new Widget(this, "OnPageLeave"));
+        AddWidget(new Widget(this, "OnInitialization"));
     }
     
 public:
@@ -1161,6 +1165,9 @@ public:
 
     void Stop()
     {
+        if(isRewinding_ || isFastForwarding_) // set the cursor to the Play position
+            DAW::CSurf_OnPlay();
+        
         CancelRewindAndFastForward();
         DAW::CSurf_OnStop();
     }
@@ -1180,8 +1187,17 @@ public:
     void StartRewinding()
     {
         if(isFastForwarding_)
+        {
             StopFastForwarding();
+            DAW::CSurf_OnPlay();
+        }
 
+        if(isRewinding_)
+        {
+            speedX5_ = ! speedX5_;
+            return;
+        }
+        
         DAW::CSurf_OnStop();
 
         DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
@@ -1194,8 +1210,17 @@ public:
     void StartFastForwarding()
     {
         if(isRewinding_)
+        {
             StopRewinding();
+            DAW::CSurf_OnPlay();
+        }
 
+        if(isFastForwarding_)
+        {
+            speedX5_ = ! speedX5_;
+            return;
+        }
+        
         DAW::CSurf_OnStop();
 
         DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
@@ -1214,7 +1239,17 @@ public:
             if(DAW::GetCursorPosition() == 0)
                 StopRewinding();
             else
+            {
                 DAW::CSurf_OnRew(0);
+
+                if(speedX5_ == true)
+                {
+                    DAW::CSurf_OnRew(0);
+                    DAW::CSurf_OnRew(0);
+                    DAW::CSurf_OnRew(0);
+                    DAW::CSurf_OnRew(0);
+                }
+            }
         }
             
         else if(isFastForwarding_)
@@ -1222,7 +1257,17 @@ public:
             if(DAW::GetCursorPosition() > DAW::GetProjectLength(nullptr))
                 StopFastForwarding();
             else
+            {
                 DAW::CSurf_OnFwd(0);
+                
+                if(speedX5_ == true)
+                {
+                    DAW::CSurf_OnFwd(0);
+                    DAW::CSurf_OnFwd(0);
+                    DAW::CSurf_OnFwd(0);
+                    DAW::CSurf_OnFwd(0);
+                }
+            }
         }
     }
 
