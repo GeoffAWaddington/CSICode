@@ -1102,7 +1102,27 @@ protected:
         AddWidget(new Widget(this, "OnPageLeave"));
         AddWidget(new Widget(this, "OnInitialization"));
     }
-            
+    
+    void StopRewinding()
+    {
+        isRewinding_ = false;
+        *scrubModePtr = configScrubMode;
+    }
+    
+    void StopFastForwarding()
+    {
+        isFastForwarding_ = false;
+        *scrubModePtr = configScrubMode;
+    }
+        
+    void CancelRewindAndFastForward()
+    {
+        if(isRewinding_)
+            StopRewinding();
+        else if(isFastForwarding_)
+            StopFastForwarding();
+    }
+    
 public:
     virtual ~ControlSurface()
     {
@@ -1136,40 +1156,74 @@ public:
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
     
+    bool GetIsRewinding() { return isRewinding_; }
+    bool GetIsFastForwarding() { return isFastForwarding_; }
+
+    void Stop()
+    {
+        CancelRewindAndFastForward();
+        DAW::CSurf_OnStop();
+    }
+    
+    void Play()
+    {
+        CancelRewindAndFastForward();
+        DAW::CSurf_OnPlay();
+    }
+    
+    void Record()
+    {
+        CancelRewindAndFastForward();
+        DAW::CSurf_OnRecord();
+    }
+    
     void StartRewinding()
     {
+        if(isFastForwarding_)
+            StopFastForwarding();
+
+        DAW::CSurf_OnStop();
+
+        DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
+        
         isRewinding_ = true;
         configScrubMode = *scrubModePtr;
         *scrubModePtr = 2;
     }
-    
-    void StopRewinding()
-    {
-        isRewinding_ = false;
-        *scrubModePtr = configScrubMode;
-    }
-    
+       
     void StartFastForwarding()
     {
+        if(isRewinding_)
+            StopRewinding();
+
+        DAW::CSurf_OnStop();
+
+        DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
+        
         isFastForwarding_ = true;
         configScrubMode = *scrubModePtr;
         *scrubModePtr = 2;
     }
     
-    void StopFastForwarding()
-    {
-        isFastForwarding_ = false;
-        *scrubModePtr = configScrubMode;
-    }
-
     void RequestUpdate()
     {
         zoneManager_->RequestUpdate();
         
         if(isRewinding_)
-            DAW::CSurf_OnRew(1);
+        {
+            if(DAW::GetCursorPosition() == 0)
+                StopRewinding();
+            else
+                DAW::CSurf_OnRew(0);
+        }
+            
         else if(isFastForwarding_)
-            DAW::CSurf_OnFwd(1);
+        {
+            if(DAW::GetCursorPosition() > DAW::GetProjectLength(nullptr))
+                StopFastForwarding();
+            else
+                DAW::CSurf_OnFwd(0);
+        }
     }
 
     void ClearAllWidgets()

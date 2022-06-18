@@ -1989,13 +1989,12 @@ class Rewind : public Action
 {
 public:
     virtual string GetName() override { return "Rewind"; }
-
+    
     virtual void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0)
-            context->GetSurface()->StopRewinding();
-        else
-            context->GetSurface()->StartRewinding();
+        if(value == 0.0) return; // ignore button releases
+
+        context->GetSurface()->StartRewinding();
     }
 };
 
@@ -2008,10 +2007,9 @@ public:
 
     virtual void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0)
-            context->GetSurface()->StopFastForwarding();
-        else
-            context->GetSurface()->StartFastForwarding();
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->StartFastForwarding();
     }
 };
 
@@ -2029,6 +2027,9 @@ public:
             playState = 1;
         else playState = 0;
 
+        if(context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
+            playState = 0;
+
         return playState;
     }
 
@@ -2041,7 +2042,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        DAW::CSurf_OnPlay();
+        context->GetSurface()->Play();
     }
 };
 
@@ -2058,7 +2059,10 @@ public:
         if(stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
             stopState = 1;
         else stopState = 0;
-
+       
+        if(context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
+            stopState = 0;
+        
         return stopState;
     }
 
@@ -2071,7 +2075,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        DAW::CSurf_OnStop();
+        context->GetSurface()->Stop();
     }
 };
 
@@ -2089,6 +2093,9 @@ public:
             recordState = 1;
         else recordState = 0;
         
+        if(context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
+            recordState = 0;
+        
         return recordState;
     }
 
@@ -2101,7 +2108,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        DAW::CSurf_OnRecord();
+        context->GetSurface()->Record();
     }
 };
 

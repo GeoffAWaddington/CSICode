@@ -122,6 +122,14 @@ public:
 
     static void CSurf_OnArrow(int whichdir, bool wantzoom) { ::CSurf_OnArrow(whichdir, wantzoom); }
     
+    static double GetPlayPosition() { return ::GetPlayPosition(); }
+    
+    static void SetEditCurPos(double time, bool moveview, bool seekplay) { ::SetEditCurPos(time, moveview, seekplay);  }
+
+    static double GetCursorPosition() { return ::GetCursorPosition(); }
+
+    static double GetProjectLength(ReaProject* proj) { return ::GetProjectLength(proj); }
+
     static void CSurf_OnRew(int seekplay) { ::CSurf_OnRew(seekplay); }
     
     static void CSurf_OnFwd(int seekplay) { ::CSurf_OnFwd(seekplay); }
