@@ -1108,12 +1108,16 @@ protected:
     {
         isRewinding_ = false;
         *scrubModePtr_ = configScrubMode_;
+    
+        speedX5_ = false;
     }
     
     void StopFastForwarding()
     {
         isFastForwarding_ = false;
         *scrubModePtr_ = configScrubMode_;
+    
+        speedX5_ = false;
     }
         
     void CancelRewindAndFastForward()
@@ -1122,8 +1126,6 @@ protected:
             StopRewinding();
         else if(isFastForwarding_)
             StopFastForwarding();
-
-        speedX5_ = false;
     }
     
     virtual void InitHardwiredWidgets()
@@ -1195,20 +1197,19 @@ public:
     void StartRewinding()
     {
         if(isFastForwarding_)
-        {
             StopFastForwarding();
-            DAW::CSurf_OnPlay();
-        }
 
-        if(isRewinding_)
+        if(isRewinding_) // on 2nd, 3rd, etc. press
         {
             speedX5_ = ! speedX5_;
             return;
         }
         
-        DAW::CSurf_OnStop();
+        int playState = DAW::GetPlayState();
+        if(playState == 1 || playState == 2 || playState == 5 || playState == 6) // playing or paused or recording or paused whilst recording
+            DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
 
-        DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
+        DAW::CSurf_OnStop();
         
         isRewinding_ = true;
         configScrubMode_ = *scrubModePtr_;
@@ -1218,20 +1219,19 @@ public:
     void StartFastForwarding()
     {
         if(isRewinding_)
-        {
             StopRewinding();
-            DAW::CSurf_OnPlay();
-        }
 
-        if(isFastForwarding_)
+        if(isFastForwarding_) // on 2nd, 3rd, etc. press
         {
             speedX5_ = ! speedX5_;
             return;
         }
         
-        DAW::CSurf_OnStop();
+        int playState = DAW::GetPlayState();
+        if(playState == 1 || playState == 2 || playState == 5 || playState == 6) // playing or paused or recording or paused whilst recording
+            DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
 
-        DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
+        DAW::CSurf_OnStop();
         
         isFastForwarding_ = true;
         configScrubMode_ = *scrubModePtr_;
