@@ -691,6 +691,7 @@ public:
     void GoFocusedFX();
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
+    void ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
     void GoAssociatedZone(string zoneName);
     void HandleActivation(string zoneName);
     void AdjustTrackSendBank(int amount);
@@ -754,6 +755,13 @@ public:
         fxSlotZones_.clear();
     }
     
+    void HandleGoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+    {
+        if((navigator->GetName() == "TrackNavigator" && receive_.count("TrackFXMenu") > 0) ||
+           (navigator->GetName() == "SelectedTrackNavigator" && receive_.count("SelectedTrackFXMenu")) > 0)
+            ActivateTrackFXSlot(track, navigator, fxSlot);
+    }
+    
     void HandleTrackSendBank(int amount)
     {
         if(receive_.count("TrackSend") > 0)
@@ -768,7 +776,7 @@ public:
 
     void HandleTrackFXMenuBank(int amount)
     {
-        if(receive_.count("TTrackFXMenu") > 0)
+        if(receive_.count("TrackFXMenu") > 0)
             AdjustTrackFXMenuOffset(amount);
     }
     
@@ -2312,12 +2320,18 @@ public:
             surface->OnInitialization();
     }
     
+    void SignalGoTrackFXSlot(ControlSurface* originatingSurface, MediaTrack* track, Navigator* navigator, int fxSlot)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleGoTrackFXSlot(track, navigator, fxSlot);
+    }
+    
     void SignalActivation(ControlSurface* originatingSurface, string zoneName)
     {
         for(auto surface : surfaces_)
             if(surface != originatingSurface)
                 surface->GetZoneManager()->HandleActivation(zoneName);
-
     }
     
     void SignalTrackSendBank(ControlSurface* originatingSurface, int amount)

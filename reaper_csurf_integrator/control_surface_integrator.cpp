@@ -2162,6 +2162,15 @@ void ZoneManager::GoSelectedTrackFX()
 
 void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
 {
+    if((navigator->GetName() == "TrackNavigator" && broadcast_.count("TrackFXMenu") > 0) ||
+       (navigator->GetName() == "SelectedTrackNavigator" && broadcast_.count("SelectedTrackFXMenu")) > 0)
+        GetSurface()->GetPage()->SignalGoTrackFXSlot(GetSurface(), track, navigator, fxSlot);
+    
+    ActivateTrackFXSlot(track, navigator, fxSlot);
+}
+
+void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+{
     LockoutFocusedFXMapping();
     
     char FXName[BUFSZ];
