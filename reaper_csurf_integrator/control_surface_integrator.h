@@ -626,13 +626,13 @@ private:
     map<Widget*, bool> usedWidgets_;
 
     shared_ptr<Zone> homeZone_ = nullptr;
+    
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
 
     map<int, map<int, int>> focusedFXDictionary_;
     vector<shared_ptr<Zone>> focusedFXZones_;
     bool isFocusedFXMappingEnabled_ = true;
-    bool isFocusedFXMappingLockedOut_ = false;
     
     vector<shared_ptr<Zone>> selectedTrackFXZones_;
     vector<shared_ptr<Zone>> fxSlotZones_;
@@ -662,12 +662,6 @@ private:
         selectedTrackSendOffset_ = 0;
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
-    }
-    
-    void LockoutFocusedFXMapping()
-    {
-        focusedFXZones_.clear();
-        isFocusedFXMappingLockedOut_ = true;
     }
        
 public:
@@ -749,7 +743,6 @@ public:
     
     void ClearFXMapping()
     {
-        isFocusedFXMappingLockedOut_ = false;
         focusedFXZones_.clear();
         selectedTrackFXZones_.clear();
         fxSlotZones_.clear();
@@ -883,7 +876,7 @@ public:
     
     void CheckFocusedFXState()
     {
-        if(isFocusedFXMappingLockedOut_ || ! isFocusedFXMappingEnabled_)
+        if(! isFocusedFXMappingEnabled_)
             return;
         
         int trackNumber = 0;

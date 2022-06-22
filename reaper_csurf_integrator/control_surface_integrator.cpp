@@ -2134,8 +2134,6 @@ void ZoneManager::GoFocusedFX()
 
 void ZoneManager::GoSelectedTrackFX()
 {
-    LockoutFocusedFXMapping();
-    
     selectedTrackFXZones_.clear();
     
     if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
@@ -2171,8 +2169,6 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxS
 
 void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
 {
-    LockoutFocusedFXMapping();
-    
     char FXName[BUFSZ];
     
     DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
