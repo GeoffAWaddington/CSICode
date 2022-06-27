@@ -1373,18 +1373,7 @@ void ActionContext::UpdateWidgetValue(double value)
         widget_->UpdateRGBValue(RGBValues_[currentRGBIndex_].r, RGBValues_[currentRGBIndex_].g, RGBValues_[currentRGBIndex_].b);
     }
     else if(supportsTrackColor_)
-    {
-        if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
-        {
-            unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
-            
-            int r = (*rgb_colour >> 0) & 0xff;
-            int g = (*rgb_colour >> 8) & 0xff;
-            int b = (*rgb_colour >> 16) & 0xff;
-            
-            widget_->UpdateRGBValue(r, g, b);
-        }
-    }
+        UpdateTrackColor();
 }
 
 void ActionContext::UpdateWidgetValue(int param, double value)
@@ -1404,17 +1393,24 @@ void ActionContext::UpdateWidgetValue(int param, double value)
         widget_->UpdateRGBValue(RGBValues_[currentRGBIndex_].r, RGBValues_[currentRGBIndex_].g, RGBValues_[currentRGBIndex_].b);
     }
     else if(supportsTrackColor_)
+        UpdateTrackColor();
+}
+
+void ActionContext::UpdateTrackColor()
+{
+    if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
     {
-        if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
-        {
-            unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
-            
-            int r = (*rgb_colour >> 0) & 0xff;
-            int g = (*rgb_colour >> 8) & 0xff;
-            int b = (*rgb_colour >> 16) & 0xff;
-            
+        unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
+        
+        int r = (*rgb_colour >> 0) & 0xff;
+        int g = (*rgb_colour >> 8) & 0xff;
+        int b = (*rgb_colour >> 16) & 0xff;
+        
+        #ifdef WIN32
             widget_->UpdateRGBValue(r, g, b);
-        }
+        #else
+            widget_->UpdateRGBValue(b, g, r);
+        #endif
     }
 }
 

@@ -270,6 +270,8 @@ private:
     vector<vector<string>> properties_;
     
     vector<string> zoneNames_;
+    
+    void UpdateTrackColor();
 
 public:
     ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
