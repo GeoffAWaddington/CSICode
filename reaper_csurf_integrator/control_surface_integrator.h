@@ -596,6 +596,7 @@ public:
     void UpdateValue(string value);
     void UpdateRGBValue(int r, int g, int b);
     void Clear();
+    void ForceClear();
     void LogInput(double value);
     
     void AddFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
@@ -1168,6 +1169,12 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
+    void ForceClearWidgets()
+    {
+        for(auto widget : widgets_)
+            widget->ForceClear();
+    }
+    
     void Stop()
     {
         if(isRewinding_ || isFastForwarding_) // set the cursor to the Play position
@@ -1273,12 +1280,6 @@ public:
             }
         }
     }
-
-    void ClearAllWidgets()
-    {
-        for(auto widget : widgets_)
-            widget->Clear();
-    }
        
     void AddWidget(Widget* widget)
     {
@@ -1378,6 +1379,14 @@ public:
         SetValue(0, 0.0);
         SetValue("");
         SetRGBValue(0, 0, 0);
+    }
+    
+    void ForceClear()
+    {
+        ForceValue(0.0);
+        ForceValue(0, 0.0);
+        ForceValue("");
+        ForceRGBValue(0, 0, 0);
     }
 };
 
@@ -2185,10 +2194,10 @@ public:
             surface->RequestUpdate();
     }
 //*/
-    void ClearAllWidgets()
+    void ForceClear()
     {
         for(auto surface : surfaces_)
-            surface->ClearAllWidgets();
+            surface->ForceClearWidgets();
     }
     
     void ForceRefreshTimeDisplay()
@@ -2465,7 +2474,7 @@ public:
         shouldRun_ = false;
         
         if(pages_.size() > 0)
-            pages_[currentPageIndex_]->ClearAllWidgets();
+            pages_[currentPageIndex_]->ForceClear();
     }
     
     void Init();

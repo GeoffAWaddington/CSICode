@@ -1132,6 +1132,9 @@ void Manager::Init()
                 currentPageIndex_ = 0;
         }
         
+        if(pages_.size() > 0)
+            pages_[currentPageIndex_]->ForceClear();       
+        
         // Restore the BankIndex
         result = DAW::GetProjExtState(0, "CSI", "BankIndex", buf, sizeof(buf));
         
@@ -1941,6 +1944,12 @@ void  Widget::Clear()
 {
     for(auto processor : feedbackProcessors_)
         processor->Clear();
+}
+
+void  Widget::ForceClear()
+{
+    for(auto processor : feedbackProcessors_)
+        processor->ForceClear();
 }
 
 void Widget::LogInput(double value)
