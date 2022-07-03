@@ -1990,6 +1990,14 @@ class Rewind : public Action
 public:
     virtual string GetName() override { return "Rewind"; }
     
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetIsRewinding())
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -2005,6 +2013,14 @@ class FastForward : public Action
 public:
     virtual string GetName() override { return "FastForward"; }
 
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetIsFastForwarding())
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+    
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
