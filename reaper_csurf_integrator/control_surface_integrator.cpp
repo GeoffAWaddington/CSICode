@@ -919,6 +919,7 @@ void Manager::InitActionsDictionary()
     actions_["Stop"] =                              new Stop();
     actions_["Record"] =                            new Record();
     actions_["CycleTimeline"] =                     new CycleTimeline();
+    actions_["ToggleSynchPageBanking"] =            new ToggleSynchPageBanking();
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
     actions_["ForceScrollLink"] =                   new ForceScrollLink();
     actions_["ToggleVCAMode"] =                     new ToggleVCAMode();
@@ -1032,6 +1033,8 @@ void Manager::InitActionsDictionary()
 void Manager::Init()
 {
     pages_.clear();
+    
+    map<string, Midi_ControlSurfaceIO*> midiSurfaces;
 
     Page* currentPage = nullptr;
     
@@ -1085,28 +1088,31 @@ void Manager::Init()
             
             vector<string> tokens(GetTokens(line));
             
-            if(tokens.size() > 4) // ignore comment lines and blank lines
+            if(tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if(tokens[0] == PageToken)
+                if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
+                    midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
+                // OSC surfaces here
+                else if(tokens[0] == PageToken)
                 {
                     currentPage = nullptr;
                     
-                    if(tokens.size() == 5)
+                    if(tokens.size() == 2)
                     {
-                        currentPage = new Page(tokens[1], tokens[2] == FollowMCPToken ? true : false, tokens[3] == "SynchPages" ? true : false, tokens[4] == "UseScrollLink" ? true : false);
+                        currentPage = new Page(tokens[1]);
                         pages_.push_back(currentPage);
                     }
                 }
-                else if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
+                else
                 {
-                    if(currentPage)
+                    if(currentPage && tokens.size() == 5)
                     {
                         ControlSurface* surface = nullptr;
                         
-                        if(tokens[0] == MidiSurfaceToken && tokens.size() == 8)
-                            surface = new Midi_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
-                        else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
-                            surface = new OSC_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], atoi(tokens[3].c_str())));
+                        if(midiSurfaces.count(tokens[0]) > 0)
+                            surface = new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]]);
+                        //else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
+                            //surface = new OSC_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), //GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], atoi(tokens[3].c_str())));
 
                         if(surface != nullptr)
                             currentPage->AddSurface(surface);
@@ -2323,6 +2329,22 @@ void ControlSurface::OnTrackSelection()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Midi_ControlSurfaceIO
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
+{
+    if(midiInput_)
+    {
+        DAW::SwapBufsPrecise(midiInput_);
+        MIDI_eventlist* list = midiInput_->GetReadBuf();
+        int bpos = 0;
+        MIDI_event_t* evt;
+        while ((evt = list->EnumItems(&bpos)))
+            surface->ProcessMidiMessage((MIDI_event_ex_t*)evt);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Midi_ControlSurface::Initialize(string templateFilename, string zoneFolder)
@@ -2368,8 +2390,7 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
 
 void Midi_ControlSurface::SendMidiMessage(MIDI_event_ex_t* midiMessage)
 {
-    if(midiOutput_)
-        midiOutput_->SendMsg(midiMessage, -1);
+    surfaceIO_->SendMidiMessage(midiMessage);
     
     string output = "OUT->" + name_ + " ";
     
@@ -2390,8 +2411,7 @@ void Midi_ControlSurface::SendMidiMessage(MIDI_event_ex_t* midiMessage)
 
 void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
 {
-    if(midiOutput_)
-        midiOutput_->Send(first, second, third, -1);
+    surfaceIO_->SendMidiMessage(first, second, third);
     
     if(TheManager->GetSurfaceOutDisplay())
     {

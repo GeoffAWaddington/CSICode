@@ -82,20 +82,35 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ToggleSynchPageBanking : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ToggleSynchPageBanking"; }
+    
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(context->GetPage()->GetSynchPages());
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->ToggleSynchPages();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ToggleScrollLink : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
     virtual string GetName() override { return "ToggleScrollLink"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        return context->GetPage()->GetScrollLink();
-    }
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        context->UpdateWidgetValue(context->GetPage()->GetScrollLink());
     }
     
     void Do(ActionContext* context, double value) override
@@ -364,7 +379,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFX"))
-           context->UpdateWidgetValue(1.0);
+            context->UpdateWidgetValue(1.0);
         else
             context->ClearWidget();
     }

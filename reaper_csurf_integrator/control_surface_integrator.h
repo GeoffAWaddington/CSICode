@@ -1431,21 +1431,45 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class Midi_ControlSurfaceIO
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    string const name_ = "";
+    midi_Input* const midiInput_ = nullptr;
+    midi_Output* const midiOutput_ = nullptr;
+    
+public:
+    Midi_ControlSurfaceIO(string name, midi_Input* midiInput, midi_Output* midiOutput) : name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
+    
+    void HandleExternalInput(Midi_ControlSurface* surface);
+    
+    void SendMidiMessage(MIDI_event_ex_t* midiMessage)
+    {
+        if(midiOutput_)
+            midiOutput_->SendMsg(midiMessage, -1);
+    }
+
+    void SendMidiMessage(int first, int second, int third)
+    {
+        if(midiOutput_)
+            midiOutput_->Send(first, second, third, -1);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Midi_ControlSurface : public ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string templateFilename_ = "";
-    midi_Input* midiInput_ = nullptr;
-    midi_Output* midiOutput_ = nullptr;
+    string const templateFilename_ = "";
+    Midi_ControlSurfaceIO* surfaceIO_ = nullptr;
     map<int, vector<Midi_CSIMessageGenerator*>> Midi_CSIMessageGeneratorsByMessage_;
     
     // special processing for MCU meters
     bool hasMCUMeters_ = false;
     int displayType_ = 0x14;
     
-    void ProcessMidiMessage(const MIDI_event_ex_t* evt);
-   
     void Initialize(string templateFilename, string zoneFolder);
 
     void InitializeMCU();
@@ -1463,14 +1487,15 @@ private:
     }
 
 public:
-    Midi_ControlSurface(Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, midi_Input* midiInput, midi_Output* midiOutput)
-    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), midiInput_(midiInput), midiOutput_(midiOutput)
+    Midi_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO)
+    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
     
     virtual ~Midi_ControlSurface() {}
     
+    void ProcessMidiMessage(const MIDI_event_ex_t* evt);
     void SendMidiMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
 
@@ -1482,15 +1507,7 @@ public:
     
     virtual void HandleExternalInput() override
     {
-        if(midiInput_)
-        {
-            DAW::SwapBufsPrecise(midiInput_);
-            MIDI_eventlist* list = midiInput_->GetReadBuf();
-            int bpos = 0;
-            MIDI_event_t* evt;
-            while ((evt = list->EnumItems(&bpos)))
-                ProcessMidiMessage((MIDI_event_ex_t*)evt);
-        }
+        surfaceIO_->HandleExternalInput(this);
     }
     
     void AddCSIMessageGenerator(int message, Midi_CSIMessageGenerator* messageGenerator)
@@ -1589,8 +1606,8 @@ class TrackNavigationManager
 private:
     Page* const page_ = nullptr;
     bool followMCP_ = true;
-    bool synchPages_ = false;
-    bool isScrollLinkEnabled_ = false;
+    bool synchPages_ = true;
+    bool isScrollLinkEnabled_ = true;
     bool isVCAModeEnabled_ = false;
     bool isFolderModeEnabled_ = false;
     int currentTrackVCAFolderMode_ = 0;
@@ -1614,7 +1631,7 @@ private:
     
    
 public:
-    TrackNavigationManager(Page* page, bool followMCP, bool synchPages, bool scrollLink) : page_(page), followMCP_(followMCP), synchPages_(synchPages), isScrollLinkEnabled_(scrollLink),
+    TrackNavigationManager(Page* page) : page_(page),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
     focusedFXNavigator_(new FocusedFXNavigator(page_)),
@@ -1887,6 +1904,11 @@ public:
         vcaTrackOffset_ = 0;
     }
    
+    void ToggleSynchPages()
+    {
+        synchPages_ = ! synchPages_;
+    }
+    
     void ToggleScrollLink(int targetChannel)
     {
         targetScrollLinkChannel_ = targetChannel - 1 < 0 ? 0 : targetChannel - 1;
@@ -2088,7 +2110,7 @@ private:
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name, bool followMCP, bool synchPages, bool scrollLink) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, scrollLink)) {}
+    Page(string name) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this)) {}
     
     ~Page()
     {
@@ -2381,6 +2403,7 @@ public:
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
     void ToggleVCASpill(MediaTrack* track) { trackNavigationManager_->ToggleVCASpill(track); }
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
+    void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
     MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
     void SetAutoModeIndex() { trackNavigationManager_->SetAutoModeIndex(); }
     void NextAutoMode() { trackNavigationManager_->NextAutoMode(); }
