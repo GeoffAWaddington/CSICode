@@ -1548,22 +1548,79 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class OSC_ControlSurface : public ControlSurface
+class OSC_ControlSurfaceIO
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string templateFilename_ = "";
+    string const name_ = "";
     shared_ptr<oscpkt::UdpSocket> const inSocket_ = nullptr;
     shared_ptr<oscpkt::UdpSocket> const outSocket_ = nullptr;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
-    
-    void Initialize(string templateFilename, string zoneFolder);
-    void ProcessOSCMessage(string message, double value);
 
 public:
-    OSC_ControlSurface(Page* page, const string name, string templateFilename, string zoneFolder, int numChannels, int channelOffset, shared_ptr<oscpkt::UdpSocket> inSocket, shared_ptr<oscpkt::UdpSocket> outSocket)
-    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), inSocket_(inSocket), outSocket_(outSocket)
+    OSC_ControlSurfaceIO(string name, shared_ptr<oscpkt::UdpSocket> inSocket, shared_ptr<oscpkt::UdpSocket> outSocket) : name_(name), inSocket_(inSocket), outSocket_(outSocket)  {}
+    
+    void HandleExternalInput(OSC_ControlSurface* surface);
+    
+    void SendOSCMessage(string oscAddress, double value)
+    {
+        if(outSocket_ != nullptr && outSocket_->isOk())
+        {
+            oscpkt::Message message;
+            message.init(oscAddress).pushFloat((float)value);
+            packetWriter_.init().addMessage(message);
+            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+        }
+    }
+    
+    void SendOSCMessage(string oscAddress, int value)
+    {
+        if(outSocket_ != nullptr && outSocket_->isOk())
+        {
+            oscpkt::Message message;
+            message.init(oscAddress).pushInt64(value);
+            packetWriter_.init().addMessage(message);
+            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+        }
+    }
+    
+    void SendOSCMessage( string oscAddress, string value)
+    {
+        if(outSocket_ != nullptr && outSocket_->isOk())
+        {
+            oscpkt::Message message;
+            message.init(oscAddress).pushStr(value);
+            packetWriter_.init().addMessage(message);
+            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+        }
+    }
+    
+    void ActivatingZone(string zoneName)
+    {
+        if(outSocket_ != nullptr && outSocket_->isOk())
+        {
+            oscpkt::Message message;
+            message.init(zoneName);
+            packetWriter_.init().addMessage(message);
+            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSC_ControlSurface : public ControlSurface
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    string const templateFilename_ = "";
+    OSC_ControlSurfaceIO* const surfaceIO_ = nullptr;
+    
+    void Initialize(string templateFilename, string zoneFolder);
+
+public:
+    OSC_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO)
+    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -1571,31 +1628,14 @@ public:
     virtual ~OSC_ControlSurface() {}
     
     virtual void ActivatingZone(string zoneName) override;
+    void ProcessOSCMessage(string message, double value);
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value);
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, int value);
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, string value);
     
     virtual void HandleExternalInput() override
     {
-        if(inSocket_ != nullptr && inSocket_->isOk())
-        {
-            while (inSocket_->receiveNextPacket(0))  // timeout, in ms
-            {
-                packetReader_.init(inSocket_->packetData(), inSocket_->packetSize());
-                oscpkt::Message *message;
-                
-                while (packetReader_.isOk() && (message = packetReader_.popMessage()) != 0)
-                {
-                    float value = 0;
-                    
-                    if(message->arg().isFloat())
-                    {
-                        message->arg().popFloat(value);
-                        ProcessOSCMessage(message->addressPattern(), value);
-                    }
-                }
-            }
-        }
+        surfaceIO_->HandleExternalInput(this);
     }
 };
 

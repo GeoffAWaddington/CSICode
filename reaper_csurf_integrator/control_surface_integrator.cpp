@@ -1035,6 +1035,7 @@ void Manager::Init()
     pages_.clear();
     
     map<string, Midi_ControlSurfaceIO*> midiSurfaces;
+    map<string, OSC_ControlSurfaceIO*> oscSurfaces;
 
     Page* currentPage = nullptr;
     
@@ -1092,7 +1093,8 @@ void Manager::Init()
             {
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
                     midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
-                // OSC surfaces here
+                else if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
+                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[4], atoi(tokens[3].c_str())));
                 else if(tokens[0] == PageToken)
                 {
                     currentPage = nullptr;
@@ -1111,8 +1113,8 @@ void Manager::Init()
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
                             surface = new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]]);
-                        //else if(tokens[0] == OSCSurfaceToken && tokens.size() == 9)
-                            //surface = new OSC_ControlSurface(currentPage, tokens[1], tokens[4], tokens[5], atoi(tokens[6].c_str()), atoi(tokens[7].c_str()), //GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[8], atoi(tokens[3].c_str())));
+                        else if(oscSurfaces.count(tokens[0]) > 0)
+                            surface = new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]]);
 
                         if(surface != nullptr)
                             currentPage->AddSurface(surface);
@@ -2421,6 +2423,32 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
     }
 }
 
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////
+ // OSC_ControlSurfaceIO
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////
+ void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface* surface)
+ {
+    if(inSocket_ != nullptr && inSocket_->isOk())
+    {
+        while (inSocket_->receiveNextPacket(0))  // timeout, in ms
+        {
+            packetReader_.init(inSocket_->packetData(), inSocket_->packetSize());
+            oscpkt::Message *message;
+            
+            while (packetReader_.isOk() && (message = packetReader_.popMessage()) != 0)
+            {
+                float value = 0;
+                
+                if(message->arg().isFloat())
+                {
+                    message->arg().popFloat(value);
+                    surface->ProcessOSCMessage(message->addressPattern(), value);
+                }
+            }
+        }
+    }
+ }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2451,27 +2479,15 @@ void OSC_ControlSurface::ActivatingZone(string zoneName)
     oscAddress = regex_replace(oscAddress, regex(BadFileChars), "_");
     oscAddress = "/" + oscAddress;
 
-    if(outSocket_ != nullptr && outSocket_->isOk())
-    {
-        oscpkt::Message message;
-        message.init(oscAddress);
-        packetWriter_.init().addMessage(message);
-        outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
-    }
-    
+    surfaceIO_->ActivatingZone(oscAddress);
+        
     if(TheManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg((zoneName + "->" + "LoadingZone---->" + name_ + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value)
 {
-    if(outSocket_ != nullptr && outSocket_->isOk())
-    {
-        oscpkt::Message message;
-        message.init(oscAddress).pushFloat((float)value);
-        packetWriter_.init().addMessage(message);
-        outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
-    }
+    surfaceIO_->SendOSCMessage(oscAddress, value);
     
     if(TheManager->GetSurfaceOutDisplay())
     {
@@ -2482,14 +2498,8 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, int value)
 {
-    if(outSocket_ != nullptr && outSocket_->isOk())
-    {
-        oscpkt::Message message;
-        message.init(oscAddress).pushInt64(value);
-        packetWriter_.init().addMessage(message);
-        outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
-    }
-    
+    surfaceIO_->SendOSCMessage(oscAddress, value);
+
     if(TheManager->GetSurfaceOutDisplay())
     {
         if(TheManager->GetSurfaceOutDisplay())
@@ -2499,14 +2509,8 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, string value)
 {
-    if(outSocket_ != nullptr && outSocket_->isOk())
-    {
-        oscpkt::Message message;
-        message.init(oscAddress).pushStr(value);
-        packetWriter_.init().addMessage(message);
-        outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
-    }
-    
+    surfaceIO_->SendOSCMessage(oscAddress, value);
+
     if(TheManager->GetSurfaceOutDisplay())
     {
         if(TheManager->GetSurfaceOutDisplay())
