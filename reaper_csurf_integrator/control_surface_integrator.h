@@ -544,8 +544,13 @@ public:
     virtual void GoSubZone(string subZoneName)
     {
         if(subZones_.count(subZoneName) > 0)
+        {
             for(auto zone : subZones_[subZoneName])
+            {
+                zone->SetSlotIndex(GetSlotIndex());
                 zone->Activate();
+            }
+        }
     }
 };
 
@@ -1493,7 +1498,10 @@ public:
         Initialize(templateFilename, zoneFolder);
     }
     
-    virtual ~Midi_ControlSurface() {}
+    virtual ~Midi_ControlSurface()
+    {
+        delete surfaceIO_;
+    }
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
     void SendMidiMessage(MIDI_event_ex_t* midiMessage);
@@ -1625,7 +1633,10 @@ public:
         Initialize(templateFilename, zoneFolder);
     }
     
-    virtual ~OSC_ControlSurface() {}
+    virtual ~OSC_ControlSurface()
+    {
+        delete surfaceIO_;
+    }
     
     virtual void ActivatingZone(string zoneName) override;
     void ProcessOSCMessage(string message, double value);
@@ -2133,7 +2144,7 @@ class Page
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string name_ = "";
+    string const name_ = "";
     vector<ControlSurface*> surfaces_;
     
     bool isShift_ = false;
@@ -2150,7 +2161,7 @@ private:
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name) : name_(name),  trackNavigationManager_(new TrackNavigationManager(this)) {}
+    Page(string name) : name_(name), trackNavigationManager_(new TrackNavigationManager(this)) {}
     
     ~Page()
     {

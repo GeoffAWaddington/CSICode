@@ -2218,12 +2218,11 @@ void ZoneManager::HandleActivation(string zoneName)
 {
     if(receive_.count(zoneName) > 0  && homeZone_ != nullptr)
     {
+        ClearFXMapping();
+        ResetOffsets();
+        
         if(zoneName == "Home")
-        {
-            ClearFXMapping();
-            ResetOffsets();
             homeZone_->Activate();
-        }
         else
             homeZone_->GoAssociatedZone(zoneName);
     }
@@ -2236,9 +2235,8 @@ void ZoneManager::GoAssociatedZone(string associatedZoneName)
         if(broadcast_.count(associatedZoneName) > 0)
             GetSurface()->GetPage()->SignalActivation(GetSurface(), associatedZoneName);
         
+        ClearFXMapping();
         ResetOffsets();
-        
-        fxSlotZones_.clear();
         
         homeZone_->GoAssociatedZone(associatedZoneName);
     }
