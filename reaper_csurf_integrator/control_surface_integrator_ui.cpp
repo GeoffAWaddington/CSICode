@@ -186,17 +186,11 @@ vector<shared_ptr<SurfaceLine>> surfaces;
 
 struct PageSurfaceLine
 {
-    string type = "";
     string name = "";
-    int inPort = 0;
-    int outPort = 0;
-    string templateFilename = "";
-    string zoneTemplateFolder = "";
     int numChannels = 0;
     int channelOffset = 0;
-    
-    // for OSC
-    string remoteDeviceIP = "";
+    string templateFilename = "";
+    string zoneTemplateFolder = "";
 };
 
 struct PageLine
@@ -582,7 +576,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                             if (index >= 0)
                             {
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
+                                //SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
 
                                 pageIndex = index;
 
@@ -637,10 +631,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     surface->name = name;
                                     surface->inPort = inPort;
                                     surface->outPort = outPort;
-                                    //surface->templateFilename = templateFilename;
-                                    //surface->zoneTemplateFolder = zoneTemplateFolder;
-                                    //surface->numChannels = numChannels;
-                                    //surface->channelOffset = channelOffset;
 
                                     surfaces.push_back(surface);
                                     
@@ -667,10 +657,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     surface->remoteDeviceIP = remoteDeviceIP;
                                     surface->inPort = inPort;
                                     surface->outPort = outPort;
-                                    //surface->templateFilename = templateFilename;
-                                    //surface->zoneTemplateFolder = zoneTemplateFolder;
-                                    //surface->numChannels = numChannels;
-                                    //surface->channelOffset = channelOffset;
 
                                     surfaces.push_back(surface);
                                     
@@ -791,12 +777,28 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             pages.clear();
             
             ifstream iniFile(string(DAW::GetResourcePath()) + "/CSI/CSI.ini");
-
+            
+            int lineNumber = 0;
+            
             for (string line; getline(iniFile, line) ; )
             {
                 line = regex_replace(line, regex(TabChars), " ");
                 line = regex_replace(line, regex(CRLFChars), "");
-                                     
+             
+                lineNumber++;
+                
+                if(lineNumber == 1)
+                {
+                    if(line != VersionToken)
+                    {
+                        MessageBox(g_hwnd, "Version mismatch -- Your CSI.ini file is not Version 2.0", "This is CSI Version 2.0", MB_OK);
+                        iniFile.close();
+                        break;
+                    }
+                    else
+                        continue;
+                }
+                
                 if(line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
                 {
                     istringstream iss(line);
@@ -836,17 +838,34 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
-                    
-
+                    else if(tokens.size() == 5)
+                    {
+                        shared_ptr<PageSurfaceLine> surface = make_shared<PageSurfaceLine>();
+                        
+                        if (! pages.empty())
+                        {
+                            pages.back()->surfaces.push_back(surface);
+                            
+                            surface->name = tokens[0];
+                            surface->numChannels = atoi(tokens[1].c_str());
+                            surface->channelOffset = atoi(tokens[2].c_str());
+                            surface->templateFilename = tokens[3];
+                            surface->zoneTemplateFolder = tokens[4];
+                        }
+                    }
                 }
             }
           
-            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, 0, 0);
-            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, 0, 0);
+            if(surfaces.size() > 0)
+                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, 0, 0);
+            
+            if(pages.size() > 0)
+            {
+                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, 0, 0);
 
-
-            // the messages above don't trigger the user-initiated code, so pretend the user selected them
-            SendMessage(hwndDlg, WM_COMMAND, MAKEWPARAM(IDC_LIST_Pages, LBN_SELCHANGE), 0);
+                // the messages above don't trigger the user-initiated code, so pretend the user selected them
+                SendMessage(hwndDlg, WM_COMMAND, MAKEWPARAM(IDC_LIST_Pages, LBN_SELCHANGE), 0);
+            }
         }
         break;
         
@@ -856,9 +875,26 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
             if(iniFile.is_open())
             {
-                iniFile << "Version 2.0" + GetLineEnding();
+                iniFile << VersionToken + GetLineEnding();
+                
+                iniFile << GetLineEnding();
                 
                 string line = "";
+                
+                for(auto surface : surfaces)
+                {
+                    line = surface->type + " ";
+                    line += surface->name + " ";
+                    line += to_string(surface->inPort) + " ";
+                    line += to_string(surface->outPort) + " ";
+
+                    if(surface->type == OSCSurfaceToken)
+                        line += surface->remoteDeviceIP;
+                    
+                    iniFile << line + GetLineEnding();
+                }
+                
+                iniFile << GetLineEnding();
                 
                 for(auto page : pages)
                 {
@@ -871,25 +907,14 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                     for(auto surface : page->surfaces)
                     {
-                        line = surface->type + " ";
+                        line = "";
                         line += "\"" + surface->name + "\" ";
+                        line += to_string(surface->numChannels) + " " ;
+                        line += to_string(surface->channelOffset) + " " ;
+                        line += "\"" + surface->templateFilename + "\" ";
+                        line += "\"" + surface->zoneTemplateFolder + "\" ";
                         
-                        if(surface->type == MidiSurfaceToken || surface->type == OSCSurfaceToken)
-                        {
-                            line += to_string(surface->inPort) + " " ;
-                            line += to_string(surface->outPort) + " " ;
-                            //line += "\"" + surface->templateFilename + "\" ";
-                            //line += "\"" + surface->zoneTemplateFolder + "\" ";
-                            //line += to_string(surface->numChannels) + " " ;
-                            //line += to_string(surface->channelOffset) + " " ;
-                            
-                            if(surface->type == OSCSurfaceToken)
-                                line += " " + surface->remoteDeviceIP + " ";
-                        }
-
-                        line += GetLineEnding();
-                        
-                        iniFile << line;
+                        iniFile << line + GetLineEnding();
                     }
                     
                     iniFile << GetLineEnding();

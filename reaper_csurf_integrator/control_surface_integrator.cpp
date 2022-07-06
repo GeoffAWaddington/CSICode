@@ -1074,7 +1074,7 @@ void Manager::Init()
             
             if(lineNumber == 0)
             {
-                if(line != "Version 2.0")
+                if(line != VersionToken)
                 {
                     MessageBox(g_hwnd, "Version mismatch -- Your CSI.ini file is not Version 2.0", "This is CSI Version 2.0", MB_OK);
                     iniFile.close();

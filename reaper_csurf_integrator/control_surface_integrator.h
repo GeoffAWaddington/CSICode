@@ -48,6 +48,7 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 const string ControlSurfaceIntegrator = "ControlSurfaceIntegrator";
 
+const string VersionToken = "Version 2.0";
 const string PageToken = "Page";
 const string FollowMCPToken = "FollowMCP";
 const string SynchPagesToken = "SynchPages";
@@ -1308,6 +1309,8 @@ public:
     
     void OnPageEnter()
     {
+        ForceClearWidgets();
+        
         if(widgetsByName_.count("OnPageEnter") > 0)
             zoneManager_->DoAction(widgetsByName_["OnPageEnter"], 1.0);
     }
@@ -1498,10 +1501,7 @@ public:
         Initialize(templateFilename, zoneFolder);
     }
     
-    virtual ~Midi_ControlSurface()
-    {
-        delete surfaceIO_;
-    }
+    virtual ~Midi_ControlSurface() {}
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
     void SendMidiMessage(MIDI_event_ex_t* midiMessage);
@@ -1633,10 +1633,7 @@ public:
         Initialize(templateFilename, zoneFolder);
     }
     
-    virtual ~OSC_ControlSurface()
-    {
-        delete surfaceIO_;
-    }
+    virtual ~OSC_ControlSurface() {}
     
     virtual void ActivatingZone(string zoneName) override;
     void ProcessOSCMessage(string message, double value);
