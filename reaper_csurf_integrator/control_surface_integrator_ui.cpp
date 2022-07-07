@@ -186,7 +186,7 @@ vector<shared_ptr<SurfaceLine>> surfaces;
 
 struct PageSurfaceLine
 {
-    string name = "";
+    string pageSurfaceName = "";
     int numChannels = 0;
     int channelOffset = 0;
     string templateFilename = "";
@@ -212,10 +212,11 @@ static char remoteDeviceIP[BUFSZ];
 
 static int pageIndex = 0;
 
-static char templateFilename[BUFSZ];
-static char zoneTemplateFolder[BUFSZ];
+static char pageSurfaceName[BUFSZ];
 int numChannels = 0;
 int channelOffset = 0;
+static char templateFilename[BUFSZ];
+static char zoneTemplateFolder[BUFSZ];
 
 static vector<shared_ptr<PageLine>> pages;
 
@@ -275,6 +276,168 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0 ;
 }
 
+static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
+{
+    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_RESETCONTENT, 0, 0);
+    
+    char buf[BUFSZ];
+    
+    GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
+    
+    for(auto surface : surfaces)
+    {
+        if(surface->name == string(buf))
+        {
+            if(surface->type == MidiSurfaceToken)
+                for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/"))
+                    AddComboEntry(hwndDlg, 0, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
+
+            if(surface->type == OSCSurfaceToken)
+                for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/"))
+                    AddComboEntry(hwndDlg, 0, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
+            
+            break;
+        }
+    }
+}
+
+static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    string resourcePath(DAW::GetResourcePath());
+
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+        {
+            if(editMode)
+            {
+                AddComboEntry(hwndDlg, 0, (char *)pageSurfaceName, IDC_COMBO_PageSurface);
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
+
+                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
+                SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
+
+                PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
+                
+                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
+                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+
+                int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)templateFilename);
+                if(index >= 0)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, index, 0);
+                
+                index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)zoneTemplateFolder);
+                if(index >= 0)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
+            }
+            else
+            {
+                for(auto surface : surfaces)
+                    AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_COMBO_PageSurface);
+                
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
+                SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
+                
+                PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
+                            
+                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
+                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+            }
+        }
+            break;
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDC_COMBO_PageSurface:
+                {
+                    switch (HIWORD(wParam))
+                    {
+                        case CBN_SELCHANGE:
+                        {
+                            PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
+                        }
+                    }
+                    
+                    break;
+                }
+
+                case IDC_COMBO_SurfaceTemplate:
+                {
+                    switch (HIWORD(wParam))
+                    {
+                        case CBN_SELCHANGE:
+                        {
+                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
+                            if(index >= 0 && !editMode)
+                            {
+                                char buffer[BUFSZ];
+                                
+                                GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
+
+                                for(int i = 0; i < sizeof(buffer); i++)
+                                {
+                                    if(buffer[i] == '.')
+                                    {
+                                        buffer[i] = 0;
+                                        break;
+                                    }
+                                }
+                                
+                                int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
+                                if(index >= 0)
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
+                            }
+                        }
+                    }
+                    
+                    break;
+                }
+
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, pageSurfaceName, sizeof(pageSurfaceName));
+
+                        char buf[BUFSZ];
+                        
+                        GetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, buf, sizeof(buf));
+                        numChannels = atoi(buf);
+                        
+                        GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
+                        channelOffset = atoi(buf);
+                        
+                        GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, templateFilename, sizeof(templateFilename));
+                        GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, zoneTemplateFolder, sizeof(zoneTemplateFolder));
+                        
+                        dlgResult = IDOK;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+            break ;
+            
+        case WM_CLOSE:
+            DestroyWindow(hwndDlg) ;
+            break ;
+            
+        case WM_DESTROY:
+            EndDialog(hwndDlg, 0);
+            break;
+    }
+    
+    return 0 ;
+}
+
 static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -306,36 +469,15 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             string resourcePath(DAW::GetResourcePath());
             
-            //int i = 0;
-            //for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/"))
-                //AddComboEntry(hwndDlg, i++, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
-            
-            //for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                //AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
-            
             if(editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, name);
-                //SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
-                //SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
-
-                //int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)templateFilename);
-                //if(index >= 0)
-                    //SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, index, 0);
-                
-                //index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)zoneTemplateFolder);
-                //if(index >= 0)
-                    //SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
             }
             else
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, "");
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn), CB_SETCURSEL, 0, 0);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut), CB_SETCURSEL, 0, 0);
-                //SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, 0, 0);
-                //SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, 0, 0);
-                //SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
-                //SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
             }
         }
             break;
@@ -379,14 +521,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        char buf[BUFSZ];
-                        
-                        GetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, buf, sizeof(buf));
-                        numChannels = atoi(buf);
-                        
-                        GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
-                        channelOffset = atoi(buf);
-                        
                         GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, name, sizeof(name));
                         
                         int currentSelection = SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiIn, CB_GETCURSEL, 0, 0);
@@ -395,9 +529,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         currentSelection = SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiOut, CB_GETCURSEL, 0, 0);
                         if (currentSelection >= 0)
                             outPort = SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiOut, CB_GETITEMDATA, currentSelection, 0);
-                        
-                        GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, templateFilename, sizeof(templateFilename));
-                        GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, zoneTemplateFolder, sizeof(zoneTemplateFolder));
                         
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -442,20 +573,9 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             if(editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, name);
-                //SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
-                //SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, remoteDeviceIP);
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCInPort, to_string(inPort).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, to_string(outPort).c_str());
-                /*
-                int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)templateFilename);
-                if(index >= 0)
-                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, index, 0);
-                
-                index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)zoneTemplateFolder);
-                if(index >= 0)
-                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
-                 */
             }
             else
             {
@@ -463,10 +583,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, "");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCInPort, "");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, "");
-                //SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, 0, 0);
-                //SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, 0, 0);
-                //SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
-                //SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
             }
         }
             break;
@@ -511,13 +627,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         char buf[BUFSZ];
-                        
-                        //GetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, buf, sizeof(buf));
-                        //numChannels = atoi(buf);
-                        
-                        GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
-                        channelOffset = atoi(buf);
-                        
+                                               
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, name, sizeof(name));
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, remoteDeviceIP, sizeof(remoteDeviceIP));
                         
@@ -526,9 +636,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, buf, sizeof(buf));
                         outPort = atoi(buf);
-                        
-                        GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, templateFilename, sizeof(templateFilename));
-                        GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, zoneTemplateFolder, sizeof(zoneTemplateFolder));
                         
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -576,16 +683,19 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                             if (index >= 0)
                             {
-                                //SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
                                 pageIndex = index;
 
-                                //for (auto surface : pages[index]->surfaces)
-                                    //AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
+                                for (auto surface : pages[index]->surfaces)
+                                    AddListEntry(hwndDlg, surface->pageSurfaceName, IDC_LIST_PageSurfaces);
+                                
+                                if(pages[index]->surfaces.size() > 0)
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
                             }
                             else
                             {
-                                //SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
                             }
                         }
                         break;
@@ -599,22 +709,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 #endif
                         }
                         break;
-
-                    case IDC_BUTTON_AddPage:
-                        if (HIWORD(wParam) == BN_CLICKED)
-                        {
-                            dlgResult = false;
-                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
-                            if(dlgResult == IDOK)
-                            {
-                                shared_ptr<PageLine> page = make_shared<PageLine>();
-                                page->name = name;
-                                pages.push_back(page);
-                                AddListEntry(hwndDlg, name, IDC_LIST_Pages);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, pages.size() - 1, 0);
-                            }
-                        }
-                        break ;
                         
                     case IDC_BUTTON_AddMidiSurface:
                         if (HIWORD(wParam) == BN_CLICKED)
@@ -623,6 +717,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             if (index >= 0)
                             {
                                 dlgResult = false;
+                                editMode = false;
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
                                 if(dlgResult == IDOK)
                                 {
@@ -648,6 +743,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             if (index >= 0)
                             {
                                 dlgResult = false;
+                                editMode = false;
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                 if(dlgResult == IDOK)
                                 {
@@ -666,7 +762,82 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             }
                         }
                         break ;
-                        
+                     
+                    case IDC_BUTTON_AddPage:
+                        if (HIWORD(wParam) == BN_CLICKED)
+                        {
+                            dlgResult = false;
+                            editMode = false;
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
+                            if(dlgResult == IDOK)
+                            {
+                                shared_ptr<PageLine> page = make_shared<PageLine>();
+                                page->name = name;
+                                pages.push_back(page);
+                                AddListEntry(hwndDlg, name, IDC_LIST_Pages);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, pages.size() - 1, 0);
+                            }
+                        }
+                        break ;
+
+                    case IDC_BUTTON_AddPageSurface:
+                        if (HIWORD(wParam) == BN_CLICKED)
+                        {
+                            dlgResult = false;
+                            editMode = false;
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
+                            if(dlgResult == IDOK)
+                            {
+                                shared_ptr<PageSurfaceLine> pageSurface = make_shared<PageSurfaceLine>();
+                                pageSurface->pageSurfaceName = pageSurfaceName;
+                                pageSurface->numChannels = numChannels;
+                                pageSurface->channelOffset = channelOffset;
+                                pageSurface->templateFilename = templateFilename;
+                                pageSurface->zoneTemplateFolder = zoneTemplateFolder;
+                                
+                                int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
+                                if (index >= 0)
+                                {
+                                    pages[index]->surfaces.push_back(pageSurface);
+                                    AddListEntry(hwndDlg, pageSurfaceName, IDC_LIST_PageSurfaces);
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                                }
+                            }
+                        }
+                        break ;
+
+                    case IDC_BUTTON_EditSurface:
+                        if (HIWORD(wParam) == BN_CLICKED)
+                        {
+                            int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
+                            if(index >= 0)
+                            {
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(name));
+                                inPort = surfaces[index]->inPort;
+                                outPort = surfaces[index]->outPort;
+                                strcpy(remoteDeviceIP, surfaces[index]->remoteDeviceIP.c_str());
+
+                                dlgResult = false;
+                                editMode = true;
+                                
+                                if(surfaces[index]->type == MidiSurfaceToken)
+                                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
+                                else if(surfaces[index]->type == OSCSurfaceToken)
+                                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
+                                                               
+                                if(dlgResult == IDOK)
+                                {
+                                    surfaces[index]->name = name;
+                                    surfaces[index]->remoteDeviceIP = remoteDeviceIP;
+                                    surfaces[index]->inPort = inPort;
+                                    surfaces[index]->outPort = outPort;
+                                }
+                                
+                                editMode = false;
+                            }
+                        }
+                        break ;
+                    
                     case IDC_BUTTON_EditPage:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
@@ -692,47 +863,60 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             }
                         }
                         break ;
-
-                    case IDC_BUTTON_EditSurface:
+                        
+                    case IDC_BUTTON_EditPageSurface:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
-                            int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
+                            int index = SendDlgItemMessage(hwndDlg, IDC_LIST_PageSurfaces, LB_GETCURSEL, 0, 0);
                             if(index >= 0)
                             {
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(name));
-                                inPort = surfaces[index]->inPort;
-                                outPort = surfaces[index]->outPort;
-                                strcpy(remoteDeviceIP, surfaces[index]->remoteDeviceIP.c_str());
-                                //strcpy(templateFilename, pages[pageIndex]->surfaces[index]->templateFilename.c_str());
-                                //strcpy(zoneTemplateFolder, pages[pageIndex]->surfaces[index]->zoneTemplateFolder.c_str());
-                                //numChannels = pages[pageIndex]->surfaces[index]->numChannels;
-                                //channelOffset = pages[pageIndex]->surfaces[index]->channelOffset;
-
                                 dlgResult = false;
                                 editMode = true;
                                 
-                                if(surfaces[index]->type == MidiSurfaceToken)
-                                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                else if(surfaces[index]->type == OSCSurfaceToken)
-                                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
-                                                               
-                                if(dlgResult == IDOK)
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(pageSurfaceName));
+
+                                int pageIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
+                                if(pageIndex >= 0)
                                 {
-                                    surfaces[index]->name = name;
-                                    surfaces[index]->remoteDeviceIP = remoteDeviceIP;
-                                    surfaces[index]->inPort = inPort;
-                                    surfaces[index]->outPort = outPort;
-                                    //pages[pageIndex]->surfaces[index]->templateFilename = templateFilename;
-                                    //pages[pageIndex]->surfaces[index]->zoneTemplateFolder = zoneTemplateFolder;
-                                    //pages[pageIndex]->surfaces[index]->numChannels = numChannels;
-                                    //pages[pageIndex]->surfaces[index]->channelOffset = channelOffset;
+                                    numChannels = pages[pageIndex]->surfaces[index]->numChannels;
+                                    channelOffset = pages[pageIndex]->surfaces[index]->channelOffset;
+                                
+                                    strcpy(templateFilename, pages[pageIndex]->surfaces[index]->templateFilename.c_str());
+                                    strcpy(zoneTemplateFolder, pages[pageIndex]->surfaces[index]->zoneTemplateFolder.c_str());
+
+                                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
+                                    
+                                    if(dlgResult == IDOK)
+                                    {
+                                        pages[pageIndex]->surfaces[index]->numChannels = numChannels;
+                                        pages[pageIndex]->surfaces[index]->channelOffset = channelOffset;
+                                        pages[pageIndex]->surfaces[index]->templateFilename = templateFilename;
+                                        pages[pageIndex]->surfaces[index]->zoneTemplateFolder = zoneTemplateFolder;
+                                    }
                                 }
                                 
                                 editMode = false;
                             }
                         }
                         break ;
-                    
+                        
+
+                    case IDC_BUTTON_RemoveSurface:
+                        if (HIWORD(wParam) == BN_CLICKED)
+                        {
+                            int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
+                            if(index >= 0)
+                            {
+                                surfaces.erase(surfaces.begin() + index);
+                                
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
+                                for(auto surface: surfaces)
+                                    AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
+                            }
+                        }
+                        break ;
+                        
                     case IDC_BUTTON_RemovePage:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
@@ -752,18 +936,23 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         }
                         break ;
 
-                    case IDC_BUTTON_RemoveSurface:
+                    case IDC_BUTTON_RemovePageSurface:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
-                            int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            int pageIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
+                            if(pageIndex >= 0)
                             {
-                                surfaces.erase(surfaces.begin() + index);
-                                
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
-                                for(auto surface: surfaces)
-                                    AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
+                                int index = SendDlgItemMessage(hwndDlg, IDC_LIST_PageSurfaces, LB_GETCURSEL, 0, 0);
+                                if(index >= 0)
+                                {
+                                    pages[pageIndex]->surfaces.erase(pages[pageIndex]->surfaces.begin() + index);
+                                    
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
+
+                                    for(auto surface : pages[pageIndex]->surfaces)
+                                        AddListEntry(hwndDlg, surface->pageSurfaceName, IDC_LIST_PageSurfaces);
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
+                                }
                             }
                         }
                         break ;
@@ -846,7 +1035,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         {
                             pages.back()->surfaces.push_back(surface);
                             
-                            surface->name = tokens[0];
+                            surface->pageSurfaceName = tokens[0];
                             surface->numChannels = atoi(tokens[1].c_str());
                             surface->channelOffset = atoi(tokens[2].c_str());
                             surface->templateFilename = tokens[3];
@@ -865,6 +1054,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                 // the messages above don't trigger the user-initiated code, so pretend the user selected them
                 SendMessage(hwndDlg, WM_COMMAND, MAKEWPARAM(IDC_LIST_Pages, LBN_SELCHANGE), 0);
+                
+                if(pages[0]->surfaces.size() > 0)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
             }
         }
         break;
@@ -884,7 +1076,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 for(auto surface : surfaces)
                 {
                     line = surface->type + " ";
-                    line += surface->name + " ";
+                    line += "\"" + surface->name + "\" ";
                     line += to_string(surface->inPort) + " ";
                     line += to_string(surface->outPort) + " ";
 
@@ -908,7 +1100,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     for(auto surface : page->surfaces)
                     {
                         line = "";
-                        line += "\"" + surface->name + "\" ";
+                        line += "\"" + surface->pageSurfaceName + "\" ";
                         line += to_string(surface->numChannels) + " " ;
                         line += to_string(surface->channelOffset) + " " ;
                         line += "\"" + surface->templateFilename + "\" ";

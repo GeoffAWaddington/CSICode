@@ -1317,6 +1317,8 @@ public:
     
     void OnPageLeave()
     {
+        ForceClearWidgets();
+        
         if(widgetsByName_.count("OnPageLeave") > 0)
             zoneManager_->DoAction(widgetsByName_["OnPageLeave"], 1.0);
     }
