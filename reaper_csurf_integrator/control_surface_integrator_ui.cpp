@@ -710,6 +710,16 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         }
                         break;
                         
+                    case IDC_LIST_PageSurfaces:
+                        if (HIWORD(wParam) == LBN_DBLCLK)
+                        {
+#ifdef WIN32
+                            // pretend we clicked the Edit button
+                            SendMessage(GetDlgItem(hwndDlg, IDC_BUTTON_EditPageSurface), BM_CLICK, 0, 0);
+#endif
+                        }
+                        break;
+                        
                     case IDC_BUTTON_AddMidiSurface:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
