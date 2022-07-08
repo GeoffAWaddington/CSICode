@@ -990,7 +990,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 {
                     if(line != VersionToken)
                     {
-                        MessageBox(g_hwnd, "Version mismatch -- Your CSI.ini file is not Version 2.0", "This is CSI Version 2.0", MB_OK);
+                        MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + VersionToken).c_str(), ("This is CSI " + VersionToken).c_str(), MB_OK);
                         iniFile.close();
                         break;
                     }
