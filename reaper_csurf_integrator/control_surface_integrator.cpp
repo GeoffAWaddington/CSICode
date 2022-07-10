@@ -1317,7 +1317,6 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     
     if(acceleratedTickValues_.size() < 1)
         acceleratedTickValues_.push_back(10);
-
 }
 
 Page* ActionContext::GetPage()
