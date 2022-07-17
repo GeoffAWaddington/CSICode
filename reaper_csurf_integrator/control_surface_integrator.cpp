@@ -716,9 +716,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         {
             feedbackProcessor = new MCU_TimeDisplay_Midi_FeedbackProcessor(surface, widget);
         }
-        else if(widgetClass == "FB_MCUAssigmentDisplay" && size == 1)
+        else if(widgetClass == "FB_MCUAssignmentDisplay" && size == 1)
         {
-            feedbackProcessor = new FB_MCU_AssigmentDisplay_Midi_FeedbackProcessor(surface, widget);
+            feedbackProcessor = new FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(surface, widget);
         }
         else if(widgetClass == "FB_QConProXMasterVUMeter" && size == 2)
         {

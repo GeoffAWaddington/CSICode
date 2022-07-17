@@ -1607,11 +1607,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FB_MCU_AssigmentDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+class FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    FB_MCU_AssigmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : Midi_FeedbackProcessor(surface, widget) {}
+    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : Midi_FeedbackProcessor(surface, widget) {}
     
     virtual void SetValue(double value) override
     {
