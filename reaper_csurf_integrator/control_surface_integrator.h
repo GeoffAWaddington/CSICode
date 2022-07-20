@@ -1155,8 +1155,8 @@ public:
         }
     };
     
-    void TrackFXListChanged();
-    void OnTrackSelection();
+    void TrackFXListChanged(MediaTrack* track);
+    void OnTrackSelection(MediaTrack* track);
     virtual void SetHasMCUMeters(int displayType) {}
     virtual void ActivatingZone(string zoneName) {}
     
@@ -2347,12 +2347,12 @@ public:
         return modifier;
     }
     
-    void OnTrackSelection()
+    void OnTrackSelection(MediaTrack* track)
     {
         trackNavigationManager_->OnTrackSelection();
         
         for(auto surface : surfaces_)
-            surface->OnTrackSelection();
+            surface->OnTrackSelection(track);
     }
     
     void OnTrackListChange()
@@ -2365,13 +2365,13 @@ public:
         trackNavigationManager_->OnTrackSelectionBySurface(track);
         
         for(auto surface : surfaces_)
-            surface->OnTrackSelection();
+            surface->OnTrackSelection(track);
     }
 
     void TrackFXListChanged(MediaTrack* track)
     {
         for(auto surface : surfaces_)
-            surface->TrackFXListChanged();
+            surface->TrackFXListChanged(track);
     }
 
     void EnterPage()
@@ -2584,7 +2584,7 @@ public:
     void OnTrackSelection(MediaTrack *track)
     {
         if(pages_.size() > 0)
-            pages_[currentPageIndex_]->OnTrackSelection();
+            pages_[currentPageIndex_]->OnTrackSelection(track);
     }
     
     void OnTrackListChange()

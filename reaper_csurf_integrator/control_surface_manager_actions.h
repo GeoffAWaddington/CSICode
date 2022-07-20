@@ -604,7 +604,7 @@ public:
                 DAW::SetOnlyTrackSelected(trackToSelect);
                 if(context->GetPage()->GetScrollLink())
                     DAW::SetMixerScroll(trackToSelect);
-                context->GetSurface()->OnTrackSelection();
+                context->GetSurface()->OnTrackSelection(trackToSelect);
             }
         }
     }

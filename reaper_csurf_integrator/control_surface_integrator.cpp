@@ -2309,16 +2309,16 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ControlSurface::TrackFXListChanged()
+void ControlSurface::TrackFXListChanged(MediaTrack* track)
 {
-    OnTrackSelection();
+    OnTrackSelection(track);
 }
 
-void ControlSurface::OnTrackSelection()
+void ControlSurface::OnTrackSelection(MediaTrack* track)
 {
     if(widgetsByName_.count("OnTrackSelection") > 0)
     {
-        if(page_->GetSelectedTrack())
+        if(DAW::GetMediaTrackInfo_Value(track, "I_SELECTED"))
             zoneManager_->DoAction(widgetsByName_["OnTrackSelection"], 1.0);
         else
             zoneManager_->OnTrackDeselection();
