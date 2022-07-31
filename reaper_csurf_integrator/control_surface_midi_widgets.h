@@ -880,62 +880,32 @@ public:
                         b = ((*rgb_colour >> 0) & 0xff) / 255.0;
                     #endif
 
-                    double hue = 0.0;
-                    double min = 0.0;
-                    double max = 0.0;
-                    double delta = 0.0;
-                    double saturation = 0.0;
-                    int color = 0;
+                    /*
+                    00 - Blank
+                    01 - Red
+                    02 - Green
+                    03 - Yellow r + g
+                    04 - Blue
+                    05 - Purple r + b
+                    06 - Cyan g + b
+                    07 - White
+                    */
+                    int color = 7;
                     
-                    min = r < g ? r : g;
-                    min = min  < b ? min : b;
-
-                    max = r > g ? r : g;
-                    max = max  > b ? max : b;
-
-                    delta = max - min;
-                    
-                    if( max > 0.0 ) // NOTE: if Max is == 0, this divide would cause a crash
-                        saturation = (delta / max);
-
-                    if( r >= max )                      // > is bogus, just keeps compiler happy
-                        hue = (g - b) / delta;          // between yellow & magenta
-                    else if( g >= max )
-                        hue = 2.0 + (b - r) / delta;    // between cyan & yellow
-                    else
-                        hue = 4.0 + (r - g ) / delta;   // between magenta & cyan
-
-                    hue *= 60.0;                        // degrees
-
-                    if( hue < 0.0 )
-                        hue += 360.0;
-                        
-                        /*
-                        00 - Blank
-                        01 - Red
-                        02 - Green
-                        03 - Yellow
-                        04 - Blue
-                        05 - Purple
-                        06 - Cyan
-                        07 - White
-                        */
-                        
-                    if(saturation == 0.0)
-                        color = 7;
-                    else if(hue > 0.0 && hue < 45.0)
+                    if(r - (g + b) > 0.7)
                         color = 1;
-                    else if(hue >= 45.0 && hue < 105.0)
-                        color = 3;
-                    else if(hue >= 105.0 && hue < 165.0)
+                    else if(g - (r + b) > 0.7)
                         color = 2;
-                    else if(hue >= 165.0 && hue < 225.0)
-                        color = 6;
-                    else if(hue >= 225.0 && hue < 255.0)
+                    else if(b - (r + g) > 0.7)
                         color = 4;
-                    else if(hue >= 255.0 && hue < 360.0)
+                    else if((r + g) / 2.0 - b > 0.7)
+                        color = 3;
+                    else if((r + b) / 2.0 - g > 0.7)
                         color = 5;
-                        
+                    else if((g + b) / 2.0 - r > 0.7)
+                        color = 6;
+
+
                     midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color;
                 }
                 else
