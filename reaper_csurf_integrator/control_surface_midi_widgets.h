@@ -872,7 +872,7 @@ public:
 
                     #ifdef WIN32
                         r = ((*rgb_colour >> 0) & 0xff) / 255.0;
-                        g = ((*rgb_colour >> 8) & 0xff) / 255.0
+                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
                         b = ((*rgb_colour >> 16) & 0xff) / 255.0;
                     #else
                         r = ((*rgb_colour >> 16) & 0xff) / 255.0;
