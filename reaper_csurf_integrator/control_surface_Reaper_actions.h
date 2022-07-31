@@ -1821,17 +1821,7 @@ public:
         {
             char buf[BUFSZ];
             
-            if(context->GetSurface()->GetIsEuConFXAreaFocused())
-            {
-                if(track == context->GetPage()->GetSelectedTrack())
-                    DAW::GetTrackName(track, buf, sizeof(buf));
-                else
-                    buf[0] = 0;
-            }
-            else
-            {
-                DAW::GetTrackName(track, buf, sizeof(buf));
-            }
+            DAW::GetTrackName(track, buf, sizeof(buf));
             
             context->UpdateWidgetValue(string(buf));
         }

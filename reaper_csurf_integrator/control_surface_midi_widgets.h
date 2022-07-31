@@ -769,6 +769,187 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class XTouchDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int offset_ = 0;
+    int displayType_ = 0x10;
+    int displayRow_ = 0x12;
+    int channel_ = 0;
+    string lastStringSent_ = "";
+
+public:
+    virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
+    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+        
+    virtual void SetValue(string displayText) override
+    {
+        if(displayText != lastStringSent_) // changes since last send
+            ForceValue(displayText);
+    }
+
+    virtual void ForceValue(string displayText) override
+    {
+        lastStringSent_ = displayText;
+        
+        if(displayText == "" || displayText == "-150.00")
+            displayText = "       ";
+
+        int pad = 7;
+        const char* text = displayText.c_str();
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
+        
+        int l = strlen(text);
+        if (pad < l)
+            l = pad;
+        if (l > 200)
+            l = 200;
+        
+        int cnt = 0;
+        while (cnt < l)
+        {
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
+            cnt++;
+        }
+        
+        while (cnt++ < pad)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
+        
+        SetColor(displayText);
+    }
+    
+    void SetColor(string displayText)
+    {
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
+        
+        for(int i = 0; i < surface_->GetNumChannels(); i++)
+        {
+            if(displayText == "       ")
+            {
+                midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            }
+            else
+            {
+                if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
+                {
+                    unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
+                    
+                    double r = 0.0;
+                    double g = 0.0;
+                    double b = 0.0;
+
+                    #ifdef WIN32
+                        r = ((*rgb_colour >> 0) & 0xff) / 255.0;
+                        g = ((*rgb_colour >> 8) & 0xff) / 255.0
+                        b = ((*rgb_colour >> 16) & 0xff) / 255.0;
+                    #else
+                        r = ((*rgb_colour >> 16) & 0xff) / 255.0;
+                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
+                        b = ((*rgb_colour >> 0) & 0xff) / 255.0;
+                    #endif
+
+                    double hue = 0.0;
+                    double min = 0.0;
+                    double max = 0.0;
+                    double delta = 0.0;
+                    double saturation = 0.0;
+                    int color = 0;
+                    
+                    min = r < g ? r : g;
+                    min = min  < b ? min : b;
+
+                    max = r > g ? r : g;
+                    max = max  > b ? max : b;
+
+                    delta = max - min;
+                    
+                    if( max > 0.0 ) // NOTE: if Max is == 0, this divide would cause a crash
+                        saturation = (delta / max);
+
+                    if( r >= max )                      // > is bogus, just keeps compiler happy
+                        hue = (g - b) / delta;          // between yellow & magenta
+                    else if( g >= max )
+                        hue = 2.0 + (b - r) / delta;    // between cyan & yellow
+                    else
+                        hue = 4.0 + (r - g ) / delta;   // between magenta & cyan
+
+                    hue *= 60.0;                        // degrees
+
+                    if( hue < 0.0 )
+                        hue += 360.0;
+                        
+                        /*
+                        00 - Blank
+                        01 - Red
+                        02 - Green
+                        03 - Yellow
+                        04 - Blue
+                        05 - Purple
+                        06 - Cyan
+                        07 - White
+                        */
+                        
+                    if(saturation == 0.0)
+                        color = 7;
+                    else if(hue > 0.0 && hue < 45.0)
+                        color = 1;
+                    else if(hue >= 45.0 && hue < 105.0)
+                        color = 3;
+                    else if(hue >= 105.0 && hue < 165.0)
+                        color = 2;
+                    else if(hue >= 165.0 && hue < 225.0)
+                        color = 6;
+                    else if(hue >= 225.0 && hue < 255.0)
+                        color = 4;
+                    else if(hue >= 255.0 && hue < 360.0)
+                        color = 5;
+                        
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color;
+                }
+                else
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            }
+        }
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24_Text_MaxCharactersDictionary
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

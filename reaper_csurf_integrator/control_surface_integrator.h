@@ -1162,7 +1162,6 @@ public:
     
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
-    virtual bool GetIsEuConFXAreaFocused() { return false; }
     virtual void ForceRefreshTimeDisplay() {}
     
     ZoneManager* GetZoneManager() { return zoneManager_; }
@@ -2518,6 +2517,8 @@ public:
         
         index = projectconfig_var_getoffs("panmode", &size);
         projectPanModePtr_ = (int*)projectconfig_var_addr(nullptr, index);
+        
+        //GenerateX32SurfaceFile();
     }
     
     ~Manager()
@@ -2748,6 +2749,54 @@ public:
          DAW::ShowConsoleMsg(msgBuffer);
          }
         */
+    }
+    
+    void GenerateX32SurfaceFile()
+    {
+        vector<vector<string>> generalWidgets = {   {"MasterFader", "/main/st/mix/fader"},
+                                                    {"OtherWidget", "other/widget/"} };
+        
+        vector<vector<string>> channelWidgets = {   {"Fader", "/ch/|/mix/fader"},
+                                                    {"Mute", "/ch/|/mix/mute"},
+                                                    {"Solo", "/ch/|/mix/solo"},
+                                                    {"Select", "/ch/|/mix/select"} };
+       
+        ofstream X32File(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + "X32.ost");
+
+        if(X32File.is_open())
+        {
+            for(int i = 0; i < generalWidgets.size(); i++)
+            {
+                X32File << "Widget " + generalWidgets[i][0]  + GetLineEnding();
+                
+                X32File << "\tControl " + generalWidgets[i][1] + GetLineEnding();
+                
+                X32File << "\tFB_Processor " + generalWidgets[i][1] + GetLineEnding();
+
+                X32File << "WidgetEnd" + GetLineEnding() + GetLineEnding();
+            }
+
+            for(int i = 0; i < channelWidgets.size(); i++)
+            {
+                for(int j = 0; j < 32; j++)
+                {
+                    string numStr = to_string(j + 1);
+             
+                    X32File << "Widget " + channelWidgets[i][0] + numStr + GetLineEnding();
+                    
+                    if(numStr.length() < 2)
+                       numStr = "0" + numStr;
+                    
+                    string OSCMessage = regex_replace(channelWidgets[i][1], regex("[|]"), numStr);
+
+                    X32File << "\tControl " + OSCMessage + GetLineEnding();
+
+                    X32File << "\tFB_Processor " + OSCMessage + GetLineEnding();
+
+                    X32File << "WidgetEnd" + GetLineEnding() + GetLineEnding();
+                }
+            }
+        }
     }
 };
 

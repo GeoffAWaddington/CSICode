@@ -767,7 +767,17 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             else if(widgetClass == "FB_MCUXTDisplayLower")
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
         }
-        
+        else if((widgetClass == "FB_XTouchDisplayUpper" || widgetClass == "FB_XTouchDisplayLower" || widgetClass == "FB_XTouchXTDisplayUpper" || widgetClass == "FB_XTouchXTDisplayLower") && size == 2)
+        {
+            if(widgetClass == "FB_XTouchDisplayUpper")
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+            else if(widgetClass == "FB_XTouchDisplayLower")
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+            else if(widgetClass == "FB_XTouchXTDisplayUpper")
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
+            else if(widgetClass == "FB_XTouchXTDisplayLower")
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+        }
         else if((widgetClass == "FB_C4DisplayUpper" || widgetClass == "FB_C4DisplayLower") && size == 3)
         {
             if(widgetClass == "FB_C4DisplayUpper")
