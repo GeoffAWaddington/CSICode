@@ -1084,6 +1084,8 @@ private:
 
     bool isRewinding_ = false;
     bool isFastForwarding_ = false;
+    
+    vector<FeedbackProcessor*> trackColorFeedbackProcessors_;
 
 protected:
     ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
@@ -1155,7 +1157,7 @@ public:
         }
     };
     
-    void TrackFXListChanged(MediaTrack* track);
+    void RequestUpdate();
     void OnTrackSelection(MediaTrack* track);
     virtual void SetHasMCUMeters(int displayType) {}
     virtual void ActivatingZone(string zoneName) {}
@@ -1174,10 +1176,20 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
-    void ForceClearWidgets()
+    void AddTrackColorFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
+    {
+        trackColorFeedbackProcessors_.push_back(feedbackProcessor);
+    }
+    
+    void ForceClear()
     {
         for(auto widget : widgets_)
             widget->ForceClear();
+    }
+    
+    void TrackFXListChanged(MediaTrack* track)
+    {
+        OnTrackSelection(track);
     }
     
     void Stop()
@@ -1244,48 +1256,7 @@ public:
         configScrubMode_ = *scrubModePtr_;
         *scrubModePtr_ = 2;
     }
-    
-    void RequestUpdate()
-    {
-        zoneManager_->RequestUpdate();
-        
-        if(isRewinding_)
-        {
-            if(DAW::GetCursorPosition() == 0)
-                StopRewinding();
-            else
-            {
-                DAW::CSurf_OnRew(0);
-
-                if(speedX5_ == true)
-                {
-                    DAW::CSurf_OnRew(0);
-                    DAW::CSurf_OnRew(0);
-                    DAW::CSurf_OnRew(0);
-                    DAW::CSurf_OnRew(0);
-                }
-            }
-        }
-            
-        else if(isFastForwarding_)
-        {
-            if(DAW::GetCursorPosition() > DAW::GetProjectLength(nullptr))
-                StopFastForwarding();
-            else
-            {
-                DAW::CSurf_OnFwd(0);
-                
-                if(speedX5_ == true)
-                {
-                    DAW::CSurf_OnFwd(0);
-                    DAW::CSurf_OnFwd(0);
-                    DAW::CSurf_OnFwd(0);
-                    DAW::CSurf_OnFwd(0);
-                }
-            }
-        }
-    }
-       
+           
     void AddWidget(Widget* widget)
     {
         widgets_.push_back(widget);
@@ -1308,7 +1279,7 @@ public:
     
     void OnPageEnter()
     {
-        ForceClearWidgets();
+        ForceClear();
         
         if(widgetsByName_.count("OnPageEnter") > 0)
             zoneManager_->DoAction(widgetsByName_["OnPageEnter"], 1.0);
@@ -1316,7 +1287,7 @@ public:
     
     void OnPageLeave()
     {
-        ForceClearWidgets();
+        ForceClear();
         
         if(widgetsByName_.count("OnPageLeave") > 0)
             zoneManager_->DoAction(widgetsByName_["OnPageLeave"], 1.0);
@@ -1355,6 +1326,7 @@ public:
     virtual void SetColors(rgb_color textColor, rgb_color textBackground) {}
     virtual void SetCurrentColor(double value) {}
     virtual void SetProperties(vector<vector<string>> properties) {}
+    virtual void UpdateTrackColors() {}
 
     virtual int GetMaxCharacters() { return 0; }
     
@@ -2266,7 +2238,7 @@ public:
     void ForceClear()
     {
         for(auto surface : surfaces_)
-            surface->ForceClearWidgets();
+            surface->ForceClear();
     }
     
     void ForceRefreshTimeDisplay()

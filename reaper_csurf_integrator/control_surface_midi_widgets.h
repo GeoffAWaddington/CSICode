@@ -778,10 +778,88 @@ private:
     int displayRow_ = 0x12;
     int channel_ = 0;
     string lastStringSent_ = "";
+    vector<unsigned int> currentTrackColors_;
 
+    void ForceUpdateTrackColors()
+    {
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
+        
+        for(int i = 0; i < surface_->GetNumChannels(); i++)
+        {
+            if(lastStringSent_ == "")
+            {
+                midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            }
+            else
+            {
+                if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
+                {
+                    unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
+                    
+                    currentTrackColors_[i] = *rgb_colour;
+                    
+                    double r = 0.0;
+                    double g = 0.0;
+                    double b = 0.0;
+
+                    #ifdef WIN32
+                        r = ((*rgb_colour >> 0) & 0xff) / 255.0;
+                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
+                        b = ((*rgb_colour >> 16) & 0xff) / 255.0;
+                    #else
+                        r = ((*rgb_colour >> 16) & 0xff) / 255.0;
+                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
+                        b = ((*rgb_colour >> 0) & 0xff) / 255.0;
+                    #endif
+
+                    int color = 7;                      // White
+                    
+                    if(r - (g + b) > 0.7)               // Red
+                        color = 1;
+                    else if(g - (r + b) > 0.7)          // Green
+                        color = 2;
+                    else if(b - (r + g) > 0.7)          // Blue
+                        color = 4;
+                    else if((r + g) / 2.0 - b > 0.7)    // Yellow r + g
+                        color = 3;
+                    else if((r + b) / 2.0 - g > 0.7)    // Purple r + b
+                        color = 5;
+                    else if((g + b) / 2.0 - r > 0.7)    // Cyan g + b
+                        color = 6;
+
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color;
+                }
+                else
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            }
+        }
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
+    }
+    
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
-    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    {
+        for(int i = 0; i < surface_->GetNumChannels(); i++)
+            currentTrackColors_.push_back(0);
+        
+        surface_->AddTrackColorFeedbackProcessor(this);
+    }
         
     virtual void SetValue(string displayText) override
     {
@@ -835,87 +913,29 @@ public:
         
         SendMidiMessage(&midiSysExData.evt);
         
-        SetColor(displayText);
+        ForceUpdateTrackColors();
     }
-    
-    void SetColor(string displayText)
+
+    virtual void UpdateTrackColors() override
     {
-        struct
-        {
-            MIDI_event_ex_t evt;
-            char data[512];
-        } midiSysExData;
-        midiSysExData.evt.frame_offset=0;
-        midiSysExData.evt.size=0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
-        
+        bool shouldUpdate = false;
+               
         for(int i = 0; i < surface_->GetNumChannels(); i++)
         {
-            if(displayText == "       ")
+            if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
             {
-                midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-            }
-            else
-            {
-                if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
+                unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
+                
+                if(*rgb_colour != currentTrackColors_[i])
                 {
-                    unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
-                    
-                    double r = 0.0;
-                    double g = 0.0;
-                    double b = 0.0;
-
-                    #ifdef WIN32
-                        r = ((*rgb_colour >> 0) & 0xff) / 255.0;
-                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
-                        b = ((*rgb_colour >> 16) & 0xff) / 255.0;
-                    #else
-                        r = ((*rgb_colour >> 16) & 0xff) / 255.0;
-                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
-                        b = ((*rgb_colour >> 0) & 0xff) / 255.0;
-                    #endif
-
-                    /*
-                    00 - Blank
-                    01 - Red
-                    02 - Green
-                    03 - Yellow r + g
-                    04 - Blue
-                    05 - Purple r + b
-                    06 - Cyan g + b
-                    07 - White
-                    */
-                    int color = 7;
-                    
-                    if(r - (g + b) > 0.7)
-                        color = 1;
-                    else if(g - (r + b) > 0.7)
-                        color = 2;
-                    else if(b - (r + g) > 0.7)
-                        color = 4;
-                    else if((r + g) / 2.0 - b > 0.7)
-                        color = 3;
-                    else if((r + b) / 2.0 - g > 0.7)
-                        color = 5;
-                    else if((g + b) / 2.0 - r > 0.7)
-                        color = 6;
-
-
-                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color;
+                    shouldUpdate = true;
+                    break;
                 }
-                else
-                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
             }
         }
-
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
-        SendMidiMessage(&midiSysExData.evt);
+        if(shouldUpdate)
+            ForceUpdateTrackColors();
     }
 };
 
@@ -1761,6 +1781,9 @@ public:
 class FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
+private:
+    int lastFirstLetter_ = 0x00;
+
 public:
     FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : Midi_FeedbackProcessor(surface, widget) {}
     
@@ -1768,18 +1791,31 @@ public:
     {
         if(value == 0.0) // Track
         {
-            SendMidiMessage(0xB0, 0x4B, 0x14); // T
-            SendMidiMessage(0xB0, 0x4A, 0x12); // R
+            if(lastFirstLetter_ != 0x14)
+            {
+                lastFirstLetter_ = 0x14;
+                SendMidiMessage(0xB0, 0x4B, 0x14); // T
+                SendMidiMessage(0xB0, 0x4A, 0x12); // R
+            }
         }
         else if(value == 1.0) // VCA
         {
-            SendMidiMessage(0xB0, 0x4B, 0x03); // C
-            SendMidiMessage(0xB0, 0x4A, 0x01); // A
+            if(lastFirstLetter_ != 0x03)
+            {
+                lastFirstLetter_ = 0x03;
+                SendMidiMessage(0xB0, 0x4B, 0x03); // C
+                SendMidiMessage(0xB0, 0x4A, 0x01); // A
+            }
         }
         else if(value == 2.0) // Folder
         {
-            SendMidiMessage(0xB0, 0x4B, 0x06); // F
-            SendMidiMessage(0xB0, 0x4A, 0x0C); // L
+            if(lastFirstLetter_ != 0x06)
+            {
+                lastFirstLetter_ = 0x06;
+
+                SendMidiMessage(0xB0, 0x4B, 0x06); // F
+                SendMidiMessage(0xB0, 0x4A, 0x0C); // L
+            }
         }
     }
 };

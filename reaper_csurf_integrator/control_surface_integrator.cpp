@@ -2318,11 +2318,6 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ControlSurface::TrackFXListChanged(MediaTrack* track)
-{
-    OnTrackSelection(track);
-}
-
 void ControlSurface::OnTrackSelection(MediaTrack* track)
 {
     if(widgetsByName_.count("OnTrackSelection") > 0)
@@ -2333,6 +2328,50 @@ void ControlSurface::OnTrackSelection(MediaTrack* track)
             zoneManager_->OnTrackDeselection();
         
         zoneManager_->OnTrackSelection();
+    }
+}
+
+void ControlSurface::RequestUpdate()
+{
+    for( auto processor : trackColorFeedbackProcessors_)
+        processor->UpdateTrackColors();
+    
+    zoneManager_->RequestUpdate();
+    
+    if(isRewinding_)
+    {
+        if(DAW::GetCursorPosition() == 0)
+            StopRewinding();
+        else
+        {
+            DAW::CSurf_OnRew(0);
+
+            if(speedX5_ == true)
+            {
+                DAW::CSurf_OnRew(0);
+                DAW::CSurf_OnRew(0);
+                DAW::CSurf_OnRew(0);
+                DAW::CSurf_OnRew(0);
+            }
+        }
+    }
+        
+    else if(isFastForwarding_)
+    {
+        if(DAW::GetCursorPosition() > DAW::GetProjectLength(nullptr))
+            StopFastForwarding();
+        else
+        {
+            DAW::CSurf_OnFwd(0);
+            
+            if(speedX5_ == true)
+            {
+                DAW::CSurf_OnFwd(0);
+                DAW::CSurf_OnFwd(0);
+                DAW::CSurf_OnFwd(0);
+                DAW::CSurf_OnFwd(0);
+            }
+        }
     }
 }
 
