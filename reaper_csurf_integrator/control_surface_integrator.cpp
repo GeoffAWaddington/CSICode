@@ -931,7 +931,6 @@ void Manager::InitActionsDictionary()
     actions_["CycleTimeline"] =                     new CycleTimeline();
     actions_["ToggleSynchPageBanking"] =            new ToggleSynchPageBanking();
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
-    actions_["ForceScrollLink"] =                   new ForceScrollLink();
     actions_["ToggleVCAMode"] =                     new ToggleVCAMode();
     actions_["CycleTrackVCAFolderModes"] =          new CycleTrackVCAFolderModes();
     actions_["TrackVCAFolderModeDisplay"] =         new TrackVCAFolderModeDisplay();

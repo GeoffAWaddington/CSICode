@@ -1656,7 +1656,7 @@ private:
     Page* const page_ = nullptr;
     bool followMCP_ = true;
     bool synchPages_ = true;
-    bool isScrollLinkEnabled_ = true;
+    bool isScrollLinkEnabled_ = false;
     bool isVCAModeEnabled_ = false;
     bool isFolderModeEnabled_ = false;
     int currentTrackVCAFolderMode_ = 0;
@@ -1678,7 +1678,33 @@ private:
     vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     int autoModeIndex_ = 0;
     
-   
+    void ForceScrollLink()
+    {
+        // Make sure selected track is visble on the control surface
+        MediaTrack* selectedTrack = GetSelectedTrack();
+        
+        if(selectedTrack != nullptr)
+        {
+            for(auto  [key, navigator] : trackNavigators_)
+                if(selectedTrack == navigator->GetTrack())
+                    return;
+            
+            for(int i = 1; i <= GetNumTracks(); i++)
+                if(selectedTrack == GetTrackFromId(i))
+                    trackOffset_ = i - 1;
+            
+            trackOffset_ -= targetScrollLinkChannel_;
+            
+            if(trackOffset_ <  0)
+                trackOffset_ =  0;
+            
+            int top = GetNumTracks() - trackNavigators_.size();
+            
+            if(trackOffset_ >  top)
+                trackOffset_ = top;
+        }
+    }
+    
 public:
     TrackNavigationManager(Page* page) : page_(page),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
@@ -1783,34 +1809,6 @@ public:
         return selectedTracks_;
     }
 
-    
-    void ForceScrollLink()
-    {
-        // Make sure selected track is visble on the control surface
-        MediaTrack* selectedTrack = GetSelectedTrack();
-        
-        if(selectedTrack != nullptr)
-        {
-            for(auto  [key, navigator] : trackNavigators_)
-                if(selectedTrack == navigator->GetTrack())
-                    return;
-            
-            for(int i = 1; i <= GetNumTracks(); i++)
-                if(selectedTrack == GetTrackFromId(i))
-                    trackOffset_ = i - 1;
-            
-            trackOffset_ -= targetScrollLinkChannel_;
-            
-            if(trackOffset_ <  0)
-                trackOffset_ =  0;
-            
-            int top = GetNumTracks() - trackNavigators_.size();
-            
-            if(trackOffset_ >  top)
-                trackOffset_ = top;
-        }
-    }
-    
     void AdjustTrackBank(int amount)
     {
         if(! isVCAModeEnabled_ && ! isFolderModeEnabled_)
@@ -2441,7 +2439,6 @@ public:
     Navigator* GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
     Navigator* GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
     Navigator* GetDefaultNavigator() { return trackNavigationManager_->GetDefaultNavigator(); }
-    void ForceScrollLink() { trackNavigationManager_->ForceScrollLink(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
     void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
     void NextTrackVCAFolderMode() { trackNavigationManager_->NextTrackVCAFolderMode(); }
