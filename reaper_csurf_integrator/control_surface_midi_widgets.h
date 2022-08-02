@@ -561,12 +561,12 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class VUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+class ConsoleOneVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual ~VUMeter_Midi_FeedbackProcessor() {}
-    VUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    virtual ~ConsoleOneVUMeter_Midi_FeedbackProcessor() {}
+    ConsoleOneVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
@@ -594,7 +594,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GainReductionMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+class ConsoleOneGainReductionMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
@@ -602,8 +602,8 @@ private:
     double maxDB_ = 24.0;
     
 public:
-    virtual ~GainReductionMeter_Midi_FeedbackProcessor() {}
-    GainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    virtual ~ConsoleOneGainReductionMeter_Midi_FeedbackProcessor() {}
+    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetValue(double value) override
     {
