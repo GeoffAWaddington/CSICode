@@ -810,34 +810,37 @@ private:
                     
                     currentTrackColors_[i] = *rgb_colour;
                     
-                    double r = 0.0;
-                    double g = 0.0;
-                    double b = 0.0;
+                    int r = 0.0;
+                    int g = 0.0;
+                    int b = 0.0;
 
                     #ifdef WIN32
-                        r = ((*rgb_colour >> 0) & 0xff) / 255.0;
-                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
-                        b = ((*rgb_colour >> 16) & 0xff) / 255.0;
+                        r = (*rgb_colour >> 0) & 0xff;
+                        g = (*rgb_colour >> 8) & 0xff;
+                        b = (*rgb_colour >> 16) & 0xff;
                     #else
-                        r = ((*rgb_colour >> 16) & 0xff) / 255.0;
-                        g = ((*rgb_colour >> 8) & 0xff) / 255.0;
-                        b = ((*rgb_colour >> 0) & 0xff) / 255.0;
+                        r = (*rgb_colour >> 16) & 0xff;
+                        g = (*rgb_colour >> 8) & 0xff;
+                        b = (*rgb_colour >> 0) & 0xff;
                     #endif
 
-                    int color = 7;                      // White
+                    int color = 0;
                     
-                    if(r - (g + b) > 0.7)               // Red
-                        color = 1;
-                    else if(g - (r + b) > 0.7)          // Green
-                        color = 2;
-                    else if(b - (r + g) > 0.7)          // Blue
-                        color = 4;
-                    else if((r + g) / 2.0 - b > 0.7)    // Yellow r + g
+                    if(abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  // White
+                        color = 7;
+                    else if(abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
                         color = 3;
-                    else if((r + b) / 2.0 - g > 0.7)    // Purple r + b
+                    else if(abs(r - b) < 30 && r > g && b > g)  // Purple r + b
                         color = 5;
-                    else if((g + b) / 2.0 - r > 0.7)    // Cyan g + b
+                    else if(abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
                         color = 6;
+                    else if(r > g && r > b) // Red
+                        color = 1;
+                    else if(g > r && g > b) // Green
+                        color = 2;
+                    else if(b > r && b > g) // Blue
+                        color = 4;
+
 
                     midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color;
                 }
