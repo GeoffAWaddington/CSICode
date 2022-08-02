@@ -315,6 +315,14 @@ public:
         }
     }
     
+    static int GetTrackColor(MediaTrack* track)
+    {
+        if(ValidateTrackPtr(track))
+            return ::GetTrackColor(track);
+        else
+            return 0;
+    }
+    
     static int CSurf_TrackToID(MediaTrack* track, bool mcpView)
     {
         if(ValidateTrackPtr(track))

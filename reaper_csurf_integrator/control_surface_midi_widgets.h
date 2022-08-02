@@ -778,7 +778,7 @@ private:
     int displayRow_ = 0x12;
     int channel_ = 0;
     string lastStringSent_ = "";
-    vector<unsigned int> currentTrackColors_;
+    vector<int> currentTrackColors_;
 
     void ForceUpdateTrackColors()
     {
@@ -795,7 +795,7 @@ private:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
-        
+
         for(int i = 0; i < surface_->GetNumChannels(); i++)
         {
             if(lastStringSent_ == "")
@@ -806,22 +806,22 @@ private:
             {
                 if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
                 {
-                    unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
+                    int rgb_colour = DAW::GetTrackColor(track);
                     
-                    currentTrackColors_[i] = *rgb_colour;
+                    currentTrackColors_[i] = rgb_colour;
                     
                     int r = 0.0;
                     int g = 0.0;
                     int b = 0.0;
 
                     #ifdef WIN32
-                        r = (*rgb_colour >> 0) & 0xff;
-                        g = (*rgb_colour >> 8) & 0xff;
-                        b = (*rgb_colour >> 16) & 0xff;
+                        r = (rgb_colour >> 0) & 0xff;
+                        g = (rgb_colour >> 8) & 0xff;
+                        b = (rgb_colour >> 16) & 0xff;
                     #else
-                        r = (*rgb_colour >> 16) & 0xff;
-                        g = (*rgb_colour >> 8) & 0xff;
-                        b = (*rgb_colour >> 0) & 0xff;
+                        r = (rgb_colour >> 16) & 0xff;
+                        g = (rgb_colour >> 8) & 0xff;
+                        b = (rgb_colour >> 0) & 0xff;
                     #endif
 
                     int color = 0;
@@ -927,9 +927,9 @@ public:
         {
             if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
             {
-                unsigned int* rgb_colour = (unsigned int*)DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", NULL);
+                int rgb_colour = DAW::GetTrackColor(track);
                 
-                if(*rgb_colour != currentTrackColors_[i])
+                if(rgb_colour != currentTrackColors_[i])
                 {
                     shouldUpdate = true;
                     break;
