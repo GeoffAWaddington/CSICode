@@ -1837,11 +1837,6 @@ public:
                 folderTrackOffset_ = top;
         }
     }
-        
-    void ToggleVCAMode()
-    {
-        isVCAModeEnabled_ = ! isVCAModeEnabled_;
-    }
     
     Navigator* GetNavigatorForChannel(int channelNum)
     {
@@ -2412,7 +2407,6 @@ public:
     Navigator* GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
     Navigator* GetDefaultNavigator() { return trackNavigationManager_->GetDefaultNavigator(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
-    void ToggleVCAMode() { trackNavigationManager_->ToggleVCAMode(); }
     void NextTrackVCAFolderMode() { trackNavigationManager_->NextTrackVCAFolderMode(); }
     void ResetTrackVCAFolderMode() { trackNavigationManager_->ResetTrackVCAFolderMode(); }
     int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
