@@ -2075,12 +2075,12 @@ public:
     void EnterPage()
     {
         /*
-         if(colourTracks_)
+         if(colorTracks_)
          {
          // capture track colors
          for(auto* navigator : trackNavigators_)
          if(MediaTrack* track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
-         trackColours_[navigator->GetTrackGUID()] = DAW::GetTrackColor(track);
+         trackColors_[navigator->GetTrackGUID()] = DAW::GetTrackColor(track);
          }
          */
     }
@@ -2088,14 +2088,14 @@ public:
     void LeavePage()
     {
         /*
-         if(colourTracks_)
+         if(colorTracks_)
          {
          DAW::PreventUIRefresh(1);
          // reset track colors
          for(auto* navigator : trackNavigators_)
          if(MediaTrack* track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
-         if(trackColours_.count(navigator->GetTrackGUID()) > 0)
-         DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", &trackColours_[navigator->GetTrackGUID()]);
+         if(trackColors_.count(navigator->GetTrackGUID()) > 0)
+         DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", &trackColors_[navigator->GetTrackGUID()]);
          DAW::PreventUIRefresh(-1);
          }
          */

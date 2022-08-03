@@ -779,7 +779,7 @@ private:
     int channel_ = 0;
     string lastStringSent_ = "";
     vector<int> currentTrackColors_;
-
+    
     void ForceUpdateTrackColors()
     {
         struct
@@ -806,22 +806,22 @@ private:
             {
                 if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
                 {
-                    int rgb_colour = DAW::GetTrackColor(track);
+                    int rgb_color = DAW::GetTrackColor(track);
                     
-                    currentTrackColors_[i] = rgb_colour;
+                    currentTrackColors_[i] = rgb_color;
                     
                     int r = 0.0;
                     int g = 0.0;
                     int b = 0.0;
 
                     #ifdef WIN32
-                        r = (rgb_colour >> 0) & 0xff;
-                        g = (rgb_colour >> 8) & 0xff;
-                        b = (rgb_colour >> 16) & 0xff;
+                        r = (rgb_color >> 0) & 0xff;
+                        g = (rgb_color >> 8) & 0xff;
+                        b = (rgb_color >> 16) & 0xff;
                     #else
-                        r = (rgb_colour >> 16) & 0xff;
-                        g = (rgb_colour >> 8) & 0xff;
-                        b = (rgb_colour >> 0) & 0xff;
+                        r = (rgb_color >> 16) & 0xff;
+                        g = (rgb_color >> 8) & 0xff;
+                        b = (rgb_color >> 0) & 0xff;
                     #endif
 
                     int color = 0;
@@ -927,9 +927,9 @@ public:
         {
             if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
             {
-                int rgb_colour = DAW::GetTrackColor(track);
+                int rgb_color = DAW::GetTrackColor(track);
                 
-                if(rgb_colour != currentTrackColors_[i])
+                if(rgb_color != currentTrackColors_[i])
                 {
                     shouldUpdate = true;
                     break;
@@ -1617,7 +1617,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;            // Controller type
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = cellNumber_;     // from .mst
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;    // from .zon
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;            // indicates background colour
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;            // indicates background color
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;            // unused
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;            // unused
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;            // unused

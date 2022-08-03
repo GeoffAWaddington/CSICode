@@ -922,7 +922,7 @@ void Manager::InitActionsDictionary()
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
     actions_["FixedTextDisplay"] =                  new FixedTextDisplay(); ;
-    actions_["FixedRGBColourDisplay"] =             new FixedRGBColourDisplay();
+    actions_["FixedRGBColorDisplay"] =              new FixedRGBColorDisplay();
     actions_["Rewind"] =                            new Rewind();
     actions_["FastForward"] =                       new FastForward();
     actions_["Play"] =                              new Play();
@@ -1418,11 +1418,11 @@ void ActionContext::UpdateTrackColor()
 {
     if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
     {
-        int rgb_colour = DAW::GetTrackColor(track);
+        int rgb_color = DAW::GetTrackColor(track);
         
-        int r = (rgb_colour >> 0) & 0xff;
-        int g = (rgb_colour >> 8) & 0xff;
-        int b = (rgb_colour >> 16) & 0xff;
+        int r = (rgb_color >> 0) & 0xff;
+        int g = (rgb_color >> 8) & 0xff;
+        int b = (rgb_color >> 16) & 0xff;
         
         #ifdef WIN32
             widget_->UpdateRGBValue(r, g, b);
