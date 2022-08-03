@@ -859,7 +859,7 @@ public:
     XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         for(int i = 0; i < surface_->GetNumChannels(); i++)
-            currentTrackColors_.push_back(0);
+            currentTrackColors_.push_back(7);
         
         surface_->AddTrackColorFeedbackProcessor(this);
     }
