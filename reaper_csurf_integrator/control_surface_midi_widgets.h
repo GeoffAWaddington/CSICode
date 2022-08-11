@@ -778,7 +778,7 @@ private:
     int displayRow_ = 0x12;
     int channel_ = 0;
     string lastStringSent_ = "";
-    vector<int> currentTrackColors_;
+    vector<rgb_color> currentTrackColors_;
     
     void ForceUpdateTrackColors()
     {
@@ -806,43 +806,33 @@ private:
             {
                 if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
                 {
-                    int rgb_color = DAW::GetTrackColor(track);
+                    rgb_color color = DAW::GetTrackColor(track);
                     
-                    currentTrackColors_[i] = rgb_color;
+                    currentTrackColors_[i] = color;
                     
-                    int r = 0.0;
-                    int g = 0.0;
-                    int b = 0.0;
+                    int r = color.r;
+                    int g = color.g;
+                    int b = color.b;
 
-                    #ifdef WIN32
-                        r = (rgb_color >> 0) & 0xff;
-                        g = (rgb_color >> 8) & 0xff;
-                        b = (rgb_color >> 16) & 0xff;
-                    #else
-                        r = (rgb_color >> 16) & 0xff;
-                        g = (rgb_color >> 8) & 0xff;
-                        b = (rgb_color >> 0) & 0xff;
-                    #endif
-
-                    int color = 0;
+                    int surfaceColor = 0;
                     
                     if(abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  // White
-                        color = 7;
+                        surfaceColor = 7;
                     else if(abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
-                        color = 3;
+                        surfaceColor = 3;
                     else if(abs(r - b) < 30 && r > g && b > g)  // Purple r + b
-                        color = 5;
+                        surfaceColor = 5;
                     else if(abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
-                        color = 6;
+                        surfaceColor = 6;
                     else if(r > g && r > b) // Red
-                        color = 1;
+                        surfaceColor = 1;
                     else if(g > r && g > b) // Green
-                        color = 2;
+                        surfaceColor = 2;
                     else if(b > r && b > g) // Blue
-                        color = 4;
+                        surfaceColor = 4;
 
 
-                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color;
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
                 }
                 else
                     midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
@@ -858,8 +848,10 @@ public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
     XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
+        rgb_color color;
+        
         for(int i = 0; i < surface_->GetNumChannels(); i++)
-            currentTrackColors_.push_back(7);
+            currentTrackColors_.push_back(color);
         
         surface_->AddTrackColorFeedbackProcessor(this);
     }
@@ -927,9 +919,9 @@ public:
         {
             if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
             {
-                int rgb_color = DAW::GetTrackColor(track);
+                rgb_color color = DAW::GetTrackColor(track);
                 
-                if(rgb_color != currentTrackColors_[i])
+                if(color != currentTrackColors_[i])
                 {
                     shouldUpdate = true;
                     break;

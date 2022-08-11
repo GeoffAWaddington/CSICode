@@ -22,6 +22,16 @@ struct rgb_color
     int r = 0;
     int g = 0;
     int b = 0;
+        
+    bool operator == (rgb_color& other)
+    {
+        return r == other.r && g == other.g && b == other.b;
+    }
+    
+    bool operator != (rgb_color& other)
+    {
+        return r != other.r || g != other.g || b != other.b;
+    }
 };
 
 struct MIDI_event_ex_t : MIDI_event_t
@@ -156,9 +166,7 @@ public:
     
     // Runs the system color chooser dialog.  Returns 0 if the user cancels the dialog.
     static int GR_SelectColor(HWND hwnd, int* colorOut) { return ::GR_SelectColor(hwnd, colorOut); }
-    
-    static void ColorFromNative(int col, int* rOut, int* gOut, int* bOut) { ::ColorFromNative(col, rOut, gOut, bOut); }
-    
+        
     static int ColorToNative(int r, int g, int b) { return ::ColorToNative(r, g, b); }
 
     static bool ValidateTrackPtr(MediaTrack* track) { return ValidatePtr(track, "MediaTrack*"); }
@@ -315,12 +323,21 @@ public:
         }
     }
     
-    static int GetTrackColor(MediaTrack* track)
+    static rgb_color GetTrackColor(MediaTrack* track)
     {
+        rgb_color color;
+        
         if(ValidateTrackPtr(track))
-            return ::GetTrackColor(track);
-        else
-            return 0;
+            ::ColorFromNative(::GetTrackColor(track), &color.r, &color.g, &color.b);
+        
+        if(color.r == 0 && color.g == 0 && color.b == 0)
+        {
+            color.r = 64;
+            color.g = 64;
+            color.b = 64;
+        }
+        
+        return color;
     }
     
     static int CSurf_TrackToID(MediaTrack* track, bool mcpView)

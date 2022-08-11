@@ -1418,17 +1418,8 @@ void ActionContext::UpdateTrackColor()
 {
     if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
     {
-        int rgb_color = DAW::GetTrackColor(track);
-        
-        int r = (rgb_color >> 0) & 0xff;
-        int g = (rgb_color >> 8) & 0xff;
-        int b = (rgb_color >> 16) & 0xff;
-        
-        #ifdef WIN32
-            widget_->UpdateRGBValue(r, g, b);
-        #else
-            widget_->UpdateRGBValue(b, g, r);
-        #endif
+        rgb_color color = DAW::GetTrackColor(track);
+        widget_->UpdateRGBValue(color.r, color.g, color.b);
     }
 }
 
