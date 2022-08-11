@@ -1681,7 +1681,10 @@ private:
     }
     
 public:
-    TrackNavigationManager(Page* page) : page_(page),
+    TrackNavigationManager(Page* page, bool synchPages, bool isScrollLinkEnabled) :
+    page_(page),
+    synchPages_(synchPages),
+    isScrollLinkEnabled_(isScrollLinkEnabled),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
     focusedFXNavigator_(new FocusedFXNavigator(page_)),
@@ -2127,7 +2130,7 @@ private:
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name) : name_(name), trackNavigationManager_(new TrackNavigationManager(this)) {}
+    Page(string name, bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, synchPages, isScrollLinkEnabled)) {}
     
     ~Page()
     {

@@ -196,6 +196,8 @@ struct PageSurfaceLine
 struct PageLine
 {
     string name = "";
+    bool synchPages = true;
+    bool isScrollLinkEnabled = false;
     vector<shared_ptr<PageSurfaceLine>> surfaces;
 };
 
@@ -1025,13 +1027,31 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                     }
-                    else if(tokens[0] == PageToken)
+                    else if(tokens[0] == PageToken && tokens.size() > 1)
                     {
-                        if(tokens.size() != 2)
-                            continue;
+                        bool synchPages = true;
+                        bool isScrollLinkEnabled = false;
+                        
+                        if(tokens.size() > 2)
+                        {
+                            if(tokens[2] == "NoSynchPages")
+                                synchPages = false;
+                            else if(tokens[2] == "UseScrollLink")
+                                isScrollLinkEnabled = true;
+                        }
+                            
+                        if(tokens.size() > 3)
+                        {
+                            if(tokens[3] == "NoSynchPages")
+                                synchPages = false;
+                            else if(tokens[3] == "UseScrollLink")
+                                isScrollLinkEnabled = true;
+                        }
  
                         shared_ptr<PageLine> page = make_shared<PageLine>();
                         page->name = tokens[1];
+                        page->synchPages = synchPages;
+                        page->isScrollLinkEnabled = isScrollLinkEnabled;
                         
                         pages.push_back(page);
                         
@@ -1101,7 +1121,13 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 for(auto page : pages)
                 {
                     line = PageToken + " ";
-                    line += "\"" + page->name + "\" ";
+                    line += "\"" + page->name + "\"";
+                    
+                    if(page->synchPages == false)
+                        line += " NoSynchPages";
+                    
+                    if(page->isScrollLinkEnabled == true)
+                        line += " UseScrollLink";
                                         
                     line += GetLineEnding();
                     

@@ -1095,6 +1095,9 @@ void Manager::Init()
                 }
             }
             
+            if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
+                continue;
+            
             vector<string> tokens(GetTokens(line));
             
             if(tokens.size() > 1) // ignore comment lines and blank lines
@@ -1105,11 +1108,30 @@ void Manager::Init()
                     oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[4], atoi(tokens[3].c_str())));
                 else if(tokens[0] == PageToken)
                 {
+                    bool synchPages = true;
+                    bool isScrollLinkEnabled = false;
+                    
                     currentPage = nullptr;
                     
-                    if(tokens.size() == 2)
+                    if(tokens.size() > 1)
                     {
-                        currentPage = new Page(tokens[1]);
+                        if(tokens.size() > 2)
+                        {
+                            if(tokens[2] == "NoSynchPages")
+                                synchPages = false;
+                            else if(tokens[2] == "UseScrollLink")
+                                isScrollLinkEnabled = true;
+                        }
+                            
+                        if(tokens.size() > 3)
+                        {
+                            if(tokens[3] == "NoSynchPages")
+                                synchPages = false;
+                            else if(tokens[3] == "UseScrollLink")
+                                isScrollLinkEnabled = true;
+                        }
+                            
+                        currentPage = new Page(tokens[1], synchPages, isScrollLinkEnabled);
                         pages_.push_back(currentPage);
                     }
                 }
