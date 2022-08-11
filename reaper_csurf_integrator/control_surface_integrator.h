@@ -1663,7 +1663,10 @@ private:
             
             for(int i = 1; i <= GetNumTracks(); i++)
                 if(selectedTrack == GetTrackFromId(i))
+                {
                     trackOffset_ = i - 1;
+                    break;
+                }
             
             trackOffset_ -= targetScrollLinkChannel_;
             
