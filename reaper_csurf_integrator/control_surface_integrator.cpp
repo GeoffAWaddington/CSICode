@@ -1492,7 +1492,7 @@ void ActionContext::DoRelativeAction(double delta)
     if(steppedValues_.size() > 0)
         DoSteppedValueAction(delta);
     else
-        DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) + (deltaValue_ != 0.0 ? deltaValue_ : delta));
+        DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) + (deltaValue_ != 0.0 ? (delta > 0 ? deltaValue_ : -deltaValue_) : delta));
 }
 
 void ActionContext::DoRelativeAction(int accelerationIndex, double delta)
@@ -1502,7 +1502,7 @@ void ActionContext::DoRelativeAction(int accelerationIndex, double delta)
     else if(acceleratedDeltaValues_.size() > 0)
         DoAcceleratedDeltaValueAction(accelerationIndex, delta);
     else
-        DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) +  (deltaValue_ != 0.0 ? deltaValue_ : delta));
+        DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) +  (deltaValue_ != 0.0 ? (delta > 0 ? deltaValue_ : -deltaValue_) : delta));
 }
 
 void ActionContext::DoRangeBoundAction(double value)
