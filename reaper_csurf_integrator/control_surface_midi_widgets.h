@@ -475,7 +475,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FaderportRGB7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+class FaderportRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
@@ -484,8 +484,8 @@ private:
     int lastB_ = 0;
     
 public:
-    virtual ~FaderportRGB7Bit_Midi_FeedbackProcessor() {}
-    FaderportRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    virtual ~FaderportRGB_Midi_FeedbackProcessor() {}
+    FaderportRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void SetRGBValue(int r, int g, int b) override
     {

@@ -688,9 +688,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         {
             feedbackProcessor = new MFT_RGB_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
-        else if(widgetClass == "FB_FaderportRGB7Bit" && size == 4)
+        else if(widgetClass == "FB_FaderportRGB" && size == 4)
         {
-            feedbackProcessor = new FaderportRGB7Bit_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = new FaderportRGB_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if(widgetClass == "FB_FaderportTwoStateRGB" && size == 4)
         {
