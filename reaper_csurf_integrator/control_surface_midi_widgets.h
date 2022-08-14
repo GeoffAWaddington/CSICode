@@ -1031,6 +1031,7 @@ public:
     }
 };
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24_Text_MaxCharactersDictionary
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1730,6 +1731,8 @@ private:
     int displayRow_ = 0x00;
     int channel_ = 0;
     string lastStringSent_ = " ";
+    int textAlign_ = 0; // center: 0, left: 1, right: 2
+    int invert_ = 0;    // value is 4 or 0
     
 public:
     virtual ~FPDisplay_Midi_FeedbackProcessor() {}
@@ -1743,18 +1746,20 @@ public:
     virtual void SetValue(string displayText) override
     {
         if(displayText != lastStringSent_) // changes since last send
-            ForceValue(displayText);
+            lastStringSent_ = displayText;
+            ForceValue();
     }
     
-    virtual void ForceValue(string displayText) override
+    virtual void ForceValue() override
     {
-        lastStringSent_ = displayText;
-
+        string displayText = lastStringSent_;
         if(displayText == "")
             displayText = "                            ";
         
         const char* text = displayText.c_str();
     
+        int align = 0x0000000 + invert_ + textAlign_;
+
         struct
         {
             MIDI_event_ex_t evt;
@@ -1774,7 +1779,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x12;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;                // xx channel_ id
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;             // yy line number 0-3
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x0000000;               // zz alignment flag 0000000=centre, see manual for other setups.
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = align;               // zz alignment flag 0000000=centre, see manual for other setups.
         
         int length = strlen(text);
         
@@ -1793,6 +1798,37 @@ public:
         
         SendMidiMessage(&midiSysExData.evt);
     }
+    
+    virtual void SetProperties(vector<vector<string>> properties) override
+    {
+        for(auto property : properties)
+        {
+            if(property.size() == 0)
+                continue;
+
+            if(property[0] == "TextAlign" && property.size() > 1)
+            {
+                if (property[1] == "Center")
+                    textAlign_ = 0;
+                        
+                if (property[1] == "Left")
+                    textAlign_ = 1;
+                        
+                if (property[1] == "Right")
+                    textAlign_ = 2;
+
+                ForceValue();
+            }
+            else if(property[0] == "Invert")
+            {
+                invert_ = 4;
+                ForceValue();
+            }
+        }
+        
+        ForceValue();
+    }
+    
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
