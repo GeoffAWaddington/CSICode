@@ -371,6 +371,55 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FPTwoStateRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int lastR_ = 0;
+    int lastG_ = 0;
+    int lastB_ = 0;
+    double active_ = 0.0;
+    bool activeChanged_ = true;
+    
+public:
+    virtual ~FPTwoStateRGB_Midi_FeedbackProcessor() {}
+    FPTwoStateRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    
+    virtual void SetValue(double active) override
+    {
+        activeChanged_ = active != active_;
+        active_ = active;
+    }
+    
+    virtual void SetRGBValue(int r, int g, int b) override
+    {
+        if(r == lastR_ && g == lastG_ && b == lastB_ && !activeChanged_)
+            return;
+        
+        ForceRGBValue(r, g, b);
+    }
+
+    virtual void ForceRGBValue(int r, int g, int b) override
+    {
+        lastR_ = r;
+        lastG_ = g;
+        lastB_ = b;
+        activeChanged_ = false;
+     
+        int RGBIndexDivider = 1 * 2;
+        if (active_ == false)
+        {
+            RGBIndexDivider = 9 * 2;
+        }
+        
+        SendMidiMessage(0x90, midiFeedbackMessage1_->midi_message[1], 0x7f);
+        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], r / RGBIndexDivider);  // only 127 bit allowed in Midi byte 3
+        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], g / RGBIndexDivider);
+        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], b / RGBIndexDivider);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
