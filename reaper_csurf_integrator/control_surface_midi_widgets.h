@@ -700,6 +700,54 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FPVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int channelNumber_ = 0;
+    int lastMidiValue_ = 0;
+    bool isClipOn_ = false;
+
+public:
+    virtual ~FPVUMeter_Midi_FeedbackProcessor() {}
+    FPVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber) {}
+    
+    virtual void SetValue(double value) override
+    {
+        if(lastMidiValue_ == value || GetMidiValue(value) < 7)
+        {
+            return;
+        }
+        
+        if(channelNumber_ < 8)
+        {
+            SendMidiMessage(0xd0 + channelNumber_, GetMidiValue(value), 0);
+        } else {
+            SendMidiMessage(0xc0 + channelNumber_ - 8, GetMidiValue(value), 0);
+        }
+    }
+
+    virtual void ForceValue(double value) override
+    {
+        lastMidiValue_ = value;
+        if(channelNumber_ < 8)
+        {
+            ForceMidiMessage(0xd0 + channelNumber_, GetMidiValue(value), 0);
+        } else {
+            ForceMidiMessage(0xc0 + channelNumber_ - 8, GetMidiValue(value), 0);
+        }
+    }
+    
+    int GetMidiValue(double value)
+    {
+        //Dn, vv   : n meter address, vv meter value (0...7F)
+        int midiValue = value * 0xa0;
+
+        return midiValue;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class MCUDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
