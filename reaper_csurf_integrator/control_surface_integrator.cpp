@@ -991,6 +991,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackPanR"] =                         new TrackPanR();
     actions_["TrackPanRPercent"] =                  new TrackPanRPercent();
     actions_["TrackNameDisplay"] =                  new TrackNameDisplay();
+    actions_["TrackNumberDisplay"] =                new TrackNumberDisplay();
     actions_["TrackVolumeDisplay"] =                new TrackVolumeDisplay();
     actions_["MCUTrackPanDisplay"] =                new MCUTrackPanDisplay();
     actions_["TrackPanDisplay"] =                   new TrackPanDisplay();
