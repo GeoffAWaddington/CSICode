@@ -379,7 +379,6 @@ private:
     int lastG_ = 0;
     int lastB_ = 0;
     double active_ = 0.0;
-    bool activeChanged_ = true;
     
 public:
     virtual ~FPTwoStateRGB_Midi_FeedbackProcessor() {}
@@ -387,13 +386,21 @@ public:
     
     virtual void SetValue(double active) override
     {
-        activeChanged_ = active != active_;
         active_ = active;
     }
     
     virtual void SetRGBValue(int r, int g, int b) override
     {
-        if(r == lastR_ && g == lastG_ && b == lastB_ && !activeChanged_)
+        int RGBIndexDivider = 1 * 2;
+        
+        if (active_ == false)
+            RGBIndexDivider = 9 * 2;
+        
+        r = r / RGBIndexDivider;
+        g = g / RGBIndexDivider;
+        b = b / RGBIndexDivider;
+        
+        if(r == lastR_ && g == lastG_ && b == lastB_)
             return;
         
         ForceRGBValue(r, g, b);
@@ -404,18 +411,11 @@ public:
         lastR_ = r;
         lastG_ = g;
         lastB_ = b;
-        activeChanged_ = false;
-     
-        int RGBIndexDivider = 1 * 2;
-        if (active_ == false)
-        {
-            RGBIndexDivider = 9 * 2;
-        }
         
         SendMidiMessage(0x90, midiFeedbackMessage1_->midi_message[1], 0x7f);
-        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], r / RGBIndexDivider);  // only 127 bit allowed in Midi byte 3
-        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], g / RGBIndexDivider);
-        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], b / RGBIndexDivider);
+        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], r);  // only 127 bit allowed in Midi byte 3
+        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], g);
+        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], b);
     }
 };
 
