@@ -825,6 +825,79 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FPValueBar_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    double lastValue_ = 0;
+    int valueBarType_ = 4; // 0: Normal, 1: Bipolar, 2: Fill, 3: Spread, 4: Off
+    int channel_ = 0;
+    
+public:
+    virtual ~FPValueBar_Midi_FeedbackProcessor() {}
+    FPValueBar_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int channel) : Midi_FeedbackProcessor(surface, widget), channel_(channel) { }
+
+    virtual void SetValue(double value) override
+    {
+        if(value == lastValue_)
+            return;
+        
+        ForceValue(value);
+    }
+
+    virtual void SetValue(int param, double value) override
+    {
+        SetValue(value);
+    }
+
+    virtual void ForceValue(double value) override
+    {
+        lastValue_ = value;
+        
+        if (channel_ < 8)
+        {
+            SendMidiMessage(0xb0, channel_ + 0x30, lastValue_ * 127.0);
+            SendMidiMessage(0xb0, channel_ + 0x38, valueBarType_);
+        }
+        else
+        {
+            SendMidiMessage(0xb0, channel_ - 8 + 0x40, lastValue_ * 127.0);
+            SendMidiMessage(0xb0, channel_ - 8 + 0x48, valueBarType_);
+        }
+    }
+    
+    virtual void SetProperties(vector<vector<string>> properties) override
+    {
+        for(auto property : properties)
+        {
+            if(property.size() == 0)
+                continue;
+
+            if(property[0] == "Mode" && property.size() > 1)
+            {
+                if (property[1] == "Normal")
+                    valueBarType_ = 0;
+
+                if (property[1] == "BiPolar")
+                    valueBarType_ = 1;
+
+                if (property[1] == "Fill")
+                    valueBarType_ = 2;
+
+                if (property[1] == "Spread")
+                    valueBarType_ = 3;
+
+                if (property[1] == "Off")
+                    valueBarType_ = 4;
+
+                ForceValue(lastValue_);
+            }
+        }
+        ForceValue(lastValue_);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class MCUDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1056,6 +1129,197 @@ public:
         
         if(shouldUpdate)
             ForceUpdateTrackColors();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FPDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int displayType_ = 0x02;
+    int displayRow_ = 0x00;
+    int channel_ = 0;
+    string lastStringSent_ = " ";
+    int textAlign_ = 0; // Center: 0, Left: 1, Right: 2
+    int invert_ = 0;    // value is 4 or 0
+    
+public:
+    virtual ~FPDisplay_Midi_FeedbackProcessor() {}
+    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow) { }
+    
+    virtual void ClearCache() override
+    {
+        lastStringSent_ = " ";
+    }
+    
+    virtual void SetValue(string displayText) override
+    {
+        if(displayText == lastStringSent_) // changes since last send
+            return;
+
+        ForceValue(displayText);
+    }
+    
+    virtual void ForceValue(string displayText) override
+    {
+        lastStringSent_ = displayText;
+        
+        if(displayText == "")
+            displayText = "                            ";
+        
+        const char* text = displayText.c_str();
+    
+        int invert = lastStringSent_ == "" ? 0 : invert_; // prevent empty inverted lines
+        int align = 0x0000000 + invert + textAlign_;
+
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        }
+        
+        midiSysExData;
+        
+        midiSysExData.evt.frame_offset = 0;
+        midiSysExData.evt.size = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x06;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_; // Faderport8=0x02, Faderport16=0x16
+        
+        // <SysExHdr> 12, xx, yy, zz, tx,tx,tx,... F7
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x12;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;                // xx channel_ id
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;             // yy line number 0-3
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = align;               // zz alignment flag 0000000=centre, see manual for other setups.
+        
+        int length = strlen(text);
+        
+        if (length > 30)
+            length = 30;
+        
+        int count = 0;
+        
+        while (count < length)
+        {
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;                // tx text in ASCII format
+            count++;
+        }
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
+    }
+    
+    virtual void SetProperties(vector<vector<string>> properties) override
+    {
+        for(auto property : properties)
+        {
+            if(property.size() == 0)
+                continue;
+
+            if(property[0] == "TextAlign" && property.size() > 1)
+            {
+                if (property[1] == "Center")
+                    textAlign_ = 0;
+                else if (property[1] == "Left")
+                    textAlign_ = 1;
+                else if (property[1] == "Right")
+                    textAlign_ = 2;
+                else
+                    textAlign_ = 0;
+
+                ForceValue(lastStringSent_);
+            }
+            else if(property[0] == "Invert" && property.size() > 1)
+            {
+                if (property[1] != "1")
+                    invert_ = 0;
+                else
+                    invert_ = 4;
+                    
+                ForceValue(lastStringSent_);
+            }
+        }
+        
+        ForceValue(lastStringSent_);
+    }
+    
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class QConLiteDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int offset_ = 0;
+    int displayType_ = 0x14;
+    int displayRow_ = 0x12;
+    int channel_ = 0;
+    string lastStringSent_ = "";
+    
+public:
+    virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
+    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    
+    virtual void ClearCache() override
+    {
+        lastStringSent_ = " ";
+    }
+    
+    virtual void SetValue(string displayText) override
+    {
+        if(displayText != lastStringSent_) // changes since last send
+            ForceValue(displayText);
+    }
+    
+    virtual void ForceValue(string displayText) override
+    {
+        lastStringSent_ = displayText;
+        
+        if(displayText == "")
+            displayText = "       ";
+        
+        int pad = 7;
+        const char* text = displayText.c_str();
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
+        
+        int l = strlen(text);
+        if (pad < l)
+            l = pad;
+        if (l > 200)
+            l = 200;
+        
+        int cnt = 0;
+        while (cnt < l)
+        {
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
+            cnt++;
+        }
+        
+        while (cnt++ < pad)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
     }
 };
 
@@ -1744,189 +2008,6 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = currentColor_.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = currentColor_.b / 2;
 
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
-        
-        SendMidiMessage(&midiSysExData.evt);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FPDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-private:
-    int displayType_ = 0x02;
-    int displayRow_ = 0x00;
-    int channel_ = 0;
-    string lastStringSent_ = " ";
-    int textAlign_ = 0; // center: 0, left: 1, right: 2
-    int invert_ = 0;    // value is 4 or 0
-    
-public:
-    virtual ~FPDisplay_Midi_FeedbackProcessor() {}
-    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow) { }
-    
-    virtual void ClearCache() override
-    {
-        lastStringSent_ = " ";
-    }
-    
-    virtual void SetValue(string displayText) override
-    {
-        if(displayText != lastStringSent_) // changes since last send
-            lastStringSent_ = displayText;
-            ForceValue();
-    }
-    
-    virtual void ForceValue() override
-    {
-        string displayText = lastStringSent_;
-        if(displayText == "")
-            displayText = "                            ";
-        
-        const char* text = displayText.c_str();
-    
-        int align = 0x0000000 + invert_ + textAlign_;
-
-        struct
-        {
-            MIDI_event_ex_t evt;
-            char data[512];
-        }
-        midiSysExData;
-        
-        midiSysExData.evt.frame_offset = 0;
-        midiSysExData.evt.size = 0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x06;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_; // Faderport8=0x02, Faderport16=0x16
-        
-        // <SysExHdr> 12, xx, yy, zz, tx,tx,tx,... F7
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x12;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;                // xx channel_ id
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;             // yy line number 0-3
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = align;               // zz alignment flag 0000000=centre, see manual for other setups.
-        
-        int length = strlen(text);
-        
-        if (length > 30)
-            length = 30;
-        
-        int count = 0;
-        
-        while (count < length)
-        {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;                // tx text in ASCII format
-            count++;
-        }
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
-        
-        SendMidiMessage(&midiSysExData.evt);
-    }
-    
-    virtual void SetProperties(vector<vector<string>> properties) override
-    {
-        for(auto property : properties)
-        {
-            if(property.size() == 0)
-                continue;
-
-            if(property[0] == "TextAlign" && property.size() > 1)
-            {
-                if (property[1] == "Center")
-                    textAlign_ = 0;
-                        
-                if (property[1] == "Left")
-                    textAlign_ = 1;
-                        
-                if (property[1] == "Right")
-                    textAlign_ = 2;
-
-                ForceValue();
-            }
-            else if(property[0] == "Invert")
-            {
-                invert_ = 4;
-                ForceValue();
-            }
-        }
-        
-        ForceValue();
-    }
-    
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class QConLiteDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-private:
-    int offset_ = 0;
-    int displayType_ = 0x14;
-    int displayRow_ = 0x12;
-    int channel_ = 0;
-    string lastStringSent_ = "";
-    
-public:
-    virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
-    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
-    
-    virtual void ClearCache() override
-    {
-        lastStringSent_ = " ";
-    }
-    
-    virtual void SetValue(string displayText) override
-    {
-        if(displayText != lastStringSent_) // changes since last send
-            ForceValue(displayText);
-    }
-    
-    virtual void ForceValue(string displayText) override
-    {
-        lastStringSent_ = displayText;
-        
-        if(displayText == "")
-            displayText = "       ";
-        
-        int pad = 7;
-        const char* text = displayText.c_str();
-        
-        struct
-        {
-            MIDI_event_ex_t evt;
-            char data[512];
-        } midiSysExData;
-        midiSysExData.evt.frame_offset=0;
-        midiSysExData.evt.size=0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
-        
-        int l = strlen(text);
-        if (pad < l)
-            l = pad;
-        if (l > 200)
-            l = 200;
-        
-        int cnt = 0;
-        while (cnt < l)
-        {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
-            cnt++;
-        }
-        
-        while (cnt++ < pad)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
-        
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
         SendMidiMessage(&midiSysExData.evt);
