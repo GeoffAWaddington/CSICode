@@ -332,6 +332,34 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class XTouchCompact7BitRotaryToEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int lastMessage = -1;
+    
+public:
+    virtual ~XTouchCompact7BitRotaryToEncoder_Midi_CSIMessageGenerator() {}
+    XTouchCompact7BitRotaryToEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    {
+        surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
+    }
+    
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    {
+        int currentMessage = midiMessage->midi_message[2];
+        double delta = 1.0 / 64.0;
+        
+        if(lastMessage > currentMessage || (lastMessage == 0 && currentMessage == 0))
+            delta = -delta;
+            
+        lastMessage = currentMessage;
+        
+        widget_->GetZoneManager()->DoRelativeAction(widget_, delta);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FeedbackProcessors
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
