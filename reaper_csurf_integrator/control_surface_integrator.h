@@ -109,6 +109,7 @@ public:
 
     virtual void Touch(ActionContext* context, double value) {}
     virtual void RequestUpdate(ActionContext* context) {}
+    virtual void RequestUpdateWidgetMode(ActionContext* context) {}
     virtual void Do(ActionContext* context, double value) {}
     virtual double GetCurrentNormalizedValue(ActionContext* context) { return 0.0; }
     virtual double GetCurrentDBValue(ActionContext* context) { return 0.0; }
@@ -313,12 +314,14 @@ public:
     void DoRelativeAction(int accelerationIndex, double value);
     
     void RequestUpdate();
+    void RequestUpdateWidgetMode();
     void RunDeferredActions();
     void ClearWidget();
     void UpdateWidgetValue(double value);
     void UpdateWidgetValue(int param, double value);
     void UpdateWidgetValue(string value);
-    
+    void UpdateWidgetMode(string modeParams);
+
     void DoTouch(double value)
     {
         action_->Touch(this, value);
@@ -604,6 +607,7 @@ public:
     void Clear();
     void ForceClear();
     void LogInput(double value);
+    void UpdateMode(string modeParams);
     
     void AddFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
     {
@@ -1327,6 +1331,7 @@ public:
     virtual void SetCurrentColor(double value) {}
     virtual void SetProperties(vector<vector<string>> properties) {}
     virtual void UpdateTrackColors() {}
+    virtual void SetMode(string modeParams) {}
 
     virtual int GetMaxCharacters() { return 0; }
     

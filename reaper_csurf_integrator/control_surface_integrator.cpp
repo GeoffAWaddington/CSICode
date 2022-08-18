@@ -928,6 +928,7 @@ void Manager::InitActionsDictionary()
     actions_["SaveProject"] =                       new SaveProject();
     actions_["Undo"] =                              new Undo();
     actions_["Redo"] =                              new Redo();
+    actions_["WidgetMode"] =                        new WidgetMode();
     actions_["TrackAutoMode"] =                     new TrackAutoMode();
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();
@@ -1407,6 +1408,11 @@ void ActionContext::RequestUpdate()
     action_->RequestUpdate(this);
 }
 
+void ActionContext::RequestUpdateWidgetMode()
+{
+    action_->RequestUpdateWidgetMode(this);
+}
+
 void ActionContext::ClearWidget()
 {
     widget_->Clear();
@@ -1462,6 +1468,11 @@ void ActionContext::UpdateTrackColor()
 void ActionContext::UpdateWidgetValue(string value)
 {
     widget_->UpdateValue(value);
+}
+
+void ActionContext::UpdateWidgetMode(string modeParams)
+{
+    widget_->UpdateMode(modeParams);
 }
 
 void ActionContext::DoAction(double value)
@@ -1760,6 +1771,9 @@ void Zone::RequestUpdateWidget(Widget* widget)
     for(auto context : GetActionContexts(widget))
         context->RunDeferredActions();
     
+    for(auto context : GetActionContexts(widget))
+        context->RequestUpdateWidgetMode();
+    
     if(GetActionContexts(widget).size() > 0)
     {
         shared_ptr<ActionContext> context = GetActionContexts(widget)[0];
@@ -1974,6 +1988,12 @@ void  Widget::UpdateValue(string value)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetValue(value);
+}
+
+void  Widget::UpdateMode(string modeParams)
+{
+    for(auto processor : feedbackProcessors_)
+        processor->SetMode(modeParams);
 }
 
 void  Widget::UpdateRGBValue(int r, int g, int b)
