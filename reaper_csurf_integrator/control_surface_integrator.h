@@ -1314,6 +1314,8 @@ protected:
     int lastRValue_ = 0;
     int lastGValue_ = 0;
     int lastBValue_ = 0;
+    
+    string modeParams_ = "";
 
     Widget* const widget_ = nullptr;
     
@@ -1331,10 +1333,15 @@ public:
     virtual void SetCurrentColor(double value) {}
     virtual void SetProperties(vector<vector<string>> properties) {}
     virtual void UpdateTrackColors() {}
-    virtual void SetMode(string modeParams) {}
-
+    
     virtual int GetMaxCharacters() { return 0; }
     
+    void SetMode(string modeParams)
+    {
+        if(modeParams_ != modeParams)
+            modeParams_ = modeParams;
+    }
+
     virtual void SetValue(double value)
     {
         if(lastDoubleValue_ != value)
