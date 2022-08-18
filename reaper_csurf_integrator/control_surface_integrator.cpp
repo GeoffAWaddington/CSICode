@@ -800,28 +800,27 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
         }
         
-        else if((widgetClass == "FB_FP8Display" || widgetClass == "FB_FP16Display"
-                 || widgetClass == "FB_FP8DisplayUpper" || widgetClass == "FB_FP16DisplayUpper"
-                 || widgetClass == "FB_FP8DisplayUpperMiddle" || widgetClass == "FB_FP16DisplayUpperMiddle"
-                 || widgetClass == "FB_FP8DisplayLowerMiddle" || widgetClass == "FB_FP16DisplayLowerMiddle"
-                 || widgetClass == "FB_FP8DisplayLower" || widgetClass == "FB_FP16DisplayLower") && size == 2)
+        else if((widgetClass == "FB_FP8ScribbleLine1" || widgetClass == "FB_FP16ScribbleLine1"
+                 || widgetClass == "FB_FP8ScribbleLine2" || widgetClass == "FB_FP16ScribbleLine2"
+                 || widgetClass == "FB_FP8ScribbleLine3" || widgetClass == "FB_FP16ScribbleLine3"
+                 || widgetClass == "FB_FP8ScribbleLine4" || widgetClass == "FB_FP16ScribbleLine4") && size == 2)
         {
-            if(widgetClass == "FB_FP8Display" || widgetClass == "FB_FP8DisplayUpper")
+            if(widgetClass == "FB_FP8ScribbleLine1")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
-            else if(widgetClass == "FB_FP8DisplayUpperMiddle")
+            else if(widgetClass == "FB_FP8ScribbleLine2")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
-            else if(widgetClass == "FB_FP8DisplayLowerMiddle")
+            else if(widgetClass == "FB_FP8ScribbleLine3")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
-            else if(widgetClass == "FB_FP8DisplayLower")
+            else if(widgetClass == "FB_FP8ScribbleLine4")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
 
-            else if(widgetClass == "FB_FP16Display" ||  widgetClass == "FB_FP16DisplayUpper")
+            else if(widgetClass == "FB_FP16ScribbleLine1")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
-            else if(widgetClass == "FB_FP16DisplayUpperMiddle")
+            else if(widgetClass == "FB_FP16ScribbleLine2")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
-            else if(widgetClass == "FB_FP16DisplayLowerMiddle")
+            else if(widgetClass == "FB_FP16ScribbleLine3")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
-            else if(widgetClass == "FB_FP16DisplayLower")
+            else if(widgetClass == "FB_FP16ScribbleLine4")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
         }
         
