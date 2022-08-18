@@ -332,15 +332,15 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class XTouchCompact7BitRotaryToEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
+class Encoder7Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
     int lastMessage = -1;
     
 public:
-    virtual ~XTouchCompact7BitRotaryToEncoder_Midi_CSIMessageGenerator() {}
-    XTouchCompact7BitRotaryToEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    virtual ~Encoder7Bit_Midi_CSIMessageGenerator() {}
+    Encoder7Bit_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
     }
