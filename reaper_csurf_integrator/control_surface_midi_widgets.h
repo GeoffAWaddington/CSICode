@@ -1511,8 +1511,6 @@ protected:
     virtual void SetCurrentColor(double value) override
     {
         currentColor_ = value == 0 ? backgroundColor_ : foregroundColor_;
-        
-        ForceValue();
     }
     
     virtual void SetProperties(vector<vector<string>> properties) override
@@ -1525,13 +1523,11 @@ protected:
             if(property[0] == "RingStyle" && property.size() > 1)
             {
                 itemStyle_ = stoi(property[1]);
-                ForceValue();
             }
             else if(property[0] == "BarStyle" && property.size() > 2)
             {
                 displayType_ = stoi(property[1]);
                 itemStyle_ = stoi(property[2]);
-                ForceValue();
             }
             else if((property[0] == "RingColor" || property[0] == "BarColor") && property.size() > 4)
             {
@@ -1539,7 +1535,6 @@ protected:
                 foregroundColor_.r = stoi(property[2]);
                 foregroundColor_.g = stoi(property[3]);
                 foregroundColor_.b = stoi(property[4]);
-                ForceValue();
             }
             else if((property[0] == "Color" || property[0] == "ColorOn") && property.size() > 4)
             {
@@ -1547,7 +1542,6 @@ protected:
                 foregroundColor_.r = stoi(property[2]);
                 foregroundColor_.g = stoi(property[3]);
                 foregroundColor_.b = stoi(property[4]);
-                ForceValue();
             }
             else if((property[0] == "BackgroundColor" || property[0] == "ColorOff") && property.size() > 4)
             {
@@ -1558,7 +1552,6 @@ protected:
                 
                 int oldMaxCharacters = maxCharacters_;
                 maxCharacters_ = 0;
-                ForceValue();
                 maxCharacters_ = oldMaxCharacters;
             }
             else if(property[0] == "Text" && property.size() > 8)
@@ -1571,7 +1564,6 @@ protected:
                 backgroundColor_.b = stoi(property[8]);
 
                 maxCharacters_ = 0;
-                ForceValue();
                 
                 foregroundColor_.r = stoi(property[3]);
                 foregroundColor_.g = stoi(property[4]);
@@ -1588,8 +1580,6 @@ protected:
                 itemStyle_ = 02;
             }
         }
-        
-        ForceValue();
     }
 };
 
@@ -1619,16 +1609,12 @@ public:
         if(displayText != lastStringValue_) // changes since last send
             ForceValue(displayText);
     }
-
+    
     virtual void ForceValue(string value) override
     {
         lastStringValue_ = value;
         text_ = value;
-        ForceValue();
-    }
-    
-    virtual void ForceValue() override
-    {
+
         string displayText = text_;
 
         if(displayText == "")
@@ -1716,7 +1702,7 @@ public:
         }
     }
     
-    virtual void ForceValue() override
+    virtual void ForceValue(double value) override
     {
         struct
         {
@@ -1770,7 +1756,7 @@ public:
         }
     }
     
-    virtual void ForceValue() override
+    virtual void ForceValue(double value) override
     {
         struct
         {
@@ -1833,16 +1819,13 @@ public:
         if(value != lastStringValue_) // changes since last send
             ForceValue(value);
     }
-    
+
+
     void ForceValue(string value) override
     {
         lastStringValue_ = value;
         text_ = value;
-        ForceValue();
-    }
-
-    void ForceValue() override
-    {
+        
         struct
         {
             MIDI_event_ex_t evt;
@@ -1918,15 +1901,13 @@ public:
         if(value != lastDoubleValue_) // changes since last send
             ForceValue(value);
     }
-    
+       
     virtual void ForceValue(double value) override
     {
+        
         lastDoubleValue_ = value;
         SetCurrentColor(value);  // This will cause a Force()
-    }
-    
-    virtual void ForceValue() override
-    {
+
         struct
         {
             MIDI_event_ex_t evt;
@@ -1975,15 +1956,12 @@ public:
         if(value != lastDoubleValue_) // changes since last send
             ForceValue(value);
     }
-    
+        
     virtual void ForceValue(double value) override
     {
         lastDoubleValue_ = value;
-        SetCurrentColor(value);  // This will cause a Force()
-    }
-    
-    virtual void ForceValue() override
-    {
+        SetCurrentColor(value);
+        
         struct
         {
             MIDI_event_ex_t evt;

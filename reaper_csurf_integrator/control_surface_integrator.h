@@ -1324,7 +1324,6 @@ public:
     virtual ~FeedbackProcessor() {}
     Widget* GetWidget() { return widget_; }
     virtual void SetRGBValue(int r, int g, int b) {}
-    virtual void ForceValue() {}
     virtual void ForceValue(double value) {}
     virtual void ForceValue(int param, double value) {}
     virtual void ForceRGBValue(int r, int g, int b) {}
