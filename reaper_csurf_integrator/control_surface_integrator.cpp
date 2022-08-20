@@ -214,18 +214,19 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 touchId = modifier_tokens[i];
                 modifierSlots[0] = modifier_tokens[i] + "+";
             }
-            else if(modifier_tokens[i] == ToggleToken)
-                modifierSlots[1] = ToggleToken + "+";
             else if(modifier_tokens[i] == ShiftToken)
-                modifierSlots[2] = ShiftToken + "+";
+                modifierSlots[1] = ShiftToken + "+";
             else if(modifier_tokens[i] == OptionToken)
-                modifierSlots[3] = OptionToken + "+";
+                modifierSlots[2] = OptionToken + "+";
             else if(modifier_tokens[i] == ControlToken)
-                modifierSlots[4] = ControlToken + "+";
+                modifierSlots[3] = ControlToken + "+";
             else if(modifier_tokens[i] == AltToken)
-                modifierSlots[5] = AltToken + "+";
+                modifierSlots[4] = AltToken + "+";
             else if(modifier_tokens[i] == FlipToken)
-                modifierSlots[6] = FlipToken + "+";
+                modifierSlots[5] = FlipToken + "+";
+            else if(modifier_tokens[i] == ToggleToken)
+                modifierSlots[6] = ToggleToken + "+";
+
 
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
@@ -384,11 +385,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                                         
                             if(widget == nullptr)
                                 continue;
-                           
-                            if(actionName == ShiftToken || actionName == OptionToken || actionName == ControlToken
-                               || actionName == AltToken || actionName == FlipToken)
-                                widget->SetIsModifier();
-                            
+ 
                             zone->AddWidget(widget);
                             
                             for(auto [modifier, actions] : modifierActions)
@@ -397,7 +394,8 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 {
                                     string actionName = regex_replace(action->actionName, regex("[|]"), numStr);
                                     
-                                    if(actionName == "ToggleChannel")
+                                    if(actionName == ShiftToken || actionName == OptionToken || actionName == ControlToken
+                                       || actionName == AltToken || actionName == FlipToken || actionName == ToggleChannelToken)
                                         widget->SetIsModifier();
                                         
                                     vector<string> memberParams;
@@ -951,7 +949,6 @@ void Manager::InitActionsDictionary()
     actions_["CycleTimeline"] =                     new CycleTimeline();
     actions_["ToggleSynchPageBanking"] =            new ToggleSynchPageBanking();
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
-    actions_["ToggleChannel"] =                     new ToggleChannel();
     actions_["CycleTrackVCAFolderModes"] =          new CycleTrackVCAFolderModes();
     actions_["TrackVCAFolderModeDisplay"] =         new TrackVCAFolderModeDisplay();
     actions_["CycleTimeDisplayModes"] =             new CycleTimeDisplayModes();
@@ -987,6 +984,7 @@ void Manager::InitActionsDictionary()
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
     actions_["Flip"] =                              new SetFlip();
+    actions_["ToggleChannel"] =                     new SetToggleChannel();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
     actions_["TrackVolume"] =                       new TrackVolume();
     actions_["SoftTakeover7BitTrackVolume"] =       new SoftTakeover7BitTrackVolume();
@@ -1917,24 +1915,23 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
 
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
-    if(widget->GetName() == "RotaryPush1")
-        int blah = 0;
-    
     string widgetName = widget->GetName();
-    string modifier = "";
+    bool isToggled = widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber());
     
+    string modifier = "";
     if( ! widget->GetIsModifier())
         modifier = widget->GetSurface()->GetPage()->GetModifier();
     
+    if(isToggled && (touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier + "Toggle+")) > 0)
+        return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier + "Toggle+"];
     if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier) > 0)
         return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier];
+    else if(isToggled && actionContextDictionary_[widget].count(modifier + "Toggle+") > 0)
+        return actionContextDictionary_[widget][modifier + "Toggle+"];
+    else if(isToggled && actionContextDictionary_[widget].count("Toggle+") > 0)
+        return actionContextDictionary_[widget]["Toggle+"];
     else if(actionContextDictionary_[widget].count(modifier) > 0)
-    {
-        if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()) && actionContextDictionary_[widget].count("Toggle+" + modifier) > 0)
-           return actionContextDictionary_[widget]["Toggle+" + modifier];
-        else
-            return actionContextDictionary_[widget][modifier];
-    }
+        return actionContextDictionary_[widget][modifier];
     else if(actionContextDictionary_[widget].count("") > 0)
         return actionContextDictionary_[widget][""];
     else

@@ -57,6 +57,7 @@ const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
 
 const string ToggleToken = "Toggle";
+const string ToggleChannelToken = "ToggleChannel";
 const string ShiftToken = "Shift";
 const string OptionToken = "Option";
 const string ControlToken = "Control";
