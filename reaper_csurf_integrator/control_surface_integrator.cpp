@@ -933,6 +933,7 @@ void Manager::InitActionsDictionary()
     actions_["Undo"] =                              new Undo();
     actions_["Redo"] =                              new Redo();
     actions_["WidgetMode"] =                        new WidgetMode();
+    actions_["SetWidgetMode"] =                     new SetWidgetMode();
     actions_["TrackAutoMode"] =                     new TrackAutoMode();
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();
