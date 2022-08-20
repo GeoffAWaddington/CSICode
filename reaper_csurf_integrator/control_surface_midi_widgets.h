@@ -812,8 +812,23 @@ class FPValueBar_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 private:
     double lastValue_ = 0;
-    int valueBarType_ = 4; // 0: Normal, 1: Bipolar, 2: Fill, 3: Spread, 4: Off
+    string lastModeParams_ = "";
     int channel_ = 0;
+    
+    int GetValueBarType()
+    {
+        // 0: Normal, 1: Bipolar, 2: Fill, 3: Spread, 4: Off
+        if (modeParams_ == "Normal")
+            return 0;
+        else if (modeParams_ == "BiPolar")
+            return 1;
+        else if (modeParams_ == "Fill")
+            return 2;
+        else if (modeParams_ == "Spread")
+            return 3;
+
+        return 4;
+    }
     
 public:
     virtual ~FPValueBar_Midi_FeedbackProcessor() {}
@@ -821,7 +836,7 @@ public:
 
     virtual void SetValue(double value) override
     {
-        if(value == lastValue_)
+        if(value == lastValue_ && modeParams_ == lastModeParams_)
             return;
         
         ForceValue(value);
@@ -830,47 +845,18 @@ public:
     virtual void ForceValue(double value) override
     {
         lastValue_ = value;
+        lastModeParams_ = modeParams_;
         
         if (channel_ < 8)
         {
             SendMidiMessage(0xb0, channel_ + 0x30, lastValue_ * 127.0);
-            SendMidiMessage(0xb0, channel_ + 0x38, valueBarType_);
+            SendMidiMessage(0xb0, channel_ + 0x38, GetValueBarType());
         }
         else
         {
             SendMidiMessage(0xb0, channel_ - 8 + 0x40, lastValue_ * 127.0);
-            SendMidiMessage(0xb0, channel_ - 8 + 0x48, valueBarType_);
+            SendMidiMessage(0xb0, channel_ - 8 + 0x48, GetValueBarType());
         }
-    }
-    
-    virtual void SetProperties(vector<vector<string>> properties) override
-    {
-        for(auto property : properties)
-        {
-            if(property.size() == 0)
-                continue;
-
-            if(property[0] == "Mode" && property.size() > 1)
-            {
-                if (property[1] == "Normal")
-                    valueBarType_ = 0;
-
-                if (property[1] == "BiPolar")
-                    valueBarType_ = 1;
-
-                if (property[1] == "Fill")
-                    valueBarType_ = 2;
-
-                if (property[1] == "Spread")
-                    valueBarType_ = 3;
-
-                if (property[1] == "Off")
-                    valueBarType_ = 4;
-
-                ForceValue(lastValue_);
-            }
-        }
-        ForceValue(lastValue_);
     }
 };
 
@@ -1118,8 +1104,27 @@ private:
     int displayRow_ = 0x00;
     int channel_ = 0;
     string lastStringSent_ = " ";
-    int textAlign_ = 0; // Center: 0, Left: 1, Right: 2
-    int invert_ = 0;    // value is 4 or 0
+    string lastModeParams_ = "";
+    
+    int GetTextAlign()
+    {
+        // Center: 0, Left: 1, Right: 2
+        if (modeParams_.find("Left") != std::string::npos)
+            return 1;
+        else if (modeParams_.find("Right") != std::string::npos)
+            return 2;
+        
+        return 0;
+    }
+    
+    int GetTextInvert()
+    {
+        // value is 4 (Invert) or 0 (Default)
+        if (modeParams_.find("Invert") != std::string::npos)
+             return 4;
+
+        return 0;
+    }
     
 public:
     virtual ~FPDisplay_Midi_FeedbackProcessor() {}
@@ -1132,7 +1137,7 @@ public:
     
     virtual void SetValue(string displayText) override
     {
-        if(displayText == lastStringSent_) // changes since last send
+        if(displayText == lastStringSent_ && lastModeParams_ ==  modeParams_) // changes since last send
             return;
 
         ForceValue(displayText);
@@ -1141,14 +1146,15 @@ public:
     virtual void ForceValue(string displayText) override
     {
         lastStringSent_ = displayText;
+        lastModeParams_ = modeParams_;
         
         if(displayText == "")
             displayText = "                            ";
         
         const char* text = displayText.c_str();
     
-        int invert = lastStringSent_ == "" ? 0 : invert_; // prevent empty inverted lines
-        int align = 0x0000000 + invert + textAlign_;
+        int invert = lastStringSent_ == "" ? 0 : GetTextInvert(); // prevent empty inverted lines
+        int align = 0x0000000 + invert + GetTextAlign();
 
         struct
         {
@@ -1168,9 +1174,9 @@ public:
         
         // <SysExHdr> 12, xx, yy, zz, tx,tx,tx,... F7
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x12;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;                // xx channel_ id
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;             // yy line number 0-3
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = align;               // zz alignment flag 0000000=centre, see manual for other setups.
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;      // xx channel_ id
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;   // yy line number 0-3
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = align;         // zz alignment flag 0000000=centre, see manual for other setups.
         
         int length = strlen(text);
         
@@ -1189,41 +1195,67 @@ public:
         
         SendMidiMessage(&midiSysExData.evt);
     }
-    
-    virtual void SetProperties(vector<vector<string>> properties) override
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FPScribbleStripMode_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int displayType_ = 0x02;
+    int channel_ = 0;
+    string lastModeParams_ = "";
+
+    int GetScribbleStripMode()
     {
-        for(auto property : properties)
-        {
-            if(property.size() == 0)
-                continue;
+        int param = 2;
 
-            if(property[0] == "TextAlign" && property.size() > 1)
-            {
-                if (property[1] == "Center")
-                    textAlign_ = 0;
-                else if (property[1] == "Left")
-                    textAlign_ = 1;
-                else if (property[1] == "Right")
-                    textAlign_ = 2;
-                else
-                    textAlign_ = 0;
+        if (modeParams_ != "")
+            param = stoi(modeParams_);
 
-                ForceValue(lastStringSent_);
-            }
-            else if(property[0] == "Invert" && property.size() > 1)
-            {
-                if (property[1] != "1")
-                    invert_ = 0;
-                else
-                    invert_ = 4;
-                    
-                ForceValue(lastStringSent_);
-            }
-        }
+        if (param >= 0 && param < 9)
+            return param;
         
-        ForceValue(lastStringSent_);
+        return 2;
     }
     
+public:
+    virtual ~FPScribbleStripMode_Midi_FeedbackProcessor() {}
+    FPScribbleStripMode_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayType, int channel) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel) { }
+    
+    virtual void SetValue(double value) override
+    {
+        if (lastModeParams_ == modeParams_)
+            return;
+            
+        ForceValue(value);
+    }
+    
+    virtual void ForceValue(double value) override
+    {
+        lastModeParams_ = modeParams_;
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        }
+        midiSysExData;
+        
+        midiSysExData.evt.frame_offset = 0;
+        midiSysExData.evt.size = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x06;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_; // Faderport8=0x02, Faderport16=0x16
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x13;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;     // xx channel_ id
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00 + GetScribbleStripMode(); //    0x00 + value; // type of display layout
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        SendMidiMessage(&midiSysExData.evt);
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

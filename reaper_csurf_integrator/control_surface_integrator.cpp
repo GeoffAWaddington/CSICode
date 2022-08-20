@@ -799,7 +799,6 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             else if(widgetClass == "FB_C4DisplayLower")
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
         }
-        
         else if((widgetClass == "FB_FP8ScribbleLine1" || widgetClass == "FB_FP16ScribbleLine1"
                  || widgetClass == "FB_FP8ScribbleLine2" || widgetClass == "FB_FP16ScribbleLine2"
                  || widgetClass == "FB_FP8ScribbleLine3" || widgetClass == "FB_FP16ScribbleLine3"
@@ -823,7 +822,13 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             else if(widgetClass == "FB_FP16ScribbleLine4")
                 feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
         }
-        
+        else if((widgetClass == "FB_FP8ScribbleStripMode" || widgetClass == "FB_FP16ScribbleStripMode") && size == 2)
+        {
+            if(widgetClass == "FB_FP8ScribbleStripMode")
+                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]));
+            else if(widgetClass == "FB_FP16ScribbleStripMode")
+                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]));
+        }
         else if((widgetClass == "FB_QConLiteDisplayUpper" || widgetClass == "FB_QConLiteDisplayUpperMid" || widgetClass == "FB_QConLiteDisplayLowerMid" || widgetClass == "FB_QConLiteDisplayLower") && size == 2)
         {
             if(widgetClass == "FB_QConLiteDisplayUpper")
