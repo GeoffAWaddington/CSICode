@@ -708,10 +708,14 @@ public:
     void ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
     void GoAssociatedZone(string zoneName);
     void HandleActivation(string zoneName);
+    void ToggleEnableFocusedFXMapping();
     void AdjustTrackSendBank(int amount);
     void AdjustTrackReceiveBank(int amount);
     void AdjustTrackFXMenuBank(int amount);
-    
+    void AdjustSelectedTrackSendBank(int amount);
+    void AdjustSelectedTrackReceiveBank(int amount);
+    void AdjustSelectedTrackFXMenuBank(int amount);
+
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     
     ControlSurface* GetSurface() { return surface_; }   
@@ -728,7 +732,7 @@ public:
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
     
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
-    void ToggleEnableFocusedFXMapping() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
+    void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
     
@@ -775,6 +779,12 @@ public:
             ActivateTrackFXSlot(track, navigator, fxSlot);
     }
     
+    void HandleToggleEnableFocusedFXMapping()
+    {
+        if(receive_.count("ToggleEnableFocusedFXMapping") > 0)
+            ToggleEnableFocusedFXMappingImpl();
+    }
+
     void HandleTrackSendBank(int amount)
     {
         if(receive_.count("TrackSend") > 0)
@@ -790,6 +800,24 @@ public:
     void HandleTrackFXMenuBank(int amount)
     {
         if(receive_.count("TrackFXMenu") > 0)
+            AdjustTrackFXMenuOffset(amount);
+    }
+    
+    void HandleSelectedTrackSendBank(int amount)
+    {
+        if(receive_.count("SelectedTrackSend") > 0)
+            AdjustTrackSendOffset(amount);
+    }
+
+    void HandleSelectedTrackReceiveBank(int amount)
+    {
+        if(receive_.count("SelectedTrackReceive") > 0)
+            AdjustTrackReceiveOffset(amount);
+    }
+
+    void HandleSelectedTrackFXMenuBank(int amount)
+    {
+        if(receive_.count("SelectedTrackFXMenu") > 0)
             AdjustTrackFXMenuOffset(amount);
     }
     
@@ -833,7 +861,7 @@ public:
             selectedTrackOffset_ = 0;
     }
     
-    void AdjustSelectedTrackSendBank(int amount)
+    void AdjustSelectedTrackSendOffset(int amount)
     {
         // GAW TBD -- calc max and clamp
         
@@ -843,7 +871,7 @@ public:
             selectedTrackSendOffset_ = 0;
     }
     
-    void AdjustSelectedTrackReceiveBank(int amount)
+    void AdjustSelectedTrackReceiveOffset(int amount)
     {
         // GAW TBD -- calc max and clamp
         
@@ -853,7 +881,7 @@ public:
             selectedTrackReceiveOffset_ = 0;
     }
     
-    void AdjustSelectedTrackFXMenuBank(int amount)
+    void AdjustSelectedTrackFXMenuOffset(int amount)
     {
         // GAW TBD -- calc max and clamp
         
@@ -2406,6 +2434,13 @@ public:
                 surface->GetZoneManager()->HandleActivation(zoneName);
     }
     
+    void SignalToggleEnableFocusedFXMapping(ControlSurface* originatingSurface)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleToggleEnableFocusedFXMapping();
+    }
+
     void SignalTrackSendBank(ControlSurface* originatingSurface, int amount)
     {
         for(auto surface : surfaces_)
@@ -2427,6 +2462,27 @@ public:
                 surface->GetZoneManager()->HandleTrackFXMenuBank(amount);
     }
     
+    void SignalSelectedTrackSendBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleSelectedTrackSendBank(amount);
+    }
+    
+    void SignalSelectedTrackReceiveBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleSelectedTrackReceiveBank(amount);
+    }
+    
+    void SignalSelectedTrackFXMenuBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleSelectedTrackFXMenuBank(amount);
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Page facade for TrackNavigationManager
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

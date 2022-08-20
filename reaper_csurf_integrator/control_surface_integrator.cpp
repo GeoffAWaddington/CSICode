@@ -2315,6 +2315,14 @@ void ZoneManager::OnTrackDeselection()
     }
 }
 
+void ZoneManager::ToggleEnableFocusedFXMapping()
+{
+    if(broadcast_.count("ToggleEnableFocusedFXMapping") > 0)
+        GetSurface()->GetPage()->SignalToggleEnableFocusedFXMapping(GetSurface());
+    
+    ToggleEnableFocusedFXMappingImpl();
+}
+
 void ZoneManager::AdjustTrackSendBank(int amount)
 {
     if(broadcast_.count("TrackSend") > 0)
@@ -2337,6 +2345,30 @@ void ZoneManager::AdjustTrackFXMenuBank(int amount)
         GetSurface()->GetPage()->SignalTrackFXMenuBank(GetSurface(), amount);
     
     AdjustTrackFXMenuOffset(amount);
+}
+
+void ZoneManager::AdjustSelectedTrackSendBank(int amount)
+{
+    if(broadcast_.count("SelectedTrackSend") > 0)
+        GetSurface()->GetPage()->SignalSelectedTrackSendBank(GetSurface(), amount);
+    
+    AdjustSelectedTrackSendOffset(amount);
+}
+
+void ZoneManager::AdjustSelectedTrackReceiveBank(int amount)
+{
+    if(broadcast_.count("SelectedTrackReceive") > 0)
+        GetSurface()->GetPage()->SignalSelectedTrackReceiveBank(GetSurface(), amount);
+    
+    AdjustTrackReceiveOffset(amount);
+}
+
+void ZoneManager::AdjustSelectedTrackFXMenuBank(int amount)
+{
+    if(broadcast_.count("SelectedTrackFXMenu") > 0)
+        GetSurface()->GetPage()->SignalSelectedTrackFXMenuBank(GetSurface(), amount);
+    
+    AdjustSelectedTrackFXMenuOffset(amount);
 }
 
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
