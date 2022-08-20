@@ -393,11 +393,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 for(auto action : actions)
                                 {
                                     string actionName = regex_replace(action->actionName, regex("[|]"), numStr);
-                                    
-                                    if(actionName == ShiftToken || actionName == OptionToken || actionName == ControlToken
-                                       || actionName == AltToken || actionName == FlipToken || actionName == ToggleChannelToken)
-                                        widget->SetIsModifier();
-                                        
+
                                     vector<string> memberParams;
                                     for(int j = 0; j < action->params.size(); j++)
                                         memberParams.push_back(regex_replace(action->params[j], regex("[|]"), numStr));
@@ -1919,9 +1915,7 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     string widgetName = widget->GetName();
     bool isToggled = widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber());
     
-    string modifier = "";
-    if( ! widget->GetIsModifier())
-        modifier = widget->GetSurface()->GetPage()->GetModifier();
+    string modifier = widget->GetSurface()->GetPage()->GetModifier();
     
     if(isToggled && (touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier + "Toggle+")) > 0)
         return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier + "Toggle+"];

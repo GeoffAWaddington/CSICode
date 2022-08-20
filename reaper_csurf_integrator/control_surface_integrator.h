@@ -57,7 +57,6 @@ const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
 
 const string ToggleToken = "Toggle";
-const string ToggleChannelToken = "ToggleChannel";
 const string ShiftToken = "Shift";
 const string OptionToken = "Option";
 const string ControlToken = "Control";
@@ -583,9 +582,6 @@ private:
     ControlSurface* const surface_;
     string const name_;
     vector<FeedbackProcessor*> feedbackProcessors_;
-    
-    bool isModifier_ = false;
-    
     int channelNumber_ = 0;
     
 public:
@@ -609,8 +605,6 @@ public:
     ZoneManager* GetZoneManager();
     
     int GetChannelNumber() { return channelNumber_; }
-    bool GetIsModifier() { return isModifier_; }
-    void SetIsModifier() { isModifier_ = true; }
 
     void SetProperties(vector<vector<string>> properties);
     void UpdateMode(string modeParams);
