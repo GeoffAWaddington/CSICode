@@ -490,6 +490,7 @@ public:
     void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value);
     map<Widget*, bool> &GetWidgets() { return widgets_; }
     bool GetIsActive() { return isActive_; }
+    int GetChannelNumber();
     
     bool GetIsMainZoneOnlyActive()
     {

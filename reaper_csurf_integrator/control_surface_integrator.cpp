@@ -362,10 +362,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             zone = make_shared<Zone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
                             zone = make_shared<SubZone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
-                        
-                        if(subZones.size() > 0)
-                            zone->InitSubZones(subZones, zone);
-                        
+                                                
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
                         
@@ -380,6 +377,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             
                             if(navigators.size() > 1)
                                 surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(i + 1));
+                            
+                            if(enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
+                                surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(enclosingZone->GetChannelNumber()));
                             
                             Widget* widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
                                                         
@@ -412,6 +412,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 }
                             }
                         }
+                        
+                        if(subZones.size() > 0)
+                            zone->InitSubZones(subZones, zone);
                     }
                                     
                     includedZones.clear();
@@ -1620,6 +1623,17 @@ int Zone::GetSlotIndex()
     if(name_ == "SelectedTrackFXMenu")
         return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset();
     else return slotIndex_;
+}
+
+int Zone::GetChannelNumber()
+{
+    int channelNumber = 0;
+    
+    for(auto [widget, isUsed] : widgets_)
+        if(channelNumber < widget->GetChannelNumber())
+            channelNumber = widget->GetChannelNumber();
+    
+    return channelNumber;
 }
 
 Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
