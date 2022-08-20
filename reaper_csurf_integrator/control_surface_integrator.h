@@ -56,6 +56,7 @@ const string UseScrollLinkToken = "UseScrollLink";
 const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
 
+const string ToggleToken = "Toggle";
 const string ShiftToken = "Shift";
 const string OptionToken = "Option";
 const string ControlToken = "Control";
@@ -154,10 +155,7 @@ public:
     
     void SetIsPanRightTouched(bool isPanRightTouched) { isPanRightTouched_ = isPanRightTouched; }
     bool GetIsPanRightTouched() { return isPanRightTouched_;  }
-    
-    void ToggleIsMCUTrackPanWidth() { isMCUTrackPanWidth_ = ! isMCUTrackPanWidth_; }
-    bool GetIsMCUTrackPanWidth() { return isMCUTrackPanWidth_;  }
-    
+       
     virtual string GetName() { return "Navigator"; }
     virtual MediaTrack* GetTrack() { return nullptr; }
 };
@@ -318,7 +316,6 @@ public:
     void RunDeferredActions();
     void ClearWidget();
     void UpdateWidgetValue(double value);
-    void UpdateWidgetValue(int param, double value);
     void UpdateWidgetValue(string value);
     void UpdateWidgetMode(string modeParams);
 
@@ -588,26 +585,40 @@ private:
     
     bool isModifier_ = false;
     
+    int channelNumber_ = 0;
+    
 public:
-    Widget(ControlSurface* surface, string name) : surface_(surface), name_(name) {}
+    Widget(ControlSurface* surface, string name) : surface_(surface), name_(name)
+    {
+        int index = name.length() - 1;
+        if(isdigit(name[index]))
+        {
+            while(isdigit(name[index]))
+                index--;
+               
+            index++;
+            
+            channelNumber_ = stoi(name.substr(index, name.length() - index));
+        }
+    }
     ~Widget();
     
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
     ZoneManager* GetZoneManager();
     
+    int GetChannelNumber() { return channelNumber_; }
     bool GetIsModifier() { return isModifier_; }
     void SetIsModifier() { isModifier_ = true; }
 
     void SetProperties(vector<vector<string>> properties);
+    void UpdateMode(string modeParams);
     void UpdateValue(double value);
-    void UpdateValue(int mode, double value);
     void UpdateValue(string value);
     void UpdateRGBValue(int r, int g, int b);
     void Clear();
     void ForceClear();
     void LogInput(double value);
-    void UpdateMode(string modeParams);
     
     void AddFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
     {
@@ -1091,11 +1102,16 @@ private:
     
     vector<FeedbackProcessor*> trackColorFeedbackProcessors_;
 
+    map<int, bool> channelToggles_;
+    
 protected:
     ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
     {
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
+        
+        for(int i = 1 ; i <= numChannels; i++)
+            channelToggles_[i] = false;
     }
     
     Page* const page_;
@@ -1180,6 +1196,20 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
+    void ToggleChannel(int channelNum)
+    {
+        if(channelNum > 0 && channelNum <= numChannels_)
+            channelToggles_[channelNum] = ! channelToggles_[channelNum];
+    }
+    
+    bool GetIsChannelToggled(int channelNum)
+    {
+        if(channelNum > 0 && channelNum <= numChannels_)
+            return channelToggles_[channelNum];
+        else
+            return false;
+    }
+       
     void AddTrackColorFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
     {
         trackColorFeedbackProcessors_.push_back(feedbackProcessor);
@@ -1325,7 +1355,6 @@ public:
     Widget* GetWidget() { return widget_; }
     virtual void SetRGBValue(int r, int g, int b) {}
     virtual void ForceValue(double value) {}
-    virtual void ForceValue(int param, double value) {}
     virtual void ForceRGBValue(int r, int g, int b) {}
     virtual void ForceValue(string value) {}
     virtual void SetColors(rgb_color textColor, rgb_color textBackground) {}
@@ -1347,12 +1376,6 @@ public:
             ForceValue(value);
     }
     
-    virtual void SetValue(int param, double value)
-    {
-        if(lastDoubleValue_ != value)
-            ForceValue(value);
-    }
-    
     virtual void SetValue(string value)
     {
         if(lastStringValue_ != value)
@@ -1368,7 +1391,6 @@ public:
     void Clear()
     {
         SetValue(0.0);
-        SetValue(0, 0.0);
         SetValue("");
         SetRGBValue(0, 0, 0);
     }
@@ -1376,7 +1398,6 @@ public:
     void ForceClear()
     {
         ForceValue(0.0);
-        ForceValue(0, 0.0);
         ForceValue("");
         ForceRGBValue(0, 0, 0);
     }
@@ -1523,7 +1544,6 @@ public:
 
     virtual void SetRGBValue(int r, int g, int b) override;
     virtual void ForceValue(double value) override;
-    virtual void ForceValue(int param, double value) override;
     virtual void ForceValue(string value) override;
 };
 
@@ -1536,7 +1556,6 @@ public:
     ~OSC_IntFeedbackProcessor() {}
 
     virtual void ForceValue(double value) override;
-    virtual void ForceValue(int param, double value) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -72,7 +72,7 @@ public:
             double currentValue = GetCurrentNormalizedValue(context);
             
             if(context->GetShouldUseDisplayStyle())
-                context->UpdateWidgetValue(context->GetDisplayStyle(), currentValue);
+                context->UpdateWidgetValue(currentValue);
             else
                 context->UpdateWidgetValue(currentValue);
         }

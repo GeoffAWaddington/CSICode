@@ -293,98 +293,6 @@ public:
     }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class MCUTrackPan : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "MCUTrackPan"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            if(GetPanMode(track) != 6)
-            {
-                if(context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth() == false)
-                {
-                    double vol, pan = 0.0;
-                    DAW::GetTrackUIVolPan(track, &vol, &pan);
-                    return panToNormalized(pan);
-                }
-                else
-                    return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_WIDTH"));
-            }
-            else
-            {
-                if(context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth() == false)
-                    return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL"));
-                else
-                    return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR"));
-            }
-        }
-        
-        return 0.0;
-    }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            int displayMode = 0;
-            
-            if(GetPanMode(track) != 6 && context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth())
-                displayMode = 1;
-            
-            context->UpdateWidgetValue(displayMode, GetCurrentNormalizedValue(context));
-        }
-        else
-            context->ClearWidget();
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            double pan = normalizedToPan(value);
-            
-            if(GetPanMode(track) != 6)
-            {
-                if(context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth() == false)
-                    DAW::CSurf_SetSurfacePan(track, DAW::CSurf_OnPanChange(track, pan, false), NULL);
-                else
-                    DAW::CSurf_OnWidthChange(track, pan, false);
-            }
-            else
-            {               
-                if(context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth() == false)
-                    DAW::GetSetMediaTrackInfo(track, "D_DUALPANL", &pan);
-                else
-                    DAW::GetSetMediaTrackInfo(track, "D_DUALPANR", &pan);
-            }
-        }
-    }
-    
-    virtual void Touch(ActionContext* context, double value) override
-    {
-        context->GetZone()->GetNavigator()->SetIsPanTouched(value);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleMCUTrackPanWidth : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleMCUTrackPanWidth"; }
-
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-
-        context->GetZone()->GetNavigator()->ToggleIsMCUTrackPanWidth();
-    }
-};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackPan : public Action
@@ -411,7 +319,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(context->GetTrack())
-            context->UpdateWidgetValue(context->GetIntParam(), GetCurrentNormalizedValue(context));
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
     }
@@ -500,7 +408,7 @@ public:
         if(MediaTrack* track = context->GetTrack())
         {
             if(GetPanMode(track) != 6)
-                context->UpdateWidgetValue(context->GetIntParam(), GetCurrentNormalizedValue(context));
+                context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         }
         else
             context->ClearWidget();
@@ -1950,45 +1858,6 @@ public:
             double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
             
             context->UpdateWidgetValue(context->GetPanValueString(panVal));
-        }
-        else
-            context->ClearWidget();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class MCUTrackPanDisplay : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "MCUTrackPanDisplay"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            if(GetPanMode(track) != 6 && context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth() == true)
-            {
-                double widthVal = DAW::GetMediaTrackInfo_Value(track, "D_WIDTH");
-
-                context->UpdateWidgetValue(context->GetPanWidthValueString(widthVal));
-            }
-            else
-            {
-                double panVal = 0.0;
-                
-                if(GetPanMode(track) != 6)
-                    panVal = DAW::GetMediaTrackInfo_Value(track, "D_PAN");
-                else
-                {
-                    if(context->GetZone()->GetNavigator()->GetIsMCUTrackPanWidth() == false)
-                        panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL");
-                    else
-                        panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
-                }
-                
-                context->UpdateWidgetValue(context->GetPanValueString(panVal));
-            }
         }
         else
             context->ClearWidget();

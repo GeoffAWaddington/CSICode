@@ -197,11 +197,13 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
 {
     istringstream modified_role(line);
     vector<string> modifier_tokens;
-    vector<string> modifierSlots = { "", "", "", "", "", ""};
+    vector<string> modifierSlots = { "", "", "", "", "", "", ""};
     string modifier_token;
     
     while (getline(modified_role, modifier_token, '+'))
         modifier_tokens.push_back(modifier_token);
+    
+    widgetName = modifier_tokens[modifier_tokens.size() - 1];
     
     if(modifier_tokens.size() > 1)
     {
@@ -212,16 +214,18 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 touchId = modifier_tokens[i];
                 modifierSlots[0] = modifier_tokens[i] + "+";
             }
+            else if(modifier_tokens[i] == ToggleToken)
+                modifierSlots[1] = ToggleToken + "+";
             else if(modifier_tokens[i] == ShiftToken)
-                modifierSlots[1] = ShiftToken + "+";
+                modifierSlots[2] = ShiftToken + "+";
             else if(modifier_tokens[i] == OptionToken)
-                modifierSlots[2] = OptionToken + "+";
+                modifierSlots[3] = OptionToken + "+";
             else if(modifier_tokens[i] == ControlToken)
-                modifierSlots[3] = ControlToken + "+";
+                modifierSlots[4] = ControlToken + "+";
             else if(modifier_tokens[i] == AltToken)
-                modifierSlots[4] = AltToken + "+";
+                modifierSlots[5] = AltToken + "+";
             else if(modifier_tokens[i] == FlipToken)
-                modifierSlots[5] = FlipToken + "+";
+                modifierSlots[6] = FlipToken + "+";
 
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
@@ -231,10 +235,8 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 isProperty = true;
         }
     }
-
-    widgetName = modifier_tokens[modifier_tokens.size() - 1];
     
-    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5];
+    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5] + modifierSlots[6];
 }
 
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
@@ -379,11 +381,12 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(i + 1));
                             
                             Widget* widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
-                            
+                                                        
                             if(widget == nullptr)
                                 continue;
-                            
-                            if(actionName == ShiftToken || actionName == OptionToken || actionName == ControlToken || actionName == AltToken)
+                           
+                            if(actionName == ShiftToken || actionName == OptionToken || actionName == ControlToken
+                               || actionName == AltToken || actionName == FlipToken)
                                 widget->SetIsModifier();
                             
                             zone->AddWidget(widget);
@@ -393,6 +396,10 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 for(auto action : actions)
                                 {
                                     string actionName = regex_replace(action->actionName, regex("[|]"), numStr);
+                                    
+                                    if(actionName == "ToggleChannel")
+                                        widget->SetIsModifier();
+                                        
                                     vector<string> memberParams;
                                     for(int j = 0; j < action->params.size(); j++)
                                         memberParams.push_back(regex_replace(action->params[j], regex("[|]"), numStr));
@@ -408,7 +415,6 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                     string expandedModifier = regex_replace(modifier, regex("[|]"), numStr);
                                     
                                     zone->AddActionContext(widget, expandedModifier, context);
-                                    
                                 }
                             }
                         }
@@ -945,6 +951,7 @@ void Manager::InitActionsDictionary()
     actions_["CycleTimeline"] =                     new CycleTimeline();
     actions_["ToggleSynchPageBanking"] =            new ToggleSynchPageBanking();
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
+    actions_["ToggleChannel"] =                     new ToggleChannel();
     actions_["CycleTrackVCAFolderModes"] =          new CycleTrackVCAFolderModes();
     actions_["TrackVCAFolderModeDisplay"] =         new TrackVCAFolderModeDisplay();
     actions_["CycleTimeDisplayModes"] =             new CycleTimeDisplayModes();
@@ -994,8 +1001,6 @@ void Manager::InitActionsDictionary()
     actions_["TrackSolo"] =                         new TrackSolo();
     actions_["ClearAllSolo"] =                      new ClearAllSolo();
     actions_["TrackInvertPolarity"] =               new TrackInvertPolarity();
-    actions_["MCUTrackPan"] =                       new MCUTrackPan();
-    actions_["ToggleMCUTrackPanWidth"] =            new ToggleMCUTrackPanWidth();
     actions_["TrackPan"] =                          new TrackPan();
     actions_["TrackPanPercent"] =                   new TrackPanPercent();
     actions_["TrackPanWidth"] =                     new TrackPanWidth();
@@ -1007,7 +1012,6 @@ void Manager::InitActionsDictionary()
     actions_["TrackNameDisplay"] =                  new TrackNameDisplay();
     actions_["TrackNumberDisplay"] =                new TrackNumberDisplay();
     actions_["TrackVolumeDisplay"] =                new TrackVolumeDisplay();
-    actions_["MCUTrackPanDisplay"] =                new MCUTrackPanDisplay();
     actions_["TrackPanDisplay"] =                   new TrackPanDisplay();
     actions_["TrackPanWidthDisplay"] =              new TrackPanWidthDisplay();
     actions_["TrackPanLeftDisplay"] =               new TrackPanLeftDisplay();
@@ -1427,26 +1431,6 @@ void ActionContext::UpdateWidgetValue(double value)
    
     widget_->UpdateValue(value);
 
-    if(supportsRGB_)
-    {
-        currentRGBIndex_ = value == 0 ? 0 : 1;
-        widget_->UpdateRGBValue(RGBValues_[currentRGBIndex_].r, RGBValues_[currentRGBIndex_].g, RGBValues_[currentRGBIndex_].b);
-    }
-    else if(supportsTrackColor_)
-        UpdateTrackColor();
-}
-
-void ActionContext::UpdateWidgetValue(int param, double value)
-{
-    if(steppedValues_.size() > 0)
-        SetSteppedValueIndex(value);
-
-    value = isFeedbackInverted_ == false ? value : 1.0 - value;
-        
-    widget_->UpdateValue(param, value);
-    
-    currentRGBIndex_ = value == 0 ? 0 : 1;
-    
     if(supportsRGB_)
     {
         currentRGBIndex_ = value == 0 ? 0 : 1;
@@ -1933,6 +1917,9 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
 
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
+    if(widget->GetName() == "RotaryPush1")
+        int blah = 0;
+    
     string widgetName = widget->GetName();
     string modifier = "";
     
@@ -1942,7 +1929,12 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier) > 0)
         return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier];
     else if(actionContextDictionary_[widget].count(modifier) > 0)
-        return actionContextDictionary_[widget][modifier];
+    {
+        if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()) && actionContextDictionary_[widget].count("Toggle+" + modifier) > 0)
+           return actionContextDictionary_[widget]["Toggle+" + modifier];
+        else
+            return actionContextDictionary_[widget][modifier];
+    }
     else if(actionContextDictionary_[widget].count("") > 0)
         return actionContextDictionary_[widget][""];
     else
@@ -1976,12 +1968,6 @@ void  Widget::UpdateValue(double value)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetValue(value);
-}
-
-void  Widget::UpdateValue(int mode, double value)
-{
-    for(auto processor : feedbackProcessors_)
-        processor->SetValue(mode, value);
 }
 
 void  Widget::UpdateValue(string value)
@@ -2084,12 +2070,6 @@ void OSC_FeedbackProcessor::ForceValue(double value)
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
 
-void OSC_FeedbackProcessor::ForceValue(int param, double value)
-{
-    lastDoubleValue_ = value;
-    surface_->SendOSCMessage(this, oscAddress_, value);
-}
-
 void OSC_FeedbackProcessor::ForceValue(string value)
 {
     lastStringValue_ = value;
@@ -2097,12 +2077,6 @@ void OSC_FeedbackProcessor::ForceValue(string value)
 }
 
 void OSC_IntFeedbackProcessor::ForceValue(double value)
-{
-    lastDoubleValue_ = value;
-    surface_->SendOSCMessage(this, oscAddress_, (int)value);
-}
-
-void OSC_IntFeedbackProcessor::ForceValue(int param, double value)
 {
     lastDoubleValue_ = value;
     surface_->SendOSCMessage(this, oscAddress_, (int)value);
@@ -2158,7 +2132,6 @@ void ZoneManager::RequestUpdate()
         if(value == false)
         {
             key->UpdateValue(0.0);
-            key->UpdateValue(0, 0.0);
             key->UpdateValue("");
             key->UpdateRGBValue(0, 0, 0);
         }

@@ -555,16 +555,6 @@ public:
         int volint = value * 16383.0;
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
     }
-    
-    virtual void SetValue(int displayMode, double value) override
-    {
-        SetValue(value);
-    }
-    
-    virtual void ForceValue(int displayMode, double value) override
-    {
-        ForceValue(value);
-    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -584,16 +574,6 @@ public:
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], value * 127.0);
     }
-    
-    virtual void SetValue(int displayMode, double value) override
-    {
-        SetValue(value);
-    }
-
-    virtual void ForceValue(int displayMode, double value) override
-    {
-        ForceValue(value);
-    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -606,29 +586,31 @@ public:
     
     virtual void SetValue(double value) override
     {
-        SetValue(0, value);
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(value));
     }
 
     virtual void ForceValue(double value) override
     {
-        ForceValue(0, value);
-    }
-
-    virtual void SetValue(int displayMode, double value) override
-    {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(displayMode, value));
-    }
-
-    virtual void ForceValue(int displayMode, double value) override
-    {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(displayMode, value));
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(value));
     }
     
-    int GetMidiValue(int displayMode, double value)
+    int GetMidiValue(double value)
     {
         int valueInt = value * 127;
         
-        int val = (1+((valueInt*11)>>7)) | (displayMode << 4); // display modes -- 0x00 = line (e.g. pan), 0x01 = boost/cut (e.g. eq), 0x02 = fill from right (e.g. level), 0x03 = center fill (e.g. Q)
+        int displayMode = 0;
+        
+        if(modeParams_ == "" || modeParams_ == "Dot")
+            displayMode = 0;
+        else if(modeParams_ == "BoostCut")
+            displayMode = 1;
+        else if(modeParams_ == "Fill")
+            displayMode = 2;
+        else if(modeParams_ == "Spread")
+            displayMode = 3;
+
+        
+        int val = (1+((valueInt*11)>>7)) | (displayMode << 4);
         
         //if(displayMode) // Should light up lower middle light
         //val |= 0x40;
@@ -843,11 +825,6 @@ public:
             return;
         
         ForceValue(value);
-    }
-
-    virtual void SetValue(int param, double value) override
-    {
-        SetValue(value);
     }
 
     virtual void ForceValue(double value) override
