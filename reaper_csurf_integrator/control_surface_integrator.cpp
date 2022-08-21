@@ -1014,6 +1014,8 @@ void Manager::InitActionsDictionary()
     actions_["TrackPanLPercent"] =                  new TrackPanLPercent();
     actions_["TrackPanR"] =                         new TrackPanR();
     actions_["TrackPanRPercent"] =                  new TrackPanRPercent();
+    actions_["TrackPanAutoLeft"] =                  new TrackPanAutoLeft();
+    actions_["TrackPanAutoRight"] =                 new TrackPanAutoRight();
     actions_["TrackNameDisplay"] =                  new TrackNameDisplay();
     actions_["TrackNumberDisplay"] =                new TrackNumberDisplay();
     actions_["TrackVolumeDisplay"] =                new TrackVolumeDisplay();
@@ -1021,6 +1023,8 @@ void Manager::InitActionsDictionary()
     actions_["TrackPanWidthDisplay"] =              new TrackPanWidthDisplay();
     actions_["TrackPanLeftDisplay"] =               new TrackPanLeftDisplay();
     actions_["TrackPanRightDisplay"] =              new TrackPanRightDisplay();
+    actions_["TrackPanAutoLeftDisplay"] =           new TrackPanAutoLeftDisplay();
+    actions_["TrackPanAutoRightDisplay"] =          new TrackPanAutoRightDisplay();
     actions_["TrackOutputMeter"] =                  new TrackOutputMeter();
     actions_["TrackOutputMeterAverageLR"] =         new TrackOutputMeterAverageLR();
     actions_["TrackOutputMeterMaxPeakLR"] =         new TrackOutputMeterMaxPeakLR();

@@ -368,7 +368,7 @@ public:
         steppedValuesIndex_ = index;
     }
 
-    string GetPanValueString(double panVal)
+    string GetPanValueString(double panVal, string dualPan)
     {
         bool left = false;
         
@@ -391,10 +391,16 @@ public:
                 trackPanValueString += "<  ";
             
             trackPanValueString += to_string(panIntVal);
+            
+            if(dualPan != "")
+                trackPanValueString += dualPan;
         }
         else
         {
-            trackPanValueString += "   ";
+            if(dualPan == "")
+                trackPanValueString += "   ";
+            else
+                trackPanValueString += "  " + dualPan;
             
             trackPanValueString += to_string(panIntVal);
             
@@ -407,7 +413,15 @@ public:
         }
         
         if(panIntVal == 0)
-            trackPanValueString = "  <C>  ";
+        {
+            if(dualPan == "")
+                trackPanValueString = "  <C>  ";
+            if(dualPan == "L")
+                trackPanValueString = " L<C>  ";
+            if(dualPan == "R")
+                trackPanValueString = " <C>R  ";
+
+        }
 
         return trackPanValueString;
     }
@@ -425,13 +439,15 @@ public:
         int widthIntVal = int(widthVal * 100.0);
         string trackPanWidthString = "";
         
-        if(reversed)
+        if(! reversed)
+            trackPanWidthString += "Wid ";
+        else
             trackPanWidthString += "Rev ";
         
         trackPanWidthString += to_string(widthIntVal);
         
         if(widthIntVal == 0)
-            trackPanWidthString = " <Mno> ";
+            trackPanWidthString = "<Mono> ";
 
         return trackPanWidthString;
     }
