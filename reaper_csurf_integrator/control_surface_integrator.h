@@ -1831,6 +1831,66 @@ public:
         return autoModeDisplayNames__[modeIndex];
     }
 
+    void NextInputMonitorMode(MediaTrack* track)
+    {
+        // I_RECMON : int * : record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
+        int recMonitorMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
+
+        // I_RECMONITEMS : int * : monitor items while recording (0=off, 1=on)
+        int recMonitorItemMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
+
+        if(recMonitorMode == 0)
+        {
+            recMonitorMode = 1;
+            recMonitorItemMode = 0;
+        }
+        else if(recMonitorMode == 1 && recMonitorItemMode == 0)
+        {
+            recMonitorMode = 2;
+            recMonitorItemMode = 0;
+        }
+        else if(recMonitorMode == 2 && recMonitorItemMode == 0)
+        {
+            recMonitorMode = 1;
+            recMonitorItemMode = 1;
+        }
+        else if(recMonitorMode == 1 && recMonitorItemMode == 1)
+        {
+            recMonitorMode = 2;
+            recMonitorItemMode = 1;
+        }
+        else if(recMonitorMode == 2 && recMonitorItemMode == 1)
+        {
+            recMonitorMode = 0;
+            recMonitorItemMode = 0;
+        }
+
+        DAW::GetSetMediaTrackInfo(track, "I_RECMON", &recMonitorMode);
+        DAW::GetSetMediaTrackInfo(track, "I_RECMONITEMS", &recMonitorItemMode);
+    }
+    
+    string GetCurrentInputMonitorMode(MediaTrack* track)
+    {
+        // I_RECMON : int * : record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
+        int recMonitorMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
+
+        // I_RECMONITEMS : int * : monitor items while recording (0=off, 1=on)
+        int recMonitorItemMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
+
+        if(recMonitorMode == 0)
+            return "Off";
+        else if(recMonitorMode == 1 && recMonitorItemMode == 0)
+            return "Input";
+        else if(recMonitorMode == 2 && recMonitorItemMode == 0)
+            return "Auto";
+        else if(recMonitorMode == 1 && recMonitorItemMode == 1)
+            return "Input+";
+        else if(recMonitorMode == 2 && recMonitorItemMode == 1)
+            return "Auto+";
+        else
+            return "";
+    }
+    
     vector<MediaTrack*> &GetSelectedTracks()
     {
         selectedTracks_.clear();
@@ -2507,8 +2567,10 @@ public:
     MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
     void SetAutoModeIndex() { trackNavigationManager_->SetAutoModeIndex(); }
     void NextAutoMode() { trackNavigationManager_->NextAutoMode(); }
+    void NextInputMonitorMode(MediaTrack* track) { trackNavigationManager_->NextInputMonitorMode(track); }
     string GetAutoModeDisplayName() { return trackNavigationManager_->GetAutoModeDisplayName(); }
     string GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
+    string GetCurrentInputMonitorMode(MediaTrack* track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     vector<MediaTrack*> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
 };
 

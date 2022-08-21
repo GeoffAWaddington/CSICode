@@ -941,6 +941,8 @@ void Manager::InitActionsDictionary()
     actions_["TrackAutoMode"] =                     new TrackAutoMode();
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();
+    actions_["CycleTrackInputMonitor"] =            new CycleTrackInputMonitor();
+    actions_["TrackInputMonitorDisplay"] =          new TrackInputMonitorDisplay();
     actions_["MCUTimeDisplay"] =                    new MCUTimeDisplay();
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
