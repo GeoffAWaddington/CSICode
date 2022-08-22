@@ -318,6 +318,20 @@ public:
             ::TrackFX_SetEnabled(track, fx, enabled);
     }
     
+    static bool TrackFX_GetOffline(MediaTrack* track, int fx)
+    {
+        if(ValidateTrackPtr(track))
+            return ::TrackFX_GetOffline(track, fx);
+        else
+            return false;
+    }
+    
+    static void TrackFX_SetOffline(MediaTrack* track, int fx, bool offline)
+    {
+        if(ValidateTrackPtr(track))
+            ::TrackFX_SetOffline(track, fx, offline);
+    }
+
     static bool GetTrackName(MediaTrack* track, char* buf, int buf_sz)
     {
         if(ValidateTrackPtr(track))

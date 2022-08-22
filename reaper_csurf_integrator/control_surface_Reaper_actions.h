@@ -160,6 +160,40 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ToggleFXOffline : public FXAction
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ToggleFXOffline"; }
+   
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            {
+                if(DAW::TrackFX_GetOffline(track, context->GetSlotIndex()))
+                    context->UpdateWidgetValue(0.0);
+                else
+                    context->UpdateWidgetValue(1.0);
+            }
+            else
+                context->ClearWidget();
+        }
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+
+        if(MediaTrack* track = context->GetTrack())
+            DAW::TrackFX_SetOffline(track, context->GetSlotIndex(), ! DAW::TrackFX_GetOffline(track, context->GetSlotIndex()));
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

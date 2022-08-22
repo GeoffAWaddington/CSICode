@@ -1033,6 +1033,7 @@ void Manager::InitActionsDictionary()
     actions_["FXParam"] =                           new FXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
+    actions_["ToggleFXOffline"] =                   new ToggleFXOffline();
     actions_["FXNameDisplay"] =                     new FXNameDisplay();
     actions_["FXMenuNameDisplay"] =                 new FXMenuNameDisplay();
     actions_["FXParamNameDisplay"] =                new FXParamNameDisplay();
