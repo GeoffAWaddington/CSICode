@@ -2671,6 +2671,105 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSCTimeDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "OSCTimeDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        string timeStr = "";
+        
+        double pp=(DAW::GetPlayState()&1) ? DAW::GetPlayPosition() : DAW::GetCursorPosition();
+
+        int *tmodeptr = TheManager->GetTimeMode2Ptr();
+        
+        int tmode=0;
+        
+        if (tmodeptr && (*tmodeptr)>=0) tmode = *tmodeptr;
+        else
+        {
+            tmodeptr = TheManager->GetTimeModePtr();
+            if (tmodeptr)
+                tmode=*tmodeptr;
+        }
+
+        if (tmode==3) // seconds
+        {
+            double *toptr = TheManager->GetTimeOffsPtr();
+            
+            if (toptr)
+                pp+=*toptr;
+            
+            timeStr = to_string((int)pp) + " " + to_string(((int)(pp*100.0))%100);
+        }
+        else if (tmode==4) // samples
+        {
+            char buf[128];
+            DAW::format_timestr_pos(pp, buf, sizeof(buf), 4);
+            timeStr = string(buf);
+        }
+        else if (tmode==5) // frames
+        {
+            char buf[128];
+            DAW::format_timestr_pos(pp, buf, sizeof(buf), 5);
+            timeStr = string(buf);
+        }
+        else if (tmode > 0)
+        {
+            int num_measures=0;
+            double beats=DAW::TimeMap2_timeToBeats(NULL, pp, &num_measures, NULL, NULL, NULL) + 0.000000000001;
+            double nbeats = floor(beats);
+            
+            beats -= nbeats;
+            
+            int *measptr = TheManager->GetMeasOffsPtr();
+          
+            timeStr = to_string(num_measures+1+(measptr ? *measptr : 0)) + " " + to_string((int)(nbeats + 1)) + " " + to_string((int)(1000.0 * beats)) ;
+        }
+        else
+        {
+            double *toptr = TheManager->GetTimeOffsPtr();
+            if (toptr) pp+=(*toptr);
+            
+            int ipp=(int)pp;
+            int fr=(int)((pp-ipp)*1000.0);
+            
+            int hours = (int)(ipp/3600);
+            if(hours < 10)
+                timeStr += "00";
+            else if(hours < 100)
+                timeStr += "0";
+            
+            timeStr += to_string(hours) + ":";
+            
+            int minutes = ((int)(ipp/60)) %3600;
+            if(minutes < 10)
+                timeStr += "0";
+            
+            timeStr += to_string(minutes) + ":";
+
+            int seconds = ((int)ipp) %60;
+            if(seconds < 10)
+                timeStr += "0";
+            
+            timeStr += to_string(seconds) + ":";
+
+            int frames =(int)fr;
+            if(frames < 10)
+                timeStr += "00";
+            else if(frames < 100)
+                timeStr += "0";
+            
+            timeStr += to_string((int)fr);
+        }
+
+        context->UpdateWidgetValue(timeStr);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CycleTimeline : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

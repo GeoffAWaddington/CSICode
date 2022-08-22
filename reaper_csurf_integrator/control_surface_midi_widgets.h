@@ -2065,7 +2065,7 @@ public:
         DWORD now = timeGetTime();
 #endif
         
-        double pp=(GetPlayState()&1) ? GetPlayPosition() : GetCursorPosition();
+        double pp=(DAW::GetPlayState()&1) ? DAW::GetPlayPosition() : DAW::GetCursorPosition();
         unsigned char bla[10];
         
         memset(bla,0,sizeof(bla));
@@ -2097,7 +2097,7 @@ public:
         else if (tmode==4) // samples
         {
             char buf[128];
-            format_timestr_pos(pp,buf,sizeof(buf),4);
+            DAW::format_timestr_pos(pp,buf,sizeof(buf),4);
             if (strlen(buf)>sizeof(bla)) memcpy(bla,buf+strlen(buf)-sizeof(bla),sizeof(bla));
             else
                 memcpy(bla+sizeof(bla)-strlen(buf),buf,strlen(buf));
@@ -2105,7 +2105,7 @@ public:
         else if (tmode==5) // frames
         {
             char buf[128];
-            format_timestr_pos(pp,buf,sizeof(buf),5);
+            DAW::format_timestr_pos(pp,buf,sizeof(buf),5);
             char *p=buf;
             char *op=buf;
             int ccnt=0;
@@ -2132,7 +2132,7 @@ public:
         else if (tmode>0)
         {
             int num_measures=0;
-            double beats=TimeMap2_timeToBeats(NULL,pp,&num_measures,NULL,NULL,NULL)+ 0.000000000001;
+            double beats=DAW::TimeMap2_timeToBeats(NULL,pp,&num_measures,NULL,NULL,NULL)+ 0.000000000001;
             double nbeats = floor(beats);
             
             beats -= nbeats;

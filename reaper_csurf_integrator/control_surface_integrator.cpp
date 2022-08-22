@@ -944,6 +944,7 @@ void Manager::InitActionsDictionary()
     actions_["CycleTrackInputMonitor"] =            new CycleTrackInputMonitor();
     actions_["TrackInputMonitorDisplay"] =          new TrackInputMonitorDisplay();
     actions_["MCUTimeDisplay"] =                    new MCUTimeDisplay();
+    actions_["OSCTimeDisplay"] =                    new OSCTimeDisplay();
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
     actions_["FixedTextDisplay"] =                  new FixedTextDisplay(); ;
