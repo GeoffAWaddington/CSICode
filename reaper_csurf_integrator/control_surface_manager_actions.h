@@ -171,7 +171,20 @@ public:
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
+        int trackVCAFolderMode = context->GetPage()->GetCurrentTrackVCAFolderMode();
+        
+        context->UpdateWidgetValue(trackVCAFolderMode);
+        
+        string folderModeStr = "";
+        
+        if(trackVCAFolderMode == 0)
+            folderModeStr = "Track";
+        else if(trackVCAFolderMode == 0)
+            folderModeStr = "VCA";
+        else if(trackVCAFolderMode == 0)
+            folderModeStr = "Folder";
+
+        context->UpdateWidgetValue(folderModeStr);
     }
 };
 
