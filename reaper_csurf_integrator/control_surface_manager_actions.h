@@ -179,9 +179,9 @@ public:
         
         if(trackVCAFolderMode == 0)
             folderModeStr = "Track";
-        else if(trackVCAFolderMode == 0)
+        else if(trackVCAFolderMode == 1)
             folderModeStr = "VCA";
-        else if(trackVCAFolderMode == 0)
+        else if(trackVCAFolderMode == 2)
             folderModeStr = "Folder";
 
         context->UpdateWidgetValue(folderModeStr);
