@@ -136,7 +136,10 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            //I_FXEN : fx enabled, 0=bypassed, !0=fx active
+            if(DAW::GetMediaTrackInfo_Value(track, "I_FXEN") == 0)
+                context->UpdateWidgetValue(0.0);
+            else if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
                 if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
                     context->UpdateWidgetValue(0.0);
@@ -173,9 +176,15 @@ public:
             if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
                 if(DAW::TrackFX_GetOffline(track, context->GetSlotIndex()))
+                {
                     context->UpdateWidgetValue(0.0);
+                    context->UpdateWidgetValue("Offline");
+                }
                 else
+                {
                     context->UpdateWidgetValue(1.0);
+                    context->UpdateWidgetValue("Online");
+                }
             }
             else
                 context->ClearWidget();
@@ -2657,6 +2666,20 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName(DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GlobalAutoModeDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GlobalAutoModeDisplay"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            context->UpdateWidgetValue(context->GetPage()->GetGlobalAutoModeDisplayName());
     }
 };
 

@@ -1842,6 +1842,18 @@ public:
             return autoModeDisplayNames__[autoModeIndex_];
     }
 
+    string GetGlobalAutoModeDisplayName()
+    {
+        int globalOverride = DAW::GetGlobalAutomationOverride();
+
+        if(globalOverride == -1)
+            return "NoOverride";
+        else if(globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
+            return autoModeDisplayNames__[globalOverride];
+        else
+            return "";
+    }
+
     string GetAutoModeDisplayName(int modeIndex)
     {
         return autoModeDisplayNames__[modeIndex];
@@ -2585,6 +2597,7 @@ public:
     void NextAutoMode() { trackNavigationManager_->NextAutoMode(); }
     void NextInputMonitorMode(MediaTrack* track) { trackNavigationManager_->NextInputMonitorMode(track); }
     string GetAutoModeDisplayName() { return trackNavigationManager_->GetAutoModeDisplayName(); }
+    string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     string GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
     string GetCurrentInputMonitorMode(MediaTrack* track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     vector<MediaTrack*> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
