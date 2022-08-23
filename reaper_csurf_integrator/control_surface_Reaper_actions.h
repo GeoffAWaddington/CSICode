@@ -138,13 +138,22 @@ public:
         {
             //I_FXEN : fx enabled, 0=bypassed, !0=fx active
             if(DAW::GetMediaTrackInfo_Value(track, "I_FXEN") == 0)
+            {
                 context->UpdateWidgetValue(0.0);
+                context->UpdateWidgetValue("Bypassed");
+            }
             else if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
                 if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
+                {
                     context->UpdateWidgetValue(0.0);
+                    context->UpdateWidgetValue("Bypassed");
+                }
                 else
+                {
                     context->UpdateWidgetValue(1.0);
+                    context->UpdateWidgetValue("Enabled");
+                }
             }
             else
                 context->ClearWidget();
