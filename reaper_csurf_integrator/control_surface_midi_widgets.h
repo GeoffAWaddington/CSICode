@@ -940,71 +940,7 @@ private:
     int channel_ = 0;
     string lastStringSent_ = "";
     vector<rgb_color> currentTrackColors_;
-    
-    void ForceUpdateTrackColors()
-    {
-        struct
-        {
-            MIDI_event_ex_t evt;
-            char data[512];
-        } midiSysExData;
-        midiSysExData.evt.frame_offset=0;
-        midiSysExData.evt.size=0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
-
-        for(int i = 0; i < surface_->GetNumChannels(); i++)
-        {
-            if(lastStringSent_ == "")
-            {
-                midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-            }
-            else
-            {
-                if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
-                {
-                    rgb_color color = DAW::GetTrackColor(track);
-                    
-                    currentTrackColors_[i] = color;
-                    
-                    int r = color.r;
-                    int g = color.g;
-                    int b = color.b;
-
-                    int surfaceColor = 0;
-                    
-                    if(abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  // White
-                        surfaceColor = 7;
-                    else if(abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
-                        surfaceColor = 3;
-                    else if(abs(r - b) < 30 && r > g && b > g)  // Purple r + b
-                        surfaceColor = 5;
-                    else if(abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
-                        surfaceColor = 6;
-                    else if(r > g && r > b) // Red
-                        surfaceColor = 1;
-                    else if(g > r && g > b) // Green
-                        surfaceColor = 2;
-                    else if(b > r && b > g) // Blue
-                        surfaceColor = 4;
-
-
-                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
-                }
-                else
-                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-            }
-        }
-
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
-        SendMidiMessage(&midiSysExData.evt);
-    }
-    
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
     XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
@@ -1092,6 +1028,70 @@ public:
         
         if(shouldUpdate)
             ForceUpdateTrackColors();
+    }
+    
+    virtual void ForceUpdateTrackColors() override
+    {
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
+
+        for(int i = 0; i < surface_->GetNumChannels(); i++)
+        {
+            if(lastStringSent_ == "")
+            {
+                midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            }
+            else
+            {
+                if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
+                {
+                    rgb_color color = DAW::GetTrackColor(track);
+                    
+                    currentTrackColors_[i] = color;
+                    
+                    int r = color.r;
+                    int g = color.g;
+                    int b = color.b;
+
+                    int surfaceColor = 0;
+                    
+                    if(abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  // White
+                        surfaceColor = 7;
+                    else if(abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
+                        surfaceColor = 3;
+                    else if(abs(r - b) < 30 && r > g && b > g)  // Purple r + b
+                        surfaceColor = 5;
+                    else if(abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
+                        surfaceColor = 6;
+                    else if(r > g && r > b) // Red
+                        surfaceColor = 1;
+                    else if(g > r && g > b) // Green
+                        surfaceColor = 2;
+                    else if(b > r && b > g) // Blue
+                        surfaceColor = 4;
+
+
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
+                }
+                else
+                    midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            }
+        }
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
     }
 };
 

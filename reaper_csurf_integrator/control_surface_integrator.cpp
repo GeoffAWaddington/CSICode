@@ -1139,6 +1139,7 @@ void Manager::Init()
                     oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[4], atoi(tokens[3].c_str())));
                 else if(tokens[0] == PageToken)
                 {
+                    bool followMCP = true;
                     bool synchPages = true;
                     bool isScrollLinkEnabled = false;
                     
@@ -1148,21 +1149,18 @@ void Manager::Init()
                     {
                         if(tokens.size() > 2)
                         {
-                            if(tokens[2] == "NoSynchPages")
-                                synchPages = false;
-                            else if(tokens[2] == "UseScrollLink")
-                                isScrollLinkEnabled = true;
+                            for(int i = 2; i < tokens.size(); i++)
+                            {
+                                if(tokens[i] == "FollowTCP")
+                                    followMCP = false;
+                                else if(tokens[i] == "NoSynchPages")
+                                    synchPages = false;
+                                else if(tokens[i] == "UseScrollLink")
+                                    isScrollLinkEnabled = true;
+                            }
                         }
                             
-                        if(tokens.size() > 3)
-                        {
-                            if(tokens[3] == "NoSynchPages")
-                                synchPages = false;
-                            else if(tokens[3] == "UseScrollLink")
-                                isScrollLinkEnabled = true;
-                        }
-                            
-                        currentPage = new Page(tokens[1], synchPages, isScrollLinkEnabled);
+                        currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled);
                         pages_.push_back(currentPage);
                     }
                 }
@@ -1202,18 +1200,7 @@ void Manager::Init()
         }
         
         if(pages_.size() > 0)
-            pages_[currentPageIndex_]->ForceClear();       
-        
-        // Restore the BankIndex
-        result = DAW::GetProjExtState(0, "CSI", "BankIndex", buf, sizeof(buf));
-        
-        if(result > 0 && pages_.size() > currentPageIndex_)
-        {
-            if(MediaTrack* leftmosttrack = DAW::GetTrack(atoi(buf) + 1))
-                DAW::SetMixerScroll(leftmosttrack);
-            
-            pages_[currentPageIndex_]->AdjustTrackBank(atoi(buf));
-        }
+            pages_[currentPageIndex_]->ForceClear();               
     }
     catch (exception &e)
     {
@@ -2389,6 +2376,32 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TrackNavigationManager::RebuildTracks()
+{
+    int oldTracksSize = tracks_.size();
+    
+    tracks_.clear();
+    
+    for (int i = 1; i <= GetNumTracks(); i++)
+    {
+        if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
+            if(DAW::GetMediaTrackInfo_Value(track, followMCP_ == true ? "B_SHOWINMIXER" : "B_SHOWINTCP"))
+                tracks_.push_back(track);
+    }
+    
+    if(tracks_.size() < oldTracksSize)
+    {
+        for(int i = oldTracksSize; i > tracks_.size(); i--)
+            page_->ForceClearTrack(i - trackOffset_);
+    }
+    
+    if(tracks_.size() != oldTracksSize)
+        page_->ForceUpdateTrackColors();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ControlSurface
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ControlSurface::OnTrackSelection(MediaTrack* track)
 {
     if(widgetsByName_.count("OnTrackSelection") > 0)
@@ -2400,6 +2413,19 @@ void ControlSurface::OnTrackSelection(MediaTrack* track)
         
         zoneManager_->OnTrackSelection();
     }
+}
+
+void ControlSurface::ForceClearTrack(int trackNum)
+{
+    for(auto widget : widgets_)
+        if(widget->GetChannelNumber() + channelOffset_ == trackNum)
+            widget->ForceClear();
+}
+
+void ControlSurface::ForceUpdateTrackColors()
+{
+    for( auto processor : trackColorFeedbackProcessors_)
+        processor->ForceUpdateTrackColors();
 }
 
 void ControlSurface::RequestUpdate()

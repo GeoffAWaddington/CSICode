@@ -1218,6 +1218,8 @@ public:
     };
     
     void RequestUpdate();
+    void ForceClearTrack(int trackNum);
+    void ForceUpdateTrackColors();
     void OnTrackSelection(MediaTrack* track);
     virtual void SetHasMCUMeters(int displayType) {}
     virtual void ActivatingZone(string zoneName) {}
@@ -1401,7 +1403,8 @@ public:
     virtual void SetCurrentColor(double value) {}
     virtual void SetProperties(vector<vector<string>> properties) {}
     virtual void UpdateTrackColors() {}
-    
+    virtual void ForceUpdateTrackColors() {}
+
     virtual int GetMaxCharacters() { return 0; }
     
     void SetMode(string modeParams)
@@ -1706,6 +1709,7 @@ private:
     int trackOffset_ = 0;
     int vcaTrackOffset_ = 0;
     int folderTrackOffset_ = 0;
+    vector<MediaTrack*> tracks_;
     vector<MediaTrack*> selectedTracks_;
     vector<MediaTrack*> vcaTopLeadTracks_;
     vector<MediaTrack*> vcaLeadTracks_;
@@ -1751,8 +1755,9 @@ private:
     }
     
 public:
-    TrackNavigationManager(Page* page, bool synchPages, bool isScrollLinkEnabled) :
+    TrackNavigationManager(Page* page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) :
     page_(page),
+    followMCP_(followMCP),
     synchPages_(synchPages),
     isScrollLinkEnabled_(isScrollLinkEnabled),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
@@ -1775,6 +1780,7 @@ public:
         delete defaultNavigator_;
     }
     
+    void RebuildTracks();
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
     bool GetVCAMode() { return isVCAModeEnabled_; }
@@ -1947,8 +1953,6 @@ public:
             
             if(trackOffset_ >  top)
                 trackOffset_ = top;
-            
-            DAW:: SetProjExtState(0, "CSI", "BankIndex", to_string(trackOffset_).c_str());
         }
         else if(isVCAModeEnabled_)
         {
@@ -1995,10 +1999,13 @@ public:
     }
     
     MediaTrack* GetTrackFromChannel(int channelNumber)
-    {
+    {       
         if(! isVCAModeEnabled_ && ! isFolderModeEnabled_)
         {
-            return GetTrackFromId(channelNumber + trackOffset_ + 1);    // Master Track is idx 0, so add 1
+            if(channelNumber + trackOffset_ < GetNumTracks() && channelNumber + trackOffset_ < tracks_.size())
+                return tracks_[channelNumber + trackOffset_];
+            else
+                return nullptr;
         }
         else if(isFolderModeEnabled_)
         {
@@ -2272,7 +2279,7 @@ private:
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
 public:
-    Page(string name, bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, synchPages, isScrollLinkEnabled)) {}
+    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled)) {}
     
     ~Page()
     {
@@ -2368,6 +2375,7 @@ public:
 //*
     void Run()
     {
+        trackNavigationManager_->RebuildTracks();
         trackNavigationManager_->RebuildVCASpill();
         trackNavigationManager_->RebuildFolderTracks();
         
@@ -2384,6 +2392,18 @@ public:
             surface->ForceClear();
     }
     
+    void ForceClearTrack(int trackNum)
+    {
+        for(auto surface : surfaces_)
+            surface->ForceClearTrack(trackNum);
+    }
+    
+    void ForceUpdateTrackColors()
+    {
+        for(auto surface : surfaces_)
+            surface->ForceUpdateTrackColors();
+    }
+
     void ForceRefreshTimeDisplay()
     {
         for(auto surface : surfaces_)
