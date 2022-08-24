@@ -1199,6 +1199,10 @@ protected:
         AddWidget(new Widget(this, "OnPageEnter"));
         AddWidget(new Widget(this, "OnPageLeave"));
         AddWidget(new Widget(this, "OnInitialization"));
+        AddWidget(new Widget(this, "OnPlayStart"));
+        AddWidget(new Widget(this, "OnPlayStop"));
+        AddWidget(new Widget(this, "OnRecordStart"));
+        AddWidget(new Widget(this, "OnRecordStop"));
     }
     
 public:
@@ -1217,6 +1221,10 @@ public:
         }
     };
     
+    void Stop();
+    void Play();
+    void Record();
+    
     void RequestUpdate();
     void ForceClearTrack(int trackNum);
     void ForceUpdateTrackColors();
@@ -1227,6 +1235,9 @@ public:
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
     virtual void ForceRefreshTimeDisplay() {}
+    
+    virtual void SendMidiMessage(MIDI_event_ex_t* midiMessage) {}
+    virtual void SendMidiMessage(int first, int second, int third) {}
     
     ZoneManager* GetZoneManager() { return zoneManager_; }
     Page* GetPage() { return page_; }
@@ -1268,27 +1279,27 @@ public:
         OnTrackSelection(track);
     }
     
-    void Stop()
+    void HandleStop()
     {
-        if(isRewinding_ || isFastForwarding_) // set the cursor to the Play position
-            DAW::CSurf_OnPlay();
+        if(widgetsByName_.count("OnRecordStop") > 0)
+            zoneManager_->DoAction(widgetsByName_["OnRecordStop"], 1.0);
+
+        if(widgetsByName_.count("OnPlayStop") > 0)
+            zoneManager_->DoAction(widgetsByName_["OnPlayStop"], 1.0);
+    }
+    
+    void HandlePlay()
+    {
+        if(widgetsByName_.count("OnPlayStart") > 0)
+            zoneManager_->DoAction(widgetsByName_["OnPlayStart"], 1.0);
+    }
+    
+    void HandleRecord()
+    {
+        if(widgetsByName_.count("OnRecordStart") > 0)
+            zoneManager_->DoAction(widgetsByName_["OnRecordStart"], 1.0);
+    }
         
-        CancelRewindAndFastForward();
-        DAW::CSurf_OnStop();
-    }
-    
-    void Play()
-    {
-        CancelRewindAndFastForward();
-        DAW::CSurf_OnPlay();
-    }
-    
-    void Record()
-    {
-        CancelRewindAndFastForward();
-        DAW::CSurf_OnRecord();
-    }
-    
     void StartRewinding()
     {
         if(isFastForwarding_)
@@ -1552,8 +1563,8 @@ public:
     virtual ~Midi_ControlSurface() {}
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
-    void SendMidiMessage(MIDI_event_ex_t* midiMessage);
-    void SendMidiMessage(int first, int second, int third);
+    virtual void SendMidiMessage(MIDI_event_ex_t* midiMessage) override;
+    virtual void SendMidiMessage(int first, int second, int third) override;
 
     virtual void SetHasMCUMeters(int displayType) override
     {
@@ -2526,6 +2537,24 @@ public:
     {
         for(auto surface : surfaces_)
             surface->OnInitialization();
+    }
+    
+    void SignalStop()
+    {
+        for(auto surface : surfaces_)
+            surface->HandleStop();
+    }
+    
+    void SignalPlay()
+    {
+        for(auto surface : surfaces_)
+            surface->HandlePlay();
+    }
+    
+    void SignalRecord()
+    {
+        for(auto surface : surfaces_)
+            surface->HandleRecord();
     }
     
     void SignalGoTrackFXSlot(ControlSurface* originatingSurface, MediaTrack* track, Navigator* navigator, int fxSlot)

@@ -10,6 +10,66 @@
 #include "control_surface_integrator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SendMidiMessage : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SendMidiMessage"; }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        vector<string> tokens = GetTokens(context->GetStringParam());
+        
+        if(tokens.size() == 3)
+        {
+            context->GetSurface()->SendMidiMessage(strToHex(tokens[0]), strToHex(tokens[1]), strToHex(tokens[2]));
+        }
+        else
+        {
+            struct
+            {
+                MIDI_event_ex_t evt;
+                char data[128];
+            } midiSysExData;
+            
+            midiSysExData.evt.frame_offset = 0;
+            midiSysExData.evt.size = 0;
+            
+            for(int i = 0; i < tokens.size(); i++)
+                midiSysExData.evt.midi_message[midiSysExData.evt.size++] = strToHex(tokens[i]);
+            
+            context->GetSurface()->SendMidiMessage(&midiSysExData.evt);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SendOSCMessage : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SendOSCMessage"; }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        // GAW TBD -- get a handle on requirements for this
+        
+        
+        
+        
+        
+    }
+};
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SaveProject : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

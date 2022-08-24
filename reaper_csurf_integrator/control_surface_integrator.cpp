@@ -610,11 +610,6 @@ void SetSteppedValues(vector<string> params, double &deltaValue, vector<double> 
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static int strToHex(string valueStr)
-{
-    return strtol(valueStr.c_str(), nullptr, 16);
-}
-
 static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface)
 {
     if(tokens.size() < 2)
@@ -933,6 +928,8 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {
+    actions_["SendMidiMessage"] =                   new SendMidiMessage();
+    actions_["SendOSCMessage"] =                    new SendOSCMessage();
     actions_["SaveProject"] =                       new SaveProject();
     actions_["Undo"] =                              new Undo();
     actions_["Redo"] =                              new Redo();
@@ -2374,7 +2371,7 @@ Navigator* ZoneManager::GetDefaultNavigator() { return surface_->GetPage()->GetD
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ControlSurface
+// TrackNavigationManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TrackNavigationManager::RebuildTracks()
 {
@@ -2402,6 +2399,30 @@ void TrackNavigationManager::RebuildTracks()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ControlSurface::Stop()
+{
+    if(isRewinding_ || isFastForwarding_) // set the cursor to the Play position
+        DAW::CSurf_OnPlay();
+ 
+    page_->SignalStop();
+    CancelRewindAndFastForward();
+    DAW::CSurf_OnStop();
+}
+
+void ControlSurface::Play()
+{
+    page_->SignalPlay();
+    CancelRewindAndFastForward();
+    DAW::CSurf_OnPlay();
+}
+
+void ControlSurface::Record()
+{
+    page_->SignalRecord();
+    CancelRewindAndFastForward();
+    DAW::CSurf_OnRecord();
+}
+
 void ControlSurface::OnTrackSelection(MediaTrack* track)
 {
     if(widgetsByName_.count("OnTrackSelection") > 0)
@@ -2658,7 +2679,6 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
         if(TheManager->GetSurfaceOutDisplay())
             DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + value + "\n").c_str());
     }
-    
 }
 
 void Midi_ControlSurface::InitializeMCU()
