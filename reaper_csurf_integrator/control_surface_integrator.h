@@ -492,7 +492,9 @@ public:
     Navigator* GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     int GetSlotIndex();
-    
+    void SetAllDisplaysColor(string color);
+    void RestoreAllDisplaysColor();
+
     vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
         
     void RequestUpdate(map<Widget*, bool> &usedWidgets);
@@ -628,6 +630,8 @@ public:
     void UpdateValue(double value);
     void UpdateValue(string value);
     void UpdateRGBValue(int r, int g, int b);
+    void SetAllDisplaysColor(string color);
+    void RestoreAllDisplaysColor();
     void Clear();
     void ForceClear();
     void LogInput(double value);
@@ -1203,6 +1207,8 @@ protected:
         AddWidget(new Widget(this, "OnPlayStop"));
         AddWidget(new Widget(this, "OnRecordStart"));
         AddWidget(new Widget(this, "OnRecordStop"));
+        AddWidget(new Widget(this, "OnZoneActivation"));
+        AddWidget(new Widget(this, "OnZoneDeactivation"));
     }
     
 public:
@@ -1415,6 +1421,8 @@ public:
     virtual void SetProperties(vector<vector<string>> properties) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
+    virtual void SetAllDisplaysColor(string color) {}
+    virtual void RestoreAllDisplaysColor() {}
 
     virtual int GetMaxCharacters() { return 0; }
     

@@ -938,6 +938,7 @@ private:
     int displayType_ = 0x10;
     int displayRow_ = 0x12;
     int channel_ = 0;
+    int preventUpdateTrackColors_ = false;
     string lastStringSent_ = "";
     vector<rgb_color> currentTrackColors_;
         
@@ -953,6 +954,54 @@ public:
         surface_->AddTrackColorFeedbackProcessor(this);
     }
         
+    virtual void SetAllDisplaysColor(string color) override
+    {
+        preventUpdateTrackColors_ = true;
+        
+        int surfaceColor = 0;
+        
+        if(color == "Red")
+            surfaceColor = 1;
+        else if(color == "Green")
+            surfaceColor = 2;
+        else if(color == "Yellow")
+            surfaceColor = 3;
+        else if(color == "Blue")
+            surfaceColor = 4;
+        else if(color == "Magenta")
+            surfaceColor = 5;
+        else if(color == "Cyan")
+            surfaceColor = 6;
+        else if(color == "White")
+            surfaceColor = 7;
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
+        
+        for(int i = 0; i < surface_->GetNumChannels(); i++)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiMessage(&midiSysExData.evt);
+    }
+    
+    virtual void RestoreAllDisplaysColor() override
+    {
+        preventUpdateTrackColors_ = false;
+    }
+    
     virtual void SetValue(string displayText) override
     {
         if(displayText != lastStringSent_) // changes since last send
@@ -1032,6 +1081,9 @@ public:
     
     virtual void ForceUpdateTrackColors() override
     {
+        if(preventUpdateTrackColors_)
+            return;
+        
         struct
         {
             MIDI_event_ex_t evt;
@@ -1070,7 +1122,7 @@ public:
                         surfaceColor = 7;
                     else if(abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
                         surfaceColor = 3;
-                    else if(abs(r - b) < 30 && r > g && b > g)  // Purple r + b
+                    else if(abs(r - b) < 30 && r > g && b > g)  // Magenta r + b
                         surfaceColor = 5;
                     else if(abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
                         surfaceColor = 6;

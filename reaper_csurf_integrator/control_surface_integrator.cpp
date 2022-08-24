@@ -928,7 +928,7 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {
-    actions_["SendMidiMessage"] =                   new SendMidiMessage();
+    actions_["SendMIDIMessage"] =                   new SendMIDIMessage();
     actions_["SendOSCMessage"] =                    new SendOSCMessage();
     actions_["SaveProject"] =                       new SaveProject();
     actions_["Undo"] =                              new Undo();
@@ -966,6 +966,8 @@ void Manager::InitActionsDictionary()
     actions_["GoHome"] =                            new GoHome();
     actions_["GoSubZone"] =                         new GoSubZone();
     actions_["LeaveSubZone"] =                      new LeaveSubZone();
+    actions_["SetAllDisplaysColor"] =               new SetAllDisplaysColor();
+    actions_["RestoreAllDisplaysColor"] =           new RestoreAllDisplaysColor();
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
     actions_["ToggleEnableFocusedFXParamMapping"] = new ToggleEnableFocusedFXParamMapping();
@@ -1707,8 +1709,25 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
             navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
 
+void Zone::SetAllDisplaysColor(string color)
+{
+    for(auto [widget, isUsed] : widgets_)
+        widget->SetAllDisplaysColor(color);
+}
+
+void Zone::RestoreAllDisplaysColor()
+{
+    for(auto [widget, isUsed] : widgets_)
+        widget->RestoreAllDisplaysColor();
+}
+
 void Zone::Activate()
-{   
+{
+    for(auto [widget, isUsed] : widgets_)
+        if(widget->GetName() == "OnZoneActivation")
+            for(auto context : GetActionContexts(widget))
+                context->DoAction(1.0);
+
     isActive_ = true;
     
     zoneManager_->GetSurface()->ActivatingZone(GetName());
@@ -1740,6 +1759,11 @@ void Zone::OnTrackDeselection()
 
 void Zone::Deactivate()
 {
+    for(auto [widget, isUsed] : widgets_)
+        if(widget->GetName() == "OnZoneDeactivation")
+            for(auto context : GetActionContexts(widget))
+                context->DoAction(1.0);
+
     isActive_ = false;
     
     for(auto zone : includedZones_)
@@ -1990,6 +2014,18 @@ void  Widget::UpdateRGBValue(int r, int g, int b)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetRGBValue(r, g, b);
+}
+
+void Widget::SetAllDisplaysColor(string color)
+{
+    for(auto processor : feedbackProcessors_)
+        processor->SetAllDisplaysColor(color);
+}
+
+void Widget::RestoreAllDisplaysColor()
+{
+    for(auto processor : feedbackProcessors_)
+        processor->RestoreAllDisplaysColor();
 }
 
 void  Widget::Clear()
