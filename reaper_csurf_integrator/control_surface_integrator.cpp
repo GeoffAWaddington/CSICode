@@ -2636,11 +2636,16 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
             
             while (packetReader_.isOk() && (message = packetReader_.popMessage()) != 0)
             {
-                float value = 0;
-                
-                if(message->arg().isFloat())
+                if (message->arg().isFloat())
                 {
+                    float value = 0;
                     message->arg().popFloat(value);
+                    surface->ProcessOSCMessage(message->addressPattern(), value);
+                }
+                else if (message->arg().isInt32())
+                {
+                    int value;
+                    message->arg().popInt32(value);
                     surface->ProcessOSCMessage(message->addressPattern(), value);
                 }
             }
