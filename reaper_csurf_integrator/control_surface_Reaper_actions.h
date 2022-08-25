@@ -2394,7 +2394,8 @@ public:
             if(currentTrack == nullptr)
                 continue;
             
-            DAW::CSurf_SetSurfaceSelected(currentTrack, DAW::CSurf_OnSelectedChange(currentTrack, 1), NULL);
+            if(context->GetPage()->GetIsTrackVisible(currentTrack))
+                DAW::CSurf_SetSurfaceSelected(currentTrack, DAW::CSurf_OnSelectedChange(currentTrack, 1), NULL);
         }
         
         MediaTrack* lowestTrack = context->GetPage()->GetTrackFromId(lowerBound);

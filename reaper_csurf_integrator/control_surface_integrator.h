@@ -1823,6 +1823,11 @@ public:
     Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
     Navigator* GetDefaultNavigator() { return defaultNavigator_; }
     
+    bool GetIsTrackVisible(MediaTrack* track)
+    {
+        return DAW::IsTrackVisible(track, followMCP_);
+    }
+    
     void NextTrackVCAFolderMode()
     {
         currentTrackVCAFolderMode_ += 1;
@@ -2659,6 +2664,7 @@ public:
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
+    bool GetIsTrackVisible(MediaTrack* track) { return trackNavigationManager_->GetIsTrackVisible(track); }
     void ToggleVCASpill(MediaTrack* track) { trackNavigationManager_->ToggleVCASpill(track); }
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
     void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
