@@ -2419,7 +2419,7 @@ void TrackNavigationManager::RebuildTracks()
     for (int i = 1; i <= GetNumTracks(); i++)
     {
         if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
-            if(DAW::GetMediaTrackInfo_Value(track, followMCP_ == true ? "B_SHOWINMIXER" : "B_SHOWINTCP"))
+            if(DAW::IsTrackVisible(track, followMCP_))
                 tracks_.push_back(track);
     }
     
