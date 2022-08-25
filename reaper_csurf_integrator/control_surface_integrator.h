@@ -84,6 +84,11 @@ static vector<string> GetTokens(string line)
     return tokens;
 }
 
+static int strToHex(string valueStr)
+{
+    return strtol(valueStr.c_str(), nullptr, 16);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CSurfIntegrator;
 class Page;
@@ -602,6 +607,7 @@ private:
     string const name_;
     vector<FeedbackProcessor*> feedbackProcessors_;
     int channelNumber_ = 0;
+    string messageGeneratorClass_ = "";
     
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name)
@@ -622,9 +628,10 @@ public:
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
     ZoneManager* GetZoneManager();
-    
     int GetChannelNumber() { return channelNumber_; }
-
+    void SetMessageGeneratorClass(string messageGeneratorClass) { messageGeneratorClass_ = messageGeneratorClass; }
+    string GetMessageGeneratorClass(string messageGeneratorClass) { return messageGeneratorClass_; }
+    
     void SetProperties(vector<vector<string>> properties);
     void UpdateMode(string modeParams);
     void UpdateValue(double value);
@@ -1411,6 +1418,7 @@ protected:
 public:
     FeedbackProcessor(Widget* widget) : widget_(widget) {}
     virtual ~FeedbackProcessor() {}
+    virtual string GetName()  { return "FeedbackProcessor"; }
     Widget* GetWidget() { return widget_; }
     virtual void SetRGBValue(int r, int g, int b) {}
     virtual void ForceValue(double value) {}
@@ -1497,6 +1505,8 @@ protected:
     void ForceMidiMessage(int first, int second, int third);
 
 public:
+    virtual string GetName() override { return "Midi_FeedbackProcessor"; }
+
     virtual void ClearCache() override
     {
         lastMessageSent_->midi_message[0] = 0;
@@ -1600,9 +1610,10 @@ protected:
     string oscAddress_ = "";
     
 public:
-    
     OSC_FeedbackProcessor(OSC_ControlSurface* surface, Widget* widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
+
+    virtual string GetName() override { return "OSC_FeedbackProcessor"; }
 
     virtual void SetRGBValue(int r, int g, int b) override;
     virtual void ForceValue(double value) override;
@@ -1616,6 +1627,8 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 public:
     OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, Widget* widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
+
+    virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
 
     virtual void ForceValue(double value) override;
 };
