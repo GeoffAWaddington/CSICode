@@ -928,6 +928,7 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {
+    actions_["Speak"] =                             new SpeakOSARAMessage();
     actions_["SendMIDIMessage"] =                   new SendMIDIMessage();
     actions_["SendOSCMessage"] =                    new SendOSCMessage();
     actions_["SaveProject"] =                       new SaveProject();

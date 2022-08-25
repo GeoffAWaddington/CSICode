@@ -2786,6 +2786,16 @@ public:
     double *GetTimeOffsPtr() { return timeOffsPtr_; }
     int GetProjectPanMode() { return *projectPanModePtr_; }
    
+    void Speak(string phrase)
+    {
+        const void (*osara_outputMessage)(const char* message) = nullptr;
+    
+        osara_outputMessage = (decltype(osara_outputMessage))plugin_getapi("osara_outputMessage");
+
+        if (osara_outputMessage)
+            osara_outputMessage(phrase.c_str());
+    }
+    
     shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties)
     {
         if(actions_.count(actionName) > 0)
