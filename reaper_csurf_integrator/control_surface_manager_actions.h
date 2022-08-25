@@ -481,7 +481,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFX"))
             context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -505,7 +505,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackSend"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -529,7 +529,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackReceive"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -553,7 +553,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackFXMenu"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -577,7 +577,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrack"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -601,7 +601,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackSend"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -625,7 +625,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackReceive"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -649,7 +649,7 @@ public:
         if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFXMenu"))
            context->UpdateWidgetValue(1.0);
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
