@@ -2131,19 +2131,19 @@ public:
        
     void OnTrackSelection()
     {
-        if(isScrollLinkEnabled_)
+        if(isScrollLinkEnabled_ && tracks_.size() > trackNavigators_.size())
             ForceScrollLink();
     }
     
     void OnTrackListChange()
     {
-        if(isScrollLinkEnabled_)
+        if(isScrollLinkEnabled_ && tracks_.size() > trackNavigators_.size())
             ForceScrollLink();
     }
 
     void OnTrackSelectionBySurface(MediaTrack* track)
     {
-        if(isScrollLinkEnabled_)
+        if(isScrollLinkEnabled_ && tracks_.size() > trackNavigators_.size())
         {
             if(DAW::IsTrackVisible(track, true))
                 DAW::SetMixerScroll(track); // scroll selected MCP tracks into view
