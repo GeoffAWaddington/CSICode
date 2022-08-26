@@ -366,6 +366,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
                         
+                        if(zoneName == "Track" && i == 0)
+                            zoneManager->SetFirstTrackZone(zone);
+                        
                         if(zoneName == "FocusedFXParam")
                             zoneManager->SetFocusedFXParamZone(zone);
                         
@@ -2431,6 +2434,42 @@ void TrackNavigationManager::RebuildTracks()
     
     if(tracks_.size() != oldTracksSize)
         page_->ForceUpdateTrackColors();
+}
+
+void TrackNavigationManager::NextTrackVCAFolderMode(string params)
+{
+    string VCAColor = "White";
+    string FolderColor = "White";
+    
+    vector<string> tokens = GetTokens(params);
+    
+    if(tokens.size()  == 2)
+    {
+        VCAColor = tokens[0];
+        FolderColor = tokens[1];
+    }
+    
+    currentTrackVCAFolderMode_ += 1;
+    
+    if(currentTrackVCAFolderMode_ > 2)
+    {
+        page_->RestoreAllDisplaysColor();
+        currentTrackVCAFolderMode_ = 0;
+        isVCAModeEnabled_ = false;
+        isFolderModeEnabled_ = false;
+    }
+    else if(currentTrackVCAFolderMode_ == 1)
+    {
+        page_->SetAllDisplaysColor(VCAColor);
+        isVCAModeEnabled_ = true;
+        isFolderModeEnabled_ = false;
+    }
+    else if(currentTrackVCAFolderMode_ == 2)
+    {
+        page_->SetAllDisplaysColor(FolderColor);
+        isFolderModeEnabled_ = true;
+        isVCAModeEnabled_ = false;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

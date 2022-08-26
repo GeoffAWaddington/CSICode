@@ -673,7 +673,8 @@ private:
     map<Widget*, bool> usedWidgets_;
 
     shared_ptr<Zone> homeZone_ = nullptr;
-    
+    shared_ptr<Zone> firstTrackZone_ = nullptr;
+
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
 
@@ -748,6 +749,7 @@ public:
     ControlSurface* GetSurface() { return surface_; }   
     
     void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
+    void SetFirstTrackZone(shared_ptr<Zone> zone) { firstTrackZone_ = zone; }
     void SetFocusedFXParamZone(shared_ptr<Zone> zone) { focusedFXParamZone_ = zone; }
 
     int GetTrackSendOffset() { return trackSendOffset_; }
@@ -763,6 +765,18 @@ public:
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
     
+    void SetAllDisplaysColor(string color)
+    {
+        if(firstTrackZone_)
+            firstTrackZone_->SetAllDisplaysColor(color);
+    }
+    
+    void RestoreAllDisplaysColor()
+    {
+        if(firstTrackZone_)
+            firstTrackZone_->RestoreAllDisplaysColor();
+    }
+
     void ToggleEnableFocusedFXParamMapping()
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
@@ -1261,6 +1275,16 @@ public:
     
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
+
+    void SetAllDisplaysColor(string color)
+    {
+        zoneManager_->SetAllDisplaysColor(color);
+    }
+    
+    void RestoreAllDisplaysColor()
+    {
+        zoneManager_->RestoreAllDisplaysColor();
+    }
 
     void ToggleChannel(int channelNum)
     {
@@ -1813,6 +1837,7 @@ public:
     }
     
     void RebuildTracks();
+    void NextTrackVCAFolderMode(string params);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
     bool GetVCAMode() { return isVCAModeEnabled_; }
@@ -1827,25 +1852,7 @@ public:
     {
         return DAW::IsTrackVisible(track, followMCP_);
     }
-    
-    void NextTrackVCAFolderMode()
-    {
-        currentTrackVCAFolderMode_ += 1;
         
-        if(currentTrackVCAFolderMode_ > 2)
-            currentTrackVCAFolderMode_ = 0;
-        
-        if(currentTrackVCAFolderMode_ == 1)
-            isVCAModeEnabled_ = true;
-        else
-            isVCAModeEnabled_ = false;
-        
-        if(currentTrackVCAFolderMode_ == 2)
-            isFolderModeEnabled_ = true;
-        else
-            isFolderModeEnabled_ = false;
-    }
-    
     void ResetTrackVCAFolderMode()
     {
         currentTrackVCAFolderMode_ = 0;
@@ -2244,7 +2251,7 @@ public:
                 }
                 
                 if(isFollower)
-                        vcaSpillTracks_.push_back(track);
+                    vcaSpillTracks_.push_back(track);
             }
         }
     }
@@ -2646,6 +2653,18 @@ public:
                 surface->GetZoneManager()->HandleSelectedTrackFXMenuBank(amount);
     }
 
+    void SetAllDisplaysColor(string color)
+    {
+        for(auto surface : surfaces_)
+            surface->SetAllDisplaysColor(color);
+    }
+    
+    void RestoreAllDisplaysColor()
+    {
+        for(auto surface : surfaces_)
+            surface->RestoreAllDisplaysColor();
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Page facade for TrackNavigationManager
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2658,7 +2677,7 @@ public:
     Navigator* GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
     Navigator* GetDefaultNavigator() { return trackNavigationManager_->GetDefaultNavigator(); }
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
-    void NextTrackVCAFolderMode() { trackNavigationManager_->NextTrackVCAFolderMode(); }
+    void NextTrackVCAFolderMode(string params) { trackNavigationManager_->NextTrackVCAFolderMode(params); }
     void ResetTrackVCAFolderMode() { trackNavigationManager_->ResetTrackVCAFolderMode(); }
     int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }

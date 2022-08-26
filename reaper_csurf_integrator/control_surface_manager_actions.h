@@ -259,7 +259,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetPage()->NextTrackVCAFolderMode();
+        context->GetPage()->NextTrackVCAFolderMode(context->GetStringParam());
     }
 };
 
