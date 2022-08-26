@@ -1625,32 +1625,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FXBypassedDisplay : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "FXBypassedDisplay"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
-            {
-                if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
-                    context->UpdateWidgetValue("Enabled");
-                else
-                    context->UpdateWidgetValue("Bypassd");
-            }
-            else
-                context->UpdateWidgetValue("");
-        }
-        else
-            context->ClearWidget();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackSendNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
