@@ -323,6 +323,7 @@ public:
     void UpdateWidgetValue(double value);
     void UpdateWidgetValue(string value);
     void UpdateWidgetMode(string modeParams);
+    void UpdateRGBValue(double value);
 
     void DoTouch(double value)
     {
@@ -346,14 +347,15 @@ public:
     void SetCurrentRGB(rgb_color newColor)
     {
         supportsRGB_ = true;
-        RGBValues_[currentRGBIndex_] = newColor;
+        if(RGBValues_.size() > currentRGBIndex_)
+            RGBValues_[currentRGBIndex_] = newColor;
     }
     
     rgb_color GetCurrentRGB()
     {
         rgb_color blankColor;
         
-        if(RGBValues_.size() > 0 && currentRGBIndex_ < RGBValues_.size())
+        if(RGBValues_.size() > currentRGBIndex_)
             return RGBValues_[currentRGBIndex_];
         else return blankColor;
     }

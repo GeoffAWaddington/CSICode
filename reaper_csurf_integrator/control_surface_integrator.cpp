@@ -1424,6 +1424,16 @@ void ActionContext::ClearWidget()
     widget_->Clear();
 }
 
+void ActionContext::UpdateRGBValue(double value)
+{
+    if(supportsRGB_)
+    {
+        currentRGBIndex_ = value == 0 ? 0 : 1;
+        if(RGBValues_.size() > currentRGBIndex_)
+            widget_->UpdateRGBValue(RGBValues_[currentRGBIndex_].r, RGBValues_[currentRGBIndex_].g, RGBValues_[currentRGBIndex_].b);
+    }
+}
+
 void ActionContext::UpdateWidgetValue(double value)
 {
     if(steppedValues_.size() > 0)
@@ -1433,12 +1443,9 @@ void ActionContext::UpdateWidgetValue(double value)
    
     widget_->UpdateValue(value);
 
-    if(supportsRGB_)
-    {
-        currentRGBIndex_ = value == 0 ? 0 : 1;
-        widget_->UpdateRGBValue(RGBValues_[currentRGBIndex_].r, RGBValues_[currentRGBIndex_].g, RGBValues_[currentRGBIndex_].b);
-    }
-    else if(supportsTrackColor_)
+    UpdateRGBValue(value);
+    
+    if(supportsTrackColor_)
         UpdateTrackColor();
 }
 

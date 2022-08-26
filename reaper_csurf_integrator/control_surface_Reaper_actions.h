@@ -1139,6 +1139,11 @@ class TrackSendPrePost : public Action
 public:
     virtual string GetName() override { return "TrackSendPrePost"; }
        
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+    }
+
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -1457,6 +1462,11 @@ class TrackReceivePrePost : public Action
 public:
     virtual string GetName() override { return "TrackReceivePrePost"; }
         
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+    }
+
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -2251,6 +2261,11 @@ class TrackToggleVCASpill : public Action
 public:
     virtual string GetName() override { return "TrackToggleVCASpill"; }
 
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+    }
+
     virtual void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -2699,6 +2714,11 @@ class CycleTrackInputMonitor : public Action
 {
 public:
     virtual string GetName() override { return "CycleTrackInputMonitor"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+    }
 
     virtual void Do(ActionContext* context, double value) override
     {
