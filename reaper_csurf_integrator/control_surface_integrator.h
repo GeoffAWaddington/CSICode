@@ -1691,7 +1691,7 @@ public:
         if(outSocket_ != nullptr && outSocket_->isOk())
         {
             oscpkt::Message message;
-            message.init(oscAddress).pushInt64(value);
+            message.init(oscAddress).pushInt32(value);
             packetWriter_.init().addMessage(message);
             outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
         }
