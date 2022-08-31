@@ -1780,7 +1780,6 @@ private:
     Navigator* const defaultNavigator_ = nullptr;
     
     vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
-    int autoModeIndex_ = 0;
     
     void ForceScrollLink()
     {
@@ -1862,36 +1861,14 @@ public:
         isFolderModeEnabled_ = false;
     }
     
-    void SetAutoModeIndex()
-    {
-        if(MediaTrack* track =  GetSelectedTrackNavigator()->GetTrack())
-            autoModeIndex_ = DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE");
-    }
-    
-    void NextAutoMode()
-    {
-        if(MediaTrack* track = GetSelectedTrackNavigator()->GetTrack())
-        {
-            if(autoModeIndex_ == 2) // skip over write mode when cycling
-                autoModeIndex_ += 2;
-            else
-                autoModeIndex_++;
-            
-            if(autoModeIndex_ > autoModeDisplayNames__.size() - 1)
-                autoModeIndex_ = 0;
-    
-            DAW::GetSetMediaTrackInfo(track, "I_AUTOMODE", &autoModeIndex_);
-        }
-    }
-    
-    string GetAutoModeDisplayName()
+    string GetAutoModeDisplayName(int modeIndex)
     {
         int globalOverride = DAW::GetGlobalAutomationOverride();
 
         if(globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
             return autoModeDisplayNames__[globalOverride];
         else
-            return autoModeDisplayNames__[autoModeIndex_];
+            return autoModeDisplayNames__[modeIndex];
     }
 
     string GetGlobalAutoModeDisplayName()
@@ -1904,11 +1881,6 @@ public:
             return autoModeDisplayNames__[globalOverride];
         else
             return "";
-    }
-
-    string GetAutoModeDisplayName(int modeIndex)
-    {
-        return autoModeDisplayNames__[modeIndex];
     }
 
     void NextInputMonitorMode(MediaTrack* track)
@@ -2690,12 +2662,9 @@ public:
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
     void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
     MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
-    void SetAutoModeIndex() { trackNavigationManager_->SetAutoModeIndex(); }
-    void NextAutoMode() { trackNavigationManager_->NextAutoMode(); }
     void NextInputMonitorMode(MediaTrack* track) { trackNavigationManager_->NextInputMonitorMode(track); }
-    string GetAutoModeDisplayName() { return trackNavigationManager_->GetAutoModeDisplayName(); }
-    string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     string GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
+    string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     string GetCurrentInputMonitorMode(MediaTrack* track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     vector<MediaTrack*> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
 };
