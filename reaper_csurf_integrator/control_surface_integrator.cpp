@@ -970,7 +970,7 @@ void Manager::InitActionsDictionary()
     actions_["GoHome"] =                            new GoHome();
     actions_["GoSubZone"] =                         new GoSubZone();
     actions_["LeaveSubZone"] =                      new LeaveSubZone();
-    actions_["SetAllDisplaysColor"] =               new SetAllDisplaysColor();
+    actions_["SetXTouchDisplayColors"] =            new SetXTouchDisplayColors();
     actions_["RestoreAllDisplaysColor"] =           new RestoreAllDisplaysColor();
     actions_["GoFXSlot"] =                          new GoFXSlot();
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();

@@ -980,6 +980,17 @@ private:
     int preventUpdateTrackColors_ = false;
     string lastStringSent_ = "";
     vector<rgb_color> currentTrackColors_;
+    map<string, int> availableColors =
+    {
+        { "Black", 0 },
+        { "Red", 1 },
+        { "Green", 2 },
+        { "Yellow", 3 },
+        { "Blue", 4 },
+        { "Magenta", 5 },
+        { "Cyan", 6 },
+        { "White", 7 }
+    };
         
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
@@ -995,26 +1006,11 @@ public:
         
     virtual string GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
 
-    virtual void SetAllDisplaysColor(string color) override
+    virtual void SetAllDisplaysColor(string colors) override
     {
         preventUpdateTrackColors_ = true;
         
-        int surfaceColor = 0;
-        
-        if(color == "Red")
-            surfaceColor = 1;
-        else if(color == "Green")
-            surfaceColor = 2;
-        else if(color == "Yellow")
-            surfaceColor = 3;
-        else if(color == "Blue")
-            surfaceColor = 4;
-        else if(color == "Magenta")
-            surfaceColor = 5;
-        else if(color == "Cyan")
-            surfaceColor = 6;
-        else if(color == "White")
-            surfaceColor = 7;
+        vector<string> currentColors = GetTokens(colors);
         
         struct
         {
@@ -1031,7 +1027,16 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
         
         for(int i = 0; i < surface_->GetNumChannels(); i++)
+        {
+            int surfaceColor = 0;
+            
+            if(currentColors.size() == 1 && availableColors.count(currentColors[0]) > 0)
+                surfaceColor = availableColors[currentColors[0]];
+            else if(currentColors.size() == 8 && availableColors.count(currentColors[i]) > 0)
+                surfaceColor = availableColors[currentColors[i]];
+
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
+        }
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
