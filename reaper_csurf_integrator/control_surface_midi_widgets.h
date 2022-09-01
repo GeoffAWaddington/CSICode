@@ -1006,7 +1006,7 @@ public:
         
     virtual string GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
 
-    virtual void SetAllDisplaysColor(string colors) override
+    virtual void SetXTouchDisplayColors(string colors) override
     {
         preventUpdateTrackColors_ = true;
         
@@ -1043,7 +1043,7 @@ public:
         SendMidiMessage(&midiSysExData.evt);
     }
     
-    virtual void RestoreAllDisplaysColor() override
+    virtual void RestoreXTouchDisplayColors() override
     {
         preventUpdateTrackColors_ = false;
     }

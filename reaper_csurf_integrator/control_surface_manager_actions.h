@@ -106,7 +106,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetZone()->SetAllDisplaysColor(context->GetStringParam());
+        context->GetZone()->SetXTouchDisplayColors(context->GetStringParam());
     }
 };
 
@@ -121,7 +121,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetZone()->RestoreAllDisplaysColor();
+        context->GetZone()->RestoreXTouchDisplayColors();
     }
 };
 
@@ -279,7 +279,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetPage()->NextTrackVCAFolderMode(context->GetStringParam());
+        context->GetPage()->NextTrackVCAFolderMode();
     }
 };
 
@@ -292,20 +292,8 @@ public:
     
     void RequestUpdate(ActionContext* context) override
     {
-        int trackVCAFolderMode = context->GetPage()->GetCurrentTrackVCAFolderMode();
-        
-        context->UpdateWidgetValue(trackVCAFolderMode);
-        
-        string folderModeStr = "";
-        
-        if(trackVCAFolderMode == 0)
-            folderModeStr = "Track";
-        else if(trackVCAFolderMode == 1)
-            folderModeStr = "VCA";
-        else if(trackVCAFolderMode == 2)
-            folderModeStr = "Folder";
-
-        context->UpdateWidgetValue(folderModeStr);
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
     }
 };
 
@@ -718,6 +706,46 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         TheManager->AdjustTrackBank(context->GetPage(), context->GetIntParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class VCABank : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "VCABank"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        TheManager->AdjustVCABank(context->GetPage(), context->GetIntParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FolderBank : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "FolderBank"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        TheManager->AdjustFolderBank(context->GetPage(), context->GetIntParam());
     }
 };
 

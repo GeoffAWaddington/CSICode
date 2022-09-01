@@ -984,6 +984,8 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
     actions_["TrackBank"] =                         new TrackBank();
+    actions_["VCABank"] =                           new VCABank();
+    actions_["FolderBank"] =                        new FolderBank();
     actions_["TrackSendBank"] =                     new TrackSendBank();
     actions_["TrackReceiveBank"] =                  new TrackReceiveBank();
     actions_["TrackFXMenuBank"] =                   new TrackFXMenuBank();
@@ -1713,7 +1715,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
     else if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
-    else if(zoneName == "Track" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset()));
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
@@ -1721,16 +1723,16 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
             navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
 
-void Zone::SetAllDisplaysColor(string color)
+void Zone::SetXTouchDisplayColors(string color)
 {
     for(auto [widget, isUsed] : widgets_)
-        widget->SetAllDisplaysColor(color);
+        widget->SetXTouchDisplayColors(color);
 }
 
-void Zone::RestoreAllDisplaysColor()
+void Zone::RestoreXTouchDisplayColors()
 {
     for(auto [widget, isUsed] : widgets_)
-        widget->RestoreAllDisplaysColor();
+        widget->RestoreXTouchDisplayColors();
 }
 
 void Zone::Activate()
@@ -1754,6 +1756,34 @@ void Zone::Activate()
     for(auto [key, zones] : subZones_)
         for(auto zone : zones)
             zone->Deactivate();
+}
+
+void Zone::GoTrack()
+{
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            if(zone->GetName() == "VCA" || zone->GetName() == "Folder")
+                zone->Deactivate();
+}
+
+void Zone::GoVCA()
+{
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            if(zone->GetName() == "Folder")
+                zone->Deactivate();
+            else if(zone->GetName() == "VCA")
+                zone->Activate();
+}
+
+void Zone::GoFolder()
+{
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            if(zone->GetName() == "VCA")
+                zone->Deactivate();
+            else if(zone->GetName() == "Folder")
+                zone->Activate();
 }
 
 void Zone::OnTrackDeselection()
@@ -2028,16 +2058,16 @@ void  Widget::UpdateRGBValue(int r, int g, int b)
         processor->SetRGBValue(r, g, b);
 }
 
-void Widget::SetAllDisplaysColor(string color)
+void Widget::SetXTouchDisplayColors(string color)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetAllDisplaysColor(color);
+        processor->SetXTouchDisplayColors(color);
 }
 
-void Widget::RestoreAllDisplaysColor()
+void Widget::RestoreXTouchDisplayColors()
 {
     for(auto processor : feedbackProcessors_)
-        processor->RestoreAllDisplaysColor();
+        processor->RestoreXTouchDisplayColors();
 }
 
 void  Widget::Clear()
@@ -2339,6 +2369,24 @@ void ZoneManager::GoHome()
     }
 }
 
+void ZoneManager::GoTrack()
+{
+    if(homeZone_ != nullptr)
+        homeZone_->GoTrack();
+}
+
+void ZoneManager::GoVCA()
+{
+    if(homeZone_ != nullptr)
+        homeZone_->GoVCA();
+}
+
+void ZoneManager::GoFolder()
+{
+    if(homeZone_ != nullptr)
+        homeZone_->GoFolder();
+}
+
 void ZoneManager::OnTrackSelection()
 {
     fxSlotZones_.clear();
@@ -2444,39 +2492,22 @@ void TrackNavigationManager::RebuildTracks()
         page_->ForceUpdateTrackColors();
 }
 
-void TrackNavigationManager::NextTrackVCAFolderMode(string params)
+void TrackNavigationManager::NextTrackVCAFolderMode()
 {
-    string VCAColor = "White";
-    string FolderColor = "White";
-    
-    vector<string> tokens = GetTokens(params);
-    
-    if(tokens.size()  == 2)
+    if(currentTrackVCAFolderMode_ == 0 && page_->GetDoesAssociatedZoneExist("VCA"))
     {
-        VCAColor = tokens[0];
-        FolderColor = tokens[1];
+        currentTrackVCAFolderMode_ = 1;
+        page_->GoVCA();
     }
-    
-    currentTrackVCAFolderMode_ += 1;
-    
-    if(currentTrackVCAFolderMode_ > 2)
+    else if((currentTrackVCAFolderMode_ == 0 || currentTrackVCAFolderMode_ == 1) && page_->GetDoesAssociatedZoneExist("Folder"))
     {
-        page_->RestoreAllDisplaysColor();
+        currentTrackVCAFolderMode_ = 2;
+        page_->GoFolder();
+    }
+    else
+    {
         currentTrackVCAFolderMode_ = 0;
-        isVCAModeEnabled_ = false;
-        isFolderModeEnabled_ = false;
-    }
-    else if(currentTrackVCAFolderMode_ == 1)
-    {
-        page_->SetAllDisplaysColor(VCAColor);
-        isVCAModeEnabled_ = true;
-        isFolderModeEnabled_ = false;
-    }
-    else if(currentTrackVCAFolderMode_ == 2)
-    {
-        page_->SetAllDisplaysColor(FolderColor);
-        isFolderModeEnabled_ = true;
-        isVCAModeEnabled_ = false;
+        page_->GoTrack();
     }
 }
 

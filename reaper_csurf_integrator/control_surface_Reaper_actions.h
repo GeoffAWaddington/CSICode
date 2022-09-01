@@ -2238,6 +2238,8 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         context->UpdateRGBValue(0.0);
+        if(MediaTrack* track = context->GetTrack())
+            context->UpdateWidgetValue(context->GetPage()->GetIsVCASpilled(track));
     }
 
     virtual void Do(ActionContext* context, double value) override
