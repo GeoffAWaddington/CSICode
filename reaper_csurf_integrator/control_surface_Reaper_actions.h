@@ -2240,6 +2240,8 @@ public:
         context->UpdateRGBValue(0.0);
         if(MediaTrack* track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetIsVCASpilled(track));
+        else
+            context->UpdateWidgetValue(0.0);
     }
 
     virtual void Do(ActionContext* context, double value) override
@@ -2263,6 +2265,8 @@ public:
         context->UpdateRGBValue(0.0);
         if(MediaTrack* track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetIsFolderSpilled(track));
+        else
+            context->UpdateWidgetValue(0.0);
     }
 
     virtual void Do(ActionContext* context, double value) override

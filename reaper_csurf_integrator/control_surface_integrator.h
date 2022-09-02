@@ -1764,6 +1764,7 @@ private:
     vector<MediaTrack*> tracks_;
     vector<MediaTrack*> selectedTracks_;
     vector<MediaTrack*> vcaTopLeadTracks_;
+    MediaTrack* vcaLeadTrack_ = nullptr;
     vector<MediaTrack*> vcaLeadTracks_;
     vector<MediaTrack*> vcaSpillTracks_;
     vector<MediaTrack*> folderTracks_;
@@ -1982,7 +1983,7 @@ public:
         if(currentTrackVCAFolderMode_ != 1)
             return;
 
-        int numTracks = vcaSpillTracks_.size() + vcaLeadTracks_.size();
+        int numTracks = vcaSpillTracks_.size();
             
         if(numTracks <= trackNavigators_.size())
             return;
@@ -2045,24 +2046,24 @@ public:
         }
         else if(currentTrackVCAFolderMode_ == 1)
         {
-            if(vcaLeadTracks_.size() == 0)
+            if(vcaLeadTrack_ == nullptr)
             {
-                if(vcaTopLeadTracks_.size() > channelNumber && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
+                if(channelNumber < vcaTopLeadTracks_.size() && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
                     return vcaTopLeadTracks_[channelNumber];
                 else
                     return nullptr;
             }
             else
             {
-                if(channelNumber < vcaLeadTracks_.size())
-                    return vcaLeadTracks_[channelNumber];
+                if(channelNumber == 0 && vcaSpillTracks_.size() > 0 && DAW::ValidateTrackPtr(vcaSpillTracks_[channelNumber]))
+                    return vcaSpillTracks_[channelNumber];
+                else if(vcaTrackOffset_ == 0 && channelNumber < vcaSpillTracks_.size() && DAW::ValidateTrackPtr(vcaSpillTracks_[channelNumber]))
+                    return vcaSpillTracks_[channelNumber];
                 else
                 {
-                    channelNumber -= vcaLeadTracks_.size();
-                    
                     channelNumber += vcaTrackOffset_;
                     
-                    if(channelNumber < vcaSpillTracks_.size())
+                    if(channelNumber < vcaSpillTracks_.size() && DAW::ValidateTrackPtr(vcaSpillTracks_[channelNumber]))
                         return vcaSpillTracks_[channelNumber];
                 }
             }
@@ -2086,12 +2087,10 @@ public:
     
     bool GetIsVCASpilled(MediaTrack* track)
     {
-        auto it = find(vcaLeadTracks_.begin(), vcaLeadTracks_.end(), track);
-        
-        if(it == vcaLeadTracks_.end())
-            return false;
-        else
+        if(vcaLeadTrack_ == track)
             return true;
+        else
+            return false;
     }
     
     void ToggleVCASpill(MediaTrack* track)
@@ -2101,14 +2100,25 @@ public:
         
         if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") == 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") == 0)
             return;
-               
-        auto it = find(vcaLeadTracks_.begin(), vcaLeadTracks_.end(), track);
-        
-        if(it == vcaLeadTracks_.end())
-            vcaLeadTracks_.push_back(track);
+
+        if(vcaLeadTrack_ == track)
+        {
+            if(vcaLeadTracks_.size() > 0)
+            {
+                vcaLeadTrack_ = vcaLeadTracks_.back();
+                vcaLeadTracks_.pop_back();
+            }
+            else
+                vcaLeadTrack_ = nullptr;
+        }
+        else if(vcaLeadTrack_ != nullptr)
+        {
+            vcaLeadTracks_.push_back(vcaLeadTrack_);
+            vcaLeadTrack_ = track;
+        }
         else
-            vcaLeadTracks_.erase(it, vcaLeadTracks_.end());
-        
+            vcaLeadTrack_ = track;
+       
         vcaTrackOffset_ = 0;
     }
    
@@ -2214,16 +2224,15 @@ public:
     
         vcaTopLeadTracks_.clear();
         vcaSpillTracks_.clear();
-
-        MediaTrack* leadTrack = nullptr;
+        
         bitset<32> leadTrackVCALeaderGroup;
         bitset<32> leadTrackVCALeaderGroupHigh;
         
-        if(vcaLeadTracks_.size() > 0)
+        if(vcaLeadTrack_ != nullptr)
         {
-            leadTrack = vcaLeadTracks_.back();
-            leadTrackVCALeaderGroup = DAW::GetTrackGroupMembership(leadTrack, "VOLUME_VCA_LEAD");
-            leadTrackVCALeaderGroupHigh = DAW::GetTrackGroupMembershipHigh(leadTrack, "VOLUME_VCA_LEAD");
+            leadTrackVCALeaderGroup = DAW::GetTrackGroupMembership(vcaLeadTrack_, "VOLUME_VCA_LEAD");
+            leadTrackVCALeaderGroupHigh = DAW::GetTrackGroupMembershipHigh(vcaLeadTrack_, "VOLUME_VCA_LEAD");
+            vcaSpillTracks_.push_back(vcaLeadTrack_);
         }
         
         // Get Visible Tracks
@@ -2237,7 +2246,7 @@ public:
             if(DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW") == 0)
                 vcaTopLeadTracks_.push_back(track);
             
-            if(leadTrack != nullptr)
+            if(vcaLeadTrack_ != nullptr)
             {
                 bool isFollower = false;
                 
@@ -2275,7 +2284,7 @@ public:
             {
                 int depth = DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
-                folderTracks_.push_back(track);
+                //folderTracks_.push_back(track);
 
                 
             }
