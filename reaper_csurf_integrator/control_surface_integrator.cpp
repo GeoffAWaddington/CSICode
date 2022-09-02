@@ -1005,6 +1005,9 @@ void Manager::InitActionsDictionary()
     actions_["SoftTakeover14BitTrackVolume"] =      new SoftTakeover14BitTrackVolume();
     actions_["TrackVolumeDB"] =                     new TrackVolumeDB();
     actions_["TrackToggleVCASpill"] =               new TrackToggleVCASpill();
+    actions_["TrackVCALeaderDisplay"] =             new TrackVCALeaderDisplay();
+    actions_["TrackToggleFolderSpill"] =            new TrackToggleFolderSpill();
+    actions_["TrackFolderParentDisplay"] =          new TrackFolderParentDisplay();
     actions_["TrackSelect"] =                       new TrackSelect();
     actions_["TrackUniqueSelect"] =                 new TrackUniqueSelect();
     actions_["TrackRangeSelect"] =                  new TrackRangeSelect();

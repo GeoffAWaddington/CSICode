@@ -2252,6 +2252,29 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackToggleFolderSpill : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackToggleFolderSpill"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+        if(MediaTrack* track = context->GetTrack())
+            context->UpdateWidgetValue(context->GetPage()->GetIsFolderSpilled(track));
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(MediaTrack* track = context->GetTrack())
+            context->GetPage()->ToggleFolderSpill(track);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackSelect : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -2670,30 +2693,27 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackAutoModeDisplay : public Action
+class CycleTimeline : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackAutoModeDisplay"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName(DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
-    }
-};
+    virtual string GetName() override { return "CycleTimeline"; }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GlobalAutoModeDisplay : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GlobalAutoModeDisplay"; }
-    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return DAW::GetSetRepeatEx(nullptr, -1);
+    }
+
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(context->GetPage()->GetGlobalAutoModeDisplayName());
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        DAW::GetSetRepeatEx(nullptr, ! DAW::GetSetRepeatEx(nullptr, -1));
     }
 };
 
@@ -2716,6 +2736,76 @@ public:
 
         if(MediaTrack* track = context->GetTrack())
             context->GetPage()->NextInputMonitorMode(track);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackAutoModeDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackAutoModeDisplay"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName(DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackVCALeaderDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackVCALeaderDisplay"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0)
+                context->UpdateWidgetValue("Leader");
+            else
+                context->UpdateWidgetValue("");
+        }
+        else
+            context->UpdateWidgetValue("");
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackFolderParentDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackAutoModeDisplay"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+                context->UpdateWidgetValue("Parent");
+            else
+                context->UpdateWidgetValue("");
+        }
+        else
+            context->UpdateWidgetValue("");
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GlobalAutoModeDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GlobalAutoModeDisplay"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            context->UpdateWidgetValue(context->GetPage()->GetGlobalAutoModeDisplayName());
     }
 };
 
@@ -2851,31 +2941,6 @@ public:
         }
 
         context->UpdateWidgetValue(timeStr);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class CycleTimeline : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "CycleTimeline"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        return DAW::GetSetRepeatEx(nullptr, -1);
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        DAW::GetSetRepeatEx(nullptr, ! DAW::GetSetRepeatEx(nullptr, -1));
     }
 };
 

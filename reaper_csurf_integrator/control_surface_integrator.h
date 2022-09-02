@@ -2112,6 +2112,15 @@ public:
         vcaTrackOffset_ = 0;
     }
    
+    bool GetIsFolderSpilled(MediaTrack* track)
+    {
+        return false;
+    }
+
+    void ToggleFolderSpill(MediaTrack* track)
+    {
+    }
+    
     void ToggleSynchPages()
     {
         synchPages_ = ! synchPages_;
@@ -2258,11 +2267,18 @@ public:
         
         folderTracks_.clear();
         
+
+        
         for (int i = 1; i <= GetNumTracks(); i++)
         {
             if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
-                if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
-                    folderTracks_.push_back(track);
+            {
+                int depth = DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
+                
+                folderTracks_.push_back(track);
+
+                
+            }
         }
     }
     
@@ -2698,6 +2714,8 @@ public:
     bool GetIsTrackVisible(MediaTrack* track) { return trackNavigationManager_->GetIsTrackVisible(track); }
     bool GetIsVCASpilled(MediaTrack* track) { return trackNavigationManager_->GetIsVCASpilled(track); }
     void ToggleVCASpill(MediaTrack* track) { trackNavigationManager_->ToggleVCASpill(track); }
+    bool GetIsFolderSpilled(MediaTrack* track) { return trackNavigationManager_->GetIsFolderSpilled(track); }
+    void ToggleFolderSpill(MediaTrack* track) { trackNavigationManager_->ToggleFolderSpill(track); }
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
     void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
     MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
