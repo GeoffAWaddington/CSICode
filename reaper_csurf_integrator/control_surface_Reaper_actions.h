@@ -146,13 +146,13 @@ public:
             {
                 if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
                 {
-                    context->UpdateWidgetValue(0.0);
-                    context->UpdateWidgetValue("Bypassed");
+                    context->UpdateWidgetValue(1.0);
+                    context->UpdateWidgetValue("Enabled");
                 }
                 else
                 {
-                    context->UpdateWidgetValue(1.0);
-                    context->UpdateWidgetValue("Enabled");
+                    context->UpdateWidgetValue(0.0);
+                    context->UpdateWidgetValue("Bypassed");
                 }
             }
             else
