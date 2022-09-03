@@ -1763,11 +1763,18 @@ private:
     int folderTrackOffset_ = 0;
     vector<MediaTrack*> tracks_;
     vector<MediaTrack*> selectedTracks_;
+    
     vector<MediaTrack*> vcaTopLeadTracks_;
-    MediaTrack* vcaLeadTrack_ = nullptr;
+    MediaTrack*         vcaLeadTrack_ = nullptr;
     vector<MediaTrack*> vcaLeadTracks_;
     vector<MediaTrack*> vcaSpillTracks_;
-    vector<MediaTrack*> folderTracks_;
+    
+    vector<MediaTrack*> folderTopParentTracks_;
+    MediaTrack*         folderParentTrack_ = nullptr;
+    vector<MediaTrack*> folderParentTracks_;
+    vector<MediaTrack*> folderSpillTracks_;
+    map<MediaTrack*,    vector<MediaTrack*>> folderDictionary_;
+
     map<int, Navigator*> trackNavigators_;
     Navigator* const masterTrackNavigator_ = nullptr;
     Navigator* const selectedTrackNavigator_ = nullptr;
@@ -2004,7 +2011,7 @@ public:
         if(currentTrackVCAFolderMode_ != 2)
             return;
 
-        int numTracks = folderTracks_.size();
+        int numTracks = folderSpillTracks_.size();
         
         if(numTracks <= trackNavigators_.size())
             return;
@@ -2037,13 +2044,6 @@ public:
             else
                 return nullptr;
         }
-        else if(currentTrackVCAFolderMode_ == 2)
-        {
-            if(channelNumber < folderTracks_.size())
-                return folderTracks_[channelNumber];
-            else
-                return nullptr;
-        }
         else if(currentTrackVCAFolderMode_ == 1)
         {
             if(vcaLeadTrack_ == nullptr)
@@ -2068,6 +2068,30 @@ public:
                 }
             }
         }
+        else if(currentTrackVCAFolderMode_ == 2)
+        {
+            if(folderParentTrack_ == nullptr)
+            {
+                if(channelNumber < folderTopParentTracks_.size() && DAW::ValidateTrackPtr(folderTopParentTracks_[channelNumber]))
+                    return folderTopParentTracks_[channelNumber];
+                else
+                    return nullptr;
+            }
+            else
+            {
+                if(channelNumber == 0 && folderSpillTracks_.size() > 0 && DAW::ValidateTrackPtr(folderSpillTracks_[channelNumber]))
+                    return folderSpillTracks_[channelNumber];
+                else if(folderTrackOffset_ == 0 && channelNumber < folderSpillTracks_.size() && DAW::ValidateTrackPtr(folderSpillTracks_[channelNumber]))
+                    return folderSpillTracks_[channelNumber];
+                else
+                {
+                    channelNumber += folderTrackOffset_;
+                    
+                    if(channelNumber < folderSpillTracks_.size() && DAW::ValidateTrackPtr(folderSpillTracks_[channelNumber]))
+                        return folderSpillTracks_[channelNumber];
+                }
+            }
+        }
         
         return nullptr;
     }
@@ -2087,7 +2111,9 @@ public:
     
     bool GetIsVCASpilled(MediaTrack* track)
     {
-        if(vcaLeadTrack_ == track)
+        if(vcaLeadTrack_ == nullptr && (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0))
+            return true;
+        else if(vcaLeadTrack_ == track)
             return true;
         else
             return false;
@@ -2121,14 +2147,47 @@ public:
        
         vcaTrackOffset_ = 0;
     }
-   
+
     bool GetIsFolderSpilled(MediaTrack* track)
     {
-        return false;
+        if(find(folderTopParentTracks_.begin(), folderTopParentTracks_.end(), track) != folderTopParentTracks_.end())
+            return true;
+        else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+            return true;
+        else
+            return false;
     }
 
     void ToggleFolderSpill(MediaTrack* track)
     {
+        if(currentTrackVCAFolderMode_ != 2)
+            return;
+        
+        if(folderTopParentTracks_.size() == 0)
+            return;
+
+        else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") != 1)
+            return;
+        
+        if(folderParentTrack_ == track)
+        {
+            if(folderParentTracks_.size() > 0)
+            {
+                folderParentTrack_ = folderParentTracks_.back();
+                folderParentTracks_.pop_back();
+            }
+            else
+                folderParentTrack_ = nullptr;
+        }
+        else if(folderParentTrack_ != nullptr)
+        {
+            folderParentTracks_.push_back(folderParentTrack_);
+            folderParentTrack_ = track;
+        }
+        else
+            folderParentTrack_ = track;
+       
+        folderTrackOffset_ = 0;
     }
     
     void ToggleSynchPages()
@@ -2274,21 +2333,45 @@ public:
         if(currentTrackVCAFolderMode_ != 2)
             return;
         
-        folderTracks_.clear();
-        
-
+        folderTopParentTracks_.clear();
+        folderDictionary_.clear();
+        folderSpillTracks_.clear();
+       
+        vector<vector<MediaTrack*>*> currentDepthParentTracks;
         
         for (int i = 1; i <= GetNumTracks(); i++)
         {
-            if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
-            {
-                int depth = DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
-                
-                //folderTracks_.push_back(track);
+            MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_);
 
+            if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+            {
+                if(currentDepthParentTracks.size() == 0)
+                    folderTopParentTracks_.push_back(track);
+                else
+                    currentDepthParentTracks.back()->push_back(track);
                 
+                folderDictionary_[track].push_back(track);
+                
+                currentDepthParentTracks.push_back(&folderDictionary_[track]);
+            }
+            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthParentTracks.size() != 0)
+            {
+                currentDepthParentTracks.back()->push_back(track);
+            }
+            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0)
+            {
+                currentDepthParentTracks.back()->push_back(track);
+                
+                int folderBackTrack = -DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
+                
+                for(int i = 0; i < folderBackTrack && currentDepthParentTracks.size() > 0; i++)
+                    currentDepthParentTracks.pop_back();
             }
         }
+        
+        if(folderParentTrack_ != nullptr)
+            for(auto track : folderDictionary_[folderParentTrack_])
+                folderSpillTracks_.push_back(track);
     }
     
     void EnterPage()

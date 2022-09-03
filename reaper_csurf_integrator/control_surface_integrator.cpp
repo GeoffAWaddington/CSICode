@@ -1775,7 +1775,10 @@ void Zone::GoVCA()
         for(auto zone : zones)
             if(zone->GetName() == "Folder")
                 zone->Deactivate();
-            else if(zone->GetName() == "VCA")
+        
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            if(zone->GetName() == "VCA")
                 zone->Activate();
 }
 
@@ -1785,7 +1788,10 @@ void Zone::GoFolder()
         for(auto zone : zones)
             if(zone->GetName() == "VCA")
                 zone->Deactivate();
-            else if(zone->GetName() == "Folder")
+    
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            if(zone->GetName() == "Folder")
                 zone->Activate();
 }
 
