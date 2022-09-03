@@ -2337,7 +2337,7 @@ public:
         folderDictionary_.clear();
         folderSpillTracks_.clear();
        
-        vector<vector<MediaTrack*>*> currentDepthParentTracks;
+        vector<vector<MediaTrack*>*> currentDepthTracks;
         
         for (int i = 1; i <= GetNumTracks(); i++)
         {
@@ -2345,27 +2345,27 @@ public:
 
             if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             {
-                if(currentDepthParentTracks.size() == 0)
+                if(currentDepthTracks.size() == 0)
                     folderTopParentTracks_.push_back(track);
                 else
-                    currentDepthParentTracks.back()->push_back(track);
+                    currentDepthTracks.back()->push_back(track);
                 
                 folderDictionary_[track].push_back(track);
                 
-                currentDepthParentTracks.push_back(&folderDictionary_[track]);
+                currentDepthTracks.push_back(&folderDictionary_[track]);
             }
-            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthParentTracks.size() != 0)
+            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() != 0)
             {
-                currentDepthParentTracks.back()->push_back(track);
+                currentDepthTracks.back()->push_back(track);
             }
             else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0)
             {
-                currentDepthParentTracks.back()->push_back(track);
+                currentDepthTracks.back()->push_back(track);
                 
                 int folderBackTrack = -DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
-                for(int i = 0; i < folderBackTrack && currentDepthParentTracks.size() > 0; i++)
-                    currentDepthParentTracks.pop_back();
+                for(int i = 0; i < folderBackTrack && currentDepthTracks.size() > 0; i++)
+                    currentDepthTracks.pop_back();
             }
         }
         
