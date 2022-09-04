@@ -339,6 +339,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
     map<int, vector<string>>  modifiers;
 
     map<int, vector<double>> accelerationValues;
+    vector<double>           defaultAccelerationValues;
     map<int, vector<double>> rangeValues;
     map<int, double>         stepSize;
     map<int, vector<double>> stepValues;
@@ -412,6 +413,16 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                         continue;
                     
                     modifiers[currentParamSet] = modifierLine;
+                }
+                else if(tokens[0] == "DefaultAcceleration")
+                {
+                    if(tokens.size() < 2)
+                        continue;
+                    
+                    defaultAccelerationValues.clear();
+                    
+                    for(int i = 1; i < tokens.size(); i++)
+                        defaultAccelerationValues.push_back(stod(tokens[i]));
                 }
                 else if(tokens[0] == "FXParamAcceleration")
                 {
@@ -508,7 +519,9 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             
                             if(accelerationValues.count(params[i][j]) > 0)
                                 context->SetAccelerationValues(accelerationValues[params[i][j]]);
-
+                            else if(defaultAccelerationValues.size() > 0)
+                                context->SetAccelerationValues(defaultAccelerationValues);
+                            
                             if(rangeValues.count(params[i][j]) > 0)
                                 context->SetRange(rangeValues[params[i][j]]);
 
