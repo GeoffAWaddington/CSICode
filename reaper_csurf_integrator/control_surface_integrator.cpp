@@ -342,7 +342,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
     map<int, vector<double>> rangeValues;
     map<int, double>         stepSize;
     map<int, vector<double>> stepValues;
-    map<int, int>            tickCount;
+    map<int, vector<int>>    tickCounts;
     map<int, string>         widgetModes;
 
     try
@@ -456,12 +456,17 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                     
                     stepValues[stoi(tokens[1])] = steps;
                 }
-                else if(tokens[0] == "FXParamTickCount")
+                else if(tokens[0] == "FXParamTickCounts")
                 {
                     if(tokens.size() < 3)
                         continue;
-                                       
-                    tickCount[stoi(tokens[1])] = stoi(tokens[2]);
+                       
+                    vector<int> ticks;
+                    
+                    for(int i = 2; i < tokens.size(); i++)
+                        ticks.push_back(stod(tokens[i]));
+                    
+                    tickCounts[stoi(tokens[1])] = ticks;
                 }
                 else if(tokens[0] == "FXWidgetModes")
                 {
@@ -500,11 +505,21 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             zone->AddWidget(valueWidgets[i][j]);
 
                             shared_ptr<ActionContext> context = TheManager->GetActionContext("FXParam", valueWidgets[i][j], zone, params[i][j]);
- 
                             
-                        
+                            if(accelerationValues.count(params[i][j]) > 0)
+                                context->SetAccelerationValues(accelerationValues[params[i][j]]);
+
+                            if(rangeValues.count(params[i][j]) > 0)
+                                context->SetRange(rangeValues[params[i][j]]);
+
+                            if(stepSize.count(params[i][j]) > 0)
+                                context->SetStepSize(stepSize[params[i][j]]);
+
                             if(stepValues.count(params[i][j]) > 0)
-                                context->SetSteppedValues(stepValues[params[i][j]]);
+                                context->SetStepValues(stepValues[params[i][j]]);
+                            
+                            if(tickCounts.count(params[i][j]) > 0)
+                                context->SetTickCounts(tickCounts[params[i][j]]);
                             
                             zone->AddActionContext(valueWidgets[i][j], modifierString, context);
                         }

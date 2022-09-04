@@ -297,8 +297,6 @@ public:
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
     string GetName();
-
-    void SetSteppedValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
     
     vector<string> &GetZoneNames() { return  zoneNames_; }
 
@@ -342,6 +340,20 @@ public:
         action_->Touch(this, value);
     }
 
+    void SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
+    void SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
+    void SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
+    void SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
+    
+    void SetRange(vector<double> range)
+    {
+        if(range.size() != 2)
+            return;
+        
+        rangeMinimum_ = range[0];
+        rangeMaximum_ = range[1];
+    }
+    
     string GetFxParamDisplayName()
     {
         if(fxParamDisplayName_ != "")
