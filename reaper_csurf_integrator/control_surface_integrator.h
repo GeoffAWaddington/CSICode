@@ -280,6 +280,16 @@ private:
 
 public:
     ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
+    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
+    {
+        if(acceleratedTickValues_.size() < 1)
+            acceleratedTickValues_.push_back(10);
+    }
+    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, string stringParam) : action_(action), widget_(widget), zone_(zone), stringParam_(stringParam)
+    {
+        if(acceleratedTickValues_.size() < 1)
+            acceleratedTickValues_.push_back(10);
+    }
 
     virtual ~ActionContext() {}
     
@@ -288,6 +298,8 @@ public:
     int GetSlotIndex();
     string GetName();
 
+    void SetSteppedValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
+    
     vector<string> &GetZoneNames() { return  zoneNames_; }
 
     int GetIntParam() { return intParam_; }
@@ -2947,6 +2959,23 @@ public:
             return make_shared<ActionContext>(actions_[actionName], widget, zone, params, properties);
         else
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params, properties);
+    }
+
+    
+    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, int paramIndex)
+    {
+        if(actions_.count(actionName) > 0)
+            return make_shared<ActionContext>(actions_[actionName], widget, zone, paramIndex);
+        else
+            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, paramIndex);
+    }
+
+    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, string stringParam)
+    {
+        if(actions_.count(actionName) > 0)
+            return make_shared<ActionContext>(actions_[actionName], widget, zone, stringParam);
+        else
+            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, stringParam);
     }
 
     void OnTrackSelection(MediaTrack *track)

@@ -284,6 +284,257 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
     }
 }
 
+static void ExpandLine(int numChannels, vector<string> &tokens)
+{
+    if(tokens.size() == numChannels)
+        return;
+    else if(tokens.size() != 1)
+        return;
+
+    string templateString = tokens[0];
+    tokens.pop_back();
+    
+    for(int i = 1; i <= numChannels; i++)
+        tokens.push_back(regex_replace(templateString, regex("[|]"), to_string(i)));
+}
+
+static void GetWidgets(ZoneManager* zoneManager, int numChannels, vector<string> tokens, vector<Widget*> &results)
+{
+    vector<string> widgetLine;
+                        
+    for(int i = 1; i < tokens.size(); i++)
+        widgetLine.push_back(tokens[i]);
+
+    if(widgetLine.size() != numChannels)
+        ExpandLine(numChannels, widgetLine);
+
+    if(widgetLine.size() != numChannels)
+        return;
+    
+    vector<Widget*> widgets;
+    
+    for(auto widgetName : widgetLine)
+        if(Widget* widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
+            widgets.push_back(widget);
+    
+    if(widgets.size() != numChannels)
+        return;
+
+    results = widgets;
+}
+
+static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+{
+    int lineNumber = 0;
+    string zoneName = "";
+    string zoneAlias = "";
+
+    int currentParamSet = -1;
+
+    map<int, vector<int>>     params;
+    map<int, vector<string>>  names;
+    map<int, vector<Widget*>> valueWidgets;
+    map<int, vector<Widget*>> nameDisplays;
+    map<int, vector<Widget*>> valueDisplays;
+    map<int, vector<string>>  modifiers;
+
+    map<int, vector<double>> accelerationValues;
+    map<int, vector<double>> rangeValues;
+    map<int, double>         stepSize;
+    map<int, vector<double>> stepValues;
+    map<int, int>            tickCount;
+    map<int, string>         widgetModes;
+
+    try
+    {
+        ifstream file(filePath);
+        
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            lineNumber++;
+            
+            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            vector<string> tokens(GetTokens(line));
+            
+            if(tokens.size() > 1)
+            {
+                if(tokens[0] == "Zone")
+                {
+                    zoneName = tokens.size() > 1 ? tokens[1] : "";
+                    zoneAlias = tokens.size() > 2 ? tokens[2] : "";
+                }
+                else if(tokens[0] == "FXParams")
+                {
+                    currentParamSet++;
+                    
+                    vector<int> paramLine;
+                    for(int i = 1; i < tokens.size(); i++)
+                        paramLine.push_back(stoi(tokens[i]));
+                                       
+                    params[currentParamSet] = paramLine;
+                }
+                else if(tokens[0] == "FXParamNames")
+                {
+                    vector<string> nameLine;
+                    for(int i = 1; i < tokens.size(); i++)
+                        nameLine.push_back(tokens[i]);
+                   
+                    names[currentParamSet] = nameLine;
+                }
+                else if(tokens[0] == "FXValueWidgets")
+                    GetWidgets(zoneManager, params[currentParamSet].size(), tokens, valueWidgets[currentParamSet]);
+                else if(tokens[0] == "FXParamNameDisplays")
+                    GetWidgets(zoneManager, params[currentParamSet].size(), tokens, nameDisplays[currentParamSet]);
+                else if(tokens[0] == "FXParamValueDisplays")
+                    GetWidgets(zoneManager, params[currentParamSet].size(), tokens, valueDisplays[currentParamSet]);
+                else if(tokens[0] == "FXWidgetModifiers")
+                {
+                    vector<string> modifierLine;
+                    
+                    if(tokens.size() < params[currentParamSet].size())
+                        for(int i = 1; i < params[currentParamSet].size(); i++)
+                            modifierLine.push_back(tokens[1]);
+                    else
+                        for(int i = 1; i < tokens.size(); i++)
+                            modifierLine.push_back(tokens[i]);
+
+                    if(modifierLine.size() != params[currentParamSet].size())
+                        continue;
+                    
+                    modifiers[currentParamSet] = modifierLine;
+                }
+                else if(tokens[0] == "FXParamAcceleration")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                    
+                    vector<double> acelValues;
+                    
+                    for(int i = 2; i < tokens.size(); i++)
+                        acelValues.push_back(stod(tokens[i]));
+                    
+                    accelerationValues[stoi(tokens[1])] = acelValues;
+                }
+                else if(tokens[0] == "FXParamRange")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                    
+                    vector<double> range;
+                    
+                    for(int i = 2; i < tokens.size(); i++)
+                        range.push_back(stod(tokens[i]));
+                    
+                    rangeValues[stoi(tokens[1])] = range;
+                }
+                else if(tokens[0] == "FXParamStepSize")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+
+                    stepSize[stoi(tokens[1])] = stod(tokens[2]);
+                }
+                else if(tokens[0] == "FXParamStepValues")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                    
+                    vector<double> steps;
+                    
+                    for(int i = 2; i < tokens.size(); i++)
+                        steps.push_back(stod(tokens[i]));
+                    
+                    stepValues[stoi(tokens[1])] = steps;
+                }
+                else if(tokens[0] == "FXParamTickCount")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                                       
+                    tickCount[stoi(tokens[1])] = stoi(tokens[2]);
+                }
+                else if(tokens[0] == "FXWidgetModes")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                                       
+                    widgetModes[stoi(tokens[1])] = tokens[2];
+                }
+            }
+            else if(tokens.size() > 0 && tokens[0] == "ZoneEnd")
+            {
+                vector<string> includedZones;
+                vector<string> associatedZones;
+                map<string, string> touchIds;
+
+                shared_ptr<Zone> zone;
+                
+                if(enclosingZone == nullptr)
+                    zone = make_shared<Zone>(zoneManager, navigators[0], 0, touchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                else
+                    zone = make_shared<SubZone>(zoneManager, navigators[0], 0, touchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+                                        
+                zones.push_back(zone);
+                                
+                for(int i = 0; i < params.size(); i++)
+                {
+                    for(int j = 0; j < params[i].size(); j++)
+                    {
+                        string modifierString = "";
+                        
+                        if(modifiers.count(i) > 0 && j < modifiers[i].size())
+                            modifierString = modifiers[i][j] + "+";
+                        
+                        if(valueWidgets.count(i) > 0 &&  j < valueWidgets[i].size())
+                        {
+                            zone->AddWidget(valueWidgets[i][j]);
+
+                            shared_ptr<ActionContext> context = TheManager->GetActionContext("FXParam", valueWidgets[i][j], zone, params[i][j]);
+ 
+                            
+                        
+                            if(stepValues.count(params[i][j]) > 0)
+                                context->SetSteppedValues(stepValues[params[i][j]]);
+                            
+                            zone->AddActionContext(valueWidgets[i][j], modifierString, context);
+                        }
+                        
+                        if(nameDisplays.count(i) > 0 &&  j < nameDisplays[i].size())
+                        {
+                            zone->AddWidget(nameDisplays[i][j]);
+                            shared_ptr<ActionContext> context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
+                            zone->AddActionContext(nameDisplays[i][j], modifierString, context);
+                        }
+                        
+                        if(valueDisplays.count(i) > 0 &&  j < valueDisplays[i].size())
+                        {
+                            zone->AddWidget(valueDisplays[i][j]);
+                            shared_ptr<ActionContext> context = TheManager->GetActionContext("FXParamValueDisplay", valueDisplays[i][j], zone, params[i][j]);
+                            zone->AddActionContext(valueDisplays[i][j], modifierString, context);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
 static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
@@ -326,6 +577,13 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
             
             if(tokens.size() > 0)
             {
+                if(tokens[0] == "FXParams")
+                {
+                    file.close();
+                    ProcessFXZoneFile(filePath, zoneManager, navigators, zones, enclosingZone);
+                    return;
+                }
+                
                 if(tokens[0] == "Zone")
                 {
                     zoneName = tokens.size() > 1 ? tokens[1] : "";
@@ -547,7 +805,7 @@ void SetRGB(vector<string> params, bool &supportsRGB, bool &supportsTrackColor, 
     }
 }
 
-void SetSteppedValues(vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1369,7 +1627,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     if(params.size() > 0)
     {
         SetRGB(params, supportsRGB_, supportsTrackColor_, RGBValues_);
-        SetSteppedValues(params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
+        GetSteppedValues(params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
     }
     
     if(acceleratedTickValues_.size() < 1)
