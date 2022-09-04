@@ -284,6 +284,72 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoTrack : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoTrack"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->GoTrack();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoVCA : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoVCA"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->GoVCA();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoFolder : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoFolder"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateRGBValue(0.0);
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
+        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->GoFolder();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackVCAFolderModeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
