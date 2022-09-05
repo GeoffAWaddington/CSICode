@@ -1250,8 +1250,6 @@ void Manager::InitActionsDictionary()
     actions_["OSCTimeDisplay"] =                    new OSCTimeDisplay();
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
-    actions_["ReaperDec"] =                         new ReaperDecAction();
-    actions_["ReaperInc"] =                         new ReaperIncAction();
     actions_["FixedTextDisplay"] =                  new FixedTextDisplay(); ;
     actions_["FixedRGBColorDisplay"] =              new FixedRGBColorDisplay();
     actions_["Rewind"] =                            new Rewind();

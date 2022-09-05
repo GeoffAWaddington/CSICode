@@ -343,6 +343,9 @@ public:
     void SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
     void SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     
+    double GetRangeMinimum() { return rangeMinimum_; }
+    double GetRangeMaximum() { return rangeMaximum_; }
+
     void SetRange(vector<double> range)
     {
         if(range.size() != 2)

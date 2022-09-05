@@ -29,66 +29,18 @@ class ReaperAction : public Action
 {
 public:
     virtual string GetName() override { return "ReaperAction"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        return DAW::GetToggleCommandState(context->GetCommandId());
-    }
-
+   
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        if( ! (context-> GetRangeMinimum() == -2.0 ||  context-> GetRangeMaximum() == 2.0))
+            context->UpdateWidgetValue(DAW::GetToggleCommandState(context->GetCommandId()));
     }
     
     virtual void Do(ActionContext* context, double value) override
     {
-        if(value != 0)
+        if( value < 0 && context-> GetRangeMinimum() < 0)
             DAW::SendCommandMessage(context->GetCommandId());
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ReaperDecAction : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-private:
-    vector<double> range_ = { -1.0, 1.0 };
-    
-public:
-    virtual string GetName() override { return "ReaperDecAction"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->SetRange(range_);
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value < 0.0)
-            DAW::SendCommandMessage(context->GetCommandId());
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ReaperIncAction : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ReaperIncAction"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        return 0.0;
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value > 0.0)
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
             DAW::SendCommandMessage(context->GetCommandId());
     }
 };
