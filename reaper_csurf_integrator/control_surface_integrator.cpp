@@ -1250,6 +1250,8 @@ void Manager::InitActionsDictionary()
     actions_["OSCTimeDisplay"] =                    new OSCTimeDisplay();
     actions_["NoAction"] =                          new NoAction();
     actions_["Reaper"] =                            new ReaperAction();
+    actions_["ReaperDec"] =                         new ReaperDecAction();
+    actions_["ReaperInc"] =                         new ReaperIncAction();
     actions_["FixedTextDisplay"] =                  new FixedTextDisplay(); ;
     actions_["FixedRGBColorDisplay"] =              new FixedRGBColorDisplay();
     actions_["Rewind"] =                            new Rewind();
@@ -1625,7 +1627,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
         rangeMaximum_ = 100.0;
     }
    
-    if(actionName == "Reaper" && params.size() > 1)
+    if((actionName == "Reaper" || actionName == "ReaperDec" || actionName == "ReaperInc") && params.size() > 1)
     {
         if (isdigit(params[1][0]))
         {
