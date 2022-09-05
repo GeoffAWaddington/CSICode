@@ -1742,7 +1742,7 @@ void ActionContext::UpdateColorValue(double value)
     {
         currentColorIndex_ = value == 0 ? 0 : 1;
         if(colorValues_.size() > currentColorIndex_)
-            widget_->UpdateColorValue(colorValues_[currentColorIndex_].a, colorValues_[currentColorIndex_].r, colorValues_[currentColorIndex_].g, colorValues_[currentColorIndex_].b);
+            widget_->UpdateColorValue(colorValues_[currentColorIndex_]);
     }
 }
 
@@ -1766,7 +1766,7 @@ void ActionContext::UpdateTrackColor()
     if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
     {
         rgba_color color = DAW::GetTrackColor(track);
-        widget_->UpdateColorValue(color.a, color.r, color.g, color.b);
+        widget_->UpdateColorValue(color);
     }
 }
 
@@ -2367,10 +2367,10 @@ void  Widget::UpdateMode(string modeParams)
         processor->SetMode(modeParams);
 }
 
-void  Widget::UpdateColorValue(int a, int r, int g, int b)
+void  Widget::UpdateColorValue(rgba_color color)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetColorValue(a, r, g, b);
+        processor->SetColorValue(color);
 }
 
 void Widget::SetXTouchDisplayColors(string color)
@@ -2440,24 +2440,24 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_FeedbackProcessor
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OSC_FeedbackProcessor::SetColorValue(int a, int r, int g, int b)
+void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
 {
-    if(lastRValue_ != r)
+    if(lastColor_.r != color.r)
     {
-        lastRValue_ = r;
-        surface_->SendOSCMessage(this, oscAddress_ + "/rColor", (double)r);
+        lastColor_ = color;
+        surface_->SendOSCMessage(this, oscAddress_ + "/rColor", (double)color.r);
     }
     
-    if(lastGValue_ != g)
+    if(lastColor_.g != color.g)
     {
-        lastGValue_ = g;
-        surface_->SendOSCMessage(this, oscAddress_ + "/gColor", (double)g);
+        lastColor_ = color;
+        surface_->SendOSCMessage(this, oscAddress_ + "/gColor", (double)color.g);
     }
     
-    if(lastBValue_ != b)
+    if(lastColor_.b != color.b)
     {
-        lastBValue_ = b;
-        surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)b);
+        lastColor_ = color;
+        surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)color.b);
     }
 }
 
@@ -2528,9 +2528,10 @@ void ZoneManager::RequestUpdate()
     {
         if(value == false)
         {
+            rgba_color color;
             key->UpdateValue(0.0);
             key->UpdateValue("");
-            key->UpdateColorValue(255, 0, 0, 0);
+            key->UpdateColorValue(color);
         }
     }
 }

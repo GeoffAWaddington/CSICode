@@ -649,7 +649,7 @@ public:
     void UpdateMode(string modeParams);
     void UpdateValue(double value);
     void UpdateValue(string value);
-    void UpdateColorValue(int a, int r, int g, int b);
+    void UpdateColorValue(rgba_color);
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
     void Clear();
@@ -1449,9 +1449,7 @@ class FeedbackProcessor
 protected:
     double lastDoubleValue_ = 0.0;
     string lastStringValue_ = "";
-    int lastRValue_ = 0;
-    int lastGValue_ = 0;
-    int lastBValue_ = 0;
+    rgba_color lastColor_;
     
     string modeParams_ = "";
 
@@ -1462,9 +1460,9 @@ public:
     virtual ~FeedbackProcessor() {}
     virtual string GetName()  { return "FeedbackProcessor"; }
     Widget* GetWidget() { return widget_; }
-    virtual void SetColorValue(int a, int r, int g, int b) {}
+    virtual void SetColorValue(rgba_color color) {}
     virtual void ForceValue(double value) {}
-    virtual void ForceColorValue(int a, int r, int g, int b) {}
+    virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(string value) {}
     virtual void SetColors(rgba_color textColor, rgba_color textBackground) {}
     virtual void SetCurrentColor(double value) {}
@@ -1502,16 +1500,18 @@ public:
     
     void Clear()
     {
+        rgba_color color;
         SetValue(0.0);
         SetValue("");
-        SetColorValue(255, 0, 0, 0);
+        SetColorValue(color);
     }
     
     void ForceClear()
     {
+        rgba_color color;
         ForceValue(0.0);
         ForceValue("");
-        ForceColorValue(255, 0, 0, 0);
+        ForceColorValue(color);
     }
 };
 
@@ -1657,7 +1657,7 @@ public:
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
 
-    virtual void SetColorValue(int a, int r, int g, int b) override;
+    virtual void SetColorValue(rgba_color color) override;
     virtual void ForceValue(double value) override;
     virtual void ForceValue(string value) override;
 };

@@ -416,9 +416,6 @@ class FPTwoStateRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    int lastR_ = 0;
-    int lastG_ = 0;
-    int lastB_ = 0;
     double active_ = 0.0;
     
 public:
@@ -432,33 +429,29 @@ public:
         active_ = active;
     }
     
-    virtual void SetColorValue(int a, int r, int g, int b) override
+    virtual void SetColorValue(rgba_color color) override
     {
         int RGBIndexDivider = 1 * 2;
         
         if (active_ == false)
             RGBIndexDivider = 9 * 2;
         
-        r = r / RGBIndexDivider;
-        g = g / RGBIndexDivider;
-        b = b / RGBIndexDivider;
+        color.r = color.r / RGBIndexDivider;
+        color.g = color.g / RGBIndexDivider;
+        color.b = color.b / RGBIndexDivider;
         
-        if(r == lastR_ && g == lastG_ && b == lastB_)
-            return;
-        
-        ForceColorValue(a, r, g, b);
+        if(color != lastColor_)
+            ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(int a, int r, int g, int b) override
+    virtual void ForceColorValue(rgba_color color) override
     {
-        lastR_ = r;
-        lastG_ = g;
-        lastB_ = b;
+        lastColor_ = color;
         
         SendMidiMessage(0x90, midiFeedbackMessage1_->midi_message[1], 0x7f);
-        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], r);  // only 127 bit allowed in Midi byte 3
-        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], g);
-        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], b);
+        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1],  color.r);  // only 127 bit allowed in Midi byte 3
+        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1],  color.g);
+        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1],  color.b);
     }
 };
 
@@ -466,30 +459,21 @@ public:
 class NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
-    int lastR = 0;
-    int lastG = 0;
-    int lastB = 0;
-    
 public:
     virtual ~NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor() {}
     NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
-    virtual void SetColorValue(int a, int r, int g, int b) override
+    virtual void SetColorValue(rgba_color color) override
     {
-        if(r == lastR && g == lastG && b == lastB)
-            return;
-        
-        ForceColorValue(a, r, g, b);
+        if(color != lastColor_)
+            ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(int a, int r, int g, int b) override
+    virtual void ForceColorValue(rgba_color color) override
     {
-        lastR = r;
-        lastG = g;
-        lastB = b;
+        lastColor_ = color;
         
         struct
         {
@@ -509,9 +493,9 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x03;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1] ;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = r / 2; // only 127 bit max for this device
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.r / 2; // only 127 bit max for this device
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.b / 2;
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
@@ -523,35 +507,26 @@ public:
 class FaderportRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
-    int lastR_ = 0;
-    int lastG_ = 0;
-    int lastB_ = 0;
-    
 public:
     virtual ~FaderportRGB_Midi_FeedbackProcessor() {}
     FaderportRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
-    virtual void SetColorValue(int a, int r, int g, int b) override
+    virtual void SetColorValue(rgba_color color) override
     {
-        if(r == lastR_ && g == lastG_ && b == lastB_)
-            return;
-        
-        ForceColorValue(a, r, g, b);
+        if(color != lastColor_)
+            ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(int a, int r, int g, int b) override
+    virtual void ForceColorValue(rgba_color color) override
     {
-        lastR_ = r;
-        lastG_ = g;
-        lastB_ = b;
+        lastColor_ = color;
         
         SendMidiMessage(0x90, midiFeedbackMessage1_->midi_message[1], 0x7f);
-        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], r / 2);  // only 127 bit allowed in Midi byte 3
-        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], g / 2);
-        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], b / 2);
+        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], color.r / 2);  // only 127 bit allowed in Midi byte 3
+        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], color.g / 2);
+        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], color.b / 2);
     }
 };
 
@@ -2519,33 +2494,24 @@ int GetColorIntFromRGB(int r, int g, int b)
 class MFT_RGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
-    int lastR = 0;
-    int lastG = 0;
-    int lastB = 0;
-    
 public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
     MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
-    virtual void ForceColorValue(int a, int r, int g, int b) override
+    virtual void ForceColorValue(rgba_color color) override
     {
-        lastR = r;
-        lastG = g;
-        lastB = b;
+        lastColor_ = color;
         
-        if((r == 177 || r == 181) && g == 31) // this sets the different MFT modes
-            SendMidiMessage(r, g, b);
+        if((color.r == 177 || color.r == 181) && color.g == 31) // this sets the different MFT modes
+            SendMidiMessage(color.r, color.g, color.b);
         else
-            SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetColorIntFromRGB(r, g, b));
+            SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetColorIntFromRGB(color.r, color.g, color.b));
     }
 
-    virtual void SetColorValue(int a, int r, int g, int b) override
+    virtual void SetColorValue(rgba_color color) override
     {
-        if(r == lastR && g == lastG && b == lastB)
-            return;
-        
-        ForceColorValue(a, r, g, b);
+        if(color != lastColor_)
+            ForceColorValue(color);
     }
 };
 
