@@ -1166,6 +1166,8 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     {
         if(tokenLine.size() > 1 && tokenLine[0] == "Control")
             new CSIMessageGenerator(widget, tokenLine[1]);
+        else if(tokenLine.size() > 1 && tokenLine[0] == "AnyPress")
+            new AnyPress_CSIMessageGenerator(widget, tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "Touch")
             new Touch_CSIMessageGenerator(widget, tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "FB_Processor")
