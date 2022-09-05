@@ -402,12 +402,8 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                 {
                     vector<string> modifierLine;
                     
-                    if(tokens.size() < params[currentParamSet].size())
-                        for(int i = 1; i < params[currentParamSet].size(); i++)
-                            modifierLine.push_back(tokens[1]);
-                    else
-                        for(int i = 1; i < tokens.size(); i++)
-                            modifierLine.push_back(tokens[i]);
+                    for(int i = 0; i < params[currentParamSet].size(); i++)
+                        modifierLine.push_back(tokens[1]);
 
                     if(modifierLine.size() != params[currentParamSet].size())
                         continue;
@@ -515,7 +511,12 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                         {
                             zone->AddWidget(valueWidgets[i][j]);
 
-                            shared_ptr<ActionContext> context = TheManager->GetActionContext("FXParam", valueWidgets[i][j], zone, params[i][j]);
+                            shared_ptr<ActionContext> context = nullptr;
+                            
+                            if(params[i][j] == -1)
+                                context = TheManager->GetActionContext("NoAction", valueWidgets[i][j], zone, params[i][j]);
+                            else
+                                context = TheManager->GetActionContext("FXParam", valueWidgets[i][j], zone, params[i][j]);
                             
                             if(accelerationValues.count(params[i][j]) > 0)
                                 context->SetAccelerationValues(accelerationValues[params[i][j]]);
@@ -540,14 +541,26 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                         if(nameDisplays.count(i) > 0 &&  j < nameDisplays[i].size())
                         {
                             zone->AddWidget(nameDisplays[i][j]);
-                            shared_ptr<ActionContext> context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
+                            shared_ptr<ActionContext> context = nullptr;
+                            
+                            if(params[i][j] == -1)
+                                context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, "");
+                            else
+                                context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
+                            
                             zone->AddActionContext(nameDisplays[i][j], modifierString, context);
                         }
                         
                         if(valueDisplays.count(i) > 0 &&  j < valueDisplays[i].size())
                         {
                             zone->AddWidget(valueDisplays[i][j]);
-                            shared_ptr<ActionContext> context = TheManager->GetActionContext("FXParamValueDisplay", valueDisplays[i][j], zone, params[i][j]);
+                            shared_ptr<ActionContext> context = nullptr;
+                            
+                            if(params[i][j] == -1)
+                                context = TheManager->GetActionContext("FixedTextDisplay", valueDisplays[i][j], zone, "");
+                            else
+                                context = TheManager->GetActionContext("FXParamValueDisplay", valueDisplays[i][j], zone, params[i][j]);
+                            
                             zone->AddActionContext(valueDisplays[i][j], modifierString, context);
                         }
                     }
