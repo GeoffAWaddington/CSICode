@@ -17,20 +17,21 @@ extern HWND g_hwnd;
 
 const int BUFSZ = 512;
 
-struct rgb_color
+struct rgba_color
 {
     int r = 0;
     int g = 0;
     int b = 0;
+    int a = 255;
         
-    bool operator == (rgb_color& other)
+    bool operator == (rgba_color& other)
     {
-        return r == other.r && g == other.g && b == other.b;
+        return r == other.r && g == other.g && b == other.b && a == other.a ;
     }
     
-    bool operator != (rgb_color& other)
+    bool operator != (rgba_color& other)
     {
-        return r != other.r || g != other.g || b != other.b;
+        return r != other.r || g != other.g || b != other.b || a != other.a;
     }
 };
 
@@ -344,9 +345,9 @@ public:
         }
     }
     
-    static rgb_color GetTrackColor(MediaTrack* track)
+    static rgba_color GetTrackColor(MediaTrack* track)
     {
-        rgb_color color;
+        rgba_color color;
         
         if(ValidateTrackPtr(track))
             ::ColorFromNative(::GetTrackColor(track), &color.r, &color.g, &color.b);

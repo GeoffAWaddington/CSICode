@@ -432,7 +432,7 @@ public:
         active_ = active;
     }
     
-    virtual void SetRGBValue(int r, int g, int b) override
+    virtual void SetColorValue(int a, int r, int g, int b) override
     {
         int RGBIndexDivider = 1 * 2;
         
@@ -446,10 +446,10 @@ public:
         if(r == lastR_ && g == lastG_ && b == lastB_)
             return;
         
-        ForceRGBValue(r, g, b);
+        ForceColorValue(a, r, g, b);
     }
 
-    virtual void ForceRGBValue(int r, int g, int b) override
+    virtual void ForceColorValue(int a, int r, int g, int b) override
     {
         lastR_ = r;
         lastG_ = g;
@@ -477,15 +477,15 @@ public:
     
     virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
-    virtual void SetRGBValue(int r, int g, int b) override
+    virtual void SetColorValue(int a, int r, int g, int b) override
     {
         if(r == lastR && g == lastG && b == lastB)
             return;
         
-        ForceRGBValue(r, g, b);
+        ForceColorValue(a, r, g, b);
     }
 
-    virtual void ForceRGBValue(int r, int g, int b) override
+    virtual void ForceColorValue(int a, int r, int g, int b) override
     {
         lastR = r;
         lastG = g;
@@ -534,15 +534,15 @@ public:
     
     virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
-    virtual void SetRGBValue(int r, int g, int b) override
+    virtual void SetColorValue(int a, int r, int g, int b) override
     {
         if(r == lastR_ && g == lastG_ && b == lastB_)
             return;
         
-        ForceRGBValue(r, g, b);
+        ForceColorValue(a, r, g, b);
     }
 
-    virtual void ForceRGBValue(int r, int g, int b) override
+    virtual void ForceColorValue(int a, int r, int g, int b) override
     {
         lastR_ = r;
         lastG_ = g;
@@ -979,7 +979,7 @@ private:
     int channel_ = 0;
     int preventUpdateTrackColors_ = false;
     string lastStringSent_ = "";
-    vector<rgb_color> currentTrackColors_;
+    vector<rgba_color> currentTrackColors_;
     map<string, int> availableColors =
     {
         { "Black", 0 },
@@ -996,7 +996,7 @@ public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
     XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
-        rgb_color color;
+        rgba_color color;
         
         for(int i = 0; i < surface_->GetNumChannels(); i++)
             currentTrackColors_.push_back(color);
@@ -1111,7 +1111,7 @@ public:
         {
             if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
             {
-                rgb_color color = DAW::GetTrackColor(track);
+                rgba_color color = DAW::GetTrackColor(track);
                 
                 if(color != currentTrackColors_[i])
                 {
@@ -1154,7 +1154,7 @@ public:
             {
                 if(MediaTrack* track = surface_->GetPage()->GetNavigatorForChannel(i + surface_->GetChannelOffset())->GetTrack())
                 {
-                    rgb_color color = DAW::GetTrackColor(track);
+                    rgba_color color = DAW::GetTrackColor(track);
                     
                     currentTrackColors_[i] = color;
                     
@@ -1612,10 +1612,10 @@ protected:
     int maxCharacters_ = 0;
     int colorBreakpoint_ = 0;
     
-    rgb_color foregroundColor_ = { 0x7f, 0x7f, 0x7f };
-    rgb_color backgroundColor_ { 0, 0, 0 };
+    rgba_color foregroundColor_ { 0x7f, 0x7f, 0x7f, 0xff };
+    rgba_color backgroundColor_ { 0, 0, 0, 0xff };
     
-    rgb_color currentColor_ = { 0, 0, 0 } ;
+    rgba_color currentColor_ = { 0, 0, 0, 0xff } ;
 
     SCE24_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, int cellNumber) : Midi_FeedbackProcessor(surface, widget), cellNumber_(cellNumber) {}
     
@@ -2528,7 +2528,7 @@ public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
     MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
-    virtual void ForceRGBValue(int r, int g, int b) override
+    virtual void ForceColorValue(int a, int r, int g, int b) override
     {
         lastR = r;
         lastG = g;
@@ -2540,12 +2540,12 @@ public:
             SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetColorIntFromRGB(r, g, b));
     }
 
-    virtual void SetRGBValue(int r, int g, int b) override
+    virtual void SetColorValue(int a, int r, int g, int b) override
     {
         if(r == lastR && g == lastG && b == lastB)
             return;
         
-        ForceRGBValue(r, g, b);
+        ForceColorValue(a, r, g, b);
     }
 };
 

@@ -1141,7 +1141,7 @@ public:
        
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     virtual void Do(ActionContext* context, double value) override
@@ -1464,7 +1464,7 @@ public:
         
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     virtual void Do(ActionContext* context, double value) override
@@ -2237,7 +2237,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
         if(MediaTrack* track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetIsVCASpilled(track));
         else
@@ -2262,7 +2262,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
         if(MediaTrack* track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetIsFolderSpilled(track));
         else
@@ -2730,7 +2730,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     virtual void Do(ActionContext* context, double value) override

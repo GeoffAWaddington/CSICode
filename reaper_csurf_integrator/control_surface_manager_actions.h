@@ -18,7 +18,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -59,7 +59,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -84,7 +84,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -272,7 +272,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -292,7 +292,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
         context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
         context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
     }
@@ -314,7 +314,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
         context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
         context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
     }
@@ -336,7 +336,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
         context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
         context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
     }
@@ -372,7 +372,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -392,7 +392,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -412,7 +412,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -511,7 +511,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -764,7 +764,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
     
     void Do(ActionContext* context, double value) override
@@ -784,7 +784,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
     
     void Do(ActionContext* context, double value) override
@@ -804,7 +804,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
     
     void Do(ActionContext* context, double value) override
@@ -824,7 +824,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -863,7 +863,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -883,7 +883,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -903,7 +903,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -923,7 +923,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -943,7 +943,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -963,7 +963,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -1098,7 +1098,7 @@ public:
      
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -1118,7 +1118,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override
@@ -1137,7 +1137,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
     }
 
     void Do(ActionContext* context, double value) override

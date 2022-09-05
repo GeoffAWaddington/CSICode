@@ -18,7 +18,7 @@ public:
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateRGBValue(0.0);
+        context->UpdateColorValue(0.0);
         context->ClearWidget();
     }
 };

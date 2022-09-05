@@ -264,9 +264,9 @@ private:
     bool shouldUseDisplayStyle_ = false;
     int displayStyle_ = 0;
     
-    bool supportsRGB_ = false;
-    vector<rgb_color> RGBValues_;
-    int currentRGBIndex_ = 0;
+    bool supportsColor_ = false;
+    vector<rgba_color> colorValues_;
+    int currentColorIndex_ = 0;
     
     bool supportsTrackColor_ = false;
         
@@ -316,9 +316,7 @@ public:
     Page* GetPage();
     ControlSurface* GetSurface();
     int GetParamIndex() { return paramIndex_; }
-    
-    bool GetSupportsRGB() { return supportsRGB_; }
-    
+       
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount * 1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     
@@ -333,7 +331,7 @@ public:
     void UpdateWidgetValue(double value);
     void UpdateWidgetValue(string value);
     void UpdateWidgetMode(string modeParams);
-    void UpdateRGBValue(double value);
+    void UpdateColorValue(double value);
 
     void DoTouch(double value)
     {
@@ -366,22 +364,6 @@ public:
         }
         
         return "";
-    }
-
-    void SetCurrentRGB(rgb_color newColor)
-    {
-        supportsRGB_ = true;
-        if(RGBValues_.size() > currentRGBIndex_)
-            RGBValues_[currentRGBIndex_] = newColor;
-    }
-    
-    rgb_color GetCurrentRGB()
-    {
-        rgb_color blankColor;
-        
-        if(RGBValues_.size() > currentRGBIndex_)
-            return RGBValues_[currentRGBIndex_];
-        else return blankColor;
     }
     
     void SetSteppedValueIndex(double value)
@@ -667,7 +649,7 @@ public:
     void UpdateMode(string modeParams);
     void UpdateValue(double value);
     void UpdateValue(string value);
-    void UpdateRGBValue(int r, int g, int b);
+    void UpdateColorValue(int a, int r, int g, int b);
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
     void Clear();
@@ -1480,11 +1462,11 @@ public:
     virtual ~FeedbackProcessor() {}
     virtual string GetName()  { return "FeedbackProcessor"; }
     Widget* GetWidget() { return widget_; }
-    virtual void SetRGBValue(int r, int g, int b) {}
+    virtual void SetColorValue(int a, int r, int g, int b) {}
     virtual void ForceValue(double value) {}
-    virtual void ForceRGBValue(int r, int g, int b) {}
+    virtual void ForceColorValue(int a, int r, int g, int b) {}
     virtual void ForceValue(string value) {}
-    virtual void SetColors(rgb_color textColor, rgb_color textBackground) {}
+    virtual void SetColors(rgba_color textColor, rgba_color textBackground) {}
     virtual void SetCurrentColor(double value) {}
     virtual void SetProperties(vector<vector<string>> properties) {}
     virtual void UpdateTrackColors() {}
@@ -1522,14 +1504,14 @@ public:
     {
         SetValue(0.0);
         SetValue("");
-        SetRGBValue(0, 0, 0);
+        SetColorValue(255, 0, 0, 0);
     }
     
     void ForceClear()
     {
         ForceValue(0.0);
         ForceValue("");
-        ForceRGBValue(0, 0, 0);
+        ForceColorValue(255, 0, 0, 0);
     }
 };
 
@@ -1675,7 +1657,7 @@ public:
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
 
-    virtual void SetRGBValue(int r, int g, int b) override;
+    virtual void SetColorValue(int a, int r, int g, int b) override;
     virtual void ForceValue(double value) override;
     virtual void ForceValue(string value) override;
 };

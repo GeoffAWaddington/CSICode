@@ -797,7 +797,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
     }
 }
 
-void SetRGB(vector<string> params, bool &supportsRGB, bool &supportsTrackColor, vector<rgb_color> &RGBValues)
+void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
     
@@ -830,17 +830,17 @@ void SetRGB(vector<string> params, bool &supportsRGB, bool &supportsTrackColor, 
         
         if(rawValues.size() % 3 == 0 && rawValues.size() > 2)
         {
-            supportsRGB = true;
+            supportsColor = true;
             
             for(int i = 0; i < rawValues.size(); i += 3)
             {
-                rgb_color color;
+                rgba_color color;
                 
                 color.r = rawValues[i];
                 color.g = rawValues[i + 1];
                 color.b = rawValues[i + 2];
                 
-                RGBValues.push_back(color);
+                colorValues.push_back(color);
             }
         }
     }
@@ -1672,7 +1672,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
 
     if(params.size() > 0)
     {
-        SetRGB(params, supportsRGB_, supportsTrackColor_, RGBValues_);
+        SetColor(params, supportsColor_, supportsTrackColor_, colorValues_);
         GetSteppedValues(params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
     }
     
@@ -1734,13 +1734,13 @@ void ActionContext::ClearWidget()
     widget_->Clear();
 }
 
-void ActionContext::UpdateRGBValue(double value)
+void ActionContext::UpdateColorValue(double value)
 {
-    if(supportsRGB_)
+    if(supportsColor_)
     {
-        currentRGBIndex_ = value == 0 ? 0 : 1;
-        if(RGBValues_.size() > currentRGBIndex_)
-            widget_->UpdateRGBValue(RGBValues_[currentRGBIndex_].r, RGBValues_[currentRGBIndex_].g, RGBValues_[currentRGBIndex_].b);
+        currentColorIndex_ = value == 0 ? 0 : 1;
+        if(colorValues_.size() > currentColorIndex_)
+            widget_->UpdateColorValue(colorValues_[currentColorIndex_].a, colorValues_[currentColorIndex_].r, colorValues_[currentColorIndex_].g, colorValues_[currentColorIndex_].b);
     }
 }
 
@@ -1753,7 +1753,7 @@ void ActionContext::UpdateWidgetValue(double value)
    
     widget_->UpdateValue(value);
 
-    UpdateRGBValue(value);
+    UpdateColorValue(value);
     
     if(supportsTrackColor_)
         UpdateTrackColor();
@@ -1763,8 +1763,8 @@ void ActionContext::UpdateTrackColor()
 {
     if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
     {
-        rgb_color color = DAW::GetTrackColor(track);
-        widget_->UpdateRGBValue(color.r, color.g, color.b);
+        rgba_color color = DAW::GetTrackColor(track);
+        widget_->UpdateColorValue(color.a, color.r, color.g, color.b);
     }
 }
 
@@ -2365,10 +2365,10 @@ void  Widget::UpdateMode(string modeParams)
         processor->SetMode(modeParams);
 }
 
-void  Widget::UpdateRGBValue(int r, int g, int b)
+void  Widget::UpdateColorValue(int a, int r, int g, int b)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetRGBValue(r, g, b);
+        processor->SetColorValue(a, r, g, b);
 }
 
 void Widget::SetXTouchDisplayColors(string color)
@@ -2438,7 +2438,7 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_FeedbackProcessor
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OSC_FeedbackProcessor::SetRGBValue(int r, int g, int b)
+void OSC_FeedbackProcessor::SetColorValue(int a, int r, int g, int b)
 {
     if(lastRValue_ != r)
     {
@@ -2528,7 +2528,7 @@ void ZoneManager::RequestUpdate()
         {
             key->UpdateValue(0.0);
             key->UpdateValue("");
-            key->UpdateRGBValue(0, 0, 0);
+            key->UpdateColorValue(255, 0, 0, 0);
         }
     }
 }
