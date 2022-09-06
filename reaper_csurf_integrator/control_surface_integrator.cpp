@@ -179,8 +179,10 @@ struct ActionTemplate
     vector<vector<string>> properties;
     bool isFeedbackInverted;
     double holdDelayAmount;
+    bool isDecrease = false;
+    bool isIncrease = false;
     
-    ActionTemplate(string action, vector<string> prams, bool isInverted, double amount) : actionName(action), params(prams), isFeedbackInverted(isInverted), holdDelayAmount(amount) {}
+    ActionTemplate(string action, vector<string> prams, bool isInverted, double amount, bool  isDec, bool isInc) : actionName(action), params(prams), isFeedbackInverted(isInverted), holdDelayAmount(amount), isDecrease(isDec), isIncrease(isInc)  {}
 };
 
 static void listZoneFiles(const string &path, vector<string> &results)
@@ -193,7 +195,7 @@ static void listZoneFiles(const string &path, vector<string> &results)
                 results.push_back(file.path().string());
 }
 
-static void GetWidgetNameAndProperties(string line, string &widgetName, string &modifier, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty)
+static void GetWidgetNameAndProperties(string line, string &widgetName, string &modifier, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty, bool &isDecrease, bool &isIncrease)
 {
     istringstream modified_role(line);
     vector<string> modifier_tokens;
@@ -234,6 +236,10 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 holdDelayAmount = 1.0;
             else if(modifier_tokens[i] == "Property")
                 isProperty = true;
+            else if(modifier_tokens[i] == "Decrease")
+                isDecrease = true;
+            else if(modifier_tokens[i] == "Increase")
+                isIncrease = true;
         }
     }
     
@@ -769,6 +775,11 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                     if(action->holdDelayAmount != 0.0)
                                         context->SetHoldDelayAmount(action->holdDelayAmount);
                                     
+                                    if(action->isDecrease)
+                                        context->SetRange({ -2.0, 1.0 });
+                                    else if(action->isIncrease)
+                                        context->SetRange({ 0.0, 2.0 });
+
                                     string expandedModifier = regex_replace(modifier, regex("[|]"), numStr);
                                     
                                     zone->AddActionContext(widget, expandedModifier, context);
@@ -826,8 +837,10 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     bool isFeedbackInverted = false;
                     double holdDelayAmount = 0.0;
                     bool isProperty = false;
-                    
-                    GetWidgetNameAndProperties(tokens[0], widgetName, modifier, touchId, isFeedbackInverted, holdDelayAmount, isProperty);
+                    bool isDecrease = false;
+                    bool isIncrease = false;
+
+                    GetWidgetNameAndProperties(tokens[0], widgetName, modifier, touchId, isFeedbackInverted, holdDelayAmount, isProperty, isDecrease, isIncrease);
                     
                     if(touchId != "")
                         touchIds[widgetName] = touchId;
@@ -843,7 +856,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     }
                     else
                     {
-                        currentActionTemplate = make_shared<ActionTemplate>(actionName, params, isFeedbackInverted, holdDelayAmount);
+                        currentActionTemplate = make_shared<ActionTemplate>(actionName, params, isFeedbackInverted, holdDelayAmount, isDecrease, isIncrease);
                         widgetActions[widgetName][modifier].push_back(currentActionTemplate);
                     }
                 }
