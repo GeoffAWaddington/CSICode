@@ -264,48 +264,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class CycleTrackVCAFolderModes : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "CycleTrackVCAFolderModes"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetPage()->NextTrackVCAFolderMode();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoTrack : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoTrack"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetPage()->GoTrack();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class GoVCA : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -315,8 +273,12 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         context->UpdateColorValue(0.0);
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
+        bool isActive = context->GetPage()->GetIsVCAActive();
+        context->UpdateWidgetValue(isActive);
+        if(isActive)
+            context->UpdateWidgetValue("Enabled");
+        else
+            context->UpdateWidgetValue("Disabled");
     }
 
     void Do(ActionContext* context, double value) override
@@ -324,6 +286,36 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         context->GetPage()->GoVCA();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class VCAModeActivated : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "VCAModeActivated"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->VCAModeActivated();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class VCAModeDeactivated : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "VCAModeDeactivated"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->VCAModeDeactivated();
     }
 };
 
@@ -337,8 +329,12 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         context->UpdateColorValue(0.0);
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
+        bool isActive = context->GetPage()->GetIsFolderActive();
+        context->UpdateWidgetValue(isActive);
+        if(isActive)
+            context->UpdateWidgetValue("Enabled");
+        else
+            context->UpdateWidgetValue("Disabled");
     }
 
     void Do(ActionContext* context, double value) override
@@ -346,6 +342,36 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         context->GetPage()->GoFolder();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FolderModeActivated : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "FolderModeActivated"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->FolderModeActivated();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FolderModeDeactivated : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "FolderModeActivated"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetPage()->FolderModeDeactivated();
     }
 };
 

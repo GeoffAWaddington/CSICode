@@ -745,9 +745,6 @@ public:
     
     int  GetNumChannels();
     void GoHome();
-    void GoTrack();
-    void GoVCA();
-    void GoFolder();
     void OnTrackSelection();
     void OnTrackDeselection();
     void GoFocusedFX();
@@ -784,14 +781,6 @@ public:
     void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-    
-    bool GetDoesAssociatedZoneExist(string associatedZoneName)
-    {
-        if(homeZone_ !=  nullptr)
-            return homeZone_->GetDoesAssociatedZoneExist(associatedZoneName);
-        else
-            return false;
-    }
     
     void ToggleEnableFocusedFXParamMapping()
     {
@@ -1305,8 +1294,6 @@ public:
     
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
-
-    bool GetDoesAssociatedZoneExist(string associatedZoneName) { return zoneManager_->GetDoesAssociatedZoneExist(associatedZoneName); }
 
     void ToggleChannel(int channelNum)
     {
@@ -1864,15 +1851,43 @@ public:
     }
     
     void RebuildTracks();
-    void NextTrackVCAFolderMode();
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
     int  GetCurrentTrackVCAFolderMode() { return currentTrackVCAFolderMode_; }
+    bool GetIsVCAActive() { return currentTrackVCAFolderMode_ == 1;}
+    bool GetIsFolderActive() { return currentTrackVCAFolderMode_ == 2;}
     int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
     Navigator* GetMasterTrackNavigator() { return masterTrackNavigator_; }
     Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
     Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
     Navigator* GetDefaultNavigator() { return defaultNavigator_; }
+    
+    bool GetIsTrackVisible(MediaTrack* track)
+    {
+        return DAW::IsTrackVisible(track, followMCP_);
+    }
+    
+    void VCAModeActivated()
+    {
+        currentTrackVCAFolderMode_ = 1;
+    }
+    
+    void FolderModeActivated()
+    {
+        currentTrackVCAFolderMode_ = 2;
+    }
+    
+    void VCAModeDeactivated()
+    {
+        if(currentTrackVCAFolderMode_ == 1)
+            currentTrackVCAFolderMode_ = 0;
+    }
+    
+    void FolderModeDeactivated()
+    {
+        if(currentTrackVCAFolderMode_ == 2)
+            currentTrackVCAFolderMode_ = 0;
+    }
     
     string GetCurrentTrackVCAFolderModeDisplay()
     {
@@ -1886,16 +1901,6 @@ public:
             return "";
     }
 
-    bool GetIsTrackVisible(MediaTrack* track)
-    {
-        return DAW::IsTrackVisible(track, followMCP_);
-    }
-        
-    void ResetTrackVCAFolderMode()
-    {
-        currentTrackVCAFolderMode_ = 0;
-    }
-    
     string GetAutoModeDisplayName(int modeIndex)
     {
         int globalOverride = DAW::GetGlobalAutomationOverride();
@@ -2780,31 +2785,16 @@ public:
                 surface->GetZoneManager()->HandleSelectedTrackFXMenuBank(amount);
     }
    
-    bool GetDoesAssociatedZoneExist(string associatedZoneName)
-    {
-        for(auto surface : surfaces_)
-            if(surface->GetDoesAssociatedZoneExist(associatedZoneName))
-                return true;
-        
-        return false;
-    }
-
-    void GoTrack()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoHome();
-    }
-
     void GoVCA()
     {
         for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoVCA();
+            surface->GetZoneManager()->GoAssociatedZone("VCA");
     }
 
     void GoFolder()
     {
         for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoFolder();
+            surface->GetZoneManager()->GoAssociatedZone("Folder");
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2820,9 +2810,13 @@ public:
     void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
     void AdjustVCABank(int amount) { trackNavigationManager_->AdjustVCABank(amount); }
     void AdjustFolderBank(int amount) { trackNavigationManager_->AdjustFolderBank(amount); }
-    void NextTrackVCAFolderMode() { trackNavigationManager_->NextTrackVCAFolderMode(); }
-    void ResetTrackVCAFolderMode() { trackNavigationManager_->ResetTrackVCAFolderMode(); }
+    void VCAModeActivated() { trackNavigationManager_->VCAModeActivated(); }
+    void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
+    void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
+    void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
     int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
+    bool GetIsVCAActive() { return trackNavigationManager_->GetIsVCAActive();}
+    bool GetIsFolderActive() { return trackNavigationManager_->GetIsFolderActive();}
     string GetCurrentTrackVCAFolderModeDisplay() { return trackNavigationManager_->GetCurrentTrackVCAFolderModeDisplay(); }
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
