@@ -342,7 +342,8 @@ public:
     void SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
     void SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
     void SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
-    
+    void SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
+
     double GetRangeMinimum() { return rangeMinimum_; }
     double GetRangeMaximum() { return rangeMaximum_; }
 

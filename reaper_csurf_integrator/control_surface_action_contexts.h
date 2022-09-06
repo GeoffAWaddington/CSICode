@@ -32,13 +32,13 @@ public:
    
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if( ! (context-> GetRangeMinimum() == -2.0 ||  context-> GetRangeMaximum() == 2.0))
+        if( ! (context-> GetRangeMinimum() == -2.0 || context-> GetRangeMaximum() == 2.0))
             context->UpdateWidgetValue(DAW::GetToggleCommandState(context->GetCommandId()));
     }
     
     virtual void Do(ActionContext* context, double value) override
     {
-        if( value < 0 && context-> GetRangeMinimum() < 0)
+        if(value < 0 && context-> GetRangeMinimum() < 0)
             DAW::SendCommandMessage(context->GetCommandId());
         else if(value > 0 && context-> GetRangeMinimum() >= 0)
             DAW::SendCommandMessage(context->GetCommandId());

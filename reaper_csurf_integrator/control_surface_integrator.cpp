@@ -323,6 +323,39 @@ static void GetWidgets(ZoneManager* zoneManager, int numChannels, vector<string>
     results = widgets;
 }
 
+vector<rgba_color> GetColorValues(vector<string> colors)
+{
+    vector<rgba_color> colorValues;
+    
+    for(auto color : colors)
+    {
+        rgba_color colorValue;
+        
+        if(color.length() == 7)
+        {
+            regex pattern("#([0-9a-fA-F]{6})");
+            smatch match;
+            if (regex_match(color, match, pattern))
+            {
+                sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
+                colorValues.push_back(colorValue);
+            }
+        }
+        else if(color.length() == 9)
+        {
+            regex pattern("#([0-9a-fA-F]{8})");
+            smatch match;
+            if (regex_match(color, match, pattern))
+            {
+                sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
+                colorValues.push_back(colorValue);
+            }
+        }
+    }
+    
+    return colorValues;
+}
+
 static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     int lineNumber = 0;
@@ -338,13 +371,14 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
     map<int, vector<Widget*>> valueDisplays;
     map<int, vector<string>>  modifiers;
 
-    map<int, vector<double>> accelerationValues;
-    vector<double>           defaultAccelerationValues;
-    map<int, vector<double>> rangeValues;
-    map<int, double>         stepSize;
-    map<int, vector<double>> stepValues;
-    map<int, vector<int>>    tickCounts;
-    map<int, string>         widgetModes;
+    map<int, vector<double>>        accelerationValues;
+    vector<double>                  defaultAccelerationValues;
+    map<int, vector<double>>        rangeValues;
+    map<int, double>                stepSize;
+    map<int, vector<double>>        stepValues;
+    map<int, vector<int>>           tickCounts;
+    map<int, vector<rgba_color>>    colorValues;
+    map<int, string>                widgetModes;
 
     try
     {
@@ -475,6 +509,30 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                     
                     tickCounts[stoi(tokens[1])] = ticks;
                 }
+                else if(tokens[0] == "FXParamColors")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                       
+                    vector<string> colors;
+                    
+                    for(int i = 2; i < tokens.size(); i++)
+                        colors.push_back(tokens[i]);
+                    
+                    colorValues[stoi(tokens[1])] = GetColorValues(colors);
+                }
+                else if(tokens[0] == "FXParamTickCounts")
+                {
+                    if(tokens.size() < 3)
+                        continue;
+                       
+                    vector<int> ticks;
+                    
+                    for(int i = 2; i < tokens.size(); i++)
+                        ticks.push_back(stod(tokens[i]));
+                    
+                    tickCounts[stoi(tokens[1])] = ticks;
+                }
                 else if(tokens[0] == "FXWidgetModes")
                 {
                     if(tokens.size() < 3)
@@ -535,6 +593,9 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             if(tickCounts.count(params[i][j]) > 0)
                                 context->SetTickCounts(tickCounts[params[i][j]]);
                             
+                            if(colorValues.count(params[i][j]) > 0)
+                                context->SetColorValues(colorValues[params[i][j]]);
+
                             zone->AddActionContext(valueWidgets[i][j], modifierString, context);
                         }
                         
