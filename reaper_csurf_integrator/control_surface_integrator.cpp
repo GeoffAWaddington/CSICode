@@ -861,6 +861,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
 void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
+    vector<string> hexColors;
     
     auto openCurlyBrace = find(params.begin(), params.end(), "{");
     auto closeCurlyBrace = find(params.begin(), params.end(), "}");
@@ -870,6 +871,12 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
         for(auto it = openCurlyBrace + 1; it != closeCurlyBrace; ++it)
         {
             string strVal = *(it);
+            
+            if(strVal.length() > 0 && strVal[0] == '#')
+            {
+                hexColors.push_back(strVal);
+                continue;
+            }
             
             if(strVal == "Track")
             {
@@ -889,7 +896,14 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
             }
         }
         
-        if(rawValues.size() % 3 == 0 && rawValues.size() > 2)
+        if(hexColors.size() > 0)
+        {
+            vector<rgba_color> colors = GetColorValues(hexColors);
+            
+            for(auto color : colors)
+                colorValues.push_back(color);
+        }
+        else if(rawValues.size() % 3 == 0 && rawValues.size() > 2)
         {
             supportsColor = true;
             
