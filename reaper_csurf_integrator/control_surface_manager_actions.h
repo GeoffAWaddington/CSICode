@@ -795,9 +795,10 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        TheManager->AdjustTrackBank(context->GetPage(), context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            TheManager->AdjustTrackBank(context->GetPage(), context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            TheManager->AdjustTrackBank(context->GetPage(), context->GetIntParam());
     }
 };
 
@@ -815,9 +816,10 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        TheManager->AdjustVCABank(context->GetPage(), context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            TheManager->AdjustVCABank(context->GetPage(), context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            TheManager->AdjustVCABank(context->GetPage(), context->GetIntParam());
     }
 };
 
@@ -835,9 +837,10 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        TheManager->AdjustFolderBank(context->GetPage(), context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            TheManager->AdjustFolderBank(context->GetPage(), context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            TheManager->AdjustFolderBank(context->GetPage(), context->GetIntParam());
     }
 };
 
@@ -894,9 +897,10 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
     }
 };
 
@@ -914,9 +918,10 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
     }
 };
 
@@ -934,9 +939,10 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
     }
 };
 
@@ -954,9 +960,10 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
     }
 };
 
@@ -974,9 +981,10 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
     }
 };
 
@@ -994,9 +1002,11 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
         
-        context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
     }
 };
 
