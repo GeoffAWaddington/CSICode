@@ -2596,6 +2596,12 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
         lastColor_ = color;
         surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)color.b);
     }
+    
+    if(lastColor_.a != color.a)
+    {
+        lastColor_ = color;
+        surface_->SendOSCMessage(this, oscAddress_ + "/aColor", (double)color.a);
+    }
 }
 
 void OSC_FeedbackProcessor::ForceValue(double value)
