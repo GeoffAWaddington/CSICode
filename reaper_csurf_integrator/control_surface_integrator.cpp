@@ -911,6 +911,8 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
         
         if(hexColors.size() > 0)
         {
+            supportsColor = true;
+
             vector<rgba_color> colors = GetColorValues(hexColors);
             
             for(auto color : colors)
