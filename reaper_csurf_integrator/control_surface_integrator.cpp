@@ -2580,28 +2580,18 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
 {
     if(lastColor_.r != color.r)
-    {
-        lastColor_ = color;
         surface_->SendOSCMessage(this, oscAddress_ + "/rColor", (double)color.r);
-    }
     
     if(lastColor_.g != color.g)
-    {
-        lastColor_ = color;
         surface_->SendOSCMessage(this, oscAddress_ + "/gColor", (double)color.g);
-    }
     
     if(lastColor_.b != color.b)
-    {
-        lastColor_ = color;
         surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)color.b);
-    }
     
     if(lastColor_.a != color.a)
-    {
-        lastColor_ = color;
         surface_->SendOSCMessage(this, oscAddress_ + "/aColor", (double)color.a);
-    }
+
+    lastColor_ = color;
 }
 
 void OSC_FeedbackProcessor::ForceValue(double value)
