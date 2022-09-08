@@ -277,6 +277,7 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
                 zoneName = tokens[1];
                 info.alias = tokens.size() > 2 ? tokens[2] : zoneName;
                 zoneManager->AddZoneFilePath(zoneName, info);
+                zoneManager->SetSteppedValues(zoneName);
             }
 
             break;
@@ -561,11 +562,13 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                     zone = make_shared<SubZone>(zoneManager, navigators[0], 0, touchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
                                         
                 zones.push_back(zone);
-                                
+
                 for(int i = 0; i < params.size(); i++)
                 {
                     for(int j = 0; j < params[i].size(); j++)
                     {
+                        int paramNumber = params[i][j];
+                        
                         string modifierString = "";
                         
                         if(modifiers.count(i) > 0 && j < modifiers[i].size())
@@ -577,30 +580,32 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
 
                             shared_ptr<ActionContext> context = nullptr;
                             
-                            if(params[i][j] == -1)
-                                context = TheManager->GetActionContext("NoAction", valueWidgets[i][j], zone, params[i][j]);
+                            if(paramNumber == -1)
+                                context = TheManager->GetActionContext("NoAction", valueWidgets[i][j], zone, paramNumber);
                             else
-                                context = TheManager->GetActionContext("FXParam", valueWidgets[i][j], zone, params[i][j]);
+                                context = TheManager->GetActionContext("FXParam", valueWidgets[i][j], zone, paramNumber);
                             
-                            if(accelerationValues.count(params[i][j]) > 0)
-                                context->SetAccelerationValues(accelerationValues[params[i][j]]);
+                            if(accelerationValues.count(paramNumber) > 0)
+                                context->SetAccelerationValues(accelerationValues[paramNumber]);
                             else if(defaultAccelerationValues.size() > 0)
                                 context->SetAccelerationValues(defaultAccelerationValues);
                             
-                            if(rangeValues.count(params[i][j]) > 0)
-                                context->SetRange(rangeValues[params[i][j]]);
+                            if(rangeValues.count(paramNumber) > 0)
+                                context->SetRange(rangeValues[paramNumber]);
 
-                            if(stepSize.count(params[i][j]) > 0)
-                                context->SetStepSize(stepSize[params[i][j]]);
+                            if(stepSize.count(paramNumber) > 0)
+                                context->SetStepSize(stepSize[paramNumber]);
 
-                            if(stepValues.count(params[i][j]) > 0)
-                                context->SetStepValues(stepValues[params[i][j]]);
+                            if(stepValues.count(paramNumber) > 0)
+                                context->SetStepValues(stepValues[paramNumber]);
+                            else
+                                context->SetStepValues(zoneManager->GetSteppedValues(zoneName, paramNumber));
+                                
+                            if(tickCounts.count(paramNumber) > 0)
+                                context->SetTickCounts(tickCounts[paramNumber]);
                             
-                            if(tickCounts.count(params[i][j]) > 0)
-                                context->SetTickCounts(tickCounts[params[i][j]]);
-                            
-                            if(colorValues.count(params[i][j]) > 0)
-                                context->SetColorValues(colorValues[params[i][j]]);
+                            if(colorValues.count(paramNumber) > 0)
+                                context->SetColorValues(colorValues[paramNumber]);
 
                             zone->AddActionContext(valueWidgets[i][j], modifierString, context);
                         }
@@ -610,7 +615,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             zone->AddWidget(nameDisplays[i][j]);
                             shared_ptr<ActionContext> context = nullptr;
                             
-                            if(params[i][j] == -1)
+                            if(paramNumber == -1)
                                 context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, "");
                             else
                                 context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
@@ -623,10 +628,10 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             zone->AddWidget(valueDisplays[i][j]);
                             shared_ptr<ActionContext> context = nullptr;
                             
-                            if(params[i][j] == -1)
+                            if(paramNumber == -1)
                                 context = TheManager->GetActionContext("FixedTextDisplay", valueDisplays[i][j], zone, "");
                             else
-                                context = TheManager->GetActionContext("FXParamValueDisplay", valueDisplays[i][j], zone, params[i][j]);
+                                context = TheManager->GetActionContext("FXParamValueDisplay", valueDisplays[i][j], zone, paramNumber);
                             
                             zone->AddActionContext(valueDisplays[i][j], modifierString, context);
                         }
@@ -2768,8 +2773,65 @@ void ZoneManager::PreProcessZones()
         return;
     }
     
+    DAW::Undo_BeginBlock();
+    
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
+    
+    DAW::Undo_EndBlock();
+    DAW::Undo();
+}
+
+void ZoneManager::SetSteppedValues(string zoneName)
+{
+    string fxName = "";
+    
+    if(zoneName.find("VST: ") != std::string::npos || zoneName.find("VST: ") != std::string::npos)
+    {
+        if(int pos = zoneName.find("VST: ") != std::string::npos)
+        {
+            string prefix = "VST: ";
+            fxName = zoneName.substr(prefix.length());
+        }
+    
+        if(int pos = zoneName.find("VST3: ") != std::string::npos)
+        {
+            string prefix = "VST3: ";
+            fxName = zoneName.substr(prefix.length());
+        }
+    
+        DAW::InsertTrackAtIndex(surface_->GetPage()->GetNumTracks() + 1);
+
+        MediaTrack* insertedTrack = surface_->GetPage()->GetTrackFromId(surface_->GetPage()->GetNumTracks());
+        
+        int position = DAW::TrackFX_AddByName(insertedTrack, fxName.c_str());
+
+        if(position != -1)
+        {
+            for(int i = 0; i < DAW::TrackFX_GetNumParams(insertedTrack, 0); i++)
+            {
+                double minvalOut = 0.0;
+                double maxvalOut = 0.0;
+                
+                vector<double> steps;
+                
+                steps.push_back(0.0);
+                
+                for(double value = 0.0; value < 1.01; value += .01)
+                {
+                    DAW::TrackFX_SetParam(insertedTrack, 0, i, value);
+                    
+                    double fxValue = DAW::TrackFX_GetParam(insertedTrack, 0, i, &minvalOut, &maxvalOut);
+                    
+                    if(steps.back() != fxValue)
+                        steps.push_back(fxValue);
+                }
+                
+                if(steps.size() > 1 && steps.size() < 50)
+                    steppedValues_[zoneName][i] = steps;
+            }
+        }
+    }
 }
 
 void ZoneManager::HandleActivation(string zoneName)

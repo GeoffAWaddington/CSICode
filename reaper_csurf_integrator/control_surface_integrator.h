@@ -701,6 +701,10 @@ private:
     
     vector<shared_ptr<Zone>> selectedTrackFXZones_;
     vector<shared_ptr<Zone>> fxSlotZones_;
+    
+    map <string, map<int, vector<double>>> steppedValues_;
+    
+    vector<double> emptySteppedValues;
 
     int trackSendOffset_ = 0;
     int trackReceiveOffset_ = 0;
@@ -781,6 +785,16 @@ public:
     void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
+    
+    void SetSteppedValues(string zoneName);
+    
+    vector<double> &GetSteppedValues(string zoneName, int paramNumber)
+    {
+        if(steppedValues_.count(zoneName) > 0 && steppedValues_[zoneName].count(paramNumber) > 0)
+            return steppedValues_[zoneName][paramNumber];
+        else
+            return emptySteppedValues;
+    }
     
     void ToggleEnableFocusedFXParamMapping()
     {
