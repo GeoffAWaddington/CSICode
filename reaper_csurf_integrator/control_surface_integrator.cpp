@@ -643,7 +643,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
     }
 }
 
-static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone, int slotIndex)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -725,9 +725,14 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         shared_ptr<Zone> zone;
                         
                         if(enclosingZone == nullptr)
-                            zone = make_shared<Zone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                        {
+                            if(zoneName == "SelectedTrackFXMenu")
+                                zone = make_shared<Zone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                            else
+                                zone = make_shared<Zone>(zoneManager, navigators[i], slotIndex, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                        }
                         else
-                            zone = make_shared<SubZone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+                            zone = make_shared<SubZone>(zoneManager, navigators[i], slotIndex, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
                                                 
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
@@ -2057,7 +2062,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
 
                 associatedZones_[zoneName] = vector<shared_ptr<Zone>>();
                 
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName], nullptr);
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName], nullptr, 0);
             
                 // GAW -- all of this to ensure VCA and Folder Zones can have radio button behaviour :)
                 
@@ -2116,7 +2121,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
             vector<Navigator*> navigators;
             AddNavigatorsForZone(zoneName, navigators);
             
-            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, includedZones_, nullptr);
+            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, includedZones_, nullptr, 0);
         }
     }
 }
@@ -2127,14 +2132,25 @@ void Zone::InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone)
     {
         if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
         {
-            vector<Navigator*> navigators;
-            navigators.push_back(GetNavigator());
-
-            subZones_[zoneName] = vector<shared_ptr<Zone>>();
-        
-            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, subZones_[zoneName], enclosingZone);
+            subZoneFiles_[zoneName] = zoneManager_->GetZoneFilePaths()[zoneName].filePath;
+            enclosingZones_[zoneName] = enclosingZone;
         }
     }
+}
+
+void Zone::GoSubZone(string subZoneName)
+{
+    if(subZones_.count(subZoneName) < 1 && subZoneFiles_.count(subZoneName) > 0)
+    {
+        vector<Navigator*> navigators;
+        navigators.push_back(GetNavigator());
+        
+        ProcessZoneFile(subZoneFiles_[subZoneName], zoneManager_, navigators, subZones_[subZoneName], enclosingZones_[subZoneName], GetSlotIndex());
+    }
+
+    if(subZones_.count(subZoneName) > 0)
+        for(auto zone : subZones_[subZoneName])
+            zone->Activate();
 }
 
 void Zone::GoAssociatedZone(string zoneName)
@@ -2628,9 +2644,9 @@ void ZoneManager::Initialize()
     vector<Navigator*> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
     vector<shared_ptr<Zone>> dummy; // Needed to satify protcol, Home and FocusedFXParam have special Zone handling
-    ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
+    ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr, 0);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
-        ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
+        ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr, 0);
     GoHome();
 }
 
@@ -2692,13 +2708,10 @@ void ZoneManager::GoFocusedFX()
             vector<Navigator*> navigators;
             navigators.push_back(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
-            ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, nullptr);
+            ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, nullptr, fxSlot);
             
             for(auto zone :focusedFXZones_)
-            {
-                zone->SetSlotIndex(fxSlot);
                 zone->Activate();
-            }
         }
     }
 }
@@ -2720,9 +2733,8 @@ void ZoneManager::GoSelectedTrackFX()
                 vector<Navigator*> navigators;
                 navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
                 
-                ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, nullptr);
+                ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, nullptr, i);
                 
-                selectedTrackFXZones_.back()->SetSlotIndex(i);
                 selectedTrackFXZones_.back()->Activate();
             }
         }
@@ -2749,9 +2761,8 @@ void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, i
         vector<Navigator*> navigators;
         navigators.push_back(navigator);
         
-        ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, fxSlotZones_, nullptr);
+        ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, fxSlotZones_, nullptr, fxSlot);
         
-        fxSlotZones_.back()->SetSlotIndex(fxSlot);
         fxSlotZones_.back()->Activate();
     }
 }
