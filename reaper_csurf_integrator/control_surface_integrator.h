@@ -477,7 +477,7 @@ class Zone
 protected:
     ZoneManager* const zoneManager_ = nullptr;
     Navigator* const navigator_= nullptr;
-    int const slotIndex_ = 0;
+    int slotIndex_ = 0;
     string const name_ = "";
     string const alias_ = "";
     string const sourceFilePath_ = "";
@@ -489,14 +489,11 @@ protected:
     map<Widget*, bool> widgets_;
     
     vector<shared_ptr<Zone>> includedZones_;
+    map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
     map<Widget*, map<string, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
-    
-    map<string, vector<shared_ptr<Zone>>> subZones_;
-    map<string, string> subZoneFiles_;
-    map<string, shared_ptr<Zone>> enclosingZones_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     
@@ -510,13 +507,13 @@ public:
     void GoAssociatedZone(string associatedZoneName);
 
     Navigator* GetNavigator() { return navigator_; }
+    void SetSlotIndex(int index) { slotIndex_ = index; }
     int GetSlotIndex();
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
 
     vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
-       
-    virtual void GoSubZone(string subZoneName);
+        
     void RequestUpdate(map<Widget*, bool> &usedWidgets);
     void RequestUpdateWidget(Widget* widget);
     void Activate();
@@ -584,6 +581,18 @@ public:
     void AddActionContext(Widget* widget, string modifier, shared_ptr<ActionContext> actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
+    }
+    
+    virtual void GoSubZone(string subZoneName)
+    {
+        if(subZones_.count(subZoneName) > 0)
+        {
+            for(auto zone : subZones_[subZoneName])
+            {
+                zone->SetSlotIndex(GetSlotIndex());
+                zone->Activate();
+            }
+        }
     }
 };
 
