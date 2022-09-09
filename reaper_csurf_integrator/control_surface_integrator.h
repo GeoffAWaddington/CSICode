@@ -684,7 +684,8 @@ private:
 
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
-            
+    bool const shouldProcessAutoStepSizes_ = true;
+    
     map<string, CSIZoneInfo> zoneFilePaths_;
     
     map<Widget*, bool> usedWidgets_;
@@ -714,6 +715,8 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
+    void CalculateSteppedValues(string autoStepSizesFilePath, string zoneName);
+
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
@@ -734,7 +737,7 @@ private:
     }
        
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) { }
+    ZoneManager(ControlSurface* surface, string zoneFolder, bool shouldProcessAutoStepSizes) : surface_(surface), zoneFolder_(zoneFolder), shouldProcessAutoStepSizes_(shouldProcessAutoStepSizes) { }
 
     void Initialize();
 
@@ -785,8 +788,11 @@ public:
     void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-    
-    void SetSteppedValues(string zoneName);
+       
+    void SetSteppedValues(string zoneName, int paramNumber, vector<double> steps)
+    {
+        steppedValues_[zoneName][paramNumber] = steps;
+    }
     
     vector<double> &GetSteppedValues(string zoneName, int paramNumber)
     {
@@ -1203,7 +1209,7 @@ private:
     map<int, bool> channelToggles_;
     
 protected:
-    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
+    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset, bool shouldAutoScan) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, shouldAutoScan))
     {
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
@@ -1619,8 +1625,8 @@ private:
     }
 
 public:
-    Midi_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO)
-    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    Midi_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
+    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -1752,8 +1758,8 @@ private:
     void Initialize(string templateFilename, string zoneFolder);
 
 public:
-    OSC_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO)
-    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    OSC_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
+    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }

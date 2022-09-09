@@ -246,6 +246,42 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
     modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5] + modifierSlots[6];
 }
 
+static void PreProcessAutoStepSizesFile(string filePath, ZoneManager* zoneManager)
+{
+    try
+    {
+        ifstream file(filePath);
+        
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            vector<string> tokens(GetTokens(line));
+            vector<double> steps;
+            
+            for(int i = 2; i < tokens.size(); i++)
+                steps.push_back(stod(tokens[i]));
+            
+            zoneManager->SetSteppedValues(tokens[0], stoi(tokens[1]), steps);
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
 {
     string zoneName = "";
@@ -277,7 +313,6 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
                 zoneName = tokens[1];
                 info.alias = tokens.size() > 2 ? tokens[2] : zoneName;
                 zoneManager->AddZoneFilePath(zoneName, info);
-                zoneManager->SetSteppedValues(zoneName);
             }
 
             break;
@@ -1511,6 +1546,7 @@ void Manager::Init()
     }
     
     int lineNumber = 0;
+    bool shouldAutoScan = true;
     
     try
     {
@@ -1567,6 +1603,8 @@ void Manager::Init()
                                     synchPages = false;
                                 else if(tokens[i] == "UseScrollLink")
                                     isScrollLinkEnabled = true;
+                                else if(tokens[i] == "NoAutoScan")
+                                    shouldAutoScan = false;
                             }
                         }
                             
@@ -1581,9 +1619,9 @@ void Manager::Init()
                         ControlSurface* surface = nullptr;
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            surface = new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]]);
+                            surface = new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]], shouldAutoScan);
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            surface = new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]]);
+                            surface = new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]], shouldAutoScan);
 
                         if(surface != nullptr)
                             currentPage->AddSurface(surface);
@@ -2766,6 +2804,8 @@ void ZoneManager::PreProcessZones()
     vector<string> zoneFilesToProcess;
     listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // recursively find all .zon files, starting at zoneFolder
     
+    string autoStepSizesFilePath = DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/AutoStepSizes.txt";
+    
     if(zoneFilesToProcess.size() == 0)
     {
         MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (GetSurface()->GetName() + " Zone folder is missing or empty").c_str(), MB_OK);
@@ -2773,17 +2813,30 @@ void ZoneManager::PreProcessZones()
         return;
     }
     
-    DAW::Undo_BeginBlock();
-    
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
     
-    DAW::Undo_EndBlock();
-    DAW::Undo();
+    if(shouldProcessAutoStepSizes_)
+    {
+        PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
+
+        for(auto [zoneName, info] : zoneFilePaths_)
+        {
+            DAW::Undo_BeginBlock();
+            
+            CalculateSteppedValues(autoStepSizesFilePath, zoneName);
+            
+            DAW::Undo_EndBlock();
+            DAW::Undo();
+        }
+    }
 }
 
-void ZoneManager::SetSteppedValues(string zoneName)
+void ZoneManager::CalculateSteppedValues(string autoStepSizesFilePath, string zoneName)
 {
+    if(steppedValues_.count(zoneName) > 0)
+        return;
+    
     string fxName = "";
     
     if(zoneName.find("VST: ") != std::string::npos || zoneName.find("VST: ") != std::string::npos)
@@ -2819,9 +2872,9 @@ void ZoneManager::SetSteppedValues(string zoneName)
                 
                 for(double value = 0.0; value < 1.01; value += .01)
                 {
-                    DAW::TrackFX_SetParam(insertedTrack, 0, i, value);
+                    DAW::TrackFX_SetParam(insertedTrack, position, i, value);
                     
-                    double fxValue = DAW::TrackFX_GetParam(insertedTrack, 0, i, &minvalOut, &maxvalOut);
+                    double fxValue = DAW::TrackFX_GetParam(insertedTrack, position, i, &minvalOut, &maxvalOut);
                     
                     if(steps.back() != fxValue)
                         steps.push_back(fxValue);
@@ -2830,6 +2883,33 @@ void ZoneManager::SetSteppedValues(string zoneName)
                 if(steps.size() > 1 && steps.size() < 50)
                     steppedValues_[zoneName][i] = steps;
             }
+        }
+        try
+        {
+            ofstream file(autoStepSizesFilePath, ios::app);
+ 
+            if(file.is_open())
+            {
+                for(auto [paramNum, steps] : steppedValues_[zoneName])
+                {
+                    file << "\"" + zoneName + "\" " + to_string(paramNum) + " ";
+
+                    for(auto step : steps)
+                        file << to_string(step) + " ";
+ 
+                    file << GetLineEnding();
+                }
+
+                file << GetLineEnding();
+                
+                file.close();
+            }
+        }
+        catch (exception &e)
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Trouble writing to %s\n", autoStepSizesFilePath.c_str());
+            DAW::ShowConsoleMsg(buffer);
         }
     }
 }
