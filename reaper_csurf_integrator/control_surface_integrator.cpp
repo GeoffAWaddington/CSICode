@@ -2820,6 +2820,8 @@ void ZoneManager::PreProcessZones()
     {
         PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
 
+        int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        
         for(auto [zoneName, info] : zoneFilePaths_)
         {
             DAW::Undo_BeginBlock();
@@ -2828,6 +2830,11 @@ void ZoneManager::PreProcessZones()
             
             DAW::Undo_EndBlock();
             DAW::Undo();
+            
+            int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+            
+            if(duration > 5000000)
+                break;
         }
     }
 }
@@ -2839,7 +2846,7 @@ void ZoneManager::CalculateSteppedValues(string autoStepSizesFilePath, string zo
     
     string fxName = "";
     
-    if(zoneName.find("VST: ") != std::string::npos || zoneName.find("VST: ") != std::string::npos)
+    if(zoneName.find("VST: ") != std::string::npos || zoneName.find("VST3: ") != std::string::npos)
     {
         if(int pos = zoneName.find("VST: ") != std::string::npos)
         {
@@ -2890,6 +2897,8 @@ void ZoneManager::CalculateSteppedValues(string autoStepSizesFilePath, string zo
  
             if(file.is_open())
             {
+                file << GetLineEnding();
+                
                 for(auto [paramNum, steps] : steppedValues_[zoneName])
                 {
                     file << "\"" + zoneName + "\" " + to_string(paramNum) + " ";
