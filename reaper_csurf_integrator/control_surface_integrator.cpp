@@ -1580,7 +1580,7 @@ void Manager::Init()
     }
     
     int lineNumber = 0;
-    bool shouldAutoScan = true;
+    bool shouldAutoScan = false;
     
     try
     {
@@ -1611,6 +1611,9 @@ void Manager::Init()
             
             vector<string> tokens(GetTokens(line));
             
+            if(tokens[0] == "AutoScan")
+                shouldAutoScan = true;
+            
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
@@ -1637,8 +1640,6 @@ void Manager::Init()
                                     synchPages = false;
                                 else if(tokens[i] == "UseScrollLink")
                                     isScrollLinkEnabled = true;
-                                else if(tokens[i] == "NoAutoScan")
-                                    shouldAutoScan = false;
                             }
                         }
                             
@@ -2833,6 +2834,10 @@ void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, i
     }
 }
 
+int numFXZones = 0;
+
+int maxNumParams = 0;
+
 void ZoneManager::PreProcessZones()
 {
     vector<string> zoneFilesToProcess;
@@ -2847,12 +2852,38 @@ void ZoneManager::PreProcessZones()
         return;
     }
     
+    char msgBuffer[250];
+
+    sprintf(msgBuffer, "Processing %d Zone files\n", (int)zoneFilesToProcess.size());
+    DAW::ShowConsoleMsg(msgBuffer);
+
+    
+    int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+
+
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
-    /*
+
+    int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+    sprintf(msgBuffer, "%d microseconds\n\n", duration);
+    DAW::ShowConsoleMsg(msgBuffer);
+
+    sprintf(msgBuffer, "Reading AutoStepSizes.txt\n");
+    DAW::ShowConsoleMsg(msgBuffer);
+
+    
+    start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+
+    
+    PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
+
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+    sprintf(msgBuffer, "%d microseconds\n\n", duration);
+    DAW::ShowConsoleMsg(msgBuffer);
+
     if(shouldProcessAutoStepSizes_)
     {
-        PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
+        start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
         for(auto [zoneName, info] : zoneFilePaths_)
         {
@@ -2863,12 +2894,30 @@ void ZoneManager::PreProcessZones()
             DAW::Undo_EndBlock();
             DAW::Undo();
         }
+        
+        sprintf(msgBuffer, "Processed %d FX Zones, MaxNumParams = %d\n", numFXZones, maxNumParams);
+        DAW::ShowConsoleMsg(msgBuffer);
+
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+        sprintf(msgBuffer, "%d microseconds\n\n", duration);
+        DAW::ShowConsoleMsg(msgBuffer);
+
+
+        sprintf(msgBuffer, "Writing AutoStepSizes.txt\n");
+        DAW::ShowConsoleMsg(msgBuffer);
+
+        start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
         if(steppedValuesDirty_)
             WriteAutoStepSizesFile(autoStepSizesFilePath, steppedValues_);
+        
+        duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+        sprintf(msgBuffer, "%d microseconds\n\n", duration);
+        DAW::ShowConsoleMsg(msgBuffer);
     }
-    */
 }
+
+
 
 void ZoneManager::CalculateSteppedValues(string zoneName)
 {
@@ -2899,7 +2948,15 @@ void ZoneManager::CalculateSteppedValues(string zoneName)
 
         if(position == 0)
         {
-            for(int i = 0; i < DAW::TrackFX_GetNumParams(insertedTrack, 0); i++)
+            int numParams = DAW::TrackFX_GetNumParams(insertedTrack, 0);
+            
+            if(numParams > 100)
+                numParams = 100;
+            
+            if(maxNumParams < numParams)
+                maxNumParams = numParams;
+            
+            for(int i = 0; i < numParams; i++)
             {
                 double minvalOut = 0.0;
                 double maxvalOut = 0.0;
@@ -2924,6 +2981,8 @@ void ZoneManager::CalculateSteppedValues(string zoneName)
                     steppedValuesDirty_ = true;
                 }
             }
+            
+            numFXZones++;
         }
     }
 }
