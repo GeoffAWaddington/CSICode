@@ -704,8 +704,8 @@ private:
     vector<shared_ptr<Zone>> selectedTrackFXZones_;
     vector<shared_ptr<Zone>> fxSlotZones_;
     
+    bool steppedValuesDirty_ = false;
     map <string, map<int, vector<double>>> steppedValues_;
-    
     vector<double> emptySteppedValues;
 
     int trackSendOffset_ = 0;
@@ -716,7 +716,7 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
-    void CalculateSteppedValues(string autoStepSizesFilePath, string zoneName);
+    void CalculateSteppedValues(string zoneName);
 
     void ResetOffsets()
     {

@@ -282,6 +282,40 @@ static void PreProcessAutoStepSizesFile(string filePath, ZoneManager* zoneManage
     }
 }
 
+static void WriteAutoStepSizesFile(string autoStepSizesFilePath, map <string, map<int, vector<double>>> &steppedValues_)
+{
+    try
+    {
+        ofstream file(autoStepSizesFilePath);
+
+        if(file.is_open())
+        {
+            for(auto [zoneName, paramStepsMap] : steppedValues_)
+            {
+                for(auto [paramNum, steps] : paramStepsMap)
+                {
+                    file << "\"" + zoneName + "\" " + to_string(paramNum) + " ";
+
+                    for(auto step : steps)
+                        file << to_string(step) + " ";
+
+                    file << GetLineEnding();
+                }
+                
+                file << GetLineEnding();
+            }
+            
+            file.close();
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble writing to %s\n", autoStepSizesFilePath.c_str());
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
 {
     string zoneName = "";
@@ -2820,26 +2854,22 @@ void ZoneManager::PreProcessZones()
     {
         PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
 
-        int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-        
         for(auto [zoneName, info] : zoneFilePaths_)
         {
             DAW::Undo_BeginBlock();
-            
-            CalculateSteppedValues(autoStepSizesFilePath, zoneName);
+
+            CalculateSteppedValues(zoneName);
             
             DAW::Undo_EndBlock();
             DAW::Undo();
-            
-            int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-            
-            if(duration > 5000000)
-                break;
         }
+
+        if(steppedValuesDirty_)
+            WriteAutoStepSizesFile(autoStepSizesFilePath, steppedValues_);
     }
 }
 
-void ZoneManager::CalculateSteppedValues(string autoStepSizesFilePath, string zoneName)
+void ZoneManager::CalculateSteppedValues(string zoneName)
 {
     if(steppedValues_.count(zoneName) > 0)
         return;
@@ -2863,10 +2893,10 @@ void ZoneManager::CalculateSteppedValues(string autoStepSizesFilePath, string zo
         DAW::InsertTrackAtIndex(surface_->GetPage()->GetNumTracks() + 1);
 
         MediaTrack* insertedTrack = surface_->GetPage()->GetTrackFromId(surface_->GetPage()->GetNumTracks());
-        
+
         int position = DAW::TrackFX_AddByName(insertedTrack, fxName.c_str());
 
-        if(position != -1)
+        if(position == 0)
         {
             for(int i = 0; i < DAW::TrackFX_GetNumParams(insertedTrack, 0); i++)
             {
@@ -2887,38 +2917,12 @@ void ZoneManager::CalculateSteppedValues(string autoStepSizesFilePath, string zo
                         steps.push_back(fxValue);
                 }
                 
-                if(steps.size() > 1 && steps.size() < 50)
-                    steppedValues_[zoneName][i] = steps;
-            }
-        }
-        try
-        {
-            ofstream file(autoStepSizesFilePath, ios::app);
- 
-            if(file.is_open())
-            {
-                file << GetLineEnding();
-                
-                for(auto [paramNum, steps] : steppedValues_[zoneName])
+                if(steps.size() > 1 && steps.size() < 30)
                 {
-                    file << "\"" + zoneName + "\" " + to_string(paramNum) + " ";
-
-                    for(auto step : steps)
-                        file << to_string(step) + " ";
- 
-                    file << GetLineEnding();
+                    steppedValues_[zoneName][i] = steps;
+                    steppedValuesDirty_ = true;
                 }
-
-                file << GetLineEnding();
-                
-                file.close();
             }
-        }
-        catch (exception &e)
-        {
-            char buffer[250];
-            snprintf(buffer, sizeof(buffer), "Trouble writing to %s\n", autoStepSizesFilePath.c_str());
-            DAW::ShowConsoleMsg(buffer);
         }
     }
 }
