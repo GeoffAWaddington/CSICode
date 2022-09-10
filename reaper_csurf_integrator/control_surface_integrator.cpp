@@ -2849,7 +2849,7 @@ void ZoneManager::PreProcessZones()
     
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
-    
+    /*
     if(shouldProcessAutoStepSizes_)
     {
         PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
@@ -2867,6 +2867,7 @@ void ZoneManager::PreProcessZones()
         if(steppedValuesDirty_)
             WriteAutoStepSizesFile(autoStepSizesFilePath, steppedValues_);
     }
+    */
 }
 
 void ZoneManager::CalculateSteppedValues(string zoneName)
