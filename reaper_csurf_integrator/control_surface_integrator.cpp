@@ -195,6 +195,16 @@ static void listZoneFiles(const string &path, vector<string> &results)
                 results.push_back(file.path().string());
 }
 
+static void listStepSizeFiles(const string &path, vector<string> &results)
+{
+    filesystem::path zonePath { path };
+    
+    if(filesystem::exists(path) && filesystem::is_directory(path))
+        for(auto& file : filesystem::recursive_directory_iterator(path))
+            if(file.path().extension() == ".stp")
+                results.push_back(file.path().string());
+}
+
 static void GetWidgetNameAndProperties(string line, string &widgetName, string &modifier, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty, bool &isDecrease, bool &isIncrease)
 {
     istringstream modified_role(line);
@@ -246,11 +256,49 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
     modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5] + modifierSlots[6];
 }
 
-static void PreProcessAutoStepSizesFile(string filePath, ZoneManager* zoneManager)
+static void WriteAutoStepSizesFile(string fxName, map<int, vector<double>> &steppedValues)
+{
+    string fxNameNoBadChars(fxName);
+    fxNameNoBadChars = regex_replace(fxNameNoBadChars, regex(BadFileChars), "_");
+
+    try
+    {
+        ofstream file(fxNameNoBadChars);
+
+        file.open(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneStepSizes/" + fxNameNoBadChars + ".stp");
+
+        if(file.is_open())
+        {
+            file << string("StepSizes ") + "\"" + fxName + "\"" + GetLineEnding();;
+            
+            for(auto [paramNum, steps] : steppedValues)
+            {
+                file << to_string(paramNum) + " ";
+                
+                for(auto step : steps)
+                    file << to_string(step) + " ";
+
+                file << GetLineEnding();
+            }
+        }
+            
+        file.close();
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble writing to %s\n", fxNameNoBadChars.c_str());
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
+static void GetStepSizes(string filePath, ZoneManager* zoneManager)
 {
     try
     {
         ifstream file(filePath);
+        
+        string zoneName = "";
         
         for (string line; getline(file, line) ; )
         {
@@ -266,52 +314,26 @@ static void PreProcessAutoStepSizesFile(string filePath, ZoneManager* zoneManage
                 continue;
             
             vector<string> tokens(GetTokens(line));
+            
+            if(tokens.size() > 1 && tokens[0] == "StepSizes")
+            {
+                zoneName = tokens[1];
+                continue;
+            }
+            
             vector<double> steps;
             
-            for(int i = 2; i < tokens.size(); i++)
-                steps.push_back(stod(tokens[i]));
+            if(tokens.size() > 2 && tokens[0] != "StepSizes" && zoneName != "")
+                for(int i = 1; i < tokens.size(); i++)
+                    steps.push_back(stod(tokens[i]));
             
-            zoneManager->SetSteppedValues(tokens[0], stoi(tokens[1]), steps);
+            zoneManager->SetSteppedValues(zoneName, stoi(tokens[0]), steps);
         }
     }
     catch (exception &e)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
-static void WriteAutoStepSizesFile(string autoStepSizesFilePath, map <string, map<int, vector<double>>> &steppedValues_)
-{
-    try
-    {
-        ofstream file(autoStepSizesFilePath);
-
-        if(file.is_open())
-        {
-            for(auto [zoneName, paramStepsMap] : steppedValues_)
-            {
-                for(auto [paramNum, steps] : paramStepsMap)
-                {
-                    file << "\"" + zoneName + "\" " + to_string(paramNum) + " ";
-
-                    for(auto step : steps)
-                        file << to_string(step) + " ";
-
-                    file << GetLineEnding();
-                }
-                
-                file << GetLineEnding();
-            }
-            
-            file.close();
-        }
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble writing to %s\n", autoStepSizesFilePath.c_str());
         DAW::ShowConsoleMsg(buffer);
     }
 }
@@ -348,6 +370,41 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
                 info.alias = tokens.size() > 2 ? tokens[2] : zoneName;
                 zoneManager->AddZoneFilePath(zoneName, info);
             }
+
+            break;
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
+static void PreProcessStepSizeFile(string filePath, ZoneManager* zoneManager)
+{
+    try
+    {
+        ifstream file(filePath);
+        
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            vector<string> tokens(GetTokens(line));
+                       
+            if(tokens[0] == "StepSizes" && tokens.size() > 1)
+                zoneManager->AddStepSizeFilePath(tokens[1], filePath);
 
             break;
         }
@@ -2836,15 +2893,11 @@ void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, i
 
 int numFXZones = 0;
 
-int maxNumParams = 0;
-
 void ZoneManager::PreProcessZones()
 {
     vector<string> zoneFilesToProcess;
     listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // recursively find all .zon files, starting at zoneFolder
-    
-    string autoStepSizesFilePath = DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/AutoStepSizes.txt";
-    
+       
     if(zoneFilesToProcess.size() == 0)
     {
         MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (GetSurface()->GetName() + " Zone folder is missing or empty").c_str(), MB_OK);
@@ -2854,12 +2907,10 @@ void ZoneManager::PreProcessZones()
     
     char msgBuffer[250];
 
-    sprintf(msgBuffer, "Processing %d Zone files\n", (int)zoneFilesToProcess.size());
+    sprintf(msgBuffer, "Preprocessing %d Zone files\n", (int)zoneFilesToProcess.size());
     DAW::ShowConsoleMsg(msgBuffer);
 
-    
     int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-
 
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
@@ -2868,19 +2919,25 @@ void ZoneManager::PreProcessZones()
     sprintf(msgBuffer, "%d microseconds\n\n", duration);
     DAW::ShowConsoleMsg(msgBuffer);
 
-    sprintf(msgBuffer, "Reading AutoStepSizes.txt\n");
-    DAW::ShowConsoleMsg(msgBuffer);
+    
+    
+    vector<string> stepSizeFilesToProcess;
+    listStepSizeFiles(DAW::GetResourcePath() + string("/CSI/Zones/ZoneStepSizes/"), stepSizeFilesToProcess); // recursively find all .stp files
 
+    sprintf(msgBuffer, "Preprocessing %d Step Size files\n", (int)stepSizeFilesToProcess.size());
+    DAW::ShowConsoleMsg(msgBuffer);
     
     start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
-    
-    PreProcessAutoStepSizesFile(autoStepSizesFilePath, this);
+    for(auto stepSizeFile : stepSizeFilesToProcess)
+        PreProcessStepSizeFile(stepSizeFile, this);
 
     duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
     sprintf(msgBuffer, "%d microseconds\n\n", duration);
     DAW::ShowConsoleMsg(msgBuffer);
 
+    
+    
     if(shouldProcessAutoStepSizes_)
     {
         start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
@@ -2889,39 +2946,24 @@ void ZoneManager::PreProcessZones()
         {
             DAW::Undo_BeginBlock();
 
-            CalculateSteppedValues(zoneName);
+            CalculateAndWriteSteppedValues(zoneName);
             
             DAW::Undo_EndBlock();
             DAW::Undo();
         }
         
-        sprintf(msgBuffer, "Processed %d FX Zones, MaxNumParams = %d\n", numFXZones, maxNumParams);
+        sprintf(msgBuffer, "Processed %d FX Zones\n", numFXZones);
         DAW::ShowConsoleMsg(msgBuffer);
 
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-        sprintf(msgBuffer, "%d microseconds\n\n", duration);
-        DAW::ShowConsoleMsg(msgBuffer);
-
-
-        sprintf(msgBuffer, "Writing AutoStepSizes.txt\n");
-        DAW::ShowConsoleMsg(msgBuffer);
-
-        start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-
-        if(steppedValuesDirty_)
-            WriteAutoStepSizesFile(autoStepSizesFilePath, steppedValues_);
-        
         duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
         sprintf(msgBuffer, "%d microseconds\n\n", duration);
         DAW::ShowConsoleMsg(msgBuffer);
     }
 }
 
-
-
-void ZoneManager::CalculateSteppedValues(string zoneName)
+void ZoneManager::CalculateAndWriteSteppedValues(string zoneName)
 {
-    if(steppedValues_.count(zoneName) > 0)
+    if(stepSizeFilePaths_.count(zoneName) > 0)
         return;
     
     string fxName = "";
@@ -2946,17 +2988,11 @@ void ZoneManager::CalculateSteppedValues(string zoneName)
 
         int position = DAW::TrackFX_AddByName(insertedTrack, fxName.c_str());
 
+        map<int, vector<double>> steppedValues;
+        
         if(position == 0)
         {
-            int numParams = DAW::TrackFX_GetNumParams(insertedTrack, 0);
-            
-            if(numParams > 100)
-                numParams = 100;
-            
-            if(maxNumParams < numParams)
-                maxNumParams = numParams;
-            
-            for(int i = 0; i < numParams; i++)
+            for(int i = 0; i < DAW::TrackFX_GetNumParams(insertedTrack, 0); i++)
             {
                 double minvalOut = 0.0;
                 double maxvalOut = 0.0;
@@ -2976,15 +3012,25 @@ void ZoneManager::CalculateSteppedValues(string zoneName)
                 }
                 
                 if(steps.size() > 1 && steps.size() < 30)
-                {
-                    steppedValues_[zoneName][i] = steps;
-                    steppedValuesDirty_ = true;
-                }
+                    steppedValues[i] = steps;
             }
             
             numFXZones++;
         }
+         
+        WriteAutoStepSizesFile(zoneName, steppedValues);
     }
+}
+
+vector<double> &ZoneManager::GetSteppedValues(string zoneName, int paramNumber)
+{
+    if(steppedValues_.count(zoneName) < 1 && stepSizeFilePaths_.count(zoneName) > 0)
+        GetStepSizes(stepSizeFilePaths_[zoneName], this);
+    
+    if(steppedValues_.count(zoneName) > 0 && steppedValues_[zoneName].count(paramNumber) > 0)
+        return steppedValues_[zoneName][paramNumber];
+    else
+        return emptySteppedValues;
 }
 
 void ZoneManager::HandleActivation(string zoneName)

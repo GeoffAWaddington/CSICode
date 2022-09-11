@@ -688,7 +688,8 @@ private:
     bool const shouldProcessAutoStepSizes_ = true;
     
     map<string, CSIZoneInfo> zoneFilePaths_;
-    
+    map<string, string> stepSizeFilePaths_;
+
     map<Widget*, bool> usedWidgets_;
 
     shared_ptr<Zone> homeZone_ = nullptr;
@@ -704,7 +705,6 @@ private:
     vector<shared_ptr<Zone>> selectedTrackFXZones_;
     vector<shared_ptr<Zone>> fxSlotZones_;
     
-    bool steppedValuesDirty_ = false;
     map <string, map<int, vector<double>>> steppedValues_;
     vector<double> emptySteppedValues;
 
@@ -716,7 +716,7 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
-    void CalculateSteppedValues(string zoneName);
+    void CalculateAndWriteSteppedValues(string zoneName);
 
     void ResetOffsets()
     {
@@ -790,19 +790,12 @@ public:
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
        
+    vector<double> &GetSteppedValues(string zoneName, int paramNumber);
     void SetSteppedValues(string zoneName, int paramNumber, vector<double> steps)
     {
         steppedValues_[zoneName][paramNumber] = steps;
     }
-    
-    vector<double> &GetSteppedValues(string zoneName, int paramNumber)
-    {
-        if(steppedValues_.count(zoneName) > 0 && steppedValues_[zoneName].count(paramNumber) > 0)
-            return steppedValues_[zoneName][paramNumber];
-        else
-            return emptySteppedValues;
-    }
-    
+       
     void ToggleEnableFocusedFXParamMapping()
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
@@ -987,6 +980,12 @@ public:
     {
         if(name != "")
             zoneFilePaths_[name] = info;
+    }
+    
+    void AddStepSizeFilePath(string name, string filename)
+    {
+        if(name != "")
+            stepSizeFilePaths_[name] = filename;
     }
     
     void CheckFocusedFXState()
