@@ -2293,9 +2293,7 @@ void Zone::GoAssociatedZone(string zoneName)
 
 void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
 {
-    if(zoneName == "Buttons")
-        navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
-    else if(zoneName == "MasterTrack")
+    if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
     else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
@@ -2303,6 +2301,8 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
+    else
+        navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
 
 void Zone::SetXTouchDisplayColors(string color)
