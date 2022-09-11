@@ -1525,6 +1525,7 @@ void Manager::InitActionsDictionary()
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
     actions_["Flip"] =                              new SetFlip();
+    actions_["ClearModifiers"] =                    new ClearModifiers();
     actions_["ToggleChannel"] =                     new SetToggleChannel();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
     actions_["TrackVolume"] =                       new TrackVolume();

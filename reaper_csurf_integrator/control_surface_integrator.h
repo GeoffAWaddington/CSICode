@@ -2657,6 +2657,15 @@ public:
         }
     }
 
+    void ClearModifiers()
+    {
+        isShift_ = false;
+        isOption_ = false;
+        isControl_ = false;
+        isAlt_ = false;
+        isFlip_ = false;
+    }
+    
     string GetModifier()
     {
         string modifier = "";
