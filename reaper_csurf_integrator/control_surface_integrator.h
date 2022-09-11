@@ -2672,6 +2672,7 @@ public:
         isControl_ = false;
         isAlt_ = false;
         isFlip_ = false;
+        isTrackModifierEngaged_ = false;
     }
     
     string GetModifier()
