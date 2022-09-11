@@ -1487,7 +1487,7 @@ void Manager::InitActionsDictionary()
     actions_["GoFolder"] =                          new GoFolder();
     actions_["FolderModeActivated"] =               new FolderModeActivated();
     actions_["FolderModeDeactivated"] =             new FolderModeDeactivated();
-    actions_["TrackVCAFolderModeDisplay"] =         new TrackVCAFolderModeDisplay();
+    actions_["TrackModeDisplay"] =                  new TrackModeDisplay();
     actions_["CycleTimeDisplayModes"] =             new CycleTimeDisplayModes();
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();
@@ -2906,43 +2906,51 @@ void ZoneManager::PreProcessZones()
         return;
     }
     
+//#define Instrumented
+    
+#ifdef Instrumented
     char msgBuffer[250];
 
     sprintf(msgBuffer, "Preprocessing %d Zone files\n", (int)zoneFilesToProcess.size());
     DAW::ShowConsoleMsg(msgBuffer);
-
     int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-
+#endif
+    
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
 
+#ifdef Instrumented
     int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
     sprintf(msgBuffer, "%d microseconds\n\n", duration);
     DAW::ShowConsoleMsg(msgBuffer);
-
+#endif
     
     
     vector<string> stepSizeFilesToProcess;
     listStepSizeFiles(DAW::GetResourcePath() + string("/CSI/Zones/ZoneStepSizes/"), stepSizeFilesToProcess); // recursively find all .stp files
 
+#ifdef Instrumented
     sprintf(msgBuffer, "Preprocessing %d Step Size files\n", (int)stepSizeFilesToProcess.size());
     DAW::ShowConsoleMsg(msgBuffer);
-    
     start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-
+#endif
+    
     for(auto stepSizeFile : stepSizeFilesToProcess)
         PreProcessStepSizeFile(stepSizeFile, this);
 
+#ifdef Instrumented
     duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
     sprintf(msgBuffer, "%d microseconds\n\n", duration);
     DAW::ShowConsoleMsg(msgBuffer);
-
+#endif
     
     
     if(shouldProcessAutoStepSizes_)
     {
+#ifdef Instrumented
         start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-
+#endif
+        
         for(auto [zoneName, info] : zoneFilePaths_)
         {
             DAW::Undo_BeginBlock();
@@ -2953,12 +2961,14 @@ void ZoneManager::PreProcessZones()
             DAW::Undo();
         }
         
+#ifdef Instrumented
         sprintf(msgBuffer, "Processed %d FX Zones\n", numFXZones);
         DAW::ShowConsoleMsg(msgBuffer);
 
         duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
         sprintf(msgBuffer, "%d microseconds\n\n", duration);
         DAW::ShowConsoleMsg(msgBuffer);
+#endif
     }
 }
 

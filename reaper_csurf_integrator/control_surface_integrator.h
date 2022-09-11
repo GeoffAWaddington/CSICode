@@ -2843,10 +2843,16 @@ public:
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
+    
+    
     int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
+    string GetCurrentTrackVCAFolderModeDisplay() { return trackNavigationManager_->GetCurrentTrackVCAFolderModeDisplay(); }
+    
+    
+    
     bool GetIsVCAActive() { return trackNavigationManager_->GetIsVCAActive();}
     bool GetIsFolderActive() { return trackNavigationManager_->GetIsFolderActive();}
-    string GetCurrentTrackVCAFolderModeDisplay() { return trackNavigationManager_->GetCurrentTrackVCAFolderModeDisplay(); }
+
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
