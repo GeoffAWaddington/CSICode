@@ -2108,32 +2108,22 @@ public:
 
     virtual void SetValue(double value) override
     {
-        if(value == 0.0) // Track
+        if(value == 0.0) // Selected Track
+        {
+            if(lastFirstLetter_ != 0x13)
+            {
+                lastFirstLetter_ = 0x13;
+                SendMidiMessage(0xB0, 0x4B, 0x13); // S
+                SendMidiMessage(0xB0, 0x4A, 0x0C); // L
+            }
+        }
+        else if(value == 1.0) // Track
         {
             if(lastFirstLetter_ != 0x14)
             {
                 lastFirstLetter_ = 0x14;
                 SendMidiMessage(0xB0, 0x4B, 0x14); // T
                 SendMidiMessage(0xB0, 0x4A, 0x12); // R
-            }
-        }
-        else if(value == 1.0) // VCA
-        {
-            if(lastFirstLetter_ != 0x03)
-            {
-                lastFirstLetter_ = 0x03;
-                SendMidiMessage(0xB0, 0x4B, 0x03); // C
-                SendMidiMessage(0xB0, 0x4A, 0x01); // A
-            }
-        }
-        else if(value == 2.0) // Folder
-        {
-            if(lastFirstLetter_ != 0x06)
-            {
-                lastFirstLetter_ = 0x06;
-
-                SendMidiMessage(0xB0, 0x4B, 0x06); // F
-                SendMidiMessage(0xB0, 0x4A, 0x0C); // L
             }
         }
     }

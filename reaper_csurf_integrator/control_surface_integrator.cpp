@@ -209,7 +209,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
 {
     istringstream modified_role(line);
     vector<string> modifier_tokens;
-    vector<string> modifierSlots = { "", "", "", "", "", "", ""};
+    vector<string> modifierSlots = { "", "", "", "", "", "", "", ""};
     string modifier_token;
     
     while (getline(modified_role, modifier_token, '+'))
@@ -238,7 +238,9 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 modifierSlots[5] = FlipToken + "+";
             else if(modifier_tokens[i] == ToggleToken)
                 modifierSlots[6] = ToggleToken + "+";
-
+            else if(modifier_tokens[i] == TrackToken)
+                modifierSlots[7] = TrackToken + "+";
+            
 
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
@@ -253,7 +255,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
         }
     }
     
-    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5] + modifierSlots[6];
+    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5] + modifierSlots[6] + modifierSlots[7];
 }
 
 static void WriteAutoStepSizesFile(string fxName, map<int, vector<double>> &steppedValues)
@@ -1503,6 +1505,7 @@ void Manager::InitActionsDictionary()
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
     actions_["ToggleEnableFocusedFXParamMapping"] = new ToggleEnableFocusedFXParamMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
+    actions_["GoTrack"] =                           new GoTrack();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
     actions_["GoTrackFXMenu"] =                     new GoTrackFXMenu();
@@ -1525,6 +1528,7 @@ void Manager::InitActionsDictionary()
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
     actions_["Flip"] =                              new SetFlip();
+    actions_["Track"] =                             new ToggleTrackModifierEngaged();
     actions_["ClearModifiers"] =                    new ClearModifiers();
     actions_["ToggleChannel"] =                     new SetToggleChannel();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
@@ -2275,6 +2279,15 @@ void Zone::InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone)
 
 void Zone::GoAssociatedZone(string zoneName)
 {
+    if(zoneName == "Track")
+    {
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                zone->Deactivate();
+        
+        return;
+    }
+    
     if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
     {
         for(auto zone : associatedZones_[zoneName])

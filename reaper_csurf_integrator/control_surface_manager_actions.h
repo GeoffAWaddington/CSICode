@@ -384,8 +384,7 @@ public:
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderMode());
-        context->UpdateWidgetValue(context->GetPage()->GetCurrentTrackVCAFolderModeDisplay());
+        context->UpdateWidgetValue(context->GetPage()->GetIsTrackModifierEngaged());
     }
 };
 
@@ -610,6 +609,30 @@ public:
         
         if(MediaTrack* track = context->GetTrack())
             context->GetSurface()->GetZoneManager()->GoSelectedTrackFX();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoTrack : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoTrack"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsHomeZoneOnlyActive())
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("Track");
     }
 };
 
@@ -1122,6 +1145,31 @@ public:
     void Do(ActionContext* context, double value) override
     {
         context->GetPage()->SetFlip(value);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ToggleTrackModifierEngaged : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ToggleTrackModifierEngaged"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return context->GetPage()->GetFlip();
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+
+        context->GetPage()->ToggleTrackModifierEngaged();
     }
 };
 

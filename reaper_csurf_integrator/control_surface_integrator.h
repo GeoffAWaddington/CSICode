@@ -63,6 +63,7 @@ const string OptionToken = "Option";
 const string ControlToken = "Control";
 const string AltToken = "Alt";
 const string FlipToken = "Flip";
+const string TrackToken = "Track";
 
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
@@ -2471,6 +2472,7 @@ private:
     double altPressedTime_ = 0;
     bool isFlip_ = false;
     double flipPressedTime_ = 0;
+    bool isTrackModifierEngaged_ = false;
     
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
@@ -2493,6 +2495,7 @@ public:
     bool GetControl() { return isControl_; }
     bool GetAlt() { return isAlt_; }
     bool GetFlip() { return isFlip_; }
+    bool GetIsTrackModifierEngaged() { return isTrackModifierEngaged_; }
 
                    
     /*
@@ -2641,6 +2644,11 @@ public:
         SetLatchModifier(value, isFlip_, flipPressedTime_);
     }
   
+    void ToggleTrackModifierEngaged()
+    {
+        isTrackModifierEngaged_ = ! isTrackModifierEngaged_;
+    }
+    
     void SetLatchModifier(bool value, bool &modifier, double &modifierPressedTime)
     {
         if(value && modifier == false)
@@ -2680,10 +2688,12 @@ public:
             modifier += AltToken + "+";
         if(isFlip_)
             modifier += FlipToken + "+";
+        if(isTrackModifierEngaged_)
+            modifier += TrackToken + "+";
 
         return modifier;
     }
-    
+        
     void OnTrackSelection(MediaTrack* track)
     {
         trackNavigationManager_->OnTrackSelection();
@@ -2843,16 +2853,8 @@ public:
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
-    
-    
-    int GetCurrentTrackVCAFolderMode() { return trackNavigationManager_->GetCurrentTrackVCAFolderMode(); }
-    string GetCurrentTrackVCAFolderModeDisplay() { return trackNavigationManager_->GetCurrentTrackVCAFolderModeDisplay(); }
-    
-    
-    
     bool GetIsVCAActive() { return trackNavigationManager_->GetIsVCAActive();}
     bool GetIsFolderActive() { return trackNavigationManager_->GetIsFolderActive();}
-
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
