@@ -241,7 +241,6 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
             else if(modifier_tokens[i] == GlobalToken)
                 modifierSlots[7] = GlobalToken + "+";
             
-
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
             else if(modifier_tokens[i] == "Hold")
