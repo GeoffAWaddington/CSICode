@@ -1148,6 +1148,98 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SetMarker : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SetMarker"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return context->GetPage()->GetMarker();
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        context->GetPage()->SetMarker(value);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SetNudge : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SetNudge"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return context->GetPage()->GetNudge();
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        context->GetPage()->SetNudge(value);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SetZoom : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SetZoom"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return context->GetPage()->GetZoom();
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        context->GetPage()->SetZoom(value);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SetScrub : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SetScrub"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return context->GetPage()->GetScrub();
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        context->GetPage()->SetScrub(value);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ClearModifiers : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

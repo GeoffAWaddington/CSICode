@@ -64,6 +64,10 @@ const string ControlToken = "Control";
 const string AltToken = "Alt";
 const string FlipToken = "Flip";
 const string GlobalToken = "Global";
+const string MarkerToken = "Marker";
+const string NudgeToken = "Nudge";
+const string ZoomToken = "Zoom";
+const string ScrubToken = "Scrub";
 
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
@@ -2474,6 +2478,14 @@ private:
     double flipPressedTime_ = 0;
     bool isGlobal_ = false;
     double globalPressedTime_ = 0;
+    bool isMarker_ = false;
+    double markerPressedTime_ = 0;
+    bool isNudge_ = false;
+    double nudgePressedTime_ = 0;
+    bool isZoom_ = false;
+    double zoomPressedTime_ = 0;
+    bool isScrub_ = false;
+    double scrubPressedTime_ = 0;
     
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
@@ -2497,8 +2509,11 @@ public:
     bool GetAlt() { return isAlt_; }
     bool GetFlip() { return isFlip_; }
     bool GetGlobal() { return isGlobal_; }
+    bool GetMarker() { return isMarker_; }
+    bool GetNudge() { return isNudge_; }
+    bool GetZoom() { return isZoom_; }
+    bool GetScrub() { return isScrub_; }
 
-                   
     /*
     int repeats = 0;
     
@@ -2650,6 +2665,42 @@ public:
         SetLatchModifier(value, isGlobal_, globalPressedTime_);
     }
     
+    void SetMarker(bool value)
+    {
+        SetLatchModifier(value, isMarker_, markerPressedTime_);
+        
+        isNudge_ = false;
+        isZoom_ = false;
+        isScrub_ = false;
+    }
+    
+    void SetNudge(bool value)
+    {
+        SetLatchModifier(value, isNudge_, nudgePressedTime_);
+        
+        isMarker_ = false;
+        isZoom_ = false;
+        isScrub_ = false;
+    }
+  
+    void SetZoom(bool value)
+    {
+        SetLatchModifier(value, isZoom_, zoomPressedTime_);
+        
+        isMarker_ = false;
+        isNudge_ = false;
+        isScrub_ = false;
+    }
+  
+    void SetScrub(bool value)
+    {
+        SetLatchModifier(value, isScrub_, scrubPressedTime_);
+        
+        isMarker_ = false;
+        isNudge_ = false;
+        isZoom_ = false;
+    }
+    
     void SetLatchModifier(bool value, bool &modifier, double &modifierPressedTime)
     {
         if(value && modifier == false)
@@ -2674,26 +2725,38 @@ public:
         isAlt_ = false;
         isFlip_ = false;
         isGlobal_ = false;
+        isMarker_ = false;
+        isNudge_ = false;
+        isZoom_ = false;
+        isScrub_ = false;
     }
     
-    string GetModifier()
+    vector<string> GetModifiers()
     {
-        string modifier = "";
+        vector<string> modifiers;
         
         if(isShift_)
-            modifier += ShiftToken + "+";
+            modifiers.push_back(ShiftToken + "+");
         if(isOption_)
-            modifier += OptionToken + "+";
+            modifiers.push_back(OptionToken + "+");
         if(isControl_)
-            modifier +=  ControlToken + "+";
+            modifiers.push_back(ControlToken + "+");
         if(isAlt_)
-            modifier += AltToken + "+";
+            modifiers.push_back(AltToken + "+");
         if(isFlip_)
-            modifier += FlipToken + "+";
+            modifiers.push_back(FlipToken + "+");
         if(isGlobal_)
-            modifier += GlobalToken + "+";
-
-        return modifier;
+            modifiers.push_back(GlobalToken + "+");
+        if(isMarker_)
+            modifiers.push_back(MarkerToken + "+");
+        if(isNudge_)
+            modifiers.push_back(NudgeToken + "+");
+        if(isZoom_)
+            modifiers.push_back(ZoomToken + "+");
+        if(isScrub_)
+            modifiers.push_back(ScrubToken + "+");
+        
+        return modifiers;
     }
         
     void OnTrackSelection(MediaTrack* track)

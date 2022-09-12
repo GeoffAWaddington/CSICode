@@ -209,7 +209,6 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
 {
     istringstream modified_role(line);
     vector<string> modifier_tokens;
-    vector<string> modifierSlots = { "", "", "", "", "", "", "", ""};
     string modifier_token;
     
     while (getline(modified_role, modifier_token, '+'))
@@ -217,29 +216,39 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
     
     widgetName = modifier_tokens[modifier_tokens.size() - 1];
     
+    bool canToggle = false;
+        
     if(modifier_tokens.size() > 1)
     {
         for(int i = 0; i < modifier_tokens.size() - 1; i++)
         {
-            if(modifier_tokens[i].find("Touch") != string::npos)
+            if(modifier_tokens[i] == ToggleToken)
+                canToggle = true;
+            else if(modifier_tokens[i].find("Touch") != string::npos)
             {
                 touchId = modifier_tokens[i];
-                modifierSlots[0] = modifier_tokens[i] + "+";
+                modifier = modifier_tokens[i];
             }
             else if(modifier_tokens[i] == ShiftToken)
-                modifierSlots[1] = ShiftToken + "+";
+                modifier = ShiftToken;
             else if(modifier_tokens[i] == OptionToken)
-                modifierSlots[2] = OptionToken + "+";
+                modifier = OptionToken;
             else if(modifier_tokens[i] == ControlToken)
-                modifierSlots[3] = ControlToken + "+";
+                modifier = ControlToken;
             else if(modifier_tokens[i] == AltToken)
-                modifierSlots[4] = AltToken + "+";
+                modifier = AltToken;
             else if(modifier_tokens[i] == FlipToken)
-                modifierSlots[5] = FlipToken + "+";
-            else if(modifier_tokens[i] == ToggleToken)
-                modifierSlots[6] = ToggleToken + "+";
+                modifier = FlipToken;
             else if(modifier_tokens[i] == GlobalToken)
-                modifierSlots[7] = GlobalToken + "+";
+                modifier = GlobalToken;
+            else if(modifier_tokens[i] == MarkerToken)
+                modifier = MarkerToken;
+            else if(modifier_tokens[i] == NudgeToken)
+                modifier = NudgeToken;
+            else if(modifier_tokens[i] == ZoomToken)
+                modifier = ZoomToken;
+            else if(modifier_tokens[i] == ScrubToken)
+                modifier = ScrubToken;
             
             else if(modifier_tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
@@ -253,8 +262,12 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 isIncrease = true;
         }
     }
+
+    if(modifier != "")
+        modifier += "+";
     
-    modifier = modifierSlots[0] + modifierSlots[1] + modifierSlots[2] + modifierSlots[3] + modifierSlots[4] + modifierSlots[5] + modifierSlots[6] + modifierSlots[7];
+    if(canToggle)
+        modifier += ToggleToken + "+";
 }
 
 static void WriteAutoStepSizesFile(string fxName, map<int, vector<double>> &steppedValues)
@@ -1527,6 +1540,10 @@ void Manager::InitActionsDictionary()
     actions_["Alt"] =                               new SetAlt();
     actions_["Flip"] =                              new SetFlip();
     actions_["Global"] =                            new SetGlobal();
+    actions_["Marker"] =                            new SetMarker();
+    actions_["Nudge"] =                             new SetNudge();
+    actions_["Zoom"] =                              new SetZoom();
+    actions_["Scrub"] =                             new SetScrub();
     actions_["ClearModifiers"] =                    new ClearModifiers();
     actions_["ToggleChannel"] =                     new SetToggleChannel();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
@@ -2592,20 +2609,29 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     string widgetName = widget->GetName();
     bool isToggled = widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber());
     
-    string modifier = widget->GetSurface()->GetPage()->GetModifier();
+    vector<string> modifiers = widget->GetSurface()->GetPage()->GetModifiers();
     
-    if(isToggled && (touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier + "Toggle+")) > 0)
-        return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier + "Toggle+"];
-    if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier) > 0)
-        return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier];
-    else if(isToggled && actionContextDictionary_[widget].count(modifier + "Toggle+") > 0)
-        return actionContextDictionary_[widget][modifier + "Toggle+"];
-    else if(isToggled && actionContextDictionary_[widget].count("Toggle+") > 0)
+    for(auto modifier : modifiers)
+    {
+        if(isToggled && (touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier + "Toggle+")) > 0)
+            return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier + "Toggle+"];
+        
+        if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier) > 0)
+            return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier];
+        
+        else if(isToggled && actionContextDictionary_[widget].count(modifier + "Toggle+") > 0)
+            return actionContextDictionary_[widget][modifier + "Toggle+"];
+        
+        else if(actionContextDictionary_[widget].count(modifier) > 0)
+            return actionContextDictionary_[widget][modifier];
+    }
+    
+    if(isToggled && actionContextDictionary_[widget].count("Toggle+") > 0)
         return actionContextDictionary_[widget]["Toggle+"];
-    else if(actionContextDictionary_[widget].count(modifier) > 0)
-        return actionContextDictionary_[widget][modifier];
+
     else if(actionContextDictionary_[widget].count("") > 0)
         return actionContextDictionary_[widget][""];
+    
     else
         return defaultContexts_;
 }
