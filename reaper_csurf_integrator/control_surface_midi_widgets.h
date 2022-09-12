@@ -2114,16 +2114,16 @@ public:
             {
                 lastFirstLetter_ = 0x13;
                 SendMidiMessage(0xB0, 0x4B, 0x13); // S
-                SendMidiMessage(0xB0, 0x4A, 0x0C); // L
+                SendMidiMessage(0xB0, 0x4A, 0x05); // E
             }
         }
         else if(value == 1.0) // Track
         {
-            if(lastFirstLetter_ != 0x14)
+            if(lastFirstLetter_ != 0x07)
             {
-                lastFirstLetter_ = 0x14;
-                SendMidiMessage(0xB0, 0x4B, 0x14); // T
-                SendMidiMessage(0xB0, 0x4A, 0x12); // R
+                lastFirstLetter_ = 0x07;
+                SendMidiMessage(0xB0, 0x4B, 0x07); // G
+                SendMidiMessage(0xB0, 0x4A, 0x0C); // L
             }
         }
     }

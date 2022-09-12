@@ -376,15 +376,15 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackModeDisplay : public Action
+class GlobalModeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackModeDisplay"; }
+    virtual string GetName() override { return "GlobalModeDisplay"; }
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetPage()->GetIsTrackModifierEngaged());
+        context->UpdateWidgetValue(context->GetPage()->GetGlobal());
     }
 };
 
@@ -1149,15 +1149,15 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleTrackModifierEngaged : public Action
+class SetGlobal : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleTrackModifierEngaged"; }
+    virtual string GetName() override { return "SetGlobal"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetFlip();
+        return context->GetPage()->GetGlobal();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1167,9 +1167,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
-
-        context->GetPage()->ToggleTrackModifierEngaged();
+        context->GetPage()->SetGlobal(value);
     }
 };
 

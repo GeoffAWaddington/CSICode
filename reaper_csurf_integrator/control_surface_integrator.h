@@ -63,7 +63,7 @@ const string OptionToken = "Option";
 const string ControlToken = "Control";
 const string AltToken = "Alt";
 const string FlipToken = "Flip";
-const string TrackToken = "Track";
+const string GlobalToken = "Global";
 
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
@@ -2472,7 +2472,8 @@ private:
     double altPressedTime_ = 0;
     bool isFlip_ = false;
     double flipPressedTime_ = 0;
-    bool isTrackModifierEngaged_ = false;
+    bool isGlobal_ = false;
+    double globalPressedTime_ = 0;
     
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     
@@ -2495,7 +2496,7 @@ public:
     bool GetControl() { return isControl_; }
     bool GetAlt() { return isAlt_; }
     bool GetFlip() { return isFlip_; }
-    bool GetIsTrackModifierEngaged() { return isTrackModifierEngaged_; }
+    bool GetGlobal() { return isGlobal_; }
 
                    
     /*
@@ -2644,9 +2645,9 @@ public:
         SetLatchModifier(value, isFlip_, flipPressedTime_);
     }
   
-    void ToggleTrackModifierEngaged()
+    void SetGlobal(bool value)
     {
-        isTrackModifierEngaged_ = ! isTrackModifierEngaged_;
+        SetLatchModifier(value, isGlobal_, globalPressedTime_);
     }
     
     void SetLatchModifier(bool value, bool &modifier, double &modifierPressedTime)
@@ -2672,7 +2673,7 @@ public:
         isControl_ = false;
         isAlt_ = false;
         isFlip_ = false;
-        isTrackModifierEngaged_ = false;
+        isGlobal_ = false;
     }
     
     string GetModifier()
@@ -2689,8 +2690,8 @@ public:
             modifier += AltToken + "+";
         if(isFlip_)
             modifier += FlipToken + "+";
-        if(isTrackModifierEngaged_)
-            modifier += TrackToken + "+";
+        if(isGlobal_)
+            modifier += GlobalToken + "+";
 
         return modifier;
     }

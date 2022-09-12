@@ -238,8 +238,8 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, string &
                 modifierSlots[5] = FlipToken + "+";
             else if(modifier_tokens[i] == ToggleToken)
                 modifierSlots[6] = ToggleToken + "+";
-            else if(modifier_tokens[i] == TrackToken)
-                modifierSlots[7] = TrackToken + "+";
+            else if(modifier_tokens[i] == GlobalToken)
+                modifierSlots[7] = GlobalToken + "+";
             
 
             else if(modifier_tokens[i] == "InvertFB")
@@ -1489,7 +1489,7 @@ void Manager::InitActionsDictionary()
     actions_["GoFolder"] =                          new GoFolder();
     actions_["FolderModeActivated"] =               new FolderModeActivated();
     actions_["FolderModeDeactivated"] =             new FolderModeDeactivated();
-    actions_["TrackModeDisplay"] =                  new TrackModeDisplay();
+    actions_["GlobalModeDisplay"] =                 new GlobalModeDisplay();
     actions_["CycleTimeDisplayModes"] =             new CycleTimeDisplayModes();
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();
@@ -1528,7 +1528,7 @@ void Manager::InitActionsDictionary()
     actions_["Control"] =                           new SetControl();
     actions_["Alt"] =                               new SetAlt();
     actions_["Flip"] =                              new SetFlip();
-    actions_["Track"] =                             new ToggleTrackModifierEngaged();
+    actions_["Global"] =                            new SetGlobal();
     actions_["ClearModifiers"] =                    new ClearModifiers();
     actions_["ToggleChannel"] =                     new SetToggleChannel();
     actions_["CycleTrackAutoMode"] =                new CycleTrackAutoMode();
