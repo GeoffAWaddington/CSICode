@@ -630,7 +630,6 @@ private:
     string const name_;
     vector<FeedbackProcessor*> feedbackProcessors_;
     int channelNumber_ = 0;
-    string messageGeneratorClass_ = "";
     
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name)
@@ -652,8 +651,6 @@ public:
     ControlSurface* GetSurface() { return surface_; }
     ZoneManager* GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
-    void SetMessageGeneratorClass(string messageGeneratorClass) { messageGeneratorClass_ = messageGeneratorClass; }
-    string GetMessageGeneratorClass(string messageGeneratorClass) { return messageGeneratorClass_; }
     
     void SetProperties(vector<vector<string>> properties);
     void UpdateMode(string modeParams);
