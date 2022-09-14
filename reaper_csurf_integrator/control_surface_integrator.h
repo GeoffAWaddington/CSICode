@@ -630,6 +630,7 @@ private:
     string const name_;
     vector<FeedbackProcessor*> feedbackProcessors_;
     int channelNumber_ = 0;
+    double lastIncomingMessageTime_ = 0.0;
     
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name)
@@ -651,6 +652,9 @@ public:
     ControlSurface* GetSurface() { return surface_; }
     ZoneManager* GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
+    
+    void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
+    double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
     void SetProperties(vector<vector<string>> properties);
     void UpdateMode(string modeParams);
@@ -1178,6 +1182,21 @@ public:
     virtual void ProcessMessage(double value) override
     {
         widget_->GetZoneManager()->DoAction(widget_, 1.0);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MotorizedFaderWithoutTouch_CSIMessageGenerator : CSIMessageGenerator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    MotorizedFaderWithoutTouch_CSIMessageGenerator(Widget* widget, string message) : CSIMessageGenerator(widget, message) {}
+    virtual ~MotorizedFaderWithoutTouch_CSIMessageGenerator() {}
+    
+    virtual void ProcessMessage(double value) override
+    {
+        widget_->SetIncomingMessageTime(DAW::GetCurrentNumberOfMilliseconds());
+        widget_->GetZoneManager()->DoAction(widget_, value);
     }
 };
 

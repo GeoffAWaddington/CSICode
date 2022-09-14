@@ -1416,6 +1416,8 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
             new CSIMessageGenerator(widget, tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "AnyPress")
             new AnyPress_CSIMessageGenerator(widget, tokenLine[1]);
+        else if (tokenLine.size() > 1 && tokenLine[0] == "MotorizedFaderWithoutTouch")
+            new MotorizedFaderWithoutTouch_CSIMessageGenerator(widget, tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "Touch")
             new Touch_CSIMessageGenerator(widget, tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "FB_Processor")
@@ -2769,6 +2771,9 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
 
 void OSC_FeedbackProcessor::ForceValue(double value)
 {
+    if(DAW::GetCurrentNumberOfMilliseconds() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
+        return;
+
     lastDoubleValue_ = value;
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
