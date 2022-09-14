@@ -205,69 +205,74 @@ static void listStepSizeFiles(const string &path, vector<string> &results)
                 results.push_back(file.path().string());
 }
 
-static void GetWidgetNameAndProperties(string line, string &widgetName, string &modifier, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty, bool &isDecrease, bool &isIncrease)
+static vector<string> GetEmptyModifiers()
 {
-    istringstream modified_role(line);
-    vector<string> modifier_tokens;
-    string modifier_token;
+    return { "", "", "", "", "", "", "", "", "" }; // GAW -- IMPORTANT -- keep this list size in synch with parser below
+}
+
+static void GetWidgetNameAndProperties(string line, string &widgetName, vector<string> &modifiers, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty, bool &isDecrease, bool &isIncrease)
+{
+    istringstream modifiersAndWidgetName(line);
+    vector<string> tokens;
+    string token;
     
-    while (getline(modified_role, modifier_token, '+'))
-        modifier_tokens.push_back(modifier_token);
+    while (getline(modifiersAndWidgetName, token, '+'))
+        tokens.push_back(token);
     
-    widgetName = modifier_tokens[modifier_tokens.size() - 1];
-    
-    bool canToggle = false;
-        
-    if(modifier_tokens.size() > 1)
+    widgetName = tokens[tokens.size() - 1];
+       
+    // GAW -- IMPORTANT -- keep the modifier placement order in synch with
+    // Page::GetModifiers()
+    // This vector<string> will be used as a dictionary key
+
+    if(tokens.size() > 1)
     {
-        for(int i = 0; i < modifier_tokens.size() - 1; i++)
+        for(int i = 0; i < tokens.size() - 1; i++)
         {
-            if(modifier_tokens[i] == ToggleToken)
-                canToggle = true;
-            else if(modifier_tokens[i].find("Touch") != string::npos)
-            {
-                touchId = modifier_tokens[i];
-                modifier = modifier_tokens[i];
-            }
-            else if(modifier_tokens[i] == ShiftToken)
-                modifier = ShiftToken;
-            else if(modifier_tokens[i] == OptionToken)
-                modifier = OptionToken;
-            else if(modifier_tokens[i] == ControlToken)
-                modifier = ControlToken;
-            else if(modifier_tokens[i] == AltToken)
-                modifier = AltToken;
-            else if(modifier_tokens[i] == FlipToken)
-                modifier = FlipToken;
-            else if(modifier_tokens[i] == GlobalToken)
-                modifier = GlobalToken;
-            else if(modifier_tokens[i] == MarkerToken)
-                modifier = MarkerToken;
-            else if(modifier_tokens[i] == NudgeToken)
-                modifier = NudgeToken;
-            else if(modifier_tokens[i] == ZoomToken)
-                modifier = ZoomToken;
-            else if(modifier_tokens[i] == ScrubToken)
-                modifier = ScrubToken;
+            if(tokens[i] == ShiftToken)
+                modifiers[0] = ShiftToken;
+            else if(tokens[i] == OptionToken)
+                modifiers[1] = OptionToken;
+            else if(tokens[i] == ControlToken)
+                modifiers[2] = ControlToken;
+            else if(tokens[i] == AltToken)
+                modifiers[3] = AltToken;
+            else if(tokens[i] == FlipToken)
+                modifiers[4] = FlipToken;
+            else if(tokens[i] == GlobalToken)
+                modifiers[5] = GlobalToken;
             
-            else if(modifier_tokens[i] == "InvertFB")
+            else if(tokens[i] == MarkerToken)
+                modifiers[6] = MarkerToken;
+            else if(tokens[i] == NudgeToken)
+                modifiers[6] = NudgeToken;
+            else if(tokens[i] == ZoomToken)
+                modifiers[6] = ZoomToken;
+            else if(tokens[i] == ScrubToken)
+                modifiers[6] = ScrubToken;
+            
+            
+            else if(tokens[i] == ToggleToken)
+                modifiers[7] = ToggleToken;
+            else if(tokens[i].find("Touch") != string::npos)
+            {
+                touchId = tokens[i];
+                modifiers[8] = tokens[i];
+            }
+
+            
+            else if(tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
-            else if(modifier_tokens[i] == "Hold")
+            else if(tokens[i] == "Hold")
                 holdDelayAmount = 1.0;
-            else if(modifier_tokens[i] == "Property")
+            else if(tokens[i] == "Property")
                 isProperty = true;
-            else if(modifier_tokens[i] == "Decrease")
+            else if(tokens[i] == "Decrease")
                 isDecrease = true;
-            else if(modifier_tokens[i] == "Increase")
+            else if(tokens[i] == "Increase")
                 isIncrease = true;
         }
     }
-
-    if(modifier != "")
-        modifier += "+";
-    
-    if(canToggle)
-        modifier += ToggleToken + "+";
 }
 
 static void WriteAutoStepSizesFile(string fxName, map<int, vector<double>> &steppedValues)
@@ -708,12 +713,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                     for(int j = 0; j < params[i].size(); j++)
                     {
                         int paramNumber = params[i][j];
-                        
-                        string modifierString = "";
-                        
-                        if(modifiers.count(i) > 0 && j < modifiers[i].size())
-                            modifierString = modifiers[i][j] + "+";
-                        
+                                                                        
                         if(valueWidgets.count(i) > 0 &&  j < valueWidgets[i].size())
                         {
                             zone->AddWidget(valueWidgets[i][j]);
@@ -747,7 +747,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             if(colorValues.count(paramNumber) > 0)
                                 context->SetColorValues(colorValues[paramNumber]);
 
-                            zone->AddActionContext(valueWidgets[i][j], modifierString, context);
+                            zone->AddActionContext(valueWidgets[i][j], GetEmptyModifiers(), context);
                         }
                         
                         if(nameDisplays.count(i) > 0 &&  j < nameDisplays[i].size())
@@ -760,7 +760,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             else
                                 context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
                             
-                            zone->AddActionContext(nameDisplays[i][j], modifierString, context);
+                            zone->AddActionContext(nameDisplays[i][j], GetEmptyModifiers(), context);
                         }
                         
                         if(valueDisplays.count(i) > 0 &&  j < valueDisplays[i].size())
@@ -773,7 +773,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             else
                                 context = TheManager->GetActionContext("FXParamValueDisplay", valueDisplays[i][j], zone, paramNumber);
                             
-                            zone->AddActionContext(valueDisplays[i][j], modifierString, context);
+                            zone->AddActionContext(valueDisplays[i][j], GetEmptyModifiers(), context);
                         }
                     }
                 }
@@ -798,7 +798,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
     vector<string> associatedZones;
     map<string, string> touchIds;
     
-    map<string, map<string, vector<shared_ptr<ActionTemplate>>>> widgetActions;
+    map<string, map<vector<string>, vector<shared_ptr<ActionTemplate>>>> actionTemplatesDictionary;
     
     string zoneName = "";
     string zoneAlias = "";
@@ -885,7 +885,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         
                         zones.push_back(zone);
                         
-                        for(auto [widgetName, modifierActions] : widgetActions)
+                        for(auto [widgetName, modifiedActionTemplates] : actionTemplatesDictionary)
                         {
                             string surfaceWidgetName = widgetName;
                             
@@ -902,32 +902,35 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
  
                             zone->AddWidget(widget);
                             
-                            for(auto [modifier, actions] : modifierActions)
+                            for(auto [modifiers, actionTemplates] : modifiedActionTemplates)
                             {
-                                for(auto action : actions)
+                                for(auto actionTemplate : actionTemplates)
                                 {
-                                    string actionName = regex_replace(action->actionName, regex("[|]"), numStr);
+                                    string actionName = regex_replace(actionTemplate->actionName, regex("[|]"), numStr);
 
                                     vector<string> memberParams;
-                                    for(int j = 0; j < action->params.size(); j++)
-                                        memberParams.push_back(regex_replace(action->params[j], regex("[|]"), numStr));
+                                    for(int j = 0; j < actionTemplate->params.size(); j++)
+                                        memberParams.push_back(regex_replace(actionTemplate->params[j], regex("[|]"), numStr));
                                     
-                                    shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams, action->properties);
+                                    shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams, actionTemplate->properties);
                                                                         
-                                    if(action->isFeedbackInverted)
+                                    if(actionTemplate->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
                                     
-                                    if(action->holdDelayAmount != 0.0)
-                                        context->SetHoldDelayAmount(action->holdDelayAmount);
+                                    if(actionTemplate->holdDelayAmount != 0.0)
+                                        context->SetHoldDelayAmount(actionTemplate->holdDelayAmount);
                                     
-                                    if(action->isDecrease)
+                                    if(actionTemplate->isDecrease)
                                         context->SetRange({ -2.0, 1.0 });
-                                    else if(action->isIncrease)
+                                    else if(actionTemplate->isIncrease)
                                         context->SetRange({ 0.0, 2.0 });
 
-                                    string expandedModifier = regex_replace(modifier, regex("[|]"), numStr);
+                                    vector<string> expandedModifiers;
                                     
-                                    zone->AddActionContext(widget, expandedModifier, context);
+                                    for(auto modifier : modifiers)
+                                        expandedModifiers.push_back(regex_replace(modifier, regex("[|]"), numStr));
+                                    
+                                    zone->AddActionContext(widget, expandedModifiers, context);
                                 }
                             }
                         }
@@ -939,7 +942,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     includedZones.clear();
                     subZones.clear();
                     associatedZones.clear();
-                    widgetActions.clear();
+                    actionTemplatesDictionary.clear();
                     touchIds.clear();
                     
                     break;
@@ -977,7 +980,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     actionName = tokens[1];
                     
                     string widgetName = "";
-                    string modifier = "";
+                    vector<string> modifiers = GetEmptyModifiers();
                     string touchId = "";
                     bool isFeedbackInverted = false;
                     double holdDelayAmount = 0.0;
@@ -985,7 +988,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     bool isDecrease = false;
                     bool isIncrease = false;
 
-                    GetWidgetNameAndProperties(tokens[0], widgetName, modifier, touchId, isFeedbackInverted, holdDelayAmount, isProperty, isDecrease, isIncrease);
+                    GetWidgetNameAndProperties(tokens[0], widgetName, modifiers, touchId, isFeedbackInverted, holdDelayAmount, isProperty, isDecrease, isIncrease);
                     
                     if(touchId != "")
                         touchIds[widgetName] = touchId;
@@ -1002,7 +1005,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     else
                     {
                         currentActionTemplate = make_shared<ActionTemplate>(actionName, params, isFeedbackInverted, holdDelayAmount, isDecrease, isIncrease);
-                        widgetActions[widgetName][modifier].push_back(currentActionTemplate);
+                        actionTemplatesDictionary[widgetName][modifiers].push_back(currentActionTemplate);
                     }
                 }
             }
@@ -2234,13 +2237,13 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                             {
                                 zone->AddWidget(onZoneActivation);
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("VCAModeActivated", onZoneActivation, zone, "");
-                                zone->AddActionContext(onZoneActivation, "", context);
+                                zone->AddActionContext(onZoneActivation, GetEmptyModifiers(), context);
                             }
                             if(onZoneDeactivation != nullptr)
                             {
                                 zone->AddWidget(onZoneDeactivation);
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("VCAModeDeactivated", onZoneDeactivation, zone, "");
-                                zone->AddActionContext(onZoneDeactivation, "", context);
+                                zone->AddActionContext(onZoneDeactivation, GetEmptyModifiers(), context);
                             }
                         }
                         else if(zoneName == "Folder")
@@ -2249,13 +2252,13 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                             {
                                 zone->AddWidget(onZoneActivation);
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("FolderModeActivated", onZoneActivation, zone, "");
-                                zone->AddActionContext(onZoneActivation, "", context);
+                                zone->AddActionContext(onZoneActivation, GetEmptyModifiers(), context);
                             }
                             if(onZoneDeactivation != nullptr)
                             {
                                 zone->AddWidget(onZoneDeactivation);
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("FolderModeDeactivated", onZoneDeactivation, zone, "");
-                                zone->AddActionContext(onZoneDeactivation, "", context);
+                                zone->AddActionContext(onZoneDeactivation, GetEmptyModifiers(), context);
                             }
                         }
                     }
@@ -2609,31 +2612,17 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
     string widgetName = widget->GetName();
-    bool isToggled = widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber());
     
     vector<string> modifiers = widget->GetSurface()->GetPage()->GetModifiers();
     
-    for(auto modifier : modifiers)
-    {
-        if(isToggled && (touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier + "Toggle+")) > 0)
-            return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier + "Toggle+"];
-        
-        if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true && actionContextDictionary_[widget].count(touchIds_[widgetName] + "+" + modifier) > 0)
-            return actionContextDictionary_[widget][touchIds_[widgetName] + "+" + modifier];
-        
-        else if(isToggled && actionContextDictionary_[widget].count(modifier + "Toggle+") > 0)
-            return actionContextDictionary_[widget][modifier + "Toggle+"];
-        
-        else if(actionContextDictionary_[widget].count(modifier) > 0)
-            return actionContextDictionary_[widget][modifier];
-    }
+    if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
+       modifiers[7] = ToggleToken;
     
-    if(isToggled && actionContextDictionary_[widget].count("Toggle+") > 0)
-        return actionContextDictionary_[widget]["Toggle+"];
-
-    else if(actionContextDictionary_[widget].count("") > 0)
-        return actionContextDictionary_[widget][""];
-    
+    if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true)
+        modifiers[8] = touchIds_[widgetName];
+        
+    if(actionContextDictionary_[widget].count(modifiers) > 0)
+        return actionContextDictionary_[widget][modifiers];
     else
         return defaultContexts_;
 }
@@ -3233,6 +3222,43 @@ void TrackNavigationManager::RebuildTracks()
     
     if(tracks_.size() != oldTracksSize)
         page_->ForceUpdateTrackColors();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Page
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// GAW -- IMPORTANT -- keep the modifier placement order in synch with
+// static void GetWidgetNameAndProperties()
+// This will be compard with a dictionary key of type vector<string>
+
+vector<string> Page::GetModifiers()
+{
+    vector<string> modifiers = GetEmptyModifiers();
+    
+    if(isShift_)
+        modifiers[0] = ShiftToken;
+    if(isOption_)
+        modifiers[1] = OptionToken;
+    if(isControl_)
+        modifiers[2] = ControlToken;
+    if(isAlt_)
+        modifiers[3] = AltToken;
+    if(isFlip_)
+        modifiers[4] = FlipToken;
+    if(isGlobal_)
+        modifiers[5] = GlobalToken;
+    
+    if(isMarker_)
+        modifiers[6] = MarkerToken;
+    else if(isNudge_)
+        modifiers[6] = NudgeToken;
+    else if(isZoom_)
+        modifiers[6] = ZoomToken;
+    else if(isScrub_)
+        modifiers[6] = ScrubToken;
+    
+    return modifiers;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

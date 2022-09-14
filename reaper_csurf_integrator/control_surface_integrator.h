@@ -498,7 +498,7 @@ protected:
     map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
-    map<Widget*, map<string, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    map<Widget*, map<vector<string>, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
@@ -584,9 +584,9 @@ public:
         widgets_[widget] = true;
     }
     
-    void AddActionContext(Widget* widget, string modifier, shared_ptr<ActionContext> actionContext)
+    void AddActionContext(Widget* widget, vector<string> modifiers, shared_ptr<ActionContext> actionContext)
     {
-        actionContextDictionary_[widget][modifier].push_back(actionContext);
+        actionContextDictionary_[widget][modifiers].push_back(actionContext);
     }
     
     virtual void GoSubZone(string subZoneName)
@@ -2517,6 +2517,8 @@ public:
         }
     }
     
+    vector<string> GetModifiers();
+    
     string GetName() { return name_; }
     
     bool GetShift() { return isShift_; }
@@ -2746,35 +2748,7 @@ public:
         isZoom_ = false;
         isScrub_ = false;
     }
-    
-    vector<string> GetModifiers()
-    {
-        vector<string> modifiers;
-        
-        if(isShift_)
-            modifiers.push_back(ShiftToken + "+");
-        if(isOption_)
-            modifiers.push_back(OptionToken + "+");
-        if(isControl_)
-            modifiers.push_back(ControlToken + "+");
-        if(isAlt_)
-            modifiers.push_back(AltToken + "+");
-        if(isFlip_)
-            modifiers.push_back(FlipToken + "+");
-        if(isGlobal_)
-            modifiers.push_back(GlobalToken + "+");
-        if(isMarker_)
-            modifiers.push_back(MarkerToken + "+");
-        if(isNudge_)
-            modifiers.push_back(NudgeToken + "+");
-        if(isZoom_)
-            modifiers.push_back(ZoomToken + "+");
-        if(isScrub_)
-            modifiers.push_back(ScrubToken + "+");
-        
-        return modifiers;
-    }
-        
+            
     void OnTrackSelection(MediaTrack* track)
     {
         trackNavigationManager_->OnTrackSelection();
