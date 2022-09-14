@@ -252,6 +252,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, vector<s
                 modifiers[6] = ScrubToken;
             
             
+            // GAW -- IMPORTANT -- make sure you add any new modifers before these, they MUST be the last 2 in the list, if present
             else if(tokens[i] == ToggleToken)
                 modifiers[7] = ToggleToken;
             else if(tokens[i].find("Touch") != string::npos)
