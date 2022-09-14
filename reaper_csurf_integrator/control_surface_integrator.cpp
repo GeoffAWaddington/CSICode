@@ -2616,10 +2616,10 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     vector<string> modifiers = widget->GetSurface()->GetPage()->GetModifiers();
     
     if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
-       modifiers[7] = ToggleToken;
+       modifiers[modifiers.size() - 2] = ToggleToken;
     
     if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true)
-        modifiers[8] = touchIds_[widgetName];
+        modifiers[modifiers.size() - 1] = touchIds_[widgetName];
         
     if(actionContextDictionary_[widget].count(modifiers) > 0)
         return actionContextDictionary_[widget][modifiers];
