@@ -2610,6 +2610,25 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
     }
 }
 
+static vector<vector<int>> GetCombinations(vector<int> &indices)
+{
+    vector<vector<int>> combinations;
+    
+    for (int mask = 0; mask < (1 << indices.size()); mask++)
+    {
+        vector<int> combination; // Stores a combination
+        
+        for (int position = 0; position < indices.size(); position++)
+            if (mask & (1 << position))
+                combination.push_back(indices[position]);
+        
+        if(combination.size() < indices.size() && combination.size() > 0)
+            combinations.push_back(combination);
+    }
+    
+    return combinations;
+}
+
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
     string widgetName = widget->GetName();
@@ -2625,7 +2644,37 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     if(actionContextDictionary_[widget].count(modifiers) > 0)
         return actionContextDictionary_[widget][modifiers];
     else
-        return defaultContexts_;
+    {
+        vector<int> activeModifierIndices;
+        
+        for(int i = 0; i < modifiers.size(); i++)
+            if(modifiers[i] != "")
+                activeModifierIndices.push_back(i);
+
+        if(activeModifierIndices.size() > 0)
+        {
+            vector<vector<int>> combinations = GetCombinations(activeModifierIndices);
+            
+            sort(combinations.begin(), combinations.end(), [](const vector<int> & a, const vector<int> & b) { return a.size() > b.size(); });
+                        
+            for(auto combination : combinations)
+            {
+                vector<string> candidateModifiers = modifiers;
+
+                for(int i = 0; i < activeModifierIndices.size(); i++)
+                    if(find(combination.begin(), combination.end(), activeModifierIndices[i]) == combination.end())
+                        candidateModifiers[i] = "";
+                
+                if(actionContextDictionary_[widget].count(candidateModifiers) > 0)
+                    return actionContextDictionary_[widget][candidateModifiers];
+            }
+        }
+        
+        if(actionContextDictionary_[widget].count(GetEmptyModifiers()) > 0)
+            return actionContextDictionary_[widget][GetEmptyModifiers()];
+    }
+    
+    return defaultContexts_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
