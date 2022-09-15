@@ -182,6 +182,8 @@ struct ActionTemplate
     bool isDecrease = false;
     bool isIncrease = false;
     
+    ActionTemplate() {}
+    
     ActionTemplate(string action, vector<string> prams, bool isInverted, double amount, bool  isDec, bool isInc) : actionName(action), params(prams), isFeedbackInverted(isInverted), holdDelayAmount(amount), isDecrease(isDec), isIncrease(isInc)  {}
 };
 
@@ -256,10 +258,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, vector<s
             else if(tokens[i] == ToggleToken)
                 modifiers[7] = ToggleToken;
             else if(tokens[i].find("Touch") != string::npos)
-            {
-                touchId = tokens[i];
-                modifiers[8] = tokens[i];
-            }
+                modifiers[8] = TouchToken;
 
             
             else if(tokens[i] == "InvertFB")
@@ -698,14 +697,13 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
             {
                 vector<string> includedZones;
                 vector<string> associatedZones;
-                map<string, string> touchIds;
 
                 shared_ptr<Zone> zone;
                 
                 if(enclosingZone == nullptr)
-                    zone = make_shared<Zone>(zoneManager, navigators[0], 0, touchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                    zone = make_shared<Zone>(zoneManager, navigators[0], 0, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                 else
-                    zone = make_shared<SubZone>(zoneManager, navigators[0], 0, touchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+                    zone = make_shared<SubZone>(zoneManager, navigators[0], 0, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
                                         
                 zones.push_back(zone);
 
@@ -797,7 +795,6 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
     vector<string> subZones;
     bool isInAssociatedZonesSection = false;
     vector<string> associatedZones;
-    map<string, string> touchIds;
     
     map<string, map<vector<string>, vector<shared_ptr<ActionTemplate>>>> actionTemplatesDictionary;
     
@@ -852,28 +849,13 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         string numStr = to_string(i + 1);
                         
                         map<string, string> expandedTouchIds;
-                        
-                        if(navigators.size() > 1)
-                        {
-                            for(auto [key, value] : touchIds)
-                            {
-                                string expandedKey = regex_replace(key, regex("[|]"), numStr);
-                                string expandedValue = regex_replace(value, regex("[|]"), numStr);
-
-                                expandedTouchIds[expandedKey] = expandedValue;
-                            }
-                        }
-                        else
-                        {
-                            expandedTouchIds = touchIds;
-                        }
-                        
+                                                
                         shared_ptr<Zone> zone;
                         
                         if(enclosingZone == nullptr)
-                            zone = make_shared<Zone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                            zone = make_shared<Zone>(zoneManager, navigators[i], i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
-                            zone = make_shared<SubZone>(zoneManager, navigators[i], i, expandedTouchIds, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+                            zone = make_shared<SubZone>(zoneManager, navigators[i], i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
                                                 
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
@@ -925,13 +907,8 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                         context->SetRange({ -2.0, 1.0 });
                                     else if(actionTemplate->isIncrease)
                                         context->SetRange({ 0.0, 2.0 });
-
-                                    vector<string> expandedModifiers;
-                                    
-                                    for(auto modifier : modifiers)
-                                        expandedModifiers.push_back(regex_replace(modifier, regex("[|]"), numStr));
-                                    
-                                    zone->AddActionContext(widget, expandedModifiers, context);
+                                   
+                                    zone->AddActionContext(widget, modifiers, context);
                                 }
                             }
                         }
@@ -944,7 +921,6 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     subZones.clear();
                     associatedZones.clear();
                     actionTemplatesDictionary.clear();
-                    touchIds.clear();
                     
                     break;
                 }
@@ -978,26 +954,16 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                  
                 else if(tokens.size() > 1)
                 {
-                    actionName = tokens[1];
-                    
-                    string widgetName = "";
-                    vector<string> modifiers = GetEmptyModifiers();
-                    string touchId = "";
-                    bool isFeedbackInverted = false;
-                    double holdDelayAmount = 0.0;
                     bool isProperty = false;
-                    bool isDecrease = false;
-                    bool isIncrease = false;
 
-                    GetWidgetNameAndProperties(tokens[0], widgetName, modifiers, touchId, isFeedbackInverted, holdDelayAmount, isProperty, isDecrease, isIncrease);
-                    
-                    if(touchId != "")
-                        touchIds[widgetName] = touchId;
-                    
                     vector<string> params;
                     for(int i = 1; i < tokens.size(); i++)
+                    {
                         params.push_back(tokens[i]);
-                    
+                        if(tokens[i] == "Property")
+                            isProperty = true;
+                    }
+
                     if(isProperty)
                     {
                         if(currentActionTemplate != nullptr)
@@ -1005,6 +971,18 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     }
                     else
                     {
+                        actionName = tokens[1];
+                        
+                        string widgetName = "";
+                        vector<string> modifiers = GetEmptyModifiers();
+                        string touchId = "";
+                        bool isFeedbackInverted = false;
+                        double holdDelayAmount = 0.0;
+                        bool isDecrease = false;
+                        bool isIncrease = false;
+
+                        GetWidgetNameAndProperties(tokens[0], widgetName, modifiers, touchId, isFeedbackInverted, holdDelayAmount, isProperty, isDecrease, isIncrease);
+
                         currentActionTemplate = make_shared<ActionTemplate>(actionName, params, isFeedbackInverted, holdDelayAmount, isDecrease, isIncrease);
                         actionTemplatesDictionary[widgetName][modifiers].push_back(currentActionTemplate);
                     }
@@ -2205,7 +2183,7 @@ int Zone::GetChannelNumber()
     return channelNumber;
 }
 
-Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), touchIds_(touchIds), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     if(name == "Home")
     {
@@ -2596,10 +2574,6 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
     {
         isUsed = true;
 
-        activeTouchIds_[widgetName + "Touch"] = value;
-        activeTouchIds_[widgetName + "TouchPress"] = value;
-        activeTouchIds_[widgetName + "TouchRelease"] = ! value;
-
         for(auto context : GetActionContexts(widget))
             context->DoTouch(value);
     }
@@ -2622,7 +2596,7 @@ static vector<vector<int>> GetCombinations(vector<int> &indices)
             if (mask & (1 << position))
                 combination.push_back(indices[position]);
         
-        if(combination.size() < indices.size() && combination.size() > 0)
+        if(combination.size() < 5 && combination.size() > 0)
             combinations.push_back(combination);
     }
     
@@ -2638,8 +2612,8 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
        modifiers[modifiers.size() - 2] = ToggleToken;
     
-    if(touchIds_.count(widgetName) > 0 && activeTouchIds_.count(touchIds_[widgetName]) > 0 && activeTouchIds_[touchIds_[widgetName]] == true)
-        modifiers[modifiers.size() - 1] = touchIds_[widgetName];
+    if(GetNavigator()->GetIsNavigatorTouched())
+       modifiers[modifiers.size() - 1] = TouchToken;
         
     if(actionContextDictionary_[widget].count(modifiers) > 0)
         return actionContextDictionary_[widget][modifiers];
@@ -2650,7 +2624,7 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
         for(int i = 0; i < modifiers.size(); i++)
             if(modifiers[i] != "")
                 activeModifierIndices.push_back(i);
-
+        
         if(activeModifierIndices.size() > 0)
         {
             vector<vector<int>> combinations = GetCombinations(activeModifierIndices);

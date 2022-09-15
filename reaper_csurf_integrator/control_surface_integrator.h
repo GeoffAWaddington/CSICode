@@ -58,6 +58,7 @@ const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
 
 const string ToggleToken = "Toggle";
+const string TouchToken = "Touch";
 const string ShiftToken = "Shift";
 const string OptionToken = "Option";
 const string ControlToken = "Control";
@@ -151,6 +152,8 @@ protected:
 public:
     Navigator(Page*  page) : page_(page) {}
     virtual ~Navigator() {}
+    
+    bool GetIsNavigatorTouched() { return isVolumeTouched_ || isPanTouched_ || isPanWidthTouched_ || isPanLeftTouched_ || isPanRightTouched_; }
     
     void SetIsVolumeTouched(bool isVolumeTouched) { isVolumeTouched_ = isVolumeTouched;  }
     bool GetIsVolumeTouched() { return isVolumeTouched_;  }
@@ -489,8 +492,6 @@ protected:
     string const sourceFilePath_ = "";
     
     bool isActive_ = false;
-    map<string, string> touchIds_;
-    map<string, bool> activeTouchIds_;
     
     map<Widget*, bool> widgets_;
     
@@ -504,7 +505,7 @@ protected:
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     
 public:
-    Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
+    Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
 
     void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
     
@@ -610,7 +611,7 @@ private:
     shared_ptr<Zone> const enclosingZone_ = nullptr;
     
 public:
-    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, map<string, string> touchIds, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, touchIds, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
