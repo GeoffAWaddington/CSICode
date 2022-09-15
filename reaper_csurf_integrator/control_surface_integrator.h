@@ -57,19 +57,6 @@ const string UseScrollLinkToken = "UseScrollLink";
 const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
 
-const string ToggleToken = "Toggle";
-const string TouchToken = "Touch";
-const string ShiftToken = "Shift";
-const string OptionToken = "Option";
-const string ControlToken = "Control";
-const string AltToken = "Alt";
-const string FlipToken = "Flip";
-const string GlobalToken = "Global";
-const string MarkerToken = "Marker";
-const string NudgeToken = "Nudge";
-const string ZoomToken = "Zoom";
-const string ScrubToken = "Scrub";
-
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
 const string TabChars = "[\t]";
@@ -499,7 +486,7 @@ protected:
     map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
-    map<Widget*, map<vector<string>, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    map<Widget*, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
@@ -585,9 +572,9 @@ public:
         widgets_[widget] = true;
     }
     
-    void AddActionContext(Widget* widget, vector<string> modifiers, shared_ptr<ActionContext> actionContext)
+    void AddActionContext(Widget* widget, int modifier, shared_ptr<ActionContext> actionContext)
     {
-        actionContextDictionary_[widget][modifiers].push_back(actionContext);
+        actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
     
     virtual void GoSubZone(string subZoneName)
@@ -2481,6 +2468,7 @@ class Page
 {
 private:
     string const name_ = "";
+    TrackNavigationManager* const trackNavigationManager_ = nullptr;
     vector<ControlSurface*> surfaces_;
     
     bool isShift_ = false;
@@ -2504,10 +2492,115 @@ private:
     bool isScrub_ = false;
     double scrubPressedTime_ = 0;
     
-    TrackNavigationManager* const trackNavigationManager_ = nullptr;
-    
+    vector<int> modifierCombinations_;
+
+    vector<vector<int>> GetCombinations(vector<int> &indices)
+    {
+        vector<vector<int>> combinations;
+        
+        for (int mask = 0; mask < (1 << indices.size()); mask++)
+        {
+            vector<int> combination; // Stores a combination
+            
+            for (int position = 0; position < indices.size(); position++)
+                if (mask & (1 << position))
+                    combination.push_back(indices[position]);
+            
+            if(combination.size() > 0)
+                combinations.push_back(combination);
+        }
+        
+        return combinations;
+    }
+
+    // GAW -- IMPORTANT -- keep the modifier placement order in synch with
+    // static void GetWidgetNameAndProperties()
+    // This is a dictionary key
+
+    void RecalculateModifiers()
+    {
+        vector<bool> emptyModifiers = { false, false, false, false, false, false, false, false, false, false };
+        
+        modifierCombinations_.clear();
+        modifierCombinations_.push_back(0);
+        
+        vector<bool> modifiers = emptyModifiers;
+        
+        if(isShift_)
+            modifiers[0] = true;
+        if(isOption_)
+            modifiers[1] = true;
+        if(isControl_)
+            modifiers[2] = true;
+        if(isAlt_)
+            modifiers[3] = true;
+        if(isFlip_)
+            modifiers[4] = true;
+        if(isGlobal_)
+            modifiers[5] = true;
+        
+        if(isMarker_)
+            modifiers[6] = true;
+        if(isNudge_)
+            modifiers[7] = true;
+        if(isZoom_)
+            modifiers[8] = true;
+        if(isScrub_)
+            modifiers[9] = true;
+        
+        vector<int> activeModifierIndices;
+        
+        for(int i = 0; i < modifiers.size(); i++)
+            if(modifiers[i] == true)
+                activeModifierIndices.push_back(i);
+        
+        if(activeModifierIndices.size() > 0)
+        {
+            vector<vector<int>> combinations = GetCombinations(activeModifierIndices);
+                                   
+            for(auto combination : combinations)
+            {
+                vector<bool> candidateModifiers = emptyModifiers;
+
+                for(int i = 0; i < combination.size(); i++)
+                    candidateModifiers[combination[i]] = true;
+                
+                int modifier = 0;
+                
+                if(candidateModifiers[0] == true)
+                    modifier += 4;
+                if(candidateModifiers[1] == true)
+                    modifier += 8;
+                if(candidateModifiers[2] == true)
+                    modifier += 16;
+                if(candidateModifiers[3] == true)
+                    modifier += 32;
+                if(candidateModifiers[4] == true)
+                    modifier += 64;
+                if(candidateModifiers[5] == true)
+                    modifier += 128;
+                
+                if(candidateModifiers[6] == true)
+                    modifier += 256;
+                if(candidateModifiers[7] == true)
+                    modifier += 512;
+                if(candidateModifiers[8] == true)
+                    modifier += 1024;
+                if(candidateModifiers[9] == true)
+                    modifier += 2048;
+                
+                modifierCombinations_.push_back(modifier);
+            }
+            
+            sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
+        }
+    }
+       
 public:
-    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled)) {}
+    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled))
+    {
+        modifierCombinations_.push_back(0);
+    }
     
     ~Page()
     {
@@ -2518,7 +2611,7 @@ public:
         }
     }
     
-    vector<string> GetModifiers();
+    vector<int> GetModifiers() { return modifierCombinations_; }
     
     string GetName() { return name_; }
     
@@ -2657,31 +2750,37 @@ public:
     void SetShift(bool value)
     {
         SetLatchModifier(value, isShift_, shiftPressedTime_);
+        RecalculateModifiers();
     }
  
     void SetOption(bool value)
     {
         SetLatchModifier(value, isOption_, optionPressedTime_);
+        RecalculateModifiers();
     }
     
     void SetControl(bool value)
     {
         SetLatchModifier(value, isControl_, controlPressedTime_);
+        RecalculateModifiers();
     }
     
     void SetAlt(bool value)
     {
         SetLatchModifier(value, isAlt_, altPressedTime_);
+        RecalculateModifiers();
     }
   
     void SetFlip(bool value)
     {
         SetLatchModifier(value, isFlip_, flipPressedTime_);
+        RecalculateModifiers();
     }
   
     void SetGlobal(bool value)
     {
-        SetLatchModifier(value, isGlobal_, globalPressedTime_);
+        SetLatchModifier(value, isGlobal_, globalPressedTime_);\
+        RecalculateModifiers();
     }
     
     void SetMarker(bool value)
@@ -2691,6 +2790,7 @@ public:
         isNudge_ = false;
         isZoom_ = false;
         isScrub_ = false;
+        RecalculateModifiers();
     }
     
     void SetNudge(bool value)
@@ -2700,6 +2800,7 @@ public:
         isMarker_ = false;
         isZoom_ = false;
         isScrub_ = false;
+        RecalculateModifiers();
     }
   
     void SetZoom(bool value)
@@ -2709,6 +2810,7 @@ public:
         isMarker_ = false;
         isNudge_ = false;
         isScrub_ = false;
+        RecalculateModifiers();
     }
   
     void SetScrub(bool value)
@@ -2718,6 +2820,7 @@ public:
         isMarker_ = false;
         isNudge_ = false;
         isZoom_ = false;
+        RecalculateModifiers();
     }
     
     void SetLatchModifier(bool value, bool &modifier, double &modifierPressedTime)
