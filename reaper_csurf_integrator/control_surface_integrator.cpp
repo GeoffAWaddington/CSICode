@@ -2564,19 +2564,27 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
 }
 
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
-{   
-    int modifierBias = 0;
-
+{
+    bool isTouched = false;
+    bool isToggled = false;
+    
     if(GetNavigator()->GetIsNavigatorTouched())
-        modifierBias += 1;
+        isTouched = true;
 
     if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
-        modifierBias += 2;
-            
+        isToggled = true;
+           
+    vector<int> mods = widget->GetSurface()->GetPage()->GetModifiers();
+    
     for(auto modifier : widget->GetSurface()->GetPage()->GetModifiers())
     {
-        modifier += modifierBias;
-        
+        if(isTouched && isToggled && actionContextDictionary_[widget].count(modifier + 3) > 0)
+            return actionContextDictionary_[widget][modifier + 3];
+        else if(isTouched && actionContextDictionary_[widget].count(modifier + 1) > 0)
+            return actionContextDictionary_[widget][modifier + 1];
+        else if(isToggled && actionContextDictionary_[widget].count(modifier + 2) > 0)
+            return actionContextDictionary_[widget][modifier + 2];
+
         if(actionContextDictionary_[widget].count(modifier) > 0)
             return actionContextDictionary_[widget][modifier];
     }

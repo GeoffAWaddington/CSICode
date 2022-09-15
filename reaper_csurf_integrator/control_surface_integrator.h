@@ -2633,6 +2633,7 @@ public:
     {
         int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
+        trackNavigationManager_->RebuildTracks();
         trackNavigationManager_->RebuildVCASpill();
         trackNavigationManager_->RebuildFolderTracks();
      
@@ -2651,10 +2652,12 @@ public:
              int totalDuration = 0;
 
              start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+             trackNavigationManager_->RebuildTracks();
              trackNavigationManager_->RebuildVCASpill();
+             trackNavigationManager_->RebuildFolderTracks();
              int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
              totalDuration += duration;
-             ShowDuration("Rebuild Track List", duration);
+             ShowDuration("Rebuild Track/VCA/Folder List", duration);
              
              for(auto surface : surfaces_)
              {
