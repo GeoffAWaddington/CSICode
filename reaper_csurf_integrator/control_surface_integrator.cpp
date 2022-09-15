@@ -169,22 +169,24 @@ static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(string sur
 // Parsing
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+static vector<string> GetEmptyModifiers()
+{
+    return { "", "", "", "", "", "", "", "", "" }; // GAW -- IMPORTANT -- keep this list size in synch with parser below
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct ActionTemplate
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string actionName;
+    string widgetName = "";
+    vector<string> modifiers = GetEmptyModifiers();
+    string actionName = "";
     vector<string> params;
     vector<vector<string>> properties;
-    bool isFeedbackInverted;
-    double holdDelayAmount;
+    bool isFeedbackInverted = false;
+    double holdDelayAmount = 0.0;
     bool isDecrease = false;
     bool isIncrease = false;
-    
-    ActionTemplate() {}
-    
-    ActionTemplate(string action, vector<string> prams, bool isInverted, double amount, bool  isDec, bool isInc) : actionName(action), params(prams), isFeedbackInverted(isInverted), holdDelayAmount(amount), isDecrease(isDec), isIncrease(isInc)  {}
 };
 
 static void listZoneFiles(const string &path, vector<string> &results)
@@ -207,12 +209,7 @@ static void listStepSizeFiles(const string &path, vector<string> &results)
                 results.push_back(file.path().string());
 }
 
-static vector<string> GetEmptyModifiers()
-{
-    return { "", "", "", "", "", "", "", "", "" }; // GAW -- IMPORTANT -- keep this list size in synch with parser below
-}
-
-static void GetWidgetNameAndProperties(string line, string &widgetName, vector<string> &modifiers, string &touchId, bool &isFeedbackInverted, double &holdDelayAmount, bool &isProperty, bool &isDecrease, bool &isIncrease)
+static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> tokens;
@@ -221,7 +218,7 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, vector<s
     while (getline(modifiersAndWidgetName, token, '+'))
         tokens.push_back(token);
     
-    widgetName = tokens[tokens.size() - 1];
+    actionTemplate->widgetName = tokens[tokens.size() - 1];
        
     // GAW -- IMPORTANT -- keep the modifier placement order in synch with
     // Page::GetModifiers()
@@ -232,45 +229,43 @@ static void GetWidgetNameAndProperties(string line, string &widgetName, vector<s
         for(int i = 0; i < tokens.size() - 1; i++)
         {
             if(tokens[i] == ShiftToken)
-                modifiers[0] = ShiftToken;
+                actionTemplate->modifiers[0] = ShiftToken;
             else if(tokens[i] == OptionToken)
-                modifiers[1] = OptionToken;
+                actionTemplate->modifiers[1] = OptionToken;
             else if(tokens[i] == ControlToken)
-                modifiers[2] = ControlToken;
+                actionTemplate->modifiers[2] = ControlToken;
             else if(tokens[i] == AltToken)
-                modifiers[3] = AltToken;
+                actionTemplate->modifiers[3] = AltToken;
             else if(tokens[i] == FlipToken)
-                modifiers[4] = FlipToken;
+                actionTemplate->modifiers[4] = FlipToken;
             else if(tokens[i] == GlobalToken)
-                modifiers[5] = GlobalToken;
+                actionTemplate->modifiers[5] = GlobalToken;
             
             else if(tokens[i] == MarkerToken)
-                modifiers[6] = MarkerToken;
+                actionTemplate->modifiers[6] = MarkerToken;
             else if(tokens[i] == NudgeToken)
-                modifiers[6] = NudgeToken;
+                actionTemplate->modifiers[6] = NudgeToken;
             else if(tokens[i] == ZoomToken)
-                modifiers[6] = ZoomToken;
+                actionTemplate->modifiers[6] = ZoomToken;
             else if(tokens[i] == ScrubToken)
-                modifiers[6] = ScrubToken;
+                actionTemplate->modifiers[6] = ScrubToken;
             
             
             // GAW -- IMPORTANT -- make sure you add any new modifers before these, they MUST be the last 2 in the list, if present
             else if(tokens[i] == ToggleToken)
-                modifiers[7] = ToggleToken;
+                actionTemplate->modifiers[7] = ToggleToken;
             else if(tokens[i].find("Touch") != string::npos)
-                modifiers[8] = TouchToken;
+                actionTemplate->modifiers[8] = TouchToken;
 
             
             else if(tokens[i] == "InvertFB")
-                isFeedbackInverted = true;
+                actionTemplate->isFeedbackInverted = true;
             else if(tokens[i] == "Hold")
-                holdDelayAmount = 1.0;
-            else if(tokens[i] == "Property")
-                isProperty = true;
+                actionTemplate->holdDelayAmount = 1.0;
             else if(tokens[i] == "Decrease")
-                isDecrease = true;
+                actionTemplate->isDecrease = true;
             else if(tokens[i] == "Increase")
-                isIncrease = true;
+                actionTemplate->isIncrease = true;
         }
     }
 }
@@ -955,36 +950,29 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens.size() > 1)
                 {
                     bool isProperty = false;
+                    
+                    if(tokens[0].find("Property") != string::npos)
+                        isProperty = true;
 
                     vector<string> params;
                     for(int i = 1; i < tokens.size(); i++)
-                    {
                         params.push_back(tokens[i]);
-                        if(tokens[i] == "Property")
-                            isProperty = true;
-                    }
 
                     if(isProperty)
                     {
                         if(currentActionTemplate != nullptr)
-                            currentActionTemplate->properties.push_back(params);
+                             currentActionTemplate->properties.push_back(params);
                     }
                     else
                     {
-                        actionName = tokens[1];
+                        currentActionTemplate = make_shared<ActionTemplate>();
                         
-                        string widgetName = "";
-                        vector<string> modifiers = GetEmptyModifiers();
-                        string touchId = "";
-                        bool isFeedbackInverted = false;
-                        double holdDelayAmount = 0.0;
-                        bool isDecrease = false;
-                        bool isIncrease = false;
+                        currentActionTemplate->actionName = tokens[1];
+                        currentActionTemplate->params = params;
+                        
+                        GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
-                        GetWidgetNameAndProperties(tokens[0], widgetName, modifiers, touchId, isFeedbackInverted, holdDelayAmount, isProperty, isDecrease, isIncrease);
-
-                        currentActionTemplate = make_shared<ActionTemplate>(actionName, params, isFeedbackInverted, holdDelayAmount, isDecrease, isIncrease);
-                        actionTemplatesDictionary[widgetName][modifiers].push_back(currentActionTemplate);
+                        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifiers].push_back(currentActionTemplate);
                     }
                 }
             }
