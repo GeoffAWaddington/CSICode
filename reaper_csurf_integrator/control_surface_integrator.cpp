@@ -1108,7 +1108,7 @@ void GetSteppedValues(vector<string> params, double &deltaValue, vector<double> 
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface, map<string, double> &stepSizes, map<string, string> &encoderSteps, map<string, vector<double>> &accelerationValues)
 {
     if(tokens.size() < 2)
         return;
@@ -1388,9 +1388,74 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     }
 }
 
+static void ProcessValues(vector<vector<string>> lines, map<string, double> &stepSizes, map<string, string> &encoderSteps, map<string, vector<double>> &accelerationValues)
+{
+    bool inStepSizes = false;
+    bool inEncoderSteps = false;
+    bool inAccelerationValues = false;
+        
+    for(auto tokens : lines)
+    {
+        if(tokens.size() > 0)
+        {
+            if(tokens[0] == "StepSize")
+            {
+                inStepSizes = true;
+                continue;
+            }
+            else if(tokens[0] == "StepSizeEnd")
+            {
+                inStepSizes = false;
+                continue;
+            }
+            else if(tokens[0] == "EncoderSteps")
+            {
+                inEncoderSteps = true;
+                continue;
+            }
+            else if(tokens[0] == "EncoderStepsEnd")
+            {
+                inEncoderSteps = false;
+                continue;
+            }
+            else if(tokens[0] == "AccelerationValues")
+            {
+                inAccelerationValues = true;
+                continue;
+            }
+            else if(tokens[0] == "AccelerationValuesEnd")
+            {
+                inAccelerationValues = false;
+                continue;
+            }
+
+            if(tokens.size() > 1)
+            {
+                if(inStepSizes)
+                    stepSizes[tokens[0]] = stod(tokens[1]);
+                else if(inEncoderSteps)
+                {
+                    for(int i = 1; i < tokens.size(); i++)
+                        encoderSteps[tokens[0]] += tokens[i] + " ";
+                }
+                else if(inAccelerationValues)
+                {
+                    for(int i = 1; i < tokens.size(); i++)
+                        accelerationValues[tokens[0]].push_back(stod(tokens[i]));
+                }
+            }
+        }
+    }
+}
+
 static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 {
     int lineNumber = 0;
+    vector<vector<string>> valueLines;
+    
+    map<string, double> stepSizes;
+    map<string, string> encoderSteps;
+    map<string, vector<double>> accelerationValues;
     
     try
     {
@@ -1407,11 +1472,20 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
                 continue;
             
             vector<string> tokens(GetTokens(line));
-            
+
+            if(filePath[filePath.length() - 3] == 'm')
+            {
+                if(tokens.size() > 0 && tokens[0] != "Widget")
+                    valueLines.push_back(tokens);
+                
+                if(tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
+                    ProcessValues(valueLines, stepSizes, encoderSteps, accelerationValues);
+            }
+
             if(tokens.size() > 0 && tokens[0] == "Widget")
             {
                 if(filePath[filePath.length() - 3] == 'm')
-                    ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface);
+                    ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface, stepSizes, encoderSteps, accelerationValues);
                 if(filePath[filePath.length() - 3] == 'o')
                     ProcessOSCWidget(lineNumber, file, tokens, (OSC_ControlSurface*)surface);
             }
