@@ -140,6 +140,9 @@ public:
     Navigator(Page*  page) : page_(page) {}
     virtual ~Navigator() {}
     
+    virtual string GetName() { return "Navigator"; }
+    virtual MediaTrack* GetTrack() { return nullptr; }
+
     bool GetIsNavigatorTouched() { return isVolumeTouched_ || isPanTouched_ || isPanWidthTouched_ || isPanLeftTouched_ || isPanRightTouched_; }
     
     void SetIsVolumeTouched(bool isVolumeTouched) { isVolumeTouched_ = isVolumeTouched;  }
@@ -156,9 +159,6 @@ public:
     
     void SetIsPanRightTouched(bool isPanRightTouched) { isPanRightTouched_ = isPanRightTouched; }
     bool GetIsPanRightTouched() { return isPanRightTouched_;  }
-       
-    virtual string GetName() { return "Navigator"; }
-    virtual MediaTrack* GetTrack() { return nullptr; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -491,6 +491,7 @@ protected:
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
+    void UpdateCurrentActionContextModifier(Widget* widget);
     
 public:
     Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);

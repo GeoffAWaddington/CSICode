@@ -2568,16 +2568,37 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
 void Zone::UpdateCurrentActionContextModifiers()
 {
     for(auto [widget, isUsed] : widgets_)
+        UpdateCurrentActionContextModifier(widget);
+    
+    for(auto zone : includedZones_)
+        zone->UpdateCurrentActionContextModifiers();
+
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->UpdateCurrentActionContextModifiers();
+    
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->UpdateCurrentActionContextModifiers();
+}
+
+void Zone::UpdateCurrentActionContextModifier(Widget* widget)
+{
+    for(auto modifier : widget->GetSurface()->GetPage()->GetModifiers())
     {
-     
-        // GAW TBD - steal the logic from below to populate currentActionContextModifiers_ dictionary
-        // modify method below to just use currentActionContextModifiers_ dictionary to return value without recalcing every time
-        
+        if(actionContextDictionary_[widget].count(modifier) > 0)
+        {
+            currentActionContextModifiers_[widget] = modifier;
+            break;
+        }
     }
 }
 
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
+    if(currentActionContextModifiers_.count(widget) == 0)
+        UpdateCurrentActionContextModifier(widget);
+    
     bool isTouched = false;
     bool isToggled = false;
     
@@ -2586,22 +2607,21 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 
     if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
         isToggled = true;
-           
-    vector<int> mods = widget->GetSurface()->GetPage()->GetModifiers();
     
-    for(auto modifier : widget->GetSurface()->GetPage()->GetModifiers())
+    if(currentActionContextModifiers_.count(widget) > 0 && actionContextDictionary_.count(widget) > 0)
     {
-        if(isTouched && isToggled && actionContextDictionary_[widget].count(modifier + 3) > 0)
-            return actionContextDictionary_[widget][modifier + 3];
-        else if(isTouched && actionContextDictionary_[widget].count(modifier + 1) > 0)
-            return actionContextDictionary_[widget][modifier + 1];
-        else if(isToggled && actionContextDictionary_[widget].count(modifier + 2) > 0)
-            return actionContextDictionary_[widget][modifier + 2];
-
-        if(actionContextDictionary_[widget].count(modifier) > 0)
-            return actionContextDictionary_[widget][modifier];
-    }
+        int modifer = currentActionContextModifiers_[widget];
         
+        if(isTouched && isToggled && actionContextDictionary_[widget].count(modifer + 3) > 0)
+            return actionContextDictionary_[widget][modifer + 3];
+        else if(isTouched && actionContextDictionary_[widget].count(modifer + 1) > 0)
+            return actionContextDictionary_[widget][modifer + 1];
+        else if(isToggled && actionContextDictionary_[widget].count(modifer + 2) > 0)
+            return actionContextDictionary_[widget][modifer + 2];
+        else if(actionContextDictionary_[widget].count(modifer) > 0)
+            return actionContextDictionary_[widget][modifer];
+    }
+
     return defaultContexts_;
 }
 
@@ -2781,8 +2801,20 @@ void ZoneManager::Initialize()
 
 void ZoneManager::UpdateCurrentActionContextModifiers()
 {
+    if(focusedFXParamZone_ != nullptr)
+        focusedFXParamZone_->UpdateCurrentActionContextModifiers();
     
-    // GAW TBD -- call this on all active Aones
+    for(auto zone : focusedFXZones_)
+        zone->UpdateCurrentActionContextModifiers();
+    
+    for(auto zone : selectedTrackFXZones_)
+        zone->UpdateCurrentActionContextModifiers();
+    
+    for(auto zone : fxSlotZones_)
+        zone->UpdateCurrentActionContextModifiers();
+    
+    if(homeZone_ != nullptr)
+        homeZone_->UpdateCurrentActionContextModifiers();
 }
 
 void ZoneManager::RequestUpdate()
