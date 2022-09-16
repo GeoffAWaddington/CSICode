@@ -487,6 +487,7 @@ protected:
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
     map<Widget*, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    map<Widget*, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
@@ -506,6 +507,7 @@ public:
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
 
+    void UpdateCurrentActionContextModifiers();
     vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
         
     void RequestUpdate(map<Widget*, bool> &usedWidgets);
@@ -737,6 +739,7 @@ public:
     void Initialize();
 
     void RequestUpdate();
+    void UpdateCurrentActionContextModifiers();
     
     void PreProcessZones();
     
@@ -2595,9 +2598,9 @@ private:
             sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
         }
         
-        // GAW TBD -- Set current Action contexts for each Widget in each Zone, thereby elimnating dynamic calculation during RequestUpdate.
-        
-        
+        // GAW TBD -- Set current Action contexts for each Widget in each Zone, thereby eliminating dynamic calculation during RequestUpdate.
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->UpdateCurrentActionContextModifiers();
     }
        
 public:

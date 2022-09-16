@@ -2310,6 +2310,8 @@ void Zone::RestoreXTouchDisplayColors()
 
 void Zone::Activate()
 {
+    UpdateCurrentActionContextModifiers();
+    
     for(auto [widget, isUsed] : widgets_)
         if(widget->GetName() == "OnZoneActivation")
             for(auto context : GetActionContexts(widget))
@@ -2563,6 +2565,17 @@ void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value
     }
 }
 
+void Zone::UpdateCurrentActionContextModifiers()
+{
+    for(auto [widget, isUsed] : widgets_)
+    {
+     
+        // GAW TBD - steal the logic from below to populate currentActionContextModifiers_ dictionary
+        // modify method below to just use currentActionContextModifiers_ dictionary to return value without recalcing every time
+        
+    }
+}
+
 vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
 {
     bool isTouched = false;
@@ -2764,6 +2777,12 @@ void ZoneManager::Initialize()
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
     GoHome();
+}
+
+void ZoneManager::UpdateCurrentActionContextModifiers()
+{
+    
+    // GAW TBD -- call this on all active Aones
 }
 
 void ZoneManager::RequestUpdate()
