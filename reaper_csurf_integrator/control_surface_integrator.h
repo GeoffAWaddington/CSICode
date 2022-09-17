@@ -623,6 +623,9 @@ private:
     int channelNumber_ = 0;
     double lastIncomingMessageTime_ = 0.0;
     
+    string generatorClass_ = "";
+    string feedbackClass_ = "";
+    
     double stepSize_ = 0.0;
     vector<double> accelerationValues_;
     
@@ -647,6 +650,12 @@ public:
     ZoneManager* GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
+    void SetGeneratorClass(string generatorClass) { generatorClass_ = generatorClass; }
+    string GetGeneratorClass() { return generatorClass_; }
+    
+    void SetFeedbackClass(string feedbackClass) { feedbackClass_ = feedbackClass; }
+    string GetFeedbackClass() { return feedbackClass_; }
+
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
     double GetStepSize() { return stepSize_; }
     
