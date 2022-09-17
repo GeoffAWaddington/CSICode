@@ -128,6 +128,12 @@ private:
 
 public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
+    AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, vector<string> params, double stepSize, vector<double> accelerationValues) : AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, message, params)
+    {
+        widget->SetStepSize(stepSize);
+        widget->SetAccelerationValues(accelerationValues);
+    }
+
     AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);

@@ -623,6 +623,9 @@ private:
     int channelNumber_ = 0;
     double lastIncomingMessageTime_ = 0.0;
     
+    double stepSize_ = 0.0;
+    vector<double> accelerationValues_;
+    
 public:
     Widget(ControlSurface* surface, string name) : surface_(surface), name_(name)
     {
@@ -643,6 +646,12 @@ public:
     ControlSurface* GetSurface() { return surface_; }
     ZoneManager* GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
+    
+    void SetStepSize(double stepSize) { stepSize_ = stepSize; }
+    double GetStepSize() { return stepSize_; }
+    
+    void SetAccelerationValues( vector<double> accelerationValues) { accelerationValues_ = accelerationValues; }
+    vector<double> &GetAccelerationValues() { return accelerationValues_; }
     
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }

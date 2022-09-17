@@ -1108,12 +1108,17 @@ void GetSteppedValues(vector<string> params, double &deltaValue, vector<double> 
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface, map<string, double> &stepSizes, map<string, string> &encoderSteps, map<string, vector<double>> &accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface, map<string, double> &stepSizes, map<string, vector <string>> &encoderSteps, map<string, vector<double>> &accelerationValues)
 {
     if(tokens.size() < 2)
         return;
     
     string widgetName = tokens[1];
+    
+    string widgetClass = "";
+    
+    if(tokens.size() > 2)
+        widgetClass = tokens[2];
 
     Widget* widget = new Widget(surface, widgetName);
     
@@ -1161,8 +1166,13 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             new Fader7Bit_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         else if(widgetClass == "Encoder" && size == 4)
             new Encoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
-        else if(widgetClass == "Encoder" && size > 4)
-            new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
+        else if(widgetClass == "Encoder" && (size > 4 || widgetClass == "Rotary"))
+        {
+            if(size > 4)
+                new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
+            else if(stepSizes.count(widgetClass) > 0 && encoderSteps.count(widgetClass) > 0&& accelerationValues.count(widgetClass) > 0)
+                new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), encoderSteps[widgetClass], stepSizes[widgetClass], accelerationValues[widgetClass]);
+        }
         else if(widgetClass == "MFTEncoder" && size > 4)
             new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
         else if(widgetClass == "EncoderPlain" && size == 4)
@@ -1388,7 +1398,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     }
 }
 
-static void ProcessValues(vector<vector<string>> lines, map<string, double> &stepSizes, map<string, string> &encoderSteps, map<string, vector<double>> &accelerationValues)
+static void ProcessValues(vector<vector<string>> lines, map<string, double> &stepSizes, map<string, vector<string>> &encoderSteps, map<string, vector<double>> &accelerationValues)
 {
     bool inStepSizes = false;
     bool inEncoderSteps = false;
@@ -1434,10 +1444,7 @@ static void ProcessValues(vector<vector<string>> lines, map<string, double> &ste
                 if(inStepSizes)
                     stepSizes[tokens[0]] = stod(tokens[1]);
                 else if(inEncoderSteps)
-                {
-                    for(int i = 1; i < tokens.size(); i++)
-                        encoderSteps[tokens[0]] += tokens[i] + " ";
-                }
+                    encoderSteps[tokens[0]] = tokens;
                 else if(inAccelerationValues)
                 {
                     for(int i = 1; i < tokens.size(); i++)
@@ -1454,7 +1461,7 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
     vector<vector<string>> valueLines;
     
     map<string, double> stepSizes;
-    map<string, string> encoderSteps;
+    map<string, vector<string>> encoderSteps;
     map<string, vector<double>> accelerationValues;
     
     try
