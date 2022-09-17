@@ -1112,7 +1112,7 @@ void GetSteppedValues(vector<string> params, double &deltaValue, vector<double> 
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface, map<string, double> &stepSizes, map<string, vector <string>> &encoderSteps, map<string, vector<double>> &accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface, map<string, double> stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if(tokens.size() < 2)
         return;
@@ -1168,16 +1168,16 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             new Fader14Bit_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         else if(widgetType == "Fader7Bit" && size== 4)
             new Fader7Bit_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
-        else if(widgetType == "Encoder" && size == 4 && widgetClass != "Rotary")
-            new Encoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
-        else if(widgetType == "Encoder" && (size > 4 || widgetClass == "Rotary"))
+        else if(widgetType == "Encoder" && size == 4 && widgetClass == "Rotary")
         {
-            if(size > 4)
-                new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
-            else if(stepSizes.count(widgetClass) > 0 && encoderSteps.count(widgetClass) > 0&& accelerationValues.count(widgetClass) > 0)
-                new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), encoderSteps[widgetClass], stepSizes[widgetClass], accelerationValues[widgetClass]);
+            if(stepSizes.count(widgetClass) > 0 && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
+                new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]);
         }
-        else if(widgetType == "MFTEncoder" && size > 4)
+        else if(widgetType == "Encoder" && size == 4)
+            new Encoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+        else if(widgetType == "Encoder" && size > 4)
+            new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
+        else if(widgetType == "MFTEncoder" && size == 4)
             new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
         else if(widgetType == "EncoderPlain" && size == 4)
             new EncoderPlain_Midi_CSIMessageGenerator(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
@@ -1402,10 +1402,9 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     }
 }
 
-static void ProcessValues(vector<vector<string>> lines, map<string, double> &stepSizes, map<string, vector<string>> &encoderSteps, map<string, vector<double>> &accelerationValues)
+static void ProcessValues(vector<vector<string>> lines, map<string, double> &stepSizes, map<string, map<int, int>> &accelerationValuesForDecrement, map<string, map<int, int>> &accelerationValuesForIncrement, map<string, vector<double>> &accelerationValues)
 {
     bool inStepSizes = false;
-    bool inEncoderSteps = false;
     bool inAccelerationValues = false;
         
     for(auto tokens : lines)
@@ -1420,16 +1419,6 @@ static void ProcessValues(vector<vector<string>> lines, map<string, double> &ste
             else if(tokens[0] == "StepSizeEnd")
             {
                 inStepSizes = false;
-                continue;
-            }
-            else if(tokens[0] == "EncoderSteps")
-            {
-                inEncoderSteps = true;
-                continue;
-            }
-            else if(tokens[0] == "EncoderStepsEnd")
-            {
-                inEncoderSteps = false;
                 continue;
             }
             else if(tokens[0] == "AccelerationValues")
@@ -1447,12 +1436,17 @@ static void ProcessValues(vector<vector<string>> lines, map<string, double> &ste
             {
                 if(inStepSizes)
                     stepSizes[tokens[0]] = stod(tokens[1]);
-                else if(inEncoderSteps)
-                    encoderSteps[tokens[0]] = tokens;
-                else if(inAccelerationValues)
+                else if(tokens.size() > 2 && inAccelerationValues)
                 {
-                    for(int i = 1; i < tokens.size(); i++)
-                        accelerationValues[tokens[0]].push_back(stod(tokens[i]));
+                    if(tokens[1] == "Dec")
+                        for(int i = 2; i < tokens.size(); i++)
+                            accelerationValuesForDecrement[tokens[0]][strtol(tokens[i].c_str(), nullptr, 16)] = i - 2;
+                    else if(tokens[1] == "Inc")
+                        for(int i = 2; i < tokens.size(); i++)
+                            accelerationValuesForIncrement[tokens[0]][strtol(tokens[i].c_str(), nullptr, 16)] = i - 2;
+                    else if(tokens[1] == "Val")
+                        for(int i = 2; i < tokens.size(); i++)
+                            accelerationValues[tokens[0]].push_back(stod(tokens[i]));
                 }
             }
         }
@@ -1465,7 +1459,8 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
     vector<vector<string>> valueLines;
     
     map<string, double> stepSizes;
-    map<string, vector<string>> encoderSteps;
+    map<string, map<int, int>> accelerationValuesForDecrement;
+    map<string, map<int, int>> accelerationValuesForIncrement;
     map<string, vector<double>> accelerationValues;
     
     try
@@ -1490,13 +1485,13 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
                     valueLines.push_back(tokens);
                 
                 if(tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines, stepSizes, encoderSteps, accelerationValues);
+                    ProcessValues(valueLines, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
             }
 
             if(tokens.size() > 0 && tokens[0] == "Widget")
             {
                 if(filePath[filePath.length() - 3] == 'm')
-                    ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface, stepSizes, encoderSteps, accelerationValues);
+                    ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
                 if(filePath[filePath.length() - 3] == 'o')
                     ProcessOSCWidget(lineNumber, file, tokens, (OSC_ControlSurface*)surface);
             }

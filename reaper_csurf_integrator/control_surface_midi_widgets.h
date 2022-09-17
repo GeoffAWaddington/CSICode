@@ -119,21 +119,47 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    map<int, int> accelerationValuesForIncrement_;
+    map<int, int> accelerationValuesForDecrement_;
+    
+public:
+    virtual ~AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator() {}
+    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, double stepSize, map<int, int> accelerationValuesForDecrement, map<int, int> accelerationValuesForIncrement, vector<double> accelerationValues) :  Midi_CSIMessageGenerator(widget)
+    {
+        surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
+
+        accelerationValuesForDecrement_ = accelerationValuesForDecrement;
+        accelerationValuesForIncrement_ = accelerationValuesForIncrement;
+        
+        widget->SetStepSize(stepSize);
+        widget->SetAccelerationValues(accelerationValues);
+    }
+    
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    {
+        int val = midiMessage->midi_message[2];
+        
+        if(accelerationValuesForIncrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], 0.001);
+        else if(accelerationValuesForDecrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], -0.001);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AcceleratedEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<int, int> accelerationIndicesForIncrement_;
-    map<int, int> accelerationIndicesForDecrement_;
+    map<int, int> accelerationValuesForIncrement_;
+    map<int, int> accelerationValuesForDecrement_;
 
 public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, vector<string> params, double stepSize, vector<double> accelerationValues) : AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, message, params)
-    {
-        widget->SetStepSize(stepSize);
-        widget->SetAccelerationValues(accelerationValues);
-    }
-
     AcceleratedEncoder_Midi_CSIMessageGenerator(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {
         surface->AddCSIMessageGenerator(message->midi_message[0] * 0x10000 + message->midi_message[1] * 0x100, this);
@@ -167,7 +193,7 @@ public:
                     
                     if(range_tokens.size() == 2)
                     {
-                        int firstVal = strtol(range_tokens[0].c_str(), nullptr, 16);;
+                        int firstVal = strtol(range_tokens[0].c_str(), nullptr, 16);
                         int lastVal = strtol(range_tokens[1].c_str(), nullptr, 16);
 
                         if(firstVal < lastVal)
@@ -207,19 +233,19 @@ public:
             if(incValues.size() > 0)
             {
                 if(incValues.size() == 1)
-                    accelerationIndicesForIncrement_[incValues[0]] = 0;
+                    accelerationValuesForIncrement_[incValues[0]] = 0;
                 else
                     for(int i = 0; i < incValues.size(); i++)
-                        accelerationIndicesForIncrement_[incValues[i]] = i;
+                        accelerationValuesForIncrement_[incValues[i]] = i;
             }
             
             if(decValues.size() > 0)
             {
                 if(decValues.size() == 1)
-                    accelerationIndicesForDecrement_[decValues[0]] = 0;
+                    accelerationValuesForDecrement_[decValues[0]] = 0;
                 else
                     for(int i = 0; i < decValues.size(); i++)
-                        accelerationIndicesForDecrement_[decValues[i]] = i;
+                        accelerationValuesForDecrement_[decValues[i]] = i;
             }
         }
     }
@@ -235,10 +261,10 @@ public:
         
         delta = delta / 2.0;
 
-        if(accelerationIndicesForIncrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForIncrement_[val], delta);
-        else if(accelerationIndicesForDecrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_[val], delta);
+        if(accelerationValuesForIncrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], delta);
+        else if(accelerationValuesForDecrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], delta);
     }
 };
 
@@ -288,7 +314,8 @@ public:
         if(accelerationIndicesForIncrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForIncrement_[val], 0.001);
         else if(accelerationIndicesForDecrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_[val], -0.001);    }
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_[val], -0.001);
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
