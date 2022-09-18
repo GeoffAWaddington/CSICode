@@ -707,6 +707,8 @@ private:
     string const zoneFolder_ = "";
     bool const shouldProcessAutoStepSizes_ = true;
     
+    map<int, int> baseTickCounts_ ;
+    
     map<string, CSIZoneInfo> zoneFilePaths_;
     map<string, string> stepSizeFilePaths_;
 
@@ -758,7 +760,15 @@ private:
     }
        
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder, bool shouldProcessAutoStepSizes) : surface_(surface), zoneFolder_(zoneFolder), shouldProcessAutoStepSizes_(shouldProcessAutoStepSizes) { }
+    ZoneManager(ControlSurface* surface, string zoneFolder, bool shouldProcessAutoStepSizes) : surface_(surface), zoneFolder_(zoneFolder), shouldProcessAutoStepSizes_(shouldProcessAutoStepSizes)
+    {
+        vector<int> stepSizes  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
+        vector<int> tickCounts = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
+        
+        for(int i = 0; i < stepSizes.size(); i++)
+            baseTickCounts_[stepSizes[i]] = tickCounts[i];
+        int blah = 0;
+    }
 
     void Initialize();
 
@@ -812,11 +822,17 @@ public:
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
        
     vector<double> &GetSteppedValues(string zoneName, int paramNumber);
-    void SetSteppedValues(string zoneName, int paramNumber, vector<double> steps)
-    {
-        steppedValues_[zoneName][paramNumber] = steps;
-    }
+    
+    void SetSteppedValues(string zoneName, int paramNumber, vector<double> steps) { steppedValues_[zoneName][paramNumber] = steps; }
        
+    int GetTickCount(int stepCount)
+    {
+        if(stepCount < baseTickCounts_.size())
+            return baseTickCounts_[stepCount];
+        else
+            return baseTickCounts_[baseTickCounts_.size() - 1];
+    }
+    
     void ToggleEnableFocusedFXParamMapping()
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
