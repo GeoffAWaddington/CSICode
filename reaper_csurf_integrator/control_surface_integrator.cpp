@@ -1126,6 +1126,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
 
     Widget* widget = new Widget(surface, widgetName);
     
+    if(tokens[0] == "EWidget")
+        widget->SetIsFXAutoMapEligible();
+    
     surface->AddWidget(widget);
 
     vector<vector<string>> tokenLines;
@@ -1142,7 +1145,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         
         vector<string> tokens(GetTokens(line));
         
-        if(tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
+        if(tokens[0] == "WidgetEnd" || tokens[0] == "EWidgetEnd")    // finito baybay - Widget list complete
             break;
         
         tokenLines.push_back(tokens);
@@ -1379,7 +1382,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
         
         vector<string> tokens(GetTokens(line));
         
-        if(tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
+        if(tokens[0] == "WidgetEnd" || tokens[0] == "EWidgetEnd")    // finito baybay - Widget list complete
             break;
         
         tokenLines.push_back(tokens);
@@ -1488,7 +1491,7 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
                     ProcessValues(valueLines, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
             }
 
-            if(tokens.size() > 0 && tokens[0] == "Widget")
+            if(tokens.size() > 0 && (tokens[0] == "Widget" || tokens[0] == "EWidget"))
             {
                 if(filePath[filePath.length() - 3] == 'm')
                     ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);

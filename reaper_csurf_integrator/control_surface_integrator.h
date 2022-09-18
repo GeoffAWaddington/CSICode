@@ -626,6 +626,8 @@ private:
     string generatorClass_ = "";
     string feedbackClass_ = "";
     
+    bool isFXAutoMapEligible_ = false;
+    
     double stepSize_ = 0.0;
     vector<double> accelerationValues_;
     
@@ -655,6 +657,9 @@ public:
     
     void SetFeedbackClass(string feedbackClass) { feedbackClass_ = feedbackClass; }
     string GetFeedbackClass() { return feedbackClass_; }
+
+    void SetIsFXAutoMapEligible() { isFXAutoMapEligible_ = true; }
+    bool GetIsFXAutoMapEligible() { return isFXAutoMapEligible_; }
 
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
     double GetStepSize() { return stepSize_; }
