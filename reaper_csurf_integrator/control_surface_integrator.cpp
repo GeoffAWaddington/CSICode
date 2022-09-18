@@ -1742,7 +1742,7 @@ void Manager::Init()
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
                     midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                 else if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], GetInputSocketForPort(tokens[1], atoi(tokens[2].c_str())), GetOutputSocketForAddressAndPort(tokens[1], tokens[4], atoi(tokens[3].c_str())));
+                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
                 else if(tokens[0] == PageToken)
                 {
                     bool followMCP = true;
@@ -3516,6 +3516,36 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string rxOnPort, string txToPort, string txToIpAddress) : name_(surfaceName)
+{
+    shared_ptr<oscpkt::UdpSocket> inSocket= GetInputSocketForPort(surfaceName, stoi(rxOnPort));;
+    shared_ptr<oscpkt::UdpSocket> outSocket;
+
+    if (rxOnPort != txToPort)
+    {
+        // WHEN INPUT AND OUTPUT SOCKETS ARE NOT THE SAME
+         outSocket = GetOutputSocketForAddressAndPort(surfaceName, txToIpAddress, stoi(txToPort));
+         memcpy((void*)&inSocket_,  (void*)&inSocket,  sizeof(shared_ptr<oscpkt::UdpSocket>));
+         memcpy((void*)&outSocket_, (void*)&outSocket, sizeof(shared_ptr<oscpkt::UdpSocket>));
+    }
+    else
+    {
+        // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
+        struct addrinfo hints;
+        struct addrinfo* ptr;
+        memset(&hints, 0, sizeof(struct addrinfo));
+        hints.ai_family = AF_INET;      // IPV4
+        hints.ai_socktype = SOCK_DGRAM; // UDP
+        hints.ai_flags = 0x00000001;    // socket address is intended for bind
+        getaddrinfo(txToIpAddress.c_str(), txToPort.c_str(), &hints, &ptr);
+        memcpy(&(inSocket->remote_addr), (void*)(ptr->ai_addr), ptr->ai_addrlen);
+
+        memcpy((void*)&inSocket_,  (void*)&inSocket, sizeof(shared_ptr<oscpkt::UdpSocket>));
+        memcpy((void*)&outSocket_, (void*)&inSocket, sizeof(shared_ptr<oscpkt::UdpSocket>));
+        outputSockets_[surfaceName] = outSocket_;
+    }
+ }
+
  void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface* surface)
  {
     if(inSocket_ != nullptr && inSocket_->isOk())

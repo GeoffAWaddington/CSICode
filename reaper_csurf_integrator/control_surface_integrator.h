@@ -1734,8 +1734,8 @@ private:
     oscpkt::PacketWriter packetWriter_;
 
 public:
-    OSC_ControlSurfaceIO(string name, shared_ptr<oscpkt::UdpSocket> inSocket, shared_ptr<oscpkt::UdpSocket> outSocket) : name_(name), inSocket_(inSocket), outSocket_(outSocket)  {}
-    
+    OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string ipAddress);
+
     void HandleExternalInput(OSC_ControlSurface* surface);
     
     void SendOSCMessage(string oscAddress, double value)
