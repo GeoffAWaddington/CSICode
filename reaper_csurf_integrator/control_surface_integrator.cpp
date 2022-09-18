@@ -94,16 +94,16 @@ void ShutdownMidiIO()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<string, shared_ptr<oscpkt::UdpSocket>> inputSockets_;
-static map<string, shared_ptr<oscpkt::UdpSocket>> outputSockets_;
+static map<string, oscpkt::UdpSocket*> inputSockets_;
+static map<string, oscpkt::UdpSocket*> outputSockets_;
 
-static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, int inputPort)
+static oscpkt::UdpSocket* GetInputSocketForPort(string surfaceName, int inputPort)
 {
     if(inputSockets_.count(surfaceName) > 0)
         return inputSockets_[surfaceName]; // return existing
     
     // otherwise make new
-    shared_ptr<oscpkt::UdpSocket> newInputSocket = make_shared<oscpkt::UdpSocket>();
+    oscpkt::UdpSocket* newInputSocket = new oscpkt::UdpSocket();
     
     if(newInputSocket)
     {
@@ -123,13 +123,13 @@ static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, i
     return nullptr;
 }
 
-static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(string surfaceName, string address, int outputPort)
+static oscpkt::UdpSocket* GetOutputSocketForAddressAndPort(string surfaceName, string address, int outputPort)
 {
     if(outputSockets_.count(surfaceName) > 0)
         return outputSockets_[surfaceName]; // return existing
     
     // otherwise make new
-    shared_ptr<oscpkt::UdpSocket> newOutputSocket = make_shared<oscpkt::UdpSocket>();
+    oscpkt::UdpSocket* newOutputSocket = new oscpkt::UdpSocket();
     
     if(newOutputSocket)
     {
@@ -3516,32 +3516,29 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string rxOnPort, string txToPort, string txToIpAddress) : name_(surfaceName)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnPort, string transmitToPort, string transmitToIpAddress) : name_(surfaceName)
 {
-    shared_ptr<oscpkt::UdpSocket> inSocket= GetInputSocketForPort(surfaceName, stoi(rxOnPort));;
-    shared_ptr<oscpkt::UdpSocket> outSocket;
-
-    if (rxOnPort != txToPort)
+    if (receiveOnPort != transmitToPort)
     {
-        // WHEN INPUT AND OUTPUT SOCKETS ARE NOT THE SAME
-         outSocket = GetOutputSocketForAddressAndPort(surfaceName, txToIpAddress, stoi(txToPort));
-         memcpy((void*)&inSocket_,  (void*)&inSocket,  sizeof(shared_ptr<oscpkt::UdpSocket>));
-         memcpy((void*)&outSocket_, (void*)&outSocket, sizeof(shared_ptr<oscpkt::UdpSocket>));
+        inSocket_  = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
+        outSocket_ = GetOutputSocketForAddressAndPort(surfaceName, transmitToIpAddress, stoi(transmitToPort));
     }
     else
     {
         // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
+        oscpkt::UdpSocket* inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
+
         struct addrinfo hints;
-        struct addrinfo* ptr;
+        struct addrinfo* addressInfo;
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_INET;      // IPV4
         hints.ai_socktype = SOCK_DGRAM; // UDP
         hints.ai_flags = 0x00000001;    // socket address is intended for bind
-        getaddrinfo(txToIpAddress.c_str(), txToPort.c_str(), &hints, &ptr);
-        memcpy(&(inSocket->remote_addr), (void*)(ptr->ai_addr), ptr->ai_addrlen);
+        getaddrinfo(transmitToIpAddress.c_str(), transmitToPort.c_str(), &hints, &addressInfo);
+        memcpy(&(inSocket->remote_addr), (void*)(addressInfo->ai_addr), addressInfo->ai_addrlen);
 
-        memcpy((void*)&inSocket_,  (void*)&inSocket, sizeof(shared_ptr<oscpkt::UdpSocket>));
-        memcpy((void*)&outSocket_, (void*)&inSocket, sizeof(shared_ptr<oscpkt::UdpSocket>));
+        inSocket_  = inSocket;
+        outSocket_ = inSocket;
         outputSockets_[surfaceName] = outSocket_;
     }
  }

@@ -1728,13 +1728,13 @@ class OSC_ControlSurfaceIO
 {
 private:
     string const name_ = "";
-    shared_ptr<oscpkt::UdpSocket> const inSocket_ = nullptr;
-    shared_ptr<oscpkt::UdpSocket> const outSocket_ = nullptr;
+    oscpkt::UdpSocket* inSocket_ = nullptr;
+    oscpkt::UdpSocket* outSocket_ = nullptr;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
 
 public:
-    OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string ipAddress);
+    OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string transmitToIpAddress);
 
     void HandleExternalInput(OSC_ControlSurface* surface);
     
