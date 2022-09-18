@@ -334,11 +334,13 @@ public:
         action_->Touch(this, value);
     }
 
-    void SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
-    void SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
-    void SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
-    void SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
-    void SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
+    void   SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
+    void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
+    double GetStepSize() { return deltaValue_; }
+    void   SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
+    int    GetNumberOfSteppedValues() { return steppedValues_.size(); }
+    void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
+    void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
 
     double GetRangeMinimum() { return rangeMinimum_; }
     double GetRangeMaximum() { return rangeMaximum_; }

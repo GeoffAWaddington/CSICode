@@ -732,6 +732,21 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                                 
                             if(tickCounts.count(paramNumber) > 0)
                                 context->SetTickCounts(tickCounts[paramNumber]);
+                            else
+                            {
+                                vector<int> tickCounts;
+                                int stepSizeCount = context->GetNumberOfSteppedValues();
+                                double stepSize = context->GetStepSize();
+                                
+                                if(stepSizeCount != 0 && stepSize != 0.0)
+                                {
+                                    stepSize *= 10000.0;
+                                    int baseTickCount = zoneManager->GetTickCount(context->GetNumberOfSteppedValues());
+                                    int tickCount = int(baseTickCount / stepSize + 0.5);
+                                    tickCounts.push_back(tickCount);
+                                    context->SetTickCounts(tickCounts);
+                                }
+                            }
                             
                             if(colorValues.count(paramNumber) > 0)
                                 context->SetColorValues(colorValues[paramNumber]);
