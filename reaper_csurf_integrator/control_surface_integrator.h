@@ -827,7 +827,7 @@ public:
        
     int GetTickCount(int stepCount)
     {
-        if(stepCount < baseTickCounts_.size())
+        if(baseTickCounts_.count(stepCount) > 0)
             return baseTickCounts_[stepCount];
         else
             return baseTickCounts_[baseTickCounts_.size() - 1];
