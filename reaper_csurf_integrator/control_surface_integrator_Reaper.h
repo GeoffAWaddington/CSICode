@@ -172,7 +172,7 @@ public:
         
     static int ColorToNative(int r, int g, int b) { return ::ColorToNative(r, g, b); }
 
-    static bool ValidateTrackPtr(MediaTrack* track) { return ValidatePtr(track, "MediaTrack*"); }
+    static bool ValidateTrackPtr(MediaTrack* track) { return ::ValidatePtr(track, "MediaTrack*"); }
     
     static double TimeMap2_timeToBeats(ReaProject* proj, double tpos, int* measuresOutOptional, int* cmlOutOptional, double* fullbeatsOutOptional, int* cdenomOutOptional)
     {

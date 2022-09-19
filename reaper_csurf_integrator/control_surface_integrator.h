@@ -769,7 +769,6 @@ public:
         
         for(int i = 0; i < stepSizes.size(); i++)
             baseTickCounts_[stepSizes[i]] = tickCounts[i];
-        int blah = 0;
     }
 
     void Initialize();
