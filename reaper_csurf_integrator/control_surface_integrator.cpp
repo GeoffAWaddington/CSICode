@@ -2417,7 +2417,7 @@ void Zone::Activate()
 
     isActive_ = true;
     
-    zoneManager_->GetSurface()->ActivatingZone(GetName());
+    zoneManager_->GetSurface()->SendOSCMessage(GetName());
     
     for(auto zone : includedZones_)
         zone->Activate();
@@ -3610,13 +3610,13 @@ void OSC_ControlSurface::ProcessOSCMessage(string message, double value)
     }
 }
 
-void OSC_ControlSurface::ActivatingZone(string zoneName)
+void OSC_ControlSurface::SendOSCMessage(string zoneName)
 {
     string oscAddress(zoneName);
     oscAddress = regex_replace(oscAddress, regex(BadFileChars), "_");
     oscAddress = "/" + oscAddress;
 
-    surfaceIO_->ActivatingZone(oscAddress);
+    surfaceIO_->SendOSCMessage(oscAddress);
         
     if(TheManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg((zoneName + "->" + "LoadingZone---->" + name_ + "\n").c_str());

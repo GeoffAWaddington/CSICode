@@ -1344,12 +1344,12 @@ public:
     void Play();
     void Record();
     
-    void RequestUpdate();
+    virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
     void ForceUpdateTrackColors();
     void OnTrackSelection(MediaTrack* track);
     virtual void SetHasMCUMeters(int displayType) {}
-    virtual void ActivatingZone(string zoneName) {}
+    virtual void SendOSCMessage(string zoneName) {}
     
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
@@ -1749,6 +1749,9 @@ private:
     oscpkt::UdpSocket* outSocket_ = nullptr;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
+    const double X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
+    double X32HeartBeatLastRefreshTime_ = 0.0;
+
 
 public:
     OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string transmitToIpAddress);
@@ -1788,14 +1791,25 @@ public:
         }
     }
     
-    void ActivatingZone(string zoneName)
+    void SendOSCMessage(string value)
     {
         if(outSocket_ != nullptr && outSocket_->isOk())
         {
             oscpkt::Message message;
-            message.init(zoneName);
+            message.init(value);
             packetWriter_.init().addMessage(message);
             outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+        }
+    }
+    
+    void SendX32HeartBeat()
+    {
+        double currentTime = DAW::GetCurrentNumberOfMilliseconds();
+
+        if(currentTime - X32HeartBeatLastRefreshTime_ > X32HeartBeatRefreshInterval_)
+        {
+            X32HeartBeatLastRefreshTime_ = currentTime;
+            SendOSCMessage("/xremote");
         }
     }
 };
@@ -1819,12 +1833,20 @@ public:
     
     virtual ~OSC_ControlSurface() {}
     
-    virtual void ActivatingZone(string zoneName) override;
     void ProcessOSCMessage(string message, double value);
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value);
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, int value);
     void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, string value);
+    virtual void SendOSCMessage(string zoneName) override;
     
+    virtual void RequestUpdate() override
+    {
+        ControlSurface::RequestUpdate();
+
+        if (GetName().find("X32") != string::npos || GetName().find("x32") != string::npos)
+            surfaceIO_->SendX32HeartBeat();
+    }
+
     virtual void HandleExternalInput() override
     {
         surfaceIO_->HandleExternalInput(this);
