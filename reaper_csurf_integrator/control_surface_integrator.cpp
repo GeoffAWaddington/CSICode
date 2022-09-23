@@ -215,6 +215,9 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
     
     actionTemplate->widgetName = tokens[tokens.size() - 1];
        
+    
+    
+    
     // GAW -- IMPORTANT -- keep the modifier placement order in synch with
     // Page::GetModifiers()
     // This is a dictionary key
@@ -227,6 +230,9 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
                 actionTemplate->modifier += 1;
             else if(tokens[i] == "Toggle")
                 actionTemplate->modifier += 2;
+            
+            // GAW TDB, delegate to passed in ModifierManager
+            
             else if(tokens[i] == "Shift")
                 actionTemplate->modifier += 4;
             else if(tokens[i] == "Option")
@@ -248,6 +254,10 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
                 actionTemplate->modifier += 1024;
             else if(tokens[i] == "Scrub")
                 actionTemplate->modifier += 2048;
+            
+            
+            
+            
             
             else if(tokens[i] == "InvertFB")
                 actionTemplate->isFeedbackInverted = true;

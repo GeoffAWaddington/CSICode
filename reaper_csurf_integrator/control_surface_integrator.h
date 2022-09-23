@@ -2537,6 +2537,14 @@ private:
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
     vector<ControlSurface*> surfaces_;
     
+    
+   
+    
+    
+    // GAW -- TBD -- make this a class -- ModifierManager
+    
+    
+    
     bool isShift_ = false;
     double shiftPressedTime_ = 0;
     bool isOption_ = false;
@@ -2592,6 +2600,8 @@ private:
         
         vector<bool> modifiers = emptyModifiers;
         
+        
+        
         if(isShift_)
             modifiers[0] = true;
         if(isOption_)
@@ -2614,6 +2624,8 @@ private:
         if(isScrub_)
             modifiers[9] = true;
         
+        
+        
         vector<int> activeModifierIndices;
         
         for(int i = 0; i < modifiers.size(); i++)
@@ -2630,6 +2642,9 @@ private:
 
                 for(int i = 0; i < combination.size(); i++)
                     candidateModifiers[combination[i]] = true;
+                
+                
+                
                 
                 int modifier = 0;
                 
@@ -2656,34 +2671,24 @@ private:
                     modifier += 2048;
                 
                 modifierCombinations_.push_back(modifier);
+                
+                
+                
             }
             
             sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
         }
         
-        // GAW TBD -- Set current Action contexts for each Widget in each Zone, thereby eliminating dynamic calculation during RequestUpdate.
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->UpdateCurrentActionContextModifiers();
-    }
-       
-public:
-    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled))
-    {
-        modifierCombinations_.push_back(0);
+       // if(page_ != null)
+            //page_->UpdateCurrentActionContextModifiers();
+        //else
+            UpdateCurrentActionContextModifiers();
     }
     
-    ~Page()
-    {
-        for(auto surface: surfaces_)
-        {
-            delete surface;
-            surface = nullptr;
-        }
-    }
+
+public:
     
     vector<int> GetModifiers() { return modifierCombinations_; }
-    
-    string GetName() { return name_; }
     
     bool GetShift() { return isShift_; }
     bool GetOption() { return isOption_; }
@@ -2696,130 +2701,6 @@ public:
     bool GetZoom() { return isZoom_; }
     bool GetScrub() { return isScrub_; }
 
-    /*
-    int repeats = 0;
-    
-    void Run()
-    {
-        int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-        
-        trackNavigationManager_->RebuildTracks();
-        trackNavigationManager_->RebuildVCASpill();
-        trackNavigationManager_->RebuildFolderTracks();
-     
-        for(auto surface : surfaces_)
-            surface->HandleExternalInput();
-        
-        for(auto surface : surfaces_)
-            surface->RequestUpdate();
-        
-         repeats++;
-         
-         if(repeats > 50)
-         {
-             repeats = 0;
-             
-             int totalDuration = 0;
-
-             start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-             trackNavigationManager_->RebuildTracks();
-             trackNavigationManager_->RebuildVCASpill();
-             trackNavigationManager_->RebuildFolderTracks();
-             int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-             totalDuration += duration;
-             ShowDuration("Rebuild Track/VCA/Folder List", duration);
-             
-             for(auto surface : surfaces_)
-             {
-                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-                 surface->HandleExternalInput();
-                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-                 totalDuration += duration;
-                 ShowDuration(surface->GetName(), "HandleExternalInput", duration);
-             }
-             
-             for(auto surface : surfaces_)
-             {
-                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-                 surface->RequestUpdate();
-                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-                 totalDuration += duration;
-                 ShowDuration(surface->GetName(), "Request Update", duration);
-             }
-             
-             char msgBuffer[250];
-             
-             sprintf(msgBuffer, "Total duration = %d\n\n\n", totalDuration);
-             DAW::ShowConsoleMsg(msgBuffer);
-         }
-    }
-    
-    
-    void ShowDuration(string item, int duration)
-    {
-        char msgBuffer[250];
-        
-        sprintf(msgBuffer, "%s - %d microseconds\n", item.c_str(), duration);
-        DAW::ShowConsoleMsg(msgBuffer);
-    }
-    
-    void ShowDuration(string surface, string item, int duration)
-    {
-        char msgBuffer[250];
-        
-        sprintf(msgBuffer, "%s - %s - %d microseconds\n", surface.c_str(), item.c_str(), duration);
-        DAW::ShowConsoleMsg(msgBuffer);
-    }
-   */
-
-//*
-    void Run()
-    {
-        trackNavigationManager_->RebuildTracks();
-        trackNavigationManager_->RebuildVCASpill();
-        trackNavigationManager_->RebuildFolderTracks();
-        
-        for(auto surface : surfaces_)
-            surface->HandleExternalInput();
-        
-        for(auto surface : surfaces_)
-            surface->RequestUpdate();
-    }
-//*/
-    void ForceClear()
-    {
-        for(auto surface : surfaces_)
-            surface->ForceClear();
-    }
-    
-    void ForceClearTrack(int trackNum)
-    {
-        for(auto surface : surfaces_)
-            surface->ForceClearTrack(trackNum);
-    }
-    
-    void ForceUpdateTrackColors()
-    {
-        for(auto surface : surfaces_)
-            surface->ForceUpdateTrackColors();
-    }
-
-    void ForceRefreshTimeDisplay()
-    {
-        for(auto surface : surfaces_)
-            surface->ForceRefreshTimeDisplay();
-    }
-
-    void AddSurface(ControlSurface* surface)
-    {
-        surfaces_.push_back(surface);
-    }
-    
-    bool GetTouchState(MediaTrack* track, int touchedControl)
-    {
-        return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
-    }
-    
     void SetShift(bool value)
     {
         SetLatchModifier(value, isShift_, shiftPressedTime_);
@@ -2925,7 +2806,67 @@ public:
         isZoom_ = false;
         isScrub_ = false;
     }
-            
+    
+    
+    // GAW -- TBD -- end of make this a class -- ModifierManager
+
+    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled))
+    {
+        modifierCombinations_.push_back(0);
+    }
+    
+    ~Page()
+    {
+        for(auto surface: surfaces_)
+        {
+            delete surface;
+            surface = nullptr;
+        }
+    }
+    
+    string GetName() { return name_; }
+
+    void UpdateCurrentActionContextModifiers()
+    {
+        // GAW TBD -- Set current Action contexts for each Widget in each Zone, thereby eliminating dynamic calculation during RequestUpdate.
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->UpdateCurrentActionContextModifiers();
+    }
+    
+    void ForceClear()
+    {
+        for(auto surface : surfaces_)
+            surface->ForceClear();
+    }
+    
+    void ForceClearTrack(int trackNum)
+    {
+        for(auto surface : surfaces_)
+            surface->ForceClearTrack(trackNum);
+    }
+    
+    void ForceUpdateTrackColors()
+    {
+        for(auto surface : surfaces_)
+            surface->ForceUpdateTrackColors();
+    }
+
+    void ForceRefreshTimeDisplay()
+    {
+        for(auto surface : surfaces_)
+            surface->ForceRefreshTimeDisplay();
+    }
+
+    void AddSurface(ControlSurface* surface)
+    {
+        surfaces_.push_back(surface);
+    }
+    
+    bool GetTouchState(MediaTrack* track, int touchedControl)
+    {
+        return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
+    }
+    
     void OnTrackSelection(MediaTrack* track)
     {
         trackNavigationManager_->OnTrackSelection();
@@ -3103,6 +3044,98 @@ public:
     string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     string GetCurrentInputMonitorMode(MediaTrack* track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     vector<MediaTrack*> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
+    
+    
+    /*
+    int repeats = 0;
+    
+    void Run()
+    {
+        int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        
+        trackNavigationManager_->RebuildTracks();
+        trackNavigationManager_->RebuildVCASpill();
+        trackNavigationManager_->RebuildFolderTracks();
+     
+        for(auto surface : surfaces_)
+            surface->HandleExternalInput();
+        
+        for(auto surface : surfaces_)
+            surface->RequestUpdate();
+        
+         repeats++;
+         
+         if(repeats > 50)
+         {
+             repeats = 0;
+             
+             int totalDuration = 0;
+
+             start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+             trackNavigationManager_->RebuildTracks();
+             trackNavigationManager_->RebuildVCASpill();
+             trackNavigationManager_->RebuildFolderTracks();
+             int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+             totalDuration += duration;
+             ShowDuration("Rebuild Track/VCA/Folder List", duration);
+             
+             for(auto surface : surfaces_)
+             {
+                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+                 surface->HandleExternalInput();
+                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+                 totalDuration += duration;
+                 ShowDuration(surface->GetName(), "HandleExternalInput", duration);
+             }
+             
+             for(auto surface : surfaces_)
+             {
+                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+                 surface->RequestUpdate();
+                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+                 totalDuration += duration;
+                 ShowDuration(surface->GetName(), "Request Update", duration);
+             }
+             
+             char msgBuffer[250];
+             
+             sprintf(msgBuffer, "Total duration = %d\n\n\n", totalDuration);
+             DAW::ShowConsoleMsg(msgBuffer);
+         }
+    }
+    
+    
+    void ShowDuration(string item, int duration)
+    {
+        char msgBuffer[250];
+        
+        sprintf(msgBuffer, "%s - %d microseconds\n", item.c_str(), duration);
+        DAW::ShowConsoleMsg(msgBuffer);
+    }
+    
+    void ShowDuration(string surface, string item, int duration)
+    {
+        char msgBuffer[250];
+        
+        sprintf(msgBuffer, "%s - %s - %d microseconds\n", surface.c_str(), item.c_str(), duration);
+        DAW::ShowConsoleMsg(msgBuffer);
+    }
+   */
+
+//*
+    void Run()
+    {
+        trackNavigationManager_->RebuildTracks();
+        trackNavigationManager_->RebuildVCASpill();
+        trackNavigationManager_->RebuildFolderTracks();
+        
+        for(auto surface : surfaces_)
+            surface->HandleExternalInput();
+        
+        for(auto surface : surfaces_)
+            surface->RequestUpdate();
+    }
+//*/
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
