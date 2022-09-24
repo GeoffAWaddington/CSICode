@@ -2538,33 +2538,32 @@ private:
     vector<ControlSurface*> surfaces_;
     
     
-   
-    
     
     // GAW -- TBD -- make this a class -- ModifierManager
+
+   
+    struct Modifier
+    {
+        bool isEngaged = false;
+        double pressedTime = 0.0;
+        int value = 0;
+    };
     
-    
-    
-    bool isShift_ = false;
-    double shiftPressedTime_ = 0;
-    bool isOption_ = false;
-    double optionPressedTime_ = 0;
-    bool isControl_ = false;
-    double controlPressedTime_ = 0;
-    bool isAlt_ = false;
-    double altPressedTime_ = 0;
-    bool isFlip_ = false;
-    double flipPressedTime_ = 0;
-    bool isGlobal_ = false;
-    double globalPressedTime_ = 0;
-    bool isMarker_ = false;
-    double markerPressedTime_ = 0;
-    bool isNudge_ = false;
-    double nudgePressedTime_ = 0;
-    bool isZoom_ = false;
-    double zoomPressedTime_ = 0;
-    bool isScrub_ = false;
-    double scrubPressedTime_ = 0;
+    enum Modifiers
+    {
+        Shift = 0,
+        Option,
+        Control,
+        Alt,
+        Flip,
+        Global,
+        Marker,
+        Nudge,
+        Zoom,
+        Scrub
+    };
+
+    vector<Modifier> modifiers_;
     
     vector<int> modifierCombinations_;
 
@@ -2587,93 +2586,27 @@ private:
         return combinations;
     }
 
-    // GAW -- IMPORTANT -- keep the modifier placement order in synch with
-    // static void GetWidgetNameAndProperties()
-    // This is a dictionary key
-
     void RecalculateModifiers()
     {
-        vector<bool> emptyModifiers = { false, false, false, false, false, false, false, false, false, false };
-        
         modifierCombinations_.clear();
         modifierCombinations_.push_back(0);
-        
-        vector<bool> modifiers = emptyModifiers;
-        
-        
-        
-        if(isShift_)
-            modifiers[0] = true;
-        if(isOption_)
-            modifiers[1] = true;
-        if(isControl_)
-            modifiers[2] = true;
-        if(isAlt_)
-            modifiers[3] = true;
-        if(isFlip_)
-            modifiers[4] = true;
-        if(isGlobal_)
-            modifiers[5] = true;
-        
-        if(isMarker_)
-            modifiers[6] = true;
-        if(isNudge_)
-            modifiers[7] = true;
-        if(isZoom_)
-            modifiers[8] = true;
-        if(isScrub_)
-            modifiers[9] = true;
-        
-        
-        
+               
         vector<int> activeModifierIndices;
         
-        for(int i = 0; i < modifiers.size(); i++)
-            if(modifiers[i] == true)
+        for(int i = 0; i < modifiers_.size(); i++)
+            if(modifiers_[i].isEngaged)
                 activeModifierIndices.push_back(i);
         
         if(activeModifierIndices.size() > 0)
-        {
-            vector<vector<int>> combinations = GetCombinations(activeModifierIndices);
-                                   
-            for(auto combination : combinations)
+        {                                  
+            for(auto combination : GetCombinations(activeModifierIndices))
             {
-                vector<bool> candidateModifiers = emptyModifiers;
-
-                for(int i = 0; i < combination.size(); i++)
-                    candidateModifiers[combination[i]] = true;
-                
-                
-                
-                
                 int modifier = 0;
                 
-                if(candidateModifiers[0] == true)
-                    modifier += 4;
-                if(candidateModifiers[1] == true)
-                    modifier += 8;
-                if(candidateModifiers[2] == true)
-                    modifier += 16;
-                if(candidateModifiers[3] == true)
-                    modifier += 32;
-                if(candidateModifiers[4] == true)
-                    modifier += 64;
-                if(candidateModifiers[5] == true)
-                    modifier += 128;
-                
-                if(candidateModifiers[6] == true)
-                    modifier += 256;
-                if(candidateModifiers[7] == true)
-                    modifier += 512;
-                if(candidateModifiers[8] == true)
-                    modifier += 1024;
-                if(candidateModifiers[9] == true)
-                    modifier += 2048;
-                
+                for(int i = 0; i < combination.size(); i++)
+                    modifier += modifiers_[combination[i]].value;
+
                 modifierCombinations_.push_back(modifier);
-                
-                
-                
             }
             
             sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
@@ -2690,129 +2623,140 @@ public:
     
     vector<int> GetModifiers() { return modifierCombinations_; }
     
-    bool GetShift() { return isShift_; }
-    bool GetOption() { return isOption_; }
-    bool GetControl() { return isControl_; }
-    bool GetAlt() { return isAlt_; }
-    bool GetFlip() { return isFlip_; }
-    bool GetGlobal() { return isGlobal_; }
-    bool GetMarker() { return isMarker_; }
-    bool GetNudge() { return isNudge_; }
-    bool GetZoom() { return isZoom_; }
-    bool GetScrub() { return isScrub_; }
+    bool GetShift() { return modifiers_[Shift].isEngaged; }
+    bool GetOption() { return modifiers_[Option].isEngaged; }
+    bool GetControl() { return modifiers_[Control].isEngaged; }
+    bool GetAlt() { return modifiers_[Alt].isEngaged; }
+    bool GetFlip() { return modifiers_[Flip].isEngaged; }
+    bool GetGlobal() { return modifiers_[Global].isEngaged; }
+    bool GetMarker() { return modifiers_[Marker].isEngaged; }
+    bool GetNudge() { return modifiers_[Nudge].isEngaged; }
+    bool GetZoom() { return modifiers_[Zoom].isEngaged; }
+    bool GetScrub() { return modifiers_[Scrub].isEngaged; }
 
     void SetShift(bool value)
     {
-        SetLatchModifier(value, isShift_, shiftPressedTime_);
-        RecalculateModifiers();
+        SetLatchModifier(value, Shift);
     }
  
     void SetOption(bool value)
     {
-        SetLatchModifier(value, isOption_, optionPressedTime_);
-        RecalculateModifiers();
+        SetLatchModifier(value, Option);
     }
     
     void SetControl(bool value)
     {
-        SetLatchModifier(value, isControl_, controlPressedTime_);
-        RecalculateModifiers();
+        SetLatchModifier(value, Control);
     }
     
     void SetAlt(bool value)
     {
-        SetLatchModifier(value, isAlt_, altPressedTime_);
-        RecalculateModifiers();
+        SetLatchModifier(value, Alt);
     }
   
     void SetFlip(bool value)
     {
-        SetLatchModifier(value, isFlip_, flipPressedTime_);
-        RecalculateModifiers();
+        SetLatchModifier(value, Flip);
     }
   
     void SetGlobal(bool value)
     {
-        SetLatchModifier(value, isGlobal_, globalPressedTime_);\
-        RecalculateModifiers();
+        SetLatchModifier(value, Global);\
     }
     
     void SetMarker(bool value)
     {
-        SetLatchModifier(value, isMarker_, markerPressedTime_);
-        
-        isNudge_ = false;
-        isZoom_ = false;
-        isScrub_ = false;
-        RecalculateModifiers();
+        modifiers_[Nudge].isEngaged = false;
+        modifiers_[Zoom].isEngaged = false;
+        modifiers_[Scrub].isEngaged = false;
+
+        SetLatchModifier(value, Marker);
     }
     
     void SetNudge(bool value)
     {
-        SetLatchModifier(value, isNudge_, nudgePressedTime_);
-        
-        isMarker_ = false;
-        isZoom_ = false;
-        isScrub_ = false;
-        RecalculateModifiers();
+        modifiers_[Marker].isEngaged = false;
+        modifiers_[Zoom].isEngaged = false;
+        modifiers_[Scrub].isEngaged = false;
+
+        SetLatchModifier(value, Nudge);
     }
   
     void SetZoom(bool value)
     {
-        SetLatchModifier(value, isZoom_, zoomPressedTime_);
-        
-        isMarker_ = false;
-        isNudge_ = false;
-        isScrub_ = false;
-        RecalculateModifiers();
+        modifiers_[Marker].isEngaged = false;
+        modifiers_[Nudge].isEngaged = false;
+        modifiers_[Scrub].isEngaged = false;
+
+        SetLatchModifier(value, Zoom);
     }
   
     void SetScrub(bool value)
     {
-        SetLatchModifier(value, isScrub_, scrubPressedTime_);
-        
-        isMarker_ = false;
-        isNudge_ = false;
-        isZoom_ = false;
-        RecalculateModifiers();
+        modifiers_[Marker].isEngaged = false;
+        modifiers_[Nudge].isEngaged = false;
+        modifiers_[Zoom].isEngaged = false;
+
+        SetLatchModifier(value, Scrub);
     }
     
-    void SetLatchModifier(bool value, bool &modifier, double &modifierPressedTime)
+    void SetLatchModifier(bool value, Modifiers modifier)
     {
-        if(value && modifier == false)
+        if(value && modifiers_[modifier].isEngaged == false)
         {
-            modifier = value;
-            modifierPressedTime = DAW::GetCurrentNumberOfMilliseconds();
+            modifiers_[modifier].isEngaged = value;
+            modifiers_[modifier].pressedTime = DAW::GetCurrentNumberOfMilliseconds();
         }
         else
         {
             double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
             
-            if(keyReleasedTime - modifierPressedTime > 100)
-                modifier = value;
+            if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
+                modifiers_[modifier].isEngaged = value;
         }
+        
+        RecalculateModifiers();
     }
 
     void ClearModifiers()
     {
-        isShift_ = false;
-        isOption_ = false;
-        isControl_ = false;
-        isAlt_ = false;
-        isFlip_ = false;
-        isGlobal_ = false;
-        isMarker_ = false;
-        isNudge_ = false;
-        isZoom_ = false;
-        isScrub_ = false;
+        for(auto &modifier : modifiers_)
+            modifier.isEngaged = false;
     }
     
     
     // GAW -- TBD -- end of make this a class -- ModifierManager
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled))
     {
+        
+        
+        // GAW -- TBD -- make this a class -- ModifierManager
+
         modifierCombinations_.push_back(0);
+        
+        for(int i = 0; i < 10; i++)
+            modifiers_.push_back(Modifier());
+        
+        int value = 2;
+        
+        for(auto &modifier : modifiers_)
+            modifier.value = value *= 2;
+
+        // GAW -- TBD -- end of make this a class -- ModifierManager
+        
     }
     
     ~Page()
