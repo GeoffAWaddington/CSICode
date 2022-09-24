@@ -384,7 +384,7 @@ public:
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetPage()->GetGlobal());
+        context->UpdateWidgetValue(context->GetSurface()->GetGlobal());
     }
 };
 
@@ -1018,7 +1018,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetShift();
+        return context->GetSurface()->GetShift();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1028,7 +1028,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetShift(value);
+        context->GetSurface()->SetShift(value);
     }
 };
 
@@ -1041,7 +1041,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetOption();
+        return context->GetSurface()->GetOption();
     }
     
     void RequestUpdate(ActionContext* context) override
@@ -1051,7 +1051,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetOption(value);
+        context->GetSurface()->SetOption(value);
     }
 };
 
@@ -1064,7 +1064,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetControl();
+        return context->GetSurface()->GetControl();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1074,7 +1074,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetControl(value);
+        context->GetSurface()->SetControl(value);
     }
 };
 
@@ -1087,7 +1087,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetAlt();
+        return context->GetSurface()->GetAlt();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1097,7 +1097,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetAlt(value);
+        context->GetSurface()->SetAlt(value);
     }
 };
 
@@ -1110,7 +1110,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetFlip();
+        return context->GetSurface()->GetFlip();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1120,7 +1120,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetFlip(value);
+        context->GetSurface()->SetFlip(value);
     }
 };
 
@@ -1133,7 +1133,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetGlobal();
+        return context->GetSurface()->GetGlobal();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1143,7 +1143,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetGlobal(value);
+        context->GetSurface()->SetGlobal(value);
     }
 };
 
@@ -1156,7 +1156,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetMarker();
+        return context->GetSurface()->GetMarker();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1166,7 +1166,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetMarker(value);
+        context->GetSurface()->SetMarker(value);
     }
 };
 
@@ -1179,7 +1179,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetNudge();
+        return context->GetSurface()->GetNudge();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1189,7 +1189,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetNudge(value);
+        context->GetSurface()->SetNudge(value);
     }
 };
 
@@ -1202,7 +1202,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetZoom();
+        return context->GetSurface()->GetZoom();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1212,7 +1212,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetZoom(value);
+        context->GetSurface()->SetZoom(value);
     }
 };
 
@@ -1225,7 +1225,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetPage()->GetScrub();
+        return context->GetSurface()->GetScrub();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -1235,7 +1235,7 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->SetScrub(value);
+        context->GetSurface()->SetScrub(value);
     }
 };
 
@@ -1248,7 +1248,7 @@ public:
    
     void Do(ActionContext* context, double value) override
     {
-        context->GetPage()->ClearModifiers();
+        context->GetSurface()->ClearModifiers();
     }
 };
 

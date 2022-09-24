@@ -1797,14 +1797,22 @@ void Manager::Init()
                 }
                 else
                 {
-                    if(currentPage && tokens.size() == 5)
+                    if(currentPage && (tokens.size() == 5 || tokens.size() == 6))
                     {
+                        bool useLocalModifiers = false;
+                        
+                        if(tokens[0] == "LocalModifiers")
+                        {
+                            useLocalModifiers = true;
+                            tokens.erase(tokens.begin()); // pop front
+                        }
+                        
                         ControlSurface* surface = nullptr;
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            surface = new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]], shouldAutoScan);
+                            surface = new Midi_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]], shouldAutoScan);
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            surface = new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]], shouldAutoScan);
+                            surface = new OSC_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]], shouldAutoScan);
 
                         if(surface != nullptr)
                             currentPage->AddSurface(surface);
@@ -2692,7 +2700,7 @@ void Zone::UpdateCurrentActionContextModifiers()
 
 void Zone::UpdateCurrentActionContextModifier(Widget* widget)
 {
-    for(auto modifier : widget->GetSurface()->GetPage()->GetModifiers())
+    for(auto modifier : widget->GetSurface()->GetModifiers())
     {
         if(actionContextDictionary_[widget].count(modifier) > 0)
         {
@@ -3323,6 +3331,41 @@ Navigator* ZoneManager::GetDefaultNavigator() { return surface_->GetPage()->GetD
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ModifierManager
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ModifierManager::RecalculateModifiers()
+{
+    modifierCombinations_.clear();
+    modifierCombinations_.push_back(0);
+           
+    vector<int> activeModifierIndices;
+    
+    for(int i = 0; i < modifiers_.size(); i++)
+        if(modifiers_[i].isEngaged)
+            activeModifierIndices.push_back(i);
+    
+    if(activeModifierIndices.size() > 0)
+    {
+        for(auto combination : GetCombinations(activeModifierIndices))
+        {
+            int modifier = 0;
+            
+            for(int i = 0; i < combination.size(); i++)
+                modifier += modifiers_[combination[i]].value;
+
+            modifierCombinations_.push_back(modifier);
+        }
+        
+        sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
+    }
+    
+    if(surface_ != nullptr)
+        surface_->GetZoneManager()->UpdateCurrentActionContextModifiers();
+    else if(page_ != nullptr)
+        page_->UpdateCurrentActionContextModifiers();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TrackNavigationManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TrackNavigationManager::RebuildTracks()
@@ -3443,6 +3486,182 @@ void ControlSurface::RequestUpdate()
             }
         }
     }
+}
+
+bool ControlSurface::GetShift()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetShift();
+    else
+        return page_->GetModifierManager()->GetShift();
+}
+
+bool ControlSurface::GetOption()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetOption();
+    else
+        return page_->GetModifierManager()->GetOption();
+}
+
+bool ControlSurface::GetControl()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetControl();
+    else
+        return page_->GetModifierManager()->GetControl();
+}
+
+bool ControlSurface::GetAlt()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetAlt();
+    else
+        return page_->GetModifierManager()->GetAlt();
+}
+
+bool ControlSurface::GetFlip()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetFlip();
+    else
+        return page_->GetModifierManager()->GetFlip();
+}
+
+bool ControlSurface::GetGlobal()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetGlobal();
+    else
+        return page_->GetModifierManager()->GetGlobal();
+}
+
+bool ControlSurface::GetMarker()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetMarker();
+    else
+        return page_->GetModifierManager()->GetMarker();
+}
+
+bool ControlSurface::GetNudge()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetNudge();
+    else
+        return page_->GetModifierManager()->GetNudge();
+}
+
+bool ControlSurface::GetZoom()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetZoom();
+    else
+        return page_->GetModifierManager()->GetZoom();
+}
+
+bool ControlSurface::GetScrub()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetScrub();
+    else
+        return page_->GetModifierManager()->GetScrub();
+}
+
+void ControlSurface::SetShift(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetShift(value);
+    else
+        page_->GetModifierManager()->SetShift(value);
+}
+
+void ControlSurface::SetOption(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetOption(value);
+    else
+        page_->GetModifierManager()->SetOption(value);
+}
+
+void ControlSurface::SetControl(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetControl(value);
+    else
+        page_->GetModifierManager()->SetControl(value);
+}
+
+void ControlSurface::SetAlt(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetAlt(value);
+    else
+        page_->GetModifierManager()->SetAlt(value);
+}
+
+void ControlSurface::SetFlip(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetShift(value);
+    else
+        page_->GetModifierManager()->SetFlip(value);
+}
+
+void ControlSurface::SetGlobal(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetGlobal(value);
+    else
+        page_->GetModifierManager()->SetGlobal(value);
+}
+
+void ControlSurface::SetMarker(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetMarker(value);
+    else
+        page_->GetModifierManager()->SetMarker(value);
+}
+
+void ControlSurface::SetNudge(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetNudge(value);
+    else
+        page_->GetModifierManager()->SetNudge(value);
+}
+
+void ControlSurface::SetZoom(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetZoom(value);
+    else
+        page_->GetModifierManager()->SetZoom(value);
+}
+
+void ControlSurface::SetScrub(bool value)
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->SetScrub(value);
+    else
+        page_->GetModifierManager()->SetScrub(value);
+}
+
+vector<int> ControlSurface::GetModifiers()
+{
+    if(modifierManager_ != nullptr)
+        return modifierManager_->GetModifiers();
+    else
+        return page_->GetModifierManager()->GetModifiers();
+}
+
+void ControlSurface::ClearModifiers()
+{
+    if(modifierManager_ != nullptr)
+        modifierManager_->ClearModifiers();
+    else
+        page_->GetModifierManager()->ClearModifiers();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

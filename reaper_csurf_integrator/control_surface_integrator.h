@@ -1247,10 +1247,192 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ModifierManager
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    Page* page_ = nullptr;
+    ControlSurface* surface_ = nullptr;
+    
+    struct Modifier
+    {
+        bool isEngaged = false;
+        double pressedTime = 0.0;
+        int value = 0;
+    };
+    
+    enum Modifiers
+    {
+        Shift = 0,
+        Option,
+        Control,
+        Alt,
+        Flip,
+        Global,
+        Marker,
+        Nudge,
+        Zoom,
+        Scrub
+    };
+
+    vector<Modifier> modifiers_;
+    vector<int> modifierCombinations_;
+    
+    vector<vector<int>> GetCombinations(vector<int> &indices)
+    {
+        vector<vector<int>> combinations;
+        
+        for (int mask = 0; mask < (1 << indices.size()); mask++)
+        {
+            vector<int> combination; // Stores a combination
+            
+            for (int position = 0; position < indices.size(); position++)
+                if (mask & (1 << position))
+                    combination.push_back(indices[position]);
+            
+            if(combination.size() > 0)
+                combinations.push_back(combination);
+        }
+        
+        return combinations;
+    }
+
+public:
+    ModifierManager()
+    {
+        modifierCombinations_.push_back(0);
+        
+        for(int i = 0; i < 10; i++)
+            modifiers_.push_back(Modifier());
+        
+        int value = 2;
+        
+        for(auto &modifier : modifiers_)
+            modifier.value = value *= 2;
+    }
+    
+    ModifierManager(Page* page) :  ModifierManager()
+    {
+        page_ = page;
+    }
+    
+    ModifierManager(ControlSurface* surface) : ModifierManager()
+    {
+        surface_ = surface;
+    }
+    
+    void RecalculateModifiers();
+    vector<int> GetModifiers() { return modifierCombinations_; }
+    
+    bool GetShift() { return modifiers_[Shift].isEngaged; }
+    bool GetOption() { return modifiers_[Option].isEngaged; }
+    bool GetControl() { return modifiers_[Control].isEngaged; }
+    bool GetAlt() { return modifiers_[Alt].isEngaged; }
+    bool GetFlip() { return modifiers_[Flip].isEngaged; }
+    bool GetGlobal() { return modifiers_[Global].isEngaged; }
+    bool GetMarker() { return modifiers_[Marker].isEngaged; }
+    bool GetNudge() { return modifiers_[Nudge].isEngaged; }
+    bool GetZoom() { return modifiers_[Zoom].isEngaged; }
+    bool GetScrub() { return modifiers_[Scrub].isEngaged; }
+
+    void SetShift(bool value)
+    {
+        SetLatchModifier(value, Shift);
+    }
+ 
+    void SetOption(bool value)
+    {
+        SetLatchModifier(value, Option);
+    }
+    
+    void SetControl(bool value)
+    {
+        SetLatchModifier(value, Control);
+    }
+    
+    void SetAlt(bool value)
+    {
+        SetLatchModifier(value, Alt);
+    }
+  
+    void SetFlip(bool value)
+    {
+        SetLatchModifier(value, Flip);
+    }
+  
+    void SetGlobal(bool value)
+    {
+        SetLatchModifier(value, Global);\
+    }
+    
+    void SetMarker(bool value)
+    {
+        modifiers_[Nudge].isEngaged = false;
+        modifiers_[Zoom].isEngaged = false;
+        modifiers_[Scrub].isEngaged = false;
+
+        SetLatchModifier(value, Marker);
+    }
+    
+    void SetNudge(bool value)
+    {
+        modifiers_[Marker].isEngaged = false;
+        modifiers_[Zoom].isEngaged = false;
+        modifiers_[Scrub].isEngaged = false;
+
+        SetLatchModifier(value, Nudge);
+    }
+  
+    void SetZoom(bool value)
+    {
+        modifiers_[Marker].isEngaged = false;
+        modifiers_[Nudge].isEngaged = false;
+        modifiers_[Scrub].isEngaged = false;
+
+        SetLatchModifier(value, Zoom);
+    }
+  
+    void SetScrub(bool value)
+    {
+        modifiers_[Marker].isEngaged = false;
+        modifiers_[Nudge].isEngaged = false;
+        modifiers_[Zoom].isEngaged = false;
+
+        SetLatchModifier(value, Scrub);
+    }
+    
+    void SetLatchModifier(bool value, Modifiers modifier)
+    {
+        if(value && modifiers_[modifier].isEngaged == false)
+        {
+            modifiers_[modifier].isEngaged = value;
+            modifiers_[modifier].pressedTime = DAW::GetCurrentNumberOfMilliseconds();
+        }
+        else
+        {
+            double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
+            
+            if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
+                modifiers_[modifier].isEngaged = value;
+        }
+        
+        RecalculateModifiers();
+    }
+
+    void ClearModifiers()
+    {
+        for(auto &modifier : modifiers_)
+            modifier.isEngaged = false;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
+    ModifierManager* modifierManager_ = nullptr;
+    
     int* scrubModePtr_ = nullptr;
     int configScrubMode_ = 0;
 
@@ -1262,15 +1444,18 @@ private:
     map<int, bool> channelToggles_;
     
 protected:
-    ControlSurface(Page* page, const string name, string zoneFolder, int numChannels, int channelOffset, bool shouldAutoScan) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, shouldAutoScan))
+    ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset, bool shouldAutoScan) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, shouldAutoScan))
     {
+        if(useLocalmodifiers)
+            modifierManager_ = new ModifierManager(this);
+        
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
         
         for(int i = 1 ; i <= numChannels; i++)
             channelToggles_[i] = false;
     }
-    
+
     Page* const page_;
     string const name_;
     ZoneManager* const zoneManager_;
@@ -1504,6 +1689,38 @@ public:
         if(widgetsByName_.count("OnInitialization") > 0)
             zoneManager_->DoAction(widgetsByName_["OnInitialization"], 1.0);
     }
+    
+    
+    bool GetShift();
+    bool GetOption();
+    bool GetControl();
+    bool GetAlt();
+    bool GetFlip();
+    bool GetGlobal();
+    bool GetMarker();
+    bool GetNudge();
+    bool GetZoom();
+    bool GetScrub();
+
+    void SetShift(bool value);
+    void SetOption(bool value);
+    void SetControl(bool value);
+    void SetAlt(bool value);
+    void SetFlip(bool value);
+    void SetGlobal(bool value);
+    void SetMarker(bool value);
+    void SetNudge(bool value);
+    void SetZoom(bool value);
+    void SetScrub(bool value);
+    
+    vector<int> GetModifiers();
+    void ClearModifiers();
+    
+    void UpdateCurrentActionContextModifiers()
+    {
+        if(modifierManager_ == nullptr)
+            GetZoneManager()->UpdateCurrentActionContextModifiers();
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1678,8 +1895,8 @@ private:
     }
 
 public:
-    Midi_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
-    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    Midi_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
+    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -1825,8 +2042,8 @@ private:
     void Initialize(string templateFilename, string zoneFolder);
 
 public:
-    OSC_ControlSurface(Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
-    : ControlSurface(page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    OSC_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
+    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -2535,229 +2752,11 @@ class Page
 private:
     string const name_ = "";
     TrackNavigationManager* const trackNavigationManager_ = nullptr;
+    ModifierManager* modifierManager_ = nullptr;
     vector<ControlSurface*> surfaces_;
     
-    
-    
-    // GAW -- TBD -- make this a class -- ModifierManager
-
-   
-    struct Modifier
-    {
-        bool isEngaged = false;
-        double pressedTime = 0.0;
-        int value = 0;
-    };
-    
-    enum Modifiers
-    {
-        Shift = 0,
-        Option,
-        Control,
-        Alt,
-        Flip,
-        Global,
-        Marker,
-        Nudge,
-        Zoom,
-        Scrub
-    };
-
-    vector<Modifier> modifiers_;
-    
-    vector<int> modifierCombinations_;
-
-    vector<vector<int>> GetCombinations(vector<int> &indices)
-    {
-        vector<vector<int>> combinations;
-        
-        for (int mask = 0; mask < (1 << indices.size()); mask++)
-        {
-            vector<int> combination; // Stores a combination
-            
-            for (int position = 0; position < indices.size(); position++)
-                if (mask & (1 << position))
-                    combination.push_back(indices[position]);
-            
-            if(combination.size() > 0)
-                combinations.push_back(combination);
-        }
-        
-        return combinations;
-    }
-
-    void RecalculateModifiers()
-    {
-        modifierCombinations_.clear();
-        modifierCombinations_.push_back(0);
-               
-        vector<int> activeModifierIndices;
-        
-        for(int i = 0; i < modifiers_.size(); i++)
-            if(modifiers_[i].isEngaged)
-                activeModifierIndices.push_back(i);
-        
-        if(activeModifierIndices.size() > 0)
-        {                                  
-            for(auto combination : GetCombinations(activeModifierIndices))
-            {
-                int modifier = 0;
-                
-                for(int i = 0; i < combination.size(); i++)
-                    modifier += modifiers_[combination[i]].value;
-
-                modifierCombinations_.push_back(modifier);
-            }
-            
-            sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
-        }
-        
-       // if(page_ != null)
-            //page_->UpdateCurrentActionContextModifiers();
-        //else
-            UpdateCurrentActionContextModifiers();
-    }
-    
-
 public:
-    
-    vector<int> GetModifiers() { return modifierCombinations_; }
-    
-    bool GetShift() { return modifiers_[Shift].isEngaged; }
-    bool GetOption() { return modifiers_[Option].isEngaged; }
-    bool GetControl() { return modifiers_[Control].isEngaged; }
-    bool GetAlt() { return modifiers_[Alt].isEngaged; }
-    bool GetFlip() { return modifiers_[Flip].isEngaged; }
-    bool GetGlobal() { return modifiers_[Global].isEngaged; }
-    bool GetMarker() { return modifiers_[Marker].isEngaged; }
-    bool GetNudge() { return modifiers_[Nudge].isEngaged; }
-    bool GetZoom() { return modifiers_[Zoom].isEngaged; }
-    bool GetScrub() { return modifiers_[Scrub].isEngaged; }
-
-    void SetShift(bool value)
-    {
-        SetLatchModifier(value, Shift);
-    }
- 
-    void SetOption(bool value)
-    {
-        SetLatchModifier(value, Option);
-    }
-    
-    void SetControl(bool value)
-    {
-        SetLatchModifier(value, Control);
-    }
-    
-    void SetAlt(bool value)
-    {
-        SetLatchModifier(value, Alt);
-    }
-  
-    void SetFlip(bool value)
-    {
-        SetLatchModifier(value, Flip);
-    }
-  
-    void SetGlobal(bool value)
-    {
-        SetLatchModifier(value, Global);\
-    }
-    
-    void SetMarker(bool value)
-    {
-        modifiers_[Nudge].isEngaged = false;
-        modifiers_[Zoom].isEngaged = false;
-        modifiers_[Scrub].isEngaged = false;
-
-        SetLatchModifier(value, Marker);
-    }
-    
-    void SetNudge(bool value)
-    {
-        modifiers_[Marker].isEngaged = false;
-        modifiers_[Zoom].isEngaged = false;
-        modifiers_[Scrub].isEngaged = false;
-
-        SetLatchModifier(value, Nudge);
-    }
-  
-    void SetZoom(bool value)
-    {
-        modifiers_[Marker].isEngaged = false;
-        modifiers_[Nudge].isEngaged = false;
-        modifiers_[Scrub].isEngaged = false;
-
-        SetLatchModifier(value, Zoom);
-    }
-  
-    void SetScrub(bool value)
-    {
-        modifiers_[Marker].isEngaged = false;
-        modifiers_[Nudge].isEngaged = false;
-        modifiers_[Zoom].isEngaged = false;
-
-        SetLatchModifier(value, Scrub);
-    }
-    
-    void SetLatchModifier(bool value, Modifiers modifier)
-    {
-        if(value && modifiers_[modifier].isEngaged == false)
-        {
-            modifiers_[modifier].isEngaged = value;
-            modifiers_[modifier].pressedTime = DAW::GetCurrentNumberOfMilliseconds();
-        }
-        else
-        {
-            double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
-            
-            if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
-                modifiers_[modifier].isEngaged = value;
-        }
-        
-        RecalculateModifiers();
-    }
-
-    void ClearModifiers()
-    {
-        for(auto &modifier : modifiers_)
-            modifier.isEngaged = false;
-    }
-    
-    
-    // GAW -- TBD -- end of make this a class -- ModifierManager
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled))
-    {
-        
-        
-        // GAW -- TBD -- make this a class -- ModifierManager
-
-        modifierCombinations_.push_back(0);
-        
-        for(int i = 0; i < 10; i++)
-            modifiers_.push_back(Modifier());
-        
-        int value = 2;
-        
-        for(auto &modifier : modifiers_)
-            modifier.value = value *= 2;
-
-        // GAW -- TBD -- end of make this a class -- ModifierManager
-        
-    }
+    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled)), modifierManager_(new ModifierManager(this)) {}
     
     ~Page()
     {
@@ -2770,11 +2769,12 @@ public:
     
     string GetName() { return name_; }
 
+    ModifierManager* GetModifierManager() { return modifierManager_; }
+    
     void UpdateCurrentActionContextModifiers()
     {
-        // GAW TBD -- Set current Action contexts for each Widget in each Zone, thereby eliminating dynamic calculation during RequestUpdate.
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->UpdateCurrentActionContextModifiers();
+         for(auto surface : surfaces_)
+            surface->UpdateCurrentActionContextModifiers();
     }
     
     void ForceClear()
