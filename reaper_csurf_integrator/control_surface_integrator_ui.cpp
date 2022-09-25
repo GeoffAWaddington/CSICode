@@ -186,6 +186,7 @@ vector<shared_ptr<SurfaceLine>> surfaces;
 
 struct PageSurfaceLine
 {
+    bool useLocalmodifiers = false;
     string pageSurfaceName = "";
     int numChannels = 0;
     int channelOffset = 0;
@@ -1057,14 +1058,23 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
-                    else if(tokens.size() == 5)
+                    else if(tokens.size() == 5 || tokens.size() == 6)
                     {
+                        bool useLocalModifiers = false;
+                        
+                        if(tokens[0] == "LocalModifiers")
+                        {
+                            useLocalModifiers = true;
+                            tokens.erase(tokens.begin()); // pop front
+                        }
+
                         shared_ptr<PageSurfaceLine> surface = make_shared<PageSurfaceLine>();
                         
                         if (! pages.empty())
                         {
                             pages.back()->surfaces.push_back(surface);
                             
+                            surface->useLocalmodifiers = useLocalModifiers;
                             surface->pageSurfaceName = tokens[0];
                             surface->numChannels = atoi(tokens[1].c_str());
                             surface->channelOffset = atoi(tokens[2].c_str());
@@ -1136,6 +1146,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     for(auto surface : page->surfaces)
                     {
                         line = "";
+                        if(surface->useLocalmodifiers)
+                            line += "LocalModifiers ";
                         line += "\"" + surface->pageSurfaceName + "\" ";
                         line += to_string(surface->numChannels) + " " ;
                         line += to_string(surface->channelOffset) + " " ;

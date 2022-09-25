@@ -1311,7 +1311,7 @@ public:
             modifier.value = value *= 2;
     }
     
-    ModifierManager(Page* page) :  ModifierManager()
+    ModifierManager(Page* page) : ModifierManager()
     {
         page_ = page;
     }
