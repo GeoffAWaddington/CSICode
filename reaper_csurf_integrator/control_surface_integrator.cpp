@@ -1071,7 +1071,7 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-void GetSteppedValues(vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(Widget* widget, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1132,6 +1132,12 @@ void GetSteppedValues(vector<string> params, double &deltaValue, vector<double> 
             }
         }
     }
+    
+    if(deltaValue == 0.0 && widget->GetStepSize() != 0.0)
+        deltaValue = widget->GetStepSize();
+    
+    if(acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
+        acceleratedDeltaValues = widget->GetAccelerationValues();
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1997,11 +2003,10 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     }
 
     if(params.size() > 0)
-    {
         SetColor(params, supportsColor_, supportsTrackColor_, colorValues_);
-        GetSteppedValues(params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
-    }
     
+    GetSteppedValues(widget, params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
+
     if(acceleratedTickValues_.size() < 1)
         acceleratedTickValues_.push_back(10);
 }
