@@ -764,7 +764,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                             zone->AddActionContext(valueWidgets[i][j], 0, context);
                         }
                         
-                        if(nameDisplays.count(i) > 0 &&  j < nameDisplays[i].size())
+                        if(nameDisplays.count(i) > 0 &&  j < nameDisplays[i].size() && j < names[i].size())
                         {
                             zone->AddWidget(nameDisplays[i][j]);
                             shared_ptr<ActionContext> context = nullptr;
