@@ -629,8 +629,10 @@ public:
         else if(modeParams_ == "Fill")
             displayMode = 2;
         else if(modeParams_ == "Spread")
+        {
             displayMode = 3;
-
+            value /= 2;
+        }
         
         int val = (1+((valueInt*11)>>7)) | (displayMode << 4);
         
