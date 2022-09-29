@@ -826,7 +826,7 @@ public:
     
     void SetSteppedValues(string zoneName, int paramNumber, vector<double> steps) { steppedValues_[zoneName][paramNumber] = steps; }
        
-    int GetTickCount(int stepCount)
+    int GetBaseTickCount(int stepCount)
     {
         if(baseTickCounts_.count(stepCount) > 0)
             return baseTickCounts_[stepCount];

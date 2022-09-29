@@ -751,7 +751,7 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                                 if(stepSizeCount != 0 && stepSize != 0.0)
                                 {
                                     stepSize *= 10000.0;
-                                    int baseTickCount = zoneManager->GetTickCount(context->GetNumberOfSteppedValues());
+                                    int baseTickCount = zoneManager->GetBaseTickCount(stepSizeCount);
                                     int tickCount = int(baseTickCount / stepSize + 0.5);
                                     tickCounts.push_back(tickCount);
                                     context->SetTickCounts(tickCounts);
@@ -1071,7 +1071,7 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-void GetSteppedValues(Widget* widget, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1138,6 +1138,22 @@ void GetSteppedValues(Widget* widget, vector<string> params, double &deltaValue,
     
     if(acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
         acceleratedDeltaValues = widget->GetAccelerationValues();
+    
+    if(steppedValues.size() == 0)
+        steppedValues = widget->GetSurface()->GetZoneManager()->GetSteppedValues(zoneName, paramNumber);
+
+    if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
+    {
+        double stepSize = deltaValue;
+        
+        if(stepSize != 0.0)
+        {
+            stepSize *= 10000.0;
+            int baseTickCount = widget->GetSurface()->GetZoneManager()->GetBaseTickCount(steppedValues.size());
+            int tickCount = int(baseTickCount / stepSize + 0.5);
+            acceleratedTickValues.push_back(tickCount);
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2005,7 +2021,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     if(params.size() > 0)
         SetColor(params, supportsColor_, supportsTrackColor_, colorValues_);
     
-    GetSteppedValues(widget, params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
+    GetSteppedValues(widget, GetZone()->GetName(), paramIndex_, params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
 
     if(acceleratedTickValues_.size() < 1)
         acceleratedTickValues_.push_back(10);
