@@ -629,13 +629,15 @@ public:
         else if(modeParams_ == "Fill")
             displayMode = 2;
         else if(modeParams_ == "Spread")
-        {
             displayMode = 3;
-            value /= 2;
-        }
         
-        int val = (1+((valueInt*11)>>7)) | (displayMode << 4);
+        int val = 0;
         
+        if(displayMode == 3)
+            val = (1+((valueInt*11)>>8)) | (displayMode << 4);
+        else
+            val = (1+((valueInt*11)>>7)) | (displayMode << 4);
+
         //if(displayMode) // Should light up lower middle light
         //val |= 0x40;
 
