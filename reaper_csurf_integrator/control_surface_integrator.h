@@ -1335,6 +1335,17 @@ public:
     bool GetZoom() { return modifiers_[Zoom].isEngaged; }
     bool GetScrub() { return modifiers_[Scrub].isEngaged; }
 
+    int GetModifierValue()
+    {
+        int modifierValue = 0;
+        
+        for(auto modifier : modifiers_)
+            if(modifier.isEngaged)
+                modifierValue += modifier.value;
+        
+        return modifierValue;
+    }
+    
     void SetShift(bool value)
     {
         SetLatchModifier(value, Shift);
@@ -1362,7 +1373,7 @@ public:
   
     void SetGlobal(bool value)
     {
-        SetLatchModifier(value, Global);\
+        SetLatchModifier(value, Global);
     }
     
     void SetMarker(bool value)

@@ -210,18 +210,13 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
     vector<string> tokens;
     string token;
     
+    ModifierManager modifierManager;
+    
     while (getline(modifiersAndWidgetName, token, '+'))
         tokens.push_back(token);
     
     actionTemplate->widgetName = tokens[tokens.size() - 1];
        
-    
-    
-    
-    // GAW -- IMPORTANT -- keep the modifier placement order in synch with
-    // Page::GetModifiers()
-    // This is a dictionary key
-
     if(tokens.size() > 1)
     {
         for(int i = 0; i < tokens.size() - 1; i++)
@@ -231,32 +226,27 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
             else if(tokens[i] == "Toggle")
                 actionTemplate->modifier += 2;
             
-            // GAW TDB, delegate to passed in ModifierManager
-            
             else if(tokens[i] == "Shift")
-                actionTemplate->modifier += 4;
+                modifierManager.SetShift(true);
             else if(tokens[i] == "Option")
-                actionTemplate->modifier += 8;
+                modifierManager.SetOption(true);
             else if(tokens[i] == "Control")
-                actionTemplate->modifier += 16;
+                modifierManager.SetControl(true);
             else if(tokens[i] == "Alt")
-                actionTemplate->modifier += 32;
+                modifierManager.SetAlt(true);
             else if(tokens[i] == "Flip")
-                actionTemplate->modifier += 64;
+                modifierManager.SetFlip(true);
             else if(tokens[i] == "Global")
-                actionTemplate->modifier += 128;
-            
+                modifierManager.SetGlobal(true);
+
             else if(tokens[i] == "Marker")
-                actionTemplate->modifier += 256;
+                modifierManager.SetMarker(true);
             else if(tokens[i] == "Nudge")
-                actionTemplate->modifier += 512;
+                modifierManager.SetNudge(true);
             else if(tokens[i] == "Zoom")
-                actionTemplate->modifier += 1024;
+                modifierManager.SetNudge(true);
             else if(tokens[i] == "Scrub")
-                actionTemplate->modifier += 2048;
-            
-            
-            
+                modifierManager.SetScrub(true);
             
             
             else if(tokens[i] == "InvertFB")
@@ -269,6 +259,8 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
                 actionTemplate->isIncrease = true;
         }
     }
+    
+    actionTemplate->modifier += modifierManager.GetModifierValue();
 }
 
 static void WriteAutoStepSizesFile(string fxName, map<int, vector<double>> &steppedValues)
@@ -3356,6 +3348,9 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ModifierManager::RecalculateModifiers()
 {
+    if(surface_ == nullptr && page_ == nullptr)
+        return;
+    
     modifierCombinations_.clear();
     modifierCombinations_.push_back(0);
            
