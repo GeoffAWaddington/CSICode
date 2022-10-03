@@ -1230,7 +1230,11 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         // Feedback Processors
         FeedbackProcessor* feedbackProcessor = nullptr;
 
-        if(widgetType == "FB_TwoState" && size == 7)
+        if(widgetType == "FB_Speak" && size == 2)
+        {
+            feedbackProcessor = new Speak_FeedbackProcessor(widget, stod(tokenLines[i][1]));
+        }
+        else if(widgetType == "FB_TwoState" && size == 7)
         {
             feedbackProcessor = new TwoState_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
         }
@@ -2110,6 +2114,7 @@ void ActionContext::UpdateTrackColor()
 void ActionContext::UpdateWidgetValue(string value)
 {
     widget_->UpdateValue(value);
+    widget_->UpdateValue(this, value);
 }
 
 void ActionContext::UpdateWidgetMode(string modeParams)
@@ -2789,6 +2794,12 @@ void  Widget::UpdateValue(string value)
         processor->SetValue(value);
 }
 
+void  Widget::UpdateValue(ActionContext* context, string value)
+{
+    for(auto processor : feedbackProcessors_)
+        processor->SetValue(context, value);
+}
+
 void  Widget::UpdateMode(string modeParams)
 {
     for(auto processor : feedbackProcessors_)
@@ -2832,6 +2843,41 @@ void Widget::LogInput(double value)
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName().c_str(), GetName().c_str(), value);
         DAW::ShowConsoleMsg(buffer);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Speak_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Speak_FeedbackProcessor::ForceValue(ActionContext* context, string value)
+{
+    lastStringValue_ = value;
+    
+    if(DAW::GetCurrentNumberOfMilliseconds() - timeLastMessageSpoken_ > timeBetweenSpokenMessages_)
+    {
+        timeLastMessageSpoken_ = DAW::GetCurrentNumberOfMilliseconds();
+        
+        if(MediaTrack* track = context->GetZone()->GetNavigator()->GetTrack())
+        {
+            char buf[BUFSZ];
+            DAW::GetTrackName(track, buf, sizeof(buf));
+            string trackName(buf);
+            
+            string zoneName = context->GetZone()->GetName();
+            
+            string actionName = context->GetAction()->GetName();
+            
+            if(zoneName.find("VST") != string::npos)
+            {
+                char buf[BUFSZ];
+                DAW::TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex(), buf, sizeof(buf));
+                actionName = string(buf);
+            }
+            
+            string phrase = trackName + " " + zoneName + " " + actionName + " " + value;
+            
+            TheManager->Speak(phrase);
+        }
     }
 }
 
@@ -3867,15 +3913,36 @@ void OSC_ControlSurface::SendOSCMessage(string zoneName)
         DAW::ShowConsoleMsg((zoneName + "->" + "LoadingZone---->" + name_ + "\n").c_str());
 }
 
+void OSC_ControlSurface::SendOSCMessage(string oscAddress, int value)
+{
+    surfaceIO_->SendOSCMessage(oscAddress, value);
+        
+    if(TheManager->GetSurfaceOutDisplay())
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+}
+
+void OSC_ControlSurface::SendOSCMessage(string oscAddress, double value)
+{
+    surfaceIO_->SendOSCMessage(oscAddress, value);
+        
+    if(TheManager->GetSurfaceOutDisplay())
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+}
+
+void OSC_ControlSurface::SendOSCMessage(string oscAddress, string value)
+{
+    surfaceIO_->SendOSCMessage(oscAddress, value);
+        
+    if(TheManager->GetSurfaceOutDisplay())
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + value + "\n").c_str());
+}
+
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
     if(TheManager->GetSurfaceOutDisplay())
-    {
-        if(TheManager->GetSurfaceOutDisplay())
-            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
-    }
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, int value)
@@ -3883,10 +3950,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if(TheManager->GetSurfaceOutDisplay())
-    {
-        if(TheManager->GetSurfaceOutDisplay())
-            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
-    }
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, string value)
@@ -3894,10 +3958,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if(TheManager->GetSurfaceOutDisplay())
-    {
-        if(TheManager->GetSurfaceOutDisplay())
-            DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + value + "\n").c_str());
-    }
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + value + "\n").c_str());
 }
 
 void Midi_ControlSurface::InitializeMCU()

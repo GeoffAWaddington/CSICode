@@ -66,12 +66,17 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        // GAW TBD -- get a handle on requirements for this
+        vector<string> tokens = GetTokens(context->GetStringParam());
+
+        if(tokens.size() != 2)
+            return;
         
-        
-        
-        
-        
+        if(regex_match(tokens[1], regex("(\\+|-)?[[:digit:]]+")))
+            context->GetSurface()->SendOSCMessage(tokens[0], stoi(tokens[1]));
+        else if(regex_match(tokens[1], regex("[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)")))
+            context->GetSurface()->SendOSCMessage(tokens[0], stod(tokens[1]));
+        else
+            context->GetSurface()->SendOSCMessage(tokens[0], tokens[1]);
     }
 };
 
