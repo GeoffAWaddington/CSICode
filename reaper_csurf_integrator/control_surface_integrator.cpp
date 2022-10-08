@@ -1785,7 +1785,9 @@ void Manager::Init()
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
                     midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                 else if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
+                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4], false);
+                else if(tokens[0] == TouchOSCSurfaceToken && tokens.size() == 5)
+                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4], true);
                 else if(tokens[0] == PageToken)
                 {
                     bool followMCP = true;
@@ -2916,19 +2918,15 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
 {
-    if(lastColor_.r != color.r)
-        surface_->SendOSCMessage(this, oscAddress_ + "/rColor", (double)color.r);
-    
-    if(lastColor_.g != color.g)
-        surface_->SendOSCMessage(this, oscAddress_ + "/gColor", (double)color.g);
-    
-    if(lastColor_.b != color.b)
-        surface_->SendOSCMessage(this, oscAddress_ + "/bColor", (double)color.b);
-    
-    if(lastColor_.a != color.a)
-        surface_->SendOSCMessage(this, oscAddress_ + "/aColor", (double)color.a);
-
-    lastColor_ = color;
+    if(lastColor_ != color)
+    {
+        lastColor_ = color;
+        
+        if(surface_->GetIsTouchOSC())
+            surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_OSCString());
+        else
+            surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string());
+    }
 }
 
 void OSC_FeedbackProcessor::ForceValue(double value)
@@ -3822,16 +3820,15 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnPort, string transmitToPort, string transmitToIpAddress) : name_(surfaceName)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnPort, string transmitToPort, string transmitToIpAddress, bool isTouchOSC) : name_(surfaceName), isTouchOSC_(isTouchOSC)
 {
     if (receiveOnPort != transmitToPort)
     {
         inSocket_  = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
         outSocket_ = GetOutputSocketForAddressAndPort(surfaceName, transmitToIpAddress, stoi(transmitToPort));
     }
-    else
+    else // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
     {
-        // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
         oscpkt::UdpSocket* inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
 
         struct addrinfo hints;

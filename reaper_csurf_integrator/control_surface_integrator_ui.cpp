@@ -175,6 +175,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct SurfaceLine
 {
+    bool isTouchOSC = false;
     string type = "";
     string name = "";
     int inPort = 0;
@@ -1010,17 +1011,25 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     while (iss >> quoted(token))
                         tokens.push_back(token);
                     
-                    if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
+                    if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken || tokens[0] == TouchOSCSurfaceToken)
                     {
                         shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
-                        surface->type = tokens[0];
+                        
+                        if(tokens[0] == TouchOSCSurfaceToken)
+                        {
+                            surface->isTouchOSC = true;
+                            surface->type = OSCSurfaceToken;
+                        }
+                        else
+                            surface->type = tokens[0];
+                        
                         surface->name = tokens[1];
                         
                         if((surface->type == MidiSurfaceToken || surface->type == OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5))
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
-                            if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
+                            if(surface->type == OSCSurfaceToken && tokens.size() == 5)
                                 surface->remoteDeviceIP = tokens[4];
                         }
                         
@@ -1115,7 +1124,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 for(auto surface : surfaces)
                 {
-                    line = surface->type + " ";
+                    line = surface->isTouchOSC ? TouchOSCSurfaceToken + " " : surface->type + " ";
                     line += "\"" + surface->name + "\" ";
                     line += to_string(surface->inPort) + " ";
                     line += to_string(surface->outPort) + " ";

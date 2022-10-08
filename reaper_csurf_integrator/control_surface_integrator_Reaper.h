@@ -33,6 +33,29 @@ struct rgba_color
     {
         return r != other.r || g != other.g || b != other.b || a != other.a;
     }
+    
+    string to_string()
+    {
+        std::stringstream hexStream;
+        hexStream << "#";
+        hexStream << hex;
+        hexStream << setw(2) << setfill('0') << r;
+        hexStream << setw(2) << setfill('0') << g;
+        hexStream << setw(2) << setfill('0') << b;
+        hexStream << setw(2) << setfill('0') << a;
+        return hexStream.str();
+    }
+    
+    string to_OSCString()
+    {
+        std::stringstream hexStream;
+        hexStream << hex;
+        hexStream << setw(2) << setfill('0') << r;
+        hexStream << setw(2) << setfill('0') << g;
+        hexStream << setw(2) << setfill('0') << b;
+        hexStream << setw(2) << setfill('0') << a;
+        return hexStream.str();
+    }
 };
 
 struct MIDI_event_ex_t : MIDI_event_t

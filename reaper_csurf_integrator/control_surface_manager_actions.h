@@ -16,11 +16,6 @@ class SendMIDIMessage : public Action
 public:
     virtual string GetName() override { return "SendMIDIMessage"; }
 
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -56,11 +51,6 @@ class SendOSCMessage : public Action
 {
 public:
     virtual string GetName() override { return "SendOSCMessage"; }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
 
     void Do(ActionContext* context, double value) override
     {

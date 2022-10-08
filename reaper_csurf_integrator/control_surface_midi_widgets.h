@@ -2521,7 +2521,16 @@ public:
         if((color.r == 177 || color.r == 181) && color.g == 31) // this sets the different MFT modes
             SendMidiMessage(color.r, color.g, color.b);
         else
-            SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetColorIntFromRGB(color.r, color.g, color.b));
+        {
+            int colour = GetColorIntFromRGB(color.r, color.g, color.b);
+            if (colour == 0)
+                SendMidiMessage(midiFeedbackMessage1_->midi_message[0] + 1, midiFeedbackMessage1_->midi_message[1], 17); // turn off led
+            else
+            {
+                SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], colour); // set color
+                SendMidiMessage(midiFeedbackMessage1_->midi_message[0] + 1, midiFeedbackMessage1_->midi_message[1], 47);  // turn on led max brightness
+            }
+        }
     }
 
     virtual void SetColorValue(rgba_color color) override
