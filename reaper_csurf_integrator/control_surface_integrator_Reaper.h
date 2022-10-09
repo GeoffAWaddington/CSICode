@@ -45,17 +45,6 @@ struct rgba_color
         hexStream << setw(2) << setfill('0') << a;
         return hexStream.str();
     }
-    
-    string to_OSCString()
-    {
-        std::stringstream hexStream;
-        hexStream << hex;
-        hexStream << setw(2) << setfill('0') << r;
-        hexStream << setw(2) << setfill('0') << g;
-        hexStream << setw(2) << setfill('0') << b;
-        hexStream << setw(2) << setfill('0') << a;
-        return hexStream.str();
-    }
 };
 
 struct MIDI_event_ex_t : MIDI_event_t

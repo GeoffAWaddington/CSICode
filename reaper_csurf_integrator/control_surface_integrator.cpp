@@ -1785,9 +1785,7 @@ void Manager::Init()
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
                     midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                 else if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4], false);
-                else if(tokens[0] == TouchOSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4], true);
+                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
                 else if(tokens[0] == PageToken)
                 {
                     bool followMCP = true;
@@ -2921,11 +2919,7 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
     if(lastColor_ != color)
     {
         lastColor_ = color;
-        
-        if(surface_->GetIsTouchOSC())
-            surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_OSCString());
-        else
-            surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string());
+        surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string());
     }
 }
 
@@ -3820,7 +3814,7 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnPort, string transmitToPort, string transmitToIpAddress, bool isTouchOSC) : name_(surfaceName), isTouchOSC_(isTouchOSC)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnPort, string transmitToPort, string transmitToIpAddress) : name_(surfaceName)
 {
     if (receiveOnPort != transmitToPort)
     {

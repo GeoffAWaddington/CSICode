@@ -56,7 +56,6 @@ const string SynchPagesToken = "SynchPages";
 const string UseScrollLinkToken = "UseScrollLink";
 const string MidiSurfaceToken = "MidiSurface";
 const string OSCSurfaceToken = "OSCSurface";
-const string TouchOSCSurfaceToken = "TouchOSCSurface";
 
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
@@ -1570,8 +1569,6 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
-    virtual bool GetIsTouchOSC() { return false; }
-
     void ToggleChannel(int channelNum)
     {
         if(channelNum > 0 && channelNum <= numChannels_)
@@ -2007,15 +2004,11 @@ private:
     oscpkt::PacketWriter packetWriter_;
     const double X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
     double X32HeartBeatLastRefreshTime_ = 0.0;
-
-    bool isTouchOSC_ = false;
     
 public:
-    OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string transmitToIpAddress, bool isTouchOSC);
+    OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string transmitToIpAddress);
 
     void HandleExternalInput(OSC_ControlSurface* surface);
-    
-    bool GetIsTouchOSC() { return isTouchOSC_; }
     
     void SendOSCMessage(string oscAddress, double value)
     {
@@ -2100,8 +2093,6 @@ public:
     virtual void SendOSCMessage(string zoneName, int value) override;
     virtual void SendOSCMessage(string zoneName, double value) override;
     virtual void SendOSCMessage(string zoneName, string value) override;
-
-    virtual bool GetIsTouchOSC() override { return surfaceIO_->GetIsTouchOSC(); }
 
     virtual void RequestUpdate() override
     {
