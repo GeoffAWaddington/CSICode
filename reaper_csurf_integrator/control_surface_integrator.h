@@ -677,7 +677,6 @@ public:
     void UpdateMode(string modeParams);
     void UpdateValue(double value);
     void UpdateValue(string value);
-    void UpdateValue(ActionContext* context, string value);
     void UpdateColorValue(rgba_color);
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
@@ -1761,7 +1760,6 @@ public:
     virtual void ForceValue(double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(string value) {}
-    virtual void ForceValue(ActionContext* context, string value) {}
     virtual void SetColors(rgba_color textColor, rgba_color textBackground) {}
     virtual void SetCurrentColor(double value) {}
     virtual void SetProperties(vector<vector<string>> properties) {}
@@ -1790,12 +1788,6 @@ public:
             ForceValue(value);
     }
 
-    void SetValue(ActionContext* context, string value)
-    {
-        if(lastStringValue_ != value)
-            ForceValue(context, value);
-    }
-
     virtual void ClearCache()
     {
         lastDoubleValue_ = 0.0;
@@ -1817,19 +1809,6 @@ public:
         ForceValue("");
         ForceColorValue(color);
     }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Speak_FeedbackProcessor : public FeedbackProcessor
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    double timeLastMessageSpoken_ = 0.0;
-    double timeBetweenSpokenMessages_ = 0.0;
-       
-public:
-    Speak_FeedbackProcessor(Widget* widget, double timeBetweenSpokenMessages) : FeedbackProcessor(widget), timeBetweenSpokenMessages_(timeBetweenSpokenMessages) {}
-
-    virtual void ForceValue(ActionContext* context, string value) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
