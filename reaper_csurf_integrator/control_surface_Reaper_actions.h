@@ -1831,8 +1831,7 @@ public:
             MediaTrack* srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
             if(srcTrack)
             {
-                string receiveTrackName = "";
-                receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
+                string receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
                 TheManager->Speak(receiveTrackName);
             }
             else
