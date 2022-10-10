@@ -1679,6 +1679,7 @@ void Manager::InitActionsDictionary()
     actions_["FXOfflineDisplay"] =                  new ToggleFXOffline();
     actions_["FXNameDisplay"] =                     new FXNameDisplay();
     actions_["FXMenuNameDisplay"] =                 new FXMenuNameDisplay();
+    actions_["SpeakFXMenuName"] =                   new SpeakFXMenuName();
     actions_["FXParamNameDisplay"] =                new FXParamNameDisplay();
     actions_["FXParamValueDisplay"] =               new FXParamValueDisplay();
     actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
@@ -1693,6 +1694,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackSendStereoMonoToggle"] =         new TrackSendStereoMonoToggle();
     actions_["TrackSendPrePost"] =                  new TrackSendPrePost();
     actions_["TrackSendNameDisplay"] =              new TrackSendNameDisplay();
+    actions_["SpeakTrackSendDestination"] =         new SpeakTrackSendDestination();
     actions_["TrackSendVolumeDisplay"] =            new TrackSendVolumeDisplay();
     actions_["TrackSendPanDisplay"] =               new TrackSendPanDisplay();
     actions_["TrackSendPrePostDisplay"] =           new TrackSendPrePostDisplay();
@@ -1705,6 +1707,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackReceiveStereoMonoToggle"] =      new TrackReceiveStereoMonoToggle();
     actions_["TrackReceivePrePost"] =               new TrackReceivePrePost();
     actions_["TrackReceiveNameDisplay"] =           new TrackReceiveNameDisplay();
+    actions_["SpeakTrackReceiveSource"] =           new SpeakTrackReceiveSource();
     actions_["TrackReceiveVolumeDisplay"] =         new TrackReceiveVolumeDisplay();
     actions_["TrackReceivePanDisplay"] =            new TrackReceivePanDisplay();
     actions_["TrackReceivePrePostDisplay"] =        new TrackReceivePrePostDisplay();

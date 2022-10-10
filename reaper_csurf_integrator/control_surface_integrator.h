@@ -1007,7 +1007,7 @@ public:
             receive_[param] = param;
     }
 
-    string GetNameOrAlias(string name)
+    string GetName(string name)
     {
         if(zoneFilePaths_.count(name) > 0)
             return zoneFilePaths_[name].alias;

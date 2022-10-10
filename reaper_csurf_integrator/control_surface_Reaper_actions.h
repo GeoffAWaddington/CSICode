@@ -1524,13 +1524,45 @@ public:
                 
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
                 
-                name = context->GetSurface()->GetZoneManager()->GetNameOrAlias(fxName);
+                name = context->GetSurface()->GetZoneManager()->GetName(fxName);
             }
             
             context->UpdateWidgetValue(name);
         }
         else
             context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SpeakFXMenuName : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SpeakFXMenuName"; }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            string name = "";
+            
+            if(context->GetSlotIndex() >= DAW::TrackFX_GetCount(track))
+                name= "No FX present in this slot";
+            else
+            {
+                char fxName[BUFSZ];
+                
+                DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
+                
+                name = context->GetSurface()->GetZoneManager()->GetName(fxName);
+                
+                if(name == "No Map")
+                    name = "No Zone definition for " + string(fxName);
+            }
+            
+            TheManager->Speak(name);
+        }
     }
 };
 
@@ -1643,6 +1675,26 @@ public:
         }
         else
             context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SpeakTrackSendDestination : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SpeakTrackSendDestination"; }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            string sendTrackName = "No Send Track";
+            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
+            if(destTrack)
+                sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
+            TheManager->Speak(sendTrackName);
+        }
     }
 };
 
@@ -1762,6 +1814,30 @@ public:
         }
         else
             context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SpeakTrackReceiveSource : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "SpeakTrackReceiveSource"; }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            MediaTrack* srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
+            if(srcTrack)
+            {
+                string receiveTrackName = "";
+                receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
+                TheManager->Speak(receiveTrackName);
+            }
+            else
+                TheManager->Speak("No Receive Track");
+        }
     }
 };
 
