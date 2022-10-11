@@ -1543,6 +1543,8 @@ public:
     
     virtual void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+
         if(MediaTrack* track = context->GetTrack())
         {
             string name = "";
@@ -1687,6 +1689,8 @@ public:
     
     virtual void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+
         if(MediaTrack* track = context->GetTrack())
         {
             string sendTrackName = "No Send Track";
@@ -1826,6 +1830,8 @@ public:
     
     virtual void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+
         if(MediaTrack* track = context->GetTrack())
         {
             MediaTrack* srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
