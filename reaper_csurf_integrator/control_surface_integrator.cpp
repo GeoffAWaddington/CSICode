@@ -1607,6 +1607,7 @@ void Manager::InitActionsDictionary()
     actions_["ToggleEnableFocusedFXMapping"] =      new ToggleEnableFocusedFXMapping();
     actions_["ToggleEnableFocusedFXParamMapping"] = new ToggleEnableFocusedFXParamMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
+    actions_["GoMasterTrack"] =                     new GoMasterTrack();
     actions_["GoTrackSend"] =                       new GoTrackSend();
     actions_["GoTrackReceive"] =                    new GoTrackReceive();
     actions_["GoTrackFXMenu"] =                     new GoTrackFXMenu();
