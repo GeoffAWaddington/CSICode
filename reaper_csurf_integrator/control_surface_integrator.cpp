@@ -244,7 +244,7 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
             else if(tokens[i] == "Nudge")
                 modifierManager.SetNudge(true);
             else if(tokens[i] == "Zoom")
-                modifierManager.SetNudge(true);
+                modifierManager.SetZoom(true);
             else if(tokens[i] == "Scrub")
                 modifierManager.SetScrub(true);
             
