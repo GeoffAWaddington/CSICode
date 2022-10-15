@@ -2327,7 +2327,7 @@ public:
         if(currentTrackVCAFolderMode_ != 0)
             return;
 
-        int numTracks = GetNumTracks();
+        int numTracks = tracks_.size();
         
         if(numTracks <= trackNavigators_.size())
             return;
