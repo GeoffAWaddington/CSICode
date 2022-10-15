@@ -984,6 +984,11 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                         
                         GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
+                        // GAW TBD -- check for wildcards
+                        
+                        //zoneManager->GetNumChannels();
+                        
+                        
                         actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
                     }
                 }

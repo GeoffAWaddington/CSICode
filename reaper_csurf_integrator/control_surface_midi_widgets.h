@@ -2245,27 +2245,37 @@ public:
         else if (tmode>0)
         {
             int num_measures=0;
+            int currentTimeSignatureNumerator=0;
             double beats=DAW::TimeMap2_timeToBeats(NULL,pp,&num_measures,NULL,NULL,NULL)+ 0.000000000001;
             double nbeats = floor(beats);
             
             beats -= nbeats;
             
-            int fracbeats = (int) (1000.0 * beats);
+            if (num_measures <= 0 && pp < 0.0)
+                --num_measures;
             
             int *measptr = TheManager->GetMeasOffsPtr();
             int nm=num_measures+1+(measptr ? *measptr : 0);
-            if (nm >= 100) bla[0]='0'+(nm/100)%10;//bars hund
-            if (nm >= 10) bla[1]='0'+(nm/10)%10;//barstens
+            
+            // Here we display a '-' minus sign so we make it clearer that we are on "count down".
+            // Corner case: if the measure is less than -99 this won't work...
+            if (nm < 0)
+                bla[0] = '-';
+            
+            nm=std::abs(nm);
+            
+            if (nm >= 100) bla[0]='0'+(nm/100)%10;  //bars hundreds
+            if (nm >= 10) bla[1]='0'+(nm/10)%10;    //bars tens
             bla[2]='0'+(nm)%10;//bars
             
-            int nb=(int)nbeats+1;
-            if (nb >= 10) bla[3]='0'+(nb/10)%10;//beats tens
-            bla[4]='0'+(nb)%10;//beats
+            int nb=(pp < 0.0 ? currentTimeSignatureNumerator : 0) + (int)nbeats +1;
+            if (nb >= 10) bla[3]='0'+(nb/10)%10;    //beats tens
+            bla[4]='0'+(nb)%10;                     //beats
             
-            
+            const int fracbeats = (int) (1000.0 * beats);
             bla[7]='0' + (fracbeats/100)%10;
             bla[8]='0' + (fracbeats/10)%10;
-            bla[9]='0' + (fracbeats%10); // frames
+            bla[9]='0' + (fracbeats%10);            // frames
         }
         else
         {
