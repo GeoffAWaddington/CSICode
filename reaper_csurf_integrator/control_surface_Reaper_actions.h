@@ -1697,7 +1697,7 @@ public:
             MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
             if(destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
-            TheManager->Speak(sendTrackName);
+            TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
         }
     }
 };
@@ -1838,7 +1838,7 @@ public:
             if(srcTrack)
             {
                 string receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                TheManager->Speak(receiveTrackName);
+                TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
             }
             else
                 TheManager->Speak("No Receive Track");
