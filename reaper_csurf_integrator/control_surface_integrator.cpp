@@ -2740,7 +2740,7 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
     bool isTouched = false;
     bool isToggled = false;
     
-    if(GetNavigator()->GetIsNavigatorTouched())
+    if(widget->GetSurface()->GetIsChannelTouched(widget->GetChannelNumber()))
         isTouched = true;
 
     if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
@@ -3336,6 +3336,39 @@ void ZoneManager::AdjustSelectedTrackFXMenuBank(int amount)
         GetSurface()->GetPage()->SignalSelectedTrackFXMenuBank(GetSurface(), amount);
     
     AdjustSelectedTrackFXMenuOffset(amount);
+}
+
+void ZoneManager::DoTouch(Widget* widget, double value)
+{
+    surface_->TouchChannel(widget->GetChannelNumber(), value);
+    
+    widget->LogInput(value);
+    
+    bool isUsed = false;
+    
+    if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+        focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    for(auto zone : focusedFXZones_)
+        zone->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    if(isUsed)
+        return;
+
+    for(auto zone : selectedTrackFXZones_)
+        zone->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    if(isUsed)
+        return;
+
+    for(auto zone : fxSlotZones_)
+        zone->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    if(isUsed)
+        return;
+
+    if(homeZone_ != nullptr)
+        homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 }
 
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }

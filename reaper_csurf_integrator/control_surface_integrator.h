@@ -801,6 +801,8 @@ public:
     void AdjustSelectedTrackSendBank(int amount);
     void AdjustSelectedTrackReceiveBank(int amount);
     void AdjustSelectedTrackFXMenuBank(int amount);
+    
+    void DoTouch(Widget* widget, double value);
 
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     
@@ -1153,37 +1155,6 @@ public:
         if(homeZone_ != nullptr)
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
-    
-    void DoTouch(Widget* widget, double value)
-    {
-        widget->LogInput(value);
-        
-        bool isUsed = false;
-        
-        if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
-            focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
-        
-        for(auto zone : focusedFXZones_)
-            zone->DoTouch(widget, widget->GetName(), isUsed, value);
-        
-        if(isUsed)
-            return;
-
-        for(auto zone : selectedTrackFXZones_)
-            zone->DoTouch(widget, widget->GetName(), isUsed, value);
-        
-        if(isUsed)
-            return;
-
-        for(auto zone : fxSlotZones_)
-            zone->DoTouch(widget, widget->GetName(), isUsed, value);
-        
-        if(isUsed)
-            return;
-
-        if(homeZone_ != nullptr)
-            homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
-    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1453,8 +1424,9 @@ private:
     
     vector<FeedbackProcessor*> trackColorFeedbackProcessors_;
 
+    map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
-    
+
 protected:
     ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset, bool shouldAutoScan) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, shouldAutoScan))
     {
@@ -1465,7 +1437,10 @@ protected:
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
         
         for(int i = 1 ; i <= numChannels; i++)
+        {
+            channelTouches_[i] = false;
             channelToggles_[i] = false;
+        }
     }
 
     Page* const page_;
@@ -1568,6 +1543,20 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
+    void TouchChannel(int channelNum, bool isTouched)
+    {
+        if(channelNum > 0 && channelNum <= numChannels_)
+            channelTouches_[channelNum] = isTouched;
+    }
+    
+    bool GetIsChannelTouched(int channelNum)
+    {
+        if(channelNum > 0 && channelNum <= numChannels_)
+            return channelTouches_[channelNum];
+        else
+            return false;
+    }
+       
     void ToggleChannel(int channelNum)
     {
         if(channelNum > 0 && channelNum <= numChannels_)
