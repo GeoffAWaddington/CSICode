@@ -1406,6 +1406,8 @@ public:
     {
         for(auto &modifier : modifiers_)
             modifier.isEngaged = false;
+        
+        RecalculateModifiers();
     }
 };
 
