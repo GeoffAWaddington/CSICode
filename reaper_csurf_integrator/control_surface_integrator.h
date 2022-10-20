@@ -2064,11 +2064,16 @@ public:
     virtual void SendOSCMessage(string zoneName, double value) override;
     virtual void SendOSCMessage(string zoneName, string value) override;
 
+    bool IsX32()
+    {
+        return GetName().find("X32") != string::npos || GetName().find("x32") != string::npos;
+    }
+    
     virtual void RequestUpdate() override
     {
         ControlSurface::RequestUpdate();
 
-        if (GetName().find("X32") != string::npos || GetName().find("x32") != string::npos)
+        if (IsX32())
             surfaceIO_->SendX32HeartBeat();
     }
 
