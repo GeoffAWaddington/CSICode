@@ -2246,7 +2246,7 @@ public:
         {
             int num_measures=0;
             int currentTimeSignatureNumerator=0;
-            double beats=DAW::TimeMap2_timeToBeats(NULL,pp,&num_measures,NULL,NULL,NULL)+ 0.000000000001;
+            double beats=DAW::TimeMap2_timeToBeats(NULL,pp,&num_measures,&currentTimeSignatureNumerator,NULL,NULL)+ 0.000000000001;
             double nbeats = floor(beats);
             
             beats -= nbeats;

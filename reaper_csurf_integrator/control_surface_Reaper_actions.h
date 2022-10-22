@@ -3010,11 +3010,15 @@ public:
         else if(tmode > 0)
         {
             int num_measures=0;
-            double beats=DAW::TimeMap2_timeToBeats(NULL, pp, &num_measures, NULL, NULL, NULL) + 0.000000000001;
+            int currentTimeSignatureNumerator=0;
+            double beats=DAW::TimeMap2_timeToBeats(NULL,pp,&num_measures,&currentTimeSignatureNumerator,NULL,NULL)+ 0.000000000001;
             double nbeats = floor(beats);
             
             beats -= nbeats;
-                        
+               
+            if (num_measures <= 0 && pp < 0.0)
+                --num_measures;
+            
             int *measptr = TheManager->GetMeasOffsPtr();
           
             timeStr = to_string(num_measures+1+(measptr ? *measptr : 0)) + " " + to_string((int)(nbeats + 1)) + " ";
