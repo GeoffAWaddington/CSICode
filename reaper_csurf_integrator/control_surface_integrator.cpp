@@ -1677,9 +1677,9 @@ void Manager::InitActionsDictionary()
     actions_["FXParam"] =                           new FXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
-    actions_["FXBypassDisplay"] =                   new ToggleFXBypass();
+    actions_["FXBypassDisplay"] =                   new FXBypassDisplay();
     actions_["ToggleFXOffline"] =                   new ToggleFXOffline();
-    actions_["FXOfflineDisplay"] =                  new ToggleFXOffline();
+    actions_["FXOfflineDisplay"] =                  new FXOfflineDisplay();
     actions_["FXNameDisplay"] =                     new FXNameDisplay();
     actions_["FXMenuNameDisplay"] =                 new FXMenuNameDisplay();
     actions_["SpeakFXMenuName"] =                   new SpeakFXMenuName();

@@ -268,12 +268,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         context->UpdateColorValue(0.0);
-        bool isActive = context->GetPage()->GetIsVCAActive();
-        context->UpdateWidgetValue(isActive);
-        if(isActive)
-            context->UpdateWidgetValue("Enabled");
-        else
-            context->UpdateWidgetValue("Disabled");
+        context->UpdateWidgetValue(context->GetPage()->GetIsVCAActive());
     }
 
     void Do(ActionContext* context, double value) override
@@ -324,12 +319,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         context->UpdateColorValue(0.0);
-        bool isActive = context->GetPage()->GetIsFolderActive();
-        context->UpdateWidgetValue(isActive);
-        if(isActive)
-            context->UpdateWidgetValue("Enabled");
-        else
-            context->UpdateWidgetValue("Disabled");
+        context->UpdateWidgetValue(context->GetPage()->GetIsFolderActive());
     }
 
     void Do(ActionContext* context, double value) override
