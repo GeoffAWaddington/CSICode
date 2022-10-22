@@ -760,11 +760,8 @@ static void ProcessFXZoneFile(string filePath, ZoneManager* zoneManager, vector<
                         {
                             zone->AddWidget(nameDisplays[i][j]);
                             shared_ptr<ActionContext> context = nullptr;
-                            
-                            if(paramNumber == -1)
-                                context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, "");
-                            else
-                                context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
+
+                            context = TheManager->GetActionContext("FixedTextDisplay", nameDisplays[i][j], zone, names[i][j]);
                             
                             zone->AddActionContext(nameDisplays[i][j], 0, context);
                         }
