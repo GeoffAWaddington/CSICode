@@ -2902,8 +2902,11 @@ void OSC_IntFeedbackProcessor::ForceValue(double value)
 {
     lastDoubleValue_ = value;
     
-    if (surface_->IsX32() && oscAddress_.find("/-stat/selidx") != string::npos && value != 0.0)
-        surface_->SendOSCMessage(this, "/-stat/selidx", widget_->GetChannelNumber() - 1);
+    if (surface_->IsX32() && oscAddress_.find("/-stat/selidx") != string::npos)
+    {
+        if (value != 0.0)
+            surface_->SendOSCMessage(this, "/-stat/selidx", widget_->GetChannelNumber() - 1);
+    }
     else
         surface_->SendOSCMessage(this, oscAddress_, (int)value);
 }
