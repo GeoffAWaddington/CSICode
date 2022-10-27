@@ -1945,6 +1945,7 @@ public:
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
 
     virtual void SetColorValue(rgba_color color) override;
+    virtual void X32SetColorValue(rgba_color color);
     virtual void ForceValue(double value) override;
     virtual void ForceValue(string value) override;
 };

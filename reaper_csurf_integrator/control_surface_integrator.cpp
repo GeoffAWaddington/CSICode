@@ -2878,9 +2878,38 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
 {
     if(lastColor_ != color)
     {
-        lastColor_ = color;
-        surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string());
+        if(lastColor_ != color)
+        {
+            lastColor_ = color;
+
+            if (surface_->IsX32())
+                X32SetColorValue(color);
+            else
+                surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string());
+        }
     }
+}
+
+void OSC_FeedbackProcessor::X32SetColorValue(rgba_color color)
+{
+    int surfaceColor = 0;
+    int r = color.r;
+    int g = color.g;
+    int b = color.b;
+
+    if (r == 64 && g == 64 && b == 64)                               surfaceColor = 8;    // BLACK
+    else if (r > g && r > b)                                         surfaceColor = 1;    // RED
+    else if (g > r && g > b)                                         surfaceColor = 2;    // GREEN
+    else if (abs(r - g) < 30 && r > b && g > b)                      surfaceColor = 3;    // YELLOW
+    else if (b > r && b > g)                                         surfaceColor = 4;    // BLUE
+    else if (abs(r - b) < 30 && r > g && b > g)                      surfaceColor = 5;    // MAGENTA
+    else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
+    else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
+
+    string oscAddress = "/ch/";
+    if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
+    oscAddress += to_string(widget_->GetChannelNumber()) + "/config/color";
+    surface_->SendOSCMessage(this, oscAddress, surfaceColor);
 }
 
 void OSC_FeedbackProcessor::ForceValue(double value)
