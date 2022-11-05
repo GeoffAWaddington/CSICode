@@ -2904,7 +2904,7 @@ class TrackFolderParentDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackAutoModeDisplay"; }
+    virtual string GetName() override { return "TrackFolderParentDisplay"; }
     
     virtual void RequestUpdate(ActionContext* context) override
     {
