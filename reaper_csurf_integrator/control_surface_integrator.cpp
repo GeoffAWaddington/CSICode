@@ -2455,10 +2455,7 @@ void Zone::Activate()
     isActive_ = true;
     
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
-    
-    for(auto zone : includedZones_)
-        zone->Activate();
-   
+       
     for(auto [key, zones] : associatedZones_)
         for(auto zone : zones)
             zone->Deactivate();
@@ -2466,6 +2463,9 @@ void Zone::Activate()
     for(auto [key, zones] : subZones_)
         for(auto zone : zones)
             zone->Deactivate();
+    
+    for(auto zone : includedZones_)
+        zone->Activate();
 }
 
 void Zone::GoTrack()
