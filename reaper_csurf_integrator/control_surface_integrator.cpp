@@ -2405,6 +2405,9 @@ void Zone::GoAssociatedZone(string zoneName)
     {
         for(auto zone : associatedZones_[zoneName])
             zone->Deactivate();
+        
+        zoneManager_->GoHome();
+        
         return;
     }
     
