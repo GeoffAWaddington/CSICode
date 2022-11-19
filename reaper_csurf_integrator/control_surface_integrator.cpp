@@ -2120,6 +2120,9 @@ void ActionContext::UpdateWidgetValue(string value)
 
 void ActionContext::UpdateWidgetMode(string modeParams)
 {
+    if(modeParams.find("NoFeedback") != string::npos)
+        noFeedback_ = true;
+
     widget_->UpdateMode(modeParams);
 }
 
