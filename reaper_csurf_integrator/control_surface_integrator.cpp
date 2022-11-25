@@ -1554,6 +1554,10 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {
+    actions_["MetronomePrimaryVolumeDisplay"] =     new MetronomePrimaryVolumeDisplay();
+    actions_["MetronomeSecondaryVolumeDisplay"] =   new MetronomeSecondaryVolumeDisplay();
+    actions_["MetronomePrimaryVolume"] =            new MetronomePrimaryVolume();
+    actions_["MetronomeSecondaryVolume"] =          new MetronomeSecondaryVolume();
     actions_["Speak"] =                             new SpeakOSARAMessage();
     actions_["SendMIDIMessage"] =                   new SendMIDIMessage();
     actions_["SendOSCMessage"] =                    new SendOSCMessage();

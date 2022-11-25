@@ -1527,6 +1527,168 @@ public:
     }
 };
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MetronomePrimaryVolume : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    string GetName() override { return "MetronomePrimaryVolume"; }
+
+    double GetCurrentNormalizedValue(ActionContext*) override
+    {
+        if (const double* volume = TheManager->GetMetronomePrimaryVolumePtr())
+             return volToNormalized(*volume);
+        else
+            return 0.0;
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+
+    void Do(ActionContext*, double value) override
+    {
+        double* primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
+        double* secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+
+        if (primaryVolume && secondaryVolume)
+        {
+            const auto oldPrimaryVolume = *primaryVolume;
+            const auto oldSecondaryVolume = *secondaryVolume;
+
+            const auto normalizedValue = normalizedToVol(value);
+
+            *primaryVolume = normalizedValue;
+            *secondaryVolume = normalizedValue * (oldPrimaryVolume / oldSecondaryVolume);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MetronomeSecondaryVolume : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    string GetName() override { return "MetronomeSecondaryVolume"; }
+
+    double GetCurrentNormalizedValue(ActionContext*) override
+    {
+        const auto* primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
+        const auto* secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+
+        if (primaryVolume && secondaryVolume)
+            return volToNormalized((*secondaryVolume) / (*primaryVolume));
+        else
+            return 0.0;
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+
+    void Do(ActionContext*, double value) override
+    {
+        const auto* primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
+        auto* secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+
+        if (primaryVolume && secondaryVolume)
+            *secondaryVolume = normalizedToVol(value) * (*primaryVolume);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MetronomeVolumeDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    string GetName() override { return "MetronomeVolumeDisplay"; }
+
+    // Should write to the provided argument the metronome volume (in linear factor). Returns true
+    // if the call was sucessful, false otherwise.
+    virtual bool GetVolume(double& value) const = 0;
+
+    void RequestUpdate(ActionContext* context) override final
+    {
+        double volume = 0.0;
+
+        if (GetVolume(volume))
+        {
+            // The min value Reaper (as of v6.68) shows for the metronome volume before displaying "-inf".
+            constexpr double reaperMinMetronomeVolumeInDb = -135.0;
+
+            // String formatters for one or two decimal digits.
+            // If there is a prefix, we reduce the number of decimal digits when the volume is smaller
+            // or equal to -10.0. This is to accomodate the prefix and the volume better on the display.
+            constexpr auto oneDecDigitFormatter = "%7.1lf";
+            constexpr auto twoDecDigitsFormatter = "%7.2lf";
+
+            const auto stringArgument = context->GetStringParam();
+            const auto hasPrefix = !stringArgument.empty();
+            const auto prefix = hasPrefix ? stringArgument.front() : ' ';
+
+            const auto volumeInDb = VAL2DB(volume);
+
+            char str[128];
+
+            if (volumeInDb < reaperMinMetronomeVolumeInDb)
+                  snprintf(str, sizeof(str), "   -inf");
+            else
+                snprintf(str, sizeof(str), hasPrefix && volumeInDb <= -10.0 ? oneDecDigitFormatter : twoDecDigitsFormatter, volumeInDb);
+
+            if (hasPrefix)
+                str[0] = prefix;
+
+            context->UpdateWidgetValue(string(str));
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MetronomePrimaryVolumeDisplay : public MetronomeVolumeDisplay
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    string GetName() override { return "MetronomePrimaryVolumeDisplay"; }
+
+    bool GetVolume(double& value) const override
+    {
+        if (const double* volume = TheManager->GetMetronomePrimaryVolumePtr())
+        {
+            value = *volume;
+            return true;
+        }
+        else
+            return false;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MetronomeSecondaryVolumeDisplay : public MetronomeVolumeDisplay
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    string GetName() override { return "MetronomeSecondaryVolumeDisplay"; }
+
+    bool GetVolume(double& value) const override
+    {
+        const auto* primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
+        const auto* secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+
+        if (primaryVolume && secondaryVolume)
+        {
+            return value = (*secondaryVolume) / (*primaryVolume);
+            return true;
+        }
+        else
+            return false;
+    }
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FXNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
