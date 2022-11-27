@@ -406,7 +406,7 @@ public:
     
     virtual string GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
     
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value == 0.0)
         {
@@ -419,7 +419,7 @@ public:
             SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         if(value == 0.0)
         {
@@ -446,7 +446,7 @@ public:
     
     virtual string GetName() override { return "FPTwoStateRGB_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double active) override
+    virtual void SetValue(map<string, string> &properties, double active) override
     {
         active_ = active;
     }
@@ -562,13 +562,13 @@ public:
     
     virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         int volint = value * 16383.0;
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
     }
     
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         int volint = value * 16383.0;
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
@@ -585,12 +585,12 @@ public:
     
     virtual string GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], value * 127.0);
     }
     
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], value * 127.0);
     }
@@ -606,31 +606,34 @@ public:
     
     virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(value));
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(value));
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
     }
     
-    int GetMidiValue(double value)
+    int GetMidiValue(map<string, string> &properties, double value)
     {
         int valueInt = value * 127;
         
         int displayMode = 0;
         
-        if(modeParams_ == "" || modeParams_ == "Dot")
-            displayMode = 0;
-        else if(modeParams_ == "BoostCut")
-            displayMode = 1;
-        else if(modeParams_ == "Fill")
-            displayMode = 2;
-        else if(modeParams_ == "Spread")
-            displayMode = 3;
-        
+        if(properties.count("RingStyle") > 0)
+        {
+            if(properties["RingStyle"] == "Dot")
+                displayMode = 0;
+            else if(properties["RingStyle"] == "BoostCut")
+                displayMode = 1;
+            else if(properties["RingStyle"] == "Fill")
+                displayMode = 2;
+            else if(properties["RingStyle"] == "Spread")
+                displayMode = 3;
+        }
+
         int val = 0;
         
         if(displayMode == 3)
@@ -655,12 +658,12 @@ public:
     
     virtual string GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(value));
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(value));
     }
@@ -694,12 +697,12 @@ public:
     
     virtual string GetName() override { return "ConsoleOneGainReductionMeter_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], fabs(1.0 - value) * 127.0);
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], fabs(1.0 - value) * 127.0);
     }
@@ -720,7 +723,7 @@ public:
     
     virtual string GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         //Master Channel:
         //Master Level 1 : 0xd1, 0x0L
@@ -737,7 +740,7 @@ public:
         SendMidiMessage(0xd1, (param_ << 4) | midiValue, 0);
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         //Master Channel:
         //Master Level 1 : 0xd1, 0x0L
@@ -771,12 +774,12 @@ public:
     
     virtual string GetName() override { return "MCUVUMeter_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         ForceMidiMessage(0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
     }
@@ -807,7 +810,7 @@ public:
     
     virtual string GetName() override { return "FPVUMeter_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(lastMidiValue_ == value || GetMidiValue(value) < 7)
         {
@@ -822,7 +825,7 @@ public:
         }
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         lastMidiValue_ = value;
         if(channelNumber_ < 8)
@@ -848,20 +851,23 @@ class FPValueBar_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 private:
     double lastValue_ = 0;
-    string lastModeParams_ = "";
     int channel_ = 0;
     
-    int GetValueBarType()
+    int GetValueBarType(map<string, string> &properties)
     {
         // 0: Normal, 1: Bipolar, 2: Fill, 3: Spread, 4: Off
-        if (modeParams_ == "Normal")
-            return 0;
-        else if (modeParams_ == "BiPolar")
-            return 1;
-        else if (modeParams_ == "Fill")
-            return 2;
-        else if (modeParams_ == "Spread")
-            return 3;
+
+        if(properties.count("BarStyle") > 0)
+        {
+            if(properties["BarStyle"] == "Normal")
+                return 0;
+            else if(properties["BarStyle"] == "BiPolar")
+                return 1;
+            else if(properties["BarStyle"] == "Fill")
+                return 2;
+            else if(properties["BarStyle"] == "Spread")
+                return 3;
+        }
 
         return 4;
     }
@@ -872,28 +878,27 @@ public:
 
     virtual string GetName() override { return "FPValueBar_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(value == lastValue_ && modeParams_ == lastModeParams_)
+        if(value == lastValue_)
             return;
         
-        ForceValue(value);
+        ForceValue(properties, value);
     }
 
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         lastValue_ = value;
-        lastModeParams_ = modeParams_;
         
         if (channel_ < 8)
         {
             SendMidiMessage(0xb0, channel_ + 0x30, lastValue_ * 127.0);
-            SendMidiMessage(0xb0, channel_ + 0x38, GetValueBarType());
+            SendMidiMessage(0xb0, channel_ + 0x38, GetValueBarType(properties));
         }
         else
         {
             SendMidiMessage(0xb0, channel_ - 8 + 0x40, lastValue_ * 127.0);
-            SendMidiMessage(0xb0, channel_ - 8 + 0x48, GetValueBarType());
+            SendMidiMessage(0xb0, channel_ - 8 + 0x48, GetValueBarType(properties));
         }
     }
 };
@@ -915,13 +920,13 @@ public:
     
     virtual string GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(string displayText) override
+    virtual void SetValue(map<string, string> &properties, string displayText) override
     {
         if(displayText != lastStringSent_) // changes since last send
-            ForceValue(displayText);
+            ForceValue(properties, displayText);
     }
 
-    virtual void ForceValue(string displayText) override
+    virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
         lastStringSent_ = displayText;
         
@@ -1049,13 +1054,13 @@ public:
         preventUpdateTrackColors_ = false;
     }
     
-    virtual void SetValue(string displayText) override
+    virtual void SetValue(map<string, string> &properties, string displayText) override
     {
         if(displayText != lastStringSent_) // changes since last send
-            ForceValue(displayText);
+            ForceValue(properties, displayText);
     }
 
-    virtual void ForceValue(string displayText) override
+    virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
         lastStringSent_ = displayText;
         
@@ -1203,24 +1208,26 @@ private:
     int displayRow_ = 0x00;
     int channel_ = 0;
     string lastStringSent_ = " ";
-    string lastModeParams_ = "";
     
-    int GetTextAlign()
+    int GetTextAlign(map<string, string> &properties)
     {
         // Center: 0, Left: 1, Right: 2
-        if (modeParams_.find("Left") != std::string::npos)
-            return 1;
-        else if (modeParams_.find("Right") != std::string::npos)
-            return 2;
-        
+        if(properties.count("TextAlign") > 0)
+        {
+            if(properties["TextAlign"] == "Left")
+                return 1;
+            else if(properties["TextAlign"] == "Right")
+                return 2;
+        }
+
         return 0;
     }
     
-    int GetTextInvert()
+    int GetTextInvert(map<string, string> &properties)
     {
-        // value is 4 (Invert) or 0 (Default)
-        if (modeParams_.find("Invert") != std::string::npos)
-             return 4;
+        if(properties.count("TextInvert") > 0)
+            if(properties["TextInvert"] == "Yes")
+                return 4;
 
         return 0;
     }
@@ -1236,26 +1243,25 @@ public:
         lastStringSent_ = " ";
     }
     
-    virtual void SetValue(string displayText) override
+    virtual void SetValue(map<string, string> &properties, string displayText) override
     {
-        if(displayText == lastStringSent_ && lastModeParams_ ==  modeParams_) // changes since last send
+        if(displayText == lastStringSent_) // changes since last send
             return;
 
-        ForceValue(displayText);
+        ForceValue(properties, displayText);
     }
     
-    virtual void ForceValue(string displayText) override
+    virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
         lastStringSent_ = displayText;
-        lastModeParams_ = modeParams_;
         
         if(displayText == "")
             displayText = "                            ";
         
         const char* text = displayText.c_str();
     
-        int invert = lastStringSent_ == "" ? 0 : GetTextInvert(); // prevent empty inverted lines
-        int align = 0x0000000 + invert + GetTextAlign();
+        int invert = lastStringSent_ == "" ? 0 : GetTextInvert(properties); // prevent empty inverted lines
+        int align = 0x0000000 + invert + GetTextAlign(properties);
 
         struct
         {
@@ -1305,14 +1311,14 @@ class FPScribbleStripMode_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 private:
     int displayType_ = 0x02;
     int channel_ = 0;
-    string lastModeParams_ = "";
+    int lastMode_ = 0;
 
-    int GetScribbleStripMode()
+    int GetMode(map<string, string> &properties)
     {
         int param = 2;
 
-        if (modeParams_ != "")
-            param = stoi(modeParams_);
+        if(properties.count("Mode") > 0)
+            param = stoi(properties["Mode"]);
 
         if (param >= 0 && param < 9)
             return param;
@@ -1326,17 +1332,17 @@ public:
     
     virtual string GetName() override { return "FPScribbleStripMode_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if (lastModeParams_ == modeParams_)
+        if(lastMode_ == GetMode(properties))
             return;
             
-        ForceValue(value);
+        ForceValue(properties, value);
     }
     
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        lastModeParams_ = modeParams_;
+        lastMode_ = GetMode(properties);
         
         struct
         {
@@ -1354,7 +1360,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_; // Faderport8=0x02, Faderport16=0x16
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x13;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_;     // xx channel_ id
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00 + GetScribbleStripMode(); //    0x00 + value; // type of display layout
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00 + lastMode_; //    0x00 + value; // type of display layout
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         SendMidiMessage(&midiSysExData.evt);
@@ -1383,13 +1389,13 @@ public:
         lastStringSent_ = " ";
     }
     
-    virtual void SetValue(string displayText) override
+    virtual void SetValue(map<string, string> &properties, string displayText) override
     {
         if(displayText != lastStringSent_) // changes since last send
-            ForceValue(displayText);
+            ForceValue(properties, displayText);
     }
     
-    virtual void ForceValue(string displayText) override
+    virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
         lastStringSent_ = displayText;
         
@@ -1627,76 +1633,7 @@ protected:
     virtual void SetCurrentColor(double value) override
     {
         currentColor_ = value == 0 ? backgroundColor_ : foregroundColor_;
-    }
-    
-    virtual void SetProperties(vector<vector<string>> properties) override
-    {
-        for(auto property : properties)
-        {
-            if(property.size() == 0)
-                continue;
-
-            if(property[0] == "RingStyle" && property.size() > 1)
-            {
-                itemStyle_ = stoi(property[1]);
-            }
-            else if(property[0] == "BarStyle" && property.size() > 2)
-            {
-                displayType_ = stoi(property[1]);
-                itemStyle_ = stoi(property[2]);
-            }
-            else if((property[0] == "RingColor" || property[0] == "BarColor") && property.size() > 4)
-            {
-                colorBreakpoint_ = stoi(property[1]);
-                foregroundColor_.r = stoi(property[2]);
-                foregroundColor_.g = stoi(property[3]);
-                foregroundColor_.b = stoi(property[4]);
-            }
-            else if((property[0] == "Color" || property[0] == "ColorOn") && property.size() > 4)
-            {
-                displayType_ = stoi(property[1]);
-                foregroundColor_.r = stoi(property[2]);
-                foregroundColor_.g = stoi(property[3]);
-                foregroundColor_.b = stoi(property[4]);
-            }
-            else if((property[0] == "BackgroundColor" || property[0] == "ColorOff") && property.size() > 4)
-            {
-                displayType_ = stoi(property[1]);
-                backgroundColor_.r = stoi(property[2]);
-                backgroundColor_.g = stoi(property[3]);
-                backgroundColor_.b = stoi(property[4]);
-                
-                int oldMaxCharacters = maxCharacters_;
-                maxCharacters_ = 0;
-                maxCharacters_ = oldMaxCharacters;
-            }
-            else if(property[0] == "Text" && property.size() > 8)
-            {
-                displayType_ = stoi(property[1]);
-                text_ = property[2];
-                
-                backgroundColor_.r = stoi(property[6]);
-                backgroundColor_.g = stoi(property[7]);
-                backgroundColor_.b = stoi(property[8]);
-
-                maxCharacters_ = 0;
-                
-                foregroundColor_.r = stoi(property[3]);
-                foregroundColor_.g = stoi(property[4]);
-                foregroundColor_.b = stoi(property[5]);
-                
-                maxCharacters_ = GetMaxCharacters();
-            }
-            else if(property[0] == "NoBlink" && property.size() == 1)
-            {
-                itemStyle_ = 01;
-            }
-            else if(property[0] == "Blink" && property.size() == 1)
-            {
-                itemStyle_ = 02;
-            }
-        }
-    }
+    }    
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1722,13 +1659,13 @@ public:
         lastStringValue_ = " ";
     }
     
-    virtual void SetValue(string displayText) override
+    virtual void SetValue(map<string, string> &properties, string displayText) override
     {
         if(displayText != lastStringValue_) // changes since last send
-            ForceValue(displayText);
+            ForceValue(properties, displayText);
     }
     
-    virtual void ForceValue(string value) override
+    virtual void ForceValue(map<string, string> &properties, string value) override
     {
         lastStringValue_ = value;
         text_ = value;
@@ -1813,7 +1750,7 @@ public:
         lastDoubleValue_ = 0.0;
     }
     
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(int(value * 100.00) != (int)lastDoubleValue_) // changes since last send
         {
@@ -1822,7 +1759,7 @@ public:
         }
     }
     
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         struct
         {
@@ -1869,7 +1806,7 @@ public:
         lastDoubleValue_ = 0.0;
     }
     
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(int(value * 100.00) != (int)lastDoubleValue_) // changes since last send
         {
@@ -1878,7 +1815,7 @@ public:
         }
     }
     
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         struct
         {
@@ -1926,26 +1863,26 @@ public:
         return maxChars.GetMaxCharacters(displayType_);
     }
     
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value != lastDoubleValue_) // changes since last send
-            ForceValue(value);
+            ForceValue(properties, value);
     }
     
-    void ForceValue(double value) override
+    void ForceValue(map<string, string> &properties, double value) override
     {
         lastDoubleValue_ = value;
         SetCurrentColor(value); // This will cause a Force()
     }
     
-    virtual void SetValue(string value) override
+    virtual void SetValue(map<string, string> &properties, string value) override
     {
         if(value != lastStringValue_) // changes since last send
-            ForceValue(value);
+            ForceValue(properties, value);
     }
 
 
-    void ForceValue(string value) override
+    void ForceValue(map<string, string> &properties, string value) override
     {
         lastStringValue_ = value;
         text_ = value;
@@ -2022,13 +1959,13 @@ public:
         lastDoubleValue_ = 0.0;
     }
     
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value != lastDoubleValue_) // changes since last send
-            ForceValue(value);
+            ForceValue(properties, value);
     }
        
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         
         lastDoubleValue_ = value;
@@ -2079,13 +2016,13 @@ public:
         lastDoubleValue_ = 0.0;
     }
     
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value != lastDoubleValue_) // changes since last send
-            ForceValue(value);
+            ForceValue(properties, value);
     }
         
-    virtual void ForceValue(double value) override
+    virtual void ForceValue(map<string, string> &properties, double value) override
     {
         lastDoubleValue_ = value;
         SetCurrentColor(value);
@@ -2132,7 +2069,7 @@ public:
     
     virtual string GetName() override { return "FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value == 0.0) // Selected Track
         {
@@ -2169,7 +2106,7 @@ public:
     
     virtual string GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
 
-    virtual void SetValue(double value) override
+    virtual void SetValue(map<string, string> &properties, double value) override
     {
         
 #ifndef timeGetTime

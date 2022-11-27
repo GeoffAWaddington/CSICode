@@ -268,14 +268,14 @@ private:
         
     bool noFeedback_ = false;
     
-    vector<vector<string>> properties_;
+    map<string, string> widgetProperties_;
     
     vector<string> zoneNames_;
     
     void UpdateTrackColor();
 
 public:
-    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties);
+    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params);
     ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
     {
         if(acceleratedTickValues_.size() < 1)
@@ -327,7 +327,6 @@ public:
     void ClearWidget();
     void UpdateWidgetValue(double value);
     void UpdateWidgetValue(string value);
-    void UpdateWidgetMode(string modeParams);
     void UpdateColorValue(double value);
 
     void DoTouch(double value)
@@ -673,10 +672,8 @@ public:
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
-    void SetProperties(vector<vector<string>> properties);
-    void UpdateMode(string modeParams);
-    void UpdateValue(double value);
-    void UpdateValue(string value);
+    void UpdateValue(map<string, string> &properties, double value);
+    void UpdateValue(map<string, string> &properties, string value);
     void UpdateColorValue(rgba_color);
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
@@ -1738,8 +1735,6 @@ protected:
     string lastStringValue_ = "";
     rgba_color lastColor_;
     
-    string modeParams_ = "";
-
     Widget* const widget_ = nullptr;
     
 public:
@@ -1748,35 +1743,34 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     Widget* GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
-    virtual void ForceValue(double value) {}
+    virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
-    virtual void ForceValue(string value) {}
+    virtual void ForceValue(map<string, string> &properties, string value) {}
     virtual void SetColors(rgba_color textColor, rgba_color textBackground) {}
     virtual void SetCurrentColor(double value) {}
-    virtual void SetProperties(vector<vector<string>> properties) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string color) {}
     virtual void RestoreXTouchDisplayColors() {}
 
     virtual int GetMaxCharacters() { return 0; }
-    
-    void SetMode(string modeParams)
-    {
-        if(modeParams_ != modeParams)
-            modeParams_ = modeParams;
-    }
 
-    virtual void SetValue(double value)
+    virtual void SetValue(map<string, string> &properties, double value)
     {
         if(lastDoubleValue_ != value)
-            ForceValue(value);
+        {
+            lastDoubleValue_ = value;
+            ForceValue(properties, value);
+        }
     }
     
-    virtual void SetValue(string value)
+    virtual void SetValue(map<string, string> &properties, string value)
     {
         if(lastStringValue_ != value)
-            ForceValue(value);
+        {
+            lastStringValue_ = value;
+            ForceValue(properties, value);
+        }
     }
 
     virtual void ClearCache()
@@ -1787,17 +1781,20 @@ public:
     
     void Clear()
     {
+        map<string, string> properties;
+        
         rgba_color color;
-        SetValue(0.0);
-        SetValue("");
+        SetValue(properties, 0.0);
+        SetValue(properties, "");
         SetColorValue(color);
     }
     
     void ForceClear()
     {
+        map<string, string> properties;
         rgba_color color;
-        ForceValue(0.0);
-        ForceValue("");
+        ForceValue(properties, 0.0);
+        ForceValue(properties, "");
         ForceColorValue(color);
     }
 };
@@ -1946,8 +1943,8 @@ public:
 
     virtual void SetColorValue(rgba_color color) override;
     virtual void X32SetColorValue(rgba_color color);
-    virtual void ForceValue(double value) override;
-    virtual void ForceValue(string value) override;
+    virtual void ForceValue(map<string, string> &properties, double value) override;
+    virtual void ForceValue(map<string, string> &properties, string value) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1960,7 +1957,7 @@ public:
 
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
 
-    virtual void ForceValue(double value) override;
+    virtual void ForceValue(map<string, string> &properties, double value) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3228,12 +3225,12 @@ public:
             osara_outputMessage(phrase.c_str());
     }
     
-    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties)
+    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, vector<string> params)
     {
         if(actions_.count(actionName) > 0)
-            return make_shared<ActionContext>(actions_[actionName], widget, zone, params, properties);
+            return make_shared<ActionContext>(actions_[actionName], widget, zone, params);
         else
-            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params, properties);
+            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
     }
 
     

@@ -177,7 +177,6 @@ struct ActionTemplate
     int modifier = 0;
     string actionName = "";
     vector<string> params;
-    vector<vector<string>> properties;
     bool isFeedbackInverted = false;
     double holdDelayAmount = 0.0;
     bool isDecrease = false;
@@ -899,7 +898,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                     for(int j = 0; j < actionTemplate->params.size(); j++)
                                         memberParams.push_back(regex_replace(actionTemplate->params[j], regex("[|]"), numStr));
                                     
-                                    shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams, actionTemplate->properties);
+                                    shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
                                                                         
                                     if(actionTemplate->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
@@ -958,36 +957,23 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                  
                 else if(tokens.size() > 1)
                 {
-                    bool isProperty = false;
-                    
-                    if(tokens[0].find("Property") != string::npos)
-                        isProperty = true;
-
                     vector<string> params;
                     for(int i = 1; i < tokens.size(); i++)
                         params.push_back(tokens[i]);
 
-                    if(isProperty)
-                    {
-                        if(currentActionTemplate != nullptr)
-                             currentActionTemplate->properties.push_back(params);
-                    }
-                    else
-                    {
-                        currentActionTemplate = make_shared<ActionTemplate>();
-                        
-                        currentActionTemplate->actionName = tokens[1];
-                        currentActionTemplate->params = params;
-                        
-                        GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
+                    currentActionTemplate = make_shared<ActionTemplate>();
+                    
+                    currentActionTemplate->actionName = tokens[1];
+                    currentActionTemplate->params = params;
+                    
+                    GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
-                        // GAW TBD -- check for wildcards
-                        
-                        //zoneManager->GetNumChannels();
-                        
-                        
-                        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
-                    }
+                    // GAW TBD -- check for wildcards
+                    
+                    //zoneManager->GetNumChannels();
+                    
+                    
+                    actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
                 }
             }
         }
@@ -1564,8 +1550,6 @@ void Manager::InitActionsDictionary()
     actions_["SaveProject"] =                       new SaveProject();
     actions_["Undo"] =                              new Undo();
     actions_["Redo"] =                              new Redo();
-    actions_["WidgetMode"] =                        new WidgetMode();
-    actions_["SetWidgetMode"] =                     new SetWidgetMode();
     actions_["TrackAutoMode"] =                     new TrackAutoMode();
     actions_["GlobalAutoMode"] =                    new GlobalAutoMode();
     actions_["TrackAutoModeDisplay"] =              new TrackAutoModeDisplay();
@@ -1929,18 +1913,38 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params, vector<vector<string>> properties): action_(action), widget_(widget), zone_(zone), properties_(properties)
+ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params): action_(action), widget_(widget), zone_(zone)
 {
-    for(auto property : properties)
+    // GAW -- Hack to get rid of the widgetProperties, so we don't break existing logic
+    vector<string> nonWidgetPropertyParams;
+    
+    for(auto param : params)
     {
-        if(property.size() == 0)
-            continue;
+        if(param.find("=") != string::npos)
+        {
+            istringstream widgetProperty(param);
+            vector<string> kvp;
+            string token;
+            
+            while(getline(widgetProperty, token, '='))
+                kvp.push_back(token);
 
-        if(property[0] == "NoFeedback")
-            noFeedback_ = true;
+            if(kvp.size() == 2)
+            {
+                if(kvp[0] == "Feedback")
+                {
+                    if(kvp[1] == "No")
+                        noFeedback_ = true;
+                }
+                else
+                    widgetProperties_[kvp[0]] = kvp[1];
+            }
+        }
+        else
+            nonWidgetPropertyParams.push_back(param);
     }
     
-    widget->SetProperties(properties);
+    params = nonWidgetPropertyParams;
     
     string actionName = "";
     
@@ -2100,7 +2104,7 @@ void ActionContext::UpdateWidgetValue(double value)
 
     value = isFeedbackInverted_ == false ? value : 1.0 - value;
    
-    widget_->UpdateValue(value);
+    widget_->UpdateValue(widgetProperties_, value);
 
     UpdateColorValue(value);
     
@@ -2119,15 +2123,7 @@ void ActionContext::UpdateTrackColor()
 
 void ActionContext::UpdateWidgetValue(string value)
 {
-    widget_->UpdateValue(value);
-}
-
-void ActionContext::UpdateWidgetMode(string modeParams)
-{
-    if(modeParams.find("NoFeedback") != string::npos)
-        noFeedback_ = true;
-
-    widget_->UpdateMode(modeParams);
+    widget_->UpdateValue(widgetProperties_, value);
 }
 
 void ActionContext::DoAction(double value)
@@ -2787,28 +2783,16 @@ ZoneManager* Widget::GetZoneManager()
     return surface_->GetZoneManager();
 }
 
-void Widget::SetProperties(vector<vector<string>> properties)
+void  Widget::UpdateValue(map<string, string> &properties, double value)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetProperties(properties);
+        processor->SetValue(properties, value);
 }
 
-void  Widget::UpdateValue(double value)
+void  Widget::UpdateValue(map<string, string> &properties,string value)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetValue(value);
-}
-
-void  Widget::UpdateValue(string value)
-{
-    for(auto processor : feedbackProcessors_)
-        processor->SetValue(value);
-}
-
-void  Widget::UpdateMode(string modeParams)
-{
-    for(auto processor : feedbackProcessors_)
-        processor->SetMode(modeParams);
+        processor->SetValue(properties, value);
 }
 
 void  Widget::UpdateColorValue(rgba_color color)
@@ -2922,7 +2906,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(rgba_color color)
     surface_->SendOSCMessage(this, oscAddress, surfaceColor);
 }
 
-void OSC_FeedbackProcessor::ForceValue(double value)
+void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, double value)
 {
     if(DAW::GetCurrentNumberOfMilliseconds() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
         return;
@@ -2931,13 +2915,13 @@ void OSC_FeedbackProcessor::ForceValue(double value)
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
 
-void OSC_FeedbackProcessor::ForceValue(string value)
+void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, string value)
 {
     lastStringValue_ = value;
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
 
-void OSC_IntFeedbackProcessor::ForceValue(double value)
+void OSC_IntFeedbackProcessor::ForceValue(map<string, string> &properties, double value)
 {
     lastDoubleValue_ = value;
     
@@ -3013,13 +2997,15 @@ void ZoneManager::RequestUpdate()
         homeZone_->RequestUpdate(usedWidgets_);
     
     // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
+    map<string, string> properties;
+    
     for(auto &[key, value] : usedWidgets_)
     {
         if(value == false)
         {
             rgba_color color;
-            key->UpdateValue(0.0);
-            key->UpdateValue("");
+            key->UpdateValue(properties, 0.0);
+            key->UpdateValue(properties, "");
             key->UpdateColorValue(color);
         }
     }
