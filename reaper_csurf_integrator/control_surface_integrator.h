@@ -109,7 +109,6 @@ public:
 
     virtual void Touch(ActionContext* context, double value) {}
     virtual void RequestUpdate(ActionContext* context) {}
-    virtual void RequestUpdateWidgetMode(ActionContext* context) {}
     virtual void Do(ActionContext* context, double value) {}
     virtual double GetCurrentNormalizedValue(ActionContext* context) { return 0.0; }
     virtual double GetCurrentDBValue(ActionContext* context) { return 0.0; }
