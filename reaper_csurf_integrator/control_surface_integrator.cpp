@@ -2291,6 +2291,13 @@ void Zone::DoAction(Widget* widget, bool &isUsed, double value)
 
     if(widgets_.count(widget) > 0)
     {
+        if(TheManager->GetSurfaceInDisplay())
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Zone -- %s\n", sourceFilePath_.c_str());
+            DAW::ShowConsoleMsg(buffer);
+        }
+
         isUsed = true;
         
         for(auto context : GetActionContexts(widget))
