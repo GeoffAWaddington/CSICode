@@ -2705,11 +2705,11 @@ public:
                 
                 currentDepthTracks.push_back(&folderDictionary_[track]);
             }
-            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() != 0)
+            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
             {
                 currentDepthTracks.back()->push_back(track);
             }
-            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0)
+            else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0 && currentDepthTracks.size() > 0)
             {
                 currentDepthTracks.back()->push_back(track);
                 
