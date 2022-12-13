@@ -2243,8 +2243,8 @@ void Zone::RequestUpdateWidget(Widget* widget)
     for(auto context : GetActionContexts(widget))
         context->RunDeferredActions();
     
-    for(auto context : GetActionContexts(widget))
-        context->RequestUpdate();
+    if(GetActionContexts(widget).size() > 0)
+        GetActionContexts(widget)[0]->RequestUpdate();
 }
 
 void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
