@@ -181,6 +181,7 @@ struct ActionTemplate
     double holdDelayAmount = 0.0;
     bool isDecrease = false;
     bool isIncrease = false;
+    bool provideFeedback = false;
 };
 
 static void listZoneFiles(const string &path, vector<string> &results)
@@ -597,7 +598,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                         memberParams.push_back(regex_replace(actionTemplate->params[j], regex("[|]"), numStr));
                                     
                                     shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
-                                                                        
+                                        
+                                    context->SetProvideFeedback(actionTemplate->provideFeedback);
+                                    
                                     if(actionTemplate->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
                                     
@@ -655,9 +658,16 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                  
                 else if(tokens.size() > 1)
                 {
+                    bool provideFeedback = false;
+                    
                     vector<string> params;
                     for(int i = 1; i < tokens.size(); i++)
-                        params.push_back(tokens[i]);
+                    {
+                        if(tokens[i] == "Feedback")
+                            provideFeedback = true;
+                        else
+                            params.push_back(tokens[i]);
+                    }
 
                     currentActionTemplate = make_shared<ActionTemplate>();
                     
@@ -666,12 +676,17 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     
                     GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
-                    // GAW TBD -- check for wildcards
-                    
-                    //zoneManager->GetNumChannels();
-                    
-                    
                     actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
+                    
+                    if(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() == 1)
+                        currentActionTemplate->provideFeedback = true;
+                    else if(provideFeedback == true && actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() > 1)
+                    {
+                        for(auto actionTemplate : actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier])
+                            actionTemplate->provideFeedback = false;
+                        
+                        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].back()->provideFeedback = true;
+                    }
                 }
             }
         }
@@ -1628,15 +1643,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
                 kvp.push_back(token);
 
             if(kvp.size() == 2)
-            {
-                if(kvp[0] == "Feedback")
-                {
-                    if(kvp[1] == "No")
-                        noFeedback_ = true;
-                }
-                else
-                    widgetProperties_[kvp[0]] = kvp[1];
-            }
+                widgetProperties_[kvp[0]] = kvp[1];
         }
         else
             nonWidgetPropertyParams.push_back(param);
@@ -1769,10 +1776,8 @@ void ActionContext::RunDeferredActions()
 
 void ActionContext::RequestUpdate()
 {
-    if(noFeedback_)
-        return;
-    
-    action_->RequestUpdate(this);
+    if(provideFeedback_)
+        action_->RequestUpdate(this);
 }
 
 void ActionContext::ClearWidget()
@@ -2241,10 +2246,10 @@ void Zone::Deactivate()
 void Zone::RequestUpdateWidget(Widget* widget)
 {
     for(auto context : GetActionContexts(widget))
+    {
         context->RunDeferredActions();
-    
-    if(GetActionContexts(widget).size() > 0)
-        GetActionContexts(widget)[0]->RequestUpdate();
+        context->RequestUpdate();
+    }
 }
 
 void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)

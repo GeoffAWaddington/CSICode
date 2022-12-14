@@ -265,7 +265,7 @@ private:
     
     bool supportsTrackColor_ = false;
         
-    bool noFeedback_ = false;
+    bool provideFeedback_ = false;
     
     map<string, string> widgetProperties_;
     
@@ -315,6 +315,7 @@ public:
        
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount * 1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
+    void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
     
     void DoAction(double value);
     void DoRelativeAction(double value);
