@@ -29,8 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -44,7 +42,8 @@
       allowLocationSimulation = "YES">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "/Applications/REAPER64.app">
+         BundleIdentifier = "com.cockos.reaper"
+         FilePath = "/Applications/REAPER.app">
       </PathRunnable>
       <MacroExpansion>
          <BuildableReference
@@ -55,8 +54,6 @@
             ReferencedContainer = "container:reaper_csurf_integrator.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
