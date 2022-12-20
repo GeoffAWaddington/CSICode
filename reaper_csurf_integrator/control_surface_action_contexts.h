@@ -37,15 +37,16 @@ public:
         if(state == -1) // this Action does not report state
             state = 0;
         
-        if( ! (context->GetRangeMinimum() == -2.0 || context->GetRangeMaximum() == 2.0))
+        if( ! (context->GetRangeMinimum() == -2.0 || context->GetRangeMaximum() == 2.0)) // used for Increase/Decrease
             context->UpdateWidgetValue(state);
     }
     
     virtual void Do(ActionContext* context, double value) override
     {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
+        // used for Increase/Decrease
+        if(value < 0 && context->GetRangeMinimum() < 0)
             DAW::SendCommandMessage(context->GetCommandId());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+        else if(value > 0 && context->GetRangeMinimum() >= 0)
             DAW::SendCommandMessage(context->GetCommandId());
     }
 };
