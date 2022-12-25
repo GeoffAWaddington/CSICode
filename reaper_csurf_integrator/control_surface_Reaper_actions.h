@@ -37,6 +37,73 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TCPFXParam : public FXAction
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TCPFXParam"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            int index = context->GetIntParam();
+            
+            if(DAW::CountTCPFXParms(track) > index)
+            {
+                int fxIndex = 0;
+                int paramIndex = 0;
+                
+                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                {
+                    double min, max = 0.0;
+                    
+                    return DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &min, &max);
+                }
+                else
+                    return 0.0;
+            }
+            else
+                return 0.0;
+        }
+        else
+            return 0.0;
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            int index = context->GetIntParam();
+            
+            if(DAW::CountTCPFXParms(track) > index)
+            {
+                int fxIndex = 0;
+                int paramIndex = 0;
+                
+                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                    DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
+            }
+        }
+    }
+    
+    virtual void Touch(ActionContext* context, double value) override
+    {
+        /*
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double min, max = 0;
+            
+            if(value == 0)
+                DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
+            else
+                DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
+        }
+         */
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FXParamRelative : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1787,6 +1854,41 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TCPFXParamNameDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TCPFXParamNameDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            int index = context->GetIntParam();
+            
+            if(DAW::CountTCPFXParms(track) > index)
+            {
+                int fxIndex = 0;
+                int paramIndex = 0;
+                
+                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                {
+                    char fxParamName[BUFSZ];
+                    DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
+                    context->UpdateWidgetValue(string(fxParamName));
+                }
+                else
+                    context->ClearWidget();
+            }
+            else
+                context->ClearWidget();
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1800,6 +1902,41 @@ public:
             char fxParamValue[128];
             DAW::TrackFX_GetFormattedParamValue(track, context->GetSlotIndex(), context->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
             context->UpdateWidgetValue(string(fxParamValue));
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TCPFXParamValueDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TCPFXParamValueDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            int index = context->GetIntParam();
+            
+            if(DAW::CountTCPFXParms(track) > index)
+            {
+                int fxIndex = 0;
+                int paramIndex = 0;
+                
+                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                {
+                    char fxParamValue[128];
+                    DAW::TrackFX_GetFormattedParamValue(track, fxIndex, paramIndex, fxParamValue, sizeof(fxParamValue));
+                    context->UpdateWidgetValue(string(fxParamValue));
+                }
+                else
+                    context->ClearWidget();
+            }
+            else
+                context->ClearWidget();
         }
         else
             context->ClearWidget();

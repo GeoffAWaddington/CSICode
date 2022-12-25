@@ -256,9 +256,6 @@ private:
     double delayStartTime_ = 0.0;
     double deferredValue_ = 0.0;
     
-    bool shouldUseDisplayStyle_ = false;
-    int displayStyle_ = 0;
-    
     bool supportsColor_ = false;
     vector<rgba_color> colorValues_;
     int currentColorIndex_ = 0;
@@ -299,8 +296,6 @@ public:
     int GetIntParam() { return intParam_; }
     string GetStringParam() { return stringParam_; }
     int GetCommandId() { return commandId_; }
-    bool GetShouldUseDisplayStyle() { return shouldUseDisplayStyle_; }
-    int GetDisplayStyle() { return displayStyle_; }
     
     MediaTrack* GetTrack();
     

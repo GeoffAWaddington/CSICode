@@ -76,10 +76,7 @@ public:
         {
             double currentValue = GetCurrentNormalizedValue(context);
             
-            if(context->GetShouldUseDisplayStyle())
-                context->UpdateWidgetValue(currentValue);
-            else
-                context->UpdateWidgetValue(currentValue);
+            context->UpdateWidgetValue(currentValue);
         }
         else
             context->ClearWidget();

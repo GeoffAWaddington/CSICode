@@ -257,6 +257,22 @@ public:
             return 0;
     }
     
+    static int CountTCPFXParms(MediaTrack* track)
+    {
+        if(ValidateTrackPtr(track))
+            return ::CountTCPFXParms(nullptr, track);
+        else
+            return 0;
+    }   
+    
+    static bool GetTCPFXParm(MediaTrack* track, int index, int* fxindexOut, int* parmidxOut)
+    {
+        if(ValidateTrackPtr(track))
+            return ::GetTCPFXParm(nullptr, track, index, fxindexOut, parmidxOut);
+        else
+            return false;
+    }
+    
     static bool TrackFX_GetFXName(MediaTrack* track, int fx, char* buf, int buf_sz)
     {
         if(ValidateTrackPtr(track))

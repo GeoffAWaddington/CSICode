@@ -1313,6 +1313,7 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackSend"] =               new GoSelectedTrackSend();
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
+    actions_["GoTCPFX"] =                           new GoTCPFX();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["VCABank"] =                           new VCABank();
     actions_["FolderBank"] =                        new FolderBank();
@@ -1376,6 +1377,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeterMaxPeakLR"] =         new TrackOutputMeterMaxPeakLR();
     actions_["FocusedFXParam"] =                    new FocusedFXParam();
     actions_["FXParam"] =                           new FXParam();
+    actions_["TCPFXParam"] =                        new TCPFXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
     actions_["FXBypassDisplay"] =                   new FXBypassDisplay();
@@ -1385,7 +1387,9 @@ void Manager::InitActionsDictionary()
     actions_["FXMenuNameDisplay"] =                 new FXMenuNameDisplay();
     actions_["SpeakFXMenuName"] =                   new SpeakFXMenuName();
     actions_["FXParamNameDisplay"] =                new FXParamNameDisplay();
+    actions_["TCPFXParamNameDisplay"] =             new TCPFXParamNameDisplay();
     actions_["FXParamValueDisplay"] =               new FXParamValueDisplay();
+    actions_["TCPFXParamValueDisplay"] =            new TCPFXParamValueDisplay();
     actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
     actions_["FocusedFXParamValueDisplay"] =        new FocusedFXParamValueDisplay();
     actions_["FXGainReductionMeter"] =              new FXGainReductionMeter();
@@ -1707,12 +1711,6 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     if(actionName == "FXParamValueDisplay" && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
-        
-        if(params.size() > 2 && params[2] != "[" && params[2] != "{" && isdigit(params[2][0]))
-        {
-            shouldUseDisplayStyle_ = true;
-            displayStyle_ = atol(params[2].c_str());
-        }
     }
     
     if(actionName == "FXParamNameDisplay" && params.size() > 1 && isdigit(params[1][0]))
