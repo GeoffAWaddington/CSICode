@@ -764,15 +764,15 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoTCPFX : public Action
+class GoSelectedTrackTCPFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoTCPFX"; }
+    virtual string GetName() override { return "GoSelectedTrackTCPFX"; }
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TCPFX"))
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackTCPFX"))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -783,7 +783,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TCPFX");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackTCPFX");
     }
 };
 

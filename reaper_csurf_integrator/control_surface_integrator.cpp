@@ -658,13 +658,13 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                  
                 else if(tokens.size() > 1)
                 {
-                    bool provideFeedback = false;
+                    string feedbackIndicator = "";
                     
                     vector<string> params;
                     for(int i = 1; i < tokens.size(); i++)
                     {
-                        if(tokens[i] == "Feedback")
-                            provideFeedback = true;
+                        if(tokens[i] == "Feedback=Yes" || tokens[i] == "Feedback=No")
+                            feedbackIndicator = tokens[i];
                         else
                             params.push_back(tokens[i]);
                     }
@@ -679,8 +679,11 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
                     
                     if(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() == 1)
-                        currentActionTemplate->provideFeedback = true;
-                    else if(provideFeedback == true && actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() > 1)
+                    {
+                        if(feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
+                            currentActionTemplate->provideFeedback = true;
+                    }
+                    else if(feedbackIndicator == "Feedback=Yes")
                     {
                         for(auto actionTemplate : actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier])
                             actionTemplate->provideFeedback = false;
@@ -1313,7 +1316,7 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackSend"] =               new GoSelectedTrackSend();
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
-    actions_["GoTCPFX"] =                           new GoTCPFX();
+    actions_["GoSelectedTrackTCPFX"] =              new GoSelectedTrackTCPFX();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["VCABank"] =                           new VCABank();
     actions_["FolderBank"] =                        new FolderBank();
