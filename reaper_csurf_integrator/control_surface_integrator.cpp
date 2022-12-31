@@ -194,16 +194,6 @@ static void listZoneFiles(const string &path, vector<string> &results)
                 results.push_back(file.path().string());
 }
 
-static void listStepSizeFiles(const string &path, vector<string> &results)
-{
-    filesystem::path zonePath { path };
-    
-    if(filesystem::exists(path) && filesystem::is_directory(path))
-        for(auto& file : filesystem::recursive_directory_iterator(path))
-            if(file.path().extension() == ".stp")
-                results.push_back(file.path().string());
-}
-
 static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
@@ -263,88 +253,6 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
     actionTemplate->modifier += modifierManager.GetModifierValue();
 }
 
-static void WriteAutoStepSizesFile(string fxName, map<int, vector<double>> &steppedValues)
-{
-    string fxNameNoBadChars(fxName);
-    fxNameNoBadChars = regex_replace(fxNameNoBadChars, regex(BadFileChars), "_");
-
-    try
-    {
-        ofstream file(fxNameNoBadChars);
-
-        file.open(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneStepSizes/" + fxNameNoBadChars + ".stp");
-
-        if(file.is_open())
-        {
-            file << string("StepSizes ") + "\"" + fxName + "\"" + GetLineEnding();;
-            
-            for(auto [paramNum, steps] : steppedValues)
-            {
-                file << to_string(paramNum) + " ";
-                
-                for(auto step : steps)
-                    file << to_string(step) + " ";
-
-                file << GetLineEnding();
-            }
-        }
-            
-        file.close();
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble writing to %s\n", fxNameNoBadChars.c_str());
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
-static void GetStepSizes(string filePath, ZoneManager* zoneManager)
-{
-    try
-    {
-        ifstream file(filePath);
-        
-        string zoneName = "";
-        
-        for (string line; getline(file, line) ; )
-        {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
-            
-            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-            
-            vector<string> tokens(GetTokens(line));
-            
-            if(tokens.size() > 1 && tokens[0] == "StepSizes")
-            {
-                zoneName = tokens[1];
-                continue;
-            }
-            
-            vector<double> steps;
-            
-            if(tokens.size() > 2 && tokens[0] != "StepSizes" && zoneName != "")
-                for(int i = 1; i < tokens.size(); i++)
-                    steps.push_back(stod(tokens[i]));
-            
-            zoneManager->SetSteppedValues(zoneName, stoi(tokens[0]), steps);
-        }
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
 {
     string zoneName = "";
@@ -377,41 +285,6 @@ static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
                 info.alias = tokens.size() > 2 ? tokens[2] : zoneName;
                 zoneManager->AddZoneFilePath(zoneName, info);
             }
-
-            break;
-        }
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
-static void PreProcessStepSizeFile(string filePath, ZoneManager* zoneManager)
-{
-    try
-    {
-        ifstream file(filePath);
-        
-        for (string line; getline(file, line) ; )
-        {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
-            
-            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-            
-            vector<string> tokens(GetTokens(line));
-                       
-            if(tokens[0] == "StepSizes" && tokens.size() > 1)
-                zoneManager->AddStepSizeFilePath(tokens[1], filePath);
 
             break;
         }
@@ -835,9 +708,6 @@ void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<s
     if(acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
         acceleratedDeltaValues = widget->GetAccelerationValues();
     
-    if(steppedValues.size() == 0)
-        steppedValues = widget->GetSurface()->GetZoneManager()->GetSteppedValues(zoneName, paramNumber);
-
     if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
     {
         double stepSize = deltaValue;
@@ -1495,7 +1365,6 @@ void Manager::WriteFXParamAliases()
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamAliasesFilePath.c_str(), lineNumber);
         DAW::ShowConsoleMsg(buffer);
     }
-
 }
 
 void Manager::InitFXParamStepValues()
@@ -1523,10 +1392,12 @@ void Manager::InitFXParamStepValues()
                 
                 vector<string> tokens(GetTokens(line));
                 
+                if(tokens.size() < 3)
+                    continue;
                 
-                
-                
-                
+                for(int i = 2; i < tokens.size(); i++)
+                    fxParamStepValues_[tokens[0]][atoi(tokens[1].c_str())].push_back(stod(tokens[i]));
+
                 lineNumber++;
             }
         }
@@ -1536,6 +1407,45 @@ void Manager::InitFXParamStepValues()
             snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamStepValuesFilePath.c_str(), lineNumber);
             DAW::ShowConsoleMsg(buffer);
         }
+    }
+}
+
+void Manager::WriteFXParamStepValues()
+{
+    string fxParamStepValuesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamStepValuesCache.txt";
+    
+    filesystem::path fxParamStepValuesFile { fxParamStepValuesFilePath };
+
+    int lineNumber = 0;
+
+    try
+    {
+        ofstream fxParamStepValues(fxParamStepValuesFile);
+        
+        for (auto [fxName, paramValues] : fxParamStepValues_)
+        {
+            for(auto [paramIndex, values] : paramValues)
+            {
+                string line = "";
+                
+                line += "\"" + fxName + "\" " + to_string(paramIndex);
+                
+                for(auto value : values)
+                    line += " " + to_string(value);
+                
+                fxParamStepValues << line +  GetLineEnding();
+                
+                lineNumber++;
+            }
+        }
+        
+        fxParamStepValues.close();
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamStepValuesFilePath.c_str(), lineNumber);
+        DAW::ShowConsoleMsg(buffer);
     }
 }
 
@@ -1957,7 +1867,10 @@ void ActionContext::DoAction(double value)
     }
     else
     {
-        if(steppedValues_.size() > 0)
+        if(steppedValues_.size() == 0)
+            TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
+
+        if(steppedValues_.size() > 1)
         {
             if(value != 0.0) // ignore release messages
             {
@@ -1979,7 +1892,10 @@ void ActionContext::DoAction(double value)
 
 void ActionContext::DoRelativeAction(double delta)
 {
-    if(steppedValues_.size() > 0)
+    if(steppedValues_.size() == 0)
+        TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
+
+    if(steppedValues_.size() > 1)
         DoSteppedValueAction(delta);
     else
         DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) + (deltaValue_ != 0.0 ? (delta > 0 ? deltaValue_ : -deltaValue_) : delta));
@@ -1987,7 +1903,10 @@ void ActionContext::DoRelativeAction(double delta)
 
 void ActionContext::DoRelativeAction(int accelerationIndex, double delta)
 {
-    if(steppedValues_.size() > 0)
+    if(steppedValues_.size() == 0)
+        TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
+    
+    if(steppedValues_.size() > 1)
         DoAcceleratedSteppedValueAction(accelerationIndex, delta);
     else if(acceleratedDeltaValues_.size() > 0)
         DoAcceleratedDeltaValueAction(accelerationIndex, delta);
@@ -2926,143 +2845,9 @@ void ZoneManager::PreProcessZones()
 
         return;
     }
-    
-//#define Instrumented
-    
-#ifdef Instrumented
-    char msgBuffer[250];
-
-    sprintf(msgBuffer, "Preprocessing %d Zone files\n", (int)zoneFilesToProcess.size());
-    DAW::ShowConsoleMsg(msgBuffer);
-    int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-#endif
-    
+       
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
-
-#ifdef Instrumented
-    int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-    sprintf(msgBuffer, "%d microseconds\n\n", duration);
-    DAW::ShowConsoleMsg(msgBuffer);
-#endif
-    
-    
-    vector<string> stepSizeFilesToProcess;
-    listStepSizeFiles(DAW::GetResourcePath() + string("/CSI/Zones/ZoneStepSizes/"), stepSizeFilesToProcess); // recursively find all .stp files
-
-#ifdef Instrumented
-    sprintf(msgBuffer, "Preprocessing %d Step Size files\n", (int)stepSizeFilesToProcess.size());
-    DAW::ShowConsoleMsg(msgBuffer);
-    start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-#endif
-    
-    for(auto stepSizeFile : stepSizeFilesToProcess)
-        PreProcessStepSizeFile(stepSizeFile, this);
-
-#ifdef Instrumented
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-    sprintf(msgBuffer, "%d microseconds\n\n", duration);
-    DAW::ShowConsoleMsg(msgBuffer);
-#endif
-    
-    
-    if(shouldProcessAutoStepSizes_)
-    {
-#ifdef Instrumented
-        start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-#endif
-        
-        for(auto [zoneName, info] : zoneFilePaths_)
-        {
-            DAW::Undo_BeginBlock();
-
-            CalculateAndWriteSteppedValues(zoneName);
-            
-            DAW::Undo_EndBlock();
-            DAW::Undo();
-        }
-        
-#ifdef Instrumented
-        sprintf(msgBuffer, "Processed %d FX Zones\n", numFXZones);
-        DAW::ShowConsoleMsg(msgBuffer);
-
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-        sprintf(msgBuffer, "%d microseconds\n\n", duration);
-        DAW::ShowConsoleMsg(msgBuffer);
-#endif
-    }
-}
-
-void ZoneManager::CalculateAndWriteSteppedValues(string zoneName)
-{
-    if(stepSizeFilePaths_.count(zoneName) > 0)
-        return;
-    
-    string fxName = "";
-    
-    if(zoneName.find("VST: ") != std::string::npos || zoneName.find("VST3: ") != std::string::npos)
-    {
-        if(int pos = zoneName.find("VST: ") != std::string::npos)
-        {
-            string prefix = "VST: ";
-            fxName = zoneName.substr(prefix.length());
-        }
-    
-        if(int pos = zoneName.find("VST3: ") != std::string::npos)
-        {
-            string prefix = "VST3: ";
-            fxName = zoneName.substr(prefix.length());
-        }
-    
-        DAW::InsertTrackAtIndex(surface_->GetPage()->GetNumTracks() + 1);
-
-        MediaTrack* insertedTrack = surface_->GetPage()->GetTrackFromId(surface_->GetPage()->GetNumTracks());
-
-        int position = DAW::TrackFX_AddByName(insertedTrack, fxName.c_str());
-
-        map<int, vector<double>> steppedValues;
-        
-        if(position == 0)
-        {
-            for(int i = 0; i < DAW::TrackFX_GetNumParams(insertedTrack, 0); i++)
-            {
-                double minvalOut = 0.0;
-                double maxvalOut = 0.0;
-                
-                vector<double> steps;
-                
-                steps.push_back(0.0);
-                
-                for(double value = 0.0; value < 1.01; value += .01)
-                {
-                    DAW::TrackFX_SetParam(insertedTrack, position, i, value);
-                    
-                    double fxValue = DAW::TrackFX_GetParam(insertedTrack, position, i, &minvalOut, &maxvalOut);
-                    
-                    if(steps.back() != fxValue)
-                        steps.push_back(fxValue);
-                }
-                
-                if(steps.size() > 1 && steps.size() < 30)
-                    steppedValues[i] = steps;
-            }
-            
-            numFXZones++;
-        }
-         
-        WriteAutoStepSizesFile(zoneName, steppedValues);
-    }
-}
-
-vector<double> &ZoneManager::GetSteppedValues(string zoneName, int paramNumber)
-{
-    if(steppedValues_.count(zoneName) < 1 && stepSizeFilePaths_.count(zoneName) > 0)
-        GetStepSizes(stepSizeFilePaths_[zoneName], this);
-    
-    if(steppedValues_.count(zoneName) > 0 && steppedValues_[zoneName].count(paramNumber) > 0)
-        return steppedValues_[zoneName][paramNumber];
-    else
-        return emptySteppedValues;
 }
 
 void ZoneManager::HandleActivation(string zoneName)

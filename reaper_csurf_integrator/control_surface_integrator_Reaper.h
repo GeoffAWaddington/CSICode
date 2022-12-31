@@ -229,16 +229,6 @@ public:
         ::Undo_EndBlock("", 0);
     }
     
-    static void InsertTrackAtIndex(int idx)
-    {
-        ::InsertTrackAtIndex(idx, false);
-    }
-    
-    static int TrackFX_AddByName(MediaTrack* track, const char* fxname)
-    {
-        return ::TrackFX_AddByName(track, fxname, false, -1);
-    }
-    
     static MediaTrack* GetTrack(int trackidx)
     {
         trackidx--;

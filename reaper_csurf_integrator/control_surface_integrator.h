@@ -717,8 +717,6 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
-    void CalculateAndWriteSteppedValues(string zoneName);
-
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
@@ -800,10 +798,6 @@ public:
     void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-       
-    vector<double> &GetSteppedValues(string zoneName, int paramNumber);
-    
-    void SetSteppedValues(string zoneName, int paramNumber, vector<double> steps) { steppedValues_[zoneName][paramNumber] = steps; }
        
     int GetBaseTickCount(int stepCount)
     {
@@ -3108,7 +3102,8 @@ private:
     void InitFXParamStepValues();
     
     void WriteFXParamAliases();
-    
+    void WriteFXParamStepValues();
+
     double GetPrivateProfileDouble(string key)
     {
         char tmp[512];
@@ -3165,7 +3160,7 @@ public:
     void Shutdown()
     {
         WriteFXParamAliases();
-        
+        WriteFXParamStepValues();
         
         fxParamsDisplay_ = false;
         surfaceInDisplay_ = false;
@@ -3431,6 +3426,51 @@ public:
             return fxParamName;
         }
     }
+    
+    void GetSteppedValues(string fxName, MediaTrack* track, int fxIndex, int paramIndex, vector<double> &steppedValues)
+    {
+        if(fxName.substr(0, 3) != "VST" && fxName.substr(0, 2) != "AU" && fxName.substr(0, 2) != "JS")
+            return;
+
+        if(fxParamStepValues_.count(fxName) > 0 && fxParamStepValues_[fxName].count(paramIndex) > 0)
+            steppedValues = fxParamStepValues_[fxName][paramIndex];
+        else
+        {
+            bool currentMute = false;
+            DAW::GetTrackUIMute(track, &currentMute);
+            
+            if(currentMute == false) // Save our tweeters and ears whilst we sweep the param values
+                DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, true), NULL);
+
+            double minvalOut = 0.0;
+            double maxvalOut = 0.0;
+            
+            double currentValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+            
+            steppedValues.push_back(0.0);
+            
+            for(double value = 0.0; value < 1.01; value += .01)
+            {
+                DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
+                
+                double fxValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+                
+                if(steppedValues.back() != fxValue && fabs(fxValue - steppedValues.back()) < 0.021) // treat anything with 50 steps or more as continuous
+                    break;
+                
+                else if(steppedValues.back() != fxValue)
+                    steppedValues.push_back(fxValue);
+            }
+            
+            fxParamStepValues_[fxName][paramIndex] = steppedValues;
+            
+            DAW::TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
+            
+            if(currentMute == false)
+                DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
+        }
+    }
+    
     
     //int repeats = 0;
     
