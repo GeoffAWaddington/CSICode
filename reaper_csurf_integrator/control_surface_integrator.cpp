@@ -1424,6 +1424,121 @@ void Manager::InitActionsDictionary()
     actions_["TrackReceivePrePostDisplay"] =        new TrackReceivePrePostDisplay();
 }
 
+void Manager::InitFXParamAliases()
+{
+    string fxParamAliasesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamAliasesCache.txt";
+    
+    filesystem::path fxParamAliasesFile { fxParamAliasesFilePath };
+
+    if (filesystem::exists(fxParamAliasesFile))
+    {
+        int lineNumber = 0;
+
+        try
+        {
+            ifstream fxParamAliases(fxParamAliasesFile);
+                   
+            for (string line; getline(fxParamAliases, line) ; )
+            {
+                line = regex_replace(line, regex(TabChars), " ");
+                line = regex_replace(line, regex(CRLFChars), "");
+                
+                
+                if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
+                    continue;
+                
+                vector<string> tokens(GetTokens(line));
+                
+                if(tokens.size() != 3)
+                    continue;
+                
+                fxParamAliases_[tokens[0]][atoi(tokens[1].c_str())] = tokens[2];
+                
+                lineNumber++;
+            }
+        }
+        catch (exception &e)
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamAliasesFilePath.c_str(), lineNumber);
+            DAW::ShowConsoleMsg(buffer);
+        }
+    }
+}
+
+void Manager::WriteFXParamAliases()
+{
+    string fxParamAliasesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamAliasesCache.txt";
+    
+    filesystem::path fxParamAliasesFile { fxParamAliasesFilePath };
+
+    int lineNumber = 0;
+
+    try
+    {
+        ofstream fxParamAliases(fxParamAliasesFile);
+               
+        for (auto [fxName, paramAlias] : fxParamAliases_)
+        {
+            for(auto [paramIndex, alias] : paramAlias)
+            {
+                fxParamAliases << "\"" + fxName + "\" " + to_string(paramIndex) + " \"" + alias + "\"" + GetLineEnding();
+                lineNumber++;
+            }
+        }
+        
+        fxParamAliases.close();
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamAliasesFilePath.c_str(), lineNumber);
+        DAW::ShowConsoleMsg(buffer);
+    }
+
+}
+
+void Manager::InitFXParamStepValues()
+{
+    string fxParamStepValuesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamStepValuesCache.txt";
+    
+    filesystem::path fxParamStepValuesFile { fxParamStepValuesFilePath };
+
+    if (filesystem::exists(fxParamStepValuesFile))
+    {
+        int lineNumber = 0;
+
+        try
+        {
+            ifstream fxParamStepValues(fxParamStepValuesFile);
+                   
+            for (string line; getline(fxParamStepValues, line) ; )
+            {
+                line = regex_replace(line, regex(TabChars), " ");
+                line = regex_replace(line, regex(CRLFChars), "");
+                
+                
+                if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
+                    continue;
+                
+                vector<string> tokens(GetTokens(line));
+                
+                
+                
+                
+                
+                lineNumber++;
+            }
+        }
+        catch (exception &e)
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamStepValuesFilePath.c_str(), lineNumber);
+            DAW::ShowConsoleMsg(buffer);
+        }
+    }
+}
+
 void Manager::Init()
 {
     pages_.clear();
@@ -1576,6 +1691,9 @@ void Manager::Init()
         DAW::ShowConsoleMsg(buffer);
     }
       
+    InitFXParamAliases();
+    InitFXParamStepValues();
+    
     for(auto page : pages_)
         page->OnInitialization();
 }
@@ -1719,9 +1837,6 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     if(actionName == "FXParamNameDisplay" && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
-        
-        if(params.size() > 2 && params[2] != "{" && params[2] != "[")
-            fxParamDisplayName_ = params[2];
     }
     
     if(params.size() > 1 && (actionName == "Broadcast" || actionName == "Receive" || actionName == "Activate" || actionName == "Deactivate" || actionName == "ToggleActivation"))

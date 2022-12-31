@@ -235,8 +235,6 @@ private:
     
     int paramIndex_ = 0;
     
-    string fxParamDisplayName_ = "";
-    
     int commandId_ = 0;
     
     double rangeMinimum_ = 0.0;
@@ -348,21 +346,7 @@ public:
         rangeMinimum_ = range[0];
         rangeMaximum_ = range[1];
     }
-    
-    string GetFxParamDisplayName()
-    {
-        if(fxParamDisplayName_ != "")
-            return fxParamDisplayName_;
-        else if(MediaTrack* track = GetTrack())
-        {
-            char fxParamName[BUFSZ];
-            DAW::TrackFX_GetParamName(track, GetSlotIndex(), paramIndex_, fxParamName, sizeof(fxParamName));
-            return fxParamName;
-        }
         
-        return "";
-    }
-    
     void SetSteppedValueIndex(double value)
     {
         int index = 0;
@@ -3115,8 +3099,16 @@ private:
     double *projectMetronomePrimaryVolumePtr_ = nullptr;
     double *projectMetronomeSecondaryVolumePtr_ = nullptr;
     
+    map<string, map<int, string>> fxParamAliases_;
+    map<string, map<int, vector<double>>> fxParamStepValues_;
+    
     void InitActionsDictionary();
 
+    void InitFXParamAliases();
+    void InitFXParamStepValues();
+    
+    void WriteFXParamAliases();
+    
     double GetPrivateProfileDouble(string key)
     {
         char tmp[512];
@@ -3172,6 +3164,9 @@ public:
     
     void Shutdown()
     {
+        WriteFXParamAliases();
+        
+        
         fxParamsDisplay_ = false;
         surfaceInDisplay_ = false;
         surfaceOutDisplay_ = false;
@@ -3406,6 +3401,34 @@ public:
                     fxFile.close();
                 }
             }
+        }
+    }
+    
+    string GetTCPFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
+    {
+        char fxName[BUFSZ];
+        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+
+        char fxParamName[BUFSZ];
+        DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
+        
+        fxParamAliases_[fxName][paramIndex] = fxParamName;
+
+        return fxParamAliases_[fxName][paramIndex];
+    }
+    
+    string GetFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
+    {
+        char fxName[BUFSZ];
+        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+
+        if(fxParamAliases_.count(fxName) > 0 && fxParamAliases_[fxName].count(paramIndex) > 0)
+            return fxParamAliases_[fxName][paramIndex];
+        else
+        {
+            char fxParamName[BUFSZ];
+            DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
+            return fxParamName;
         }
     }
     

@@ -1847,7 +1847,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(context->GetFxParamDisplayName());
+            context->UpdateWidgetValue(TheManager->GetFXParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
         else
             context->ClearWidget();
     }
@@ -1872,11 +1872,7 @@ public:
                 int paramIndex = 0;
                 
                 if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-                {
-                    char fxParamName[BUFSZ];
-                    DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
-                    context->UpdateWidgetValue(string(fxParamName));
-                }
+                    context->UpdateWidgetValue(TheManager->GetTCPFXParamName(track, fxIndex, paramIndex));
                 else
                     context->ClearWidget();
             }
