@@ -1511,10 +1511,7 @@ void Manager::Init()
                 continue;
             
             vector<string> tokens(GetTokens(line));
-            
-            if(tokens[0] == "AutoScan")
-                shouldAutoScan = true;
-            
+                       
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
@@ -1563,9 +1560,9 @@ void Manager::Init()
                         ControlSurface* surface = nullptr;
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            surface = new Midi_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]], shouldAutoScan);
+                            surface = new Midi_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], midiSurfaces[tokens[0]]);
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            surface = new OSC_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]], shouldAutoScan);
+                            surface = new OSC_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], tokens[4], oscSurfaces[tokens[0]]);
 
                         if(surface != nullptr)
                             currentPage->AddSurface(surface);

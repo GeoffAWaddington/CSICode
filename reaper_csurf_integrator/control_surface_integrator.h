@@ -684,12 +684,10 @@ private:
 
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
-    bool const shouldProcessAutoStepSizes_ = true;
     
     map<int, int> baseTickCounts_ ;
     
     map<string, CSIZoneInfo> zoneFilePaths_;
-    map<string, string> stepSizeFilePaths_;
 
     map<Widget*, bool> usedWidgets_;
 
@@ -737,7 +735,7 @@ private:
     }
        
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder, bool shouldProcessAutoStepSizes) : surface_(surface), zoneFolder_(zoneFolder), shouldProcessAutoStepSizes_(shouldProcessAutoStepSizes)
+    ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder)
     {
         vector<int> stepSizes  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
         vector<int> tickCounts = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
@@ -992,13 +990,7 @@ public:
         if(name != "")
             zoneFilePaths_[name] = info;
     }
-    
-    void AddStepSizeFilePath(string name, string filename)
-    {
-        if(name != "")
-            stepSizeFilePaths_[name] = filename;
-    }
-    
+        
     void CheckFocusedFXState()
     {
         if(! isFocusedFXMappingEnabled_)
@@ -1400,7 +1392,7 @@ private:
     map<int, bool> channelToggles_;
 
 protected:
-    ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset, bool shouldAutoScan) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, shouldAutoScan))
+    ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
     {
         if(useLocalmodifiers)
             modifierManager_ = new ModifierManager(this);
@@ -1871,8 +1863,8 @@ private:
     }
 
 public:
-    Midi_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
-    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    Midi_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO)
+    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -2018,8 +2010,8 @@ private:
     void Initialize(string templateFilename, string zoneFolder);
 
 public:
-    OSC_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO, bool shouldAutoScan)
-    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset, shouldAutoScan), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    OSC_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO)
+    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
