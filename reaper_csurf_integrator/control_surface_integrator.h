@@ -750,6 +750,7 @@ public:
     void UpdateCurrentActionContextModifiers();
     
     void PreProcessZones();
+    void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
     
     Navigator* GetMasterTrackNavigator();
     Navigator* GetSelectedTrackNavigator();
