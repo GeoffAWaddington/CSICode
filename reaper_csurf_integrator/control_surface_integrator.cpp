@@ -3126,7 +3126,9 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             break;
         }
     }
-        
+           
+    alias = alias.substr(0, alias.find(" ("));
+    
     CSIZoneInfo info;
     info.filePath = path;
     info.alias = alias;
