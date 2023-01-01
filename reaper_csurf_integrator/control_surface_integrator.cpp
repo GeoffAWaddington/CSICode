@@ -3130,7 +3130,50 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     CSIZoneInfo info;
     info.filePath = path;
     info.alias = alias;
+
+    ControlSurface* surface = GetSurface();
     
+    string fxRotaries = "";
+    string baseRotary = "";
+    string baseDisplayUpper = "";
+    string baseDisplayLower = "";
+
+    if(surface->GetWidgetByName("Rotary1"))
+    {
+        fxRotaries = "\tFXRotaries";
+        baseRotary = "Rotary";
+        baseDisplayUpper = "DisplayUpper";
+        baseDisplayLower = "DisplayLower";
+    }
+    else if(surface->GetWidgetByName("RotaryA1"))
+    {
+        fxRotaries = "\tFXRotariesA";
+        baseRotary = "RotaryA";
+        baseDisplayUpper = "DisplayUpperA";
+        baseDisplayLower = "DisplayLowerA";
+    }
+    else if(surface->GetWidgetByName("RotaryB1"))
+    {
+        fxRotaries = "\tFXRotariesB";
+        baseRotary = "RotaryB";
+        baseDisplayUpper = "DisplayUpperB";
+        baseDisplayLower = "DisplayLowerB";
+    }
+    else if(surface->GetWidgetByName("RotaryC1"))
+    {
+        fxRotaries = "\tFXRotariesC";
+        baseRotary = "RotaryC";
+        baseDisplayUpper = "DisplayUpperC";
+        baseDisplayLower = "DisplayLowerC";
+    }
+    else if(surface->GetWidgetByName("RotaryD1"))
+    {
+        fxRotaries = "\tFXRotariesD";
+        baseRotary = "RotaryD";
+        baseDisplayUpper = "DisplayUpperD";
+        baseDisplayLower = "DisplayLowerD";
+    }
+
     AddZoneFilePath(fxName, info);
     
     ofstream fxZone(path);
@@ -3139,15 +3182,11 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     {
         fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"" + GetLineEnding();
         
-        string fxRotaries = "\tFXRotaries";
-        
-        ControlSurface* surface = GetSurface();
-        
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
         {
-            string rotary = "Rotary" + to_string(i + 1);
-            string nameDisplay = "DisplayUpper" + to_string(i + 1);
-            string valueDisplay = "DisplayLower" + to_string(i + 1);
+            string rotary = baseRotary + to_string(i + 1);
+            string nameDisplay = baseDisplayUpper + to_string(i + 1);
+            string valueDisplay = baseDisplayLower + to_string(i + 1);
             
             if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
                 fxRotaries += " " + to_string(i);
