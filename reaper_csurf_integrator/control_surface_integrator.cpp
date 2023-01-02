@@ -479,10 +479,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                                 
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
-                        
-                        if(zoneName == "Track" && i == 0)
-                            zoneManager->SetFirstTrackZone(zone);
-                        
+                                               
                         if(zoneName == "FocusedFXParam")
                             zoneManager->SetFocusedFXParamZone(zone);
                         
@@ -503,7 +500,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             if(widget == nullptr)
                                 continue;
  
-                            zone->AddWidget(widget);
+                            zone->AddWidget(widget, widget->GetName());
                             
                             for(auto [modifier, actionTemplates] : modifiedActionTemplates)
                             {
@@ -1250,6 +1247,7 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
     actions_["GoSelectedTrackTCPFX"] =              new GoSelectedTrackTCPFX();
+    actions_["BuildSelectedTrackTCPFXZone"] =       new BuildSelectedTrackTCPFXZone();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["VCABank"] =                           new VCABank();
     actions_["FolderBank"] =                        new FolderBank();
@@ -2121,13 +2119,13 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                         {
                             if(onZoneActivation != nullptr)
                             {
-                                zone->AddWidget(onZoneActivation);
+                                zone->AddWidget(onZoneActivation, onZoneActivation->GetName());
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("VCAModeActivated", onZoneActivation, zone, "");
                                 zone->AddActionContext(onZoneActivation, 0, context);
                             }
                             if(onZoneDeactivation != nullptr)
                             {
-                                zone->AddWidget(onZoneDeactivation);
+                                zone->AddWidget(onZoneDeactivation, onZoneDeactivation->GetName());
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("VCAModeDeactivated", onZoneDeactivation, zone, "");
                                 zone->AddActionContext(onZoneDeactivation, 0, context);
                             }
@@ -2136,13 +2134,13 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                         {
                             if(onZoneActivation != nullptr)
                             {
-                                zone->AddWidget(onZoneActivation);
+                                zone->AddWidget(onZoneActivation, onZoneActivation->GetName());
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("FolderModeActivated", onZoneActivation, zone, "");
                                 zone->AddActionContext(onZoneActivation, 0, context);
                             }
                             if(onZoneDeactivation != nullptr)
                             {
-                                zone->AddWidget(onZoneDeactivation);
+                                zone->AddWidget(onZoneDeactivation, onZoneDeactivation->GetName());
                                 shared_ptr<ActionContext> context = TheManager->GetActionContext("FolderModeDeactivated", onZoneDeactivation, zone, "");
                                 zone->AddActionContext(onZoneDeactivation, 0, context);
                             }
@@ -3027,6 +3025,74 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         fxZone << "ZoneEnd" + GetLineEnding();
         
         fxZone.close();
+    }
+}
+
+void ZoneManager::BuildSelectedTrackTCPFXZone()
+{
+    if(homeZone_ != nullptr && homeZone_->GetDoesAssociatedZoneExist("SelectedTrackTCPFX") && homeZone_->GetIsAssociatedZoneActive("SelectedTrackTCPFX")
+       && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
+    {
+        shared_ptr<Zone> tcpFXZone = homeZone_->GetAssociatedZone("SelectedTrackTCPFX");
+        MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
+        
+        string zoneType = "";
+        
+        if(tcpFXZone->GetWidgetByName("Rotary1"))
+            zoneType = "\tFXRotaries";
+        else if(tcpFXZone->GetWidgetByName("RotaryA1"))
+            zoneType = "\tFXRotariesA";
+        else if(tcpFXZone->GetWidgetByName("RotaryB1"))
+            zoneType = "\tFXRotariesB";
+        else if(tcpFXZone->GetWidgetByName("RotaryC1"))
+            zoneType = "\tFXRotariesC";
+        else if(tcpFXZone->GetWidgetByName("RotaryD1"))
+            zoneType = "\tFXRotariesD";
+        else if(tcpFXZone->GetWidgetByName("Fader1"))
+            zoneType = "\tFXFaders";
+
+        string indices = "";
+        
+        int fxIndex = 0;
+        int paramIndex = 0;
+        
+        for(int i = 0; i < DAW::CountTCPFXParms(track); i++ )
+        {
+            if(DAW::GetTCPFXParm(track, i, &fxIndex, &paramIndex))
+                indices += " " + to_string(paramIndex);
+        }
+        
+        char fxAlias[BUFSZ];
+        DAW::TrackFX_GetFXName(track, fxIndex, fxAlias, sizeof(fxAlias));
+        
+        char fxName[BUFSZ];
+        DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
+        
+        string path = DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/TCPFXGeneratedZones";
+        
+        if(! filesystem::exists(path) || ! filesystem::is_directory(path))
+            filesystem::create_directory(path);
+        
+        path += "/" + regex_replace(fxName, regex(BadFileChars), "_") + ".zon";
+
+        CSIZoneInfo info;
+        info.filePath = path;
+        info.alias = fxAlias;
+
+        AddZoneFilePath(fxName, info);
+        
+        ofstream fxZone(path);
+
+        if(fxZone.is_open())
+        {
+            fxZone << "Zone \"" + string(fxName) + "\" \"" + string(fxAlias) + "\"" + GetLineEnding();
+            
+            fxZone << zoneType + indices + GetLineEnding();
+            
+            fxZone << "ZoneEnd" + GetLineEnding();
+            
+            fxZone.close();
+        }
     }
 }
 

@@ -462,6 +462,7 @@ protected:
     bool isActive_ = false;
     
     map<Widget*, bool> widgets_;
+    map<string, Widget*> widgetsByName_;
     
     vector<shared_ptr<Zone>> includedZones_;
     map<string, vector<shared_ptr<Zone>>> subZones_;
@@ -530,6 +531,16 @@ public:
         return false;
     }
     
+    shared_ptr<Zone> GetAssociatedZone(string zoneName)
+    {
+        if(associatedZones_.count(zoneName) > 0)
+            for(auto zone : associatedZones_[zoneName])
+                if(zone->GetName() == zoneName)
+                    return zone;
+
+        return nullptr;
+    }
+
     void Toggle()
     {
         if(isActive_)
@@ -551,9 +562,18 @@ public:
             return name_;
     }
     
-    void AddWidget(Widget* widget)
+    void AddWidget(Widget* widget, string name)
     {
         widgets_[widget] = true;
+        widgetsByName_[name] = widget;
+    }
+    
+    Widget* GetWidgetByName(string name)
+    {
+        if(widgetsByName_.count(name) > 0)
+            return widgetsByName_[name];
+        else
+            return nullptr;
     }
     
     void AddActionContext(Widget* widget, int modifier, shared_ptr<ActionContext> actionContext)
@@ -692,7 +712,6 @@ private:
     map<Widget*, bool> usedWidgets_;
 
     shared_ptr<Zone> homeZone_ = nullptr;
-    shared_ptr<Zone> firstTrackZone_ = nullptr;
 
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
@@ -751,6 +770,7 @@ public:
     
     void PreProcessZones();
     void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
+    void BuildSelectedTrackTCPFXZone();
     
     Navigator* GetMasterTrackNavigator();
     Navigator* GetSelectedTrackNavigator();
@@ -782,7 +802,6 @@ public:
     ControlSurface* GetSurface() { return surface_; }   
     
     void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
-    void SetFirstTrackZone(shared_ptr<Zone> zone) { firstTrackZone_ = zone; }
     void SetFocusedFXParamZone(shared_ptr<Zone> zone) { focusedFXParamZone_ = zone; }
 
     int GetTrackSendOffset() { return trackSendOffset_; }
