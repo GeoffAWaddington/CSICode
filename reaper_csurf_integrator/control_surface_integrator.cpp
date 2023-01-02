@@ -369,6 +369,51 @@ vector<rgba_color> GetColorValues(vector<string> colors)
     return colorValues;
 }
 
+static void BuildFXTemplates(string baseControl, string baseNameDisplay, string baseValueDisplay, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary, vector<string> &tokens, ControlSurface* surface)
+{
+    for(int i = 1; i < tokens.size(); i++)
+    {
+        string control = baseControl + to_string(i);
+        
+        if(surface->GetWidgetByName(control))
+        {
+            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
+            fxParamTemplate->widgetName = control;
+            fxParamTemplate->actionName = "FXParam";
+            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
+            fxParamTemplate->params.push_back(tokens[i]);
+            fxParamTemplate->provideFeedback = true;
+            actionTemplatesDictionary[control][0].push_back(fxParamTemplate);
+        }
+        
+        string nameDisplay = baseNameDisplay + to_string(i);
+        
+        if(surface->GetWidgetByName(nameDisplay))
+        {
+            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
+            fxParamNameDisplayTemplate->widgetName = nameDisplay;
+            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
+            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
+            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
+            fxParamNameDisplayTemplate->provideFeedback = true;
+            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
+        }
+
+        string valueDisplay = baseValueDisplay + to_string(i);
+        
+        if(surface->GetWidgetByName(valueDisplay))
+        {
+            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
+            fxParamValueDisplayTemplate->widgetName = valueDisplay;
+            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
+            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
+            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
+            fxParamValueDisplayTemplate->provideFeedback = true;
+            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
+        }
+    }
+}
+
 static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
@@ -530,239 +575,22 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     associatedZones.push_back(tokens[0]);
                  
                 else if(tokens[0] == "FXRotaries" && tokens.size() > 1)
-                {
-                    ControlSurface* surface = zoneManager->GetSurface();
-                    
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        string rotary = "Rotary" + to_string(i);
-                        string nameDisplay = "DisplayUpper" + to_string(i);
-                        string valueDisplay = "DisplayLower" + to_string(i);
-                        
-                        if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
-                        {
-                            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
-                            fxParamTemplate->widgetName = rotary;
-                            fxParamTemplate->actionName = "FXParam";
-                            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
-                            fxParamTemplate->params.push_back(tokens[i]);
-                            fxParamTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[rotary][0].push_back(fxParamTemplate);
+                    BuildFXTemplates("Rotary", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
-                            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamNameDisplayTemplate->widgetName = nameDisplay;
-                            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
-                            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
-                            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamNameDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamValueDisplayTemplate->widgetName = valueDisplay;
-                            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
-                            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
-                            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamValueDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
-                        }
-                    }
-                }
-                
                 else if(tokens[0] == "FXRotariesA" && tokens.size() > 1)
-                {
-                    ControlSurface* surface = zoneManager->GetSurface();
-                    
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        string rotary = "RotaryA" + to_string(i);
-                        string nameDisplay = "DisplayUpperA" + to_string(i);
-                        string valueDisplay = "DisplayLowerA" + to_string(i);
-                        
-                        if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
-                        {
-                            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
-                            fxParamTemplate->widgetName = rotary;
-                            fxParamTemplate->actionName = "FXParam";
-                            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
-                            fxParamTemplate->params.push_back(tokens[i]);
-                            fxParamTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[rotary][0].push_back(fxParamTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamNameDisplayTemplate->widgetName = nameDisplay;
-                            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
-                            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
-                            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamNameDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamValueDisplayTemplate->widgetName = valueDisplay;
-                            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
-                            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
-                            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamValueDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
-                        }
-                    }
-                }
+                    BuildFXTemplates("RotaryA", "DisplayUpperA", "DisplayLowerA", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
                 else if(tokens[0] == "FXRotariesB" && tokens.size() > 1)
-                {
-                    ControlSurface* surface = zoneManager->GetSurface();
-                    
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        string rotary = "RotaryB" + to_string(i);
-                        string nameDisplay = "DisplayUpperB" + to_string(i);
-                        string valueDisplay = "DisplayLowerB" + to_string(i);
-                        
-                        if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
-                        {
-                            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
-                            fxParamTemplate->widgetName = rotary;
-                            fxParamTemplate->actionName = "FXParam";
-                            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
-                            fxParamTemplate->params.push_back(tokens[i]);
-                            fxParamTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[rotary][0].push_back(fxParamTemplate);
+                    BuildFXTemplates("RotaryB", "DisplayUpperB", "DisplayLowerB", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
-                            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamNameDisplayTemplate->widgetName = nameDisplay;
-                            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
-                            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
-                            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamNameDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamValueDisplayTemplate->widgetName = valueDisplay;
-                            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
-                            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
-                            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamValueDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
-                        }
-                    }
-                }
-                
                 else if(tokens[0] == "FXRotariesC" && tokens.size() > 1)
-                {
-                    ControlSurface* surface = zoneManager->GetSurface();
-                    
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        string rotary = "RotaryC" + to_string(i);
-                        string nameDisplay = "DisplayUpperC" + to_string(i);
-                        string valueDisplay = "DisplayLowerC" + to_string(i);
-                        
-                        if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
-                        {
-                            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
-                            fxParamTemplate->widgetName = rotary;
-                            fxParamTemplate->actionName = "FXParam";
-                            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
-                            fxParamTemplate->params.push_back(tokens[i]);
-                            fxParamTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[rotary][0].push_back(fxParamTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamNameDisplayTemplate->widgetName = nameDisplay;
-                            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
-                            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
-                            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamNameDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamValueDisplayTemplate->widgetName = valueDisplay;
-                            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
-                            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
-                            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamValueDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
-                        }
-                    }
-                }
+                    BuildFXTemplates("RotaryC", "DisplayUpperC", "DisplayLowerC", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
                 else if(tokens[0] == "FXRotariesD" && tokens.size() > 1)
-                {
-                    ControlSurface* surface = zoneManager->GetSurface();
-                    
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        string rotary = "RotaryD" + to_string(i);
-                        string nameDisplay = "DisplayUpperD" + to_string(i);
-                        string valueDisplay = "DisplayLowerD" + to_string(i);
-                        
-                        if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
-                        {
-                            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
-                            fxParamTemplate->widgetName = rotary;
-                            fxParamTemplate->actionName = "FXParam";
-                            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
-                            fxParamTemplate->params.push_back(tokens[i]);
-                            fxParamTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[rotary][0].push_back(fxParamTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamNameDisplayTemplate->widgetName = nameDisplay;
-                            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
-                            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
-                            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamNameDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamValueDisplayTemplate->widgetName = valueDisplay;
-                            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
-                            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
-                            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamValueDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
-                        }
-                    }
-                }
-                
+                    BuildFXTemplates("RotaryD", "DisplayUpperD", "DisplayLowerD", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
                 else if(tokens[0] == "FXFaders" && tokens.size() > 1)
-                {
-                    ControlSurface* surface = zoneManager->GetSurface();
-                    
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        string fader = "Fader" + to_string(i);
-                        string nameDisplay = "DisplayUpper" + to_string(i);
-                        string valueDisplay = "DisplayLower" + to_string(i);
-                        
-                        if(surface->GetWidgetByName(fader) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
-                        {
-                            shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
-                            fxParamTemplate->widgetName = fader;
-                            fxParamTemplate->actionName = "FXParam";
-                            fxParamTemplate->params.push_back(fxParamTemplate->actionName);
-                            fxParamTemplate->params.push_back(tokens[i]);
-                            fxParamTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[fader][0].push_back(fxParamTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamNameDisplayTemplate->widgetName = nameDisplay;
-                            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
-                            fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
-                            fxParamNameDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamNameDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[nameDisplay][0].push_back(fxParamNameDisplayTemplate);
-
-                            shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
-                            fxParamValueDisplayTemplate->widgetName = valueDisplay;
-                            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
-                            fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
-                            fxParamValueDisplayTemplate->params.push_back(tokens[i]);
-                            fxParamValueDisplayTemplate->provideFeedback = true;
-                            actionTemplatesDictionary[valueDisplay][0].push_back(fxParamValueDisplayTemplate);
-                        }
-                    }
-                }
+                    BuildFXTemplates("Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
                 else if(tokens.size() > 1)
                 {
@@ -3140,35 +2968,35 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     string baseDisplayUpper = "";
     string baseDisplayLower = "";
 
-    if(surface->GetWidgetByName("Rotary1"))
+    if(surface->GetWidgetByName("Rotary1") || surface->GetWidgetByName("DisplayUpper1") || surface->GetWidgetByName("DisplayLower1"))
     {
         fxRotaries = "\tFXRotaries";
         baseRotary = "Rotary";
         baseDisplayUpper = "DisplayUpper";
         baseDisplayLower = "DisplayLower";
     }
-    else if(surface->GetWidgetByName("RotaryA1"))
+    else if(surface->GetWidgetByName("RotaryA1") || surface->GetWidgetByName("DisplayUpperA1") || surface->GetWidgetByName("DisplayLowerA1"))
     {
         fxRotaries = "\tFXRotariesA";
         baseRotary = "RotaryA";
         baseDisplayUpper = "DisplayUpperA";
         baseDisplayLower = "DisplayLowerA";
     }
-    else if(surface->GetWidgetByName("RotaryB1"))
+    else if(surface->GetWidgetByName("RotaryB1") || surface->GetWidgetByName("DisplayUpperB1") || surface->GetWidgetByName("DisplayLowerB1"))
     {
         fxRotaries = "\tFXRotariesB";
         baseRotary = "RotaryB";
         baseDisplayUpper = "DisplayUpperB";
         baseDisplayLower = "DisplayLowerB";
     }
-    else if(surface->GetWidgetByName("RotaryC1"))
+    else if(surface->GetWidgetByName("RotaryC1") || surface->GetWidgetByName("DisplayUpperC1") || surface->GetWidgetByName("DisplayLowerC1"))
     {
         fxRotaries = "\tFXRotariesC";
         baseRotary = "RotaryC";
         baseDisplayUpper = "DisplayUpperC";
         baseDisplayLower = "DisplayLowerC";
     }
-    else if(surface->GetWidgetByName("RotaryD1"))
+    else if(surface->GetWidgetByName("RotaryD1") || surface->GetWidgetByName("DisplayUpperD1") || surface->GetWidgetByName("DisplayLowerD1"))
     {
         fxRotaries = "\tFXRotariesD";
         baseRotary = "RotaryD";
@@ -3190,7 +3018,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             string nameDisplay = baseDisplayUpper + to_string(i + 1);
             string valueDisplay = baseDisplayLower + to_string(i + 1);
             
-            if(surface->GetWidgetByName(rotary) != nullptr && surface->GetWidgetByName(nameDisplay) != nullptr && surface->GetWidgetByName(valueDisplay) != nullptr)
+            if(surface->GetWidgetByName(rotary) != nullptr || surface->GetWidgetByName(nameDisplay) != nullptr || surface->GetWidgetByName(valueDisplay) != nullptr)
                 fxRotaries += " " + to_string(i);
         }
         
