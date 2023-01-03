@@ -770,6 +770,7 @@ public:
     
     void PreProcessZones();
     void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
+    void SaveFXMapTemplateRow(string rowType);
     void BuildSelectedTrackTCPFXZone();
     
     Navigator* GetMasterTrackNavigator();
