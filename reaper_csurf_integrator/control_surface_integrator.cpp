@@ -574,6 +574,18 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens[0] == "FXFaders" && tokens.size() > 1)
                     BuildFXTemplates(0, "Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
+                else if(tokens[0] == "FXFadersShift" && tokens.size() > 1)
+                    BuildFXTemplates(4, "Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersOption" && tokens.size() > 1)
+                    BuildFXTemplates(8, "Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersControl" && tokens.size() > 1)
+                    BuildFXTemplates(16, "Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersAlt" && tokens.size() > 1)
+                    BuildFXTemplates(32, "Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
                 else if(tokens[0] == "FXRotaries" && tokens.size() > 1)
                     BuildFXTemplates(0, "Rotary", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
@@ -3047,10 +3059,50 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     }
 }
 
-void ZoneManager::SaveFXMapTemplateRow(string rowType)
+void ZoneManager::SaveFXMapTemplateRow(string surfaceType)
 {
     if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
     {
+        string rowType = "";
+        
+        if(surfaceType == "SingleRotaryRow")
+        {
+            if(TCPFXZoneRows_.size() == 0)
+                rowType = "FXRotaries";
+            else if(TCPFXZoneRows_.size() == 1)
+                rowType = "FXRotariesShift";
+            else if(TCPFXZoneRows_.size() == 2)
+                rowType = "FXRotariesOption";
+            else if(TCPFXZoneRows_.size() == 3)
+                rowType = "FXRotariesControl";
+            else if(TCPFXZoneRows_.size() == 4)
+                rowType = "FXRotariesAlt";
+        }
+        else if(surfaceType == "SingleFaderRow")
+        {
+            if(TCPFXZoneRows_.size() == 0)
+                rowType = "FXFaders";
+            else if(TCPFXZoneRows_.size() == 1)
+                rowType = "FXFadersShift";
+            else if(TCPFXZoneRows_.size() == 2)
+                rowType = "FXFadersOption";
+            else if(TCPFXZoneRows_.size() == 3)
+                rowType = "FXFadersControl";
+            else if(TCPFXZoneRows_.size() == 4)
+                rowType = "FXFadersAlt";
+        }
+        else
+        {
+            if(TCPFXZoneRows_.size() == 0)
+                rowType = "FXRotariesA";
+            else if(TCPFXZoneRows_.size() == 1)
+                rowType = "FXRotariesB";
+            else if(TCPFXZoneRows_.size() == 2)
+                rowType = "FXRotariesC";
+            else if(TCPFXZoneRows_.size() == 3)
+                rowType = "FXRotariesD";
+        }
+        
         MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
         
         int fxIndex = 0;
@@ -3122,7 +3174,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
             for(auto [fxType, row] : TCPFXZoneRows_[fxName])
             {
                 fxZone << GetLineEnding() + row.indices + GetLineEnding();
-                fxZone << row.aliases + GetLineEnding() + GetLineEnding();;
+                fxZone << row.aliases + GetLineEnding();
             }
             
             fxZone << "ZoneEnd" + GetLineEnding();
