@@ -3049,69 +3049,51 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
 
 void ZoneManager::SaveFXMapTemplateRow(string rowType)
 {
-    string row = "\t" + rowType;
-    
-    // GAW TBD --  get param indices and add row to list
-    
-    // GAW TBD -- copy FX, remove and replace in order to clear TCPFX panel
-    
-    
-    
-}
-
-void ZoneManager::BuildSelectedTrackTCPFXZone()
-{
-    if(homeZone_ != nullptr && homeZone_->GetDoesAssociatedZoneExist("SelectedTrackTCPFX") && homeZone_->GetIsAssociatedZoneActive("SelectedTrackTCPFX")
-       && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
     {
-        // GAW TBD -- check for empty rows, throw up a modal box and bail if none
-        
-    
-        
-        
         MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
-        
-        
-        
-        
-        // GAW TBD -- move to SaveFXMapTemplateRow
-        
-        /*
-        shared_ptr<Zone> tcpFXZone = homeZone_->GetAssociatedZone("SelectedTrackTCPFX");
-        
-        string zoneType = "";
-        
-        if(tcpFXZone->GetWidgetByName("Rotary1"))
-            zoneType = "\tFXRotaries";
-        else if(tcpFXZone->GetWidgetByName("RotaryA1"))
-            zoneType = "\tFXRotariesA";
-        else if(tcpFXZone->GetWidgetByName("RotaryB1"))
-            zoneType = "\tFXRotariesB";
-        else if(tcpFXZone->GetWidgetByName("RotaryC1"))
-            zoneType = "\tFXRotariesC";
-        else if(tcpFXZone->GetWidgetByName("RotaryD1"))
-            zoneType = "\tFXRotariesD";
-        else if(tcpFXZone->GetWidgetByName("Fader1"))
-            zoneType = "\tFXFaders";
-*/
-        
-        string indices = "";
         
         int fxIndex = 0;
         int paramIndex = 0;
         
-        for(int i = 0; i < DAW::CountTCPFXParms(track); i++ )
+        if(DAW::GetTCPFXParm(track, 0, &fxIndex, &paramIndex))
         {
-            if(DAW::GetTCPFXParm(track, i, &fxIndex, &paramIndex))
-                indices += " " + to_string(paramIndex);
+            char fxName[BUFSZ];
+            DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
+            
+            TCPFXZoneRows_[fxName][rowType].indices += rowType;
+              
+            for(int i = 0; i < DAW::CountTCPFXParms(track); i++ )
+            {
+                if(DAW::GetTCPFXParm(track, i, &fxIndex, &paramIndex))
+                {
+                    TCPFXParamInfo info;
+                    
+                    TCPFXZoneRows_[fxName][rowType].indices += " " + to_string(paramIndex);
+                    
+                    char fxParamAlias[BUFSZ];
+                    DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamAlias, sizeof(fxParamAlias));
+                    TCPFXZoneRows_[fxName][rowType].aliases += " \"" + string(fxParamAlias) + "\"";
+                }
+            }
         }
-        
-        // GAW TBD -- end move to SaveFXMapTemplateRow
+    }
+}
 
+void ZoneManager::BuildSelectedTrackTCPFXZone()
+{
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
+    {
+        if(TCPFXZoneRows_.size() == 0)
+        {
+            MessageBox(g_hwnd, "Please make sure you have at least one row defined and saved", "No Rows", MB_OK);
+            return;
+        }
+    
+        MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
         
-        
-        
-        
+        int fxIndex = 0;
+
         char fxAlias[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxAlias, sizeof(fxAlias));
         
@@ -3137,19 +3119,18 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
         {
             fxZone << "Zone \"" + string(fxName) + "\" \"" + string(fxAlias) + "\"" + GetLineEnding();
             
-            
-            // GAW TBD -- write row list including aliases
-            //fxZone << zoneType + indices + GetLineEnding();
-            
-            
-            
+            for(auto [fxType, row] : TCPFXZoneRows_[fxName])
+            {
+                fxZone << GetLineEnding() + row.indices + GetLineEnding();
+                fxZone << row.aliases + GetLineEnding() + GetLineEnding();;
+            }
             
             fxZone << "ZoneEnd" + GetLineEnding();
             
             fxZone.close();
         }
         
-        // GAW TBD -- clear rows
+        TCPFXZoneRows_.clear();
     }
 }
 

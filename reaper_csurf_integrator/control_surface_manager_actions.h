@@ -939,6 +939,14 @@ class SaveFXMapTemplateRow : public Action
 public:
     virtual string GetName() override { return "SaveFXMapTemplateRow"; }
 
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetTCPFXRowCount() > 0)
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
