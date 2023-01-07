@@ -104,6 +104,43 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TCPFXTemplateParam : public FXAction
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TCPFXTemplateParam"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return context->GetSurface()->GetZoneManager()->GetNormalizedTCPFXTemplateParamValue(context, track, context->GetIntParam());
+        else
+            return 0.0;
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            context->GetSurface()->GetZoneManager()->SetTCPFXTemplateParamValue(context, track, context->GetIntParam(), value);
+    }
+    
+    virtual void Touch(ActionContext* context, double value) override
+    {
+        /*
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double min, max = 0;
+            
+            if(value == 0)
+                DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
+            else
+                DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
+        }
+         */
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FXParamRelative : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1889,6 +1926,22 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TCPFXTemplateParamNameDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TCPFXTemplateParamNameDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            context->GetSurface()->GetZoneManager()->UpdateTCPFXTemplateParamNameDisplay(context, track, context->GetIntParam());
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1938,6 +1991,22 @@ public:
             else
                 context->ClearWidget();
         }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TCPFXTemplateParamValueDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TCPFXTemplateParamValueDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            context->GetSurface()->GetZoneManager()->UpdateTCPFXTemplateParamValueDisplay(context, track, context->GetIntParam());
         else
             context->ClearWidget();
     }

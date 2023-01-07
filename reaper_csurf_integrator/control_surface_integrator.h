@@ -695,11 +695,21 @@ struct CSIZoneInfo
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct TCPFXParamInfo
+struct TCPFXParamsInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string indices = "\t";
     string aliases = "\t//";
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct TCPFXParamInfo
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    MediaTrack* track = nullptr;
+    int fxIndex = 0;
+    int paramIndex = 0;
+    string alias = "";
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -742,7 +752,9 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
-    map<string, map<string, TCPFXParamInfo>> TCPFXZoneRows_;
+    map<string, map<string, TCPFXParamsInfo>> TCPFXZoneRows_;
+    
+    vector<TCPFXParamInfo> TCPFXParams_;
     
     void ResetOffsets()
     {
@@ -777,10 +789,15 @@ public:
 
     void RequestUpdate();
     void UpdateCurrentActionContextModifiers();
-    
+    void UpdateTCPFXParams();
+    double GetNormalizedTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index);
+    void SetTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index, double value);
+    void UpdateTCPFXTemplateParamNameDisplay(ActionContext* context, MediaTrack* track, int index);
+    void UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index);
+
     void PreProcessZones();
     void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
-    void SaveFXMapTemplateRow(string rowType);
+    void AddBlankTCPFXParam();
     void BuildSelectedTrackTCPFXZone();
     
     Navigator* GetMasterTrackNavigator();

@@ -788,15 +788,15 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoFaderFXMapTemplate : public Action
+class GoSelectedTrackTCPFXTemplate : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoFaderFXMapTemplate"; }
+    virtual string GetName() override { return "GoSelectedTrackTCPFXTemplate"; }
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("FaderFXMapTemplate"))
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -807,152 +807,23 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("FaderFXMapTemplate");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackTCPFXTemplate");
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoRotaryFXMapTemplate : public Action
+class AddBlankTCPFXParam : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoRotaryFXMapTemplate"; }
+    virtual string GetName() override { return "AddBlankTCPFXParam"; }
     
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("RotaryFXMapTemplate"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("RotaryFXMapTemplate");
-    }
-};
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoRotaryAFXMapTemplate : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoRotaryAFXMapTemplate"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("RotaryAFXMapTemplate"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("RotaryAFXMapTemplate");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoRotaryBFXMapTemplate : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoRotaryBFXMapTemplate"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("RotaryBFXMapTemplate"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("RotaryBFXMapTemplate");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoRotaryCFXMapTemplate : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoRotaryCFXMapTemplate"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("RotaryCFXMapTemplate"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("RotaryCFXMapTemplate");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoRotaryDFXMapTemplate : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoRotaryDFXMapTemplate"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("RotaryDFXMapTemplate"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("RotaryDFXMapTemplate");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SaveFXMapTemplateRow : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SaveFXMapTemplateRow"; }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetTCPFXRowCount() > 0)
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->SaveFXMapTemplateRow(context->GetStringParam());
+        context->GetSurface()->GetZoneManager()->AddBlankTCPFXParam();
     }
 };
 

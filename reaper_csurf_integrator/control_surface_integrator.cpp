@@ -1271,13 +1271,8 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
     actions_["GoSelectedTrackTCPFX"] =              new GoSelectedTrackTCPFX();
-    actions_["GoFaderFXMapTemplate"] =              new GoFaderFXMapTemplate();
-    actions_["GoRotaryFXMapTemplate"] =             new GoRotaryFXMapTemplate();
-    actions_["GoRotaryAFXMapTemplate"] =            new GoRotaryAFXMapTemplate();
-    actions_["GoRotaryBFXMapTemplate"] =            new GoRotaryBFXMapTemplate();
-    actions_["GoRotaryCFXMapTemplate"] =            new GoRotaryCFXMapTemplate();
-    actions_["GoRotaryDFXMapTemplate"] =            new GoRotaryDFXMapTemplate();
-    actions_["SaveFXMapTemplateRow"] =              new SaveFXMapTemplateRow();
+    actions_["GoSelectedTrackTCPFXTemplate"] =      new GoSelectedTrackTCPFXTemplate();
+    actions_["AddBlankTCPFXParam"] =                new AddBlankTCPFXParam();
     actions_["BuildSelectedTrackTCPFXZone"] =       new BuildSelectedTrackTCPFXZone();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["VCABank"] =                           new VCABank();
@@ -1343,6 +1338,7 @@ void Manager::InitActionsDictionary()
     actions_["FocusedFXParam"] =                    new FocusedFXParam();
     actions_["FXParam"] =                           new FXParam();
     actions_["TCPFXParam"] =                        new TCPFXParam();
+    actions_["TCPFXTemplateParam"] =                new TCPFXTemplateParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
     actions_["FXBypassDisplay"] =                   new FXBypassDisplay();
@@ -1353,8 +1349,10 @@ void Manager::InitActionsDictionary()
     actions_["SpeakFXMenuName"] =                   new SpeakFXMenuName();
     actions_["FXParamNameDisplay"] =                new FXParamNameDisplay();
     actions_["TCPFXParamNameDisplay"] =             new TCPFXParamNameDisplay();
+    actions_["TCPFXTemplateParamNameDisplay"] =     new TCPFXTemplateParamNameDisplay();
     actions_["FXParamValueDisplay"] =               new FXParamValueDisplay();
     actions_["TCPFXParamValueDisplay"] =            new TCPFXParamValueDisplay();
+    actions_["TCPFXTemplateParamValueDisplay"] =    new TCPFXTemplateParamValueDisplay();
     actions_["FocusedFXParamNameDisplay"] =         new FocusedFXParamNameDisplay();
     actions_["FocusedFXParamValueDisplay"] =        new FocusedFXParamValueDisplay();
     actions_["FXGainReductionMeter"] =              new FXGainReductionMeter();
@@ -3059,6 +3057,91 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     }
 }
 
+void ZoneManager::UpdateTCPFXParams()
+{
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
+    {
+     
+        
+        
+        
+    }
+}
+
+double ZoneManager::GetNormalizedTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index)
+{
+    if(DAW::CountTCPFXParms(track) > index)
+    {
+        int fxIndex = 0;
+        int paramIndex = 0;
+        
+        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+        {
+            double min, max = 0.0;
+            
+            return DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &min, &max);
+        }
+        else
+            return 0.0;
+    }
+    else
+        return 0.0;
+}
+
+void ZoneManager::SetTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index, double value)
+{
+    if(DAW::CountTCPFXParms(track) > index)
+    {
+        int fxIndex = 0;
+        int paramIndex = 0;
+        
+        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+            DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
+    }
+}
+
+void ZoneManager::UpdateTCPFXTemplateParamNameDisplay(ActionContext* context, MediaTrack* track, int index)
+{
+    if(DAW::CountTCPFXParms(track) > index)
+    {
+        int fxIndex = 0;
+        int paramIndex = 0;
+        
+        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+            context->UpdateWidgetValue(TheManager->GetTCPFXParamName(track, fxIndex, paramIndex));
+        else
+            context->ClearWidget();
+    }
+    else
+        context->ClearWidget();
+}
+
+void ZoneManager::UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index)
+{
+    if(DAW::CountTCPFXParms(track) > index)
+    {
+        int fxIndex = 0;
+        int paramIndex = 0;
+        
+        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+        {
+            char fxParamValue[128];
+            DAW::TrackFX_GetFormattedParamValue(track, fxIndex, paramIndex, fxParamValue, sizeof(fxParamValue));
+            context->UpdateWidgetValue(string(fxParamValue));
+        }
+        else
+            context->ClearWidget();
+    }
+    else
+        context->ClearWidget();
+}
+
+void ZoneManager::AddBlankTCPFXParam()
+{
+    
+}
+
+/*
 void ZoneManager::SaveFXMapTemplateRow(string surfaceType)
 {
     if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
@@ -3131,16 +3214,13 @@ void ZoneManager::SaveFXMapTemplateRow(string surfaceType)
         }
     }
 }
-
+*/
 void ZoneManager::BuildSelectedTrackTCPFXZone()
 {
-    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
     {
-        if(TCPFXZoneRows_.size() == 0)
-        {
-            MessageBox(g_hwnd, "Please make sure you have at least one row defined and saved", "No Rows", MB_OK);
+        if(TCPFXParams_.size() == 0)
             return;
-        }
     
         MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
         
@@ -3209,6 +3289,12 @@ void ZoneManager::GoAssociatedZone(string associatedZoneName)
         
         ClearFXMapping();
         ResetOffsets();
+        
+        if(associatedZoneName == "SelectedTrackTCPFXTemplate")
+        {
+            TCPFXZoneRows_.clear();
+            TCPFXParams_.clear();
+        }
         
         homeZone_->GoAssociatedZone(associatedZoneName);
     }
