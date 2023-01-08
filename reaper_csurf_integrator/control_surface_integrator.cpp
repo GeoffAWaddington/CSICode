@@ -379,7 +379,12 @@ static void BuildFXTemplates(int modifier, string baseControl, string baseNameDi
         {
             shared_ptr<ActionTemplate> fxParamTemplate = make_shared<ActionTemplate>();
             fxParamTemplate->widgetName = control;
-            fxParamTemplate->actionName = "FXParam";
+            
+            if(tokens[i] == "-1")
+                fxParamTemplate->actionName = "NoAction";
+            else
+                fxParamTemplate->actionName = "FXParam";
+            
             fxParamTemplate->params.push_back(fxParamTemplate->actionName);
             fxParamTemplate->params.push_back(tokens[i]);
             fxParamTemplate->provideFeedback = true;
@@ -392,7 +397,12 @@ static void BuildFXTemplates(int modifier, string baseControl, string baseNameDi
         {
             shared_ptr<ActionTemplate> fxParamNameDisplayTemplate = make_shared<ActionTemplate>();
             fxParamNameDisplayTemplate->widgetName = nameDisplay;
-            fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
+            
+            if(tokens[i] == "-1")
+                fxParamNameDisplayTemplate->actionName = "NoAction";
+            else
+                fxParamNameDisplayTemplate->actionName = "FXParamNameDisplay";
+            
             fxParamNameDisplayTemplate->params.push_back(fxParamNameDisplayTemplate->actionName);
             fxParamNameDisplayTemplate->params.push_back(tokens[i]);
             fxParamNameDisplayTemplate->provideFeedback = true;
@@ -405,7 +415,12 @@ static void BuildFXTemplates(int modifier, string baseControl, string baseNameDi
         {
             shared_ptr<ActionTemplate> fxParamValueDisplayTemplate = make_shared<ActionTemplate>();
             fxParamValueDisplayTemplate->widgetName = valueDisplay;
-            fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
+            
+            if(tokens[i] == "-1")
+                fxParamValueDisplayTemplate->actionName = "NoAction";
+            else
+                fxParamValueDisplayTemplate->actionName = "FXParamValueDisplay";
+            
             fxParamValueDisplayTemplate->params.push_back(fxParamValueDisplayTemplate->actionName);
             fxParamValueDisplayTemplate->params.push_back(tokens[i]);
             fxParamValueDisplayTemplate->provideFeedback = true;
@@ -424,6 +439,8 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
     vector<string> associatedZones;
     
     map<string, map<int, vector<shared_ptr<ActionTemplate>>>> actionTemplatesDictionary;
+    
+    vector<TCPFXParamRowDefinition> rows;
     
     string zoneName = "";
     string zoneAlias = "";
@@ -501,9 +518,60 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 continue;
  
                             zone->AddWidget(widget, widget->GetName());
-                            
+                                                        
                             for(auto [modifier, actionTemplates] : modifiedActionTemplates)
                             {
+                                if(zone->GetName() == "SelectedTrackTCPFXTemplate")
+                                {
+                                    string key = "";
+                                        
+                                    if(widgetName.find("RotaryA") != string::npos)
+                                        key = "FXRotariesA";
+                                    else if(widgetName.find("RotaryB") != string::npos)
+                                        key = "FXRotariesB";
+                                    else if(widgetName.find("RotaryC") != string::npos)
+                                        key = "FXRotariesC";
+                                    else if(widgetName.find("RotaryD") != string::npos)
+                                        key = "FXRotariesD";
+                                    else if(widgetName.find("Rotary") != string::npos)
+                                        key = "FXRotaries";
+                                    else if(widgetName.find("Fader") != string::npos)
+                                        key = "FXFaders";
+
+                                    if(key != "")
+                                    {
+                                        if(modifier == 4)
+                                            key += "Shift";
+                                        else if(modifier == 8)
+                                            key += "Option";
+                                        else if(modifier == 16)
+                                            key += "Control";
+                                        else if(modifier == 32)
+                                            key += "Alt";
+
+                                        int index = -1;
+                                        
+                                        for(int i = 0; i < rows.size(); i++)
+                                        {
+                                            if(rows[i].name == key)
+                                            {
+                                                index = i;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if(index < 0)
+                                        {
+                                            TCPFXParamRowDefinition row;
+                                            row.name = key;
+                                            row.size++;
+                                            rows.push_back(row);
+                                        }
+                                        else
+                                            rows[index].size++;
+                                    }
+                                }
+                                
                                 for(auto actionTemplate : actionTemplates)
                                 {
                                     string actionName = regex_replace(actionTemplate->actionName, regex("[|]"), numStr);
@@ -531,7 +599,10 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                 }
                             }
                         }
-                        
+                    
+                        for(auto row : rows)
+                            zone->AddParamRowDefinition(row);
+
                         if(subZones.size() > 0)
                             zone->InitSubZones(subZones, zone);
                     }
@@ -540,6 +611,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     subZones.clear();
                     associatedZones.clear();
                     actionTemplatesDictionary.clear();
+                    rows.clear();
                     
                     break;
                 }
@@ -586,6 +658,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens[0] == "FXFadersAlt" && tokens.size() > 1)
                     BuildFXTemplates(32, "Fader", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
+                
                 else if(tokens[0] == "FXRotaries" && tokens.size() > 1)
                     BuildFXTemplates(0, "Rotary", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
@@ -601,17 +674,66 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens[0] == "FXRotariesAlt" && tokens.size() > 1)
                     BuildFXTemplates(32, "Rotary", "DisplayUpper", "DisplayLower", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
+                
                 else if(tokens[0] == "FXRotariesA" && tokens.size() > 1)
                     BuildFXTemplates(0, "RotaryA", "DisplayUpperA", "DisplayLowerA", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesAShift" && tokens.size() > 1)
+                    BuildFXTemplates(4, "RotaryA", "DisplayUpperA", "DisplayLowerA", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesAOption" && tokens.size() > 1)
+                    BuildFXTemplates(8, "RotaryA", "DisplayUpperA", "DisplayLowerA", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesAControl" && tokens.size() > 1)
+                    BuildFXTemplates(16, "RotaryA", "DisplayUpperA", "DisplayLowerA", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesAAlt" && tokens.size() > 1)
+                    BuildFXTemplates(32, "RotaryA", "DisplayUpperA", "DisplayLowerA", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
                 else if(tokens[0] == "FXRotariesB" && tokens.size() > 1)
                     BuildFXTemplates(0, "RotaryB", "DisplayUpperB", "DisplayLowerB", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
+                else if(tokens[0] == "FXRotariesBShift" && tokens.size() > 1)
+                    BuildFXTemplates(4, "RotaryB", "DisplayUpperB", "DisplayLowerB", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBOption" && tokens.size() > 1)
+                    BuildFXTemplates(8, "RotaryB", "DisplayUpperB", "DisplayLowerB", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBControl" && tokens.size() > 1)
+                    BuildFXTemplates(16, "RotaryB", "DisplayUpperB", "DisplayLowerB", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBAlt" && tokens.size() > 1)
+                    BuildFXTemplates(32, "RotaryB", "DisplayUpperB", "DisplayLowerB", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
                 else if(tokens[0] == "FXRotariesC" && tokens.size() > 1)
                     BuildFXTemplates(0, "RotaryC", "DisplayUpperC", "DisplayLowerC", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
+                else if(tokens[0] == "FXRotariesCShift" && tokens.size() > 1)
+                    BuildFXTemplates(4, "RotaryC", "DisplayUpperC", "DisplayLowerC", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesCOption" && tokens.size() > 1)
+                    BuildFXTemplates(8, "RotaryC", "DisplayUpperC", "DisplayLowerC", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesCControl" && tokens.size() > 1)
+                    BuildFXTemplates(16, "RotaryC", "DisplayUpperC", "DisplayLowerC", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesCAlt" && tokens.size() > 1)
+                    BuildFXTemplates(32, "RotaryC", "DisplayUpperC", "DisplayLowerC", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
                 else if(tokens[0] == "FXRotariesD" && tokens.size() > 1)
                     BuildFXTemplates(0, "RotaryD", "DisplayUpperD", "DisplayLowerD", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesDShift" && tokens.size() > 1)
+                    BuildFXTemplates(4, "RotaryD", "DisplayUpperD", "DisplayLowerD", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesDOption" && tokens.size() > 1)
+                    BuildFXTemplates(8, "RotaryD", "DisplayUpperD", "DisplayLowerD", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesDControl" && tokens.size() > 1)
+                    BuildFXTemplates(16, "RotaryD", "DisplayUpperD", "DisplayLowerD", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
+                else if(tokens[0] == "FXRotariesDAlt" && tokens.size() > 1)
+                    BuildFXTemplates(32, "RotaryD", "DisplayUpperD", "DisplayLowerD", actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
                 else if(tokens.size() > 1)
                 {
@@ -2236,8 +2358,14 @@ void Zone::GoAssociatedZone(string zoneName)
             zone->Deactivate();
         
     if(associatedZones_.count(zoneName) > 0)
+    {
         for(auto zone : associatedZones_[zoneName])
+        {
             zone->Activate();
+            if(zoneName == "SelectedTrackTCPFXTemplate")
+                zoneManager_->ResetTCPFXParams(zone);
+        }
+    }
 }
 
 void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
@@ -3057,6 +3185,13 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     }
 }
 
+void ZoneManager::ResetTCPFXParams(shared_ptr<Zone> templateZone)
+{
+    TCPFXZoneRows_.clear();
+    TCPFXParams_.clear();
+    paramRowDefinitions_ = templateZone->GetParamRowDefinitions();
+}
+
 void ZoneManager::UpdateTCPFXParams()
 {
     if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
@@ -3289,13 +3424,7 @@ void ZoneManager::GoAssociatedZone(string associatedZoneName)
         
         ClearFXMapping();
         ResetOffsets();
-        
-        if(associatedZoneName == "SelectedTrackTCPFXTemplate")
-        {
-            TCPFXZoneRows_.clear();
-            TCPFXParams_.clear();
-        }
-        
+                
         homeZone_->GoAssociatedZone(associatedZoneName);
     }
 }

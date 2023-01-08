@@ -447,6 +447,13 @@ public:
     }
 };
 
+struct TCPFXParamRowDefinition
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    string name = "";
+    int size = 0;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -472,6 +479,8 @@ protected:
     map<Widget*, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
+    vector<TCPFXParamRowDefinition> paramRowDefintions_;
+    
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     void UpdateCurrentActionContextModifier(Widget* widget);
     
@@ -490,6 +499,9 @@ public:
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
 
+    void AddParamRowDefinition(TCPFXParamRowDefinition paramRowDefintion) { paramRowDefintions_.push_back(paramRowDefintion); }
+    vector<TCPFXParamRowDefinition> &GetParamRowDefinitions() { return paramRowDefintions_; }
+    
     void UpdateCurrentActionContextModifiers();
     vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
         
@@ -753,8 +765,8 @@ private:
     int selectedTrackFXMenuOffset_ = 0;
 
     map<string, map<string, TCPFXParamsInfo>> TCPFXZoneRows_;
-    
     vector<TCPFXParamInfo> TCPFXParams_;
+    vector<TCPFXParamRowDefinition> paramRowDefinitions_;
     
     void ResetOffsets()
     {
@@ -789,6 +801,7 @@ public:
 
     void RequestUpdate();
     void UpdateCurrentActionContextModifiers();
+    void ResetTCPFXParams(shared_ptr<Zone> templateZone);
     void UpdateTCPFXParams();
     double GetNormalizedTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index);
     void SetTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index, double value);
