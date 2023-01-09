@@ -3188,19 +3188,19 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
 
 void ZoneManager::ResetTCPFXParams(shared_ptr<Zone> templateZone)
 {
-    TCPFXZoneRows_.clear();
     TCPFXParamIndices_.clear();
     paramRowDefinitions_ = templateZone->GetParamRowDefinitions();
 }
 
 void ZoneManager::UpdateTCPFXParams()
 {
-    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
     {
         vector<int> selectedTrackTCPFXParamIndices;
         
         MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
         
+        // GAW - build the CSI list based on insertion order
         for(int i = 0; i < DAW::CountTCPFXParms(track); i++ )
         {
             int fxIndex = 0;
@@ -3212,10 +3212,10 @@ void ZoneManager::UpdateTCPFXParams()
                 
                 if(find(TCPFXParamIndices_.begin(), TCPFXParamIndices_.end(), paramIndex) == TCPFXParamIndices_.end())
                     TCPFXParamIndices_.push_back(paramIndex);
-                
             }
         }
         
+        // GAW - Check for Reaper param removal
         for(int i = 0; i < TCPFXParamIndices_.size(); i++)
         {
             if(find(selectedTrackTCPFXParamIndices.begin(), selectedTrackTCPFXParamIndices.end(), TCPFXParamIndices_[i]) == selectedTrackTCPFXParamIndices.end())
@@ -3259,7 +3259,7 @@ void ZoneManager::UpdateTCPFXTemplateParamNameDisplay(ActionContext* context, Me
             context->UpdateWidgetValue(TheManager->GetTCPFXParamName(surface_->GetPage()->GetSelectedTrack(), 0, TCPFXParamIndices_[index]));
     }
     else
-        context->UpdateWidgetValue("");
+        context->ClearWidget();
 }
 
 void ZoneManager::UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index)
@@ -3279,85 +3279,11 @@ void ZoneManager::AddBlankTCPFXParam()
     TCPFXParamIndices_.push_back(-1);
 }
 
-/*
-void ZoneManager::SaveFXMapTemplateRow(string surfaceType)
+void ZoneManager::BuildSelectedTrackTCPFXZone()
 {
     if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
     {
-        string rowType = "";
-        
-        if(surfaceType == "SingleRotaryRow")
-        {
-            if(TCPFXZoneRows_.size() == 0)
-                rowType = "FXRotaries";
-            else if(TCPFXZoneRows_.size() == 1)
-                rowType = "FXRotariesShift";
-            else if(TCPFXZoneRows_.size() == 2)
-                rowType = "FXRotariesOption";
-            else if(TCPFXZoneRows_.size() == 3)
-                rowType = "FXRotariesControl";
-            else if(TCPFXZoneRows_.size() == 4)
-                rowType = "FXRotariesAlt";
-        }
-        else if(surfaceType == "SingleFaderRow")
-        {
-            if(TCPFXZoneRows_.size() == 0)
-                rowType = "FXFaders";
-            else if(TCPFXZoneRows_.size() == 1)
-                rowType = "FXFadersShift";
-            else if(TCPFXZoneRows_.size() == 2)
-                rowType = "FXFadersOption";
-            else if(TCPFXZoneRows_.size() == 3)
-                rowType = "FXFadersControl";
-            else if(TCPFXZoneRows_.size() == 4)
-                rowType = "FXFadersAlt";
-        }
-        else
-        {
-            if(TCPFXZoneRows_.size() == 0)
-                rowType = "FXRotariesA";
-            else if(TCPFXZoneRows_.size() == 1)
-                rowType = "FXRotariesB";
-            else if(TCPFXZoneRows_.size() == 2)
-                rowType = "FXRotariesC";
-            else if(TCPFXZoneRows_.size() == 3)
-                rowType = "FXRotariesD";
-        }
-        
-        MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
-        
-        int fxIndex = 0;
-        int paramIndex = 0;
-        
-        if(DAW::GetTCPFXParm(track, 0, &fxIndex, &paramIndex))
-        {
-            char fxName[BUFSZ];
-            DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
-            
-            TCPFXZoneRows_[fxName][rowType].indices += rowType;
-              
-            for(int i = 0; i < DAW::CountTCPFXParms(track); i++ )
-            {
-                if(DAW::GetTCPFXParm(track, i, &fxIndex, &paramIndex))
-                {
-                    TCPFXParamInfo info;
-                    
-                    TCPFXZoneRows_[fxName][rowType].indices += " " + to_string(paramIndex);
-                    
-                    char fxParamAlias[BUFSZ];
-                    DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamAlias, sizeof(fxParamAlias));
-                    TCPFXZoneRows_[fxName][rowType].aliases += " \"" + string(fxParamAlias) + "\"";
-                }
-            }
-        }
-    }
-}
-*/
-void ZoneManager::BuildSelectedTrackTCPFXZone()
-{
-    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
-    {
-        if(TCPFXParamIndices_.size() == 0)
+        if(TCPFXParamIndices_.size() == 0 || paramRowDefinitions_.size() == 0)
             return;
     
         MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
@@ -3389,18 +3315,55 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
         {
             fxZone << "Zone \"" + string(fxName) + "\" \"" + string(fxAlias) + "\"" + GetLineEnding();
             
-            for(auto [fxType, row] : TCPFXZoneRows_[fxName])
+            int paramRowDefinitionsIndex = 0;
+            TCPFXParamsInfo row;
+            row.indices = paramRowDefinitions_[paramRowDefinitionsIndex].name + "\t";
+            row.aliases = "\t//";
+
+            int totalParamDefinitionsSize = 0;
+            
+            for(auto paramRowDefinition : paramRowDefinitions_)
+                totalParamDefinitionsSize += paramRowDefinition.size;
+            
+            for(int i = 0; i < TCPFXParamIndices_.size() && i < totalParamDefinitionsSize; i++)
             {
+                if(TCPFXParamIndices_[i] == -1)
+                    row.aliases += " NoAction";
+                else
+                    row.aliases += " " + TheManager->GetTCPFXParamName(surface_->GetPage()->GetSelectedTrack(), 0, TCPFXParamIndices_[i]);
+
+                row.indices += " " + to_string(TCPFXParamIndices_[i]);
+                row.paramCount++;
+                
+                if(row.paramCount == paramRowDefinitions_[paramRowDefinitionsIndex].size)
+                {
+                    fxZone << GetLineEnding() + row.indices + GetLineEnding();
+                    fxZone << row.aliases + GetLineEnding();
+
+                    paramRowDefinitionsIndex++;
+                    row.indices = paramRowDefinitions_[paramRowDefinitionsIndex].name + "\t";
+                    row.aliases = "\t//";
+                    row.paramCount = 0;
+                }
+            }
+            
+            // GAW -- pad partial rows
+            if(row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            {
+                for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
+                {
+                    row.indices += " -1";
+                    row.aliases += " NoAction";
+                }
+                
                 fxZone << GetLineEnding() + row.indices + GetLineEnding();
                 fxZone << row.aliases + GetLineEnding();
             }
-            
+
             fxZone << "ZoneEnd" + GetLineEnding();
             
             fxZone.close();
         }
-        
-        TCPFXZoneRows_.clear();
     }
 }
 

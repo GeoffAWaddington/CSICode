@@ -710,8 +710,9 @@ struct CSIZoneInfo
 struct TCPFXParamsInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string indices = "\t";
-    string aliases = "\t//";
+    string indices = "";
+    string aliases = "";
+    int paramCount = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -754,7 +755,6 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
 
-    map<string, map<string, TCPFXParamsInfo>> TCPFXZoneRows_;
     vector<int> TCPFXParamIndices_;
     vector<TCPFXParamRowDefinition> paramRowDefinitions_;
     
