@@ -2922,6 +2922,7 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
 
 void ZoneManager::RequestUpdate()
 {
+    UpdateTCPFXParams();
     CheckFocusedFXState();
         
     for(auto &[key, value] : usedWidgets_)
@@ -3188,7 +3189,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
 void ZoneManager::ResetTCPFXParams(shared_ptr<Zone> templateZone)
 {
     TCPFXZoneRows_.clear();
-    TCPFXParams_.clear();
+    TCPFXParamIndices_.clear();
     paramRowDefinitions_ = templateZone->GetParamRowDefinitions();
 }
 
@@ -3196,28 +3197,47 @@ void ZoneManager::UpdateTCPFXParams()
 {
     if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
     {
-     
+        vector<int> selectedTrackTCPFXParamIndices;
         
+        MediaTrack* track = surface_->GetPage()->GetSelectedTrack();
         
+        for(int i = 0; i < DAW::CountTCPFXParms(track); i++ )
+        {
+            int fxIndex = 0;
+            int paramIndex = 0;
+            
+            if(DAW::GetTCPFXParm(track, i, &fxIndex, &paramIndex))
+            {
+                selectedTrackTCPFXParamIndices.push_back(paramIndex);
+                
+                if(find(TCPFXParamIndices_.begin(), TCPFXParamIndices_.end(), paramIndex) == TCPFXParamIndices_.end())
+                    TCPFXParamIndices_.push_back(paramIndex);
+                
+            }
+        }
         
+        for(int i = 0; i < TCPFXParamIndices_.size(); i++)
+        {
+            if(find(selectedTrackTCPFXParamIndices.begin(), selectedTrackTCPFXParamIndices.end(), TCPFXParamIndices_[i]) == selectedTrackTCPFXParamIndices.end())
+            {
+                if(TCPFXParamIndices_[i] != -1)
+                {
+                    TCPFXParamIndices_.resize(i);
+                    break;
+                }
+            }
+        }
     }
 }
 
 double ZoneManager::GetNormalizedTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index)
 {
-    if(DAW::CountTCPFXParms(track) > index)
+    if(TCPFXParamIndices_.size() > index && TCPFXParamIndices_[index] != -1)
     {
-        int fxIndex = 0;
-        int paramIndex = 0;
+        double min = 0.0;
+        double max = 0.0;
         
-        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-        {
-            double min, max = 0.0;
-            
-            return DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &min, &max);
-        }
-        else
-            return 0.0;
+        return DAW::TrackFX_GetParam(surface_->GetPage()->GetSelectedTrack(), 0, TCPFXParamIndices_[index], &min, &max);
     }
     else
         return 0.0;
@@ -3225,47 +3245,30 @@ double ZoneManager::GetNormalizedTCPFXTemplateParamValue(ActionContext* context,
 
 void ZoneManager::SetTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index, double value)
 {
-    if(DAW::CountTCPFXParms(track) > index)
-    {
-        int fxIndex = 0;
-        int paramIndex = 0;
-        
-        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-            DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
-    }
+    if(TCPFXParamIndices_.size() > index  && TCPFXParamIndices_[index] != -1)
+        DAW::TrackFX_SetParam(surface_->GetPage()->GetSelectedTrack(), 0, TCPFXParamIndices_[index], value);
 }
 
 void ZoneManager::UpdateTCPFXTemplateParamNameDisplay(ActionContext* context, MediaTrack* track, int index)
 {
-    if(DAW::CountTCPFXParms(track) > index)
+    if(TCPFXParamIndices_.size() > index)
     {
-        int fxIndex = 0;
-        int paramIndex = 0;
-        
-        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-            context->UpdateWidgetValue(TheManager->GetTCPFXParamName(track, fxIndex, paramIndex));
+        if(TCPFXParamIndices_[index] == -1)
+            context->UpdateWidgetValue("Blank");
         else
-            context->ClearWidget();
+            context->UpdateWidgetValue(TheManager->GetTCPFXParamName(surface_->GetPage()->GetSelectedTrack(), 0, TCPFXParamIndices_[index]));
     }
     else
-        context->ClearWidget();
+        context->UpdateWidgetValue("");
 }
 
 void ZoneManager::UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index)
 {
-    if(DAW::CountTCPFXParms(track) > index)
+    if(TCPFXParamIndices_.size() > index && TCPFXParamIndices_[index] != -1)
     {
-        int fxIndex = 0;
-        int paramIndex = 0;
-        
-        if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-        {
-            char fxParamValue[128];
-            DAW::TrackFX_GetFormattedParamValue(track, fxIndex, paramIndex, fxParamValue, sizeof(fxParamValue));
-            context->UpdateWidgetValue(string(fxParamValue));
-        }
-        else
-            context->ClearWidget();
+        char fxParamValue[128];
+        DAW::TrackFX_GetFormattedParamValue(surface_->GetPage()->GetSelectedTrack(), 0, TCPFXParamIndices_[index], fxParamValue, sizeof(fxParamValue));
+        context->UpdateWidgetValue(string(fxParamValue));
     }
     else
         context->ClearWidget();
@@ -3273,7 +3276,7 @@ void ZoneManager::UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, M
 
 void ZoneManager::AddBlankTCPFXParam()
 {
-    
+    TCPFXParamIndices_.push_back(-1);
 }
 
 /*
@@ -3354,7 +3357,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
 {
     if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
     {
-        if(TCPFXParams_.size() == 0)
+        if(TCPFXParamIndices_.size() == 0)
             return;
     
         MediaTrack* track = surface_->GetPage()->GetSelectedTrack();

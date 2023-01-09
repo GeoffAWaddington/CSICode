@@ -715,16 +715,6 @@ struct TCPFXParamsInfo
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct TCPFXParamInfo
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    MediaTrack* track = nullptr;
-    int fxIndex = 0;
-    int paramIndex = 0;
-    string alias = "";
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -765,7 +755,7 @@ private:
     int selectedTrackFXMenuOffset_ = 0;
 
     map<string, map<string, TCPFXParamsInfo>> TCPFXZoneRows_;
-    vector<TCPFXParamInfo> TCPFXParams_;
+    vector<int> TCPFXParamIndices_;
     vector<TCPFXParamRowDefinition> paramRowDefinitions_;
     
     void ResetOffsets()
@@ -857,8 +847,6 @@ public:
     void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-       
-    int  GetTCPFXRowCount() { return TCPFXZoneRows_.size(); }
     
     int GetBaseTickCount(int stepCount)
     {
