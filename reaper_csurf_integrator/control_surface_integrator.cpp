@@ -3317,7 +3317,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
             
             int paramRowDefinitionsIndex = 0;
             TCPFXParamsInfo row;
-            row.indices = paramRowDefinitions_[paramRowDefinitionsIndex].name + "\t";
+            row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
             row.aliases = "\t//";
 
             int totalParamDefinitionsSize = 0;
@@ -3341,7 +3341,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
                     fxZone << row.aliases + GetLineEnding();
 
                     paramRowDefinitionsIndex++;
-                    row.indices = paramRowDefinitions_[paramRowDefinitionsIndex].name + "\t";
+                    row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
                     row.aliases = "\t//";
                     row.paramCount = 0;
                 }
