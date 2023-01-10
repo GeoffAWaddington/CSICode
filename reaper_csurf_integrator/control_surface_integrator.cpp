@@ -466,58 +466,58 @@ static void BuildTCPFXZoneTemplate(int modifier, string rowName, vector<TCPFXPar
     if(tokens.size() > 1)
         row.size = atoi(tokens[1].c_str());
     
-    rows.push_back(row);
-    
     vector<string> params;
         
     int offset = 0;
     for(auto row : rows)
         offset += row.size;
 
+    rows.push_back(row);
+    
     params.push_back(rowName);
     
-    for(int i = offset; i < row.size; i++)
+    for(int i = offset; i < row.size + offset; i++)
         params.push_back(to_string(i));
     
     string controlName = "";
     string paramNameDisplay = "";
     string paramValueDisplay = "";
    
-    if(rowName == "FxFaders" || rowName == "FxFadersShift" || rowName == "FxFadersOption" || rowName == "FxFadersControl" || rowName == "FxFadersAlt")
+    if(rowName == "FXFaders" || rowName == "FXFadersShift" || rowName == "FXFadersOption" || rowName == "FXFadersControl" || rowName == "FXFadersAlt")
     {
         controlName = "Fader";
         paramNameDisplay = "DisplayUpper";
         paramValueDisplay = "DisplayLower";
     }
-    else if(rowName == "FxRotaries" || rowName == "FxRotariesShift" || rowName == "FxRotariesOption" || rowName == "FxRotariesControl" || rowName == "FxRotariesAlt")
+    else if(rowName == "FXRotaries" || rowName == "FXRotariesShift" || rowName == "FXRotariesOption" || rowName == "FXRotariesControl" || rowName == "FXRotariesAlt")
     {
         controlName = "Rotary";
         paramNameDisplay = "DisplayUpper";
         paramValueDisplay = "DisplayLower";
     }
 
-    else if(rowName == "FxRotariesA" || rowName == "FxRotariesAShift" || rowName == "FxRotariesAOption" || rowName == "FxRotariesAControl" || rowName == "FxRotariesAAlt")
+    else if(rowName == "FXRotariesA" || rowName == "FXRotariesAShift" || rowName == "FXRotariesAOption" || rowName == "FXRotariesAControl" || rowName == "FXRotariesAAlt")
     {
         controlName = "RotaryA";
         paramNameDisplay = "DisplayUpperA";
         paramValueDisplay = "DisplayLowerA";
     }
 
-    else if(rowName == "FxRotariesB" || rowName == "FxRotariesBShift" || rowName == "FxRotariesBOption" || rowName == "FxRotariesBControl" || rowName == "FxRotariesBAlt")
+    else if(rowName == "FXRotariesB" || rowName == "FXRotariesBShift" || rowName == "FXRotariesBOption" || rowName == "FXRotariesBControl" || rowName == "FXRotariesBAlt")
     {
         controlName = "RotaryB";
         paramNameDisplay = "DisplayUpperB";
         paramValueDisplay = "DisplayLowerB";
     }
 
-    else if(rowName == "FxRotariesC" || rowName == "FxRotariesCShift" || rowName == "FxRotariesCOption" || rowName == "FxRotariesCControl" || rowName == "FxRotariesCAlt")
+    else if(rowName == "FXRotariesC" || rowName == "FXRotariesCShift" || rowName == "FXRotariesCOption" || rowName == "FXRotariesCControl" || rowName == "FXRotariesCAlt")
     {
         controlName = "RotaryC";
         paramNameDisplay = "DisplayUpperC";
         paramValueDisplay = "DisplayLowerC";
     }
 
-    else if(rowName == "FxRotariesD" || rowName == "FxRotariesDShift" || rowName == "FxRotariesDOption" || rowName == "FxRotariesDControl" || rowName == "FxRotariesDAlt")
+    else if(rowName == "FXRotariesD" || rowName == "FXRotariesDShift" || rowName == "FXRotariesDOption" || rowName == "FXRotariesDControl" || rowName == "FXRotariesDAlt")
     {
         controlName = "RotaryD";
         paramNameDisplay = "DisplayUpperD";
@@ -3341,7 +3341,7 @@ void ZoneManager::ResetTCPFXParams(shared_ptr<Zone> templateZone)
 
 void ZoneManager::UpdateTCPFXParams()
 {
-    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
     {
         vector<int> selectedTrackTCPFXParamIndices;
         
@@ -3428,7 +3428,7 @@ void ZoneManager::AddBlankTCPFXParam()
 
 void ZoneManager::BuildSelectedTrackTCPFXZone()
 {
-    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1)
+    if(homeZone_ != nullptr && surface_->GetPage()->GetSelectedTrack() != nullptr && DAW::TrackFX_GetCount(surface_->GetPage()->GetSelectedTrack()) == 1 && GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
     {
         if(TCPFXParamIndices_.size() == 0 || paramRowDefinitions_.size() == 0)
             return;
@@ -3495,7 +3495,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
             }
             
             // GAW -- pad partial rows
-            if(row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            if(row.paramCount != 0 && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
             {
                 for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
                 {
