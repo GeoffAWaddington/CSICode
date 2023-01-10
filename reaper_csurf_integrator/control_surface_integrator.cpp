@@ -463,8 +463,8 @@ static void BuildTCPFXZoneTemplate(int modifier, string rowName, vector<TCPFXPar
 {
     TCPFXParamRowDefinition row;
     row.name = rowName;
-    if(tokens.size() > 0)
-    row.size = atoi(tokens[0].c_str());
+    if(tokens.size() > 1)
+        row.size = atoi(tokens[1].c_str());
     
     rows.push_back(row);
     
@@ -483,16 +483,48 @@ static void BuildTCPFXZoneTemplate(int modifier, string rowName, vector<TCPFXPar
     string paramNameDisplay = "";
     string paramValueDisplay = "";
    
-    if(rowName.find("RotaryA") != string::npos)
+    if(rowName == "FxFaders" || rowName == "FxFadersShift" || rowName == "FxFadersOption" || rowName == "FxFadersControl" || rowName == "FxFadersAlt")
+    {
+        controlName = "Fader";
+        paramNameDisplay = "DisplayUpper";
+        paramValueDisplay = "DisplayLower";
+    }
+    else if(rowName == "FxRotaries" || rowName == "FxRotariesShift" || rowName == "FxRotariesOption" || rowName == "FxRotariesControl" || rowName == "FxRotariesAlt")
+    {
+        controlName = "Rotary";
+        paramNameDisplay = "DisplayUpper";
+        paramValueDisplay = "DisplayLower";
+    }
+
+    else if(rowName == "FxRotariesA" || rowName == "FxRotariesAShift" || rowName == "FxRotariesAOption" || rowName == "FxRotariesAControl" || rowName == "FxRotariesAAlt")
     {
         controlName = "RotaryA";
         paramNameDisplay = "DisplayUpperA";
         paramValueDisplay = "DisplayLowerA";
     }
 
-    
-    
-    BuildZoneTemplate(modifier, controlName, "TCPFXTemplateParam", paramNameDisplay, "TCPFXTemplateParamNameDisplay", paramValueDisplay, "TCPFXTemplateParamValueDisplay", actionTemplatesDictionary, tokens, surface);
+    else if(rowName == "FxRotariesB" || rowName == "FxRotariesBShift" || rowName == "FxRotariesBOption" || rowName == "FxRotariesBControl" || rowName == "FxRotariesBAlt")
+    {
+        controlName = "RotaryB";
+        paramNameDisplay = "DisplayUpperB";
+        paramValueDisplay = "DisplayLowerB";
+    }
+
+    else if(rowName == "FxRotariesC" || rowName == "FxRotariesCShift" || rowName == "FxRotariesCOption" || rowName == "FxRotariesCControl" || rowName == "FxRotariesCAlt")
+    {
+        controlName = "RotaryC";
+        paramNameDisplay = "DisplayUpperC";
+        paramValueDisplay = "DisplayLowerC";
+    }
+
+    else if(rowName == "FxRotariesD" || rowName == "FxRotariesDShift" || rowName == "FxRotariesDOption" || rowName == "FxRotariesDControl" || rowName == "FxRotariesDAlt")
+    {
+        controlName = "RotaryD";
+        paramNameDisplay = "DisplayUpperD";
+        paramValueDisplay = "DisplayLowerD";
+    }
+
+    BuildZoneTemplate(modifier, controlName, "TCPFXTemplateParam", paramNameDisplay, "TCPFXTemplateParamNameDisplay", paramValueDisplay, "TCPFXTemplateParamValueDisplay", actionTemplatesDictionary, params, surface);
 }
 
 static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
@@ -705,6 +737,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens[0] == "FXRotariesAAlt" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryATemplate(32, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
+                
                 else if(tokens[0] == "FXRotariesB" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryBTemplate(0, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
@@ -720,6 +753,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens[0] == "FXRotariesBAlt" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryBTemplate(32, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
 
+                
                 else if(tokens[0] == "FXRotariesC" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryCTemplate(0, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
@@ -734,6 +768,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 
                 else if(tokens[0] == "FXRotariesCAlt" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryCTemplate(32, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+                
                 
                 else if(tokens[0] == "FXRotariesD" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryDTemplate(0, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
@@ -750,6 +785,103 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(tokens[0] == "FXRotariesDAlt" && tokens.size() > 1)
                     BuildFXZoneTemplateFromRotaryDTemplate(32, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
                 
+                
+                else if(tokens[0] == "FXFadersTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(0, "FxFaders", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersShiftTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(4, "FxFadersShift", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersOptionTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(8, "FxFadersOption", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersControlTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(16, "FxFadersControl", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXFadersAltTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(32, "FxFadersAlt", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                
+                else if(tokens[0] == "FXRotariesTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(0, "FXRotaries", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesShiftTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(4, "FXRotariesShift", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesOptionTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(8, "FXRotariesOption", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesControlTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(16, "FXRotariesControl", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesAltTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(32, "FXRotariesAlt", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                
+                else if(tokens[0] == "FXRotariesATemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(0, "FXRotariesA", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesAShiftTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(4, "FXRotariesAShift", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesAOptionTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(8, "FXRotariesAOption", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesAControlTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(16, "FXRotariesAControl", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesAAltTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(32, "FXRotariesAAlt", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+
+                else if(tokens[0] == "FXRotariesBTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(0, "FXRotariesB", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBShiftTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(4, "FXRotariesBShift", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBOptionTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(8, "FXRotariesBOption", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBControlTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(16, "FXRotariesBControl", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesBAltTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(32, "FXRotariesBAlt", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+
+                else if(tokens[0] == "FXRotariesCTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(0, "FXRotariesC", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesCShiftTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(4, "FXRotariesCShift", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesCOptionTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(8, "FXRotariesCOption", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesCControlTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(16, "FXRotariesCControl", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesCAltTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(32, "FXRotariesCAlt", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+
+                else if(tokens[0] == "FXRotariesDTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(0, "FXRotariesD", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesDShiftTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(4, "FXRotariesDShift", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesDOptionTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(8, "FXRotariesDOption", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesDControlTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(16, "FXRotariesDControl", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+                else if(tokens[0] == "FXRotariesDAltTemplate" && tokens.size() > 1)
+                    BuildTCPFXZoneTemplate(32, "FXRotariesDAlt", rows, actionTemplatesDictionary, tokens, zoneManager->GetSurface());
+
+
                 else if(tokens.size() > 1)
                 {
                     string feedbackIndicator = "";
