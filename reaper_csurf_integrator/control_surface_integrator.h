@@ -479,7 +479,7 @@ protected:
     map<Widget*, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
-    vector<TCPFXParamRowDefinition> paramRowDefintions_;
+    vector<TCPFXParamRowDefinition> paramRowDefinitions_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     void UpdateCurrentActionContextModifier(Widget* widget);
@@ -499,8 +499,8 @@ public:
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
 
-    void AddParamRowDefinition(TCPFXParamRowDefinition paramRowDefintion) { paramRowDefintions_.push_back(paramRowDefintion); }
-    vector<TCPFXParamRowDefinition> &GetParamRowDefinitions() { return paramRowDefintions_; }
+    void AddParamRowDefinition(TCPFXParamRowDefinition paramRowDefintion) { paramRowDefinitions_.push_back(paramRowDefintion); }
+    vector<TCPFXParamRowDefinition> &GetParamRowDefinitions() { return paramRowDefinitions_; }
     
     void UpdateCurrentActionContextModifiers();
     vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);

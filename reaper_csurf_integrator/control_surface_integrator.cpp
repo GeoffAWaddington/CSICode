@@ -3263,49 +3263,17 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     CSIZoneInfo info;
     info.filePath = path;
     info.alias = alias;
-
-    ControlSurface* surface = GetSurface();
     
-    string fxRotaries = "";
-    string baseRotary = "";
-    string baseDisplayUpper = "";
-    string baseDisplayLower = "";
+    if(homeZone_ !=  nullptr && homeZone_->GetAssociatedZone("SelectedTrackTCPFXTemplate") != nullptr)
+        paramRowDefinitions_ = homeZone_->GetAssociatedZone("SelectedTrackTCPFXTemplate")->GetParamRowDefinitions();
 
-    if(surface->GetWidgetByName("Rotary1") || surface->GetWidgetByName("DisplayUpper1") || surface->GetWidgetByName("DisplayLower1"))
-    {
-        fxRotaries = "\tFXRotaries";
-        baseRotary = "Rotary";
-        baseDisplayUpper = "DisplayUpper";
-        baseDisplayLower = "DisplayLower";
-    }
-    else if(surface->GetWidgetByName("RotaryA1") || surface->GetWidgetByName("DisplayUpperA1") || surface->GetWidgetByName("DisplayLowerA1"))
-    {
-        fxRotaries = "\tFXRotariesA";
-        baseRotary = "RotaryA";
-        baseDisplayUpper = "DisplayUpperA";
-        baseDisplayLower = "DisplayLowerA";
-    }
-    else if(surface->GetWidgetByName("RotaryB1") || surface->GetWidgetByName("DisplayUpperB1") || surface->GetWidgetByName("DisplayLowerB1"))
-    {
-        fxRotaries = "\tFXRotariesB";
-        baseRotary = "RotaryB";
-        baseDisplayUpper = "DisplayUpperB";
-        baseDisplayLower = "DisplayLowerB";
-    }
-    else if(surface->GetWidgetByName("RotaryC1") || surface->GetWidgetByName("DisplayUpperC1") || surface->GetWidgetByName("DisplayLowerC1"))
-    {
-        fxRotaries = "\tFXRotariesC";
-        baseRotary = "RotaryC";
-        baseDisplayUpper = "DisplayUpperC";
-        baseDisplayLower = "DisplayLowerC";
-    }
-    else if(surface->GetWidgetByName("RotaryD1") || surface->GetWidgetByName("DisplayUpperD1") || surface->GetWidgetByName("DisplayLowerD1"))
-    {
-        fxRotaries = "\tFXRotariesD";
-        baseRotary = "RotaryD";
-        baseDisplayUpper = "DisplayUpperD";
-        baseDisplayLower = "DisplayLowerD";
-    }
+    if(paramRowDefinitions_.size() == 0)
+        return;
+    
+    int totalParamDefinitionsSize = 0;
+    
+    for(auto paramRowDefinition : paramRowDefinitions_)
+        totalParamDefinitionsSize += paramRowDefinition.size;
 
     AddZoneFilePath(fxName, info);
     
@@ -3315,18 +3283,62 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     {
         fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"" + GetLineEnding();
         
-        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
+        int paramRowDefinitionsIndex = 0;
+        TCPFXParamsInfo row;
+        row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
+        row.aliases = "\t//";
+
+        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalParamDefinitionsSize; i++)
         {
-            string rotary = baseRotary + to_string(i + 1);
-            string nameDisplay = baseDisplayUpper + to_string(i + 1);
-            string valueDisplay = baseDisplayLower + to_string(i + 1);
+            row.aliases += " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"";
+
+            row.indices += " " + to_string(i);
+            row.paramCount++;
             
-            if(surface->GetWidgetByName(rotary) != nullptr || surface->GetWidgetByName(nameDisplay) != nullptr || surface->GetWidgetByName(valueDisplay) != nullptr)
-                fxRotaries += " " + to_string(i);
+            if(row.paramCount == paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            {
+                fxZone << GetLineEnding() + row.indices + GetLineEnding();
+                fxZone << row.aliases + GetLineEnding();
+
+                paramRowDefinitionsIndex++;
+                row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
+                row.aliases = "\t//";
+                row.paramCount = 0;
+            }
         }
         
-        fxZone << fxRotaries + GetLineEnding();
+        // GAW -- pad partial rows
+        if(row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+        {
+            for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
+            {
+                row.indices += " -1";
+                row.aliases += " \"NoAction\"";
+            }
+            
+            fxZone << GetLineEnding() + row.indices + GetLineEnding();
+            fxZone << row.aliases + GetLineEnding();
+        }
         
+        paramRowDefinitionsIndex++;
+        
+        // GAW --pad the remaining rows
+        for(int i = paramRowDefinitionsIndex; i < paramRowDefinitions_.size(); i++)
+        {
+            row.indices = "\t" + paramRowDefinitions_[i].name;
+            row.aliases = "\t//";
+            row.paramCount = 0;
+            
+            for(int j = 0; j < paramRowDefinitions_[paramRowDefinitionsIndex].size; j++)
+            {
+                row.indices += " -1";
+                row.aliases += " \"NoAction\"";
+            }
+            
+            fxZone << GetLineEnding() + row.indices + GetLineEnding();
+            fxZone << row.aliases + GetLineEnding();
+        }
+
         fxZone << "ZoneEnd" + GetLineEnding();
         
         fxZone.close();
