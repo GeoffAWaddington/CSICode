@@ -3495,9 +3495,28 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
             }
             
             // GAW -- pad partial rows
-            if(row.paramCount != 0 && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            if(row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
             {
                 for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
+                {
+                    row.indices += " -1";
+                    row.aliases += " \"NoAction\"";
+                }
+                
+                fxZone << GetLineEnding() + row.indices + GetLineEnding();
+                fxZone << row.aliases + GetLineEnding();
+            }
+            
+            paramRowDefinitionsIndex++;
+            
+            // GAW --pad the remaining rows
+            for(int i = paramRowDefinitionsIndex; i < paramRowDefinitions_.size(); i++)
+            {
+                row.indices = "\t" + paramRowDefinitions_[i].name;
+                row.aliases = "\t//";
+                row.paramCount = 0;
+                
+                for(int j = 0; j < paramRowDefinitions_[paramRowDefinitionsIndex].size; j++)
                 {
                     row.indices += " -1";
                     row.aliases += " \"NoAction\"";
