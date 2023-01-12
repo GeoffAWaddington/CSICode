@@ -3308,12 +3308,13 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         }
         
         // GAW -- pad partial rows
-        if(row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+        if(row.paramCount != 0 && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
         {
             for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
             {
                 row.indices += " -1";
                 row.aliases += " \"NoAction\"";
+                row.paramCount++;
             }
             
             fxZone << GetLineEnding() + row.indices + GetLineEnding();
@@ -3507,12 +3508,13 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
             }
             
             // GAW -- pad partial rows
-            if(row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            if(row.paramCount != 0 && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
             {
                 for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
                 {
                     row.indices += " -1";
                     row.aliases += " \"NoAction\"";
+                    row.paramCount++;
                 }
                 
                 fxZone << GetLineEnding() + row.indices + GetLineEnding();
