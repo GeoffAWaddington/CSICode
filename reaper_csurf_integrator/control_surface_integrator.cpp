@@ -2226,7 +2226,7 @@ void ActionContext::DoAction(double value)
     }
     else
     {
-        if(steppedValues_.size() > 1)
+        if(steppedValues_.size() > 0)
         {
             if(value != 0.0) // ignore release messages
             {
@@ -2251,7 +2251,7 @@ void ActionContext::DoRelativeAction(double delta)
     if(steppedValues_.size() == 0)
         TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
 
-    if(steppedValues_.size() > 1)
+    if(steppedValues_.size() > 0)
         DoSteppedValueAction(delta);
     else
         DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) + (deltaValue_ != 0.0 ? (delta > 0 ? deltaValue_ : -deltaValue_) : delta));
@@ -2262,7 +2262,7 @@ void ActionContext::DoRelativeAction(int accelerationIndex, double delta)
     if(steppedValues_.size() == 0)
         TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
     
-    if(steppedValues_.size() > 1)
+    if(steppedValues_.size() > 0)
         DoAcceleratedSteppedValueAction(accelerationIndex, delta);
     else if(acceleratedDeltaValues_.size() > 0)
         DoAcceleratedDeltaValueAction(accelerationIndex, delta);
