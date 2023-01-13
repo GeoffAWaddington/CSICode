@@ -3129,7 +3129,6 @@ private:
     bool fxParamsWrite_ = false;
 
     bool shouldRun_ = true;
-    bool shouldUpdate_ = true;
     
     int *timeModePtr_ = nullptr;
     int *timeMode2Ptr_ = nullptr;
@@ -3483,7 +3482,7 @@ public:
             steppedValues = fxParamStepValues_[fxName][paramIndex];
         else
         {
-            shouldUpdate_ = false;
+            shouldRun_ = false;
             
             bool currentMute = false;
             DAW::GetTrackUIMute(track, &currentMute);
@@ -3521,7 +3520,7 @@ public:
             if(currentMute == false)
                 DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
             
-            shouldUpdate_ = true;
+            shouldRun_ = true;
         }
     }
     
@@ -3531,7 +3530,7 @@ public:
     {
         //int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
-        if(shouldRun_ && shouldUpdate_ && pages_.size() > 0)
+        if(shouldRun_ && pages_.size() > 0)
             pages_[currentPageIndex_]->Run();
         /*
          repeats++;
