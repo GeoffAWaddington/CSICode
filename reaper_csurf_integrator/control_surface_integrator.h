@@ -802,7 +802,7 @@ public:
     void UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index);
 
     void PreProcessZones();
-    void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
+    //void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
     void AddBlankTCPFXParam();
     void BuildSelectedTrackTCPFXZone();
     

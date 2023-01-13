@@ -3212,7 +3212,7 @@ void ZoneManager::PreProcessZones()
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
 }
-
+/*
 void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
 {
     if(zoneFilePaths_.count(fxName) > 0)
@@ -3348,7 +3348,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         fxZone.close();
     }
 }
-
+*/
 void ZoneManager::ResetTCPFXParams(shared_ptr<Zone> templateZone)
 {
     TCPFXParamIndices_.clear();
