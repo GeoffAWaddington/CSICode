@@ -3129,6 +3129,7 @@ private:
     bool fxParamsWrite_ = false;
 
     bool shouldRun_ = true;
+    bool shouldUpdate_ = true;
     
     int *timeModePtr_ = nullptr;
     int *timeMode2Ptr_ = nullptr;
@@ -3140,15 +3141,15 @@ private:
     double *projectMetronomeSecondaryVolumePtr_ = nullptr;
     
     map<string, map<int, string>> fxParamAliases_;
-    //map<string, map<int, vector<double>>> fxParamStepValues_;
+    map<string, map<int, vector<double>>> fxParamStepValues_;
     
     void InitActionsDictionary();
 
     void InitFXParamAliases();
-    //void InitFXParamStepValues();
+    void InitFXParamStepValues();
     
     void WriteFXParamAliases();
-    //void WriteFXParamStepValues();
+    void WriteFXParamStepValues();
 
     double GetPrivateProfileDouble(string key)
     {
@@ -3206,7 +3207,7 @@ public:
     void Shutdown()
     {
         WriteFXParamAliases();
-        //WriteFXParamStepValues();
+        WriteFXParamStepValues();
         
         fxParamsDisplay_ = false;
         surfaceInDisplay_ = false;
@@ -3472,7 +3473,7 @@ public:
             return fxParamName;
         }
     }
-/*
+
     void GetSteppedValues(string fxName, MediaTrack* track, int fxIndex, int paramIndex, vector<double> &steppedValues)
     {
         if(fxName.substr(0, 3) != "VST" && fxName.substr(0, 2) != "AU" && fxName.substr(0, 2) != "JS")
@@ -3482,6 +3483,8 @@ public:
             steppedValues = fxParamStepValues_[fxName][paramIndex];
         else
         {
+            shouldUpdate_ = false;
+            
             bool currentMute = false;
             DAW::GetTrackUIMute(track, &currentMute);
             
@@ -3508,15 +3511,19 @@ public:
                     steppedValues.push_back(fxValue);
             }
             
+            if(steppedValues.size() == 1)
+                steppedValues.clear();
+            
             fxParamStepValues_[fxName][paramIndex] = steppedValues;
             
             DAW::TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
             
             if(currentMute == false)
                 DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
+            
+            shouldUpdate_ = true;
         }
     }
-    */
     
     //int repeats = 0;
     
@@ -3524,7 +3531,7 @@ public:
     {
         //int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
-        if(shouldRun_ && pages_.size() > 0)
+        if(shouldRun_ && shouldUpdate_ && pages_.size() > 0)
             pages_[currentPageIndex_]->Run();
         /*
          repeats++;
