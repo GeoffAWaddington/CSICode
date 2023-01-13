@@ -3140,15 +3140,15 @@ private:
     double *projectMetronomeSecondaryVolumePtr_ = nullptr;
     
     map<string, map<int, string>> fxParamAliases_;
-    map<string, map<int, vector<double>>> fxParamStepValues_;
+    //map<string, map<int, vector<double>>> fxParamStepValues_;
     
     void InitActionsDictionary();
 
     void InitFXParamAliases();
-    void InitFXParamStepValues();
+    //void InitFXParamStepValues();
     
     void WriteFXParamAliases();
-    void WriteFXParamStepValues();
+    //void WriteFXParamStepValues();
 
     double GetPrivateProfileDouble(string key)
     {
@@ -3206,7 +3206,7 @@ public:
     void Shutdown()
     {
         WriteFXParamAliases();
-        WriteFXParamStepValues();
+        //WriteFXParamStepValues();
         
         fxParamsDisplay_ = false;
         surfaceInDisplay_ = false;
@@ -3472,7 +3472,7 @@ public:
             return fxParamName;
         }
     }
-    
+/*
     void GetSteppedValues(string fxName, MediaTrack* track, int fxIndex, int paramIndex, vector<double> &steppedValues)
     {
         if(fxName.substr(0, 3) != "VST" && fxName.substr(0, 2) != "AU" && fxName.substr(0, 2) != "JS")
@@ -3516,7 +3516,7 @@ public:
                 DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
         }
     }
-    
+    */
     
     //int repeats = 0;
     

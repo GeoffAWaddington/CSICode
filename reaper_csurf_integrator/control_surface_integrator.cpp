@@ -1725,7 +1725,7 @@ void Manager::WriteFXParamAliases()
         DAW::ShowConsoleMsg(buffer);
     }
 }
-
+/*
 void Manager::InitFXParamStepValues()
 {
     string fxParamStepValuesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamStepValuesCache.txt";
@@ -1807,7 +1807,7 @@ void Manager::WriteFXParamStepValues()
         DAW::ShowConsoleMsg(buffer);
     }
 }
-
+*/
 void Manager::Init()
 {
     pages_.clear();
@@ -1958,7 +1958,7 @@ void Manager::Init()
     }
       
     InitFXParamAliases();
-    InitFXParamStepValues();
+    //InitFXParamStepValues();
     
     for(auto page : pages_)
         page->OnInitialization();
@@ -2248,8 +2248,8 @@ void ActionContext::DoAction(double value)
 
 void ActionContext::DoRelativeAction(double delta)
 {
-    if(steppedValues_.size() == 0)
-        TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
+    //if(steppedValues_.size() == 0)
+        //TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
 
     if(steppedValues_.size() > 1)
         DoSteppedValueAction(delta);
@@ -2259,8 +2259,8 @@ void ActionContext::DoRelativeAction(double delta)
 
 void ActionContext::DoRelativeAction(int accelerationIndex, double delta)
 {
-    if(steppedValues_.size() == 0)
-        TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
+    //if(steppedValues_.size() == 0)
+        //TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
     
     if(steppedValues_.size() > 1)
         DoAcceleratedSteppedValueAction(accelerationIndex, delta);
