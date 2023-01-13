@@ -1888,7 +1888,12 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(TheManager->GetFXParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
+        {
+            if(context->GetFXParamDisplayName() != "")
+                context->UpdateWidgetValue(context->GetFXParamDisplayName());
+            else
+                context->UpdateWidgetValue(TheManager->GetFXParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
+        }
         else
             context->ClearWidget();
     }

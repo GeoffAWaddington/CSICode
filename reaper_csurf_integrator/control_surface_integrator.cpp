@@ -2103,6 +2103,9 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     if(actionName == "FXParamNameDisplay" && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
+        
+        if(params.size() > 2 && params[2] != "{" && params[2] != "[")
+               fxParamDisplayName_ = params[2];
     }
     
     if(params.size() > 1 && (actionName == "Broadcast" || actionName == "Receive" || actionName == "Activate" || actionName == "Deactivate" || actionName == "ToggleActivation"))

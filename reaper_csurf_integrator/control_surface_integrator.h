@@ -234,6 +234,7 @@ private:
     string stringParam_ = "";
     
     int paramIndex_ = 0;
+    string fxParamDisplayName_ = "";
     
     int commandId_ = 0;
     
@@ -295,6 +296,8 @@ public:
     string GetStringParam() { return stringParam_; }
     int GetCommandId() { return commandId_; }
     
+    string GetFXParamDisplayName() { return fxParamDisplayName_; }
+    
     MediaTrack* GetTrack();
     
     void DoRangeBoundAction(double value);
@@ -322,11 +325,6 @@ public:
     void UpdateWidgetValue(string value);
     void UpdateColorValue(double value);
 
-    void DoTouch(double value)
-    {
-        action_->Touch(this, value);
-    }
-
     void   SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
     double GetStepSize() { return deltaValue_; }
@@ -337,6 +335,11 @@ public:
 
     double GetRangeMinimum() { return rangeMinimum_; }
     double GetRangeMaximum() { return rangeMaximum_; }
+    
+    void DoTouch(double value)
+    {
+        action_->Touch(this, value);
+    }
 
     void SetRange(vector<double> range)
     {
