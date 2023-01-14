@@ -2190,7 +2190,7 @@ void ActionContext::DoAction(double value)
     }
     else
     {
-        if(steppedValues_.size() > 1)
+        if(steppedValues_.size() > 0)
         {
             if(value != 0.0) // ignore release messages
             {
