@@ -729,8 +729,6 @@ private:
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
     
-    map<int, int> baseTickCounts_ ;
-    
     map<string, CSIZoneInfo> zoneFilePaths_;
 
     map<Widget*, bool> usedWidgets_;
@@ -781,14 +779,7 @@ private:
     }
        
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder)
-    {
-        vector<int> stepSizes  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
-        vector<int> tickCounts = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
-        
-        for(int i = 0; i < stepSizes.size(); i++)
-            baseTickCounts_[stepSizes[i]] = tickCounts[i];
-    }
+    ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) {}
 
     void Initialize();
 
@@ -802,6 +793,7 @@ public:
     void UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index);
 
     void PreProcessZones();
+    //void ConvertStepSizeFiles();
     //void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
     void AddBlankTCPFXParam();
     void BuildSelectedTrackTCPFXZone();
@@ -850,15 +842,7 @@ public:
     void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-    
-    int GetBaseTickCount(int stepCount)
-    {
-        if(baseTickCounts_.count(stepCount) > 0)
-            return baseTickCounts_[stepCount];
-        else
-            return baseTickCounts_[baseTickCounts_.size() - 1];
-    }
-    
+        
     void ToggleEnableFocusedFXParamMapping()
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
@@ -3142,13 +3126,14 @@ private:
     map<string, map<int, string>> fxParamAliases_;
     map<string, map<int, vector<double>>> fxParamStepValues_;
     
+    map<int, int> baseTickCounts_ ;
+    
     void InitActionsDictionary();
 
     void InitFXParamAliases();
     void InitFXParamStepValues();
     
     void WriteFXParamAliases();
-    void WriteFXParamStepValues();
 
     double GetPrivateProfileDouble(string key)
     {
@@ -3184,6 +3169,12 @@ public:
         projectMetronomePrimaryVolumePtr_ = (double *)get_config_var("projmetrov1", &size);
         projectMetronomeSecondaryVolumePtr_ = (double *)get_config_var("projmetrov2", &size);
         
+        vector<int> stepSizes  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
+        vector<int> tickCounts = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
+        
+        for(int i = 0; i < stepSizes.size(); i++)
+            baseTickCounts_[stepSizes[i]] = tickCounts[i];
+        
         //GenerateX32SurfaceFile();
     }
     
@@ -3206,7 +3197,6 @@ public:
     void Shutdown()
     {
         WriteFXParamAliases();
-        WriteFXParamStepValues();
         
         fxParamsDisplay_ = false;
         surfaceInDisplay_ = false;
@@ -3245,6 +3235,14 @@ public:
    
     double *GetMetronomePrimaryVolumePtr() { return projectMetronomePrimaryVolumePtr_; }
     double *GetMetronomeSecondaryVolumePtr() { return projectMetronomeSecondaryVolumePtr_; }
+    
+    int GetBaseTickCount(int stepCount)
+    {
+        if(baseTickCounts_.count(stepCount) > 0)
+            return baseTickCounts_[stepCount];
+        else
+            return baseTickCounts_[baseTickCounts_.size() - 1];
+    }
     
     void Speak(string phrase)
     {
@@ -3473,55 +3471,10 @@ public:
         }
     }
 
-    void GetSteppedValues(string fxName, MediaTrack* track, int fxIndex, int paramIndex, vector<double> &steppedValues)
+    void GetSteppedValues(string fxName, int paramIndex, vector<double> &steppedValues)
     {
-        if(fxName.substr(0, 3) != "VST" && fxName.substr(0, 2) != "AU" && fxName.substr(0, 2) != "JS")
-            return;
-
         if(fxParamStepValues_.count(fxName) > 0 && fxParamStepValues_[fxName].count(paramIndex) > 0)
             steppedValues = fxParamStepValues_[fxName][paramIndex];
-        else
-        {
-            shouldRun_ = false;
-            
-            bool currentMute = false;
-            DAW::GetTrackUIMute(track, &currentMute);
-            
-            if(currentMute == false) // Save our tweeters and ears whilst we sweep the param values
-                DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, true), NULL);
-
-            double minvalOut = 0.0;
-            double maxvalOut = 0.0;
-            
-            double currentValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
-            
-            steppedValues.push_back(0.0);
-            
-            for(double value = 0.0; value < 1.01; value += .01)
-            {
-                DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
-                
-                double fxValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
-                
-                if(steppedValues.back() != fxValue && fabs(fxValue - steppedValues.back()) < 0.021) // treat anything with 50 steps or more as continuous
-                    break;
-                
-                else if(steppedValues.back() != fxValue)
-                    steppedValues.push_back(fxValue);
-            }
-            
-            if(steppedValues.size() == 1)
-                steppedValues.clear();
-            
-            fxParamStepValues_[fxName][paramIndex] = steppedValues;
-            
-            DAW::TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
-            
-            if(currentMute == false)
-                DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
-            
-            shouldRun_ = true;
-        }
     }
     
     //int repeats = 0;

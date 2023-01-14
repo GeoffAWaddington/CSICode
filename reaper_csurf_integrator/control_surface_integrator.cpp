@@ -1061,6 +1061,9 @@ void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<s
     if(acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
         acceleratedDeltaValues = widget->GetAccelerationValues();
     
+    if(steppedValues.size() == 0)
+        TheManager->GetSteppedValues(zoneName, paramNumber, steppedValues);
+    
     if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
     {
         double stepSize = deltaValue;
@@ -1068,7 +1071,7 @@ void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<s
         if(stepSize != 0.0)
         {
             stepSize *= 10000.0;
-            int baseTickCount = widget->GetSurface()->GetZoneManager()->GetBaseTickCount(steppedValues.size());
+            int baseTickCount = TheManager->GetBaseTickCount(steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }
@@ -1769,45 +1772,6 @@ void Manager::InitFXParamStepValues()
     }
 }
 
-void Manager::WriteFXParamStepValues()
-{
-    string fxParamStepValuesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamStepValuesCache.txt";
-    
-    filesystem::path fxParamStepValuesFile { fxParamStepValuesFilePath };
-
-    int lineNumber = 0;
-
-    try
-    {
-        ofstream fxParamStepValues(fxParamStepValuesFile);
-        
-        for (auto [fxName, paramValues] : fxParamStepValues_)
-        {
-            for(auto [paramIndex, values] : paramValues)
-            {
-                string line = "";
-                
-                line += "\"" + fxName + "\" " + to_string(paramIndex);
-                
-                for(auto value : values)
-                    line += " " + to_string(value);
-                
-                fxParamStepValues << line +  GetLineEnding();
-                
-                lineNumber++;
-            }
-        }
-        
-        fxParamStepValues.close();
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamStepValuesFilePath.c_str(), lineNumber);
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
 void Manager::Init()
 {
     pages_.clear();
@@ -2248,9 +2212,6 @@ void ActionContext::DoAction(double value)
 
 void ActionContext::DoRelativeAction(double delta)
 {
-    if(steppedValues_.size() == 0)
-        TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
-
     if(steppedValues_.size() > 0)
         DoSteppedValueAction(delta);
     else
@@ -2259,9 +2220,6 @@ void ActionContext::DoRelativeAction(double delta)
 
 void ActionContext::DoRelativeAction(int accelerationIndex, double delta)
 {
-    if(steppedValues_.size() == 0)
-        TheManager->GetSteppedValues(GetZone()->GetName(), GetTrack(), GetSlotIndex(), GetParamIndex(), steppedValues_);
-    
     if(steppedValues_.size() > 0)
         DoAcceleratedSteppedValueAction(accelerationIndex, delta);
     else if(acceleratedDeltaValues_.size() > 0)
@@ -3212,6 +3170,82 @@ void ZoneManager::PreProcessZones()
     for(auto zoneFilename : zoneFilesToProcess)
         PreProcessZoneFile(zoneFilename, this);
 }
+/*
+void ZoneManager::ConvertStepSizeFiles()
+{
+    vector<string> stepFilesToProcess;
+    string path = DAW::GetResourcePath() + string("/CSI/Zones/ZoneStepSizes/");
+    
+    filesystem::path zonePath { path };
+    
+    if(filesystem::exists(path) && filesystem::is_directory(path))
+        for(auto& file : filesystem::recursive_directory_iterator(path))
+            if(file.path().extension() == ".stp")
+                stepFilesToProcess.push_back(file.path().string());
+
+    string outputPath =  DAW::GetResourcePath() + string("/CSI/FXParamStepValuesCache.txt");
+    
+    try
+    {
+        ofstream output(outputPath);
+        
+        for(auto filePath : stepFilesToProcess)
+        {
+            try
+            {
+                ifstream file(filePath);
+                
+                int lineNumber = 0;
+                
+                string pluginName = "";
+                
+                for (string line; getline(file, line) ; )
+                {
+                    line = regex_replace(line, regex(TabChars), " ");
+                    line = regex_replace(line, regex(CRLFChars), "");
+                    
+                    line = line.substr(0, line.find("//")); // remove trailing commewnts
+                    
+                    // Trim leading and trailing spaces
+                    line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+                    
+                    if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                        continue;
+                    
+                    vector<string> tokens(GetTokens(line));
+                    
+                    if(lineNumber == 0)
+                    {
+                        if(tokens.size() > 1)
+                            pluginName = tokens[1];
+                            
+                        lineNumber++;
+                    }
+                    else
+                    {
+                        if(pluginName != "")
+                            output << "\"" + pluginName + "\" " + line + GetLineEnding();
+                    }
+                }
+                
+                output << GetLineEnding();
+            }
+            catch (exception &e)
+            {
+                char buffer[250];
+                snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+                DAW::ShowConsoleMsg(buffer);
+            }
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in output file\n");
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+*/
 /*
 void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
 {
