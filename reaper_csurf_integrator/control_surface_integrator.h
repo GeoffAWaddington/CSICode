@@ -3446,7 +3446,7 @@ public:
     string GetTCPFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
     {
         char fxName[BUFSZ];
-        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+        DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
 
         char fxParamName[BUFSZ];
         DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
