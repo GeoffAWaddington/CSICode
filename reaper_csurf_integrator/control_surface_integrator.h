@@ -1029,6 +1029,12 @@ public:
             zoneFilePaths_[name] = info;
     }
         
+    void AddZoneFilePath(string zoneFolder, string name, struct CSIZoneInfo info)
+    {
+        if(zoneFolder == zoneFolder_)
+            AddZoneFilePath(name, info);
+    }
+        
     void CheckFocusedFXState()
     {
         if(! isFocusedFXMappingEnabled_)
@@ -2967,6 +2973,13 @@ public:
             surface->GetZoneManager()->GoAssociatedZone("Folder");
     }
 
+    void AddZoneFilePath(ControlSurface* originatingSurface, string zoneFolder, string name, struct CSIZoneInfo info)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
+    }
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Page facade for TrackNavigationManager
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

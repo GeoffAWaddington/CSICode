@@ -3505,6 +3505,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
         info.alias = fxAlias;
 
         AddZoneFilePath(fxName, info);
+        surface_->GetPage()->AddZoneFilePath(surface_, zoneFolder_, fxName, info);
         
         ofstream fxZone(path);
 
