@@ -1830,7 +1830,7 @@ public:
                 
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
                 
-                //context->GetSurface()->GetZoneManager()->EnsureZoneAvailable(fxName, track, context->GetSlotIndex());
+                context->GetSurface()->GetZoneManager()->EnsureZoneAvailable(fxName, track, context->GetSlotIndex());
 
                 name = context->GetSurface()->GetZoneManager()->GetName(fxName);
             }
@@ -1865,7 +1865,7 @@ public:
                 
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
                 
-                //context->GetSurface()->GetZoneManager()->EnsureZoneAvailable(name, track, context->GetSlotIndex());
+                context->GetSurface()->GetZoneManager()->EnsureZoneAvailable(name, track, context->GetSlotIndex());
                 
                 name = context->GetSurface()->GetZoneManager()->GetName(fxName);
                 

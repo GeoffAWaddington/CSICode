@@ -3246,7 +3246,7 @@ void ZoneManager::ConvertStepSizeFiles()
     }
 }
 */
-/*
+
 void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
 {
     if(zoneFilePaths_.count(fxName) > 0)
@@ -3307,13 +3307,14 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     if(paramRowDefinitions_.size() == 0)
         return;
     
-    int totalParamDefinitionsSize = 0;
+    int totalAvailableParamDefinitions = 0;
     
     for(auto paramRowDefinition : paramRowDefinitions_)
-        totalParamDefinitionsSize += paramRowDefinition.size;
+        totalAvailableParamDefinitions += paramRowDefinition.size;
 
     AddZoneFilePath(fxName, info);
-    
+    surface_->GetPage()->AddZoneFilePath(surface_, zoneFolder_, fxName, info);
+
     ofstream fxZone(path);
 
     if(fxZone.is_open())
@@ -3325,7 +3326,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
         row.aliases = "\t//";
 
-        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalParamDefinitionsSize; i++)
+        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableParamDefinitions; i++)
         {
             row.aliases += " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"";
 
@@ -3334,13 +3335,18 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             
             if(row.paramCount == paramRowDefinitions_[paramRowDefinitionsIndex].size)
             {
+                row.paramCount = 0;
+                
                 fxZone << GetLineEnding() + row.indices + GetLineEnding();
                 fxZone << row.aliases + GetLineEnding();
-
-                paramRowDefinitionsIndex++;
+                
+                if(paramRowDefinitionsIndex < paramRowDefinitions_.size() - 1)
+                    paramRowDefinitionsIndex++;
+                else
+                    break;
+                
                 row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
                 row.aliases = "\t//";
-                row.paramCount = 0;
             }
         }
         
@@ -3367,7 +3373,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             row.aliases = "\t//";
             row.paramCount = 0;
             
-            for(int j = 0; j < paramRowDefinitions_[paramRowDefinitionsIndex].size; j++)
+            for(int j = 0; j < paramRowDefinitions_[i].size; j++)
             {
                 row.indices += " -1";
                 row.aliases += " \"NoAction\"";
@@ -3382,7 +3388,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         fxZone.close();
     }
 }
-*/
+
 void ZoneManager::ResetTCPFXParams(shared_ptr<Zone> templateZone)
 {
     TCPFXParamIndices_.clear();

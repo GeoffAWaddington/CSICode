@@ -794,7 +794,7 @@ public:
 
     void PreProcessZones();
     //void ConvertStepSizeFiles();
-    //void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
+    void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
     void AddBlankTCPFXParam();
     void BuildSelectedTrackTCPFXZone();
     
