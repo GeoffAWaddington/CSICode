@@ -3279,12 +3279,14 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         "VST: UAD Teletronix ",
         "VST: UAD ",
         "VST3: UADx ",
+        "VST3i: UADx ",
         "VST: ",
+        "VSTi: ",
         "VST3: ",
         "JS: ",
     };
     
-    string alias = "";
+    string alias = fxName;
     
     for(auto prefix : prefixes)
     {
@@ -3351,7 +3353,7 @@ void ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         }
         
         // GAW -- pad partial rows
-        if(row.paramCount != 0 && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+        if(row.paramCount != 0 && paramRowDefinitionsIndex < paramRowDefinitions_.size() && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
         {
             for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
             {
