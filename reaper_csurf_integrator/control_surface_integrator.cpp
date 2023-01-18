@@ -3543,18 +3543,23 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
                 
                 if(row.paramCount == paramRowDefinitions_[paramRowDefinitionsIndex].size)
                 {
+                    row.paramCount = 0;
+                    
                     fxZone << GetLineEnding() + row.indices + GetLineEnding();
                     fxZone << row.aliases + GetLineEnding();
-
-                    paramRowDefinitionsIndex++;
+                    
+                    if(paramRowDefinitionsIndex < paramRowDefinitions_.size() - 1)
+                        paramRowDefinitionsIndex++;
+                    else
+                        break;
+                    
                     row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
                     row.aliases = "\t//";
-                    row.paramCount = 0;
                 }
             }
             
             // GAW -- pad partial rows
-            if(row.paramCount != 0 && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            if(row.paramCount != 0 && paramRowDefinitionsIndex < paramRowDefinitions_.size() && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
             {
                 for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
                 {
@@ -3576,7 +3581,7 @@ void ZoneManager::BuildSelectedTrackTCPFXZone()
                 row.aliases = "\t//";
                 row.paramCount = 0;
                 
-                for(int j = 0; j < paramRowDefinitions_[paramRowDefinitionsIndex].size; j++)
+                for(int j = 0; j < paramRowDefinitions_[i].size; j++)
                 {
                     row.indices += " -1";
                     row.aliases += " \"NoAction\"";
