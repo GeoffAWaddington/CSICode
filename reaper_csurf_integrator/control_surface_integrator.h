@@ -450,13 +450,6 @@ public:
     }
 };
 
-struct TCPFXParamRowDefinition
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string name = "";
-    int size = 0;
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -482,8 +475,6 @@ protected:
     map<Widget*, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
-    vector<TCPFXParamRowDefinition> paramRowDefinitions_;
-    
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
     void UpdateCurrentActionContextModifier(Widget* widget);
     
@@ -502,9 +493,6 @@ public:
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
 
-    void AddParamRowDefinition(TCPFXParamRowDefinition paramRowDefintion) { paramRowDefinitions_.push_back(paramRowDefintion); }
-    vector<TCPFXParamRowDefinition> &GetParamRowDefinitions() { return paramRowDefinitions_; }
-    
     void UpdateCurrentActionContextModifiers();
     vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
         
@@ -758,9 +746,6 @@ private:
     int selectedTrackSendOffset_ = 0;
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
-
-    vector<int> TCPFXParamIndices_;
-    vector<TCPFXParamRowDefinition> paramRowDefinitions_;
     
     bool EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
 
@@ -790,17 +775,8 @@ public:
 
     void RequestUpdate();
     void UpdateCurrentActionContextModifiers();
-    void ResetTCPFXParams(shared_ptr<Zone> templateZone);
-    void UpdateTCPFXParams();
-    double GetNormalizedTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index);
-    void SetTCPFXTemplateParamValue(ActionContext* context, MediaTrack* track, int index, double value);
-    void UpdateTCPFXTemplateParamNameDisplay(ActionContext* context, MediaTrack* track, int index);
-    void UpdateTCPFXTemplateParamValueDisplay(ActionContext* context, MediaTrack* track, int index);
 
     void PreProcessZones();
-    //void ConvertStepSizeFiles();
-    void AddBlankTCPFXParam();
-    void BuildSelectedTrackTCPFXZone();
     
     Navigator* GetMasterTrackNavigator();
     Navigator* GetSelectedTrackNavigator();
