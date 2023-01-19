@@ -735,6 +735,9 @@ private:
 
     shared_ptr<Zone> homeZone_ = nullptr;
 
+    bool shouldAutoMapFocusedFX_ = true;
+    bool shouldAutoMapFX_ = true;
+
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
 
@@ -759,6 +762,8 @@ private:
     vector<int> TCPFXParamIndices_;
     vector<TCPFXParamRowDefinition> paramRowDefinitions_;
     
+    bool EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
+
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
@@ -794,7 +799,6 @@ public:
 
     void PreProcessZones();
     //void ConvertStepSizeFiles();
-    void EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
     void AddBlankTCPFXParam();
     void BuildSelectedTrackTCPFXZone();
     
@@ -843,6 +847,14 @@ public:
     
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
         
+    bool EnsureFXZoneAvailable(string name, MediaTrack* track, int fxIndex)
+    {
+        if(shouldAutoMapFX_)
+            return EnsureZoneAvailable(name, track, fxIndex);
+        else
+            return false;
+    }
+
     void ToggleEnableFocusedFXParamMapping()
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
@@ -856,6 +868,16 @@ public:
         }
     }
 
+    void ToggleAutoFocusedFXMapping()
+    {
+        shouldAutoMapFocusedFX_ = ! shouldAutoMapFocusedFX_;
+    }
+    
+    void ToggleAutoFXMapping()
+    {
+        shouldAutoMapFX_ = ! shouldAutoMapFX_;
+    }
+    
     bool GetIsHomeZoneOnlyActive()
     {
         if(homeZone_ !=  nullptr)

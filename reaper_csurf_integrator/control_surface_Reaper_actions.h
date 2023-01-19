@@ -1827,12 +1827,10 @@ public:
             else
             {
                 char fxName[BUFSZ];
-                
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
                 
-                context->GetSurface()->GetZoneManager()->EnsureZoneAvailable(fxName, track, context->GetSlotIndex());
-
-                name = context->GetSurface()->GetZoneManager()->GetName(fxName);
+                if(context->GetSurface()->GetZoneManager()->EnsureFXZoneAvailable(fxName, track, context->GetSlotIndex()))
+                    name = context->GetSurface()->GetZoneManager()->GetName(fxName);
             }
             
             context->UpdateWidgetValue(name);
@@ -1855,21 +1853,19 @@ public:
 
         if(MediaTrack* track = context->GetTrack())
         {
-            string name = "";
+            string name = "NoMap";
             
             if(context->GetSlotIndex() >= DAW::TrackFX_GetCount(track))
                 name= "No FX present in this slot";
             else
             {
                 char fxName[BUFSZ];
-                
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
                 
-                context->GetSurface()->GetZoneManager()->EnsureZoneAvailable(name, track, context->GetSlotIndex());
-                
-                name = context->GetSurface()->GetZoneManager()->GetName(fxName);
-                
-                if(name == "No Map")
+                if(context->GetSurface()->GetZoneManager()->EnsureFXZoneAvailable(fxName, track, context->GetSlotIndex()))
+                    name = context->GetSurface()->GetZoneManager()->GetName(fxName);
+
+                if(name == "NoMap")
                     name = "No Zone definition for " + string(fxName);
             }
             
