@@ -718,6 +718,7 @@ private:
     bool shouldAutoMapFX_ = true;
 
     map<int, vector<string>> fxTemplates_;
+    vector<string> fxPreamble_;
     
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;

@@ -397,6 +397,37 @@ static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTe
     }
 }
 
+static void ProcessFXPreamble(string filePath, vector<string> &fxPreamble)
+{
+    try
+    {
+        ifstream file(filePath);
+            
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        
+            if(line.find("Zone") != 0)
+                fxPreamble.push_back(line);
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
 {
     string zoneName = "";
@@ -2754,6 +2785,8 @@ void ZoneManager::Initialize()
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FXTemplates") > 0)
         ProcessFXTemplates(zoneFilePaths_["FXTemplates"].filePath, fxTemplates_);
+    if(zoneFilePaths_.count("FXPreamble") > 0)
+        ProcessFXPreamble(zoneFilePaths_["FXPreamble"].filePath, fxPreamble_);
     GoHome();
 }
 
@@ -2989,6 +3022,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     if(fxZone.is_open())
     {
         fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"" + GetLineEnding();
+        
+        for(auto line : fxPreamble_)
+            fxZone << "\t" + line + GetLineEnding();
+        
+        fxZone << GetLineEnding();
         
         int templateIndex = 0;
         int channelNumber = 1;
