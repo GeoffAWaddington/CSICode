@@ -328,8 +328,16 @@ static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTe
                 {
                     fxTemplates[index].push_back(tokens[0]);
                     fxTemplates[index].push_back(tokens[1]);
-                    index++;
+                    fxTemplates[index].push_back("");
                 }
+                else if(tokens.size() == 3)
+                {
+                    fxTemplates[index].push_back(tokens[0]);
+                    fxTemplates[index].push_back(tokens[1]);
+                    fxTemplates[index].push_back(tokens[2]);
+                }
+                
+                index++;
             }
         }
     }
@@ -2939,7 +2947,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
              
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableParamDefinitions; i++)
         {
-            fxZone << "\t" + fxTemplates_[templateIndex][0] + " \"" + fxTemplates_[templateIndex][1] + "\" " + to_string(channelNumber) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            fxZone << "\t" + fxTemplates_[templateIndex][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[templateIndex][2] + "\" " + to_string(channelNumber) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
             
             channelNumber++;
             
@@ -2958,7 +2966,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         if(channelNumber != 1 && templateIndex < fxTemplates_.size() && channelNumber <= numChannels)
         {
             for(int i = channelNumber; i <= numChannels; i++)
-                fxZone << "\t" + fxTemplates_[templateIndex][0] + " \"" + fxTemplates_[templateIndex][1] + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
+                fxZone << "\t" + fxTemplates_[templateIndex][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[templateIndex][2] + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
         }
         
         templateIndex++;
@@ -2966,7 +2974,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         // GAW --pad the remaining rows
         for(int i = templateIndex; i < fxTemplates_.size(); i++)
             for(int j = 1; j <= numChannels; j++)
-                fxZone << "\t" + fxTemplates_[i][0] + " \"" + fxTemplates_[i][1] + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
+                fxZone << "\t" + fxTemplates_[i][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[i][2] + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
 
         fxZone << "ZoneEnd" + GetLineEnding();
         
