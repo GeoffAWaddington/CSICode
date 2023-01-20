@@ -194,19 +194,6 @@ static void listZoneFiles(const string &path, vector<string> &results)
                 results.push_back(file.path().string());
 }
 
-static void ExpandTemplate(string line, shared_ptr<ActionTemplate> actionTemplate)
-{
-    istringstream modifiersAndWidgetName(line);
-    vector<string> tokens;
-    string token;
-    
-    while (getline(modifiersAndWidgetName, token, '+'))
-        tokens.push_back(token);
-
-    
-    
-}
-
 static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
@@ -264,6 +251,94 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
     }
     
     actionTemplate->modifier += modifierManager.GetModifierValue();
+}
+
+static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+{
+    string feedbackIndicator = "";
+    
+    vector<string> params;
+    for(int i = 1; i < tokens.size(); i++)
+    {
+        if(tokens[i] == "Feedback=Yes" || tokens[i] == "Feedback=No")
+            feedbackIndicator = tokens[i];
+        else
+            params.push_back(tokens[i]);
+    }
+
+    shared_ptr<ActionTemplate> currentActionTemplate = make_shared<ActionTemplate>();
+    
+    currentActionTemplate->actionName = tokens[1];
+    currentActionTemplate->params = params;
+    
+    GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
+
+    actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
+    
+    if(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() == 1)
+    {
+        if(feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
+            currentActionTemplate->provideFeedback = true;
+    }
+    else if(feedbackIndicator == "Feedback=Yes")
+    {
+        for(auto actionTemplate : actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier])
+            actionTemplate->provideFeedback = false;
+        
+        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].back()->provideFeedback = true;
+    }
+}
+
+static void ExpandMCUTemplate(vector<string> tokens, ZoneManager* zoneManager, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+{
+
+    
+    
+
+    
+    
+}
+
+static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTemplates)
+{
+    try
+    {
+        ifstream file(filePath);
+            
+        int index = 0;
+        
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        
+            if(line.find("Zone") == string::npos)
+            {
+                vector<string> tokens = GetTokens(line);
+                
+                if(tokens.size() == 2)
+                {
+                    fxTemplates[index].push_back(tokens[0]);
+                    fxTemplates[index].push_back(tokens[1]);
+                    index++;
+                }
+            }
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        DAW::ShowConsoleMsg(buffer);
+    }
 }
 
 static void PreProcessZoneFile(string filePath, ZoneManager* zoneManager)
@@ -397,9 +472,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
     string zoneAlias = "";
     string actionName = "";
     int lineNumber = 0;
-    
-    shared_ptr<ActionTemplate> currentActionTemplate = nullptr;
-    
+   
     try
     {
         ifstream file(filePath);
@@ -430,8 +503,6 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 }
                 else if(tokens[0] == "ZoneEnd" && zoneName != "")
                 {
-                    currentActionTemplate = nullptr;
-                    
                     for(int i = 0; i < navigators.size(); i++)
                     {
                         string numStr = to_string(i + 1);
@@ -538,51 +609,12 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 
                 else if(isInAssociatedZonesSection)
                     associatedZones.push_back(tokens[0]);
-
                 
+                else if(tokens[0].find("MCUTemplate+") != string::npos)
+                    ExpandMCUTemplate(tokens, zoneManager, actionTemplatesDictionary);
                 
-                
-                // GAW TBD if tokens[0] find "Expand+" call ExpandTemplate
-                
-                
-                
-                
-
                 else if(tokens.size() > 1)
-                {
-                    string feedbackIndicator = "";
-                    
-                    vector<string> params;
-                    for(int i = 1; i < tokens.size(); i++)
-                    {
-                        if(tokens[i] == "Feedback=Yes" || tokens[i] == "Feedback=No")
-                            feedbackIndicator = tokens[i];
-                        else
-                            params.push_back(tokens[i]);
-                    }
-
-                    currentActionTemplate = make_shared<ActionTemplate>();
-                    
-                    currentActionTemplate->actionName = tokens[1];
-                    currentActionTemplate->params = params;
-                    
-                    GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
-
-                    actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
-                    
-                    if(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() == 1)
-                    {
-                        if(feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
-                            currentActionTemplate->provideFeedback = true;
-                    }
-                    else if(feedbackIndicator == "Feedback=Yes")
-                    {
-                        for(auto actionTemplate : actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier])
-                            actionTemplate->provideFeedback = false;
-                        
-                        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].back()->provideFeedback = true;
-                    }
-                }
+                    BuildActionTemplate(tokens, actionTemplatesDictionary);
             }
         }
     }
@@ -2651,7 +2683,7 @@ void OSC_IntFeedbackProcessor::ForceValue(map<string, string> &properties, doubl
 void ZoneManager::Initialize()
 {
     PreProcessZones();
-   
+
     if(zoneFilePaths_.count("Home") < 1)
     {
         MessageBox(g_hwnd, (surface_->GetName() + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + surface_->GetName()).c_str(), MB_OK);
@@ -2664,6 +2696,8 @@ void ZoneManager::Initialize()
     ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
+    if(zoneFilePaths_.count("FXTemplates") > 0)
+        ProcessFXTemplates(zoneFilePaths_["FXTemplates"].filePath, fxTemplates_);
     GoHome();
 }
 
@@ -2812,8 +2846,6 @@ void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, i
     }
 }
 
-int numFXZones = 0;
-
 void ZoneManager::PreProcessZones()
 {
     vector<string> zoneFilesToProcess;
@@ -2831,7 +2863,7 @@ void ZoneManager::PreProcessZones()
 }
 
 bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
-{/*
+{
     if(zoneFilePaths_.count(fxName) > 0)
         return true;
 
@@ -2886,17 +2918,13 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     info.filePath = path;
     info.alias = alias;
     
-    if(homeZone_ !=  nullptr && homeZone_->GetAssociatedZone("SelectedTrackTCPFXTemplate") != nullptr)
-        paramRowDefinitions_ = homeZone_->GetAssociatedZone("SelectedTrackTCPFXTemplate")->GetParamRowDefinitions();
-
-    if(paramRowDefinitions_.size() == 0)
+    if(fxTemplates_.size() == 0)
         return false;
-    
-    int totalAvailableParamDefinitions = 0;
-    
-    for(auto paramRowDefinition : paramRowDefinitions_)
-        totalAvailableParamDefinitions += paramRowDefinition.size;
 
+    int numChannels = surface_->GetNumChannels();
+
+    int totalAvailableParamDefinitions = numChannels * fxTemplates_.size();
+    
     AddZoneFilePath(fxName, info);
     surface_->GetPage()->AddZoneFilePath(surface_, zoneFolder_, fxName, info);
 
@@ -2906,73 +2934,45 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     {
         fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"" + GetLineEnding();
         
-        int paramRowDefinitionsIndex = 0;
-        TCPFXParamsInfo row;
-        row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
-        row.aliases = "\t//";
-
+        int templateIndex = 0;
+        int channelNumber = 1;
+             
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableParamDefinitions; i++)
         {
-            row.aliases += " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"";
-
-            row.indices += " " + to_string(i);
-            row.paramCount++;
+            fxZone << "\t" + fxTemplates_[templateIndex][0] + " \"" + fxTemplates_[templateIndex][1] + "\" " + to_string(channelNumber) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
             
-            if(row.paramCount == paramRowDefinitions_[paramRowDefinitionsIndex].size)
+            channelNumber++;
+            
+            if(channelNumber > numChannels)
             {
-                row.paramCount = 0;
-                
-                fxZone << GetLineEnding() + row.indices + GetLineEnding();
-                fxZone << row.aliases + GetLineEnding();
-                
-                if(paramRowDefinitionsIndex < paramRowDefinitions_.size() - 1)
-                    paramRowDefinitionsIndex++;
+                channelNumber = 1;
+
+                if(templateIndex < fxTemplates_.size() - 1)
+                    templateIndex++;
                 else
                     break;
-                
-                row.indices = "\t" + paramRowDefinitions_[paramRowDefinitionsIndex].name;
-                row.aliases = "\t//";
             }
         }
         
         // GAW -- pad partial rows
-        if(row.paramCount != 0 && paramRowDefinitionsIndex < paramRowDefinitions_.size() && row.paramCount < paramRowDefinitions_[paramRowDefinitionsIndex].size)
+        if(channelNumber != 1 && templateIndex < fxTemplates_.size() && channelNumber <= numChannels)
         {
-            for(int i = row.paramCount; i < paramRowDefinitions_[paramRowDefinitionsIndex].size; i++)
-            {
-                row.indices += " -1";
-                row.aliases += " \"NoAction\"";
-                row.paramCount++;
-            }
-            
-            fxZone << GetLineEnding() + row.indices + GetLineEnding();
-            fxZone << row.aliases + GetLineEnding();
+            for(int i = channelNumber; i <= numChannels; i++)
+                fxZone << "\t" + fxTemplates_[templateIndex][0] + " \"" + fxTemplates_[templateIndex][1] + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
         }
         
-        paramRowDefinitionsIndex++;
+        templateIndex++;
         
         // GAW --pad the remaining rows
-        for(int i = paramRowDefinitionsIndex; i < paramRowDefinitions_.size(); i++)
-        {
-            row.indices = "\t" + paramRowDefinitions_[i].name;
-            row.aliases = "\t//";
-            row.paramCount = 0;
-            
-            for(int j = 0; j < paramRowDefinitions_[i].size; j++)
-            {
-                row.indices += " -1";
-                row.aliases += " \"NoAction\"";
-            }
-            
-            fxZone << GetLineEnding() + row.indices + GetLineEnding();
-            fxZone << row.aliases + GetLineEnding();
-        }
+        for(int i = templateIndex; i < fxTemplates_.size(); i++)
+            for(int j = 1; j <= numChannels; j++)
+                fxZone << "\t" + fxTemplates_[i][0] + " \"" + fxTemplates_[i][1] + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
 
         fxZone << "ZoneEnd" + GetLineEnding();
         
         fxZone.close();
     }
-    */
+    
     return true;
 }
 
