@@ -289,14 +289,62 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ExpandMCUTemplate(vector<string> tokens, ZoneManager* zoneManager, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void ExpandMCUTemplate(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
 {
+    if(tokens.size() < 7)
+        return;
+    
+    shared_ptr<ActionTemplate> controlTemplate = make_shared<ActionTemplate>();
+    string controlName = tokens[0] + "+" + tokens[1] + tokens[2] + tokens[3];
+    GetWidgetNameAndModifiers(controlName, controlTemplate);
+    if(tokens[5] == "-1")
+        controlTemplate->actionName = "NoAction";
+    else
+        controlTemplate->actionName = "FXParam";
+    vector<string> controlParams;
+    controlParams.push_back(controlTemplate->actionName);
+    controlParams.push_back(tokens[5]);
+    controlTemplate->params = controlParams;
+    controlTemplate->provideFeedback = true;
+    actionTemplatesDictionary[controlTemplate->widgetName][controlTemplate->modifier].push_back(controlTemplate);
 
-    
-    
+    shared_ptr<ActionTemplate> displayUpperTemplate = make_shared<ActionTemplate>();
+    string displayUpperName = tokens[0] + "+" + "DisplayUpper" + tokens[2] + tokens[3];
+    GetWidgetNameAndModifiers(displayUpperName, displayUpperTemplate);
+    displayUpperTemplate->actionName = "FixedTextDisplay";
+    vector<string> displayUpperParams;
+    displayUpperParams.push_back(displayUpperTemplate->actionName);
+    displayUpperParams.push_back(tokens[6]);
+    displayUpperTemplate->params = displayUpperParams;
+    displayUpperTemplate->provideFeedback = true;
+    actionTemplatesDictionary[displayUpperTemplate->widgetName][displayUpperTemplate->modifier].push_back(displayUpperTemplate);
 
+    shared_ptr<ActionTemplate> displayLowerTemplate = make_shared<ActionTemplate>();
+    string displayLowerName = tokens[0] + "+" + "DisplayLower" + tokens[2] + tokens[3];
+    GetWidgetNameAndModifiers(displayLowerName, displayLowerTemplate);
+    if(tokens[5] == "-1")
+        displayLowerTemplate->actionName = "NoAction";
+    else
+        displayLowerTemplate->actionName = "FXParamValueDisplay";
+    vector<string> displayLowerParams;
+    displayLowerParams.push_back(displayLowerTemplate->actionName);
+    displayLowerParams.push_back(tokens[5]);
+    displayLowerTemplate->params = displayLowerParams;
+    displayLowerTemplate->provideFeedback = true;
+    actionTemplatesDictionary[displayLowerTemplate->widgetName][displayLowerTemplate->modifier].push_back(displayLowerTemplate);
+
+    string rotaryPushName = "RotaryPush" + tokens[2] + tokens[3];
     
-    
+    if(tokens[1] == "Rotary" && actionTemplatesDictionary.count(rotaryPushName) < 1)
+    {
+        shared_ptr<ActionTemplate> rotaryPushTemplate = make_shared<ActionTemplate>();
+        GetWidgetNameAndModifiers(rotaryPushName, rotaryPushTemplate);
+        rotaryPushTemplate->actionName = "ToggleChannel";
+        vector<string> rotaryPushParams;
+        rotaryPushParams.push_back(rotaryPushTemplate->actionName);
+        rotaryPushTemplate->params = rotaryPushParams;
+        actionTemplatesDictionary[rotaryPushTemplate->widgetName][rotaryPushTemplate->modifier].push_back(rotaryPushTemplate);
+    }
 }
 
 static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTemplates)
@@ -618,8 +666,8 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(isInAssociatedZonesSection)
                     associatedZones.push_back(tokens[0]);
                 
-                else if(tokens[0].find("MCUTemplate+") != string::npos)
-                    ExpandMCUTemplate(tokens, zoneManager, actionTemplatesDictionary);
+                else if(tokens[0].find("MCUTemplate") != string::npos)
+                    ExpandMCUTemplate(tokens, actionTemplatesDictionary);
                 
                 else if(tokens.size() > 1)
                     BuildActionTemplate(tokens, actionTemplatesDictionary);
