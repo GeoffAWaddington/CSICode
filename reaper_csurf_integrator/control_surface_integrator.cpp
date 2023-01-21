@@ -3064,12 +3064,16 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             for(int j = 1; j <= numChannels; j++)
                 fxZone << "\t" + fxTemplates_[i][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[i][2] + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
 
-        fxZone << GetLineEnding();
+        if(fxEpilogue_.size() > 0)
+            fxZone << GetLineEnding();
         
         for(auto line : fxEpilogue_)
             fxZone << "\t" + line + GetLineEnding();
 
-        fxZone << "ZoneEnd" + GetLineEnding();
+        fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
+        
+        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
+            fxZone << "/ " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
         
         fxZone.close();
     }
