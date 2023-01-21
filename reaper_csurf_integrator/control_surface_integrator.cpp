@@ -2865,7 +2865,7 @@ void ZoneManager::GoFocusedFX()
         char FXName[BUFSZ];
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
-        if(shouldAutoMapFocusedFX_)
+        if(isAutoFocusedFXMappingEnabled_)
             EnsureZoneAvailable(FXName, focusedTrack, fxSlot);
 
         if(zoneFilePaths_.count(FXName) > 0)

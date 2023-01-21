@@ -556,14 +556,14 @@ public:
 
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXParamMappingEnabled());
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsAutoFocusedFXMappingEnabled());
     }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->ToggleAutoFocusedFXMapping();
+        context->GetSurface()->GetZoneManager()->ToggleEnableAutoFocusedFXMapping();
     }
 };
 
@@ -576,14 +576,14 @@ public:
 
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXParamMappingEnabled());
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsAutoFXMappingEnabled());
     }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->ToggleAutoFocusedFXMapping();
+        context->GetSurface()->GetZoneManager()->ToggleEnableAutoFXMapping();
     }
 };
 

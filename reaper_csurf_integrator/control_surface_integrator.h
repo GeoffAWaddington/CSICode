@@ -704,26 +704,26 @@ class ZoneManager
 private:
     map<string, string> broadcast_;
     map<string, string> receive_;
-
+    
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
     
     map<string, CSIZoneInfo> zoneFilePaths_;
-
+    
     map<Widget*, bool> usedWidgets_;
-
+    
     shared_ptr<Zone> homeZone_ = nullptr;
-
-    bool shouldAutoMapFocusedFX_ = true;
-    bool shouldAutoMapFX_ = true;
-
+    
+    bool isAutoFocusedFXMappingEnabled_ = true;
+    bool isAutoFXMappingEnabled_ = true;
+    
     map<int, vector<string>> fxTemplates_;
     vector<string> fxPreamble_;
     vector<string> fxEpilogue_;
-
+    
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
-
+    
     map<int, map<int, int>> focusedFXDictionary_;
     vector<shared_ptr<Zone>> focusedFXZones_;
     bool isFocusedFXMappingEnabled_ = true;
@@ -733,7 +733,7 @@ private:
     
     map <string, map<int, vector<double>>> steppedValues_;
     vector<double> emptySteppedValues;
-
+    
     int trackSendOffset_ = 0;
     int trackReceiveOffset_ = 0;
     int trackFXMenuOffset_ = 0;
@@ -743,7 +743,7 @@ private:
     int selectedTrackFXMenuOffset_ = 0;
     
     bool EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
-
+    
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
@@ -762,15 +762,15 @@ private:
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
     }
-       
+    
 public:
     ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) {}
-
+    
     void Initialize();
-
+    
     void RequestUpdate();
     void UpdateCurrentActionContextModifiers();
-
+    
     void PreProcessZones();
     
     Navigator* GetMasterTrackNavigator();
@@ -797,14 +797,14 @@ public:
     void AdjustSelectedTrackFXMenuBank(int amount);
     
     void DoTouch(Widget* widget, double value);
-
+    
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     
-    ControlSurface* GetSurface() { return surface_; }   
+    ControlSurface* GetSurface() { return surface_; }
     
     void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
     void SetFocusedFXParamZone(shared_ptr<Zone> zone) { focusedFXParamZone_ = zone; }
-
+    
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
     int GetTrackFXMenuOffset() { return trackFXMenuOffset_; }
@@ -814,13 +814,14 @@ public:
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
     
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
-    void ToggleEnableFocusedFXMappingImpl() { isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_; }
-    
+    bool GetIsAutoFXMappingEnabled() { return isAutoFXMappingEnabled_; }
+    bool GetIsAutoFocusedFXMappingEnabled() { return isAutoFocusedFXMappingEnabled_; }
+
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
         
     bool EnsureFXZoneAvailable(string name, MediaTrack* track, int fxIndex)
     {
-        if(shouldAutoMapFX_)
+        if(isAutoFXMappingEnabled_)
             return EnsureZoneAvailable(name, track, fxIndex);
         else
             return false;
@@ -839,14 +840,19 @@ public:
         }
     }
 
-    void ToggleAutoFocusedFXMapping()
+    void ToggleEnableFocusedFXMappingImpl()
     {
-        shouldAutoMapFocusedFX_ = ! shouldAutoMapFocusedFX_;
+        isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_;
+    }
+
+    void ToggleEnableAutoFocusedFXMapping()
+    {
+        isAutoFocusedFXMappingEnabled_ = ! isAutoFocusedFXMappingEnabled_;
     }
     
-    void ToggleAutoFXMapping()
+    void ToggleEnableAutoFXMapping()
     {
-        shouldAutoMapFX_ = ! shouldAutoMapFX_;
+        isAutoFXMappingEnabled_ = ! isAutoFXMappingEnabled_;
     }
     
     bool GetIsHomeZoneOnlyActive()
