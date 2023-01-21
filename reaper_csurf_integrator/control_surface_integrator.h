@@ -717,7 +717,8 @@ private:
     
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
-    
+    string const fxZoneFolder_ = "";
+
     map<string, CSIZoneInfo> zoneFilePaths_;
     
     map<Widget*, bool> usedWidgets_;
@@ -775,7 +776,7 @@ private:
     }
     
 public:
-    ZoneManager(ControlSurface* surface, string zoneFolder) : surface_(surface), zoneFolder_(zoneFolder) {}
+    ZoneManager(ControlSurface* surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
     
     void Initialize();
     
@@ -1058,9 +1059,9 @@ public:
             zoneFilePaths_[name] = info;
     }
         
-    void AddZoneFilePath(string zoneFolder, string name, struct CSIZoneInfo info)
+    void AddZoneFilePath(string fxZoneFolder, string name, struct CSIZoneInfo info)
     {
-        if(zoneFolder == zoneFolder_)
+        if(fxZoneFolder == fxZoneFolder_)
             AddZoneFilePath(name, info);
     }
         
@@ -1465,7 +1466,7 @@ private:
     map<int, bool> channelToggles_;
 
 protected:
-    ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder))
+    ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, string fxZoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, fxZoneFolder))
     {
         if(useLocalmodifiers)
             modifierManager_ = new ModifierManager(this);
@@ -1936,8 +1937,8 @@ private:
     }
 
 public:
-    Midi_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, Midi_ControlSurfaceIO* surfaceIO)
-    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    Midi_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO)
+    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, fxZoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
@@ -2083,8 +2084,8 @@ private:
     void Initialize(string templateFilename, string zoneFolder);
 
 public:
-    OSC_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, OSC_ControlSurfaceIO* surfaceIO)
-    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    OSC_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO)
+    : ControlSurface(useLocalmodifiers, page, name, zoneFolder, fxZoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
     }
