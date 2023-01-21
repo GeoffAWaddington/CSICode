@@ -397,7 +397,7 @@ static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTe
     }
 }
 
-static void ProcessFXPreamble(string filePath, vector<string> &fxPreamble)
+static void ProcessFXBoilerplate(string filePath, vector<string> &fxBoilerplate)
 {
     try
     {
@@ -417,7 +417,7 @@ static void ProcessFXPreamble(string filePath, vector<string> &fxPreamble)
                 continue;
         
             if(line.find("Zone") != 0)
-                fxPreamble.push_back(line);
+                fxBoilerplate.push_back(line);
         }
     }
     catch (exception &e)
@@ -2786,7 +2786,9 @@ void ZoneManager::Initialize()
     if(zoneFilePaths_.count("FXTemplates") > 0)
         ProcessFXTemplates(zoneFilePaths_["FXTemplates"].filePath, fxTemplates_);
     if(zoneFilePaths_.count("FXPreamble") > 0)
-        ProcessFXPreamble(zoneFilePaths_["FXPreamble"].filePath, fxPreamble_);
+        ProcessFXBoilerplate(zoneFilePaths_["FXPreamble"].filePath, fxPreamble_);
+    if(zoneFilePaths_.count("FXEpilogue") > 0)
+        ProcessFXBoilerplate(zoneFilePaths_["FXEpilogue"].filePath, fxEpilogue_);
     GoHome();
 }
 
@@ -3061,6 +3063,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         for(int i = templateIndex; i < fxTemplates_.size(); i++)
             for(int j = 1; j <= numChannels; j++)
                 fxZone << "\t" + fxTemplates_[i][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[i][2] + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
+
+        fxZone << GetLineEnding();
+        
+        for(auto line : fxEpilogue_)
+            fxZone << "\t" + line + GetLineEnding();
 
         fxZone << "ZoneEnd" + GetLineEnding();
         

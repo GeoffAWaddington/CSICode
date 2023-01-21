@@ -719,7 +719,8 @@ private:
 
     map<int, vector<string>> fxTemplates_;
     vector<string> fxPreamble_;
-    
+    vector<string> fxEpilogue_;
+
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
 
