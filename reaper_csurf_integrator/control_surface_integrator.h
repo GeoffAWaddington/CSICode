@@ -741,7 +741,8 @@ private:
     int selectedTrackSendOffset_ = 0;
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
-    
+    int masterTrackFXMenuOffset_ = 0;
+
     bool EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
     
     void ResetOffsets()
@@ -795,7 +796,8 @@ public:
     void AdjustSelectedTrackSendBank(int amount);
     void AdjustSelectedTrackReceiveBank(int amount);
     void AdjustSelectedTrackFXMenuBank(int amount);
-    
+    void AdjustMasterTrackFXMenuBank(int amount);
+
     void DoTouch(Widget* widget, double value);
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
@@ -812,7 +814,8 @@ public:
     int GetSelectedTrackSendOffset() { return selectedTrackSendOffset_; }
     int GetSelectedTrackReceiveOffset() { return selectedTrackReceiveOffset_; }
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
-    
+    int GetMasterTrackFXMenuOffset() { return masterTrackFXMenuOffset_; }
+
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsAutoFXMappingEnabled() { return isAutoFXMappingEnabled_; }
     bool GetIsAutoFocusedFXMappingEnabled() { return isAutoFocusedFXMappingEnabled_; }
@@ -881,7 +884,8 @@ public:
     void HandleGoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
     {
         if((navigator->GetName() == "TrackNavigator" && receive_.count("TrackFXMenu") > 0) ||
-           (navigator->GetName() == "SelectedTrackNavigator" && receive_.count("SelectedTrackFXMenu")) > 0)
+           (navigator->GetName() == "SelectedTrackNavigator" && receive_.count("SelectedTrackFXMenu")) > 0 ||
+           (navigator->GetName() == "MasterTrackNavigator" && receive_.count("MasterTrackFXMenu")) > 0)
             ActivateTrackFXSlot(track, navigator, fxSlot);
     }
     
@@ -912,19 +916,25 @@ public:
     void HandleSelectedTrackSendBank(int amount)
     {
         if(receive_.count("SelectedTrackSend") > 0)
-            AdjustTrackSendOffset(amount);
+            AdjustSelectedTrackSendOffset(amount);
     }
 
     void HandleSelectedTrackReceiveBank(int amount)
     {
         if(receive_.count("SelectedTrackReceive") > 0)
-            AdjustTrackReceiveOffset(amount);
+            AdjustSelectedTrackReceiveOffset(amount);
     }
 
     void HandleSelectedTrackFXMenuBank(int amount)
     {
         if(receive_.count("SelectedTrackFXMenu") > 0)
-            AdjustTrackFXMenuOffset(amount);
+            AdjustSelectedTrackFXMenuOffset(amount);
+    }
+    
+    void HandleMasterTrackFXMenuBank(int amount)
+    {
+        if(receive_.count("MasterTrackFXMenu") > 0)
+            AdjustMasterTrackFXMenuOffset(amount);
     }
     
     void AdjustTrackSendOffset(int amount)
@@ -995,6 +1005,16 @@ public:
         
         if(selectedTrackFXMenuOffset_ < 0)
             selectedTrackFXMenuOffset_ = 0;
+    }
+        
+    void AdjustMasterTrackFXMenuOffset(int amount)
+    {
+        // GAW TBD -- calc max and clamp
+        
+        masterTrackFXMenuOffset_ += amount;
+        
+        if(masterTrackFXMenuOffset_ < 0)
+            masterTrackFXMenuOffset_ = 0;
     }
         
     void AddWidget(Widget* widget)
@@ -2958,6 +2978,13 @@ public:
         for(auto surface : surfaces_)
             if(surface != originatingSurface)
                 surface->GetZoneManager()->HandleSelectedTrackFXMenuBank(amount);
+    }
+   
+    void SignalMasterTrackFXMenuBank(ControlSurface* originatingSurface, int amount)
+    {
+        for(auto surface : surfaces_)
+            if(surface != originatingSurface)
+                surface->GetZoneManager()->HandleMasterTrackFXMenuBank(amount);
     }
    
     void GoVCA()

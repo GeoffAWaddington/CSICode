@@ -1329,8 +1329,8 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackSend"] =               new GoSelectedTrackSend();
     actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
     actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
+    actions_["GoMasterTrackFXMenu"] =               new GoMasterTrackFXMenu();
     actions_["GoSelectedTrackTCPFX"] =              new GoSelectedTrackTCPFX();
-    actions_["GoSelectedTrackTCPFXTemplate"] =      new GoSelectedTrackTCPFXTemplate();
     actions_["TrackBank"] =                         new TrackBank();
     actions_["VCABank"] =                           new VCABank();
     actions_["FolderBank"] =                        new FolderBank();
@@ -1341,6 +1341,7 @@ void Manager::InitActionsDictionary()
     actions_["SelectedTrackSendBank"] =             new SelectedTrackSendBank();
     actions_["SelectedTrackReceiveBank"] =          new SelectedTrackReceiveBank();
     actions_["SelectedTrackFXMenuBank"] =           new SelectedTrackFXMenuBank();
+    actions_["MasterTrackFXMenuBank"] =             new MasterTrackFXMenuBank();
     actions_["Shift"] =                             new SetShift();
     actions_["Option"] =                            new SetOption();
     actions_["Control"] =                           new SetControl();
@@ -1586,7 +1587,6 @@ void Manager::Init()
     }
     
     int lineNumber = 0;
-    bool shouldAutoScan = false;
     
     try
     {
@@ -2115,6 +2115,8 @@ int Zone::GetSlotIndex()
         return slotIndex_ + zoneManager_->GetSelectedTrackReceiveOffset();
     if(name_ == "SelectedTrackFXMenu")
         return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset();
+    if(name_ == "MasterTrackFXMenu")
+        return slotIndex_ + zoneManager_->GetMasterTrackFXMenuOffset();
     else return slotIndex_;
 }
 
@@ -2262,6 +2264,9 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
+    else if(zoneName == "MasterTrackFXMenu")
+        for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
+            navigators.push_back(zoneManager_->GetMasterTrackNavigator());
     else
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
@@ -2913,7 +2918,8 @@ void ZoneManager::GoSelectedTrackFX()
 void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
 {
     if((navigator->GetName() == "TrackNavigator" && broadcast_.count("TrackFXMenu") > 0) ||
-       (navigator->GetName() == "SelectedTrackNavigator" && broadcast_.count("SelectedTrackFXMenu")) > 0)
+       (navigator->GetName() == "SelectedTrackNavigator" && broadcast_.count("SelectedTrackFXMenu")) > 0 ||
+       (navigator->GetName() == "MasterTrackNavigator" && broadcast_.count("MasterTrackFXMenu")) > 0)
         GetSurface()->GetPage()->SignalGoTrackFXSlot(GetSurface(), track, navigator, fxSlot);
     
     ActivateTrackFXSlot(track, navigator, fxSlot);
@@ -3196,6 +3202,14 @@ void ZoneManager::AdjustSelectedTrackFXMenuBank(int amount)
         GetSurface()->GetPage()->SignalSelectedTrackFXMenuBank(GetSurface(), amount);
     
     AdjustSelectedTrackFXMenuOffset(amount);
+}
+
+void ZoneManager::AdjustMasterTrackFXMenuBank(int amount)
+{
+    if(broadcast_.count("MasterTrackFXMenu") > 0)
+        GetSurface()->GetPage()->SignalMasterTrackFXMenuBank(GetSurface(), amount);
+    
+    AdjustMasterTrackFXMenuOffset(amount);
 }
 
 void ZoneManager::DoTouch(Widget* widget, double value)

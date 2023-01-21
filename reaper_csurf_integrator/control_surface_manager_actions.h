@@ -804,6 +804,30 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoMasterTrackFXMenu : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoMasterTrackFXMenu"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("MasterTrackFXMenu"))
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone("MasterTrackFXMenu");
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class GoSelectedTrackTCPFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -824,30 +848,6 @@ public:
             return; // ignore button releases
         
         context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackTCPFX");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrackTCPFXTemplate : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrackTCPFXTemplate"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackTCPFXTemplate"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackTCPFXTemplate");
     }
 };
 
@@ -1013,6 +1013,27 @@ public:
             context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
         else if(value > 0 && context-> GetRangeMinimum() >= 0)
             context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MasterTrackFXMenuBank : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "MasterTrackFXMenuBank"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateColorValue(0.0);
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value < 0 && context-> GetRangeMinimum() < 0)
+            context->GetSurface()->GetZoneManager()->AdjustMasterTrackFXMenuBank(context->GetIntParam());
+        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+            context->GetSurface()->GetZoneManager()->AdjustMasterTrackFXMenuBank(context->GetIntParam());
     }
 };
 
