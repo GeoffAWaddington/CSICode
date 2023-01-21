@@ -347,13 +347,11 @@ static void ExpandMCUTemplate(vector<string> tokens, map<string, map<int, vector
     }
 }
 
-static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTemplates)
+static void ProcessFXTemplates(string filePath, vector<CSITemplateInfo> &fxTemplates)
 {
     try
     {
         ifstream file(filePath);
-            
-        int index = 0;
         
         for (string line; getline(file, line) ; )
         {
@@ -372,20 +370,23 @@ static void ProcessFXTemplates(string filePath,  map<int,  vector<string>> &fxTe
             {
                 vector<string> tokens = GetTokens(line);
                 
-                if(tokens.size() == 2)
-                {
-                    fxTemplates[index].push_back(tokens[0]);
-                    fxTemplates[index].push_back(tokens[1]);
-                    fxTemplates[index].push_back("");
-                }
-                else if(tokens.size() == 3)
-                {
-                    fxTemplates[index].push_back(tokens[0]);
-                    fxTemplates[index].push_back(tokens[1]);
-                    fxTemplates[index].push_back(tokens[2]);
-                }
+                CSITemplateInfo info;
                 
-                index++;
+                if(tokens.size() > 1)
+                {
+                    info.prefix = tokens[0];
+                    info.name =  tokens[1];
+                }
+    
+                if(tokens.size() == 3)
+                    info.channelCount = atoi(tokens[2].c_str());
+                else if(tokens.size() == 4)
+                {
+                    info.suffix = tokens[2];
+                    info.channelCount = atoi(tokens[3].c_str());
+                }
+
+                fxTemplates.push_back(info);
             }
         }
     }
@@ -3018,10 +3019,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     if(fxTemplates_.size() == 0)
         return false;
 
-    int numChannels = surface_->GetNumChannels();
-
-    int totalAvailableParamDefinitions = numChannels * fxTemplates_.size();
+    int totalAvailableChannels = 0;
     
+    for(auto info : fxTemplates_)
+        totalAvailableChannels += info.channelCount;
+        
     AddZoneFilePath(fxName, info);
     surface_->GetPage()->AddZoneFilePath(surface_, zoneFolder_, fxName, info);
 
@@ -3037,18 +3039,16 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         fxZone << GetLineEnding();
         
         int templateIndex = 0;
-        int channelNumber = 1;
+        int channelIndex = 1;
              
-        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableParamDefinitions; i++)
+        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableChannels; i++)
         {
-            fxZone << "\t" + fxTemplates_[templateIndex][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[templateIndex][2] + "\" " + to_string(channelNumber) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            fxZone << "\t" + fxTemplates_[templateIndex].prefix + " " + fxTemplates_[templateIndex].name + " \"" + fxTemplates_[templateIndex].suffix + "\" " + to_string(channelIndex++) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
             
-            channelNumber++;
-            
-            if(channelNumber > numChannels)
+            if(channelIndex > fxTemplates_[templateIndex].channelCount)
             {
-                channelNumber = 1;
-
+                channelIndex = 1;
+                
                 if(templateIndex < fxTemplates_.size() - 1)
                     templateIndex++;
                 else
@@ -3057,18 +3057,18 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         }
         
         // GAW -- pad partial rows
-        if(channelNumber != 1 && templateIndex < fxTemplates_.size() && channelNumber <= numChannels)
+        if(channelIndex != 1 && channelIndex <= fxTemplates_[templateIndex].channelCount)
         {
-            for(int i = channelNumber; i <= numChannels; i++)
-                fxZone << "\t" + fxTemplates_[templateIndex][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[templateIndex][2] + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
+            for(int i = channelIndex; i <= fxTemplates_[templateIndex].channelCount; i++)
+                fxZone << "\t" + fxTemplates_[templateIndex].prefix + " " + fxTemplates_[templateIndex].name + " \"" + fxTemplates_[templateIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
         }
         
         templateIndex++;
         
         // GAW --pad the remaining rows
         for(int i = templateIndex; i < fxTemplates_.size(); i++)
-            for(int j = 1; j <= numChannels; j++)
-                fxZone << "\t" + fxTemplates_[i][0] + " " + fxTemplates_[templateIndex][1] + " \"" + fxTemplates_[i][2] + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
+            for(int j = 1; j <= fxTemplates_[templateIndex].channelCount; j++)
+                fxZone << "\t" + fxTemplates_[i].prefix + " " + fxTemplates_[i].name + " \"" + fxTemplates_[i].suffix + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
 
         if(fxEpilogue_.size() > 0)
             fxZone << GetLineEnding();
