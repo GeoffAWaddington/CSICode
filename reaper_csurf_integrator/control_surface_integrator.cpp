@@ -3000,6 +3000,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         "AU: UADx ",
         "AU: UAD ",
         "AU: ",
+        "AUi: ",
         "VST: TDR ",
         "VST: UAD UA ",
         "VST: UAD Pultec ",
@@ -3012,7 +3013,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         "VST: ",
         "VSTi: ",
         "VST3: ",
+        "VST3i: ",
         "JS: ",
+        "Rewire: ",
+        "CLAP: ",
+        "CLAPi: ",
     };
     
     string alias = fxName;
@@ -3077,9 +3082,9 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         {
             for(int i = channelIndex; i <= fxTemplates_[templateIndex].channelCount; i++)
                 fxZone << "\t" + fxTemplates_[templateIndex].prefix + " " + fxTemplates_[templateIndex].name + " \"" + fxTemplates_[templateIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
+            
+            templateIndex++;
         }
-        
-        templateIndex++;
         
         // GAW --pad the remaining rows
         for(int i = templateIndex; i < fxTemplates_.size(); i++)
