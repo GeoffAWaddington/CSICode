@@ -2970,14 +2970,7 @@ void ZoneManager::PreProcessZones()
         zoneFilesToProcess.clear();
         
         listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess); // recursively find all .zon files, starting at fxZoneFolder
-           
-        if(zoneFilesToProcess.size() == 0)
-        {
-            MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_).c_str(), (GetSurface()->GetName() + " Zone folder is missing or empty").c_str(), MB_OK);
-
-            return;
-        }
-        
+                  
         for(auto zoneFilename : zoneFilesToProcess)
             PreProcessZoneFile(zoneFilename, this);
     }
