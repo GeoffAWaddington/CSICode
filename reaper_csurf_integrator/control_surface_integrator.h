@@ -754,7 +754,7 @@ private:
     int selectedTrackFXMenuOffset_ = 0;
     int masterTrackFXMenuOffset_ = 0;
 
-    bool EnsureZoneAvailable(string name, MediaTrack* track, int fxIndex);
+    bool EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
     
     void ResetOffsets()
     {
@@ -833,10 +833,12 @@ public:
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
         
-    bool EnsureFXZoneAvailable(string name, MediaTrack* track, int fxIndex)
+    bool EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
     {
-        if(isAutoFXMappingEnabled_)
-            return EnsureZoneAvailable(name, track, fxIndex);
+        if(zoneFilePaths_.count(fxName) > 0)
+            return true;
+        else if(isAutoFXMappingEnabled_)
+            return EnsureZoneAvailable(fxName, track, fxIndex);
         else
             return false;
     }
@@ -3509,7 +3511,7 @@ public:
     string GetFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
     {
         char fxName[BUFSZ];
-        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+        DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
 
         if(fxParamAliases_.count(fxName) > 0 && fxParamAliases_[fxName].count(paramIndex) > 0)
             return fxParamAliases_[fxName][paramIndex];
