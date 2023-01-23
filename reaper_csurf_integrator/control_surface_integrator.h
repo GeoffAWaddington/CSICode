@@ -3509,7 +3509,7 @@ public:
     string GetFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
     {
         char fxName[BUFSZ];
-        DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
+        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
         if(fxParamAliases_.count(fxName) > 0 && fxParamAliases_[fxName].count(paramIndex) > 0)
             return fxParamAliases_[fxName][paramIndex];
