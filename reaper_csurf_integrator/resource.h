@@ -9,6 +9,7 @@
 #define IDD_DIALOG_PageSurface          270
 #define IDC_EDIT_PageName               1003
 #define IDC_COMBO_ZoneTemplates         1017
+#define IDC_COMBO_FXZoneTemplates       1018
 #define IDC_COMBO_SurfaceTemplate       1019
 #define IDC_COMBO_MidiIn                1020
 #define IDC_COMBO_MidiOut               1021
@@ -33,6 +34,10 @@
 #define IDC_EDIT_NumChannels            1085
 #define IDC_EDIT_ChannelOffset          1088
 #define IDC_COMBO_PageSurface           1091
+#define IDC_CHECK_SynchPages            1093
+#define IDC_CHECK_ScrollLInk            1094
+#define IDC_CHECK_FollowTCP             1095
+#define IDC_CHECK_LocalModifiers        1096
 
 // Next default values for new objects
 // 
@@ -40,7 +45,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        115
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1092
+#define _APS_NEXT_CONTROL_VALUE         1097
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

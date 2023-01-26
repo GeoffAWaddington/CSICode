@@ -186,22 +186,23 @@ vector<shared_ptr<SurfaceLine>> surfaces;
 
 struct PageSurfaceLine
 {
-    bool useLocalmodifiers = false;
     string pageSurfaceName = "";
     int numChannels = 0;
     int channelOffset = 0;
+    bool useLocalmodifiers = false;
     string templateFilename = "";
     string zoneTemplateFolder = "";
+    string fxZoneTemplateFolder = "";
 };
 
 struct PageLine
 {
     string name = "";
+    bool followMCP = true;
     bool synchPages = true;
     bool isScrollLinkEnabled = false;
     vector<shared_ptr<PageSurfaceLine>> surfaces;
 };
-
 
 // Scratch pad to get in and out of dialogs easily
 static bool editMode = false;
@@ -214,12 +215,17 @@ static int outPort = 0;
 static char remoteDeviceIP[BUFSZ];
 
 static int pageIndex = 0;
+static bool followMCP = false;
+static bool synchPages = true;
+static bool isScrollLinkEnabled = false;
 
 static char pageSurfaceName[BUFSZ];
-int numChannels = 0;
-int channelOffset = 0;
+static int numChannels = 0;
+static int channelOffset = 0;
+static bool useLocalmodifiers = false;
 static char templateFilename[BUFSZ];
 static char zoneTemplateFolder[BUFSZ];
+static char fxZoneTemplateFolder[BUFSZ];
 
 static vector<shared_ptr<PageLine>> pages;
 
@@ -241,7 +247,12 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         case WM_INITDIALOG:
         {
             if(editMode)
-                 SetDlgItemText(hwndDlg, IDC_EDIT_PageName, name);
+            {
+                SetDlgItemText(hwndDlg, IDC_EDIT_PageName, name);
+                CheckDlgButton(hwndDlg, IDC_CHECK_FollowTCP, ! followMCP);
+                CheckDlgButton(hwndDlg, IDC_CHECK_SynchPages, synchPages);
+                CheckDlgButton(hwndDlg, IDC_CHECK_ScrollLInk, isScrollLinkEnabled);
+            }
         }
             break;
             
@@ -253,6 +264,10 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         GetDlgItemText(hwndDlg, IDC_EDIT_PageName , name, sizeof(name));
+                        
+                        followMCP = ! IsDlgButtonChecked(hwndDlg, IDC_CHECK_FollowTCP);
+                        synchPages = IsDlgButtonChecked(hwndDlg, IDC_CHECK_SynchPages);
+                        isScrollLinkEnabled = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollLInk);
                         
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -320,10 +335,15 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
 
+                CheckDlgButton(hwndDlg, IDC_CHECK_LocalModifiers, useLocalmodifiers);
+                
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
                 for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
                     AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+
+                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
+                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_FXZoneTemplates);
 
                 int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)templateFilename);
                 if(index >= 0)
@@ -332,6 +352,10 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)zoneTemplateFolder);
                 if(index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
+                
+                index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)fxZoneTemplateFolder);
+                if(index >= 0)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_SETCURSEL, index, 0);
             }
             else
             {
@@ -343,10 +367,15 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
                 
+                CheckDlgButton(hwndDlg, IDC_CHECK_LocalModifiers, useLocalmodifiers);
+                
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                             
                 for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
                     AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+                
+                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
+                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_FXZoneTemplates);
             }
         }
             break;
@@ -375,12 +404,12 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
-                            if(index >= 0 && !editMode)
+                            if(index >= 0 && ! editMode)
                             {
                                 char buffer[BUFSZ];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
-
+                                
                                 for(int i = 0; i < sizeof(buffer); i++)
                                 {
                                     if(buffer[i] == '.')
@@ -393,6 +422,27 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
                                 if(index >= 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
+                            }
+                        }
+                    }
+                }
+                    
+                case IDC_COMBO_ZoneTemplates:
+                {
+                    switch (HIWORD(wParam))
+                    {
+                        case CBN_SELCHANGE:
+                        {
+                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_GETCURSEL, 0, 0);
+                            if(index >= 0 && ! editMode)
+                            {
+                                char buffer[BUFSZ];
+                                
+                                GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, buffer, sizeof(buffer));
+                                
+                                int index = SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
+                                if(index >= 0)
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_SETCURSEL, index, 0);
                             }
                         }
                     }
@@ -413,9 +463,12 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         channelOffset = atoi(buf);
                         
+                        useLocalmodifiers = IsDlgButtonChecked(hwndDlg, IDC_CHECK_LocalModifiers);
+                        
                         GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, templateFilename, sizeof(templateFilename));
                         GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, zoneTemplateFolder, sizeof(zoneTemplateFolder));
-                        
+                        GetDlgItemText(hwndDlg, IDC_COMBO_FXZoneTemplates, fxZoneTemplateFolder, sizeof(fxZoneTemplateFolder));
+
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }
@@ -786,6 +839,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             {
                                 shared_ptr<PageLine> page = make_shared<PageLine>();
                                 page->name = name;
+                                page->followMCP = followMCP;
+                                page->synchPages = synchPages;
+                                page->isScrollLinkEnabled = isScrollLinkEnabled;
+
                                 pages.push_back(page);
                                 AddListEntry(hwndDlg, name, IDC_LIST_Pages);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, pages.size() - 1, 0);
@@ -805,9 +862,11 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 pageSurface->pageSurfaceName = pageSurfaceName;
                                 pageSurface->numChannels = numChannels;
                                 pageSurface->channelOffset = channelOffset;
+                                pageSurface->useLocalmodifiers = useLocalmodifiers;
                                 pageSurface->templateFilename = templateFilename;
                                 pageSurface->zoneTemplateFolder = zoneTemplateFolder;
-                                
+                                pageSurface->fxZoneTemplateFolder = fxZoneTemplateFolder;
+
                                 int index = SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                                 if (index >= 0)
                                 {
@@ -862,10 +921,18 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 dlgResult = false;
                                 editMode = true;
                                 
+                                followMCP = pages[index]->followMCP;
+                                synchPages = pages[index]->synchPages;
+                                isScrollLinkEnabled = pages[index]->isScrollLinkEnabled;
+                                
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                                 if(dlgResult == IDOK)
                                 {
                                     pages[index]->name = name;
+                                    pages[index]->followMCP = followMCP;
+                                    pages[index]->synchPages = synchPages;
+                                    pages[index]->isScrollLinkEnabled = isScrollLinkEnabled;
+
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
                                     for(auto page :  pages)
                                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
@@ -893,9 +960,11 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 {
                                     numChannels = pages[pageIndex]->surfaces[index]->numChannels;
                                     channelOffset = pages[pageIndex]->surfaces[index]->channelOffset;
-                                
+                                    useLocalmodifiers = pages[pageIndex]->surfaces[index]->useLocalmodifiers;
+                                    
                                     strcpy(templateFilename, pages[pageIndex]->surfaces[index]->templateFilename.c_str());
                                     strcpy(zoneTemplateFolder, pages[pageIndex]->surfaces[index]->zoneTemplateFolder.c_str());
+                                    strcpy(fxZoneTemplateFolder, pages[pageIndex]->surfaces[index]->fxZoneTemplateFolder.c_str());
 
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
@@ -903,8 +972,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     {
                                         pages[pageIndex]->surfaces[index]->numChannels = numChannels;
                                         pages[pageIndex]->surfaces[index]->channelOffset = channelOffset;
+                                        pages[pageIndex]->surfaces[index]->useLocalmodifiers = useLocalmodifiers;
                                         pages[pageIndex]->surfaces[index]->templateFilename = templateFilename;
                                         pages[pageIndex]->surfaces[index]->zoneTemplateFolder = zoneTemplateFolder;
+                                        pages[pageIndex]->surfaces[index]->fxZoneTemplateFolder = fxZoneTemplateFolder;
                                     }
                                 }
                                 
@@ -1033,33 +1104,29 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     {
                         bool synchPages = true;
                         bool isScrollLinkEnabled = false;
-                        
-                        if(tokens.size() > 2)
+                        bool followMCP = true;
+
+                        for(int i = 2; i < tokens.size(); i++)
                         {
-                            if(tokens[2] == "NoSynchPages")
+                            if(tokens[i] == "FollowTCP")
+                                followMCP = false;
+                            else if(tokens[i] == "NoSynchPages")
                                 synchPages = false;
-                            else if(tokens[2] == "UseScrollLink")
+                            else if(tokens[i] == "UseScrollLink")
                                 isScrollLinkEnabled = true;
                         }
-                            
-                        if(tokens.size() > 3)
-                        {
-                            if(tokens[3] == "NoSynchPages")
-                                synchPages = false;
-                            else if(tokens[3] == "UseScrollLink")
-                                isScrollLinkEnabled = true;
-                        }
- 
+
                         shared_ptr<PageLine> page = make_shared<PageLine>();
                         page->name = tokens[1];
                         page->synchPages = synchPages;
                         page->isScrollLinkEnabled = isScrollLinkEnabled;
-                        
+                        page->followMCP = followMCP;
+
                         pages.push_back(page);
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
-                    else if(tokens.size() == 5 || tokens.size() == 6)
+                    else if(tokens.size() == 6 || tokens.size() == 7)
                     {
                         bool useLocalModifiers = false;
                         
@@ -1081,6 +1148,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             surface->channelOffset = atoi(tokens[2].c_str());
                             surface->templateFilename = tokens[3];
                             surface->zoneTemplateFolder = tokens[4];
+                            surface->fxZoneTemplateFolder = tokens[5];
                         }
                     }
                 }
@@ -1134,6 +1202,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     line = PageToken + " ";
                     line += "\"" + page->name + "\"";
                     
+                    if(page->followMCP == false)
+                        line += " FollowTCP";
+                                        
                     if(page->synchPages == false)
                         line += " NoSynchPages";
                     
@@ -1148,13 +1219,14 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     {
                         line = "";
                         if(surface->useLocalmodifiers)
-                            line += "LocalModifiers ";
+                            line += "\"LocalModifiers\" ";
                         line += "\"" + surface->pageSurfaceName + "\" ";
                         line += to_string(surface->numChannels) + " " ;
                         line += to_string(surface->channelOffset) + " " ;
                         line += "\"" + surface->templateFilename + "\" ";
                         line += "\"" + surface->zoneTemplateFolder + "\" ";
-                        
+                        line += "\"" + surface->fxZoneTemplateFolder + "\" ";
+
                         iniFile << line + GetLineEnding();
                     }
                     

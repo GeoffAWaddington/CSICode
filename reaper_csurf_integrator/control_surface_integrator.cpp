@@ -1653,7 +1653,7 @@ void Manager::Init()
                 }
                 else
                 {
-                    if(currentPage && (tokens.size() == 5 || tokens.size() == 6 || tokens.size() == 7))
+                    if(currentPage && (tokens.size() == 6 || tokens.size() == 7))
                     {
                         bool useLocalModifiers = false;
                         
@@ -1664,10 +1664,7 @@ void Manager::Init()
                         }
                         
                         string zoneFolder = tokens[4];
-                        string fxZoneFolder = tokens[4];
-
-                        if(tokens.size() == 6)
-                            fxZoneFolder = tokens[5];
+                        string fxZoneFolder = tokens[5];
                         
                         ControlSurface* surface = nullptr;
                         
