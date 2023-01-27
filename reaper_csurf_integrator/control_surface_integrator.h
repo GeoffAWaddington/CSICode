@@ -480,39 +480,31 @@ protected:
     
 public:
     Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
-
-    void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
     
     virtual ~Zone() {}
     
-    void GoAssociatedZone(string associatedZoneName);
-
     Navigator* GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
+    bool GetIsActive() { return isActive_; }
+
+    void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
+
+    void GoAssociatedZone(string associatedZoneName);
+
     int GetSlotIndex();
+    
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
 
     void UpdateCurrentActionContextModifiers();
-    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);
-        
-    void RequestUpdate(map<Widget*, bool> &usedWidgets);
-    void RequestUpdateWidget(Widget* widget);
+    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);        
+
     void Activate();
     void Deactivate();
-    void GoTrack();
-    void GoVCA();
-    void GoFolder();
-    void OnTrackDeselection();
-    void DoAction(Widget* widget, bool &isUsed, double value);
-    void DoRelativeAction(Widget* widget, bool &isUsed, double delta);
-    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta);
-    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value);
-    map<Widget*, bool> &GetWidgets() { return widgets_; }
-    bool GetIsActive() { return isActive_; }
-    int GetChannelNumber();
     
-    bool GetDoesAssociatedZoneExist(string associatedZoneName) { return associatedZones_.count(associatedZoneName) > 0;  }
+    void DoAction(Widget* widget, bool &isUsed, double value);
+    
+    int GetChannelNumber();
     
     bool GetIsMainZoneOnlyActive()
     {
@@ -532,16 +524,6 @@ public:
                     return true;
         
         return false;
-    }
-    
-    shared_ptr<Zone> GetAssociatedZone(string zoneName)
-    {
-        if(associatedZones_.count(zoneName) > 0)
-            for(auto zone : associatedZones_[zoneName])
-                if(zone->GetName() == zoneName)
-                    return zone;
-
-        return nullptr;
     }
 
     void Toggle()
@@ -595,6 +577,144 @@ public:
             }
         }
     }
+    
+    void OnTrackDeselection()
+    {
+        isActive_ = true;
+        
+        for(auto zone : includedZones_)
+            zone->Activate();
+       
+        for(auto [key, zones] : associatedZones_)
+            if(key == "SelectedTrack" || key == "SelectedTrackSend" || key == "SelectedTrackReceive" || key == "SelectedTrackFXMenu")
+                for(auto zone : zones)
+                    zone->Deactivate();
+    }
+
+    void RequestUpdateWidget(Widget* widget)
+    {
+        for(auto context : GetActionContexts(widget))
+        {
+            context->RunDeferredActions();
+            context->RequestUpdate();
+        }
+    }
+
+    void RequestUpdate(map<Widget*, bool> &usedWidgets)
+    {
+        if(! isActive_)
+            return;
+      
+        for(auto [key, zones] : subZones_)
+            for(auto zone : zones)
+                zone->RequestUpdate(usedWidgets);
+        
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                zone->RequestUpdate(usedWidgets);
+
+        for(auto zone : includedZones_)
+            zone->RequestUpdate(usedWidgets);
+        
+        for(auto [widget, value] : widgets_)
+        {
+            if(usedWidgets[widget] == false)
+            {
+                usedWidgets[widget] = true;
+                RequestUpdateWidget(widget);
+            }
+        }
+    }
+
+    void DoRelativeAction(Widget* widget, bool &isUsed, double delta)
+    {
+        if(! isActive_ || isUsed)
+            return;
+        
+        for(auto [key, zones] : subZones_)
+            for(auto zone : zones)
+                zone->DoRelativeAction(widget, isUsed, delta);
+
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                zone->DoRelativeAction(widget, isUsed, delta);
+
+        if(isUsed)
+            return;
+
+        if(widgets_.count(widget) > 0)
+        {
+            isUsed = true;
+
+            for(auto context : GetActionContexts(widget))
+                context->DoRelativeAction(delta);
+        }
+        else
+        {
+            for(auto zone : includedZones_)
+                zone->DoRelativeAction(widget, isUsed, delta);
+        }
+    }
+
+    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
+    {
+        if(! isActive_ || isUsed)
+            return;
+
+        for(auto [key, zones] : subZones_)
+            for(auto zone : zones)
+                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+
+        if(isUsed)
+            return;
+
+        if(widgets_.count(widget) > 0)
+        {
+            isUsed = true;
+
+            for(auto context : GetActionContexts(widget))
+                context->DoRelativeAction(accelerationIndex, delta);
+        }
+        else
+        {
+            for(auto zone : includedZones_)
+                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        }
+    }
+
+    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
+    {
+        if(! isActive_ || isUsed)
+            return;
+
+        for(auto [key, zones] : subZones_)
+            for(auto zone : zones)
+                zone->DoTouch(widget, widgetName, isUsed, value);
+        
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                zone->DoTouch(widget, widgetName, isUsed, value);
+
+        if(isUsed)
+            return;
+
+        if(widgets_.count(widget) > 0)
+        {
+            isUsed = true;
+
+            for(auto context : GetActionContexts(widget))
+                context->DoTouch(value);
+        }
+        else
+        {
+            for(auto zone : includedZones_)
+                zone->DoTouch(widget, widgetName, isUsed, value);
+        }
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -626,12 +746,7 @@ private:
     vector<FeedbackProcessor*> feedbackProcessors_;
     int channelNumber_ = 0;
     double lastIncomingMessageTime_ = 0.0;
-    
-    string generatorClass_ = "";
-    string feedbackClass_ = "";
-    
-    bool isFXAutoMapEligible_ = false;
-    
+       
     double stepSize_ = 0.0;
     vector<double> accelerationValues_;
     
@@ -656,15 +771,6 @@ public:
     ZoneManager* GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
-    void SetGeneratorClass(string generatorClass) { generatorClass_ = generatorClass; }
-    string GetGeneratorClass() { return generatorClass_; }
-    
-    void SetFeedbackClass(string feedbackClass) { feedbackClass_ = feedbackClass; }
-    string GetFeedbackClass() { return feedbackClass_; }
-
-    void SetIsFXAutoMapEligible() { isFXAutoMapEligible_ = true; }
-    bool GetIsFXAutoMapEligible() { return isFXAutoMapEligible_; }
-
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
     double GetStepSize() { return stepSize_; }
     
@@ -712,9 +818,6 @@ class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, string> broadcast_;
-    map<string, string> receive_;
-    
     ControlSurface* const surface_;
     string const zoneFolder_ = "";
     string const fxZoneFolder_ = "";
@@ -743,7 +846,6 @@ private:
     vector<shared_ptr<Zone>> fxSlotZones_;
     
     map <string, map<int, vector<double>>> steppedValues_;
-    vector<double> emptySteppedValues;
     
     int trackSendOffset_ = 0;
     int trackReceiveOffset_ = 0;
@@ -754,6 +856,18 @@ private:
     int selectedTrackFXMenuOffset_ = 0;
     int masterTrackFXMenuOffset_ = 0;
 
+    map<string, int*> bankOffsets_ =
+    {
+        { "TrackSend",               &trackSendOffset_ },
+        { "TrackReceive",            &trackReceiveOffset_ },
+        { "TrackFXMenu",             &trackFXMenuOffset_ },
+        { "SelectedTrack",           &selectedTrackOffset_ },
+        { "SelectedTrackSend",       &selectedTrackSendOffset_ },
+        { "SelectedTrackReceive",    &selectedTrackReceiveOffset_ },
+        { "SelectedTrackFXMenu",     &selectedTrackFXMenuOffset_ },
+        { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
+    };
+    
     bool EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
     
     void ResetOffsets()
@@ -765,6 +879,7 @@ private:
         selectedTrackSendOffset_ = 0;
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
+        masterTrackFXMenuOffset_ = 0;
     }
     
     void ResetSelectedTrackOffsets()
@@ -780,34 +895,16 @@ public:
     
     void Initialize();
     
-    void RequestUpdate();
-    void UpdateCurrentActionContextModifiers();
-    
     void PreProcessZones();
     
     Navigator* GetMasterTrackNavigator();
     Navigator* GetSelectedTrackNavigator();
     Navigator* GetFocusedFXNavigator();
-    Navigator* GetDefaultNavigator();
     
     int  GetNumChannels();
-    void GoHome();
-    void OnTrackSelection();
-    void OnTrackDeselection();
     void GoFocusedFX();
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
-    void ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
-    void GoAssociatedZone(string zoneName);
-    void HandleActivation(string zoneName);
-    void ToggleEnableFocusedFXMapping();
-    void AdjustTrackSendBank(int amount);
-    void AdjustTrackReceiveBank(int amount);
-    void AdjustTrackFXMenuBank(int amount);
-    void AdjustSelectedTrackSendBank(int amount);
-    void AdjustSelectedTrackReceiveBank(int amount);
-    void AdjustSelectedTrackFXMenuBank(int amount);
-    void AdjustMasterTrackFXMenuBank(int amount);
 
     void DoTouch(Widget* widget, double value);
     
@@ -843,6 +940,45 @@ public:
             return false;
     }
 
+    void GoAssociatedZone(string zoneName)
+    {
+        if(homeZone_ != nullptr)
+        {
+            ClearFXMapping();
+            ResetOffsets();
+                    
+            homeZone_->GoAssociatedZone(zoneName);
+        }
+    }
+
+    void GoHome()
+    {
+        ClearFXMapping();
+
+        if(homeZone_ != nullptr)
+        {
+            ResetOffsets();
+            homeZone_->Activate();
+        }
+    }
+    
+    void OnTrackSelection()
+    {
+        fxSlotZones_.clear();
+    }
+
+    void OnTrackDeselection()
+    {
+        if(homeZone_ != nullptr)
+        {
+            ResetSelectedTrackOffsets();
+            
+            selectedTrackFXZones_.clear();
+            
+            homeZone_->OnTrackDeselection();
+        }
+    }
+    
     void ToggleEnableFocusedFXParamMapping()
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
@@ -856,7 +992,7 @@ public:
         }
     }
 
-    void ToggleEnableFocusedFXMappingImpl()
+    void ToggleEnableFocusedFXMapping()
     {
         isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_;
     }
@@ -893,158 +1029,21 @@ public:
         selectedTrackFXZones_.clear();
         fxSlotZones_.clear();
     }
-    
-    void HandleGoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+           
+    void AdjustBank(string zoneName, int amount)
     {
-        if((navigator->GetName() == "TrackNavigator" && receive_.count("TrackFXMenu") > 0) ||
-           (navigator->GetName() == "SelectedTrackNavigator" && receive_.count("SelectedTrackFXMenu")) > 0 ||
-           (navigator->GetName() == "MasterTrackNavigator" && receive_.count("MasterTrackFXMenu")) > 0)
-            ActivateTrackFXSlot(track, navigator, fxSlot);
-    }
-    
-    void HandleToggleEnableFocusedFXMapping()
-    {
-        if(receive_.count("ToggleEnableFocusedFXMapping") > 0)
-            ToggleEnableFocusedFXMappingImpl();
-    }
-
-    void HandleTrackSendBank(int amount)
-    {
-        if(receive_.count("TrackSend") > 0)
-            AdjustTrackSendOffset(amount);
-    }
-
-    void HandleTrackReceiveBank(int amount)
-    {
-        if(receive_.count("TrackReceive") > 0)
-            AdjustTrackReceiveOffset(amount);
-    }
-
-    void HandleTrackFXMenuBank(int amount)
-    {
-        if(receive_.count("TrackFXMenu") > 0)
-            AdjustTrackFXMenuOffset(amount);
-    }
-    
-    void HandleSelectedTrackSendBank(int amount)
-    {
-        if(receive_.count("SelectedTrackSend") > 0)
-            AdjustSelectedTrackSendOffset(amount);
-    }
-
-    void HandleSelectedTrackReceiveBank(int amount)
-    {
-        if(receive_.count("SelectedTrackReceive") > 0)
-            AdjustSelectedTrackReceiveOffset(amount);
-    }
-
-    void HandleSelectedTrackFXMenuBank(int amount)
-    {
-        if(receive_.count("SelectedTrackFXMenu") > 0)
-            AdjustSelectedTrackFXMenuOffset(amount);
-    }
-    
-    void HandleMasterTrackFXMenuBank(int amount)
-    {
-        if(receive_.count("MasterTrackFXMenu") > 0)
-            AdjustMasterTrackFXMenuOffset(amount);
-    }
-    
-    void AdjustTrackSendOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        trackSendOffset_ += amount;
-        
-        if(trackSendOffset_ < 0)
-            trackSendOffset_ = 0;
-    }
-
-    void AdjustTrackReceiveOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        trackReceiveOffset_ += amount;
-        
-        if(trackReceiveOffset_ < 0)
-            trackReceiveOffset_ = 0;
-    }
-    
-    void AdjustTrackFXMenuOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        trackFXMenuOffset_ += amount;
-        
-        if(trackFXMenuOffset_ < 0)
-            trackFXMenuOffset_ = 0;
-    }
-    
-    void AdjustSelectedTrackBank(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        selectedTrackOffset_ += amount;
-        
-        if(selectedTrackOffset_ < 0)
-            selectedTrackOffset_ = 0;
-    }
-    
-    void AdjustSelectedTrackSendOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        selectedTrackSendOffset_ += amount;
-        
-        if(selectedTrackSendOffset_ < 0)
-            selectedTrackSendOffset_ = 0;
-    }
-    
-    void AdjustSelectedTrackReceiveOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        selectedTrackReceiveOffset_ += amount;
-        
-        if(selectedTrackReceiveOffset_ < 0)
-            selectedTrackReceiveOffset_ = 0;
-    }
-    
-    void AdjustSelectedTrackFXMenuOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        selectedTrackFXMenuOffset_ += amount;
-        
-        if(selectedTrackFXMenuOffset_ < 0)
-            selectedTrackFXMenuOffset_ = 0;
-    }
-        
-    void AdjustMasterTrackFXMenuOffset(int amount)
-    {
-        // GAW TBD -- calc max and clamp
-        
-        masterTrackFXMenuOffset_ += amount;
-        
-        if(masterTrackFXMenuOffset_ < 0)
-            masterTrackFXMenuOffset_ = 0;
+        if(bankOffsets_.count(zoneName) > 0)
+        {
+            *bankOffsets_[zoneName] += amount;
+            
+            if(*bankOffsets_[zoneName] < 0)
+                *bankOffsets_[zoneName] = 0;
+        }
     }
         
     void AddWidget(Widget* widget)
     {
         usedWidgets_[widget] = false;
-    }
-
-    void SetBroadcast(ActionContext* context)
-    {
-        for(string param : context->GetZoneNames())
-            broadcast_[param] = param;
-    }
-
-    void SetReceive(ActionContext* context)
-    {
-        for(string param : context->GetZoneNames())
-            receive_[param] = param;
     }
 
     string GetName(string name)
@@ -1101,6 +1100,61 @@ public:
         }
     }
        
+    void UpdateCurrentActionContextModifiers()
+    {
+        if(focusedFXParamZone_ != nullptr)
+            focusedFXParamZone_->UpdateCurrentActionContextModifiers();
+        
+        for(auto zone : focusedFXZones_)
+            zone->UpdateCurrentActionContextModifiers();
+        
+        for(auto zone : selectedTrackFXZones_)
+            zone->UpdateCurrentActionContextModifiers();
+        
+        for(auto zone : fxSlotZones_)
+            zone->UpdateCurrentActionContextModifiers();
+        
+        if(homeZone_ != nullptr)
+            homeZone_->UpdateCurrentActionContextModifiers();
+    }
+
+    void RequestUpdate()
+    {
+        CheckFocusedFXState();
+            
+        for(auto &[key, value] : usedWidgets_)
+            value = false;
+        
+        if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+            focusedFXParamZone_->RequestUpdate(usedWidgets_);
+
+        for(auto zone : focusedFXZones_)
+            zone->RequestUpdate(usedWidgets_);
+        
+        for(auto zone : selectedTrackFXZones_)
+            zone->RequestUpdate(usedWidgets_);
+        
+        for(auto zone : fxSlotZones_)
+            zone->RequestUpdate(usedWidgets_);
+        
+        if(homeZone_ != nullptr)
+            homeZone_->RequestUpdate(usedWidgets_);
+        
+        // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
+        map<string, string> properties;
+        
+        for(auto &[key, value] : usedWidgets_)
+        {
+            if(value == false)
+            {
+                rgba_color color;
+                key->UpdateValue(properties, 0.0);
+                key->UpdateValue(properties, "");
+                key->UpdateColorValue(color);
+            }
+        }
+    }
+
     void DoAction(Widget* widget, double value)
     {
         widget->LogInput(value);
@@ -1568,7 +1622,6 @@ public:
 
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
-    virtual void ForceRefreshTimeDisplay() {}
     
     virtual void SendMidiMessage(MIDI_event_ex_t* midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
@@ -2154,7 +2207,6 @@ private:
     Navigator* const masterTrackNavigator_ = nullptr;
     Navigator* const selectedTrackNavigator_ = nullptr;
     Navigator* const focusedFXNavigator_ = nullptr;
-    Navigator* const defaultNavigator_ = nullptr;
     
     vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     
@@ -2196,8 +2248,7 @@ public:
     isScrollLinkEnabled_(isScrollLinkEnabled),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
-    focusedFXNavigator_(new FocusedFXNavigator(page_)),
-    defaultNavigator_(new Navigator(page_))
+    focusedFXNavigator_(new FocusedFXNavigator(page_))
     {}
     
     ~TrackNavigationManager()
@@ -2211,7 +2262,6 @@ public:
         delete masterTrackNavigator_;
         delete selectedTrackNavigator_;
         delete focusedFXNavigator_;
-        delete defaultNavigator_;
     }
     
     void RebuildTracks();
@@ -2224,7 +2274,6 @@ public:
     Navigator* GetMasterTrackNavigator() { return masterTrackNavigator_; }
     Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
     Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
-    Navigator* GetDefaultNavigator() { return defaultNavigator_; }
     
     bool GetIsTrackVisible(MediaTrack* track)
     {
@@ -2847,12 +2896,6 @@ public:
             surface->ForceUpdateTrackColors();
     }
 
-    void ForceRefreshTimeDisplay()
-    {
-        for(auto surface : surfaces_)
-            surface->ForceRefreshTimeDisplay();
-    }
-
     void AddSurface(ControlSurface* surface)
     {
         surfaces_.push_back(surface);
@@ -2930,88 +2973,37 @@ public:
             surface->HandleRecord();
     }
     
-    void SignalGoTrackFXSlot(ControlSurface* originatingSurface, MediaTrack* track, Navigator* navigator, int fxSlot)
+    void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
     {
         for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleGoTrackFXSlot(track, navigator, fxSlot);
+            surface->GetZoneManager()->GoTrackFXSlot(track, navigator, fxSlot);
     }
     
-    void SignalActivation(ControlSurface* originatingSurface, string zoneName)
+    void GoHome()
     {
         for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleActivation(zoneName);
+            surface->GetZoneManager()->GoHome();
     }
     
-    void SignalToggleEnableFocusedFXMapping(ControlSurface* originatingSurface)
+    void GoAssociatedZone(string zoneName)
     {
         for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleToggleEnableFocusedFXMapping();
+            surface->GetZoneManager()->GoAssociatedZone(zoneName);
     }
-
-    void SignalTrackSendBank(ControlSurface* originatingSurface, int amount)
+ 
+    void AdjustBank(string zoneName, int amount)
     {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleTrackSendBank(amount);
-    }
-    
-    void SignalTrackReceiveBank(ControlSurface* originatingSurface, int amount)
-    {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleTrackReceiveBank(amount);
+        if(zoneName == "Track")
+            trackNavigationManager_->AdjustTrackBank(amount);
+        else if(zoneName == "VCA")
+            trackNavigationManager_->AdjustVCABank(amount);
+        else if(zoneName == "Folder")
+            trackNavigationManager_->AdjustFolderBank(amount);
+        else
+            for(auto surface : surfaces_)
+                surface->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
-    void SignalTrackFXMenuBank(ControlSurface* originatingSurface, int amount)
-    {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleTrackFXMenuBank(amount);
-    }
-    
-    void SignalSelectedTrackSendBank(ControlSurface* originatingSurface, int amount)
-    {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleSelectedTrackSendBank(amount);
-    }
-    
-    void SignalSelectedTrackReceiveBank(ControlSurface* originatingSurface, int amount)
-    {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleSelectedTrackReceiveBank(amount);
-    }
-    
-    void SignalSelectedTrackFXMenuBank(ControlSurface* originatingSurface, int amount)
-    {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleSelectedTrackFXMenuBank(amount);
-    }
-   
-    void SignalMasterTrackFXMenuBank(ControlSurface* originatingSurface, int amount)
-    {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->HandleMasterTrackFXMenuBank(amount);
-    }
-   
-    void GoVCA()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoAssociatedZone("VCA");
-    }
-
-    void GoFolder()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoAssociatedZone("Folder");
-    }
-
     void AddZoneFilePath(ControlSurface* originatingSurface, string zoneFolder, string name, struct CSIZoneInfo info)
     {
         for(auto surface : surfaces_)
@@ -3028,10 +3020,6 @@ public:
     Navigator* GetMasterTrackNavigator() { return trackNavigationManager_->GetMasterTrackNavigator(); }
     Navigator* GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
     Navigator* GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
-    Navigator* GetDefaultNavigator() { return trackNavigationManager_->GetDefaultNavigator(); }
-    void AdjustTrackBank(int amount) { trackNavigationManager_->AdjustTrackBank(amount); }
-    void AdjustVCABank(int amount) { trackNavigationManager_->AdjustVCABank(amount); }
-    void AdjustFolderBank(int amount) { trackNavigationManager_->AdjustFolderBank(amount); }
     void VCAModeActivated() { trackNavigationManager_->VCAModeActivated(); }
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
@@ -3363,41 +3351,18 @@ public:
                     (*tmodeptr)=0;
             }
         }
-
-        if(pages_.size() > 0)
-            pages_[currentPageIndex_]->ForceRefreshTimeDisplay();
     }
     
-    void AdjustTrackBank(Page* sendingPage, int amount)
+    void AdjustBank(Page* sendingPage, string zoneName, int amount)
     {
         if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustTrackBank(amount);
+            sendingPage->AdjustBank(zoneName, amount);
         else
             for(auto page: pages_)
                 if(page->GetSynchPages())
-                    page->AdjustTrackBank(amount);
+                    page->AdjustBank(zoneName, amount);
     }
-        
-    void AdjustVCABank(Page* sendingPage, int amount)
-    {
-        if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustVCABank(amount);
-        else
-            for(auto page: pages_)
-                if(page->GetSynchPages())
-                    page->AdjustVCABank(amount);
-    }
-        
-    void AdjustFolderBank(Page* sendingPage, int amount)
-    {
-        if(! sendingPage->GetSynchPages())
-            sendingPage->AdjustFolderBank(amount);
-        else
-            for(auto page: pages_)
-                if(page->GetSynchPages())
-                    page->AdjustFolderBank(amount);
-    }
-        
+                
     void NextPage()
     {
         if(pages_.size() > 0)

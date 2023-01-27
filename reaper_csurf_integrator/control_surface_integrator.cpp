@@ -880,10 +880,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         widgetClass = tokens[2];
 
     Widget* widget = new Widget(surface, widgetName);
-    
-    if(tokens[0] == "EWidget")
-        widget->SetIsFXAutoMapEligible();
-    
+       
     surface->AddWidget(widget);
 
     vector<vector<string>> tokenLines;
@@ -900,7 +897,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         
         vector<string> tokens(GetTokens(line));
         
-        if(tokens[0] == "WidgetEnd" || tokens[0] == "EWidgetEnd")    // finito baybay - Widget list complete
+        if(tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
             break;
         
         tokenLines.push_back(tokens);
@@ -1137,7 +1134,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
         
         vector<string> tokens(GetTokens(line));
         
-        if(tokens[0] == "WidgetEnd" || tokens[0] == "EWidgetEnd")    // finito baybay - Widget list complete
+        if(tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
             break;
         
         tokenLines.push_back(tokens);
@@ -1246,7 +1243,7 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
                     ProcessValues(valueLines, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
             }
 
-            if(tokens.size() > 0 && (tokens[0] == "Widget" || tokens[0] == "EWidget"))
+            if(tokens.size() > 0 && (tokens[0] == "Widget"))
             {
                 if(filePath[filePath.length() - 3] == 'm')
                     ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
@@ -1298,10 +1295,8 @@ void Manager::InitActionsDictionary()
     actions_["CycleTimeline"] =                     new CycleTimeline();
     actions_["ToggleSynchPageBanking"] =            new ToggleSynchPageBanking();
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
-    actions_["GoVCA"] =                             new GoVCA();
     actions_["VCAModeActivated"] =                  new VCAModeActivated();
     actions_["VCAModeDeactivated"] =                new VCAModeDeactivated();
-    actions_["GoFolder"] =                          new GoFolder();
     actions_["FolderModeActivated"] =               new FolderModeActivated();
     actions_["FolderModeDeactivated"] =             new FolderModeDeactivated();
     actions_["GlobalModeDisplay"] =                 new GlobalModeDisplay();
@@ -1309,9 +1304,8 @@ void Manager::InitActionsDictionary()
     actions_["NextPage"] =                          new GoNextPage();
     actions_["GoPage"] =                            new GoPage();
     actions_["PageNameDisplay"] =                   new PageNameDisplay();
-    actions_["Broadcast"] =                         new Broadcast();
-    actions_["Receive"] =                           new Receive();
     actions_["GoHome"] =                            new GoHome();
+    actions_["AllSurfacesGoHome"] =                 new AllSurfacesGoHome();
     actions_["GoSubZone"] =                         new GoSubZone();
     actions_["LeaveSubZone"] =                      new LeaveSubZone();
     actions_["SetXTouchDisplayColors"] =            new SetXTouchDisplayColors();
@@ -1322,27 +1316,8 @@ void Manager::InitActionsDictionary()
     actions_["ToggleAutoFocusedFXMapping"] =        new ToggleAutoFocusedFXMapping();
     actions_["ToggleAutoFXMapping"] =               new ToggleAutoFXMapping();
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
-    actions_["GoMasterTrack"] =                     new GoMasterTrack();
-    actions_["GoTrackSend"] =                       new GoTrackSend();
-    actions_["GoTrackReceive"] =                    new GoTrackReceive();
-    actions_["GoTrackFXMenu"] =                     new GoTrackFXMenu();
-    actions_["GoSelectedTrack"] =                   new GoSelectedTrack();
-    actions_["GoSelectedTrackSend"] =               new GoSelectedTrackSend();
-    actions_["GoSelectedTrackReceive"] =            new GoSelectedTrackReceive();
-    actions_["GoSelectedTrackFXMenu"] =             new GoSelectedTrackFXMenu();
-    actions_["GoMasterTrackFXMenu"] =               new GoMasterTrackFXMenu();
-    actions_["GoSelectedTrackTCPFX"] =              new GoSelectedTrackTCPFX();
-    actions_["TrackBank"] =                         new TrackBank();
-    actions_["VCABank"] =                           new VCABank();
-    actions_["FolderBank"] =                        new FolderBank();
-    actions_["TrackSendBank"] =                     new TrackSendBank();
-    actions_["TrackReceiveBank"] =                  new TrackReceiveBank();
-    actions_["TrackFXMenuBank"] =                   new TrackFXMenuBank();
-    actions_["SelectedTrackBank"] =                 new SelectedTrackBank();
-    actions_["SelectedTrackSendBank"] =             new SelectedTrackSendBank();
-    actions_["SelectedTrackReceiveBank"] =          new SelectedTrackReceiveBank();
-    actions_["SelectedTrackFXMenuBank"] =           new SelectedTrackFXMenuBank();
-    actions_["MasterTrackFXMenuBank"] =             new MasterTrackFXMenuBank();
+    actions_["GoAssociatedZone"] =                  new GoAssociatedZone();
+    actions_["Bank"] =                              new Bank();
     actions_["Shift"] =                             new SetShift();
     actions_["Option"] =                            new SetOption();
     actions_["Control"] =                           new SetControl();
@@ -1803,6 +1778,12 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
         intParam_= atol(params[1].c_str());
     }
     
+    if(actionName == "Bank" && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 11 says empty strings can be queried without catastrophe :)
+    {
+        stringParam_ = params[1];
+        intParam_= atol(params[2].c_str());
+    }
+    
     // Action with param index, must be positive
     if(params.size() > 1 && isdigit(params[1][0]))  // C++ 11 says empty strings can be queried without catastrophe :)
     {
@@ -2103,38 +2084,6 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-int Zone::GetSlotIndex()
-{
-    if(name_ == "TrackSend")
-        return zoneManager_->GetTrackSendOffset();
-    if(name_ == "TrackReceive")
-        return zoneManager_->GetTrackReceiveOffset();
-    if(name_ == "TrackFXMenu")
-        return zoneManager_->GetTrackFXMenuOffset();
-    if(name_ == "SelectedTrack")
-        return slotIndex_ + zoneManager_->GetSelectedTrackOffset();
-    if(name_ == "SelectedTrackSend")
-        return slotIndex_ + zoneManager_->GetSelectedTrackSendOffset();
-    if(name_ == "SelectedTrackReceive")
-        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveOffset();
-    if(name_ == "SelectedTrackFXMenu")
-        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset();
-    if(name_ == "MasterTrackFXMenu")
-        return slotIndex_ + zoneManager_->GetMasterTrackFXMenuOffset();
-    else return slotIndex_;
-}
-
-int Zone::GetChannelNumber()
-{
-    int channelNumber = 0;
-    
-    for(auto [widget, isUsed] : widgets_)
-        if(channelNumber < widget->GetChannelNumber())
-            channelNumber = widget->GetChannelNumber();
-    
-    return channelNumber;
-}
-
 Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     if(name == "Home")
@@ -2228,6 +2177,38 @@ void Zone::InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone)
     }
 }
 
+int Zone::GetSlotIndex()
+{
+    if(name_ == "TrackSend")
+        return zoneManager_->GetTrackSendOffset();
+    if(name_ == "TrackReceive")
+        return zoneManager_->GetTrackReceiveOffset();
+    if(name_ == "TrackFXMenu")
+        return zoneManager_->GetTrackFXMenuOffset();
+    if(name_ == "SelectedTrack")
+        return slotIndex_ + zoneManager_->GetSelectedTrackOffset();
+    if(name_ == "SelectedTrackSend")
+        return slotIndex_ + zoneManager_->GetSelectedTrackSendOffset();
+    if(name_ == "SelectedTrackReceive")
+        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveOffset();
+    if(name_ == "SelectedTrackFXMenu")
+        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset();
+    if(name_ == "MasterTrackFXMenu")
+        return slotIndex_ + zoneManager_->GetMasterTrackFXMenuOffset();
+    else return slotIndex_;
+}
+
+int Zone::GetChannelNumber()
+{
+    int channelNumber = 0;
+    
+    for(auto [widget, isUsed] : widgets_)
+        if(channelNumber < widget->GetChannelNumber())
+            channelNumber = widget->GetChannelNumber();
+    
+    return channelNumber;
+}
+
 void Zone::GoAssociatedZone(string zoneName)
 {
     if(zoneName == "Track")
@@ -2258,6 +2239,56 @@ void Zone::GoAssociatedZone(string zoneName)
             zone->Activate();
 }
 
+void Zone::Activate()
+{
+    UpdateCurrentActionContextModifiers();
+    
+    for(auto [widget, isUsed] : widgets_)
+        if(widget->GetName() == "OnZoneActivation")
+            for(auto context : GetActionContexts(widget))
+                context->DoAction(1.0);
+
+    isActive_ = true;
+    
+    zoneManager_->GetSurface()->SendOSCMessage(GetName());
+       
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
+    
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
+    
+    for(auto zone : includedZones_)
+        zone->Activate();
+}
+
+void Zone::Deactivate()
+{
+    for(auto [widget, isUsed] : widgets_)
+        if(widget->GetName() == "OnZoneDeactivation")
+            for(auto context : GetActionContexts(widget))
+                context->DoAction(1.0);
+
+    isActive_ = false;
+    
+    for(auto zone : includedZones_)
+        zone->Deactivate();
+
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
+
+    for(auto [key, zones] : subZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
+    
+    for(auto [widget, isUsed] : widgets_)
+        widget->Clear();
+}
+
+
 void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
 {
     if(zoneName == "MasterTrack")
@@ -2285,137 +2316,6 @@ void Zone::RestoreXTouchDisplayColors()
 {
     for(auto [widget, isUsed] : widgets_)
         widget->RestoreXTouchDisplayColors();
-}
-
-void Zone::Activate()
-{
-    UpdateCurrentActionContextModifiers();
-    
-    for(auto [widget, isUsed] : widgets_)
-        if(widget->GetName() == "OnZoneActivation")
-            for(auto context : GetActionContexts(widget))
-                context->DoAction(1.0);
-
-    isActive_ = true;
-    
-    zoneManager_->GetSurface()->SendOSCMessage(GetName());
-       
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-    
-    for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-    
-    for(auto zone : includedZones_)
-        zone->Activate();
-}
-
-void Zone::GoTrack()
-{
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            if(zone->GetName() == "VCA" || zone->GetName() == "Folder")
-                zone->Deactivate();
-}
-
-void Zone::GoVCA()
-{
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            if(zone->GetName() == "Folder")
-                zone->Deactivate();
-        
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            if(zone->GetName() == "VCA")
-                zone->Activate();
-}
-
-void Zone::GoFolder()
-{
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            if(zone->GetName() == "VCA")
-                zone->Deactivate();
-    
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            if(zone->GetName() == "Folder")
-                zone->Activate();
-}
-
-void Zone::OnTrackDeselection()
-{
-    isActive_ = true;
-    
-    for(auto zone : includedZones_)
-        zone->Activate();
-   
-    for(auto [key, zones] : associatedZones_)
-        if(key == "SelectedTrack" || key == "SelectedTrackSend" || key == "SelectedTrackReceive" || key == "SelectedTrackFXMenu")
-            for(auto zone : zones)
-                zone->Deactivate();
-}
-
-void Zone::Deactivate()
-{
-    for(auto [widget, isUsed] : widgets_)
-        if(widget->GetName() == "OnZoneDeactivation")
-            for(auto context : GetActionContexts(widget))
-                context->DoAction(1.0);
-
-    isActive_ = false;
-    
-    for(auto zone : includedZones_)
-        zone->Deactivate();
-
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-
-    for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-    
-    for(auto [widget, isUsed] : widgets_)
-        widget->Clear();
-}
-
-void Zone::RequestUpdateWidget(Widget* widget)
-{
-    for(auto context : GetActionContexts(widget))
-    {
-        context->RunDeferredActions();
-        context->RequestUpdate();
-    }
-}
-
-void Zone::RequestUpdate(map<Widget*, bool> &usedWidgets)
-{
-    if(! isActive_)
-        return;
-  
-    for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->RequestUpdate(usedWidgets);
-    
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->RequestUpdate(usedWidgets);
-
-    for(auto zone : includedZones_)
-        zone->RequestUpdate(usedWidgets);
-    
-    for(auto [widget, value] : GetWidgets())
-    {
-        if(usedWidgets[widget] == false)
-        {
-            usedWidgets[widget] = true;
-            RequestUpdateWidget(widget);
-        }
-    }
 }
 
 void Zone::DoAction(Widget* widget, bool &isUsed, double value)
@@ -2452,96 +2352,6 @@ void Zone::DoAction(Widget* widget, bool &isUsed, double value)
     {
         for(auto zone : includedZones_)
             zone->DoAction(widget, isUsed, value);
-    }
-}
-   
-void Zone::DoRelativeAction(Widget* widget, bool &isUsed, double delta)
-{
-    if(! isActive_ || isUsed)
-        return;
-    
-    for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->DoRelativeAction(widget, isUsed, delta);
-
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->DoRelativeAction(widget, isUsed, delta);
-
-    if(isUsed)
-        return;
-
-    if(widgets_.count(widget) > 0)
-    {
-        isUsed = true;
-
-        for(auto context : GetActionContexts(widget))
-            context->DoRelativeAction(delta);
-    }
-    else
-    {
-        for(auto zone : includedZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
-    }
-}
-
-void Zone::DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
-{
-    if(! isActive_ || isUsed)
-        return;
-
-    for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-
-    if(isUsed)
-        return;
-
-    if(widgets_.count(widget) > 0)
-    {
-        isUsed = true;
-
-        for(auto context : GetActionContexts(widget))
-            context->DoRelativeAction(accelerationIndex, delta);
-    }
-    else
-    {
-        for(auto zone : includedZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    }
-}
-
-void Zone::DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
-{
-    if(! isActive_ || isUsed)
-        return;
-
-    for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->DoTouch(widget, widgetName, isUsed, value);
-    
-    for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->DoTouch(widget, widgetName, isUsed, value);
-
-    if(isUsed)
-        return;
-
-    if(widgets_.count(widget) > 0)
-    {
-        isUsed = true;
-
-        for(auto context : GetActionContexts(widget))
-            context->DoTouch(value);
-    }
-    else
-    {
-        for(auto zone : includedZones_)
-            zone->DoTouch(widget, widgetName, isUsed, value);
     }
 }
 
@@ -2801,61 +2611,6 @@ void ZoneManager::Initialize()
     GoHome();
 }
 
-void ZoneManager::UpdateCurrentActionContextModifiers()
-{
-    if(focusedFXParamZone_ != nullptr)
-        focusedFXParamZone_->UpdateCurrentActionContextModifiers();
-    
-    for(auto zone : focusedFXZones_)
-        zone->UpdateCurrentActionContextModifiers();
-    
-    for(auto zone : selectedTrackFXZones_)
-        zone->UpdateCurrentActionContextModifiers();
-    
-    for(auto zone : fxSlotZones_)
-        zone->UpdateCurrentActionContextModifiers();
-    
-    if(homeZone_ != nullptr)
-        homeZone_->UpdateCurrentActionContextModifiers();
-}
-
-void ZoneManager::RequestUpdate()
-{
-    CheckFocusedFXState();
-        
-    for(auto &[key, value] : usedWidgets_)
-        value = false;
-    
-    if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
-        focusedFXParamZone_->RequestUpdate(usedWidgets_);
-
-    for(auto zone : focusedFXZones_)
-        zone->RequestUpdate(usedWidgets_);
-    
-    for(auto zone : selectedTrackFXZones_)
-        zone->RequestUpdate(usedWidgets_);
-    
-    for(auto zone : fxSlotZones_)
-        zone->RequestUpdate(usedWidgets_);
-    
-    if(homeZone_ != nullptr)
-        homeZone_->RequestUpdate(usedWidgets_);
-    
-    // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
-    map<string, string> properties;
-    
-    for(auto &[key, value] : usedWidgets_)
-    {
-        if(value == false)
-        {
-            rgba_color color;
-            key->UpdateValue(properties, 0.0);
-            key->UpdateValue(properties, "");
-            key->UpdateColorValue(color);
-        }
-    }
-}
-
 void ZoneManager::GoFocusedFX()
 {
     focusedFXZones_.clear();
@@ -2920,16 +2675,6 @@ void ZoneManager::GoSelectedTrackFX()
 }
 
 void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
-{
-    if((navigator->GetName() == "TrackNavigator" && broadcast_.count("TrackFXMenu") > 0) ||
-       (navigator->GetName() == "SelectedTrackNavigator" && broadcast_.count("SelectedTrackFXMenu")) > 0 ||
-       (navigator->GetName() == "MasterTrackNavigator" && broadcast_.count("MasterTrackFXMenu")) > 0)
-        GetSurface()->GetPage()->SignalGoTrackFXSlot(GetSurface(), track, navigator, fxSlot);
-    
-    ActivateTrackFXSlot(track, navigator, fxSlot);
-}
-
-void ZoneManager::ActivateTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
 {
     char FXName[BUFSZ];
     
@@ -3105,131 +2850,6 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     return true;
 }
 
-void ZoneManager::HandleActivation(string zoneName)
-{
-    if(receive_.count(zoneName) > 0  && homeZone_ != nullptr)
-    {
-        ClearFXMapping();
-        ResetOffsets();
-        
-        if(zoneName == "Home")
-            homeZone_->Activate();
-        else
-            homeZone_->GoAssociatedZone(zoneName);
-    }
-}
-
-void ZoneManager::GoAssociatedZone(string associatedZoneName)
-{
-    if(homeZone_ != nullptr)
-    {
-        if(broadcast_.count(associatedZoneName) > 0)
-            GetSurface()->GetPage()->SignalActivation(GetSurface(), associatedZoneName);
-        
-        ClearFXMapping();
-        ResetOffsets();
-                
-        homeZone_->GoAssociatedZone(associatedZoneName);
-    }
-}
-
-void ZoneManager::GoHome()
-{   
-    string zoneName = "Home";
-    
-    if(broadcast_.count(zoneName) > 0)
-        GetSurface()->GetPage()->SignalActivation(GetSurface(), zoneName);
-    
-    ClearFXMapping();
-
-    if(homeZone_ != nullptr)
-    {
-        ResetOffsets();
-        homeZone_->Activate();
-    }
-}
-
-void ZoneManager::OnTrackSelection()
-{
-    fxSlotZones_.clear();
-}
-
-void ZoneManager::OnTrackDeselection()
-{
-    if(homeZone_ != nullptr)
-    {
-        ResetSelectedTrackOffsets();
-        
-        selectedTrackFXZones_.clear();
-        
-        homeZone_->OnTrackDeselection();
-    }
-}
-
-void ZoneManager::ToggleEnableFocusedFXMapping()
-{
-    if(broadcast_.count("ToggleEnableFocusedFXMapping") > 0)
-        GetSurface()->GetPage()->SignalToggleEnableFocusedFXMapping(GetSurface());
-    
-    ToggleEnableFocusedFXMappingImpl();
-}
-
-void ZoneManager::AdjustTrackSendBank(int amount)
-{
-    if(broadcast_.count("TrackSend") > 0)
-        GetSurface()->GetPage()->SignalTrackSendBank(GetSurface(), amount);
-    
-    AdjustTrackSendOffset(amount);
-}
-
-void ZoneManager::AdjustTrackReceiveBank(int amount)
-{
-    if(broadcast_.count("TrackReceive") > 0)
-        GetSurface()->GetPage()->SignalTrackReceiveBank(GetSurface(), amount);
-    
-    AdjustTrackReceiveOffset(amount);
-}
-
-void ZoneManager::AdjustTrackFXMenuBank(int amount)
-{
-    if(broadcast_.count("TrackFXMenu") > 0)
-        GetSurface()->GetPage()->SignalTrackFXMenuBank(GetSurface(), amount);
-    
-    AdjustTrackFXMenuOffset(amount);
-}
-
-void ZoneManager::AdjustSelectedTrackSendBank(int amount)
-{
-    if(broadcast_.count("SelectedTrackSend") > 0)
-        GetSurface()->GetPage()->SignalSelectedTrackSendBank(GetSurface(), amount);
-    
-    AdjustSelectedTrackSendOffset(amount);
-}
-
-void ZoneManager::AdjustSelectedTrackReceiveBank(int amount)
-{
-    if(broadcast_.count("SelectedTrackReceive") > 0)
-        GetSurface()->GetPage()->SignalSelectedTrackReceiveBank(GetSurface(), amount);
-    
-    AdjustTrackReceiveOffset(amount);
-}
-
-void ZoneManager::AdjustSelectedTrackFXMenuBank(int amount)
-{
-    if(broadcast_.count("SelectedTrackFXMenu") > 0)
-        GetSurface()->GetPage()->SignalSelectedTrackFXMenuBank(GetSurface(), amount);
-    
-    AdjustSelectedTrackFXMenuOffset(amount);
-}
-
-void ZoneManager::AdjustMasterTrackFXMenuBank(int amount)
-{
-    if(broadcast_.count("MasterTrackFXMenu") > 0)
-        GetSurface()->GetPage()->SignalMasterTrackFXMenuBank(GetSurface(), amount);
-    
-    AdjustMasterTrackFXMenuOffset(amount);
-}
-
 void ZoneManager::DoTouch(Widget* widget, double value)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value);
@@ -3266,7 +2886,6 @@ void ZoneManager::DoTouch(Widget* widget, double value)
 Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
 Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
 Navigator* ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
-Navigator* ZoneManager::GetDefaultNavigator() { return surface_->GetPage()->GetDefaultNavigator(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3631,7 +3250,6 @@ void Midi_ControlSurface::Initialize(string templateFilename, string zoneFolder)
     InitHardwiredWidgets();
     InitializeMeters();
     zoneManager_->Initialize();
-    GetPage()->ForceRefreshTimeDisplay();
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
@@ -3774,7 +3392,6 @@ void OSC_ControlSurface::Initialize(string templateFilename, string zoneFolder)
     ProcessWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, this);
     InitHardwiredWidgets();
     zoneManager_->Initialize();
-    GetPage()->ForceRefreshTimeDisplay();
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(string message, double value)

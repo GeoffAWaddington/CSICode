@@ -233,27 +233,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoVCA : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoVCA"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-        context->UpdateWidgetValue(context->GetPage()->GetIsVCAActive());
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetPage()->GoVCA();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class VCAModeActivated : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -280,27 +259,6 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         context->GetPage()->VCAModeDeactivated();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoFolder : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoFolder"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-        context->UpdateWidgetValue(context->GetPage()->GetIsFolderActive());
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetPage()->GoFolder();
     }
 };
 
@@ -445,6 +403,22 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AllSurfacesGoHome : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "AllSurfacesGoHome"; }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetPage()->GoHome();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class GoSubZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -503,7 +477,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->GoTrackFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
+            context->GetPage()->GoTrackFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
     }
 };
 
@@ -612,15 +586,15 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoMasterTrack : public Action
+class GoAssociatedZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoMasterTrack"; }
+    virtual string GetName() override { return "GoAssociatedZone"; }
     
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("MasterTrack"))
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive(context->GetStringParam()))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -631,232 +605,16 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("MasterTrack");
+        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetStringParam());
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoTrackSend : public Action
+class Bank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoTrackSend"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackSend"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TrackSend");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoTrackReceive : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoTrackReceive"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackReceive"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TrackReceive");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoTrackFXMenu : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoTrackFXMenu"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("TrackFXMenu"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("TrackFXMenu");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrack : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrack"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrack"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrack");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrackSend : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrackSend"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackSend"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackSend");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrackReceive : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrackReceive"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackReceive"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackReceive");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrackFXMenu : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrackFXMenu"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFXMenu"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackFXMenu");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoMasterTrackFXMenu : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoMasterTrackFXMenu"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("MasterTrackFXMenu"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("MasterTrackFXMenu");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrackTCPFX : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrackTCPFX"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackTCPFX"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone("SelectedTrackTCPFX");
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackBank"; }
+    virtual string GetName() override { return "TBank"; }
 
     virtual void RequestUpdate(ActionContext* context) override
     {
@@ -866,238 +624,9 @@ public:
     void Do(ActionContext* context, double value) override
     {
         if(value < 0 && context-> GetRangeMinimum() < 0)
-            TheManager->AdjustTrackBank(context->GetPage(), context->GetIntParam());
+            TheManager->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
         else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            TheManager->AdjustTrackBank(context->GetPage(), context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class VCABank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "VCABank"; }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            TheManager->AdjustVCABank(context->GetPage(), context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            TheManager->AdjustVCABank(context->GetPage(), context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FolderBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "FolderBank"; }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            TheManager->AdjustFolderBank(context->GetPage(), context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            TheManager->AdjustFolderBank(context->GetPage(), context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SelectedTrackBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* selectedTrack = context->GetSurface()->GetPage()->GetSelectedTrack())
-        {
-            int trackNum = context->GetSurface()->GetPage()->GetIdFromTrack(selectedTrack);
-            
-            trackNum += context->GetIntParam();
-            
-            if(trackNum < 1)
-                trackNum = 1;
-            
-            if(trackNum > context->GetPage()->GetNumTracks())
-                trackNum = context->GetPage()->GetNumTracks();
-            
-            if(MediaTrack* trackToSelect = context->GetPage()->GetTrackFromId(trackNum))
-            {
-                DAW::SetOnlyTrackSelected(trackToSelect);
-                if(context->GetPage()->GetScrollLink())
-                    DAW::SetMixerScroll(trackToSelect);
-                context->GetSurface()->OnTrackSelection(trackToSelect);
-            }
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackSendBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SelectedTrackSendBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackSendBank(context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackReceiveBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SelectedTrackReceiveBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackReceiveBank(context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackFXMenuBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SelectedTrackFXMenuBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustSelectedTrackFXMenuBank(context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class MasterTrackFXMenuBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "MasterTrackFXMenuBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustMasterTrackFXMenuBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustMasterTrackFXMenuBank(context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackSendBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackSendBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustTrackSendBank(context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackReceiveBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackReceiveBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustTrackReceiveBank(context->GetIntParam());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackFXMenuBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackFXMenuBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
-            context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
-            context->GetSurface()->GetZoneManager()->AdjustTrackFXMenuBank(context->GetIntParam());
-        
+            TheManager->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
     }
 };
 
@@ -1361,43 +890,6 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         context->GetSurface()->ToggleChannel(context->GetWidget()->GetChannelNumber());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Broadcast  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "Broadcast"; }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        context->GetSurface()->GetZoneManager()->SetBroadcast(context);
-    }
-    
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Receive  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "Receive"; }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        context->GetSurface()->GetZoneManager()->SetReceive(context);
     }
 };
 
