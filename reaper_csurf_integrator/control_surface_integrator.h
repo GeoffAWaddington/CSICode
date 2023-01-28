@@ -850,7 +850,6 @@ private:
     int trackSendOffset_ = 0;
     int trackReceiveOffset_ = 0;
     int trackFXMenuOffset_ = 0;
-    int selectedTrackOffset_ = 0;
     int selectedTrackSendOffset_ = 0;
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
@@ -861,7 +860,6 @@ private:
         { "TrackSend",               &trackSendOffset_ },
         { "TrackReceive",            &trackReceiveOffset_ },
         { "TrackFXMenu",             &trackFXMenuOffset_ },
-        { "SelectedTrack",           &selectedTrackOffset_ },
         { "SelectedTrackSend",       &selectedTrackSendOffset_ },
         { "SelectedTrackReceive",    &selectedTrackReceiveOffset_ },
         { "SelectedTrackFXMenu",     &selectedTrackFXMenuOffset_ },
@@ -869,13 +867,13 @@ private:
     };
     
     bool EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
-    
+    void SelectedTrackBank(int amount);
+
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
         trackReceiveOffset_ = 0;
         trackFXMenuOffset_ = 0;
-        selectedTrackOffset_ = 0;
         selectedTrackSendOffset_ = 0;
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
@@ -884,7 +882,6 @@ private:
     
     void ResetSelectedTrackOffsets()
     {
-        selectedTrackOffset_ = 0;
         selectedTrackSendOffset_ = 0;
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
@@ -918,7 +915,6 @@ public:
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
     int GetTrackFXMenuOffset() { return trackFXMenuOffset_; }
-    int GetSelectedTrackOffset() { return selectedTrackOffset_; }
     int GetSelectedTrackSendOffset() { return selectedTrackSendOffset_; }
     int GetSelectedTrackReceiveOffset() { return selectedTrackReceiveOffset_; }
     int GetSelectedTrackFXMenuOffset() { return selectedTrackFXMenuOffset_; }
@@ -1032,6 +1028,8 @@ public:
            
     void AdjustBank(string zoneName, int amount)
     {
+        if(zoneName == "SelectedTrack")
+            SelectedTrackBank(amount);
         if(bankOffsets_.count(zoneName) > 0)
         {
             *bankOffsets_[zoneName] += amount;
@@ -1040,7 +1038,7 @@ public:
                 *bankOffsets_[zoneName] = 0;
         }
     }
-        
+            
     void AddWidget(Widget* widget)
     {
         usedWidgets_[widget] = false;

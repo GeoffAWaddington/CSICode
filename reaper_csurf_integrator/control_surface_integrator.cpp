@@ -2186,7 +2186,7 @@ int Zone::GetSlotIndex()
     if(name_ == "TrackFXMenu")
         return zoneManager_->GetTrackFXMenuOffset();
     if(name_ == "SelectedTrack")
-        return slotIndex_ + zoneManager_->GetSelectedTrackOffset() + zoneManager_->GetSurface()->GetChannelOffset();
+        return slotIndex_;
     if(name_ == "SelectedTrackSend")
         return slotIndex_ + zoneManager_->GetSelectedTrackSendOffset() + zoneManager_->GetSurface()->GetChannelOffset();
     if(name_ == "SelectedTrackReceive")
@@ -2720,6 +2720,30 @@ void ZoneManager::PreProcessZones()
                   
         for(auto zoneFilename : zoneFilesToProcess)
             PreProcessZoneFile(zoneFilename, this);
+    }
+}
+
+void ZoneManager::SelectedTrackBank(int amount)
+{
+    if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
+    {
+        int trackNum = surface_->GetPage()->GetIdFromTrack(selectedTrack);
+        
+        trackNum += amount;
+        
+        if(trackNum < 1)
+            trackNum = 1;
+        
+        if(trackNum > surface_->GetPage()->GetNumTracks())
+            trackNum = surface_->GetPage()->GetNumTracks();
+        
+        if(MediaTrack* trackToSelect = surface_->GetPage()->GetTrackFromId(trackNum))
+        {
+            DAW::SetOnlyTrackSelected(trackToSelect);
+            if(surface_->GetPage()->GetScrollLink())
+                DAW::SetMixerScroll(trackToSelect);
+            surface_->OnTrackSelection(trackToSelect);
+        }
     }
 }
 
