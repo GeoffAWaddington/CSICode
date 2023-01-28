@@ -2186,13 +2186,13 @@ int Zone::GetSlotIndex()
     if(name_ == "TrackFXMenu")
         return zoneManager_->GetTrackFXMenuOffset();
     if(name_ == "SelectedTrack")
-        return slotIndex_ + zoneManager_->GetSelectedTrackOffset();
+        return slotIndex_ + zoneManager_->GetSelectedTrackOffset() + zoneManager_->GetSurface()->GetChannelOffset();
     if(name_ == "SelectedTrackSend")
-        return slotIndex_ + zoneManager_->GetSelectedTrackSendOffset();
+        return slotIndex_ + zoneManager_->GetSelectedTrackSendOffset() + zoneManager_->GetSurface()->GetChannelOffset();
     if(name_ == "SelectedTrackReceive")
-        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveOffset();
+        return slotIndex_ + zoneManager_->GetSelectedTrackReceiveOffset() + zoneManager_->GetSurface()->GetChannelOffset();
     if(name_ == "SelectedTrackFXMenu")
-        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset();
+        return slotIndex_ + zoneManager_->GetSelectedTrackFXMenuOffset() + zoneManager_->GetSurface()->GetChannelOffset();
     if(name_ == "MasterTrackFXMenu")
         return slotIndex_ + zoneManager_->GetMasterTrackFXMenuOffset();
     else return slotIndex_;
