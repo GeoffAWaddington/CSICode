@@ -2621,8 +2621,12 @@ void ZoneManager::GoFocusedFX()
     MediaTrack* focusedTrack = nullptr;
     
     if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    {
         if(trackNumber > 0)
             focusedTrack = DAW::GetTrack(trackNumber);
+        else if(trackNumber == 0)
+            focusedTrack = GetMasterTrackNavigator()->GetTrack();
+    }
     
     if(focusedTrack)
     {
