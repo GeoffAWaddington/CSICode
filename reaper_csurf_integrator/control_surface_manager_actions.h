@@ -605,7 +605,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetStringParam());
+        context->GetPage()->GoAssociatedZone(context->GetStringParam());
     }
 };
 
