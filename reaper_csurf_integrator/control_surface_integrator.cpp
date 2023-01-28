@@ -2604,8 +2604,8 @@ void ZoneManager::Initialize()
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FXTemplates") > 0)
         ProcessFXTemplates(zoneFilePaths_["FXTemplates"].filePath, fxTemplates_);
-    if(zoneFilePaths_.count("FXPreamble") > 0)
-        ProcessFXBoilerplate(zoneFilePaths_["FXPreamble"].filePath, fxPreamble_);
+    if(zoneFilePaths_.count("FXPrologue") > 0)
+        ProcessFXBoilerplate(zoneFilePaths_["FXPrologue"].filePath, fxPrologue_);
     if(zoneFilePaths_.count("FXEpilogue") > 0)
         ProcessFXBoilerplate(zoneFilePaths_["FXEpilogue"].filePath, fxEpilogue_);
     GoHome();
@@ -2796,7 +2796,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     {
         fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"" + GetLineEnding();
         
-        for(auto line : fxPreamble_)
+        for(auto line : fxPrologue_)
             fxZone << "\t" + line + GetLineEnding();
         
         fxZone << GetLineEnding();

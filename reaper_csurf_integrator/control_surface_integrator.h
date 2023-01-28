@@ -832,7 +832,7 @@ private:
     bool isAutoFXMappingEnabled_ = true;
     
     vector<CSITemplateInfo> fxTemplates_;
-    vector<string> fxPreamble_;
+    vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
