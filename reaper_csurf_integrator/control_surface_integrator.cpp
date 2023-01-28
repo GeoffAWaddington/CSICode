@@ -2634,7 +2634,8 @@ void ZoneManager::GoFocusedFX()
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
         if(isAutoFocusedFXMappingEnabled_)
-            EnsureZoneAvailable(FXName, focusedTrack, fxSlot);
+            if( ! EnsureZoneAvailable(FXName, focusedTrack, fxSlot))
+                return;
 
         if(zoneFilePaths_.count(FXName) > 0)
         {
