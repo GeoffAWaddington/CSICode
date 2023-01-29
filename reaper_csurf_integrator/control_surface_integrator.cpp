@@ -289,61 +289,73 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ExpandFXLayout(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void ExpandFXLayout(ZoneManager* zoneManager, vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
 {
-    if(tokens.size() < 7)
+    if(tokens.size() < 6)
         return;
     
-    shared_ptr<ActionTemplate> controlTemplate = make_shared<ActionTemplate>();
-    string controlName = tokens[0] + "+" + tokens[1] + tokens[2] + tokens[3];
-    GetWidgetNameAndModifiers(controlName, controlTemplate);
-    if(tokens[5] == "-1")
-        controlTemplate->actionName = "NoAction";
-    else
-        controlTemplate->actionName = "FXParam";
-    vector<string> controlParams;
-    controlParams.push_back(controlTemplate->actionName);
-    controlParams.push_back(tokens[5]);
-    controlTemplate->params = controlParams;
-    controlTemplate->provideFeedback = true;
-    actionTemplatesDictionary[controlTemplate->widgetName][controlTemplate->modifier].push_back(controlTemplate);
-
-    shared_ptr<ActionTemplate> displayUpperTemplate = make_shared<ActionTemplate>();
-    string displayUpperName = tokens[0] + "+" + "DisplayUpper" + tokens[2] + tokens[3];
-    GetWidgetNameAndModifiers(displayUpperName, displayUpperTemplate);
-    displayUpperTemplate->actionName = "FixedTextDisplay";
-    vector<string> displayUpperParams;
-    displayUpperParams.push_back(displayUpperTemplate->actionName);
-    displayUpperParams.push_back(tokens[6]);
-    displayUpperTemplate->params = displayUpperParams;
-    displayUpperTemplate->provideFeedback = true;
-    actionTemplatesDictionary[displayUpperTemplate->widgetName][displayUpperTemplate->modifier].push_back(displayUpperTemplate);
-
-    shared_ptr<ActionTemplate> displayLowerTemplate = make_shared<ActionTemplate>();
-    string displayLowerName = tokens[0] + "+" + "DisplayLower" + tokens[2] + tokens[3];
-    GetWidgetNameAndModifiers(displayLowerName, displayLowerTemplate);
-    if(tokens[5] == "-1")
-        displayLowerTemplate->actionName = "NoAction";
-    else
-        displayLowerTemplate->actionName = "FXParamValueDisplay";
-    vector<string> displayLowerParams;
-    displayLowerParams.push_back(displayLowerTemplate->actionName);
-    displayLowerParams.push_back(tokens[5]);
-    displayLowerTemplate->params = displayLowerParams;
-    displayLowerTemplate->provideFeedback = true;
-    actionTemplatesDictionary[displayLowerTemplate->widgetName][displayLowerTemplate->modifier].push_back(displayLowerTemplate);
-
-    string rotaryPushName = "RotaryPush" + tokens[2] + tokens[3];
+    istringstream layoutAndModifiers(tokens[0]);
+    vector<string> prefixTokens;
+    string prefixToken;
     
-    if(tokens[1] == "Rotary" && actionTemplatesDictionary.count(rotaryPushName) < 1)
+    while (getline(layoutAndModifiers, prefixToken, '+'))
+        prefixTokens.push_back(prefixToken);
+
+    for(auto [widget, action] : zoneManager->GetSurfaceFXLayout(prefixTokens[0]))
     {
-        shared_ptr<ActionTemplate> rotaryPushTemplate = make_shared<ActionTemplate>();
-        GetWidgetNameAndModifiers(rotaryPushName, rotaryPushTemplate);
-        rotaryPushTemplate->actionName = "ToggleChannel";
-        vector<string> rotaryPushParams;
-        rotaryPushParams.push_back(rotaryPushTemplate->actionName);
-        rotaryPushTemplate->params = rotaryPushParams;
-        actionTemplatesDictionary[rotaryPushTemplate->widgetName][rotaryPushTemplate->modifier].push_back(rotaryPushTemplate);
+        shared_ptr<ActionTemplate> actionTemplate = make_shared<ActionTemplate>();
+        string widgetName = tokens[0] + "+" + widget + tokens[1] + tokens[2];
+        GetWidgetNameAndModifiers(widgetName, actionTemplate);
+        if(tokens[4] == "-1")
+            actionTemplate->actionName = "NoAction";
+        else
+            actionTemplate->actionName = action;
+        vector<string> params;
+        params.push_back(actionTemplate->actionName);
+        if(action == "FixedTextDisplay")
+            params.push_back(tokens[5]);
+        else
+            params.push_back(tokens[4]);
+        actionTemplate->params = params;
+        actionTemplate->provideFeedback = true;
+        actionTemplatesDictionary[actionTemplate->widgetName][actionTemplate->modifier].push_back(actionTemplate);
+    }
+}
+
+static void ProcessSurfaceFXLayout(string filePath, map<string, map<string, string>> &surfaceFXLayout)
+{
+    try
+    {
+        ifstream file(filePath);
+        
+        string layoutName = "";
+        
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        
+            vector<string> tokens = GetTokens(line);
+            
+            if(tokens.size() == 3 && tokens[0] == "Zone")
+                layoutName = tokens[2];
+            else if(tokens.size() == 2 && layoutName != "")
+                surfaceFXLayout[layoutName][tokens[0]] = tokens[1];
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        DAW::ShowConsoleMsg(buffer);
     }
 }
 
@@ -372,18 +384,15 @@ static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
                 
                 CSILayoutInfo info;
                 
-                if(tokens.size() > 1)
-                {
+                if(tokens.size() > 0)
                     info.prefix = tokens[0];
-                    info.name =  tokens[1];
-                }
-    
-                if(tokens.size() == 3)
-                    info.channelCount = atoi(tokens[2].c_str());
-                else if(tokens.size() == 4)
+
+                if(tokens.size() == 2)
+                    info.channelCount = atoi(tokens[1].c_str());
+                else if(tokens.size() == 3)
                 {
-                    info.suffix = tokens[2];
-                    info.channelCount = atoi(tokens[3].c_str());
+                    info.suffix = tokens[1];
+                    info.channelCount = atoi(tokens[2].c_str());
                 }
 
                 fxLayouts.push_back(info);
@@ -699,7 +708,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                     associatedZones.push_back(tokens[0]);
                 
                 else if(tokens[0].find("FXLayout") != string::npos)
-                    ExpandFXLayout(tokens, actionTemplatesDictionary);
+                    ExpandFXLayout(zoneManager, tokens, actionTemplatesDictionary);
                 
                 else if(tokens.size() > 1)
                     BuildActionTemplate(tokens, actionTemplatesDictionary);
@@ -2605,6 +2614,8 @@ void ZoneManager::Initialize()
     ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
+    if(zoneFilePaths_.count("SurfaceFXLayout") > 0)
+        ProcessSurfaceFXLayout(zoneFilePaths_["SurfaceFXLayout"].filePath, surfaceFXLayout_);
     if(zoneFilePaths_.count("FXLayouts") > 0)
         ProcessFXLayouts(zoneFilePaths_["FXLayouts"].filePath, fxLayouts_);
     if(zoneFilePaths_.count("FXPrologue") > 0)
@@ -2814,7 +2825,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
              
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableChannels; i++)
         {
-            fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " " + fxLayouts_[layoutIndex].name + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(channelIndex++) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(channelIndex++) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
             
             if(channelIndex > fxLayouts_[layoutIndex].channelCount)
             {
@@ -2831,7 +2842,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         if(channelIndex != 1 && channelIndex <= fxLayouts_[layoutIndex].channelCount)
         {
             for(int i = channelIndex; i <= fxLayouts_[layoutIndex].channelCount; i++)
-                fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " " + fxLayouts_[layoutIndex].name + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
+                fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
             
             layoutIndex++;
         }
@@ -2839,7 +2850,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         // GAW --pad the remaining rows
         for(int i = layoutIndex; i < fxLayouts_.size(); i++)
             for(int j = 1; j <= fxLayouts_[layoutIndex].channelCount; j++)
-                fxZone << "\t" + fxLayouts_[i].prefix + " " + fxLayouts_[i].name + " \"" + fxLayouts_[i].suffix + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
+                fxZone << "\t" + fxLayouts_[i].prefix + " \"" + fxLayouts_[i].suffix + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
 
         if(fxEpilogue_.size() > 0)
             fxZone << GetLineEnding();

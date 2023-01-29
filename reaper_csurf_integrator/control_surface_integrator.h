@@ -808,7 +808,6 @@ struct CSILayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string prefix = "";
-    string name = "";
     string suffix = "";
     int channelCount = 0;
 };
@@ -831,6 +830,7 @@ private:
     bool isAutoFocusedFXMappingEnabled_ = true;
     bool isAutoFXMappingEnabled_ = true;
     
+    map<string, map<string, string>> surfaceFXLayout_;
     vector<CSILayoutInfo> fxLayouts_;
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
@@ -935,6 +935,16 @@ public:
             return false;
     }
 
+    map<string, string> GetSurfaceFXLayout(string surfaceFXLayout)
+    {
+        map<string, string> emptyLayout;
+        
+        if(surfaceFXLayout_.count(surfaceFXLayout) > 0)
+            return surfaceFXLayout_[surfaceFXLayout];
+        else
+            return emptyLayout;
+    }
+    
     void GoAssociatedZone(string zoneName)
     {
         if(homeZone_ != nullptr)
