@@ -867,7 +867,6 @@ private:
     };
     
     bool EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
-    void SelectedTrackBank(int amount);
 
     void ResetOffsets()
     {
@@ -1028,8 +1027,6 @@ public:
            
     void AdjustBank(string zoneName, int amount)
     {
-        if(zoneName == "SelectedTrack")
-            SelectedTrackBank(amount);
         if(bankOffsets_.count(zoneName) > 0)
         {
             *bankOffsets_[zoneName] += amount;
