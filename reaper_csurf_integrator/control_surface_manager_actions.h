@@ -631,45 +631,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SelectedTrackBank : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SelectedTrackBank"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateColorValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* selectedTrack = context->GetSurface()->GetPage()->GetSelectedTrack())
-        {
-            int trackNum = context->GetSurface()->GetPage()->GetIdFromTrack(selectedTrack);
-            
-            trackNum += context->GetIntParam();
-            
-            if(trackNum < 1)
-                trackNum = 1;
-            
-            if(trackNum > context->GetPage()->GetNumTracks())
-                trackNum = context->GetPage()->GetNumTracks();
-            
-            if(MediaTrack* trackToSelect = context->GetPage()->GetTrackFromId(trackNum))
-            {
-                DAW::SetOnlyTrackSelected(trackToSelect);
-                if(context->GetPage()->GetScrollLink())
-                    DAW::SetMixerScroll(trackToSelect);
-                context->GetSurface()->OnTrackSelection(trackToSelect);
-            }
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SetShift : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

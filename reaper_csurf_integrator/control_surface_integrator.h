@@ -2262,6 +2262,7 @@ public:
     }
     
     void RebuildTracks();
+    void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
     int  GetCurrentTrackVCAFolderMode() { return currentTrackVCAFolderMode_; }
@@ -3012,6 +3013,8 @@ public:
             trackNavigationManager_->AdjustVCABank(amount);
         else if(zoneName == "Folder")
             trackNavigationManager_->AdjustFolderBank(amount);
+        else if(zoneName == "SelectedTrack")
+            trackNavigationManager_->AdjustSelectedTrackBank(amount);
         else
             for(auto surface : surfaces_)
                 surface->GetZoneManager()->AdjustBank(zoneName, amount);

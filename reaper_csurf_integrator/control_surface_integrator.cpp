@@ -1318,7 +1318,6 @@ void Manager::InitActionsDictionary()
     actions_["GoSelectedTrackFX"] =                 new GoSelectedTrackFX();
     actions_["GoAssociatedZone"] =                  new GoAssociatedZone();
     actions_["Bank"] =                              new Bank();
-    actions_["SelectedTrackBank"] =                 new SelectedTrackBank();
     actions_["Shift"] =                             new SetShift();
     actions_["Option"] =                            new SetOption();
     actions_["Control"] =                           new SetControl();
@@ -2959,6 +2958,31 @@ void TrackNavigationManager::RebuildTracks()
     
     if(tracks_.size() != oldTracksSize)
         page_->ForceUpdateTrackColors();
+}
+
+void TrackNavigationManager::AdjustSelectedTrackBank(int amount)
+{
+    if(MediaTrack* selectedTrack = GetSelectedTrack())
+    {
+        int trackNum = GetIdFromTrack(selectedTrack);
+        
+        trackNum += amount;
+        
+        if(trackNum < 1)
+            trackNum = 1;
+        
+        if(trackNum > GetNumTracks())
+            trackNum = GetNumTracks();
+        
+        if(MediaTrack* trackToSelect = GetTrackFromId(trackNum))
+        {
+            DAW::SetOnlyTrackSelected(trackToSelect);
+            if(GetScrollLink())
+                DAW::SetMixerScroll(trackToSelect);
+
+            page_->OnTrackSelection(trackToSelect);
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
