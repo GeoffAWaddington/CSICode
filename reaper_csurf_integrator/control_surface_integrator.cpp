@@ -289,7 +289,7 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ExpandMCULayout(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void ExpandFXLayout(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
 {
     if(tokens.size() < 7)
         return;
@@ -698,8 +698,8 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(isInAssociatedZonesSection)
                     associatedZones.push_back(tokens[0]);
                 
-                else if(tokens[0].find("MCULayout") != string::npos)
-                    ExpandMCULayout(tokens, actionTemplatesDictionary);
+                else if(tokens[0].find("FXLayout") != string::npos)
+                    ExpandFXLayout(tokens, actionTemplatesDictionary);
                 
                 else if(tokens.size() > 1)
                     BuildActionTemplate(tokens, actionTemplatesDictionary);
