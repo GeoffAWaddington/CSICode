@@ -1343,6 +1343,20 @@ private:
         Zoom,
         Scrub
     };
+    
+    vector<string> modifierNames_ =
+    {
+        "Shift",
+        "Option",
+        "Control",
+        "Alt",
+        "Flip",
+        "Global",
+        "Marker",
+        "Nudge",
+        "Zoom",
+        "Scrub"
+    };
 
     vector<Modifier> modifiers_;
     vector<int> modifierCombinations_;
@@ -1365,6 +1379,8 @@ private:
         
         return combinations;
     }
+
+    void SetLatchModifier(bool value, Modifiers modifier);
 
 public:
     ModifierManager()
@@ -1481,24 +1497,6 @@ public:
         SetLatchModifier(value, Scrub);
     }
     
-    void SetLatchModifier(bool value, Modifiers modifier)
-    {
-        if(value && modifiers_[modifier].isEngaged == false)
-        {
-            modifiers_[modifier].isEngaged = value;
-            modifiers_[modifier].pressedTime = DAW::GetCurrentNumberOfMilliseconds();
-        }
-        else
-        {
-            double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
-            
-            if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
-                modifiers_[modifier].isEngaged = value;
-        }
-        
-        RecalculateModifiers();
-    }
-
     void ClearModifiers()
     {
         for(auto &modifier : modifiers_)

@@ -2945,6 +2945,31 @@ void ModifierManager::RecalculateModifiers()
         page_->UpdateCurrentActionContextModifiers();
 }
 
+void ModifierManager::SetLatchModifier(bool value, Modifiers modifier)
+{
+    if(value && modifiers_[modifier].isEngaged == false)
+    {
+        modifiers_[modifier].isEngaged = value;
+        modifiers_[modifier].pressedTime = DAW::GetCurrentNumberOfMilliseconds();
+    }
+    else
+    {
+        double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
+        
+        if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
+        {
+            if(value == 0 && modifiers_[modifier].isEngaged)
+                TheManager->Speak(modifierNames_[modifier] + " Unlatched");
+
+            modifiers_[modifier].isEngaged = value;
+        }
+        else
+            TheManager->Speak(modifierNames_[modifier] + " Latched");
+    }
+    
+    RecalculateModifiers();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TrackNavigationManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
