@@ -289,7 +289,7 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ExpandMCUTemplate(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void ExpandMCULayout(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
 {
     if(tokens.size() < 7)
         return;
@@ -347,7 +347,7 @@ static void ExpandMCUTemplate(vector<string> tokens, map<string, map<int, vector
     }
 }
 
-static void ProcessFXTemplates(string filePath, vector<CSITemplateInfo> &fxTemplates)
+static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
 {
     try
     {
@@ -370,7 +370,7 @@ static void ProcessFXTemplates(string filePath, vector<CSITemplateInfo> &fxTempl
             {
                 vector<string> tokens = GetTokens(line);
                 
-                CSITemplateInfo info;
+                CSILayoutInfo info;
                 
                 if(tokens.size() > 1)
                 {
@@ -386,7 +386,7 @@ static void ProcessFXTemplates(string filePath, vector<CSITemplateInfo> &fxTempl
                     info.channelCount = atoi(tokens[3].c_str());
                 }
 
-                fxTemplates.push_back(info);
+                fxLayouts.push_back(info);
             }
         }
     }
@@ -698,8 +698,8 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                 else if(isInAssociatedZonesSection)
                     associatedZones.push_back(tokens[0]);
                 
-                else if(tokens[0].find("MCUTemplate") != string::npos)
-                    ExpandMCUTemplate(tokens, actionTemplatesDictionary);
+                else if(tokens[0].find("MCULayout") != string::npos)
+                    ExpandMCULayout(tokens, actionTemplatesDictionary);
                 
                 else if(tokens.size() > 1)
                     BuildActionTemplate(tokens, actionTemplatesDictionary);
@@ -2606,8 +2606,8 @@ void ZoneManager::Initialize()
     ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
-    if(zoneFilePaths_.count("FXTemplates") > 0)
-        ProcessFXTemplates(zoneFilePaths_["FXTemplates"].filePath, fxTemplates_);
+    if(zoneFilePaths_.count("FXLayouts") > 0)
+        ProcessFXLayouts(zoneFilePaths_["FXLayouts"].filePath, fxLayouts_);
     if(zoneFilePaths_.count("FXPrologue") > 0)
         ProcessFXBoilerplate(zoneFilePaths_["FXPrologue"].filePath, fxPrologue_);
     if(zoneFilePaths_.count("FXEpilogue") > 0)
@@ -2788,12 +2788,12 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     info.filePath = path;
     info.alias = alias;
     
-    if(fxTemplates_.size() == 0)
+    if(fxLayouts_.size() == 0)
         return false;
 
     int totalAvailableChannels = 0;
     
-    for(auto info : fxTemplates_)
+    for(auto info : fxLayouts_)
         totalAvailableChannels += info.channelCount;
         
     AddZoneFilePath(fxName, info);
@@ -2810,37 +2810,37 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         
         fxZone << GetLineEnding();
         
-        int templateIndex = 0;
+        int layoutIndex = 0;
         int channelIndex = 1;
              
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableChannels; i++)
         {
-            fxZone << "\t" + fxTemplates_[templateIndex].prefix + " " + fxTemplates_[templateIndex].name + " \"" + fxTemplates_[templateIndex].suffix + "\" " + to_string(channelIndex++) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " " + fxLayouts_[layoutIndex].name + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(channelIndex++) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
             
-            if(channelIndex > fxTemplates_[templateIndex].channelCount)
+            if(channelIndex > fxLayouts_[layoutIndex].channelCount)
             {
                 channelIndex = 1;
                 
-                if(templateIndex < fxTemplates_.size() - 1)
-                    templateIndex++;
+                if(layoutIndex < fxLayouts_.size() - 1)
+                    layoutIndex++;
                 else
                     break;
             }
         }
         
         // GAW -- pad partial rows
-        if(channelIndex != 1 && channelIndex <= fxTemplates_[templateIndex].channelCount)
+        if(channelIndex != 1 && channelIndex <= fxLayouts_[layoutIndex].channelCount)
         {
-            for(int i = channelIndex; i <= fxTemplates_[templateIndex].channelCount; i++)
-                fxZone << "\t" + fxTemplates_[templateIndex].prefix + " " + fxTemplates_[templateIndex].name + " \"" + fxTemplates_[templateIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
+            for(int i = channelIndex; i <= fxLayouts_[layoutIndex].channelCount; i++)
+                fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " " + fxLayouts_[layoutIndex].name + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
             
-            templateIndex++;
+            layoutIndex++;
         }
         
         // GAW --pad the remaining rows
-        for(int i = templateIndex; i < fxTemplates_.size(); i++)
-            for(int j = 1; j <= fxTemplates_[templateIndex].channelCount; j++)
-                fxZone << "\t" + fxTemplates_[i].prefix + " " + fxTemplates_[i].name + " \"" + fxTemplates_[i].suffix + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
+        for(int i = layoutIndex; i < fxLayouts_.size(); i++)
+            for(int j = 1; j <= fxLayouts_[layoutIndex].channelCount; j++)
+                fxZone << "\t" + fxLayouts_[i].prefix + " " + fxLayouts_[i].name + " \"" + fxLayouts_[i].suffix + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
 
         if(fxEpilogue_.size() > 0)
             fxZone << GetLineEnding();

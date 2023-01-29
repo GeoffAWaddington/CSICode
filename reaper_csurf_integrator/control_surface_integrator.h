@@ -804,7 +804,7 @@ struct CSIZoneInfo
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct CSITemplateInfo
+struct CSILayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string prefix = "";
@@ -831,7 +831,7 @@ private:
     bool isAutoFocusedFXMappingEnabled_ = true;
     bool isAutoFXMappingEnabled_ = true;
     
-    vector<CSITemplateInfo> fxTemplates_;
+    vector<CSILayoutInfo> fxLayouts_;
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     

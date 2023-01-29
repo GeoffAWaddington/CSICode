@@ -623,9 +623,9 @@ public:
     
     void Do(ActionContext* context, double value) override
     {
-        if(value < 0 && context-> GetRangeMinimum() < 0)
+        if(value < 0 && context->GetRangeMinimum() < 0)
             TheManager->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
-        else if(value > 0 && context-> GetRangeMinimum() >= 0)
+        else if(value > 0 && context->GetRangeMinimum() >= 0)
             TheManager->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
     }
 };
