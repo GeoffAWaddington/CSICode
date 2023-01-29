@@ -102,6 +102,23 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
             TheManager->TrackFXListChanged((MediaTrack*)parm1);
     }
         
+    if(call == CSURF_EXT_SETMIXERSCROLL)
+    {
+        if(TheManager)
+        {
+            MediaTrack* leftPtr = (MediaTrack*)parm1;
+            
+            int offset = DAW::CSurf_TrackToID(leftPtr, true);
+            
+            offset--;
+            
+            if(offset < 0)
+                offset = 0;
+                
+            TheManager->SetTrackOffset(offset);
+        }
+    }
+        
     return 1;
 }
 
@@ -201,6 +218,7 @@ struct PageLine
     bool followMCP = true;
     bool synchPages = true;
     bool isScrollLinkEnabled = false;
+    bool scrollSynch = false;
     vector<shared_ptr<PageSurfaceLine>> surfaces;
 };
 
@@ -218,6 +236,7 @@ static int pageIndex = 0;
 static bool followMCP = false;
 static bool synchPages = true;
 static bool isScrollLinkEnabled = false;
+static bool scrollSynch = false;
 
 static char pageSurfaceName[BUFSZ];
 static int numChannels = 0;
@@ -249,9 +268,13 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
             if(editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_PageName, name);
-                CheckDlgButton(hwndDlg, IDC_CHECK_FollowTCP, ! followMCP);
+                
+                CheckDlgButton(hwndDlg, IDC_RADIO_TCP, ! followMCP);
+                CheckDlgButton(hwndDlg, IDC_RADIO_MCP, followMCP);
+
                 CheckDlgButton(hwndDlg, IDC_CHECK_SynchPages, synchPages);
-                CheckDlgButton(hwndDlg, IDC_CHECK_ScrollLInk, isScrollLinkEnabled);
+                CheckDlgButton(hwndDlg, IDC_CHECK_ScrollLink, isScrollLinkEnabled);
+                CheckDlgButton(hwndDlg, IDC_CHECK_ScrollSynch, scrollSynch);
             }
         }
             break;
@@ -265,9 +288,14 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                     {
                         GetDlgItemText(hwndDlg, IDC_EDIT_PageName , name, sizeof(name));
                         
-                        followMCP = ! IsDlgButtonChecked(hwndDlg, IDC_CHECK_FollowTCP);
+                        if(IsDlgButtonChecked(hwndDlg, IDC_RADIO_TCP))
+                           followMCP = false;
+                        else if(IsDlgButtonChecked(hwndDlg, IDC_RADIO_MCP))
+                           followMCP = true;
+                        
                         synchPages = IsDlgButtonChecked(hwndDlg, IDC_CHECK_SynchPages);
-                        isScrollLinkEnabled = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollLInk);
+                        isScrollLinkEnabled = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollLink);
+                        scrollSynch = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollSynch);
                         
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -842,6 +870,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 page->followMCP = followMCP;
                                 page->synchPages = synchPages;
                                 page->isScrollLinkEnabled = isScrollLinkEnabled;
+                                page->scrollSynch = scrollSynch;
 
                                 pages.push_back(page);
                                 AddListEntry(hwndDlg, name, IDC_LIST_Pages);
@@ -924,6 +953,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 followMCP = pages[index]->followMCP;
                                 synchPages = pages[index]->synchPages;
                                 isScrollLinkEnabled = pages[index]->isScrollLinkEnabled;
+                                scrollSynch = pages[index]->scrollSynch;
                                 
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                                 if(dlgResult == IDOK)
@@ -932,6 +962,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     pages[index]->followMCP = followMCP;
                                     pages[index]->synchPages = synchPages;
                                     pages[index]->isScrollLinkEnabled = isScrollLinkEnabled;
+                                    pages[index]->scrollSynch = scrollSynch;
 
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
                                     for(auto page :  pages)
@@ -1102,9 +1133,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     }
                     else if(tokens[0] == PageToken && tokens.size() > 1)
                     {
+                        bool followMCP = true;
                         bool synchPages = true;
                         bool isScrollLinkEnabled = false;
-                        bool followMCP = true;
+                        bool scrollSynch = false;
 
                         for(int i = 2; i < tokens.size(); i++)
                         {
@@ -1114,14 +1146,17 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 synchPages = false;
                             else if(tokens[i] == "UseScrollLink")
                                 isScrollLinkEnabled = true;
+                            else if(tokens[i] == "UseScrollSynch")
+                                scrollSynch = true;
                         }
 
                         shared_ptr<PageLine> page = make_shared<PageLine>();
                         page->name = tokens[1];
+                        page->followMCP = followMCP;
                         page->synchPages = synchPages;
                         page->isScrollLinkEnabled = isScrollLinkEnabled;
-                        page->followMCP = followMCP;
-
+                        page->scrollSynch = scrollSynch;
+ 
                         pages.push_back(page);
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
@@ -1210,7 +1245,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     
                     if(page->isScrollLinkEnabled == true)
                         line += " UseScrollLink";
-                                        
+                    
+                    if(page->scrollSynch == true)
+                        line += " UseScrollSynch";
+
                     line += GetLineEnding();
                     
                     iniFile << line;

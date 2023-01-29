@@ -2182,6 +2182,7 @@ private:
     bool followMCP_ = true;
     bool synchPages_ = true;
     bool isScrollLinkEnabled_ = false;
+    bool isScrollSynchEnabled_ = false;
     int currentTrackVCAFolderMode_ = 0;
     int targetScrollLinkChannel_ = 0;
     int trackOffset_ = 0;
@@ -2239,11 +2240,12 @@ private:
     }
     
 public:
-    TrackNavigationManager(Page* page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) :
+    TrackNavigationManager(Page* page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) :
     page_(page),
     followMCP_(followMCP),
     synchPages_(synchPages),
     isScrollLinkEnabled_(isScrollLinkEnabled),
+    isScrollSynchEnabled_(isScrollSynchEnabled),
     masterTrackNavigator_(new MasterTrackNavigator(page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
     focusedFXNavigator_(new FocusedFXNavigator(page_))
@@ -2404,6 +2406,12 @@ public:
         return selectedTracks_;
     }
 
+    void SetTrackOffset(int trackOffset)
+    {
+        if(isScrollSynchEnabled_)
+            trackOffset_ = trackOffset;
+    }
+    
     void AdjustTrackBank(int amount)
     {
         if(currentTrackVCAFolderMode_ != 0)
@@ -2423,6 +2431,16 @@ public:
         
         if(trackOffset_ >  top)
             trackOffset_ = top;
+        
+        if(isScrollSynchEnabled_)
+        {
+            int offset = trackOffset_;
+            
+            offset++;
+            
+            if(MediaTrack* leftmostTrack = DAW::GetTrack(offset))
+                DAW::SetMixerScroll(leftmostTrack);
+        }
     }
     
     void AdjustVCABank(int amount)
@@ -2855,7 +2873,7 @@ private:
     vector<ControlSurface*> surfaces_;
     
 public:
-    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled)), modifierManager_(new ModifierManager(this)) {}
+    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled)), modifierManager_(new ModifierManager(this)) {}
     
     ~Page()
     {
@@ -2867,12 +2885,12 @@ public:
     }
     
     string GetName() { return name_; }
-
+    
     ModifierManager* GetModifierManager() { return modifierManager_; }
     
     void UpdateCurrentActionContextModifiers()
     {
-         for(auto surface : surfaces_)
+        for(auto surface : surfaces_)
             surface->UpdateCurrentActionContextModifiers();
     }
     
@@ -2893,7 +2911,7 @@ public:
         for(auto surface : surfaces_)
             surface->ForceUpdateTrackColors();
     }
-
+    
     void AddSurface(ControlSurface* surface)
     {
         surfaces_.push_back(surface);
@@ -2924,13 +2942,13 @@ public:
         for(auto surface : surfaces_)
             surface->OnTrackSelection(track);
     }
-
+    
     void TrackFXListChanged(MediaTrack* track)
     {
         for(auto surface : surfaces_)
             surface->TrackFXListChanged(track);
     }
-
+    
     void EnterPage()
     {
         trackNavigationManager_->EnterPage();
@@ -2988,7 +3006,7 @@ public:
         for(auto surface : surfaces_)
             surface->GetZoneManager()->GoAssociatedZone(zoneName);
     }
- 
+    
     void AdjustBank(string zoneName, int amount)
     {
         if(zoneName == "Track")
@@ -3034,6 +3052,7 @@ public:
     void ToggleFolderSpill(MediaTrack* track) { trackNavigationManager_->ToggleFolderSpill(track); }
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
     void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
+    void SetTrackOffset(int offset) { trackNavigationManager_->SetTrackOffset(offset); }
     MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
     void NextInputMonitorMode(MediaTrack* track) { trackNavigationManager_->NextInputMonitorMode(track); }
     string GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
@@ -3351,6 +3370,12 @@ public:
         }
     }
     
+    void SetTrackOffset(int offset)
+    {
+        if(pages_.size() > 0)
+            pages_[currentPageIndex_]->SetTrackOffset(offset);
+    }
+    
     void AdjustBank(Page* sendingPage, string zoneName, int amount)
     {
         if(! sendingPage->GetSynchPages())
@@ -3360,7 +3385,7 @@ public:
                 if(page->GetSynchPages())
                     page->AdjustBank(zoneName, amount);
     }
-                
+       
     void NextPage()
     {
         if(pages_.size() > 0)

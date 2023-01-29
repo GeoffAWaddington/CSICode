@@ -1604,7 +1604,8 @@ void Manager::Init()
                     bool followMCP = true;
                     bool synchPages = true;
                     bool isScrollLinkEnabled = false;
-                    
+                    bool isScrollSynchEnabled = false;
+
                     currentPage = nullptr;
                     
                     if(tokens.size() > 1)
@@ -1619,10 +1620,12 @@ void Manager::Init()
                                     synchPages = false;
                                 else if(tokens[i] == "UseScrollLink")
                                     isScrollLinkEnabled = true;
+                                else if(tokens[i] == "UseScrollSynch")
+                                    isScrollSynchEnabled = true;
                             }
                         }
                             
-                        currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled);
+                        currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.push_back(currentPage);
                     }
                 }
