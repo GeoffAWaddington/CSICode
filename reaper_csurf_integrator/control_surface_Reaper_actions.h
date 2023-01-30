@@ -2391,7 +2391,7 @@ public:
             }
             else
             {
-                inputDisplay = "Mono" + to_string(input + 1);
+                inputDisplay = "Mno " + to_string(input + 1);
             }
 
             context->UpdateWidgetValue(inputDisplay);
