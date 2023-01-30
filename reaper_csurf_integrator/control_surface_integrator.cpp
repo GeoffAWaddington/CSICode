@@ -2959,12 +2959,12 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier)
         if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
         {
             if(value == 0 && modifiers_[modifier].isEngaged)
-                TheManager->Speak(modifierNames_[modifier] + " Unlatched");
+                TheManager->Speak(modifierNames_[modifier] + " Unlock");
 
             modifiers_[modifier].isEngaged = value;
         }
         else
-            TheManager->Speak(modifierNames_[modifier] + " Latched");
+            TheManager->Speak(modifierNames_[modifier] + " Lock");
     }
     
     RecalculateModifiers();
