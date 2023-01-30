@@ -1368,6 +1368,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackPanAutoRight"] =                 new TrackPanAutoRight();
     actions_["TrackNameDisplay"] =                  new TrackNameDisplay();
     actions_["TrackNumberDisplay"] =                new TrackNumberDisplay();
+    actions_["TrackRecordInputDisplay"] =           new TrackRecordInputDisplay();
     actions_["TrackVolumeDisplay"] =                new TrackVolumeDisplay();
     actions_["TrackPanDisplay"] =                   new TrackPanDisplay();
     actions_["TrackPanWidthDisplay"] =              new TrackPanWidthDisplay();

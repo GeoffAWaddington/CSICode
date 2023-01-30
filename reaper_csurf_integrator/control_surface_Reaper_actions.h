@@ -2346,6 +2346,62 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackRecordInputDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackRecordInputDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            /*
+            // I_RECINPUT : int * : record input, <0=no input.
+            if 4096 set, input is MIDI and low 5 bits represent channel (0=all, 1-16=only chan), next 6 bits represent physical input (63=all, 62=VKB).
+            If 4096 is not set, low 10 bits (0..1023) are input start channel (ReaRoute/Loopback start at 512).
+            If 2048 is set, input is multichannel input (using track channel count).
+            If 1024 is set, input is stereo input, otherwise input is mono.
+            */
+            
+            string inputDisplay = "";
+            
+            int input = DAW::GetMediaTrackInfo_Value(track, "I_RECINPUT");
+
+            if(input < 0)
+                inputDisplay = "None";
+            else if(input & 4096)
+            {
+                int channel = input & 0x1f;
+                
+                if(channel == 0)
+                    inputDisplay = "MD All";
+                else
+                    inputDisplay = "MD " + to_string(channel);
+            }
+            else if(input & 2048)
+            {
+                inputDisplay = "Multi";
+            }
+            else if(input & 1024)
+            {
+                int channels = input ^ 1024;
+                
+                inputDisplay = to_string(channels + 1) + "+" + to_string(channels + 2);
+            }
+            else
+            {
+                inputDisplay = "Mono" + to_string(input + 1);
+            }
+
+            context->UpdateWidgetValue(inputDisplay);
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackVolumeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
