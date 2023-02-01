@@ -37,6 +37,72 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class JSFXParam : public FXAction
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "JSFXParam"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double min, max = 0.0;
+            
+            double value =  DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
+            
+            double range = max - min;
+            
+            if(min < 0)
+                value += fabs(min);
+
+            return value / range;
+        }
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double currentValue = GetCurrentNormalizedValue(context);
+            
+            context->UpdateWidgetValue(currentValue);
+        }
+        else
+            context->ClearWidget();
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double min, max = 0.0;
+            
+            DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
+            
+            double range = max - min;
+            
+            DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value * range + min);
+        }
+    }
+    
+    virtual void Touch(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double min, max = 0;
+            
+            if(value == 0)
+                DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
+            else
+                DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TCPFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

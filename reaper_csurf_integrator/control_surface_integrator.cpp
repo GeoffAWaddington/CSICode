@@ -303,6 +303,9 @@ static void ExpandFXLayout(ZoneManager* zoneManager, vector<string> tokens, map<
 
     for(auto [widget, action] : zoneManager->GetSurfaceFXLayout(prefixTokens[0]))
     {
+        if(action == "FXParam" && tokens[3] == "JSFXParam")
+            action = "JSFXParam";
+        
         shared_ptr<ActionTemplate> actionTemplate = make_shared<ActionTemplate>();
         string widgetName = tokens[0] + "+" + widget + tokens[1] + tokens[2];
         GetWidgetNameAndModifiers(widgetName, actionTemplate);
@@ -788,7 +791,7 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(Widget* widget, Action* action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -857,7 +860,7 @@ void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<s
         acceleratedDeltaValues = widget->GetAccelerationValues();
     
     if(steppedValues.size() == 0)
-        TheManager->GetSteppedValues(zoneName, paramNumber, steppedValues);
+        TheManager->GetSteppedValues(zone->GetName(), paramNumber, steppedValues);
     
     if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
     {
@@ -870,6 +873,16 @@ void GetSteppedValues(Widget* widget, string zoneName, int paramNumber, vector<s
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }
+    }
+    
+    if(action->GetName() == "JSFXParam" && rangeMinimum == 0.0 && rangeMaximum == 1.0)
+    {
+        double min, max = 0.0;
+        
+        DAW::TrackFX_GetParam(zone->GetNavigator()->GetTrack(), zone->GetSlotIndex(), paramNumber, &min, &max);
+        
+        rangeMinimum = min;
+        rangeMaximum = max;
     }
 }
 
@@ -1381,6 +1394,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeterMaxPeakLR"] =         new TrackOutputMeterMaxPeakLR();
     actions_["FocusedFXParam"] =                    new FocusedFXParam();
     actions_["FXParam"] =                           new FXParam();
+    actions_["JSFXParam"] =                         new JSFXParam();
     actions_["TCPFXParam"] =                        new TCPFXParam();
     actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
@@ -1861,7 +1875,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
     if(params.size() > 0)
         SetColor(params, supportsColor_, supportsTrackColor_, colorValues_);
     
-    GetSteppedValues(widget, GetZone()->GetName(), paramIndex_, params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
+    GetSteppedValues(widget, action_, zone_, paramIndex_, params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
 
     if(acceleratedTickValues_.size() < 1)
         acceleratedTickValues_.push_back(10);
@@ -2661,11 +2675,15 @@ void ZoneManager::GoFocusedFX()
             
             for(auto zone :focusedFXZones_)
             {
+                zone->SetXTouchDisplayColors("White");
                 zone->SetSlotIndex(fxSlot);
                 zone->Activate();
             }
         }
     }
+    else
+        for(auto zone :focusedFXZones_)
+            zone->RestoreXTouchDisplayColors();
 }
 
 void ZoneManager::GoSelectedTrackFX()
@@ -2782,6 +2800,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         "CLAPi: ",
     };
     
+    string paramAction = " FXParam ";
+    
+    if(fxName.find("JS:") != string::npos)
+        paramAction = " JSFXParam ";
+    
     string alias = fxName;
     
     for(auto prefix : prefixes)
@@ -2826,7 +2849,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
              
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableChannels; i++)
         {
-            fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(channelIndex++) + " FXParam " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(channelIndex++) + paramAction + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
             
             if(channelIndex > fxLayouts_[layoutIndex].channelCount)
             {
@@ -2843,7 +2866,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         if(channelIndex != 1 && channelIndex <= fxLayouts_[layoutIndex].channelCount)
         {
             for(int i = channelIndex; i <= fxLayouts_[layoutIndex].channelCount; i++)
-                fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(i) + " FXParam " + "-1 \"\"" + GetLineEnding();
+                fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(i) + paramAction + "-1 \"\"" + GetLineEnding();
             
             layoutIndex++;
         }
@@ -2851,7 +2874,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         // GAW --pad the remaining rows
         for(int i = layoutIndex; i < fxLayouts_.size(); i++)
             for(int j = 1; j <= fxLayouts_[layoutIndex].channelCount; j++)
-                fxZone << "\t" + fxLayouts_[i].prefix + " \"" + fxLayouts_[i].suffix + "\" " + to_string(j) + " FXParam " + "-1 \"\"" + GetLineEnding();
+                fxZone << "\t" + fxLayouts_[i].prefix + " \"" + fxLayouts_[i].suffix + "\" " + to_string(j) + paramAction + "-1 \"\"" + GetLineEnding();
 
         if(fxEpilogue_.size() > 0)
             fxZone << GetLineEnding();
