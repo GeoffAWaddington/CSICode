@@ -138,7 +138,7 @@ BEGIN
     LTEXT           "Number of Channels",-1,39,33,67,8,WS_TABSTOP
     EDITTEXT        IDC_EDIT_NumChannels,13,31,19,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,107,164,50,14
-    LTEXT           "Channel Start Postion",-1,39,52,69,8,WS_TABSTOP
+    LTEXT           "Channel Start Position",-1,39,52,69,8,WS_TABSTOP
     EDITTEXT        IDC_EDIT_ChannelOffset,13,50,19,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_COMBO_FXZoneTemplates,63,143,148,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "FXZone Folder",-1,14,145,46,8

@@ -883,6 +883,27 @@ void GetSteppedValues(Widget* widget, Action* action,  shared_ptr<Zone> zone, in
         
         rangeMinimum = min;
         rangeMaximum = max;
+        
+        double step = 0.0;
+        double smallstep = 0.0;
+        double largestep = 0.0;
+        bool isToggle = false;
+        if(steppedValues.size() == 0 && DAW::TrackFX_GetParameterStepSizes(zone->GetNavigator()->GetTrack(), zone->GetSlotIndex(), paramNumber, &step, &smallstep, &largestep, &isToggle))
+        {
+            if(step != 0.0)
+            {
+                int numSteps = (rangeMaximum - rangeMinimum) / step;
+
+                if(numSteps < 100)
+                {
+                    for(int i = 0; i <= numSteps; i++)
+                    {
+                        steppedValues.push_back(rangeMinimum + i * step);
+                        acceleratedTickValues.push_back(1);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1848,7 +1869,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
         }
     }
         
-    if(actionName == "FXParam" && params.size() > 1 && isdigit(params[1][0])) // C++ 11 says empty strings can be queried without catastrophe :)
+    if((actionName == "FXParam" || actionName == "JSFXParam") && params.size() > 1 && isdigit(params[1][0])) // C++ 11 says empty strings can be queried without catastrophe :)
     {
         paramIndex_ = atol(params[1].c_str());
     }
@@ -1866,7 +1887,7 @@ ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zo
                fxParamDisplayName_ = params[2];
     }
     
-    if(params.size() > 1 && (actionName == "Broadcast" || actionName == "Receive" || actionName == "Activate" || actionName == "Deactivate" || actionName == "ToggleActivation"))
+    if(params.size() > 1 && (actionName == "Activate" || actionName == "Deactivate" || actionName == "ToggleActivation"))
     {
         for(int i = 1; i < params.size(); i++)
             zoneNames_.push_back(params[i]);
@@ -1951,6 +1972,12 @@ void ActionContext::UpdateWidgetValue(double value)
     
     if(supportsTrackColor_)
         UpdateTrackColor();
+}
+
+void ActionContext::UpdateJSFXWidgetSteppedValue(double value)
+{
+    if(steppedValues_.size() > 0)
+        SetSteppedValueIndex(value);
 }
 
 void ActionContext::UpdateTrackColor()

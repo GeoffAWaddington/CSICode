@@ -319,6 +319,14 @@ public:
         }
     }
     
+    static bool TrackFX_GetParameterStepSizes(MediaTrack* track, int fx, int param, double* stepOut, double* smallstepOut, double* largestepOut, bool* istoggleOut)
+    {
+        if(ValidateTrackPtr(track))
+            return ::TrackFX_GetParameterStepSizes(track, fx, param, stepOut, smallstepOut, largestepOut, istoggleOut);
+        else
+            return false;
+    }
+
     static double TrackFX_GetParam(MediaTrack* track, int fx, int param, double* minvalOut, double* maxvalOut)
     {
         if(ValidateTrackPtr(track))

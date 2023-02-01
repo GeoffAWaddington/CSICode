@@ -61,14 +61,16 @@ public:
         else
             return 0.0;
     }
-
+   
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            double currentValue = GetCurrentNormalizedValue(context);
-            
-            context->UpdateWidgetValue(currentValue);
+            double min, max = 0.0;
+
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+            if(context->GetNumberOfSteppedValues() > 0)
+                context->UpdateJSFXWidgetSteppedValue(DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
         }
         else
             context->ClearWidget();
@@ -78,13 +80,19 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            double min, max = 0.0;
-            
-            DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
-            
-            double range = max - min;
-            
-            DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value * range + min);
+            if(context->GetNumberOfSteppedValues() > 0)
+                DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value);
+
+            else
+            {
+                double min, max = 0.0;
+                
+                DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
+                
+                double range = max - min;
+                
+                DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value * range + min);
+            }
         }
     }
     

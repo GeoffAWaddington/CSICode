@@ -322,6 +322,7 @@ public:
     void RunDeferredActions();
     void ClearWidget();
     void UpdateWidgetValue(double value);
+    void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateWidgetValue(string value);
     void UpdateColorValue(double value);
 
