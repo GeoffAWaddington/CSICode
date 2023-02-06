@@ -1931,8 +1931,24 @@ void ActionContext::RunDeferredActions()
 {
     if(holdDelayAmount_ != 0.0 && delayStartTime_ != 0.0 && DAW::GetCurrentNumberOfMilliseconds() > (delayStartTime_ + holdDelayAmount_))
     {
-        DoRangeBoundAction(deferredValue_);
-        
+        if(steppedValues_.size() > 0)
+        {
+            if(deferredValue_ != 0.0) // ignore release messages
+            {
+                if(steppedValuesIndex_ == steppedValues_.size() - 1)
+                {
+                    if(steppedValues_[0] < steppedValues_[steppedValuesIndex_]) // GAW -- only wrap if 1st value is lower
+                        steppedValuesIndex_ = 0;
+                }
+                else
+                    steppedValuesIndex_++;
+                
+                DoRangeBoundAction(steppedValues_[steppedValuesIndex_]);
+            }
+        }
+        else
+            DoRangeBoundAction(deferredValue_);
+
         delayStartTime_ = 0.0;
         deferredValue_ = 0.0;
     }
