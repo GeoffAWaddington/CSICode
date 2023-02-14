@@ -1338,10 +1338,6 @@ void Manager::InitActionsDictionary()
     actions_["CycleTimeline"] =                     new CycleTimeline();
     actions_["ToggleSynchPageBanking"] =            new ToggleSynchPageBanking();
     actions_["ToggleScrollLink"] =                  new ToggleScrollLink();
-    actions_["VCAModeActivated"] =                  new VCAModeActivated();
-    actions_["VCAModeDeactivated"] =                new VCAModeDeactivated();
-    actions_["FolderModeActivated"] =               new FolderModeActivated();
-    actions_["FolderModeDeactivated"] =             new FolderModeDeactivated();
     actions_["GlobalModeDisplay"] =                 new GlobalModeDisplay();
     actions_["CycleTimeDisplayModes"] =             new CycleTimeDisplayModes();
     actions_["NextPage"] =                          new GoNextPage();
@@ -2168,53 +2164,6 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
                 associatedZones_[zoneName] = vector<shared_ptr<Zone>>();
                 
                 ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName], nullptr);
-            
-                // GAW -- all of this to ensure VCA and Folder Zones can have radio button behaviour :)
-                
-                Widget* onZoneActivation = nullptr;
-                Widget* onZoneDeactivation = nullptr;
-
-                if(zoneName == "VCA" || zoneName == "Folder")
-                {
-                    onZoneActivation = zoneManager->GetSurface()->GetWidgetByName("OnZoneActivation");
-                    onZoneDeactivation = zoneManager->GetSurface()->GetWidgetByName("OnZoneDeactivation");
-                    
-                    for(auto zone : associatedZones_[zoneName])
-                    {
-                        if(zoneName == "VCA")
-                        {
-                            if(onZoneActivation != nullptr)
-                            {
-                                zone->AddWidget(onZoneActivation, onZoneActivation->GetName());
-                                shared_ptr<ActionContext> context = TheManager->GetActionContext("VCAModeActivated", onZoneActivation, zone, "");
-                                zone->AddActionContext(onZoneActivation, 0, context);
-                            }
-                            if(onZoneDeactivation != nullptr)
-                            {
-                                zone->AddWidget(onZoneDeactivation, onZoneDeactivation->GetName());
-                                shared_ptr<ActionContext> context = TheManager->GetActionContext("VCAModeDeactivated", onZoneDeactivation, zone, "");
-                                zone->AddActionContext(onZoneDeactivation, 0, context);
-                            }
-                        }
-                        else if(zoneName == "Folder")
-                        {
-                            if(onZoneActivation != nullptr)
-                            {
-                                zone->AddWidget(onZoneActivation, onZoneActivation->GetName());
-                                shared_ptr<ActionContext> context = TheManager->GetActionContext("FolderModeActivated", onZoneActivation, zone, "");
-                                zone->AddActionContext(onZoneActivation, 0, context);
-                            }
-                            if(onZoneDeactivation != nullptr)
-                            {
-                                zone->AddWidget(onZoneDeactivation, onZoneDeactivation->GetName());
-                                shared_ptr<ActionContext> context = TheManager->GetActionContext("FolderModeDeactivated", onZoneDeactivation, zone, "");
-                                zone->AddActionContext(onZoneDeactivation, 0, context);
-                            }
-                        }
-                    }
-                }
-                
-                // GAW -- all this to ensure VCA and Folder Zones can have radio button behaviour :)
             }
         }
     }
@@ -2320,6 +2269,11 @@ void Zone::Activate()
 
     isActive_ = true;
     
+    if(GetName() == "VCA")
+        zoneManager_->GetSurface()->GetPage()->VCAModeActivated();
+    else if(GetName() == "Folder")
+        zoneManager_->GetSurface()->GetPage()->FolderModeActivated();
+
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
        
     for(auto [key, zones] : associatedZones_)
@@ -2343,6 +2297,11 @@ void Zone::Deactivate()
 
     isActive_ = false;
     
+    if(GetName() == "VCA")
+        zoneManager_->GetSurface()->GetPage()->VCAModeDeactivated();
+    else if(GetName() == "Folder")
+        zoneManager_->GetSurface()->GetPage()->FolderModeDeactivated();
+
     for(auto zone : includedZones_)
         zone->Deactivate();
 
