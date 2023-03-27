@@ -177,6 +177,7 @@ struct ActionTemplate
     int modifier = 0;
     string actionName = "";
     vector<string> params;
+    bool isValueInverted = false;
     bool isFeedbackInverted = false;
     double holdDelayAmount = 0.0;
     bool isDecrease = false;
@@ -238,7 +239,8 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
             else if(tokens[i] == "Scrub")
                 modifierManager.SetScrub(true);
             
-            
+            else if(tokens[i] == "Invert")
+                actionTemplate->isValueInverted = true;
             else if(tokens[i] == "InvertFB")
                 actionTemplate->isFeedbackInverted = true;
             else if(tokens[i] == "Hold")
@@ -654,6 +656,9 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                                     shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
                                         
                                     context->SetProvideFeedback(actionTemplate->provideFeedback);
+                                    
+                                    if(actionTemplate->isValueInverted)
+                                        context->SetIsValueInverted();
                                     
                                     if(actionTemplate->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
@@ -1413,7 +1418,6 @@ void Manager::InitActionsDictionary()
     actions_["FXParam"] =                           new FXParam();
     actions_["JSFXParam"] =                         new JSFXParam();
     actions_["TCPFXParam"] =                        new TCPFXParam();
-    actions_["FXParamRelative"] =                   new FXParamRelative();
     actions_["ToggleFXBypass"] =                    new ToggleFXBypass();
     actions_["FXBypassDisplay"] =                   new FXBypassDisplay();
     actions_["ToggleFXOffline"] =                   new ToggleFXOffline();
@@ -2068,6 +2072,9 @@ void ActionContext::DoRangeBoundAction(double value)
     
     if(value < rangeMinimum_)
         value = rangeMinimum_;
+    
+    if(isValueInverted_)
+        value = 1.0 - value;
     
     action_->Do(this, value);
 }

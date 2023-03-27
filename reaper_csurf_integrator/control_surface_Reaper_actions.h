@@ -178,42 +178,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FXParamRelative : public FXAction
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "FXParamRelative"; }
-    
-    virtual void Do(ActionContext* context, double relativeValue) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            double min, max = 0;
-            double value = DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
-            value +=  relativeValue;
-            
-            if(value < min) value = min;
-            if(value > max) value = max;
-            
-            DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value);
-        }
-    }
-    
-    virtual void Touch(ActionContext* context, double value) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            double min, max = 0;
-            
-            if(value == 0)
-                DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
-            else
-                DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FocusedFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

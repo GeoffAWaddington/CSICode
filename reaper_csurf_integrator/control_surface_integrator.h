@@ -250,6 +250,7 @@ private:
     int accumulatedIncTicks_ = 0;
     int accumulatedDecTicks_ = 0;
     
+    bool isValueInverted_ = false;
     bool isFeedbackInverted_ = false;
     double holdDelayAmount_ = 0.0;
     double delayStartTime_ = 0.0;
@@ -309,6 +310,7 @@ public:
     ControlSurface* GetSurface();
     int GetParamIndex() { return paramIndex_; }
        
+    void SetIsValueInverted() { isValueInverted_ = true; }
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount * 1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
