@@ -550,6 +550,14 @@ public:
             return false;
     }
     
+    static bool ToggleTrackSendUIMute(MediaTrack* track, int send_index)
+    {
+        if(ValidateTrackPtr(track))
+            return ::ToggleTrackSendUIMute(track, send_index);
+        else
+            return false;
+    }
+
     static bool GetTrackSendUIVolPan(MediaTrack* track, int send_index, double* volumeOut, double* panOut)
     {
         if(ValidateTrackPtr(track))
