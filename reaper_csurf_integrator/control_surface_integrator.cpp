@@ -1059,29 +1059,21 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             
             surface->SetHasMCUMeters(displayType);
         }
-        else if(widgetType == "FB_SCE24_Text" && size == 3)
+        else if(widgetType == "FB_SCE24LEDButton" && size == 4)
         {
-            feedbackProcessor = new SCE24_Text_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]), stoi(tokenLines[i][2]));
+            feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(surface, widget,new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
-        else if(widgetType == "FB_SCE24_Bar" && size == 3)
+        else if(widgetType == "FB_SCE24OLEDButton" && size == 4)
         {
-            feedbackProcessor = new SCE24_Bar_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]), stoi(tokenLines[i][2]));
+            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(surface, widget,new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
-        else if(widgetType == "FB_SCE24_OLEDButton" && size == 3)
+        else if(widgetType == "FB_SCE24Encoder" && size == 4)
         {
-            feedbackProcessor = new SCE24_OLEDButton_Midi_FeedbackProcessor(surface, widget, strToHex(tokenLines[i][1]), stoi(tokenLines[i][2]));
+            feedbackProcessor = new SCE24Encoder_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
-        else if(widgetType == "FB_SCE24_LEDButton" && size == 2)
+        else if(widgetType == "FB_SCE24EncoderText" && size == 4)
         {
-            feedbackProcessor = new SCE24_LEDButton_Midi_FeedbackProcessor(surface, widget, strToHex(tokenLines[i][1]));
-        }
-        else if(widgetType == "FB_SCE24_Background" && size == 2)
-        {
-            feedbackProcessor = new SCE24_Background_Midi_FeedbackProcessor(surface, widget, strToHex(tokenLines[i][1]));
-        }
-        else if(widgetType == "FB_SCE24_Ring" && size == 2)
-        {
-            feedbackProcessor = new SCE24_Ring_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(surface, widget,new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
         }
         else if((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
         {

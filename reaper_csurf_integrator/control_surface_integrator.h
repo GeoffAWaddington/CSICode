@@ -1843,16 +1843,15 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     Widget* GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
+    virtual void SetColorValue(map<string, string> &properties, rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, string value) {}
-    virtual void SetColors(rgba_color textColor, rgba_color textBackground) {}
-    virtual void SetCurrentColor(double value) {}
+    virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string color) {}
     virtual void RestoreXTouchDisplayColors() {}
-
     virtual int GetMaxCharacters() { return 0; }
 
     virtual void SetValue(map<string, string> &properties, double value)
