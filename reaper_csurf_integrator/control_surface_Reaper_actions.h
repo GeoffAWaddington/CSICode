@@ -968,6 +968,295 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackRecordArm : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackRecordArm"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return DAW::GetMediaTrackInfo_Value(track, "I_RECARM");
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(MediaTrack* track = context->GetTrack())
+        {
+            DAW::CSurf_SetSurfaceRecArm(track, DAW::CSurf_OnRecArmChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_RECARM")), NULL);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackMute : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackMute"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            bool mute = false;
+            DAW::GetTrackUIMute(track, &mute);
+            return mute;
+        }
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(MediaTrack* track = context->GetTrack())
+        {
+            bool mute = false;
+            DAW::GetTrackUIMute(track, &mute);
+            DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, ! mute), NULL);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackSolo : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackSolo"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return DAW::GetMediaTrackInfo_Value(track, "I_SOLO") > 0 ? 1 : 0;
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(MediaTrack* track = context->GetTrack())
+        {
+            DAW::CSurf_SetSurfaceSolo(track, DAW::CSurf_OnSoloChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO")), NULL);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackInvertPolarity : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackInvertPolarity"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return DAW::GetMediaTrackInfo_Value(track, "B_PHASE");
+        else
+            return 0.0;
+    }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(MediaTrack* track = context->GetTrack())
+        {
+            bool reversed = ! DAW::GetMediaTrackInfo_Value(track, "B_PHASE");
+            
+            DAW::GetSetMediaTrackInfo(track, "B_PHASE", &reversed);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackSelect : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackSelect"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+
+        if(MediaTrack* track = context->GetTrack())
+        {
+            DAW::CSurf_SetSurfaceSelected(track, DAW::CSurf_OnSelectedChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_SELECTED")), NULL);
+            context->GetPage()->OnTrackSelectionBySurface(track);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackUniqueSelect : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackUniqueSelect"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+
+        if(MediaTrack* track = context->GetTrack())
+        {
+            DAW::SetOnlyTrackSelected(track);
+            context->GetPage()->OnTrackSelectionBySurface(track);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackRangeSelect : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackRangeSelect"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetTrack())
+            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        else
+            context->ClearWidget();
+    }
+
+    virtual void Do(ActionContext* context, double value) override
+    {
+        // GAW TBD  fix highest track bug
+        
+        if(value == 0.0) return; // ignore button releases
+
+        int currentlySelectedCount = 0;
+        int selectedTrackIndex = 0;
+        int trackIndex = 0;
+        
+       
+        for(int i = 1; i <= context->GetPage()->GetNumTracks(); i++)
+        {
+            MediaTrack* currentTrack = context->GetPage()->GetTrackFromId(i);
+           
+            if(currentTrack == nullptr)
+                continue;
+            
+            if(currentTrack == context->GetTrack())
+                trackIndex = i;
+            
+            if(DAW::GetMediaTrackInfo_Value(currentTrack, "I_SELECTED"))
+            {
+                selectedTrackIndex = i;
+                currentlySelectedCount++;
+            }
+        }
+        
+        if(currentlySelectedCount != 1)
+            return;
+        
+        int lowerBound = trackIndex < selectedTrackIndex ? trackIndex : selectedTrackIndex;
+        int upperBound = trackIndex > selectedTrackIndex ? trackIndex : selectedTrackIndex;
+
+        for(int i = lowerBound; i <= upperBound; i++)
+        {
+            MediaTrack* currentTrack = context->GetPage()->GetTrackFromId(i);
+            
+            if(currentTrack == nullptr)
+                continue;
+            
+            if(context->GetPage()->GetIsTrackVisible(currentTrack))
+                DAW::CSurf_SetSurfaceSelected(currentTrack, DAW::CSurf_OnSelectedChange(currentTrack, 1), NULL);
+        }
+        
+        MediaTrack* lowestTrack = context->GetPage()->GetTrackFromId(lowerBound);
+        
+        if(lowestTrack != nullptr)
+            context->GetPage()->OnTrackSelectionBySurface(lowestTrack);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackSendVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -2790,259 +3079,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackSelect : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackSelect"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
-        else
-            return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-
-        if(MediaTrack* track = context->GetTrack())
-        {
-            DAW::CSurf_SetSurfaceSelected(track, DAW::CSurf_OnSelectedChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_SELECTED")), NULL);
-            context->GetPage()->OnTrackSelectionBySurface(track);
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackUniqueSelect : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackUniqueSelect"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
-        else
-            return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-
-        if(MediaTrack* track = context->GetTrack())
-        {
-            DAW::SetOnlyTrackSelected(track);
-            context->GetPage()->OnTrackSelectionBySurface(track);
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackRangeSelect : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackRangeSelect"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
-        else
-            return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-
-    virtual void Do(ActionContext* context, double value) override
-    {
-        // GAW TBD  fix highest track bug 
-        
-        if(value == 0.0) return; // ignore button releases
-
-        int currentlySelectedCount = 0;
-        int selectedTrackIndex = 0;
-        int trackIndex = 0;
-        
-       
-        for(int i = 1; i <= context->GetPage()->GetNumTracks(); i++)
-        {
-            MediaTrack* currentTrack = context->GetPage()->GetTrackFromId(i);
-           
-            if(currentTrack == nullptr)
-                continue;
-            
-            if(currentTrack == context->GetTrack())
-                trackIndex = i;
-            
-            if(DAW::GetMediaTrackInfo_Value(currentTrack, "I_SELECTED"))
-            {
-                selectedTrackIndex = i;
-                currentlySelectedCount++;
-            }
-        }
-        
-        if(currentlySelectedCount != 1)
-            return;
-        
-        int lowerBound = trackIndex < selectedTrackIndex ? trackIndex : selectedTrackIndex;
-        int upperBound = trackIndex > selectedTrackIndex ? trackIndex : selectedTrackIndex;
-
-        for(int i = lowerBound; i <= upperBound; i++)
-        {
-            MediaTrack* currentTrack = context->GetPage()->GetTrackFromId(i);
-            
-            if(currentTrack == nullptr)
-                continue;
-            
-            if(context->GetPage()->GetIsTrackVisible(currentTrack))
-                DAW::CSurf_SetSurfaceSelected(currentTrack, DAW::CSurf_OnSelectedChange(currentTrack, 1), NULL);
-        }
-        
-        MediaTrack* lowestTrack = context->GetPage()->GetTrackFromId(lowerBound);
-        
-        if(lowestTrack != nullptr)
-            context->GetPage()->OnTrackSelectionBySurface(lowestTrack);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackRecordArm : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackRecordArm"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetMediaTrackInfo_Value(track, "I_RECARM");
-        else
-            return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* track = context->GetTrack())
-        {
-            DAW::CSurf_SetSurfaceRecArm(track, DAW::CSurf_OnRecArmChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_RECARM")), NULL);
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackMute : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackMute"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-        {
-            bool mute = false;
-            DAW::GetTrackUIMute(track, &mute);
-            return mute;
-        }
-        else
-            return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* track = context->GetTrack())
-        {
-            bool mute = false;
-            DAW::GetTrackUIMute(track, &mute);
-            DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, ! mute), NULL);
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackSolo : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackSolo"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetMediaTrackInfo_Value(track, "I_SOLO") > 0 ? 1 : 0;
-        else
-            return 0.0;
-    }
-
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* track = context->GetTrack())
-        {
-            DAW::CSurf_SetSurfaceSolo(track, DAW::CSurf_OnSoloChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO")), NULL);
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ClearAllSolo : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -3064,42 +3100,6 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         DAW::SoloAllTracks(0);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class TrackInvertPolarity : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "TrackInvertPolarity"; }
-    
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        if(MediaTrack* track = context->GetTrack())
-            return DAW::GetMediaTrackInfo_Value(track, "B_PHASE");
-        else
-            return 0.0;
-    }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetTrack())
-            context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-        else
-            context->ClearWidget();
-    }
-    
-    virtual void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* track = context->GetTrack())
-        {
-            bool reversed = ! DAW::GetMediaTrackInfo_Value(track, "B_PHASE");
-            
-            DAW::GetSetMediaTrackInfo(track, "B_PHASE", &reversed);
-        }
     }
 };
 
