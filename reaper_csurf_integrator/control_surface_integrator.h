@@ -2275,8 +2275,6 @@ public:
     void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
-    bool GetIsVCAActive() { return currentTrackVCAFolderMode_ == 1;}
-    bool GetIsFolderActive() { return currentTrackVCAFolderMode_ == 2;}
     int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
     Navigator* GetMasterTrackNavigator() { return masterTrackNavigator_; }
     Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
@@ -3049,8 +3047,6 @@ public:
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
-    bool GetIsVCAActive() { return trackNavigationManager_->GetIsVCAActive();}
-    bool GetIsFolderActive() { return trackNavigationManager_->GetIsFolderActive();}
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
