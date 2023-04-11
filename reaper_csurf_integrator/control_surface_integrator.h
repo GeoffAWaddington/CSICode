@@ -168,10 +168,10 @@ private:
     int const channelNum_ = 0;
     
 protected:
-    TrackNavigationManager* const manager_;
+    TrackNavigationManager* const trackNavigationManager_;
 
 public:
-    TrackNavigator(Page*  page, TrackNavigationManager* manager, int channelNum) : Navigator(page), manager_(manager), channelNum_(channelNum) {}
+    TrackNavigator(Page*  page, TrackNavigationManager* trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
     virtual ~TrackNavigator() {}
     
     virtual string GetName() override { return "TrackNavigator"; }
@@ -2275,7 +2275,6 @@ public:
     void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
-    int  GetCurrentTrackVCAFolderMode() { return currentTrackVCAFolderMode_; }
     bool GetIsVCAActive() { return currentTrackVCAFolderMode_ == 1;}
     bool GetIsFolderActive() { return currentTrackVCAFolderMode_ == 2;}
     int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
