@@ -2195,6 +2195,7 @@ private:
     int trackOffset_ = 0;
     int vcaTrackOffset_ = 0;
     int folderTrackOffset_ = 0;
+    int selectedTracksOffset_ = 0;
     vector<MediaTrack*> tracks_;
     vector<MediaTrack*> selectedTracks_;
     
@@ -2272,6 +2273,7 @@ public:
     }
     
     void RebuildTracks();
+    void RebuildSelectedTracks();
     void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
@@ -2295,6 +2297,11 @@ public:
         currentTrackVCAFolderMode_ = 2;
     }
     
+    void SelectedTracksModeActivated()
+    {
+        currentTrackVCAFolderMode_ = 3;
+    }
+    
     void VCAModeDeactivated()
     {
         if(currentTrackVCAFolderMode_ == 1)
@@ -2307,6 +2314,12 @@ public:
             currentTrackVCAFolderMode_ = 0;
     }
     
+    void SelectedTracksModeDeactivated()
+    {
+        if(currentTrackVCAFolderMode_ == 3)
+            currentTrackVCAFolderMode_ = 0;
+    }
+    
     string GetCurrentTrackVCAFolderModeDisplay()
     {
         if(currentTrackVCAFolderMode_ == 0)
@@ -2315,6 +2328,8 @@ public:
             return "VCA";
         else if(currentTrackVCAFolderMode_ == 2)
             return "Folder";
+        else if(currentTrackVCAFolderMode_ == 3)
+            return "SelectedTracks";
         else
             return "";
     }
@@ -2490,6 +2505,27 @@ public:
             folderTrackOffset_ = top;
     }
     
+    void AdjustSelectedTracksBank(int amount)
+    {
+        if(currentTrackVCAFolderMode_ != 3)
+            return;
+
+        int numTracks = selectedTracks_.size();
+       
+        if(numTracks <= trackNavigators_.size())
+            return;
+        
+        selectedTracksOffset_ += amount;
+        
+        if(selectedTracksOffset_ < 0)
+            selectedTracksOffset_ = 0;
+        
+        int top = numTracks - trackNavigators_.size();
+        
+        if(selectedTracksOffset_ > top)
+            selectedTracksOffset_ = top;
+    }
+    
     Navigator* GetNavigatorForChannel(int channelNum)
     {
         if(trackNavigators_.count(channelNum) < 1)
@@ -2554,6 +2590,13 @@ public:
                         return folderSpillTracks_[channelNumber];
                 }
             }
+        }
+        else if(currentTrackVCAFolderMode_ == 3)
+        {
+            if(channelNumber + selectedTracksOffset_ >= selectedTracks_.size())
+                return nullptr;
+            else
+                return selectedTracks_[channelNumber + selectedTracksOffset_];
         }
         
         return nullptr;
@@ -3020,6 +3063,8 @@ public:
             trackNavigationManager_->AdjustVCABank(amount);
         else if(zoneName == "Folder")
             trackNavigationManager_->AdjustFolderBank(amount);
+        else if(zoneName == "SelectedTracks")
+            trackNavigationManager_->AdjustSelectedTracksBank(amount);
         else if(zoneName == "SelectedTrack")
             trackNavigationManager_->AdjustSelectedTrackBank(amount);
         else
@@ -3047,6 +3092,8 @@ public:
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
+    void SelectedTracksModeActivated() { trackNavigationManager_->SelectedTracksModeActivated(); }
+    void SelectedTracksModeDeactivated() { trackNavigationManager_->SelectedTracksModeDeactivated(); }
     Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
@@ -3148,6 +3195,7 @@ public:
         trackNavigationManager_->RebuildTracks();
         trackNavigationManager_->RebuildVCASpill();
         trackNavigationManager_->RebuildFolderTracks();
+        trackNavigationManager_->RebuildSelectedTracks();
         
         for(auto surface : surfaces_)
             surface->HandleExternalInput();

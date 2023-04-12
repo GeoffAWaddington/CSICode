@@ -2272,6 +2272,8 @@ void Zone::Activate()
         zoneManager_->GetSurface()->GetPage()->VCAModeActivated();
     else if(GetName() == "Folder")
         zoneManager_->GetSurface()->GetPage()->FolderModeActivated();
+    else if(GetName() == "SelectedTracks")
+        zoneManager_->GetSurface()->GetPage()->SelectedTracksModeActivated();
 
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
        
@@ -2300,7 +2302,9 @@ void Zone::Deactivate()
         zoneManager_->GetSurface()->GetPage()->VCAModeDeactivated();
     else if(GetName() == "Folder")
         zoneManager_->GetSurface()->GetPage()->FolderModeDeactivated();
-
+    else if(GetName() == "SelectedTracks")
+        zoneManager_->GetSurface()->GetPage()->SelectedTracksModeDeactivated();
+    
     for(auto zone : includedZones_)
         zone->Deactivate();
 
@@ -2321,7 +2325,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
 {
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
-    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset()));
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
@@ -3018,6 +3022,28 @@ void TrackNavigationManager::RebuildTracks()
     }
     
     if(tracks_.size() != oldTracksSize)
+        page_->ForceUpdateTrackColors();
+}
+
+void TrackNavigationManager::RebuildSelectedTracks()
+{
+    if(currentTrackVCAFolderMode_ != 3)
+        return;
+
+    int oldTracksSize = selectedTracks_.size();
+    
+    selectedTracks_.clear();
+    
+    for(int i = 0; i < DAW::CountSelectedTracks(); i++)
+        selectedTracks_.push_back(DAW::GetSelectedTrack(i));
+
+    if(selectedTracks_.size() < oldTracksSize)
+    {
+        for(int i = oldTracksSize; i > selectedTracks_.size(); i--)
+            page_->ForceClearTrack(i - selectedTracksOffset_);
+    }
+    
+    if(selectedTracks_.size() != oldTracksSize)
         page_->ForceUpdateTrackColors();
 }
 
