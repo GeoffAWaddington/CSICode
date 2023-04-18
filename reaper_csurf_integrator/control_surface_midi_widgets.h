@@ -536,9 +536,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.r;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.g;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.b;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.b / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
         SendMidiMessage(&midiSysExData.evt);
@@ -599,13 +599,13 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = endRow;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = fontSize;
 
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.b;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.b / 2;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.r;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
         for(int i = 0; i < value.length(); i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = value[i];
@@ -698,9 +698,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeHigh;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeLow;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.r;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.g;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.b;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.b / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
         SendMidiMessage(&midiSysExData.evt);
