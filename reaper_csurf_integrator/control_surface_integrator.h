@@ -49,7 +49,7 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 const string ControlSurfaceIntegrator = "ControlSurfaceIntegrator";
 
-const string VersionToken = "Version 2.0";
+const string VersionToken = "Version 3.0";
 const string PageToken = "Page";
 const string FollowMCPToken = "FollowMCP";
 const string SynchPagesToken = "SynchPages";
