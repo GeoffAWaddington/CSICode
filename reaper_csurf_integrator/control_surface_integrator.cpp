@@ -322,9 +322,40 @@ static void ExpandFXLayout(ZoneManager* zoneManager, vector<string> tokens, map<
             params.push_back(tokens[5]);
         else
             params.push_back(tokens[4]);
+               
+        vector<string> properties;
+        
+        for(int i = 6; i < tokens.size(); i++)
+            properties.push_back(tokens[i]);
         
         for(int i = 1; i < templateParams.size(); i++)
-            params.push_back(templateParams[i]);
+        {
+            string property = templateParams[i];
+        
+            int index = property.find('=');
+         
+            if (index != string::npos)
+            {
+                string propertyType = property.substr(0, index + 1);
+                
+                bool hasBeenOverridden = false;
+                
+                for(auto localProperty : properties)
+                {
+                    if(localProperty.find(propertyType) != string::npos)
+                    {
+                        hasBeenOverridden = true;
+                        break;
+                    }
+                }
+                  
+                if( ! hasBeenOverridden)
+                    properties.push_back(property);
+            }
+        }
+        
+        for(auto property : properties)
+            params.push_back(property);
         
         actionTemplate->params = params;
         actionTemplate->provideFeedback = true;
