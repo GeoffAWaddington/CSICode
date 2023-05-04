@@ -562,16 +562,16 @@ public:
     
     virtual void ForceValue(map<string, string> &properties, string value) override
     {
-        int startRow = 0;
-        int endRow = 0;
+        int topMargin = 0;
+        int bottomMargin = 0;
         int fontSize = 0;
         rgba_color backgroundColor;
         rgba_color textColor;
 
-        if(properties.count("StartRow") > 0)
-            startRow = atoi(properties["StartRow"].c_str());
-        if(properties.count("EndRow") > 0)
-            endRow = atoi(properties["EndRow"].c_str());
+        if(properties.count("TopMargin") > 0)
+            topMargin = atoi(properties["TopMargin"].c_str());
+        if(properties.count("BottomMargin") > 0)
+            bottomMargin = atoi(properties["BottomMargin"].c_str());
         if(properties.count("FontSize") > 0)
             fontSize = atoi(properties["FontSize"].c_str());
 
@@ -595,8 +595,8 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = startRow;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = endRow;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = fontSize;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
