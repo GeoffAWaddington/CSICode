@@ -833,7 +833,7 @@ private:
     bool isAutoFocusedFXMappingEnabled_ = true;
     bool isAutoFXMappingEnabled_ = true;
     
-    map<string, map<string, string>> surfaceFXLayout_;
+    map<string, map<string, vector<string>>> surfaceFXLayout_;
     vector<CSILayoutInfo> fxLayouts_;
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
@@ -938,9 +938,9 @@ public:
             return false;
     }
 
-    map<string, string> GetSurfaceFXLayout(string surfaceFXLayout)
+    map<string, vector<string>> GetSurfaceFXLayout(string surfaceFXLayout)
     {
-        map<string, string> emptyLayout;
+        map<string, vector<string>> emptyLayout;
         
         if(surfaceFXLayout_.count(surfaceFXLayout) > 0)
             return surfaceFXLayout_[surfaceFXLayout];

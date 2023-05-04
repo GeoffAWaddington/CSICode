@@ -303,10 +303,10 @@ static void ExpandFXLayout(ZoneManager* zoneManager, vector<string> tokens, map<
     while (getline(layoutAndModifiers, prefixToken, '+'))
         prefixTokens.push_back(prefixToken);
 
-    for(auto [widget, action] : zoneManager->GetSurfaceFXLayout(prefixTokens[0]))
+    for(auto [widget, templateParams] : zoneManager->GetSurfaceFXLayout(prefixTokens[0]))
     {
-        if(action == "FXParam" && tokens[3] == "JSFXParam")
-            action = "JSFXParam";
+        if(templateParams[0] == "FXParam" && tokens[3] == "JSFXParam")
+            templateParams[0] = "JSFXParam";
         
         shared_ptr<ActionTemplate> actionTemplate = make_shared<ActionTemplate>();
         string widgetName = tokens[0] + "+" + widget + tokens[1] + tokens[2];
@@ -314,20 +314,25 @@ static void ExpandFXLayout(ZoneManager* zoneManager, vector<string> tokens, map<
         if(tokens[4] == "-1")
             actionTemplate->actionName = "NoAction";
         else
-            actionTemplate->actionName = action;
+            actionTemplate->actionName = templateParams[0];
         vector<string> params;
         params.push_back(actionTemplate->actionName);
-        if(action == "FixedTextDisplay")
+        
+        if(templateParams[0] == "FixedTextDisplay")
             params.push_back(tokens[5]);
         else
             params.push_back(tokens[4]);
+        
+        for(int i = 1; i < templateParams.size(); i++)
+            params.push_back(templateParams[i]);
+        
         actionTemplate->params = params;
         actionTemplate->provideFeedback = true;
         actionTemplatesDictionary[actionTemplate->widgetName][actionTemplate->modifier].push_back(actionTemplate);
     }
 }
 
-static void ProcessSurfaceFXLayout(string filePath, map<string, map<string, string>> &surfaceFXLayout)
+static void ProcessSurfaceFXLayout(string filePath, map<string, map<string, vector<string>>> &surfaceFXLayout)
 {
     try
     {
@@ -352,8 +357,11 @@ static void ProcessSurfaceFXLayout(string filePath, map<string, map<string, stri
             
             if(tokens.size() == 3 && tokens[0] == "Zone")
                 layoutName = tokens[2];
-            else if(tokens.size() == 2 && layoutName != "")
-                surfaceFXLayout[layoutName][tokens[0]] = tokens[1];
+            else if(layoutName != "")
+            {
+                for(int i = 1; i < tokens.size(); i++)
+                surfaceFXLayout[layoutName][tokens[0]].push_back(tokens[i]);
+            }
         }
     }
     catch (exception &e)
