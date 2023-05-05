@@ -564,21 +564,21 @@ public:
     {
         int topMargin = 0;
         int bottomMargin = 0;
-        int fontSize = 0;
-        rgba_color backgroundColor;
-        rgba_color textColor;
+        int font = 0;
+        rgba_color background;
+        rgba_color foreground;
 
         if(properties.count("TopMargin") > 0)
             topMargin = atoi(properties["TopMargin"].c_str());
         if(properties.count("BottomMargin") > 0)
             bottomMargin = atoi(properties["BottomMargin"].c_str());
-        if(properties.count("FontSize") > 0)
-            fontSize = atoi(properties["FontSize"].c_str());
+        if(properties.count("Font") > 0)
+            font = atoi(properties["Font"].c_str());
 
-        if(properties.count("BackgroundColor") > 0)
-            backgroundColor = GetColorValue(properties["BackgroundColor"]);
-        else if(properties.count("TextColor") > 0)
-            textColor = GetColorValue(properties["TextColor"]);
+        if(properties.count("Background") > 0)
+            background = GetColorValue(properties["Background"]);
+        else if(properties.count("Foreground") > 0)
+            foreground = GetColorValue(properties["Foreground"]);
 
         struct
         {
@@ -597,15 +597,15 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = fontSize;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
 
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
         
         for(int i = 0; i < value.length(); i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = value[i];
