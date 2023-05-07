@@ -720,7 +720,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             }
                         }
                     
-                        if(subZones.size() > 0)
+                        if(enclosingZone == nullptr && subZones.size() > 0)
                             zone->InitSubZones(subZones, zone);
                     }
                                     
