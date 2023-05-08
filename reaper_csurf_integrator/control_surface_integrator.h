@@ -306,7 +306,7 @@ public:
     void DoAcceleratedSteppedValueAction(int accelerationIndex, double value);
     void DoAcceleratedDeltaValueAction(int accelerationIndex, double value);
     
-    Page* GetPage();
+    shared_ptr<Page> GetPage();
     ControlSurface* GetSurface();
     int GetParamIndex() { return paramIndex_; }
        
@@ -1528,7 +1528,7 @@ private:
     map<int, bool> channelToggles_;
 
 protected:
-    ControlSurface(bool useLocalmodifiers, Page* page, const string name, string zoneFolder, string fxZoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, fxZoneFolder))
+    ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, string zoneFolder, string fxZoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, fxZoneFolder))
     {
         if(useLocalmodifiers)
             modifierManager_ = new ModifierManager(this);
@@ -1543,7 +1543,7 @@ protected:
         }
     }
 
-    Page* const page_;
+    shared_ptr<Page> const page_;
     string const name_;
     ZoneManager* const zoneManager_;
     
@@ -1627,7 +1627,7 @@ public:
     virtual void SendMidiMessage(int first, int second, int third) {}
     
     ZoneManager* GetZoneManager() { return zoneManager_; }
-    Page* GetPage() { return page_; }
+    shared_ptr<Page> GetPage() { return page_; }
     string GetName() { return name_; }
     
     int GetNumChannels() { return numChannels_; }
@@ -1991,7 +1991,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO)
+    Midi_ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO)
     : ControlSurface(useLocalmodifiers, page, name, zoneFolder, fxZoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
@@ -2138,7 +2138,7 @@ private:
     void Initialize(string templateFilename, string zoneFolder);
 
 public:
-    OSC_ControlSurface(bool useLocalmodifiers, Page* page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO)
+    OSC_ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO)
     : ControlSurface(useLocalmodifiers, page, name, zoneFolder, fxZoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
@@ -3207,7 +3207,7 @@ class Manager
 private:
     map<string, Action*> actions_;
 
-    vector <Page*> pages_;
+    vector <shared_ptr<Page>> pages_;
     
     int currentPageIndex_ = 0;
     bool surfaceInDisplay_ = false;
@@ -3284,12 +3284,6 @@ public:
     
     ~Manager()
     {
-        for(auto page: pages_)
-        {
-            delete page;
-            page = nullptr;
-        }
-        
         for(auto [key, action] : actions_)
         {
             delete action;
@@ -3422,7 +3416,7 @@ public:
             pages_[currentPageIndex_]->SetTrackOffset(offset);
     }
     
-    void AdjustBank(Page* sendingPage, string zoneName, int amount)
+    void AdjustBank(shared_ptr<Page> sendingPage, string zoneName, int amount)
     {
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustBank(zoneName, amount);

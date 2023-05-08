@@ -554,7 +554,7 @@ class Bank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TBank"; }
+    virtual string GetName() override { return "Bank"; }
 
     virtual void RequestUpdate(ActionContext* context) override
     {

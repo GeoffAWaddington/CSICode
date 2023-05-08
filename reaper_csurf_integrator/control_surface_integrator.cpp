@@ -1624,7 +1624,7 @@ void Manager::Init()
     map<string, Midi_ControlSurfaceIO*> midiSurfaces;
     map<string, OSC_ControlSurfaceIO*> oscSurfaces;
 
-    Page* currentPage = nullptr;
+    shared_ptr<Page> currentPage = nullptr;
     
     string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
     
@@ -1711,7 +1711,7 @@ void Manager::Init()
                             }
                         }
                             
-                        currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+                        currentPage = make_shared<Page>(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.push_back(currentPage);
                     }
                 }
@@ -1943,7 +1943,7 @@ ActionContext::ActionContext(Action* action, shared_ptr<Widget> widget, shared_p
         acceleratedTickValues_.push_back(10);
 }
 
-Page* ActionContext::GetPage()
+shared_ptr<Page> ActionContext::GetPage()
 {
     return widget_->GetSurface()->GetPage();
 }
