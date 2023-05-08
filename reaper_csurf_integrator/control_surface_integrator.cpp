@@ -94,16 +94,16 @@ void ShutdownMidiIO()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<string, oscpkt::UdpSocket*> inputSockets_;
-static map<string, oscpkt::UdpSocket*> outputSockets_;
+static map<string, shared_ptr<oscpkt::UdpSocket>> inputSockets_;
+static map<string, shared_ptr<oscpkt::UdpSocket>> outputSockets_;
 
-static oscpkt::UdpSocket* GetInputSocketForPort(string surfaceName, int inputPort)
+static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, int inputPort)
 {
     if(inputSockets_.count(surfaceName) > 0)
         return inputSockets_[surfaceName]; // return existing
     
     // otherwise make new
-    oscpkt::UdpSocket* newInputSocket = new oscpkt::UdpSocket();
+    shared_ptr<oscpkt::UdpSocket> newInputSocket = make_shared<oscpkt::UdpSocket>();
     
     if(newInputSocket)
     {
@@ -123,13 +123,13 @@ static oscpkt::UdpSocket* GetInputSocketForPort(string surfaceName, int inputPor
     return nullptr;
 }
 
-static oscpkt::UdpSocket* GetOutputSocketForAddressAndPort(string surfaceName, string address, int outputPort)
+static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(string surfaceName, string address, int outputPort)
 {
     if(outputSockets_.count(surfaceName) > 0)
         return outputSockets_[surfaceName]; // return existing
     
     // otherwise make new
-    oscpkt::UdpSocket* newOutputSocket = new oscpkt::UdpSocket();
+    shared_ptr<oscpkt::UdpSocket> newOutputSocket = make_shared<oscpkt::UdpSocket>();
     
     if(newOutputSocket)
     {
@@ -3494,7 +3494,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnP
     }
     else // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
     {
-        oscpkt::UdpSocket* inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
+        shared_ptr<oscpkt::UdpSocket> inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
 
         struct addrinfo hints;
         struct addrinfo* addressInfo;

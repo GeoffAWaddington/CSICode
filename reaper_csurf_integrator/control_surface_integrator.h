@@ -2060,8 +2060,8 @@ class OSC_ControlSurfaceIO
 {
 private:
     string const name_ = "";
-    oscpkt::UdpSocket* inSocket_ = nullptr;
-    oscpkt::UdpSocket* outSocket_ = nullptr;
+    shared_ptr<oscpkt::UdpSocket> inSocket_ = nullptr;
+    shared_ptr<oscpkt::UdpSocket> outSocket_ = nullptr;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
     const double X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
