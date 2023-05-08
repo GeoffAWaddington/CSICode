@@ -747,7 +747,7 @@ class Widget
 private:
     ControlSurface* const surface_;
     string const name_;
-    vector<FeedbackProcessor*> feedbackProcessors_;
+    vector<shared_ptr<FeedbackProcessor>> feedbackProcessors_;
     int channelNumber_ = 0;
     double lastIncomingMessageTime_ = 0.0;
        
@@ -768,7 +768,6 @@ public:
             channelNumber_ = stoi(name.substr(index, name.length() - index));
         }
     }
-    ~Widget();
     
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
@@ -793,7 +792,7 @@ public:
     void ForceClear();
     void LogInput(double value);
     
-    void AddFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
+    void AddFeedbackProcessor(shared_ptr<FeedbackProcessor> feedbackProcessor)
     {
         feedbackProcessors_.push_back(feedbackProcessor);
     }
@@ -1411,7 +1410,7 @@ public:
     }
     
     void RecalculateModifiers();
-    vector<int> GetModifiers() { return modifierCombinations_; }
+    vector<int> &GetModifiers() { return modifierCombinations_; }
     
     bool GetShift() { return modifiers_[Shift].isEngaged; }
     bool GetOption() { return modifiers_[Option].isEngaged; }
@@ -1811,7 +1810,7 @@ public:
     void SetZoom(bool value);
     void SetScrub(bool value);
     
-    vector<int> GetModifiers();
+    vector<int> &GetModifiers();
     void ClearModifiers();
     
     void UpdateCurrentActionContextModifiers()
@@ -2909,9 +2908,9 @@ public:
     
     shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
     
-    vector<shared_ptr<ControlSurface>> &GetSurfaces()
+    void AddSurface(shared_ptr<ControlSurface> surface)
     {
-        return surfaces_;
+        return surfaces_.push_back(surface);
     }
     
     void UpdateCurrentActionContextModifiers()
