@@ -1624,7 +1624,7 @@ public:
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
     
-    virtual void SendMidiMessage(MIDI_event_ex_t* midiMessage) {}
+    virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
     
     shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
@@ -1912,15 +1912,15 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 protected:
     Midi_ControlSurface* const surface_ = nullptr;
     
-    MIDI_event_ex_t* lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
-    MIDI_event_ex_t* midiFeedbackMessage1_ = new MIDI_event_ex_t(0, 0, 0);
-    MIDI_event_ex_t* midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
+    shared_ptr<MIDI_event_ex_t> lastMessageSent_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage1_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage2_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
     
     Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
     
-    void SendMidiMessage(MIDI_event_ex_t* midiMessage);
+    void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
     void ForceMidiMessage(int first, int second, int third);
 
@@ -2001,7 +2001,7 @@ public:
     virtual ~Midi_ControlSurface() {}
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
-    virtual void SendMidiMessage(MIDI_event_ex_t* midiMessage) override;
+    virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) override;
     virtual void SendMidiMessage(int first, int second, int third) override;
 
     virtual void SetHasMCUMeters(int displayType) override

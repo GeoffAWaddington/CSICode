@@ -40,7 +40,7 @@ public:
             for(int i = 0; i < tokens.size(); i++)
                 midiSysExData.evt.midi_message[midiSysExData.evt.size++] = strToHex(tokens[i]);
             
-            context->GetSurface()->SendMidiMessage(&midiSysExData.evt);
+            context->GetSurface()->SendMidiSysExMessage(&midiSysExData.evt);
         }
     }
 };
