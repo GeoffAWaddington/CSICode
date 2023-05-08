@@ -135,8 +135,9 @@ protected:
     bool isPanRightTouched_ = false;
     bool isMCUTrackPanWidth_ = false;
 
-public:
     Navigator(Page*  page) : page_(page) {}
+
+public:
     virtual ~Navigator() {}
     
     virtual string GetName() { return "Navigator"; }
@@ -223,7 +224,7 @@ class ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Action* const action_ = nullptr;
+    shared_ptr<Action> const action_ = nullptr;
     shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
     
@@ -271,13 +272,13 @@ private:
     void UpdateTrackColor();
 
 public:
-    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params);
-    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params);
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
     {
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
-    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam) : action_(action), widget_(widget), zone_(zone), stringParam_(stringParam)
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam) : action_(action), widget_(widget), zone_(zone), stringParam_(stringParam)
     {
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
@@ -285,7 +286,7 @@ public:
 
     virtual ~ActionContext() {}
     
-    Action* GetAction() { return action_; }
+    shared_ptr<Action> GetAction() { return action_; }
     shared_ptr<Widget> GetWidget() { return widget_; }
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
@@ -3205,7 +3206,7 @@ class Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, Action*> actions_;
+    map<string, shared_ptr<Action>> actions_;
 
     vector <shared_ptr<Page>> pages_;
     
@@ -3280,15 +3281,6 @@ public:
             baseTickCounts_[stepSizes[i]] = tickCounts[i];
         
         //GenerateX32SurfaceFile();
-    }
-    
-    ~Manager()
-    {
-        for(auto [key, action] : actions_)
-        {
-            delete action;
-            action = nullptr;
-        }
     }
 
     void Shutdown()
