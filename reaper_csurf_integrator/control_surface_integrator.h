@@ -460,7 +460,7 @@ class Zone
 {
 protected:
     ZoneManager* const zoneManager_ = nullptr;
-    Navigator* const navigator_= nullptr;
+    shared_ptr<Navigator> const navigator_= nullptr;
     int slotIndex_ = 0;
     string const name_ = "";
     string const alias_ = "";
@@ -479,15 +479,15 @@ protected:
     map<shared_ptr<Widget>, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
-    void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
+    void AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators);
     void UpdateCurrentActionContextModifier(shared_ptr<Widget> widget);
     
 public:
-    Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
+    Zone(ZoneManager* const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
     virtual ~Zone() {}
     
-    Navigator* GetNavigator() { return navigator_; }
+    shared_ptr<Navigator> GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
@@ -729,7 +729,7 @@ private:
     shared_ptr<Zone> const enclosingZone_ = nullptr;
     
 public:
-    SubZone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(ZoneManager* const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -897,14 +897,14 @@ public:
     
     void PreProcessZones();
     
-    Navigator* GetMasterTrackNavigator();
-    Navigator* GetSelectedTrackNavigator();
-    Navigator* GetFocusedFXNavigator();
+    shared_ptr<Navigator> GetMasterTrackNavigator();
+    shared_ptr<Navigator> GetSelectedTrackNavigator();
+    shared_ptr<Navigator> GetFocusedFXNavigator();
     
     int  GetNumChannels();
     void GoFocusedFX();
     void GoSelectedTrackFX();
-    void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
+    void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
@@ -2205,10 +2205,10 @@ private:
     vector<MediaTrack*> folderSpillTracks_;
     map<MediaTrack*,    vector<MediaTrack*>> folderDictionary_;
 
-    map<int, Navigator*> trackNavigators_;
-    Navigator* const masterTrackNavigator_ = nullptr;
-    Navigator* const selectedTrackNavigator_ = nullptr;
-    Navigator* const focusedFXNavigator_ = nullptr;
+    map<int, shared_ptr<Navigator> > trackNavigators_;
+    shared_ptr<Navigator> const masterTrackNavigator_ = nullptr;
+    shared_ptr<Navigator> selectedTrackNavigator_ = nullptr;
+    shared_ptr<Navigator> focusedFXNavigator_ = nullptr;
     
     vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     
@@ -2249,33 +2249,20 @@ public:
     synchPages_(synchPages),
     isScrollLinkEnabled_(isScrollLinkEnabled),
     isScrollSynchEnabled_(isScrollSynchEnabled),
-    masterTrackNavigator_(new MasterTrackNavigator(page_)),
-    selectedTrackNavigator_(new SelectedTrackNavigator(page_)),
-    focusedFXNavigator_(new FocusedFXNavigator(page_))
+    masterTrackNavigator_(make_shared<MasterTrackNavigator>(page_)),
+    selectedTrackNavigator_(make_shared<SelectedTrackNavigator>(page_)),
+    focusedFXNavigator_(make_shared<FocusedFXNavigator>(page_))
     {}
-    
-    ~TrackNavigationManager()
-    {
-        for(auto [key, navigator] : trackNavigators_)
-        {
-            delete navigator;
-            navigator = nullptr;
-        }
         
-        delete masterTrackNavigator_;
-        delete selectedTrackNavigator_;
-        delete focusedFXNavigator_;
-    }
-    
     void RebuildTracks();
     void RebuildSelectedTracks();
     void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
     int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
-    Navigator* GetMasterTrackNavigator() { return masterTrackNavigator_; }
-    Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
-    Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
+    shared_ptr<Navigator> GetMasterTrackNavigator() { return masterTrackNavigator_; }
+    shared_ptr<Navigator> GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
+    shared_ptr<Navigator> GetFocusedFXNavigator() { return focusedFXNavigator_; }
     
     bool GetIsTrackVisible(MediaTrack* track)
     {
@@ -2521,10 +2508,10 @@ public:
             selectedTracksOffset_ = top;
     }
     
-    Navigator* GetNavigatorForChannel(int channelNum)
+    shared_ptr<Navigator> GetNavigatorForChannel(int channelNum)
     {
         if(trackNavigators_.count(channelNum) < 1)
-            trackNavigators_[channelNum] = new TrackNavigator(page_, this, channelNum);
+            trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, this, channelNum);
             
         return trackNavigators_[channelNum];
     }
@@ -2759,7 +2746,7 @@ public:
         return false;
     }
     
-    bool GetIsNavigatorTouched(Navigator* navigator,  int touchedControl)
+    bool GetIsNavigatorTouched(shared_ptr<Navigator> navigator,  int touchedControl)
     {
         if(touchedControl == 0)
             return navigator->GetIsVolumeTouched();
@@ -3023,7 +3010,7 @@ public:
             surface->HandleRecord();
     }
     
-    void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+    void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
     {
         for(auto surface : surfaces_)
             surface->GetZoneManager()->GoTrackFXSlot(track, navigator, fxSlot);
@@ -3071,16 +3058,16 @@ public:
     bool GetSynchPages() { return trackNavigationManager_->GetSynchPages(); }
     bool GetScrollLink() { return trackNavigationManager_->GetScrollLink(); }
     int  GetNumTracks() { return trackNavigationManager_->GetNumTracks(); }
-    Navigator* GetMasterTrackNavigator() { return trackNavigationManager_->GetMasterTrackNavigator(); }
-    Navigator* GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
-    Navigator* GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
+    shared_ptr<Navigator> GetMasterTrackNavigator() { return trackNavigationManager_->GetMasterTrackNavigator(); }
+    shared_ptr<Navigator>  GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
+    shared_ptr<Navigator>  GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
     void VCAModeActivated() { trackNavigationManager_->VCAModeActivated(); }
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
     void SelectedTracksModeActivated() { trackNavigationManager_->SelectedTracksModeActivated(); }
     void SelectedTracksModeDeactivated() { trackNavigationManager_->SelectedTracksModeDeactivated(); }
-    Navigator* GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
+    shared_ptr<Navigator>  GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
     bool GetIsTrackVisible(MediaTrack* track) { return trackNavigationManager_->GetIsTrackVisible(track); }

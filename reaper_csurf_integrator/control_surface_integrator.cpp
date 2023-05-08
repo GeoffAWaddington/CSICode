@@ -608,7 +608,7 @@ vector<rgba_color> GetColorValues(vector<string> colors)
     return colorValues;
 }
 
-static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -2194,7 +2194,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager* const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     if(name == "Home")
     {
@@ -2202,7 +2202,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
         {
             if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
             {
-                vector<Navigator*> navigators;
+                vector<shared_ptr<Navigator>> navigators;
                 AddNavigatorsForZone(zoneName, navigators);
 
                 associatedZones_[zoneName] = vector<shared_ptr<Zone>>();
@@ -2216,7 +2216,7 @@ Zone::Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, 
     {
         if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
         {
-            vector<Navigator*> navigators;
+            vector<shared_ptr<Navigator>> navigators;
             AddNavigatorsForZone(zoneName, navigators);
             
             ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, includedZones_, nullptr);
@@ -2230,7 +2230,7 @@ void Zone::InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone)
     {
         if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
         {
-            vector<Navigator*> navigators;
+            vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(GetNavigator());
 
             subZones_[zoneName] = vector<shared_ptr<Zone>>();
@@ -2366,7 +2366,7 @@ void Zone::Deactivate()
 }
 
 
-void Zone::AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators)
+void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators)
 {
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
@@ -2673,7 +2673,7 @@ void ZoneManager::Initialize()
         return;
     }
         
-    vector<Navigator*> navigators;
+    vector<shared_ptr<Navigator>> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
     vector<shared_ptr<Zone>> dummy; // Needed to satify protcol, Home and FocusedFXParam have special Zone handling
     ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
@@ -2718,7 +2718,7 @@ void ZoneManager::GoFocusedFX()
 
         if(zoneFilePaths_.count(FXName) > 0)
         {
-            vector<Navigator*> navigators;
+            vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
             ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, nullptr);
@@ -2750,7 +2750,7 @@ void ZoneManager::GoSelectedTrackFX()
             
             if(zoneFilePaths_.count(FXName) > 0)
             {
-                vector<Navigator*> navigators;
+                vector<shared_ptr<Navigator>> navigators;
                 navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
                 
                 ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, nullptr);
@@ -2762,7 +2762,7 @@ void ZoneManager::GoSelectedTrackFX()
     }
 }
 
-void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
 {
     char FXName[BUFSZ];
     
@@ -2770,7 +2770,7 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxS
     
     if(zoneFilePaths_.count(FXName) > 0)
     {
-        vector<Navigator*> navigators;
+        vector<shared_ptr<Navigator>> navigators;
         navigators.push_back(navigator);
         
         ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, fxSlotZones_, nullptr);
@@ -2976,9 +2976,9 @@ void ZoneManager::DoTouch(shared_ptr<Widget> widget, double value)
         homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 }
 
-Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
-Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
-Navigator* ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
+shared_ptr<Navigator> ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
+shared_ptr<Navigator> ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
+shared_ptr<Navigator> ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
