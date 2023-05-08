@@ -329,8 +329,11 @@ static void ExpandFXLayout(ZoneManager* zoneManager, vector<string> tokens, map<
         {
             string fixedTextDisplayPrefix = "FixedTextDisplay_";
             
-            if(templateParams[0] == "FixedTextDisplay" && tokens[i].find(fixedTextDisplayPrefix) == 0)
-                properties.push_back(tokens[i].substr(fixedTextDisplayPrefix.length(), tokens[i].length() - fixedTextDisplayPrefix.length()));
+            if(tokens[i].find(fixedTextDisplayPrefix) == 0)
+            {
+                if(templateParams[0] == "FixedTextDisplay")
+                    properties.push_back(tokens[i].substr(fixedTextDisplayPrefix.length(), tokens[i].length() - fixedTextDisplayPrefix.length()));
+            }
             else
                 properties.push_back(tokens[i]);
         }
