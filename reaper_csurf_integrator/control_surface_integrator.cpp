@@ -2508,7 +2508,7 @@ Widget::~Widget()
     }
 }
 
-ZoneManager* Widget::GetZoneManager()
+shared_ptr<ZoneManager> Widget::GetZoneManager()
 {
     return surface_->GetZoneManager();
 }

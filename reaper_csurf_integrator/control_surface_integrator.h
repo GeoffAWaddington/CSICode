@@ -771,7 +771,7 @@ public:
     
     string GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
-    ZoneManager* GetZoneManager();
+    shared_ptr<ZoneManager> GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
@@ -1514,7 +1514,7 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
-    ModifierManager* modifierManager_ = nullptr;
+    shared_ptr<ModifierManager> modifierManager_ = nullptr;
     
     int* scrubModePtr_ = nullptr;
     int configScrubMode_ = 0;
@@ -1528,10 +1528,10 @@ private:
     map<int, bool> channelToggles_;
 
 protected:
-    ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, string zoneFolder, string fxZoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(new ZoneManager(this, zoneFolder, fxZoneFolder))
+    ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, string zoneFolder, string fxZoneFolder, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), zoneManager_(make_shared<ZoneManager>(this, zoneFolder, fxZoneFolder))
     {
         if(useLocalmodifiers)
-            modifierManager_ = new ModifierManager(this);
+            modifierManager_ = make_shared<ModifierManager>(this);
         
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
@@ -1545,7 +1545,7 @@ protected:
 
     shared_ptr<Page> const page_;
     string const name_;
-    ZoneManager* const zoneManager_;
+    shared_ptr<ZoneManager> const zoneManager_;
     
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
@@ -1626,7 +1626,7 @@ public:
     virtual void SendMidiMessage(MIDI_event_ex_t* midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
     
-    ZoneManager* GetZoneManager() { return zoneManager_; }
+    shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
     shared_ptr<Page> GetPage() { return page_; }
     string GetName() { return name_; }
     
@@ -2910,12 +2910,12 @@ class Page
 {
 private:
     string const name_ = "";
-    TrackNavigationManager* const trackNavigationManager_ = nullptr;
-    ModifierManager* modifierManager_ = nullptr;
+    shared_ptr<TrackNavigationManager> const trackNavigationManager_ = nullptr;
+    shared_ptr<ModifierManager> modifierManager_ = nullptr;
     vector<ControlSurface*> surfaces_;
     
 public:
-    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name), trackNavigationManager_(new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled)), modifierManager_(new ModifierManager(this)) {}
+    Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name), trackNavigationManager_(make_shared<TrackNavigationManager>(this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled)), modifierManager_(make_shared<ModifierManager>(this)) {}
     
     ~Page()
     {
@@ -2928,7 +2928,7 @@ public:
     
     string GetName() { return name_; }
     
-    ModifierManager* GetModifierManager() { return modifierManager_; }
+    shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
     
     void UpdateCurrentActionContextModifiers()
     {
