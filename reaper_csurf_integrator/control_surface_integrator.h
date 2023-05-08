@@ -64,7 +64,7 @@ const string TabChars = "[\t]";
 const int TempDisplayTime = 1250;
 
 class Manager;
-extern Manager* TheManager;
+extern unique_ptr<Manager> TheManager;
 
 static vector<string> GetTokens(string line)
 {
@@ -3297,7 +3297,6 @@ public:
         }
     }
 
-    
     void Shutdown()
     {
         WriteFXParamAliases();
