@@ -224,7 +224,7 @@ class ActionContext
 {
 private:
     Action* const action_ = nullptr;
-    Widget* const widget_ = nullptr;
+    shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
     
     string lastStringValue_ = "";
@@ -271,13 +271,13 @@ private:
     void UpdateTrackColor();
 
 public:
-    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params);
-    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
+    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params);
+    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
     {
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
-    ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, string stringParam) : action_(action), widget_(widget), zone_(zone), stringParam_(stringParam)
+    ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam) : action_(action), widget_(widget), zone_(zone), stringParam_(stringParam)
     {
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
@@ -286,7 +286,7 @@ public:
     virtual ~ActionContext() {}
     
     Action* GetAction() { return action_; }
-    Widget* GetWidget() { return widget_; }
+    shared_ptr<Widget> GetWidget() { return widget_; }
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
     string GetName();
@@ -467,19 +467,19 @@ protected:
     
     bool isActive_ = false;
     
-    map<Widget*, bool> widgets_;
-    map<string, Widget*> widgetsByName_;
+    map<shared_ptr<Widget>, bool> widgets_;
+    map<string, shared_ptr<Widget>> widgetsByName_;
     
     vector<shared_ptr<Zone>> includedZones_;
     map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
-    map<Widget*, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
-    map<Widget*, int> currentActionContextModifiers_;
+    map<shared_ptr<Widget>, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    map<shared_ptr<Widget>, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
     void AddNavigatorsForZone(string zoneName, vector<Navigator*> &navigators);
-    void UpdateCurrentActionContextModifier(Widget* widget);
+    void UpdateCurrentActionContextModifier(shared_ptr<Widget> widget);
     
 public:
     Zone(ZoneManager* const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
@@ -500,12 +500,12 @@ public:
     void RestoreXTouchDisplayColors();
 
     void UpdateCurrentActionContextModifiers();
-    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget* widget);        
+    vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget);
 
     void Activate();
     void Deactivate();
     
-    void DoAction(Widget* widget, bool &isUsed, double value);
+    void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     
     int GetChannelNumber();
     
@@ -550,13 +550,13 @@ public:
             return name_;
     }
     
-    void AddWidget(Widget* widget, string name)
+    void AddWidget(shared_ptr<Widget> widget, string name)
     {
         widgets_[widget] = true;
         widgetsByName_[name] = widget;
     }
     
-    Widget* GetWidgetByName(string name)
+    shared_ptr<Widget> GetWidgetByName(string name)
     {
         if(widgetsByName_.count(name) > 0)
             return widgetsByName_[name];
@@ -564,7 +564,7 @@ public:
             return nullptr;
     }
     
-    void AddActionContext(Widget* widget, int modifier, shared_ptr<ActionContext> actionContext)
+    void AddActionContext(shared_ptr<Widget> widget, int modifier, shared_ptr<ActionContext> actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
     }
@@ -594,7 +594,7 @@ public:
                     zone->Deactivate();
     }
 
-    void RequestUpdateWidget(Widget* widget)
+    void RequestUpdateWidget(shared_ptr<Widget> widget)
     {
         for(auto context : GetActionContexts(widget))
         {
@@ -603,7 +603,7 @@ public:
         }
     }
 
-    void RequestUpdate(map<Widget*, bool> &usedWidgets)
+    void RequestUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
     {
         if(! isActive_)
             return;
@@ -629,7 +629,7 @@ public:
         }
     }
 
-    void DoRelativeAction(Widget* widget, bool &isUsed, double delta)
+    void DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, double delta)
     {
         if(! isActive_ || isUsed)
             return;
@@ -659,7 +659,7 @@ public:
         }
     }
 
-    void DoRelativeAction(Widget* widget, bool &isUsed, int accelerationIndex, double delta)
+    void DoRelativeAction(shared_ptr<Widget> widget, bool &isUsed, int accelerationIndex, double delta)
     {
         if(! isActive_ || isUsed)
             return;
@@ -689,7 +689,7 @@ public:
         }
     }
 
-    void DoTouch(Widget* widget, string widgetName, bool &isUsed, double value)
+    void DoTouch(shared_ptr<Widget> widget, string widgetName, bool &isUsed, double value)
     {
         if(! isActive_ || isUsed)
             return;
@@ -826,7 +826,7 @@ private:
 
     map<string, CSIZoneInfo> zoneFilePaths_;
     
-    map<Widget*, bool> usedWidgets_;
+    map<shared_ptr<Widget>, bool> usedWidgets_;
     
     shared_ptr<Zone> homeZone_ = nullptr;
     
@@ -905,7 +905,7 @@ public:
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
 
-    void DoTouch(Widget* widget, double value);
+    void DoTouch(shared_ptr<Widget> widget, double value);
     
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     
@@ -1049,7 +1049,7 @@ public:
         }
     }
             
-    void AddWidget(Widget* widget)
+    void AddWidget(shared_ptr<Widget> widget)
     {
         usedWidgets_[widget] = false;
     }
@@ -1163,7 +1163,7 @@ public:
         }
     }
 
-    void DoAction(Widget* widget, double value)
+    void DoAction(shared_ptr<Widget> widget, double value)
     {
         widget->LogInput(value);
         
@@ -1194,7 +1194,7 @@ public:
             homeZone_->DoAction(widget, isUsed, value);
     }
     
-    void DoRelativeAction(Widget* widget, double delta)
+    void DoRelativeAction(shared_ptr<Widget> widget, double delta)
     {
         widget->LogInput(delta);
         
@@ -1225,7 +1225,7 @@ public:
             homeZone_->DoRelativeAction(widget, isUsed, delta);
     }
     
-    void DoRelativeAction(Widget* widget, int accelerationIndex, double delta)
+    void DoRelativeAction(shared_ptr<Widget> widget, int accelerationIndex, double delta)
     {
         widget->LogInput(delta);
         
@@ -1262,11 +1262,11 @@ class CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Widget* const widget_;
-    CSIMessageGenerator(Widget* widget) : widget_(widget) {}
+    shared_ptr<Widget> const widget_;
+    CSIMessageGenerator(shared_ptr<Widget> widget) : widget_(widget) {}
     
 public:
-    CSIMessageGenerator(Widget* widget, string message);
+    CSIMessageGenerator(shared_ptr<Widget> widget, string message);
     virtual ~CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value)
@@ -1280,7 +1280,7 @@ class AnyPress_CSIMessageGenerator : CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    AnyPress_CSIMessageGenerator(Widget* widget, string message) : CSIMessageGenerator(widget, message) {}
+    AnyPress_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
     virtual ~AnyPress_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -1294,7 +1294,7 @@ class MotorizedFaderWithoutTouch_CSIMessageGenerator : CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    MotorizedFaderWithoutTouch_CSIMessageGenerator(Widget* widget, string message) : CSIMessageGenerator(widget, message) {}
+    MotorizedFaderWithoutTouch_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
     virtual ~MotorizedFaderWithoutTouch_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -1309,7 +1309,7 @@ class Touch_CSIMessageGenerator : CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    Touch_CSIMessageGenerator(Widget* widget, string message) : CSIMessageGenerator(widget, message) {}
+    Touch_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
     virtual ~Touch_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -1550,8 +1550,8 @@ protected:
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
     
-    vector<Widget*> widgets_;
-    map<string, Widget*> widgetsByName_;
+    vector<shared_ptr<Widget>> widgets_;
+    map<string, shared_ptr<Widget>> widgetsByName_;
     
     map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     
@@ -1584,16 +1584,16 @@ protected:
     virtual void InitHardwiredWidgets()
     {
         // Add the "hardwired" widgets
-        AddWidget(new Widget(this, "OnTrackSelection"));
-        AddWidget(new Widget(this, "OnPageEnter"));
-        AddWidget(new Widget(this, "OnPageLeave"));
-        AddWidget(new Widget(this, "OnInitialization"));
-        AddWidget(new Widget(this, "OnPlayStart"));
-        AddWidget(new Widget(this, "OnPlayStop"));
-        AddWidget(new Widget(this, "OnRecordStart"));
-        AddWidget(new Widget(this, "OnRecordStop"));
-        AddWidget(new Widget(this, "OnZoneActivation"));
-        AddWidget(new Widget(this, "OnZoneDeactivation"));
+        AddWidget(make_shared<Widget>(this, "OnTrackSelection"));
+        AddWidget(make_shared<Widget>(this, "OnPageEnter"));
+        AddWidget(make_shared<Widget>(this, "OnPageLeave"));
+        AddWidget(make_shared<Widget>(this, "OnInitialization"));
+        AddWidget(make_shared<Widget>(this, "OnPlayStart"));
+        AddWidget(make_shared<Widget>(this, "OnPlayStop"));
+        AddWidget(make_shared<Widget>(this, "OnRecordStart"));
+        AddWidget(make_shared<Widget>(this, "OnRecordStop"));
+        AddWidget(make_shared<Widget>(this, "OnZoneActivation"));
+        AddWidget(make_shared<Widget>(this, "OnZoneDeactivation"));
     }
     
 public:
@@ -1603,12 +1603,6 @@ public:
         {
             delete messageGenerator;
             messageGenerator = nullptr;
-        }
-        
-        for(auto widget : widgets_)
-        {
-            delete widget;
-            widget = nullptr;
         }
     };
     
@@ -1751,7 +1745,7 @@ public:
         *scrubModePtr_ = 2;
     }
            
-    void AddWidget(Widget* widget)
+    void AddWidget(shared_ptr<Widget> widget)
     {
         widgets_.push_back(widget);
         widgetsByName_[widget->GetName()] = widget;
@@ -1763,7 +1757,7 @@ public:
         CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
 
-    Widget* GetWidgetByName(string name)
+    shared_ptr<Widget> GetWidgetByName(string name)
     {
         if(widgetsByName_.count(name) > 0)
             return widgetsByName_[name];
@@ -1835,13 +1829,13 @@ protected:
     string lastStringValue_ = "";
     rgba_color lastColor_;
     
-    Widget* const widget_ = nullptr;
+    shared_ptr<Widget> const widget_ = nullptr;
     
 public:
-    FeedbackProcessor(Widget* widget) : widget_(widget) {}
+    FeedbackProcessor(shared_ptr<Widget> widget) : widget_(widget) {}
     virtual ~FeedbackProcessor() {}
     virtual string GetName()  { return "FeedbackProcessor"; }
-    Widget* GetWidget() { return widget_; }
+    shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
     virtual void SetColorValue(map<string, string> &properties, rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
@@ -1903,7 +1897,7 @@ class Midi_CSIMessageGenerator : public CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Midi_CSIMessageGenerator(Widget* widget) : CSIMessageGenerator(widget) {}
+    Midi_CSIMessageGenerator(shared_ptr<Widget> widget) : CSIMessageGenerator(widget) {}
     
 public:
     virtual ~Midi_CSIMessageGenerator() {}
@@ -1921,9 +1915,9 @@ protected:
     MIDI_event_ex_t* midiFeedbackMessage1_ = new MIDI_event_ex_t(0, 0, 0);
     MIDI_event_ex_t* midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget) : FeedbackProcessor(widget), surface_(surface) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget* widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
     
     void SendMidiMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
@@ -2035,7 +2029,7 @@ protected:
     string oscAddress_ = "";
     
 public:
-    OSC_FeedbackProcessor(OSC_ControlSurface* surface, Widget* widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(OSC_ControlSurface* surface, shared_ptr<Widget> widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
@@ -2051,7 +2045,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, Widget* widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, shared_ptr<Widget> widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
@@ -3364,7 +3358,7 @@ public:
             osara_outputMessage(phrase.c_str());
     }
     
-    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, vector<string> params)
+    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, params);
@@ -3373,7 +3367,7 @@ public:
     }
 
     
-    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, int paramIndex)
+    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, paramIndex);
@@ -3381,7 +3375,7 @@ public:
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, paramIndex);
     }
 
-    shared_ptr<ActionContext> GetActionContext(string actionName, Widget* widget, shared_ptr<Zone> zone, string stringParam)
+    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, stringParam);

@@ -550,7 +550,7 @@ static void ExpandLine(int numChannels, vector<string> &tokens)
         tokens.push_back(regex_replace(templateString, regex("[|]"), to_string(i)));
 }
 
-static void GetWidgets(ZoneManager* zoneManager, int numChannels, vector<string> tokens, vector<Widget*> &results)
+static void GetWidgets(ZoneManager* zoneManager, int numChannels, vector<string> tokens, vector<shared_ptr<Widget>> &results)
 {
     vector<string> widgetLine;
                         
@@ -563,10 +563,10 @@ static void GetWidgets(ZoneManager* zoneManager, int numChannels, vector<string>
     if(widgetLine.size() != numChannels)
         return;
     
-    vector<Widget*> widgets;
+    vector<shared_ptr<Widget>> widgets;
     
     for(auto widgetName : widgetLine)
-        if(Widget* widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
+        if(shared_ptr<Widget> widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
             widgets.push_back(widget);
     
     if(widgets.size() != numChannels)
@@ -685,7 +685,7 @@ static void ProcessZoneFile(string filePath, ZoneManager* zoneManager, vector<Na
                             if(enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
                                 surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(enclosingZone->GetChannelNumber()));
                             
-                            Widget* widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
+                            shared_ptr<Widget> widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
                                                         
                             if(widget == nullptr)
                                 continue;
@@ -845,7 +845,7 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-void GetSteppedValues(Widget* widget, Action* action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(shared_ptr<Widget> widget, Action* action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -976,7 +976,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     if(tokens.size() > 2)
         widgetClass = tokens[2];
 
-    Widget* widget = new Widget(surface, widgetName);
+    shared_ptr<Widget> widget = make_shared<Widget>(surface, widgetName);
        
     surface->AddWidget(widget);
 
@@ -1205,7 +1205,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     if(tokens.size() < 2)
         return;
     
-    Widget* widget = new Widget(surface, tokens[1]);
+    shared_ptr<Widget> widget = make_shared<Widget>(surface, tokens[1]);
     
     surface->AddWidget(widget);
 
@@ -1831,7 +1831,7 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(Action* action, Widget* widget, shared_ptr<Zone> zone, vector<string> params): action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(Action* action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params): action_(action), widget_(widget), zone_(zone)
 {
     // GAW -- Hack to get rid of the widgetProperties, so we don't break existing logic
     vector<string> nonWidgetPropertyParams;
@@ -2399,7 +2399,7 @@ void Zone::RestoreXTouchDisplayColors()
         widget->RestoreXTouchDisplayColors();
 }
 
-void Zone::DoAction(Widget* widget, bool &isUsed, double value)
+void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
 {
     if(! isActive_ || isUsed)
         return;
@@ -2453,7 +2453,7 @@ void Zone::UpdateCurrentActionContextModifiers()
             zone->UpdateCurrentActionContextModifiers();
 }
 
-void Zone::UpdateCurrentActionContextModifier(Widget* widget)
+void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
 {
     for(auto modifier : widget->GetSurface()->GetModifiers())
     {
@@ -2465,7 +2465,7 @@ void Zone::UpdateCurrentActionContextModifier(Widget* widget)
     }
 }
 
-vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget* widget)
+vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(shared_ptr<Widget> widget)
 {
     if(currentActionContextModifiers_.count(widget) == 0)
         UpdateCurrentActionContextModifier(widget);
@@ -2568,7 +2568,7 @@ void Widget::LogInput(double value)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CSIMessageGenerator::CSIMessageGenerator(Widget* widget, string message) : widget_(widget)
+CSIMessageGenerator::CSIMessageGenerator(shared_ptr<Widget> widget, string message) : widget_(widget)
 {
     widget->GetSurface()->AddCSIMessageGenerator(message, this);
 }
@@ -2947,7 +2947,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     return true;
 }
 
-void ZoneManager::DoTouch(Widget* widget, double value)
+void ZoneManager::DoTouch(shared_ptr<Widget> widget, double value)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value);
     
