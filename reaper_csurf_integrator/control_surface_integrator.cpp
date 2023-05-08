@@ -1730,15 +1730,11 @@ void Manager::Init()
                         string zoneFolder = tokens[4];
                         string fxZoneFolder = tokens[5];
                         
-                        ControlSurface* surface = nullptr;
-                        
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            surface = new Midi_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]);
+                            currentPage->GetSurfaces().push_back(make_shared<Midi_ControlSurface>(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            surface = new OSC_ControlSurface(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]);
+                            currentPage->GetSurfaces().push_back(make_shared<OSC_ControlSurface>(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
 
-                        if(surface != nullptr)
-                            currentPage->AddSurface(surface);
                     }
                 }
             }

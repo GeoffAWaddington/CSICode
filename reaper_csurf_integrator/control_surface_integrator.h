@@ -2913,23 +2913,19 @@ private:
     string const name_ = "";
     shared_ptr<TrackNavigationManager> const trackNavigationManager_ = nullptr;
     shared_ptr<ModifierManager> modifierManager_ = nullptr;
-    vector<ControlSurface*> surfaces_;
+    vector<shared_ptr<ControlSurface>> surfaces_;
     
 public:
     Page(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name), trackNavigationManager_(make_shared<TrackNavigationManager>(this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled)), modifierManager_(make_shared<ModifierManager>(this)) {}
-    
-    ~Page()
-    {
-        for(auto surface: surfaces_)
-        {
-            delete surface;
-            surface = nullptr;
-        }
-    }
-    
+       
     string GetName() { return name_; }
     
     shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
+    
+    vector<shared_ptr<ControlSurface>> &GetSurfaces()
+    {
+        return surfaces_;
+    }
     
     void UpdateCurrentActionContextModifiers()
     {
@@ -2954,12 +2950,7 @@ public:
         for(auto surface : surfaces_)
             surface->ForceUpdateTrackColors();
     }
-    
-    void AddSurface(ControlSurface* surface)
-    {
-        surfaces_.push_back(surface);
-    }
-    
+        
     bool GetTouchState(MediaTrack* track, int touchedControl)
     {
         return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
@@ -3070,7 +3061,7 @@ public:
     void AddZoneFilePath(ControlSurface* originatingSurface, string zoneFolder, string name, struct CSIZoneInfo info)
     {
         for(auto surface : surfaces_)
-            if(surface != originatingSurface)
+            if(surface->GetName() != originatingSurface->GetName())
                 surface->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
     }
     
