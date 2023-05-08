@@ -1968,7 +1968,7 @@ class Midi_ControlSurface : public ControlSurface
 {
 private:
     string const templateFilename_ = "";
-    Midi_ControlSurfaceIO* surfaceIO_ = nullptr;
+    shared_ptr<Midi_ControlSurfaceIO> surfaceIO_ = nullptr;
     map<int, vector<Midi_CSIMessageGenerator*>> Midi_CSIMessageGeneratorsByMessage_;
     
     // special processing for MCU meters
@@ -1992,7 +1992,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO)
+    Midi_ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
     : ControlSurface(useLocalmodifiers, page, name, zoneFolder, fxZoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);
@@ -2134,12 +2134,12 @@ class OSC_ControlSurface : public ControlSurface
 {
 private:
     string const templateFilename_ = "";
-    OSC_ControlSurfaceIO* const surfaceIO_ = nullptr;
+    shared_ptr<OSC_ControlSurfaceIO> const surfaceIO_ = nullptr;
     
     void Initialize(string templateFilename, string zoneFolder);
 
 public:
-    OSC_ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO)
+    OSC_ControlSurface(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
     : ControlSurface(useLocalmodifiers, page, name, zoneFolder, fxZoneFolder, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
     {
         Initialize(templateFilename, zoneFolder);

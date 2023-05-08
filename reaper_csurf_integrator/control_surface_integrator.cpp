@@ -1621,8 +1621,8 @@ void Manager::Init()
 {
     pages_.clear();
     
-    map<string, Midi_ControlSurfaceIO*> midiSurfaces;
-    map<string, OSC_ControlSurfaceIO*> oscSurfaces;
+    map<string, shared_ptr<Midi_ControlSurfaceIO>> midiSurfaces;
+    map<string, shared_ptr<OSC_ControlSurfaceIO>> oscSurfaces;
 
     shared_ptr<Page> currentPage = nullptr;
     
@@ -1682,9 +1682,9 @@ void Manager::Init()
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
-                    midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
+                    midiSurfaces[tokens[1]] = make_shared<Midi_ControlSurfaceIO>(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                 else if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
+                    oscSurfaces[tokens[1]] = make_shared<OSC_ControlSurfaceIO>(tokens[1], tokens[2], tokens[3], tokens[4]);
                 else if(tokens[0] == PageToken)
                 {
                     bool followMCP = true;
