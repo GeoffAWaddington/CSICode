@@ -1009,56 +1009,77 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         
         string widgetType = tokenLines[i][0];
 
+        shared_ptr<MIDI_event_ex_t> message1 = nullptr;
+        shared_ptr<MIDI_event_ex_t> message2 = nullptr;
+
+        if(size > 3)
+            message1 = make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
+            
+        if(size > 6)
+            message2 = make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
+        
         // Control Signal Generators
+        
         if(widgetType == "AnyPress" && (size == 4 || size == 7))
-            new AnyPress_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<AnyPress_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         if(widgetType == "Press" && size == 4)
-            new PressRelease_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<PressRelease_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
         else if(widgetType == "Press" && size == 7)
-            new PressRelease_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
+        {
+            shared_ptr<PressRelease_Midi_CSIMessageGenerator> generator = make_shared<PressRelease_Midi_CSIMessageGenerator>(widget, message1, message2);
+            
+            surface->AddCSIMessageGenerator(generator, message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(generator, message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
+        }
         else if(widgetType == "Fader14Bit" && size == 4)
-            new Fader14Bit_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<Fader14Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000);
         else if(widgetType == "Fader7Bit" && size== 4)
-            new Fader7Bit_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<Fader7Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         else if(widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass")
         {
             if(stepSizes.count(widgetClass) > 0 && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
-                new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]);
+                surface->AddCSIMessageGenerator(make_shared<AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator>(widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         }
         else if(widgetType == "Encoder" && size == 4)
-            new Encoder_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<Encoder_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         else if(widgetType == "Encoder" && size > 4)
-            new AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
-        else if(widgetType == "MFTEncoder" && size == 4)
-            new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), tokenLines[i]);
+            surface->AddCSIMessageGenerator(make_shared<AcceleratedEncoder_Midi_CSIMessageGenerator>(widget, message1, tokenLines[i]), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+        else if(widgetType == "MFTEncoder" && size > 4)
+            surface->AddCSIMessageGenerator(make_shared<MFT_AcceleratedEncoder_Midi_CSIMessageGenerator>(widget, message1, tokenLines[i]), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         else if(widgetType == "EncoderPlain" && size == 4)
-            new EncoderPlain_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<EncoderPlain_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         else if(widgetType == "Encoder7Bit" && size == 4)
-            new Encoder7Bit_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            surface->AddCSIMessageGenerator(make_shared<Encoder7Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
         else if(widgetType == "Touch" && size == 7)
-            new Touch_Midi_CSIMessageGenerator(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
+        {
+            shared_ptr<Touch_Midi_CSIMessageGenerator> generator = make_shared<Touch_Midi_CSIMessageGenerator>(widget, message1, message2);
+            
+            surface->AddCSIMessageGenerator(generator, message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(generator, message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
+        }
+        
         // Feedback Processors
         shared_ptr<FeedbackProcessor> feedbackProcessor = nullptr;
 
         if(widgetType == "FB_TwoState" && size == 7)
         {
-            feedbackProcessor = make_shared<TwoState_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])), make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6])));
+            feedbackProcessor = make_shared<TwoState_Midi_FeedbackProcessor>(surface, widget, message1, message2);
         }
         else if(widgetType == "FB_NovationLaunchpadMiniRGB7Bit" && size == 4)
         {
-            feedbackProcessor = make_shared<NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_MFT_RGB" && size == 4)
         {
-            feedbackProcessor = make_shared<MFT_RGB_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<MFT_RGB_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_FaderportRGB" && size == 4)
         {
-            feedbackProcessor = make_shared<FaderportRGB_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<FaderportRGB_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_FaderportTwoStateRGB" && size == 4)
         {
-            feedbackProcessor = make_shared<FPTwoStateRGB_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<FPTwoStateRGB_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_FaderportValueBar"  && size == 2)
         {
@@ -1070,23 +1091,23 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         }
         else if(widgetType == "FB_Fader14Bit" && size == 4)
         {
-            feedbackProcessor = make_shared<Fader14Bit_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<Fader14Bit_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_Fader7Bit" && size == 4)
         {
-            feedbackProcessor = make_shared<Fader7Bit_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<Fader7Bit_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_Encoder" && size == 4)
         {
-            feedbackProcessor = make_shared<Encoder_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<Encoder_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_ConsoleOneVUMeter" && size == 4)
         {
-            feedbackProcessor = make_shared<ConsoleOneVUMeter_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<ConsoleOneVUMeter_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_ConsoleOneGainReductionMeter" && size == 4)
         {
-            feedbackProcessor = make_shared<ConsoleOneGainReductionMeter_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<ConsoleOneGainReductionMeter_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_MCUTimeDisplay" && size == 1)
         {
@@ -1118,11 +1139,11 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         }
         else if(widgetType == "FB_SCE24Encoder" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24Encoder_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<SCE24Encoder_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if(widgetType == "FB_SCE24EncoderText" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24Text_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<SCE24Text_Midi_FeedbackProcessor>(surface, widget, message1);
         }
         else if((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
         {

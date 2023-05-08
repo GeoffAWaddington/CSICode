@@ -1968,8 +1968,8 @@ class Midi_ControlSurface : public ControlSurface
 private:
     string const templateFilename_ = "";
     shared_ptr<Midi_ControlSurfaceIO> surfaceIO_ = nullptr;
-    map<int, vector<Midi_CSIMessageGenerator*>> Midi_CSIMessageGeneratorsByMessage_;
-    
+    map<int, vector<shared_ptr<Midi_CSIMessageGenerator>>> Midi_CSIMessageGeneratorsByMessage_;
+
     // special processing for MCU meters
     bool hasMCUMeters_ = false;
     int displayType_ = 0x14;
@@ -2013,8 +2013,8 @@ public:
     {
         surfaceIO_->HandleExternalInput(this);
     }
-    
-    void AddCSIMessageGenerator(int message, Midi_CSIMessageGenerator* messageGenerator)
+        
+    void AddCSIMessageGenerator(shared_ptr<Midi_CSIMessageGenerator> messageGenerator, int message)
     {
         Midi_CSIMessageGeneratorsByMessage_[message].push_back(messageGenerator);
     }
