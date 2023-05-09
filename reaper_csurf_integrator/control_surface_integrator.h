@@ -169,10 +169,10 @@ private:
     int const channelNum_ = 0;
     
 protected:
-    TrackNavigationManager* const trackNavigationManager_;
+    shared_ptr<TrackNavigationManager> const trackNavigationManager_;
 
 public:
-    TrackNavigator(shared_ptr<Page> page, TrackNavigationManager* trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
+    TrackNavigator(shared_ptr<Page> page, shared_ptr<TrackNavigationManager> trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
     virtual ~TrackNavigator() {}
     
     virtual string GetName() override { return "TrackNavigator"; }
@@ -2164,6 +2164,7 @@ class TrackNavigationManager
 {
 private:
     shared_ptr<Page> const page_ = nullptr;
+    shared_ptr<TrackNavigationManager> sharedThisPtr_ = nullptr;
     bool followMCP_ = true;
     bool synchPages_ = true;
     bool isScrollLinkEnabled_ = false;
@@ -2236,7 +2237,9 @@ public:
     selectedTrackNavigator_(make_shared<SelectedTrackNavigator>(page_)),
     focusedFXNavigator_(make_shared<FocusedFXNavigator>(page_))
     {}
-        
+       
+    void SetSharedThisPtr(shared_ptr<TrackNavigationManager> thisPtr) { sharedThisPtr_ = thisPtr; }
+    
     void RebuildTracks();
     void RebuildSelectedTracks();
     void AdjustSelectedTrackBank(int amount);
@@ -2494,7 +2497,7 @@ public:
     shared_ptr<Navigator> GetNavigatorForChannel(int channelNum)
     {
         if(trackNavigators_.count(channelNum) < 1)
-            trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, this, channelNum);
+            trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, sharedThisPtr_, channelNum);
             
         return trackNavigators_[channelNum];
     }
@@ -2895,6 +2898,8 @@ public:
         shared_ptr<Page> instance = make_shared<Page>(name, PrivateTag{});
 
         instance->trackNavigationManager_ = make_shared<TrackNavigationManager>(instance, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+        instance->trackNavigationManager_->SetSharedThisPtr(instance->trackNavigationManager_);
+        
         instance->modifierManager_ = make_shared<ModifierManager>(instance);
         
         return instance;
