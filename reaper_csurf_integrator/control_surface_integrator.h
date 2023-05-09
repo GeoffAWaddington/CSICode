@@ -459,7 +459,7 @@ class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    ZoneManager* const zoneManager_ = nullptr;
+    shared_ptr<ZoneManager> const zoneManager_ = nullptr;
     shared_ptr<Navigator> const navigator_= nullptr;
     int slotIndex_ = 0;
     string const name_ = "";
@@ -483,7 +483,7 @@ protected:
     void UpdateCurrentActionContextModifier(shared_ptr<Widget> widget);
     
 public:
-    Zone(ZoneManager* const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
+    Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
     virtual ~Zone() {}
     
@@ -729,7 +729,7 @@ private:
     shared_ptr<Zone> const enclosingZone_ = nullptr;
     
 public:
-    SubZone(ZoneManager* const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -830,6 +830,8 @@ private:
     
     shared_ptr<Zone> homeZone_ = nullptr;
     
+    shared_ptr<ZoneManager> sharedThisPtr_ = nullptr;
+    
     bool isAutoFocusedFXMappingEnabled_ = true;
     bool isAutoFXMappingEnabled_ = true;
     
@@ -891,7 +893,7 @@ private:
     
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
-    
+        
     void Initialize();
     
     void PreProcessZones();
@@ -907,6 +909,8 @@ public:
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
+    void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
+
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     
     shared_ptr<ControlSurface> GetSurface() { return surface_; }
@@ -2496,7 +2500,7 @@ public:
     
     shared_ptr<Navigator> GetNavigatorForChannel(int channelNum)
     {
-        if(trackNavigators_.count(channelNum) < 1)
+        if(trackNavigators_.count(channelNum) < 1 && sharedThisPtr_ != nullptr)
             trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, sharedThisPtr_, channelNum);
             
         return trackNavigators_[channelNum];
