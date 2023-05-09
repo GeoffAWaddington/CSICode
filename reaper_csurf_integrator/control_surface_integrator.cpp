@@ -1012,16 +1012,20 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         shared_ptr<MIDI_event_ex_t> message1 = nullptr;
         shared_ptr<MIDI_event_ex_t> message2 = nullptr;
 
+        int twoByteKey = 0;
+        
         if(size > 3)
+        {
             message1 = make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
-            
+            twoByteKey = message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100;
+        }
         if(size > 6)
             message2 = make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
         
         // Control Signal Generators
         
         if(widgetType == "AnyPress" && (size == 4 || size == 7))
-            surface->AddCSIMessageGenerator(make_shared<AnyPress_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<AnyPress_Midi_CSIMessageGenerator>(widget, message1), twoByteKey);
         if(widgetType == "Press" && size == 4)
             surface->AddCSIMessageGenerator(make_shared<PressRelease_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
         else if(widgetType == "Press" && size == 7)
@@ -1034,22 +1038,22 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         else if(widgetType == "Fader14Bit" && size == 4)
             surface->AddCSIMessageGenerator(make_shared<Fader14Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000);
         else if(widgetType == "Fader7Bit" && size== 4)
-            surface->AddCSIMessageGenerator(make_shared<Fader7Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<Fader7Bit_Midi_CSIMessageGenerator>(widget, message1), twoByteKey);
         else if(widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass")
         {
             if(stepSizes.count(widgetClass) > 0 && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
-                surface->AddCSIMessageGenerator(make_shared<AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator>(widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+                surface->AddCSIMessageGenerator(make_shared<AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator>(widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]), twoByteKey);
         }
         else if(widgetType == "Encoder" && size == 4)
-            surface->AddCSIMessageGenerator(make_shared<Encoder_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<Encoder_Midi_CSIMessageGenerator>(widget, message1), twoByteKey);
         else if(widgetType == "Encoder" && size > 4)
-            surface->AddCSIMessageGenerator(make_shared<AcceleratedEncoder_Midi_CSIMessageGenerator>(widget, message1, tokenLines[i]), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<AcceleratedEncoder_Midi_CSIMessageGenerator>(widget, message1, tokenLines[i]), twoByteKey);
         else if(widgetType == "MFTEncoder" && size > 4)
-            surface->AddCSIMessageGenerator(make_shared<MFT_AcceleratedEncoder_Midi_CSIMessageGenerator>(widget, message1, tokenLines[i]), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<MFT_AcceleratedEncoder_Midi_CSIMessageGenerator>(widget, message1, tokenLines[i]), twoByteKey);
         else if(widgetType == "EncoderPlain" && size == 4)
-            surface->AddCSIMessageGenerator(make_shared<EncoderPlain_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<EncoderPlain_Midi_CSIMessageGenerator>(widget, message1), twoByteKey);
         else if(widgetType == "Encoder7Bit" && size == 4)
-            surface->AddCSIMessageGenerator(make_shared<Encoder7Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100);
+            surface->AddCSIMessageGenerator(make_shared<Encoder7Bit_Midi_CSIMessageGenerator>(widget, message1), twoByteKey);
         else if(widgetType == "Touch" && size == 7)
         {
             shared_ptr<Touch_Midi_CSIMessageGenerator> generator = make_shared<Touch_Midi_CSIMessageGenerator>(widget, message1, message2);
