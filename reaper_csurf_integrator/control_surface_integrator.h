@@ -1523,7 +1523,7 @@ private:
     bool isRewinding_ = false;
     bool isFastForwarding_ = false;
     
-    vector<FeedbackProcessor*> trackColorFeedbackProcessors_;
+    vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
 
     map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
@@ -1658,7 +1658,7 @@ public:
             return false;
     }
        
-    void AddTrackColorFeedbackProcessor(FeedbackProcessor* feedbackProcessor)
+    void AddTrackColorFeedbackProcessor(shared_ptr<FeedbackProcessor> feedbackProcessor)
     {
         trackColorFeedbackProcessors_.push_back(feedbackProcessor);
     }

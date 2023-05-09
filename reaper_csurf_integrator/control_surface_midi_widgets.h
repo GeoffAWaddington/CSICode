@@ -1200,8 +1200,6 @@ public:
         
         for(int i = 0; i < surface_->GetNumChannels(); i++)
             currentTrackColors_.push_back(color);
-        
-        surface_->AddTrackColorFeedbackProcessor(this);
     }
         
     virtual string GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }

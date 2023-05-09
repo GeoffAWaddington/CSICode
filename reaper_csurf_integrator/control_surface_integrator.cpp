@@ -1145,6 +1145,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
                 feedbackProcessor = make_shared<XTouchDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_XTouchXTDisplayLower")
                 feedbackProcessor = make_shared<XTouchDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+            
+            if(feedbackProcessor)
+                surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
         }
         else if((widgetType == "FB_C4DisplayUpper" || widgetType == "FB_C4DisplayLower") && size == 3)
         {
