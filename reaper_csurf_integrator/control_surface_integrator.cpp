@@ -1736,7 +1736,7 @@ void Manager::Init()
                             }
                         }
                             
-                        currentPage = make_shared<Page>(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+                        currentPage = Page::GetInstance(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.push_back(currentPage);
                     }
                 }
@@ -1756,9 +1756,9 @@ void Manager::Init()
                         string fxZoneFolder = tokens[5];
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(make_shared<Midi_ControlSurface>(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
+                            currentPage->AddSurface(Midi_ControlSurface::GetInstance(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(make_shared<OSC_ControlSurface>(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
+                            currentPage->AddSurface(OSC_ControlSurface::GetInstance(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
                     }
                 }
             }
