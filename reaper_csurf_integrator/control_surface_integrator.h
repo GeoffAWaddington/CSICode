@@ -308,7 +308,7 @@ public:
     void DoAcceleratedDeltaValueAction(int accelerationIndex, double value);
     
     shared_ptr<Page> GetPage();
-    ControlSurface* GetSurface();
+    shared_ptr<ControlSurface> GetSurface();
     int GetParamIndex() { return paramIndex_; }
        
     void SetIsValueInverted() { isValueInverted_ = true; }
@@ -745,7 +745,7 @@ class Widget
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    ControlSurface* const surface_;
+    shared_ptr<ControlSurface> const surface_;
     string const name_;
     vector<shared_ptr<FeedbackProcessor>> feedbackProcessors_;
     int channelNumber_ = 0;
@@ -755,7 +755,7 @@ private:
     vector<double> accelerationValues_;
     
 public:
-    Widget(ControlSurface* surface, string name) : surface_(surface), name_(name)
+    Widget(shared_ptr<ControlSurface> surface, string name) : surface_(surface), name_(name)
     {
         int index = name.length() - 1;
         if(isdigit(name[index]))
@@ -770,7 +770,7 @@ public:
     }
     
     string GetName() { return name_; }
-    ControlSurface* GetSurface() { return surface_; }
+    shared_ptr<ControlSurface> GetSurface() { return surface_; }
     shared_ptr<ZoneManager> GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
@@ -1578,19 +1578,19 @@ protected:
             StopFastForwarding();
     }
     
-    virtual void InitHardwiredWidgets()
+    virtual void InitHardwiredWidgets(shared_ptr<ControlSurface> surface)
     {
         // Add the "hardwired" widgets
-        AddWidget(make_shared<Widget>(this, "OnTrackSelection"));
-        AddWidget(make_shared<Widget>(this, "OnPageEnter"));
-        AddWidget(make_shared<Widget>(this, "OnPageLeave"));
-        AddWidget(make_shared<Widget>(this, "OnInitialization"));
-        AddWidget(make_shared<Widget>(this, "OnPlayStart"));
-        AddWidget(make_shared<Widget>(this, "OnPlayStop"));
-        AddWidget(make_shared<Widget>(this, "OnRecordStart"));
-        AddWidget(make_shared<Widget>(this, "OnRecordStop"));
-        AddWidget(make_shared<Widget>(this, "OnZoneActivation"));
-        AddWidget(make_shared<Widget>(this, "OnZoneDeactivation"));
+        AddWidget(make_shared<Widget>(surface, "OnTrackSelection"));
+        AddWidget(make_shared<Widget>(surface, "OnPageEnter"));
+        AddWidget(make_shared<Widget>(surface, "OnPageLeave"));
+        AddWidget(make_shared<Widget>(surface, "OnInitialization"));
+        AddWidget(make_shared<Widget>(surface, "OnPlayStart"));
+        AddWidget(make_shared<Widget>(surface, "OnPlayStop"));
+        AddWidget(make_shared<Widget>(surface, "OnRecordStart"));
+        AddWidget(make_shared<Widget>(surface, "OnRecordStop"));
+        AddWidget(make_shared<Widget>(surface, "OnZoneActivation"));
+        AddWidget(make_shared<Widget>(surface, "OnZoneDeactivation"));
     }
     
 public:
@@ -1899,15 +1899,15 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Midi_ControlSurface* const surface_ = nullptr;
+    shared_ptr<Midi_ControlSurface> const surface_ = nullptr;
     
     shared_ptr<MIDI_event_ex_t> lastMessageSent_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
     shared_ptr<MIDI_event_ex_t> midiFeedbackMessage1_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
     shared_ptr<MIDI_event_ex_t> midiFeedbackMessage2_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
+    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface) {}
+    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
+    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
     
     void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
@@ -1963,8 +1963,6 @@ private:
     // special processing for MCU meters
     bool hasMCUMeters_ = false;
     int displayType_ = 0x14;
-    
-    void Initialize(string templateFilename, string zoneFolder);
 
     void InitializeMCU();
     void InitializeMCUXT();
@@ -1984,19 +1982,7 @@ public:
     Midi_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<Midi_ControlSurfaceIO> surfaceIO, ProtectedTag)
     : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
     
-    static shared_ptr<Midi_ControlSurface> GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
-    {
-        shared_ptr<Midi_ControlSurface> surface = make_shared<Midi_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
-        
-        surface->zoneManager_ = make_shared<ZoneManager>(surface, zoneFolder, fxZoneFolder);
-
-        surface->Initialize(templateFilename, zoneFolder);
-        
-        if(useLocalmodifiers)
-            surface->modifierManager_ = make_shared<ModifierManager>(surface);
-                
-        return surface;
-    }
+    static shared_ptr<Midi_ControlSurface> GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -2026,11 +2012,11 @@ class OSC_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    OSC_ControlSurface* const surface_ = nullptr;
+    shared_ptr<OSC_ControlSurface> const surface_ = nullptr;
     string oscAddress_ = "";
     
 public:
-    OSC_FeedbackProcessor(OSC_ControlSurface* surface, shared_ptr<Widget> widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(shared_ptr<OSC_ControlSurface> surface, shared_ptr<Widget> widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
@@ -2046,7 +2032,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, shared_ptr<Widget> widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(shared_ptr<OSC_ControlSurface> surface, shared_ptr<Widget> widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
@@ -2135,26 +2121,12 @@ class OSC_ControlSurface : public ControlSurface
 private:
     string const templateFilename_ = "";
     shared_ptr<OSC_ControlSurfaceIO> const surfaceIO_ = nullptr;
-    
-    void Initialize(string templateFilename, string zoneFolder);
 
 public:
     OSC_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<OSC_ControlSurfaceIO> surfaceIO, ProtectedTag)
     : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
     
-    static shared_ptr<OSC_ControlSurface> GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
-    {
-        shared_ptr<OSC_ControlSurface> surface = make_shared<OSC_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
-        
-        surface->zoneManager_ = make_shared<ZoneManager>(surface, zoneFolder, fxZoneFolder);
-
-        surface->Initialize(templateFilename, zoneFolder);
-        
-        if(useLocalmodifiers)
-            surface->modifierManager_ = make_shared<ModifierManager>(surface);
-                
-        return surface;
-    }
+    static shared_ptr<OSC_ControlSurface> GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     

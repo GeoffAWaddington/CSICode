@@ -964,7 +964,7 @@ void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  sha
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, Midi_ControlSurface* surface, map<string, double> stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, shared_ptr<Midi_ControlSurface> surface, map<string, double> stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if(tokens.size() < 2)
         return;
@@ -1225,7 +1225,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     }
 }
 
-static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens,  OSC_ControlSurface* surface)
+static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens,  shared_ptr<OSC_ControlSurface> surface)
 {
     if(tokens.size() < 2)
         return;
@@ -1322,7 +1322,7 @@ static void ProcessValues(vector<vector<string>> lines, map<string, double> &ste
     }
 }
 
-static void ProcessWidgetFile(string filePath, ControlSurface* surface)
+static void ProcessMIDIWidgetFile(string filePath, shared_ptr<Midi_ControlSurface> surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1358,12 +1358,54 @@ static void ProcessWidgetFile(string filePath, ControlSurface* surface)
             }
 
             if(tokens.size() > 0 && (tokens[0] == "Widget"))
+                ProcessMidiWidget(lineNumber, file, tokens, surface, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
+static void ProcessOSCWidgetFile(string filePath, shared_ptr<OSC_ControlSurface> surface)
+{
+    int lineNumber = 0;
+    vector<vector<string>> valueLines;
+    
+    map<string, double> stepSizes;
+    map<string, map<int, int>> accelerationValuesForDecrement;
+    map<string, map<int, int>> accelerationValuesForIncrement;
+    map<string, vector<double>> accelerationValues;
+    
+    try
+    {
+        ifstream file(filePath);
+        
+        for (string line; getline(file, line) ; )
+        {
+            line = regex_replace(line, regex(TabChars), " ");
+            line = regex_replace(line, regex(CRLFChars), "");
+            
+            lineNumber++;
+            
+            if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
+                continue;
+            
+            vector<string> tokens(GetTokens(line));
+
+            if(filePath[filePath.length() - 3] == 'm')
             {
-                if(filePath[filePath.length() - 3] == 'm')
-                    ProcessMidiWidget(lineNumber, file, tokens, (Midi_ControlSurface*)surface, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
-                if(filePath[filePath.length() - 3] == 'o')
-                    ProcessOSCWidget(lineNumber, file, tokens, (OSC_ControlSurface*)surface);
+                if(tokens.size() > 0 && tokens[0] != "Widget")
+                    valueLines.push_back(tokens);
+                
+                if(tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
+                    ProcessValues(valueLines, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
             }
+
+            if(tokens.size() > 0 && (tokens[0] == "Widget"))
+                ProcessOSCWidget(lineNumber, file, tokens, surface);
         }
     }
     catch (exception &e)
@@ -1968,7 +2010,7 @@ shared_ptr<Page> ActionContext::GetPage()
     return widget_->GetSurface()->GetPage();
 }
 
-ControlSurface* ActionContext::GetSurface()
+shared_ptr<ControlSurface> ActionContext::GetSurface()
 {
     return widget_->GetSurface();
 }
@@ -3416,12 +3458,21 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::Initialize(string templateFilename, string zoneFolder)
+shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
 {
-    ProcessWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
-    InitHardwiredWidgets();
-    InitializeMeters();
-    zoneManager_->Initialize();
+    shared_ptr<Midi_ControlSurface> surface = make_shared<Midi_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
+    
+    surface->zoneManager_ = make_shared<ZoneManager>(surface, zoneFolder, fxZoneFolder);
+
+    ProcessMIDIWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, surface);
+    surface->InitHardwiredWidgets(surface);
+    surface->InitializeMeters();
+    surface->zoneManager_->Initialize();
+
+    if(useLocalmodifiers)
+        surface->modifierManager_ = make_shared<ModifierManager>(surface);
+            
+    return surface;
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
@@ -3559,11 +3610,20 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OSC_ControlSurface::Initialize(string templateFilename, string zoneFolder)
+shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
 {
-    ProcessWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, this);
-    InitHardwiredWidgets();
-    zoneManager_->Initialize();
+    shared_ptr<OSC_ControlSurface> surface = make_shared<OSC_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
+    
+    surface->zoneManager_ = make_shared<ZoneManager>(surface, zoneFolder, fxZoneFolder);
+    
+    ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, surface);
+    surface->InitHardwiredWidgets(surface);
+    surface->zoneManager_->Initialize();
+    
+    if(useLocalmodifiers)
+        surface->modifierManager_ = make_shared<ModifierManager>(surface);
+            
+    return surface;
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(string message, double value)

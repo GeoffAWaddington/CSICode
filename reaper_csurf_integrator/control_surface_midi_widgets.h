@@ -366,7 +366,7 @@ class TwoState_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~TwoState_Midi_FeedbackProcessor() {}
-    TwoState_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
+    TwoState_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
     
     virtual string GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
     
@@ -406,7 +406,7 @@ private:
     
 public:
     virtual ~FPTwoStateRGB_Midi_FeedbackProcessor() {}
-    FPTwoStateRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    FPTwoStateRGB_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "FPTwoStateRGB_Midi_FeedbackProcessor"; }
 
@@ -465,7 +465,7 @@ private:
 
 public:
     virtual ~SCE24TwoStateLED_Midi_FeedbackProcessor() {}
-    SCE24TwoStateLED_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    SCE24TwoStateLED_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24TwoStateLED_Midi_FeedbackProcessor"; }
 
@@ -515,7 +515,7 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
-    SCE24Text_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    SCE24Text_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
 
@@ -586,7 +586,7 @@ class SCE24Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~SCE24Encoder_Midi_FeedbackProcessor() {}
-    SCE24Encoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    SCE24Encoder_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24Encoder_Midi_FeedbackProcessor"; }
 
@@ -677,7 +677,7 @@ class NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor : public Midi_Feedback
 {
 public:
     virtual ~NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor() {}
-    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
@@ -725,7 +725,7 @@ class FaderportRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~FaderportRGB_Midi_FeedbackProcessor() {}
-    FaderportRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    FaderportRGB_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
@@ -752,7 +752,7 @@ class Fader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
-    Fader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Fader14Bit_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
 
@@ -775,7 +775,7 @@ class Fader7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Fader7Bit_Midi_FeedbackProcessor() {}
-    Fader7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Fader7Bit_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
 
@@ -796,7 +796,7 @@ class Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Encoder_Midi_FeedbackProcessor() {}
-    Encoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Encoder_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
@@ -848,7 +848,7 @@ class ConsoleOneVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~ConsoleOneVUMeter_Midi_FeedbackProcessor() {}
-    ConsoleOneVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    ConsoleOneVUMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
 
@@ -887,7 +887,7 @@ private:
     
 public:
     virtual ~ConsoleOneGainReductionMeter_Midi_FeedbackProcessor() {}
-    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "ConsoleOneGainReductionMeter_Midi_FeedbackProcessor"; }
 
@@ -913,7 +913,7 @@ private:
     
 public:
     virtual ~QConProXMasterVUMeter_Midi_FeedbackProcessor() {}
-    QConProXMasterVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param) { }
+    QConProXMasterVUMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param) { }
     
     virtual string GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
 
@@ -964,7 +964,7 @@ private:
 
 public:
     virtual ~MCUVUMeter_Midi_FeedbackProcessor() {}
-    MCUVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber) {}
+    MCUVUMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber) {}
     
     virtual string GetName() override { return "MCUVUMeter_Midi_FeedbackProcessor"; }
 
@@ -1000,7 +1000,7 @@ private:
 
 public:
     virtual ~FPVUMeter_Midi_FeedbackProcessor() {}
-    FPVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber) {}
+    FPVUMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber) {}
     
     virtual string GetName() override { return "FPVUMeter_Midi_FeedbackProcessor"; }
 
@@ -1068,7 +1068,7 @@ private:
     
 public:
     virtual ~FPValueBar_Midi_FeedbackProcessor() {}
-    FPValueBar_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int channel) : Midi_FeedbackProcessor(surface, widget), channel_(channel) { }
+    FPValueBar_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int channel) : Midi_FeedbackProcessor(surface, widget), channel_(channel) { }
 
     virtual string GetName() override { return "FPValueBar_Midi_FeedbackProcessor"; }
 
@@ -1110,7 +1110,7 @@ private:
 
 public:
     virtual ~MCUDisplay_Midi_FeedbackProcessor() {}
-    MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    MCUDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
     
     virtual string GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
 
@@ -1194,7 +1194,7 @@ private:
         
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
-    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    XTouchDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         rgba_color color;
         
@@ -1428,7 +1428,7 @@ private:
     
 public:
     virtual ~FPDisplay_Midi_FeedbackProcessor() {}
-    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow) { }
+    FPDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow) { }
     
     virtual string GetName() override { return "FPDisplay_Midi_FeedbackProcessor"; }
 
@@ -1522,7 +1522,7 @@ private:
     
 public:
     virtual ~FPScribbleStripMode_Midi_FeedbackProcessor() {}
-    FPScribbleStripMode_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayType, int channel) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel) { }
+    FPScribbleStripMode_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayType, int channel) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel) { }
     
     virtual string GetName() override { return "FPScribbleStripMode_Midi_FeedbackProcessor"; }
 
@@ -1574,7 +1574,7 @@ private:
     
 public:
     virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
-    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    QConLiteDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
     
     virtual string GetName() override { return "QConLiteDisplay_Midi_FeedbackProcessor"; }
 
@@ -1645,7 +1645,7 @@ private:
     int lastFirstLetter_ = 0x00;
 
 public:
-    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : Midi_FeedbackProcessor(surface, widget) {}
+    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget) : Midi_FeedbackProcessor(surface, widget) {}
     
     virtual string GetName() override { return "FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor"; }
 
@@ -1682,7 +1682,7 @@ private:
     DWORD m_mcu_timedisp_lastforce, m_mcu_meter_lastrun;
     
 public:
-    MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget) : Midi_FeedbackProcessor(surface, widget) {}
+    MCU_TimeDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget) : Midi_FeedbackProcessor(surface, widget) {}
     
     virtual string GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
 
@@ -2039,7 +2039,7 @@ class MFT_RGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
-    MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    MFT_RGB_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual void ForceColorValue(rgba_color color) override
     {
