@@ -1257,13 +1257,13 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     for(auto tokenLine : tokenLines)
     {
         if(tokenLine.size() > 1 && tokenLine[0] == "Control")
-            new CSIMessageGenerator(widget, tokenLine[1]);
+            surface->AddCSIMessageGenerator(make_shared<CSIMessageGenerator>(widget), tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "AnyPress")
-            new AnyPress_CSIMessageGenerator(widget, tokenLine[1]);
+            surface->AddCSIMessageGenerator(make_shared<AnyPress_CSIMessageGenerator>(widget), tokenLine[1]);
         else if (tokenLine.size() > 1 && tokenLine[0] == "MotorizedFaderWithoutTouch")
-            new MotorizedFaderWithoutTouch_CSIMessageGenerator(widget, tokenLine[1]);
+            surface->AddCSIMessageGenerator(make_shared<MotorizedFaderWithoutTouch_CSIMessageGenerator>(widget), tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "Touch")
-            new Touch_CSIMessageGenerator(widget, tokenLine[1]);
+            surface->AddCSIMessageGenerator(make_shared<Touch_CSIMessageGenerator>(widget), tokenLine[1]);
         else if(tokenLine.size() > 1 && tokenLine[0] == "FB_Processor")
             widget->AddFeedbackProcessor(make_shared<OSC_FeedbackProcessor>(surface, widget, tokenLine[1]));
         else if(tokenLine.size() > 1 && tokenLine[0] == "FB_IntProcessor")
@@ -2574,14 +2574,6 @@ void Widget::LogInput(double value)
         snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName().c_str(), GetName().c_str(), value);
         DAW::ShowConsoleMsg(buffer);
     }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CSIMessageGenerator
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CSIMessageGenerator::CSIMessageGenerator(shared_ptr<Widget> widget, string message) : widget_(widget)
-{
-    widget->GetSurface()->AddCSIMessageGenerator(message, this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

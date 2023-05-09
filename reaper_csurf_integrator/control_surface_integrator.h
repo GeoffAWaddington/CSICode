@@ -1263,10 +1263,9 @@ class CSIMessageGenerator
 {
 protected:
     shared_ptr<Widget> const widget_;
-    CSIMessageGenerator(shared_ptr<Widget> widget) : widget_(widget) {}
     
 public:
-    CSIMessageGenerator(shared_ptr<Widget> widget, string message);
+    CSIMessageGenerator(shared_ptr<Widget> widget) : widget_(widget) {}
     virtual ~CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value)
@@ -1276,11 +1275,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class AnyPress_CSIMessageGenerator : CSIMessageGenerator
+class AnyPress_CSIMessageGenerator : public CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    AnyPress_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
+    AnyPress_CSIMessageGenerator(shared_ptr<Widget> widget) : CSIMessageGenerator(widget) {}
     virtual ~AnyPress_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -1290,11 +1289,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class MotorizedFaderWithoutTouch_CSIMessageGenerator : CSIMessageGenerator
+class MotorizedFaderWithoutTouch_CSIMessageGenerator : public CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    MotorizedFaderWithoutTouch_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
+    MotorizedFaderWithoutTouch_CSIMessageGenerator(shared_ptr<Widget> widget) : CSIMessageGenerator(widget) {}
     virtual ~MotorizedFaderWithoutTouch_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -1305,11 +1304,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class Touch_CSIMessageGenerator : CSIMessageGenerator
+class Touch_CSIMessageGenerator : public CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    Touch_CSIMessageGenerator(shared_ptr<Widget> widget, string message) : CSIMessageGenerator(widget, message) {}
+    Touch_CSIMessageGenerator(shared_ptr<Widget> widget) : CSIMessageGenerator(widget) {}
     virtual ~Touch_CSIMessageGenerator() {}
     
     virtual void ProcessMessage(double value) override
@@ -1553,7 +1552,7 @@ protected:
     vector<shared_ptr<Widget>> widgets_;
     map<string, shared_ptr<Widget>> widgetsByName_;
     
-    map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
+    map<string, shared_ptr<CSIMessageGenerator>> CSIMessageGeneratorsByMessage_;
     
     bool speedX5_ = false;
     
@@ -1597,14 +1596,7 @@ protected:
     }
     
 public:
-    virtual ~ControlSurface()
-    {
-        for(auto [key, messageGenerator] : CSIMessageGeneratorsByMessage_)
-        {
-            delete messageGenerator;
-            messageGenerator = nullptr;
-        }
-    };
+    virtual ~ControlSurface() {}
     
     void Stop();
     void Play();
@@ -1752,7 +1744,7 @@ public:
         zoneManager_->AddWidget(widget);
     }
     
-    void AddCSIMessageGenerator(string message, CSIMessageGenerator* messageGenerator)
+    void AddCSIMessageGenerator(shared_ptr<CSIMessageGenerator> messageGenerator, string message)
     {
         CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
