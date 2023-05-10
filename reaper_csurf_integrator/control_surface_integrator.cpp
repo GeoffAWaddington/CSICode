@@ -2415,8 +2415,14 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
     else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+    {
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
-            navigators.push_back(zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset()));
+        {
+            shared_ptr<Navigator> channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
+            if(channelNavigator)
+                navigators.push_back(channelNavigator);
+        }
+    }
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
             navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
