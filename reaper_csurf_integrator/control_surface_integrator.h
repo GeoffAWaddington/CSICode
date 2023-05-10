@@ -2500,10 +2500,15 @@ public:
     
     shared_ptr<Navigator> GetNavigatorForChannel(int channelNum)
     {
-        if(trackNavigators_.count(channelNum) < 1 && sharedThisPtr_ != nullptr)
-            trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, sharedThisPtr_, channelNum);
+        if(sharedThisPtr_ != nullptr)
+        {
+            if(trackNavigators_.count(channelNum) < 1)
+                trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, sharedThisPtr_, channelNum);
             
-        return trackNavigators_[channelNum];
+            return trackNavigators_[channelNum];
+        }
+        else
+            return nullptr;
     }
     
     MediaTrack* GetTrackFromChannel(int channelNumber)
