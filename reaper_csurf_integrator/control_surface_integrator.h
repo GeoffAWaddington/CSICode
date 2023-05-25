@@ -503,6 +503,7 @@ public:
 
     void Activate();
     void Deactivate();
+    void ClearZone();
     
     void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     

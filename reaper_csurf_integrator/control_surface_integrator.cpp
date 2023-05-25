@@ -1447,6 +1447,7 @@ void Manager::InitActionsDictionary()
     actions_["ToggleAutoFXMapping"] =               make_shared<ToggleAutoFXMapping>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
+    actions_["ClearZone"] =                         make_shared<ClearZone>();
     actions_["Bank"] =                              make_shared<Bank>();
     actions_["Shift"] =                             make_shared<SetShift>();
     actions_["Option"] =                            make_shared<SetOption>();
@@ -2404,6 +2405,13 @@ void Zone::Deactivate()
     for(auto [key, zones] : subZones_)
         for(auto zone : zones)
             zone->Deactivate();
+}
+
+void Zone::ClearZone()
+{
+    Deactivate();
+    for(auto [widget, isUsed] : widgets_)
+        widget->Clear();
 }
 
 void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators)
