@@ -2404,11 +2404,7 @@ void Zone::Deactivate()
     for(auto [key, zones] : subZones_)
         for(auto zone : zones)
             zone->Deactivate();
-    
-    for(auto [widget, isUsed] : widgets_)
-        widget->Clear();
 }
-
 
 void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators)
 {
@@ -2708,7 +2704,7 @@ void ZoneManager::Initialize()
         
     vector<shared_ptr<Navigator>> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
-    vector<shared_ptr<Zone>> dummy; // Needed to satify protcol, Home and FocusedFXParam have special Zone handling
+    vector<shared_ptr<Zone>> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
     if(sharedThisPtr_ != nullptr)
         ProcessZoneFile(zoneFilePaths_["Home"].filePath, sharedThisPtr_, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0 && sharedThisPtr_ != nullptr)

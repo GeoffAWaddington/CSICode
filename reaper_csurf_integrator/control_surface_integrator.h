@@ -228,8 +228,6 @@ private:
     shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
     
-    string lastStringValue_ = "";
-    
     int intParam_ = 0;
     
     string stringParam_ = "";
