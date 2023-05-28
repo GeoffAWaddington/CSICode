@@ -936,9 +936,9 @@ public:
     {
         for(int i = 0; i < fxSlotZones_.size(); i++)
         {
-            if(fxSlotZones_[i] == zone)
+            if(fxSlotZones_[i]->GetName() == zone->GetName())
             {
-                zone->ClearWidgets();
+                fxSlotZones_[i]->ClearWidgets();
                 fxSlotZones_.erase(fxSlotZones_.begin() + i);
                 if(homeZone_ != nullptr)
                     homeZone_->ReactivateFXMenuZone();
