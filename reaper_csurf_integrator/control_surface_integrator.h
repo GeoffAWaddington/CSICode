@@ -492,6 +492,7 @@ public:
     void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
 
     void GoAssociatedZone(string associatedZoneName);
+    void ReactivateFXMenuZone();
 
     int GetSlotIndex();
     
@@ -503,7 +504,7 @@ public:
 
     void Activate();
     void Deactivate();
-    void ClearZone();
+    void ClearWidgets();
     
     void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     
@@ -931,6 +932,21 @@ public:
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
         
+    void ClearFXSlot(shared_ptr<Zone> zone)
+    {
+        for(int i = 0; i < fxSlotZones_.size(); i++)
+        {
+            if(fxSlotZones_[i] == zone)
+            {
+                zone->ClearWidgets();
+                fxSlotZones_.erase(fxSlotZones_.begin() + i);
+                if(homeZone_ != nullptr)
+                    homeZone_->ReactivateFXMenuZone();
+                break;
+            }
+        }
+    }
+    
     bool EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
     {
         if(zoneFilePaths_.count(fxName) > 0)
@@ -3024,6 +3040,12 @@ public:
             surface->GetZoneManager()->GoTrackFXSlot(track, navigator, fxSlot);
     }
     
+    void ClearFXSlot(shared_ptr<Zone> zone)
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->ClearFXSlot(zone);
+    }
+
     void GoHome()
     {
         for(auto surface : surfaces_)

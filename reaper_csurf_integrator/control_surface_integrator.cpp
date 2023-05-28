@@ -1447,7 +1447,7 @@ void Manager::InitActionsDictionary()
     actions_["ToggleAutoFXMapping"] =               make_shared<ToggleAutoFXMapping>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
-    actions_["ClearZone"] =                         make_shared<ClearZone>();
+    actions_["ClearFXSlot"] =                       make_shared<ClearFXSlot>();
     actions_["Bank"] =                              make_shared<Bank>();
     actions_["Shift"] =                             make_shared<SetShift>();
     actions_["Option"] =                            make_shared<SetOption>();
@@ -2347,6 +2347,16 @@ void Zone::GoAssociatedZone(string zoneName)
             zone->Activate();
 }
 
+void Zone::ReactivateFXMenuZone()
+{
+    if(associatedZones_.count("TrackFXMenu") > 0 && associatedZones_["TrackFXMenu"][0]->GetIsActive())
+        for(auto zone : associatedZones_["TrackFXMenu"])
+            zone->Activate();
+    else if(associatedZones_.count("SelectedTrackFXMenu") > 0 && associatedZones_["SelectedTrackFXMenu"][0]->GetIsActive())
+        for(auto zone : associatedZones_["SelectedTrackFXMenu"])
+            zone->Activate();
+}
+
 void Zone::Activate()
 {
     UpdateCurrentActionContextModifiers();
@@ -2407,9 +2417,8 @@ void Zone::Deactivate()
             zone->Deactivate();
 }
 
-void Zone::ClearZone()
+void Zone::ClearWidgets()
 {
-    Deactivate();
     for(auto [widget, isUsed] : widgets_)
         widget->Clear();
 }

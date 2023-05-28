@@ -550,11 +550,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ClearZone : public Action
+class ClearFXSlot : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearZone"; }
+    virtual string GetName() override { return "ClearFXSlot"; }
     
     virtual void RequestUpdate(ActionContext* context) override
     {
@@ -568,8 +568,8 @@ public:
     {
         if(value == 0.0)
             return; // ignore button releases
-        
-        context->GetZone()->ClearZone();
+
+        context->GetPage()->ClearFXSlot(context->GetZone());
     }
 };
 
