@@ -1447,6 +1447,9 @@ void Manager::InitActionsDictionary()
     actions_["ToggleAutoFXMapping"] =               make_shared<ToggleAutoFXMapping>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
+    actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
+    actions_["ClearFocusedFX"] =                    make_shared<ClearFocusedFX>();
+    actions_["ClearSelectedTrackFX"] =              make_shared<ClearSelectedTrackFX>();
     actions_["ClearFXSlot"] =                       make_shared<ClearFXSlot>();
     actions_["Bank"] =                              make_shared<Bank>();
     actions_["Shift"] =                             make_shared<SetShift>();

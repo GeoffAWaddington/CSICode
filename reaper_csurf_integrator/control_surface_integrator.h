@@ -931,7 +931,33 @@ public:
     bool GetIsAutoFocusedFXMappingEnabled() { return isAutoFocusedFXMappingEnabled_; }
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
+      
+    void ClearFocusedFXParam()
+    {
+        if(focusedFXParamZone_ != nullptr)
+        {
+            focusedFXParamZone_->ClearWidgets();
+            focusedFXParamZone_ = nullptr;
+        }
+    }
+    
+    void ClearFocusedFX()
+    {
+        for(auto zone : focusedFXZones_)
+            zone->ClearWidgets();
         
+        focusedFXZones_.clear();
+        focusedFXDictionary_.clear();
+    }
+    
+    void ClearSelectedTrackFX()
+    {
+        for(auto zone : selectedTrackFXZones_)
+            zone->ClearWidgets();
+        
+        selectedTrackFXZones_.clear();
+    }
+    
     void ClearFXSlot(shared_ptr<Zone> zone)
     {
         for(int i = 0; i < fxSlotZones_.size(); i++)
@@ -3040,6 +3066,24 @@ public:
             surface->GetZoneManager()->GoTrackFXSlot(track, navigator, fxSlot);
     }
     
+    void ClearFocusedFXParam()
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->ClearFocusedFXParam();
+    }
+
+    void ClearFocusedFX()
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->ClearFocusedFX();
+    }
+
+    void ClearSelectedTrackFX()
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->ClearSelectedTrackFX();
+    }
+
     void ClearFXSlot(shared_ptr<Zone> zone)
     {
         for(auto surface : surfaces_)

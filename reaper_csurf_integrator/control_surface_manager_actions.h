@@ -550,20 +550,60 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ClearFocusedFXParam : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ClearFocusedFXParam"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+
+        context->GetPage()->ClearFocusedFXParam();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ClearFocusedFX : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ClearFocusedFX"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+
+        context->GetPage()->ClearFocusedFX();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ClearSelectedTrackFX : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ClearSelectedTrackFX"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+
+        context->GetPage()->ClearSelectedTrackFX();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ClearFXSlot : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
     virtual string GetName() override { return "ClearFXSlot"; }
     
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive(context->GetStringParam()))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
