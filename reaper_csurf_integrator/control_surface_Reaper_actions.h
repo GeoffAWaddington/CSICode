@@ -1486,7 +1486,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            DAW::ToggleTrackSendUIMute(track, context->GetSlotIndex());
+            DAW::ToggleTrackSendUIMute(track, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1));
     }
 };
 
@@ -2333,7 +2333,7 @@ public:
         if(MediaTrack* track = context->GetTrack())
         {
             string sendTrackName = "";
-            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
+            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if(destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
             context->UpdateWidgetValue(sendTrackName);
@@ -2357,7 +2357,7 @@ public:
         if(MediaTrack* track = context->GetTrack())
         {
             string sendTrackName = "No Send Track";
-            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
+            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if(destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
             TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
@@ -2376,7 +2376,7 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
+            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if(destTrack)
             {
                 int numHardwareSends = DAW::GetTrackNumSends(track, 1);
@@ -2406,12 +2406,14 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
+            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if(destTrack)
             {
-                double panVal = DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "D_PAN");
-                
-                context->UpdateWidgetValue(context->GetPanValueString(panVal, ""));
+                int numHardwareSends = DAW::GetTrackNumSends(track, 1);
+                double vol, pan = 0.0;
+                DAW::GetTrackSendUIVolPan(track, context->GetSlotIndex() + numHardwareSends, &vol, &pan);
+
+                context->UpdateWidgetValue(context->GetPanValueString(pan, ""));
             }
             else
                 context->ClearWidget();
@@ -2432,12 +2434,12 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "P_DESTTRACK", 0);;
+            MediaTrack* destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if(destTrack)
             {
                 // I_SENDMODE : returns int *, 0=post-fader, 1=pre-fx, 2=post-fx (deprecated), 3=post-fx
                 
-                double prePostVal = DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1), "I_SENDMODE");
+                double prePostVal = DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
                 
                 string prePostValueString = "";
                 
