@@ -2452,7 +2452,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
 void Zone::SetXTouchDisplayColors(string color)
 {
     for(auto [widget, isUsed] : widgets_)
-        widget->SetXTouchDisplayColors(color);
+        widget->SetXTouchDisplayColors(name_, color);
 }
 
 void Zone::RestoreXTouchDisplayColors()
@@ -2584,10 +2584,10 @@ void  Widget::UpdateColorValue(rgba_color color)
         processor->SetColorValue(color);
 }
 
-void Widget::SetXTouchDisplayColors(string color)
+void Widget::SetXTouchDisplayColors(string zoneName, string color)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetXTouchDisplayColors(color);
+        processor->SetXTouchDisplayColors(zoneName, color);
 }
 
 void Widget::RestoreXTouchDisplayColors()
@@ -3222,6 +3222,31 @@ void ControlSurface::ForceUpdateTrackColors()
 {
     for( auto processor : trackColorFeedbackProcessors_)
         processor->ForceUpdateTrackColors();
+}
+
+vector<rgba_color> ControlSurface::GetTrackColors()
+{
+    if(fixedTrackColors_.size() == numChannels_)
+        return fixedTrackColors_;
+    else
+    {
+        rgba_color white;
+        white.r = 255;
+        white.g = 255;
+        white.b = 255;
+
+        vector<rgba_color> colors;
+        
+        for(int i = 0; i < numChannels_; i++)
+        {
+            if(MediaTrack* track = page_->GetNavigatorForChannel(i + channelOffset_)->GetTrack())
+                colors.push_back(DAW::GetTrackColor(track));
+            else
+                colors.push_back(white);
+        }
+        
+        return colors;
+    }
 }
 
 void ControlSurface::RequestUpdate()

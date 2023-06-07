@@ -786,7 +786,7 @@ public:
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void UpdateColorValue(rgba_color);
-    void SetXTouchDisplayColors(string color);
+    void SetXTouchDisplayColors(string zoneName, string color);
     void RestoreXTouchDisplayColors();
     void Clear();
     void ForceClear();
@@ -1565,6 +1565,7 @@ private:
     bool isFastForwarding_ = false;
     
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
+    vector<rgba_color> fixedTrackColors_;
 
     map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
@@ -1667,6 +1668,7 @@ public:
     
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
+    vector<rgba_color> GetTrackColors();
     
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
@@ -1704,6 +1706,14 @@ public:
         trackColorFeedbackProcessors_.push_back(feedbackProcessor);
     }
     
+    void SetFixedTrackColors(vector<rgba_color> colors)
+    {
+        fixedTrackColors_.clear();
+        
+        for(auto color : colors)
+            fixedTrackColors_.push_back(color);
+    }
+        
     void ForceClear()
     {
         for(auto widget : widgets_)
@@ -1879,7 +1889,7 @@ public:
     virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
-    virtual void SetXTouchDisplayColors(string color) {}
+    virtual void SetXTouchDisplayColors(string zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
     virtual int GetMaxCharacters() { return 0; }
 
