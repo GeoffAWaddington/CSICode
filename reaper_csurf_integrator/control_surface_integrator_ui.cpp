@@ -311,6 +311,14 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             switch(LOWORD(wParam))
             {
+                case IDC_BUTTONUP:
+                    MoveUp(hwndDlg);
+                    break;
+                    
+                case IDC_BUTTONDOWN:
+                    MoveDown(hwndDlg);
+                    break;
+                    
                 case IDSAVE:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
