@@ -223,14 +223,68 @@ static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wPa
     return 0;
 }
 
+static string GetParamString(int index)
+{
+    istringstream layoutAndModifiers(layouts[index].prefix);
+    vector<string> prefixTokens;
+    string prefixToken;
+    
+    while (getline(layoutAndModifiers, prefixToken, '+'))
+        prefixTokens.push_back(prefixToken);
+
+    string prefix = "";
+    
+    if(prefixTokens.size() > 1)
+        for(int i = 1; i < prefixTokens.size(); i++)
+            prefix += prefixTokens[i] + "+";
+    
+    return prefix + layouts[index].suffix + layouts[index].slot + " " + params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName;
+}
+
+static void MoveUp(HWND hwndDlg)
+{
+    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+    if(index > 0)
+    {
+        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
+        params.erase(params.begin() + index);
+        params.insert(params.begin() + index - 1, itemToMove);
+        
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index - 1, (LPARAM)GetParamString(index - 1).c_str());
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index - 1, 0);
+        
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)GetParamString(index).c_str());
+    }
+}
+
+static void MoveDown(HWND hwndDlg)
+{
+    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+    if(index >= 0 && index < params.size() - 1)
+    {
+        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
+        params.erase(params.begin() + index);
+        params.insert(params.begin() + index + 1, itemToMove);
+
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index + 1, (LPARAM)GetParamString(index + 1).c_str());
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index + 1, 0);
+        
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)GetParamString(index).c_str());
+    }
+}
+
 static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {            
         case WM_INITDIALOG:
         {
-            for(auto param : params)
-                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(param.paramType + " " + param.paramNum + " " + param.displayName).c_str());
+            for(int i = 0; i < params.size(); i++)
+                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(GetParamString(i)).c_str());
 
             break;
         }
@@ -239,44 +293,11 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             switch (wParam)
             {
                 case VK_LEFT:
-                {
-                    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
-                    if(index > 0)
-                    {
-                        char text[100];
-                        SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(text));
-
-                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index - 1, (LPARAM)text);
-                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index - 1, 0);
-                        
-                        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
-                        
-                        params.erase(params.begin() + index);
-                        params.insert(params.begin() + index - 1, itemToMove);
-                    }
-                }
+                    MoveUp(hwndDlg);
                     break;
                     
                 case VK_RIGHT:
-                {
-                    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
-                    if(index >= 0 && index < params.size() - 1)
-                    {
-                        char text[100];
-                        SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(text));
-
-                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index + 1, (LPARAM)text);
-                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index + 1, 0);
-                        
-                        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
-                        
-                        params.erase(params.begin() + index);
-                        params.insert(params.begin() + index + 1, itemToMove);
-                    }
-
-                }
+                    MoveDown(hwndDlg);
                     break;
             }
             break;
@@ -305,7 +326,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             if(dlgResult == IDOK)
                             {
                                 SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-                                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)(params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName).c_str());
+                                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)(GetParamString(index).c_str()));
                             }
                         }
                     }
@@ -333,8 +354,8 @@ bool RemapAutoZoneDialog(string fullPath)
 
     for (string line; getline(autoFXFile, line) ; )
     {
-        string strippedLine = regex_replace(line, regex(CRLFChars), "");
-        allLines.push_back(strippedLine);
+        line = regex_replace(line, regex(CRLFChars), "");
+        allLines.push_back(line);
         
         vector<string> tokens = GetTokens(line);
         

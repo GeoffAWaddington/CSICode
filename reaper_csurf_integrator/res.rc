@@ -157,16 +157,16 @@ BEGIN
     LTEXT           "Use No Action to place a blank",IDC_STATIC,18,12,97,8
 END
 
-IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 185, 285
+IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 218, 528
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Save",IDSAVE,68,261,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,120,261,50,14
-    LTEXT           "Use left and right arrow keys to reorder selection",IDC_STATIC,16,12,155,8
-    LISTBOX         IDC_PARAM_LIST,17,27,151,230,LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Edit",IDEDIT,16,261,50,14
+    PUSHBUTTON      "Save",IDSAVE,100,504,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,152,504,50,14
+    LISTBOX         IDC_PARAM_LIST,17,25,184,475,LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Edit",IDEDIT,16,504,50,14
+    LTEXT           "Use left and right arrow keys to reorder selected item",IDC_STATIC,23,12,172,8
 END
 
 
@@ -225,9 +225,9 @@ BEGIN
     IDD_DIALOG_RemapAutoFX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 178
+        RIGHTMARGIN, 211
         TOPMARGIN, 7
-        BOTTOMMARGIN, 278
+        BOTTOMMARGIN, 521
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -273,8 +273,8 @@ BEGIN
     0,
     0, 0, 0, 0,
     0, 0, 0, 0,
-    0, 0, 0, 0,
     0, 0, 0, 100,
+    0, 0, 0, 0,
     0, 0, 0, 0
 END
 
