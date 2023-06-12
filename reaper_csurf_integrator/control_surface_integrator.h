@@ -65,6 +65,7 @@ const int TempDisplayTime = 1250;
 
 class Manager;
 extern unique_ptr<Manager> TheManager;
+extern bool RemapAutoZoneDialog(string fullPath);
 
 static vector<string> GetTokens(string line)
 {
@@ -484,6 +485,8 @@ public:
     Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
     virtual ~Zone() {}
+    
+    string GetSourceFilePath() { return sourceFilePath_; }
     
     shared_ptr<Navigator> GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
@@ -983,6 +986,24 @@ public:
             return false;
     }
 
+    void RemapAutoZone()
+    {
+        if(focusedFXZones_.size() == 1)
+        {
+            if(::RemapAutoZoneDialog(focusedFXZones_[0]->GetSourceFilePath()))
+            {
+                
+            }
+        }
+        else if(fxSlotZones_.size() == 1)
+        {
+            if(::RemapAutoZoneDialog(fxSlotZones_[0]->GetSourceFilePath()))
+            {
+                
+            }
+        }
+    }
+    
     map<string, vector<string>> GetSurfaceFXLayout(string surfaceFXLayout)
     {
         map<string, vector<string>> emptyLayout;

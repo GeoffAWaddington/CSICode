@@ -146,6 +146,29 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,70,191,10
 END
 
+IDD_DIALOG_EditFXDisplayName DIALOGEX 0, 0, 136, 75
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,16,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,45,50,14
+    EDITTEXT        IDC_EditDisplayName,15,26,102,14,ES_AUTOHSCROLL
+    LTEXT           "Use No Action to place a blank",IDC_STATIC,18,12,97,8
+END
+
+IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 185, 285
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Save",IDSAVE,68,261,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,120,261,50,14
+    LTEXT           "Use left and right arrow keys to reorder selection",IDC_STATIC,16,12,155,8
+    LISTBOX         IDC_PARAM_LIST,17,27,151,230,LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Edit",IDEDIT,16,261,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -190,6 +213,22 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 145
     END
+
+    IDD_DIALOG_EditFXDisplayName, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 129
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 68
+    END
+
+    IDD_DIALOG_RemapAutoFX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 278
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -222,6 +261,21 @@ END
 IDD_DIALOG_PageSurface AFX_DIALOG_LAYOUT
 BEGIN
     0
+END
+
+IDD_DIALOG_EditFXDisplayName AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_RemapAutoFX AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 100,
+    0, 0, 0, 0
 END
 
 #endif    // English (United States) resources

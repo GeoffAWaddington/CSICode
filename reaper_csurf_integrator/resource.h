@@ -2,7 +2,10 @@
 // Microsoft Visual C++ generated include file.
 // Used by res.rc
 //
+#define IDEDIT                          3
 #define IDD_DIALOG_Page                 103
+#define IDD_DIALOG_EditFXDisplayName    115
+#define IDD_DIALOG_RemapAutoFX          117
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -40,14 +43,17 @@
 #define IDC_CHECK_ScrollSynch           1096
 #define IDC_RADIO_MCP                   1097
 #define IDC_RADIO_TCP                   1098
+#define IDC_EditDisplayName             1098
+#define IDC_PARAM_LIST                  1099
+#define IDSAVE                          1100
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        115
+#define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1098
+#define _APS_NEXT_CONTROL_VALUE         1101
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

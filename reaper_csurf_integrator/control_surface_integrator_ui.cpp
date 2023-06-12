@@ -152,6 +152,230 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Remap Auto FX
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct FXLayoutStruct
+{
+    string prefix;
+    string suffix;
+    string slot;
+    
+    FXLayoutStruct(string aPrefix, string aSuffix, string aSlot) : prefix(aPrefix), suffix(aSuffix), slot(aSlot) {}
+};
+
+struct FXParamStruct
+{
+    string paramType = "";
+    string paramNum = "";
+    string displayName = "";
+    
+    FXParamStruct(string aParamType, string aParamNum, string aDisplayName) : paramType(aParamType), paramNum(aParamNum), displayName(aDisplayName) {}
+    FXParamStruct();
+};
+
+vector<string> allLines;
+vector<FXLayoutStruct> layouts;
+vector<FXParamStruct> params;
+
+int fxParamIndex = 0;
+
+static int dlgResult = 0;
+
+static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+        {
+            SetDlgItemText(hwndDlg, IDC_EditDisplayName, params[fxParamIndex].displayName.c_str());
+            break;
+        }
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        dlgResult = IDCANCEL;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        char buf[100];
+                        
+                        GetDlgItemText(hwndDlg, IDC_EditDisplayName , buf, sizeof(buf));
+                        
+                        params[fxParamIndex].displayName = string(buf);
+                        
+                        dlgResult = IDOK;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {            
+        case WM_INITDIALOG:
+        {
+            for(auto param : params)
+                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(param.paramType + " " + param.paramNum + " " + param.displayName).c_str());
+
+            break;
+        }
+            
+        case WM_KEYDOWN:
+            switch (wParam)
+            {
+                case VK_LEFT:
+                {
+                    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+                    if(index > 0)
+                    {
+                        char text[100];
+                        SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(text));
+
+                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index - 1, (LPARAM)text);
+                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index - 1, 0);
+                        
+                        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
+                        
+                        params.erase(params.begin() + index);
+                        params.insert(params.begin() + index - 1, itemToMove);
+                    }
+                }
+                    break;
+                    
+                case VK_RIGHT:
+                {
+                    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+                    if(index >= 0 && index < params.size() - 1)
+                    {
+                        char text[100];
+                        SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(text));
+
+                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index + 1, (LPARAM)text);
+                        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index + 1, 0);
+                        
+                        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
+                        
+                        params.erase(params.begin() + index);
+                        params.insert(params.begin() + index + 1, itemToMove);
+                    }
+
+                }
+                    break;
+            }
+            break;
+
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDSAVE:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        dlgResult = IDSAVE;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                   
+                case IDEDIT:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+                        if(index >= 0)
+                        {
+                            fxParamIndex = index;
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                            
+                            if(dlgResult == IDOK)
+                            {
+                                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
+                                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)(params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName).c_str());
+                            }
+                        }
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+
+    }
+    
+    return 0;
+}
+
+bool RemapAutoZoneDialog(string fullPath)
+{
+    ifstream autoFXFile(fullPath);
+    
+    allLines.clear();
+    layouts.clear();
+    params.clear();
+
+    for (string line; getline(autoFXFile, line) ; )
+    {
+        string strippedLine = regex_replace(line, regex(CRLFChars), "");
+        allLines.push_back(strippedLine);
+        
+        vector<string> tokens = GetTokens(line);
+        
+        if(tokens.size() == 6 && tokens[0].find("FXLayout") != string::npos)
+        {
+            layouts.push_back(FXLayoutStruct(tokens[0], tokens[1], (tokens[2])));
+            params.push_back(FXParamStruct(tokens[3], tokens[4], (tokens[5])));
+        }
+    }
+    
+    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
+    if(dlgResult == IDSAVE)
+    {
+        int layoutIndex = 0;
+
+        ofstream fxFile(fullPath);
+
+        if(fxFile.is_open())
+        {
+            for(int allLinesIndex = 0; allLinesIndex < allLines.size(); allLinesIndex++)
+            {
+                if(allLines[allLinesIndex].find("FXLayout") == string::npos)
+                    fxFile << allLines[allLinesIndex] + GetLineEnding();
+                else if(layoutIndex < layouts.size())
+                {
+                    fxFile << "\t" + layouts[layoutIndex].prefix + " \"" + layouts[layoutIndex].suffix + "\" " + layouts[layoutIndex].slot + " " + params[layoutIndex].paramType + " " + params[layoutIndex].paramNum + " \"" + params[layoutIndex].displayName + "\"" + GetLineEnding();
+
+                    layoutIndex++;
+                }
+            }
+
+            fxFile.close();
+        }
+        
+        return true;
+    }
+    else
+        return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FileSystem
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -220,7 +444,6 @@ struct PageLine
 
 // Scratch pad to get in and out of dialogs easily
 static bool editMode = false;
-static int dlgResult = 0;
 
 static string type = "";
 static char name[BUFSZ];
@@ -315,7 +538,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
             break;
     }
     
-    return 0 ;
+    return 0;
 }
 
 static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
@@ -515,7 +738,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             break;
     }
     
-    return 0 ;
+    return 0;
 }
 
 static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -632,7 +855,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             break;
     }
     
-    return 0 ;
+    return 0;
 }
 
 static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -739,7 +962,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             break;
     }
     
-    return 0 ;
+    return 0;
 }
 
 static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
