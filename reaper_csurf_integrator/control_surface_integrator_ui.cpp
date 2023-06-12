@@ -177,6 +177,9 @@ vector<string> allLines;
 vector<FXLayoutStruct> layouts;
 vector<FXParamStruct> params;
 
+string fxName = "";
+string fxAlias = "";
+
 int fxParamIndex = 0;
 
 static int dlgResult = 0;
@@ -207,7 +210,6 @@ static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wPa
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         char buf[100];
-                        
                         GetDlgItemText(hwndDlg, IDC_EditDisplayName , buf, sizeof(buf));
                         
                         params[fxParamIndex].displayName = string(buf);
@@ -283,6 +285,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {            
         case WM_INITDIALOG:
         {
+            SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
+            
             for(int i = 0; i < params.size(); i++)
                 SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(GetParamString(i)).c_str());
 
@@ -309,6 +314,10 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 case IDSAVE:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+                        char buf[100];
+                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
+                        fxAlias = buf;
+                        
                         dlgResult = IDSAVE;
                         EndDialog(hwndDlg, 0);
                     }
@@ -359,7 +368,15 @@ bool RemapAutoZoneDialog(string fullPath)
         
         vector<string> tokens = GetTokens(line);
         
-        if(tokens.size() == 6 && tokens[0].find("FXLayout") != string::npos)
+        if(line.substr(0, 5) == "Zone ")
+        {
+            if(tokens.size() > 1)
+                fxName = tokens[1];
+            if(tokens.size() > 2)
+                fxAlias = tokens[2];
+        }
+
+        else if(tokens.size() == 6 && tokens[0].find("FXLayout") != string::npos)
         {
             layouts.push_back(FXLayoutStruct(tokens[0], tokens[1], (tokens[2])));
             params.push_back(FXParamStruct(tokens[3], tokens[4], (tokens[5])));
@@ -367,6 +384,7 @@ bool RemapAutoZoneDialog(string fullPath)
     }
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
+    
     if(dlgResult == IDSAVE)
     {
         int layoutIndex = 0;
@@ -377,7 +395,9 @@ bool RemapAutoZoneDialog(string fullPath)
         {
             for(int allLinesIndex = 0; allLinesIndex < allLines.size(); allLinesIndex++)
             {
-                if(allLines[allLinesIndex].find("FXLayout") == string::npos)
+                if(allLinesIndex == 0)
+                    fxFile << "Zone \"" + fxName + "\" \"" + fxAlias + "\"" + GetLineEnding();
+                else if(allLines[allLinesIndex].find("FXLayout") == string::npos)
                     fxFile << allLines[allLinesIndex] + GetLineEnding();
                 else if(layoutIndex < layouts.size())
                 {

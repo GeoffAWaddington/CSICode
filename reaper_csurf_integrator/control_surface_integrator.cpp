@@ -2838,7 +2838,10 @@ void ZoneManager::RemapAutoZone()
     if(focusedFXZones_.size() == 1)
     {
         if(::RemapAutoZoneDialog(focusedFXZones_[0]->GetSourceFilePath()))
+        {
+            PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), sharedThisPtr_);
             GoFocusedFX();
+        }
     }
     else if(fxSlotZones_.size() == 1)
     {
@@ -2852,8 +2855,8 @@ void ZoneManager::RemapAutoZone()
 
             fxSlotZones_.clear();
             
-            if(sharedThisPtr_ != nullptr)
-                ProcessZoneFile(filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+            PreProcessZoneFile(filePath, sharedThisPtr_);
+            ProcessZoneFile(filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
             
             fxSlotZones_.back()->SetSlotIndex(slotNumber);
             fxSlotZones_.back()->Activate();
