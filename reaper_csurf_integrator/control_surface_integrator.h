@@ -909,6 +909,7 @@ public:
     void GoFocusedFX();
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
+    void RemapAutoZone();
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
@@ -986,24 +987,6 @@ public:
             return false;
     }
 
-    void RemapAutoZone()
-    {
-        if(focusedFXZones_.size() == 1)
-        {
-            if(::RemapAutoZoneDialog(focusedFXZones_[0]->GetSourceFilePath()))
-            {
-                
-            }
-        }
-        else if(fxSlotZones_.size() == 1)
-        {
-            if(::RemapAutoZoneDialog(fxSlotZones_[0]->GetSourceFilePath()))
-            {
-                
-            }
-        }
-    }
-    
     map<string, vector<string>> GetSurfaceFXLayout(string surfaceFXLayout)
     {
         map<string, vector<string>> emptyLayout;

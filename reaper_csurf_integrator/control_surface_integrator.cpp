@@ -2833,6 +2833,34 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigat
     }
 }
 
+void ZoneManager::RemapAutoZone()
+{
+    if(focusedFXZones_.size() == 1)
+    {
+        if(::RemapAutoZoneDialog(focusedFXZones_[0]->GetSourceFilePath()))
+            GoFocusedFX();
+    }
+    else if(fxSlotZones_.size() == 1)
+    {
+        if(::RemapAutoZoneDialog(fxSlotZones_[0]->GetSourceFilePath()))
+        {
+            vector<shared_ptr<Navigator>> navigators;
+            navigators.push_back(fxSlotZones_[0]->GetNavigator());
+            
+            string filePath = fxSlotZones_[0]->GetSourceFilePath();
+            int slotNumber = fxSlotZones_[0]->GetSlotIndex();
+
+            fxSlotZones_.clear();
+            
+            if(sharedThisPtr_ != nullptr)
+                ProcessZoneFile(filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+            
+            fxSlotZones_.back()->SetSlotIndex(slotNumber);
+            fxSlotZones_.back()->Activate();
+        }
+    }
+}
+
 void ZoneManager::PreProcessZones()
 {
     vector<string> zoneFilesToProcess;
