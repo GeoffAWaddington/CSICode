@@ -322,12 +322,22 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if(lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
                 {
                     lastCursorPosition = currentCursorPosition;
+                    
+#ifdef _WIN32
+                    MoveUp(hwndDlg);
+#else
                     MoveDown(hwndDlg);
+#endif
                 }
                 else if(currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
                 {
                     lastCursorPosition = currentCursorPosition;
+                    
+#ifdef _WIN32
+                    MoveDown(hwndDlg);
+#else
                     MoveUp(hwndDlg);
+#endif
                 }
             }
             break;
