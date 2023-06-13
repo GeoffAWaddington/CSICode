@@ -279,6 +279,9 @@ static void MoveDown(HWND hwndDlg)
     }
 }
 
+bool isDragging = false;
+POINT lastCursorPosition;
+
 static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -291,6 +294,42 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             for(int i = 0; i < params.size(); i++)
                 SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(GetParamString(i)).c_str());
 
+            break;
+        }
+            
+        case WM_LBUTTONDOWN:
+        {
+            isDragging = true;
+            GetCursorPos(&lastCursorPosition);
+            SetCapture(hwndDlg);
+            break;
+        }
+            
+        case WM_LBUTTONUP:
+        {
+            isDragging = false;
+            ReleaseCapture();
+            break;
+        }
+
+        case WM_MOUSEMOVE:
+        {
+            if(isDragging)
+            {
+                POINT currentCursorPosition;
+                GetCursorPos(&currentCursorPosition);
+                
+                if(lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
+                {
+                    lastCursorPosition = currentCursorPosition;
+                    MoveDown(hwndDlg);
+                }
+                else if(currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
+                {
+                    lastCursorPosition = currentCursorPosition;
+                    MoveUp(hwndDlg);
+                }
+            }
             break;
         }
             
