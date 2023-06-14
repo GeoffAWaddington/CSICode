@@ -624,7 +624,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetPage()->ClearFXSlot(context->GetZone());
+        context->GetPage()->ClearFXSlot();
     }
 };
 

@@ -962,18 +962,14 @@ public:
         selectedTrackFXZones_.clear();
     }
     
-    void ClearFXSlot(shared_ptr<Zone> zone)
+    void ClearFXSlot()
     {
-        for(int i = 0; i < fxSlotZones_.size(); i++)
+        if(fxSlotZones_.size() > 0)
         {
-            if(fxSlotZones_[i]->GetName() == zone->GetName())
-            {
-                fxSlotZones_[i]->ClearWidgets();
-                fxSlotZones_.erase(fxSlotZones_.begin() + i);
-                if(homeZone_ != nullptr)
-                    homeZone_->ReactivateFXMenuZone();
-                break;
-            }
+            fxSlotZones_[0]->ClearWidgets();
+            fxSlotZones_.erase(fxSlotZones_.begin());
+            if(homeZone_ != nullptr)
+                homeZone_->ReactivateFXMenuZone();
         }
     }
     
@@ -3098,10 +3094,10 @@ public:
             surface->GetZoneManager()->ClearSelectedTrackFX();
     }
 
-    void ClearFXSlot(shared_ptr<Zone> zone)
+    void ClearFXSlot()
     {
         for(auto surface : surfaces_)
-            surface->GetZoneManager()->ClearFXSlot(zone);
+            surface->GetZoneManager()->ClearFXSlot();
     }
 
     void GoHome()
