@@ -964,13 +964,13 @@ public:
     
     void ClearFXSlot()
     {
-        if(fxSlotZones_.size() > 0)
-        {
-            fxSlotZones_[0]->ClearWidgets();
-            fxSlotZones_.erase(fxSlotZones_.begin());
-            if(homeZone_ != nullptr)
-                homeZone_->ReactivateFXMenuZone();
-        }
+        for(int i = 0; i < fxSlotZones_.size(); i++)
+            fxSlotZones_[i]->ClearWidgets();
+        
+        fxSlotZones_.clear();
+        
+        if(homeZone_ != nullptr)
+            homeZone_->ReactivateFXMenuZone();
     }
     
     bool EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
