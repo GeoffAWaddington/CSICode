@@ -966,7 +966,7 @@ public:
     {
         for(int i = 0; i < fxSlotZones_.size(); i++)
         {
-            if(fxSlotZones_[i]->GetName() == zone->GetName())
+            if(fxSlotZones_[i]->GetName() == zone->GetName() && fxSlotZones_[i]->GetSlotIndex() == zone->GetSlotIndex())
             {
                 fxSlotZones_[i]->ClearWidgets();
                 fxSlotZones_.erase(fxSlotZones_.begin() + i);
