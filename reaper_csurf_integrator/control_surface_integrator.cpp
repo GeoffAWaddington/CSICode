@@ -2359,10 +2359,6 @@ void Zone::ReactivateFXMenuZone()
     else if(associatedZones_.count("SelectedTrackFXMenu") > 0 && associatedZones_["SelectedTrackFXMenu"][0]->GetIsActive())
         for(auto zone : associatedZones_["SelectedTrackFXMenu"])
             zone->Activate();
-    else
-        for(auto zone : includedZones_)
-            if(zone->GetIsActive() && (zone->GetName() == "TrackFXMenu" || zone->GetName() == "SelectedTrackFXMenu"))
-                zone->Activate();
 }
 
 void Zone::Activate()
