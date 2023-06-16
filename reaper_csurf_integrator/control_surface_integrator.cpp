@@ -291,7 +291,7 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary, string zoneName)
 {
     if(tokens.size() < 6)
         return;
@@ -303,14 +303,42 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
     while (getline(layoutAndModifiers, prefixToken, '+'))
         prefixTokens.push_back(prefixToken);
 
-    for(auto [widget, templateParams] : zoneManager->GetSurfaceFXLayout(prefixTokens[0]))
+    map<string, vector<string>> surfaceFXLayout = zoneManager->GetSurfaceFXLayout(prefixTokens[0]);
+       
+    for(auto [widgetName, templateParams] : surfaceFXLayout)
     {
         if(templateParams[0] == "FXParam" && tokens[3] == "JSFXParam")
             templateParams[0] = "JSFXParam";
+          
+        string widgetBaseName = widgetName;
+        
+        if(widgetBaseName == "RotaryPush" && templateParams[0] == "FXParam")
+        {
+            string rotaryBaseName = regex_replace(widgetBaseName, regex("RotaryPush"), "Rotary");
+            
+            shared_ptr<ActionTemplate> noActionTemplate = make_shared<ActionTemplate>();
+            noActionTemplate->actionName = "NoAction";
+            
+            vector<double> steppedValues;
+            
+            TheManager->GetSteppedValues(zoneName, atoi(tokens[4].c_str()), steppedValues);
+
+            string noActionBaseName = widgetBaseName;
+            
+            if(steppedValues.size() == 2)
+                noActionBaseName = rotaryBaseName;
+            else
+                widgetBaseName = rotaryBaseName;
+
+            GetWidgetNameAndModifiers(tokens[0] + "+" + noActionBaseName + tokens[1] + tokens[2], noActionTemplate);
+
+            actionTemplatesDictionary[noActionTemplate->widgetName][noActionTemplate->modifier].push_back(noActionTemplate);
+        }
         
         shared_ptr<ActionTemplate> actionTemplate = make_shared<ActionTemplate>();
-        string widgetName = tokens[0] + "+" + widget + tokens[1] + tokens[2];
-        GetWidgetNameAndModifiers(widgetName, actionTemplate);
+        string expandedWidgetName = tokens[0] + "+" + widgetBaseName + tokens[1] + tokens[2];
+        GetWidgetNameAndModifiers(expandedWidgetName, actionTemplate);
+
         if(tokens[4] == "-1")
             actionTemplate->actionName = "NoAction";
         else
@@ -740,7 +768,7 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
                     associatedZones.push_back(tokens[0]);
                 
                 else if(tokens[0].find("FXLayout") != string::npos)
-                    ExpandFXLayout(zoneManager, tokens, actionTemplatesDictionary);
+                    ExpandFXLayout(zoneManager, tokens, actionTemplatesDictionary, zoneName);
                 
                 else if(tokens.size() > 1)
                     BuildActionTemplate(tokens, actionTemplatesDictionary);
