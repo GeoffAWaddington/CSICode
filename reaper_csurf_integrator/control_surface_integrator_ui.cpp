@@ -285,7 +285,18 @@ POINT lastCursorPosition;
 static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
-    {            
+    {
+        case WM_NOTIFY:
+        {
+            if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
+            {
+                isDragging = true;
+                GetCursorPos(&lastCursorPosition);
+                SetCapture(hwndDlg);
+            }
+        }
+            break;
+            
         case WM_INITDIALOG:
         {
             SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
@@ -294,14 +305,6 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             for(int i = 0; i < params.size(); i++)
                 SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(GetParamString(i)).c_str());
 
-            break;
-        }
-            
-        case WM_LBUTTONDOWN:
-        {
-            isDragging = true;
-            GetCursorPos(&lastCursorPosition);
-            SetCapture(hwndDlg);
             break;
         }
             

@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/opt/homebrew/bin/php
 <?php
 
 if (!function_exists('file_put_contents')) {

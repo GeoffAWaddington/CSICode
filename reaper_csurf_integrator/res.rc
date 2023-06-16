@@ -164,20 +164,14 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Save",IDSAVE,100,526,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,152,526,50,14
-    LISTBOX         IDC_PARAM_LIST,17,58,184,460,LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Edit",IDEDIT,16,526,50,14
     EDITTEXT        IDC_FXNAME,17,10,184,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
     LTEXT           "Alias",IDC_STATIC,40,28,16,8
     EDITTEXT        IDC_EDIT_FXAlias,60,26,103,12,ES_AUTOHSCROLL
     PUSHBUTTON      "U",IDC_BUTTONUP,169,41,15,14
     PUSHBUTTON      "D",IDC_BUTTONDOWN,186,41,15,14
-    LTEXT           "Use up/down buttons to reorder selected item",IDC_STATIC,18,44,145,8
-    LTEXT           "D    R    A     G ",IDC_STATIC,4,301,8,62,0,WS_EX_RIGHT
-    LTEXT           "M    O    U    S     E ",IDC_STATIC,4,373,8,79,0,WS_EX_RIGHT
-    LTEXT           "H    E    R    E",IDC_STATIC,4,462,8,58,0,WS_EX_RIGHT
-    LTEXT           "S    E     L     E    C    T",IDC_STATIC,4,57,8,90,0,WS_EX_RIGHT
-    LTEXT           "T    H    E    N",IDC_STATIC,4,228,8,62,0,WS_EX_RIGHT
-    LTEXT           " I    T    E     M",IDC_STATIC,4,158,8,62,0,WS_EX_RIGHT
+    LTEXT           "Drag or use up/down buttons to reorder item",IDC_STATIC,18,44,145,8
+    CONTROL         "",IDC_PARAM_LIST,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,17,59,184,461
 END
 
 
@@ -281,23 +275,7 @@ END
 
 IDD_DIALOG_RemapAutoFX AFX_DIALOG_LAYOUT
 BEGIN
-    0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 100,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0
+    0
 END
 
 #endif    // English (United States) resources
