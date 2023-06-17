@@ -243,39 +243,35 @@ static string GetParamString(int index)
     return prefix + layouts[index].suffix + layouts[index].slot + " " + params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName;
 }
 
-static void MoveUp(HWND hwndDlg)
+static void MoveUp(HWND hwndParamList)
 {
-    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
     if(index > 0)
     {
         FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
         params.erase(params.begin() + index);
         params.insert(params.begin() + index - 1, itemToMove);
         
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index - 1, (LPARAM)GetParamString(index - 1).c_str());
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index - 1, 0);
+        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+        ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
         
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)GetParamString(index).c_str());
+        ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
 }
 
-static void MoveDown(HWND hwndDlg)
+static void MoveDown(HWND hwndParamList)
 {
-    int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
     if(index >= 0 && index < params.size() - 1)
     {
         FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
         params.erase(params.begin() + index);
         params.insert(params.begin() + index + 1, itemToMove);
 
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index + 1, (LPARAM)GetParamString(index + 1).c_str());
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_SETCURSEL, index + 1, 0);
+        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+        ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
         
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-        SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)GetParamString(index).c_str());
+        ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
 }
 
@@ -294,6 +290,21 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 GetCursorPos(&lastCursorPosition);
                 SetCapture(hwndDlg);
             }
+            
+            else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
+            {
+                HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+                
+                int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+                if(index >= 0)
+                {
+                    fxParamIndex = index;
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                    
+                    if(dlgResult == IDOK)
+                        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                }
+            }
         }
             break;
             
@@ -302,9 +313,33 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
             SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
             
-            for(int i = 0; i < params.size(); i++)
-                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_ADDSTRING, 0, (LPARAM)(GetParamString(i)).c_str());
+            HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
 
+            LVCOLUMN lvc;
+            lvc.mask = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
+            lvc.cchTextMax = 30;
+            lvc.cx = 200;
+            
+            ListView_SetColumn(hwndParamList, 0, &lvc);
+
+            LVITEM lvi;
+            lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
+            lvi.stateMask = 0;
+            lvi.iSubItem  = 0;
+            lvi.state     = 0;
+
+            for(int i = 0; i < params.size(); i++)
+            {
+                char buf[BUFSZ];
+                
+                sprintf(buf, GetParamString(i).c_str());
+                               
+                lvi.iItem = i;
+                lvi.pszText = buf;
+                
+                ListView_InsertItem(hwndParamList, &lvi);
+            }
+            
             break;
         }
             
@@ -327,9 +362,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     lastCursorPosition = currentCursorPosition;
                     
 #ifdef _WIN32
-                    MoveUp(hwndDlg);
+                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
 #else
-                    MoveDown(hwndDlg);
+                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
 #endif
                 }
                 else if(currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
@@ -337,9 +372,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     lastCursorPosition = currentCursorPosition;
                     
 #ifdef _WIN32
-                    MoveDown(hwndDlg);
+                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
 #else
-                    MoveUp(hwndDlg);
+                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
 #endif
                 }
             }
@@ -350,11 +385,11 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             switch (wParam)
             {
                 case VK_LEFT:
-                    MoveUp(hwndDlg);
+                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
                     
                 case VK_RIGHT:
-                    MoveDown(hwndDlg);
+                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
             }
             break;
@@ -364,11 +399,11 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             switch(LOWORD(wParam))
             {
                 case IDC_BUTTONUP:
-                    MoveUp(hwndDlg);
+                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
                     
                 case IDC_BUTTONDOWN:
-                    MoveDown(hwndDlg);
+                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
                     
                 case IDSAVE:
@@ -386,17 +421,16 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 case IDEDIT:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_GETCURSEL, 0, 0);
+                        HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+                        
+                        int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
                         if(index >= 0)
                         {
                             fxParamIndex = index;
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
                             
                             if(dlgResult == IDOK)
-                            {
-                                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_DELETESTRING, index, 0);
-                                SendDlgItemMessage(hwndDlg, IDC_PARAM_LIST, LB_INSERTSTRING, index, (LPARAM)(GetParamString(index).c_str()));
-                            }
+                                ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
                         }
                     }
                     break ;
