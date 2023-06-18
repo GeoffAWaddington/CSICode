@@ -1568,6 +1568,9 @@ private:
     bool isRewinding_ = false;
     bool isFastForwarding_ = false;
     
+    bool isTextLengthRestricted_ = false;
+    int restrictedTextLength_ = 6;
+    
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
 
@@ -1695,6 +1698,33 @@ public:
     {
         if(channelNum > 0 && channelNum <= numChannels_)
             channelToggles_[channelNum] = ! channelToggles_[channelNum];
+    }
+    
+    void ToggleRestrictTextLength(int length)
+    {
+        isTextLengthRestricted_ = ! isTextLengthRestricted_;
+        restrictedTextLength_ = length;
+    }
+    
+    string GetRestrictedLengthText(string text)
+    {
+        string restrictedText = text;
+
+        if(isTextLengthRestricted_ && text.length() > restrictedTextLength_)
+        {
+            string firstLetter = restrictedText.substr(0, 1);
+            
+            restrictedText = restrictedText.substr(1, restrictedText.length() - 1);
+            
+            restrictedText = regex_replace(restrictedText, regex("[aeiouAEIOU\\s]"), "");
+
+            restrictedText = firstLetter + restrictedText;
+            
+            if(restrictedText.length() > restrictedTextLength_)
+                restrictedText = restrictedText.substr(0, restrictedTextLength_);
+        }
+
+        return restrictedText;
     }
     
     bool GetIsChannelToggled(int channelNum)
