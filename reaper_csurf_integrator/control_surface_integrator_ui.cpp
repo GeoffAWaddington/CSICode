@@ -256,6 +256,10 @@ static void MoveUp(HWND hwndParamList)
         ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
         
         ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        
+#ifdef _WIN32
+        ListView_RedrawItems(hwndParamList, 0, params.size() - 1);
+#endif
     }
 }
 
@@ -272,6 +276,10 @@ static void MoveDown(HWND hwndParamList)
         ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
         
         ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        
+#ifdef _WIN32
+        ListView_RedrawItems(hwndParamList, 0, params.size() - 1);
+#endif
     }
 }
 
