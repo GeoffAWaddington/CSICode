@@ -256,10 +256,6 @@ static void MoveUp(HWND hwndParamList)
         ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
         
         ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-        
-#ifdef _WIN32
-        ListView_RedrawItems(hwndParamList, 0, params.size() - 1);
-#endif
     }
 }
 
@@ -276,10 +272,29 @@ static void MoveDown(HWND hwndParamList)
         ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
         
         ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    }
+}
+
+static void PopulateListView(HWND hwndParamList)
+{
+    ListView_DeleteAllItems(hwndParamList);
         
-#ifdef _WIN32
-        ListView_RedrawItems(hwndParamList, 0, params.size() - 1);
-#endif
+    LVITEM lvi;
+    lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
+    lvi.stateMask = 0;
+    lvi.iSubItem  = 0;
+    lvi.state     = 0;
+
+    for(int i = 0; i < params.size(); i++)
+    {
+        char buf[BUFSZ];
+        
+        sprintf(buf, GetParamString(i).c_str());
+                       
+        lvi.iItem = i;
+        lvi.pszText = buf;
+        
+        ListView_InsertItem(hwndParamList, &lvi);
     }
 }
 
@@ -323,32 +338,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
             SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
             
-            HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-
-            LVCOLUMN lvc;
-            lvc.mask = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
-            lvc.cchTextMax = 30;
-            lvc.cx = 200;
-            
-            ListView_SetColumn(hwndParamList, 0, &lvc);
-
-            LVITEM lvi;
-            lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
-            lvi.stateMask = 0;
-            lvi.iSubItem  = 0;
-            lvi.state     = 0;
-
-            for(int i = 0; i < params.size(); i++)
-            {
-                char buf[BUFSZ];
-                
-                sprintf(buf, GetParamString(i).c_str());
-                               
-                lvi.iItem = i;
-                lvi.pszText = buf;
-                
-                ListView_InsertItem(hwndParamList, &lvi);
-            }
+            PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
             
             break;
         }
@@ -357,6 +347,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             isDragging = false;
             ReleaseCapture();
+#ifdef _WIN32
+            PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+#endif
             break;
         }
 
