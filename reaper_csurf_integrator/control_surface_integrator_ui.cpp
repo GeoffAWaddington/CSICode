@@ -310,6 +310,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_INITDIALOG:
         {
+            dlgResult = IDCANCEL;
+            
             SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
             SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
             
