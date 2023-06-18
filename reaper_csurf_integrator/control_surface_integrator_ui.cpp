@@ -345,11 +345,14 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_LBUTTONUP:
         {
-            isDragging = false;
-            ReleaseCapture();
-#ifdef _WIN32
-            PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-#endif
+            if(isDragging)
+            {
+                isDragging = false;
+                ReleaseCapture();
+    #ifdef _WIN32
+                PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+    #endif
+            }
             break;
         }
 
