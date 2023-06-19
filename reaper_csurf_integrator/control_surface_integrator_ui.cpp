@@ -310,6 +310,8 @@ static bool isDragging = false;
 
 #ifdef _WIN32
 
+#pragma comment(lib, "comctl32.lib")
+
 static HIMAGELIST   hDragImageList;
 static int          oldPosition;
 
@@ -335,12 +337,12 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     isDragging = TRUE;
 
                     hDragImageList = ListView_CreateDragImage(hwndParamList, iPos, &p);
-                    //ImageList_BeginDrag(hDragImageList, 0, 0, 0);
+                    ImageList_BeginDrag(hDragImageList, 0, 0, 0);
 
                     POINT pt = ((NM_LISTVIEW*) ((LPNMHDR)lParam))->ptAction;
                     ClientToScreen(hwndParamList, &pt);
 
-                    //ImageList_DragEnter(GetDesktopWindow(), pt.x, pt.y);
+                    ImageList_DragEnter(GetDesktopWindow(), pt.x, pt.y);
 
                     SetCapture(hwndDlg);
                 }
@@ -383,9 +385,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 
                 HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
                 
-                //ImageList_DragLeave(hwndParamList);
-                //ImageList_EndDrag();
-                //ImageList_Destroy(hDragImageList);
+                ImageList_DragLeave(hwndParamList);
+                ImageList_EndDrag();
+                ImageList_Destroy(hDragImageList);
 
                 ReleaseCapture();
 
@@ -422,7 +424,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 p.y = HIWORD(lParam);
 
                 ClientToScreen(hwndDlg, &p);
-                //ImageList_DragMove(p.x, p.y);
+                ImageList_DragMove(p.x, p.y);
             }
             break;
         }
