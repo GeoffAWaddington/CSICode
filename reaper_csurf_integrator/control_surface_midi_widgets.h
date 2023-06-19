@@ -513,6 +513,9 @@ public:
 class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
+private:
+    string lastStringSent_ = "";
+    
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
     SCE24Text_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
@@ -524,8 +527,12 @@ public:
         ForceValue(properties, value);
     }
     
-    virtual void ForceValue(map<string, string> &properties, string value) override
+    virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
+        lastStringSent_ = displayText;
+        
+        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        
         int topMargin = 0;
         int bottomMargin = 0;
         int font = 0;
@@ -571,8 +578,8 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
         
-        for(int i = 0; i < value.length(); i++)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = value[i];
+        for(int i = 0; i < displayText.length(); i++)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
@@ -1124,6 +1131,8 @@ public:
     {
         lastStringSent_ = displayText;
         
+        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        
         if(displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
@@ -1294,6 +1303,8 @@ public:
     virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
         lastStringSent_ = displayText;
+                
+        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
         
         if(displayText == "" || displayText == "-150.00")
             displayText = "       ";
@@ -1480,6 +1491,8 @@ public:
     {
         lastStringSent_ = displayText;
         
+        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+
         if(displayText == "")
             displayText = "                            ";
         
@@ -1624,6 +1637,8 @@ public:
     {
         lastStringSent_ = displayText;
         
+        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+
         if(displayText == "")
             displayText = "       ";
         

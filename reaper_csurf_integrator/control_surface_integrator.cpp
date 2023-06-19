@@ -2122,7 +2122,7 @@ void ActionContext::UpdateTrackColor()
 
 void ActionContext::UpdateWidgetValue(string value)
 {
-    widget_->UpdateValue(widgetProperties_, GetSurface()->GetRestrictedLengthText(value));
+    widget_->UpdateValue(widgetProperties_, value);
 }
 
 void ActionContext::DoAction(double value)
