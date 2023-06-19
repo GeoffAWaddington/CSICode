@@ -243,38 +243,6 @@ static string GetParamString(int index)
     return prefix + layouts[index].suffix + layouts[index].slot + " " + params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName;
 }
 
-static void MoveUp(HWND hwndParamList)
-{
-    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if(index > 0)
-    {
-        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
-        params.erase(params.begin() + index);
-        params.insert(params.begin() + index - 1, itemToMove);
-        
-        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
-        ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
-        
-        ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-    }
-}
-
-static void MoveDown(HWND hwndParamList)
-{
-    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if(index >= 0 && index < params.size() - 1)
-    {
-        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
-        params.erase(params.begin() + index);
-        params.insert(params.begin() + index + 1, itemToMove);
-
-        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
-        ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
-        
-        ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-    }
-}
-
 static void PopulateListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
@@ -298,8 +266,52 @@ static void PopulateListView(HWND hwndParamList)
     }
 }
 
-bool isDragging = false;
-POINT lastCursorPosition;
+static void MoveUp(HWND hwndParamList)
+{
+    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+    if(index > 0)
+    {
+        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
+        params.erase(params.begin() + index);
+        params.insert(params.begin() + index - 1, itemToMove);
+        
+        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+        ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
+ 
+#ifdef _WIN32
+        PopulateListView(hwndParamList);
+#endif
+        
+        ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    }
+}
+
+static void MoveDown(HWND hwndParamList)
+{
+    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+    if(index >= 0 && index < params.size() - 1)
+    {
+        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName);
+        params.erase(params.begin() + index);
+        params.insert(params.begin() + index + 1, itemToMove);
+
+        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+        ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
+
+#ifdef _WIN32
+        PopulateListView(hwndParamList);
+#endif
+
+        ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+    }
+}
+
+static bool isDragging = false;
+
+#ifdef _WIN32
+
+static HIMAGELIST   hDragImageList;
+static int          oldPosition;
 
 static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -309,9 +321,29 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
             {
-                isDragging = true;
-                GetCursorPos(&lastCursorPosition);
-                SetCapture(hwndDlg);
+                HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+               
+                POINT p;
+                p.x = 8;
+                p.y = 8;
+
+                int iPos = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+                if(iPos != -1)
+                {
+                    oldPosition = iPos;
+
+                    isDragging = TRUE;
+
+                    hDragImageList = ListView_CreateDragImage(hwndParamList, iPos, &p);
+                    //ImageList_BeginDrag(hDragImageList, 0, 0, 0);
+
+                    POINT pt = ((NM_LISTVIEW*) ((LPNMHDR)lParam))->ptAction;
+                    ClientToScreen(hwndParamList, &pt);
+
+                    //ImageList_DragEnter(GetDesktopWindow(), pt.x, pt.y);
+
+                    SetCapture(hwndDlg);
+                }
             }
             
             else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
@@ -347,11 +379,36 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             if(isDragging)
             {
-                isDragging = false;
+                isDragging = FALSE;
+                
+                HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+                
+                //ImageList_DragLeave(hwndParamList);
+                //ImageList_EndDrag();
+                //ImageList_Destroy(hDragImageList);
+
                 ReleaseCapture();
-    #ifdef _WIN32
-                PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-    #endif
+
+                LVHITTESTINFO       lvhti;
+                lvhti.pt.x = LOWORD(lParam);
+                lvhti.pt.y = HIWORD(lParam);
+                ClientToScreen(hwndDlg, &lvhti.pt);
+                ScreenToClient(hwndParamList, &lvhti.pt);
+                ListView_HitTest(hwndParamList, &lvhti);
+
+                // Out of the ListView?
+                if (lvhti.iItem == -1)
+                    break;
+                // Not in an item?
+                if ((lvhti.flags & LVHT_ONITEMLABEL == 0) &&
+                          (lvhti.flags & LVHT_ONITEMSTATEICON == 0))
+                    break;
+
+                FXParamStruct itemToMove(params[oldPosition].paramType, params[oldPosition].paramNum, params[oldPosition].displayName);
+                params.erase(params.begin() + oldPosition);
+                params.insert(params.begin() + lvhti.iItem, itemToMove);
+                
+                PopulateListView(hwndParamList);
             }
             break;
         }
@@ -360,46 +417,16 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             if(isDragging)
             {
-                POINT currentCursorPosition;
-                GetCursorPos(&currentCursorPosition);
-                
-                if(lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
-                {
-                    lastCursorPosition = currentCursorPosition;
-                    
-#ifdef _WIN32
-                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-#else
-                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-#endif
-                }
-                else if(currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
-                {
-                    lastCursorPosition = currentCursorPosition;
-                    
-#ifdef _WIN32
-                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-#else
-                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-#endif
-                }
+                POINT p;
+                p.x = LOWORD(lParam);
+                p.y = HIWORD(lParam);
+
+                ClientToScreen(hwndDlg, &p);
+                //ImageList_DragMove(p.x, p.y);
             }
             break;
         }
             
-        case WM_KEYDOWN:
-            switch (wParam)
-            {
-                case VK_LEFT:
-                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                    break;
-                    
-                case VK_RIGHT:
-                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                    break;
-            }
-            break;
-
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
@@ -452,6 +479,144 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     
     return 0;
 }
+
+#else
+
+POINT lastCursorPosition;
+
+static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_NOTIFY:
+        {
+            if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
+            {
+                isDragging = true;
+                GetCursorPos(&lastCursorPosition);
+                SetCapture(hwndDlg);
+            }
+            
+            else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
+            {
+                HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+                
+                int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+                if(index >= 0)
+                {
+                    fxParamIndex = index;
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                    
+                    if(dlgResult == IDOK)
+                        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                }
+            }
+        }
+            break;
+            
+        case WM_INITDIALOG:
+        {
+            dlgResult = IDCANCEL;
+            
+            SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
+            
+            PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+            
+            break;
+        }
+            
+        case WM_LBUTTONUP:
+        {
+            if(isDragging)
+            {
+                isDragging = false;
+                ReleaseCapture();
+            }
+            break;
+        }
+
+        case WM_MOUSEMOVE:
+        {
+            if(isDragging)
+            {
+                POINT currentCursorPosition;
+                GetCursorPos(&currentCursorPosition);
+                
+                if(lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
+                {
+                    lastCursorPosition = currentCursorPosition;
+                    
+                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+                }
+                else if(currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
+                {
+                    lastCursorPosition = currentCursorPosition;
+                    
+                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+                }
+            }
+            break;
+        }
+            
+        case WM_KEYDOWN:
+            switch (wParam)
+            {
+                case VK_LEFT:
+                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+                    break;
+                    
+                case VK_RIGHT:
+                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+                    break;
+            }
+            break;
+
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDSAVE:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        char buf[100];
+                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
+                        fxAlias = buf;
+                        
+                        dlgResult = IDSAVE;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                   
+                case IDEDIT:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+                        
+                        int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+                        if(index >= 0)
+                        {
+                            fxParamIndex = index;
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                            
+                            if(dlgResult == IDOK)
+                                ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                        }
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+
+    }
+    
+    return 0;
+}
+#endif
 
 bool RemapAutoZoneDialog(string fullPath)
 {
