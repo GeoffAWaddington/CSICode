@@ -310,6 +310,12 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         if(templateParams[0] == "FXParam" && tokens[3] == "JSFXParam")
             templateParams[0] = "JSFXParam";
           
+        int pushSteps = 2;
+        
+        for(auto param : templateParams)
+            if(param.substr(0, 10) == "PushSteps=")
+                pushSteps = atoi(param.substr(10, param.length() - 10).c_str());
+        
         string widgetBaseName = widgetName;
         
         if(widgetBaseName == "RotaryPush" && templateParams[0] == "FXParam")
@@ -325,7 +331,7 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
 
             string noActionBaseName = widgetBaseName;
             
-            if(steppedValues.size() == 2)
+            if(steppedValues.size() <= pushSteps)
                 noActionBaseName = rotaryBaseName;
             else
                 widgetBaseName = rotaryBaseName;
