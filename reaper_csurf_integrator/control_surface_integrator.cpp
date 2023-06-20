@@ -313,7 +313,7 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         int pushSteps = 2;
         
         for(auto param : templateParams)
-            if(param.substr(0, 10) == "PushSteps=")
+            if(param.substr(0, 10) == "PushSteps=" && param.length() > 10 && isdigit(param[10]))
                 pushSteps = atoi(param.substr(10, param.length() - 10).c_str());
         
         string widgetBaseName = widgetName;
