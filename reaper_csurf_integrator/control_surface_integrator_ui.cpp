@@ -191,6 +191,8 @@ static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wPa
         case WM_INITDIALOG:
         {
             SetDlgItemText(hwndDlg, IDC_EditDisplayName, params[fxParamIndex].displayName.c_str());
+            SetFocus(GetDlgItem(hwndDlg, IDC_EditDisplayName));
+            SendMessage(GetDlgItem(hwndDlg, IDC_EditDisplayName), EM_SETSEL, 0, params[fxParamIndex].displayName.length());
             break;
         }
             
