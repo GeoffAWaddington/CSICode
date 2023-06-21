@@ -331,7 +331,7 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
 
             string noActionBaseName = widgetBaseName;
             
-            if(steppedValues.size() <= pushSteps)
+            if(steppedValues.size() > 0 && steppedValues.size() <= pushSteps)
                 noActionBaseName = rotaryBaseName;
             else
                 widgetBaseName = rotaryBaseName;
