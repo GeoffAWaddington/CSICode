@@ -875,6 +875,7 @@ private:
     };
     
     bool EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
+    void CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex);
 
     void ResetOffsets()
     {
@@ -900,6 +901,8 @@ public:
     void Initialize();
     
     void PreProcessZones();
+    
+    bool EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
     
     shared_ptr<Navigator> GetMasterTrackNavigator();
     shared_ptr<Navigator> GetSelectedTrackNavigator();
@@ -977,16 +980,6 @@ public:
         }
     }
     
-    bool EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
-    {
-        if(zoneFilePaths_.count(fxName) > 0)
-            return true;
-        else if(isAutoFXMappingEnabled_)
-            return EnsureZoneAvailable(fxName, track, fxIndex);
-        else
-            return false;
-    }
-
     map<string, vector<string>> GetSurfaceFXLayout(string surfaceFXLayout)
     {
         map<string, vector<string>> emptyLayout;
@@ -3325,7 +3318,8 @@ private:
     double *projectMetronomeSecondaryVolumePtr_ = nullptr;
     
     map<string, map<int, string>> fxParamAliases_;
-    map<string, map<int, vector<double>>> fxParamStepValues_;
+    map<string, map<int, vector<double>>> fxParamSteppedValues_;
+    vector<double> emptySteppedValues_;
     
     map<int, int> baseTickCounts_ ;
     
@@ -3639,10 +3633,25 @@ public:
         }
     }
 
-    void GetSteppedValues(string fxName, int paramIndex, vector<double> &steppedValues)
+    void AddSteppedValue(string fxName, int paramIndex, double steppedValue)
     {
-        if(fxParamStepValues_.count(fxName) > 0 && fxParamStepValues_[fxName].count(paramIndex) > 0)
-            steppedValues = fxParamStepValues_[fxName][paramIndex];
+        fxParamSteppedValues_[fxName][paramIndex].push_back(steppedValue);
+    }
+    
+    bool HaveFXSteppedValuesBeenCalculated(string fxName)
+    {
+        if(fxParamSteppedValues_.count(fxName) > 0)
+            return true;
+        else
+            return false;
+    }
+    
+    vector<double> GetSteppedValues(string fxName, int paramIndex)
+    {
+        if(fxParamSteppedValues_.count(fxName) > 0 && fxParamSteppedValues_[fxName].count(paramIndex) > 0)
+            return fxParamSteppedValues_[fxName][paramIndex];
+        else
+            return  emptySteppedValues_;
     }
     
     //int repeats = 0;

@@ -325,9 +325,7 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
             shared_ptr<ActionTemplate> noActionTemplate = make_shared<ActionTemplate>();
             noActionTemplate->actionName = "NoAction";
             
-            vector<double> steppedValues;
-            
-            TheManager->GetSteppedValues(zoneName, atoi(tokens[4].c_str()), steppedValues);
+            vector<double> steppedValues = TheManager->GetSteppedValues(zoneName, atoi(tokens[4].c_str()));
 
             string noActionBaseName = widgetBaseName;
             
@@ -923,7 +921,7 @@ void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  sha
         acceleratedDeltaValues = widget->GetAccelerationValues();
     
     if(steppedValues.size() == 0)
-        TheManager->GetSteppedValues(zone->GetName(), paramNumber, steppedValues);
+        steppedValues = TheManager->GetSteppedValues(zone->GetName(), paramNumber);
     
     if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
     {
@@ -1688,7 +1686,7 @@ void Manager::InitFXParamStepValues()
                     continue;
                 
                 for(int i = 2; i < tokens.size(); i++)
-                    fxParamStepValues_[tokens[0]][atoi(tokens[1].c_str())].push_back(stod(tokens[i]));
+                    fxParamSteppedValues_[tokens[0]][atoi(tokens[1].c_str())].push_back(stod(tokens[i]));
 
                 lineNumber++;
             }
@@ -1852,7 +1850,7 @@ void Manager::Init()
     }
       
     InitFXParamAliases();
-    InitFXParamStepValues();
+    //InitFXParamStepValues();
     
     for(auto page : pages_)
         page->OnInitialization();
@@ -2799,8 +2797,13 @@ void ZoneManager::GoFocusedFX()
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
         if(isAutoFocusedFXMappingEnabled_)
+        {
+            if( ! TheManager->HaveFXSteppedValuesBeenCalculated(FXName))
+                CalculateSteppedValues(FXName, focusedTrack, fxSlot);
+
             if( ! EnsureZoneAvailable(FXName, focusedTrack, fxSlot))
                 return;
+        }
 
         if(zoneFilePaths_.count(FXName) > 0)
         {
@@ -2927,8 +2930,69 @@ void ZoneManager::PreProcessZones()
     }
 }
 
-bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
+bool ZoneManager::EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
 {
+    if( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
+        CalculateSteppedValues(fxName, track, fxIndex);
+    
+    if(zoneFilePaths_.count(fxName) > 0)
+        return true;
+    else if(isAutoFXMappingEnabled_)
+        return EnsureZoneAvailable(fxName, track, fxIndex);
+    else
+        return false;
+}
+
+void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex)
+{
+    TheManager->AddSteppedValue(fxName, -1, 0.0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+    
+    bool wasMuted = false;
+    DAW::GetTrackUIMute(track, &wasMuted);
+    
+    if( ! wasMuted)
+        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, true), NULL);
+
+    double minvalOut = 0.0;
+    double maxvalOut = 0.0;
+
+    vector<double> currentValues;
+    
+    for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
+        currentValues.push_back(DAW::TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
+    
+    for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
+    {
+        vector<double> steps;
+        
+        steps.push_back(0.0);
+        
+        for(double value = 0.0; value < 1.01; value += .01)
+        {
+            DAW::TrackFX_SetParam(track, fxIndex, i, value);
+            
+            double fxValue = DAW::TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
+            
+            if(steps.back() != fxValue)
+                steps.push_back(fxValue);
+        }
+        
+        if(steps.size() > 1 && steps.size() < 50)
+        {
+            for(auto step : steps)
+                TheManager->AddSteppedValue(fxName, i, step);
+        }
+    }
+    
+    for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
+        DAW::TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
+    
+    if( ! wasMuted)
+        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
+}
+
+bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
+{    
     if(zoneFilePaths_.count(fxName) > 0)
         return true;
 
