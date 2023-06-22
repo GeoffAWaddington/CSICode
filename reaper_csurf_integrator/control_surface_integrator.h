@@ -3318,8 +3318,7 @@ private:
     double *projectMetronomeSecondaryVolumePtr_ = nullptr;
     
     map<string, map<int, string>> fxParamAliases_;
-    map<string, map<int, vector<double>>> fxParamSteppedValues_;
-    vector<double> emptySteppedValues_;
+    map<string, map<int, int>> fxParamSteppedValueCounts_;
     
     map<int, int> baseTickCounts_ ;
     
@@ -3633,25 +3632,25 @@ public:
         }
     }
 
-    void AddSteppedValue(string fxName, int paramIndex, double steppedValue)
+    void SetSteppedValueCount(string fxName, int paramIndex, int steppedValuecount)
     {
-        fxParamSteppedValues_[fxName][paramIndex].push_back(steppedValue);
+        fxParamSteppedValueCounts_[fxName][paramIndex] = steppedValuecount;
     }
     
     bool HaveFXSteppedValuesBeenCalculated(string fxName)
     {
-        if(fxParamSteppedValues_.count(fxName) > 0)
+        if(fxParamSteppedValueCounts_.count(fxName) > 0)
             return true;
         else
             return false;
     }
     
-    vector<double> GetSteppedValues(string fxName, int paramIndex)
+    int GetSteppedValueCount(string fxName, int paramIndex)
     {
-        if(fxParamSteppedValues_.count(fxName) > 0 && fxParamSteppedValues_[fxName].count(paramIndex) > 0)
-            return fxParamSteppedValues_[fxName][paramIndex];
+        if(fxParamSteppedValueCounts_.count(fxName) > 0 && fxParamSteppedValueCounts_[fxName].count(paramIndex) > 0)
+            return fxParamSteppedValueCounts_[fxName][paramIndex];
         else
-            return  emptySteppedValues_;
+            return  0;
     }
     
     //int repeats = 0;

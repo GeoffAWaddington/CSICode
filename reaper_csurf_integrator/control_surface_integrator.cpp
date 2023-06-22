@@ -310,29 +310,25 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         if(templateParams[0] == "FXParam" && tokens[3] == "JSFXParam")
             templateParams[0] = "JSFXParam";
           
-        int pushSteps = 2;
+        string steps = "";
         
-        for(auto param : templateParams)
-            if(param.substr(0, 10) == "PushSteps=" && param.length() > 10 && isdigit(param[10]))
-                pushSteps = atoi(param.substr(10, param.length() - 10).c_str());
+        for(auto token : tokens)
+            if(token.substr(0, 6) == "Steps=" && token.length() > 6 && isdigit(token[6]))
+                steps = token;
         
         string widgetBaseName = widgetName;
         
-        if(widgetBaseName == "RotaryPush" && templateParams[0] == "FXParam")
+        if(widgetBaseName == "Rotary" && templateParams[0] == "FXParam")
         {
-            string rotaryBaseName = regex_replace(widgetBaseName, regex("RotaryPush"), "Rotary");
-            
             shared_ptr<ActionTemplate> noActionTemplate = make_shared<ActionTemplate>();
             noActionTemplate->actionName = "NoAction";
             
-            vector<double> steppedValues = TheManager->GetSteppedValues(zoneName, atoi(tokens[4].c_str()));
-
             string noActionBaseName = widgetBaseName;
             
-            if(steppedValues.size() > 0 && steppedValues.size() <= pushSteps)
-                noActionBaseName = rotaryBaseName;
+            if(steps != "")
+                widgetBaseName = widgetBaseName + "Push";
             else
-                widgetBaseName = rotaryBaseName;
+                noActionBaseName = widgetBaseName + "Push";
 
             GetWidgetNameAndModifiers(tokens[0] + "+" + noActionBaseName + tokens[1] + tokens[2], noActionTemplate);
 
@@ -398,6 +394,9 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         
         for(auto property : properties)
             params.push_back(property);
+        
+        if(steps != "")
+            params.push_back(steps);
         
         actionTemplate->params = params;
         actionTemplate->provideFeedback = true;
@@ -852,7 +851,40 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+map<int, vector<double>> steppedValueDictionary
+{
+    { 2, { 0.00, 1.00 } },
+    { 3, { 0.00, 0.50, 1.00 } },
+    { 4, { 0.00, 0.33, 0.67, 1.00 } },
+    { 5, { 0.00, 0.25, 0.50, 0.75, 1.00 } },
+    { 6, { 0.00, 0.20, 0.40, 0.60, 0.80, 1.00 } },
+    { 7, { 0.00, 0.17, 0.33, 0.50, 0.67, 0.83, 1.00 } },
+    { 8, { 0.00, 0.14, 0.29, 0.43, 0.57, 0.71, 0.86, 1.00 } },
+    { 9, { 0.00, 0.13, 0.25, 0.38, 0.50, 0.63, 0.75, 0.88, 1.00 } },
+    { 10, { 0.00, 0.11, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 0.89, 1.00 } },
+    { 11, { 0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00 } },
+    { 12, { 0.00, 0.09, 0.18, 0.27, 0.36, 0.45, 0.55, 0.64, 0.73, 0.82, 0.91, 1.00 } },
+    { 13, { 0.00, 0.08, 0.17, 0.25, 0.33, 0.42, 0.50, 0.58, 0.67, 0.75, 0.83, 0.92, 1.00 } },
+    { 14, { 0.00, 0.08, 0.15, 0.23, 0.31, 0.38, 0.46, 0.54, 0.62, 0.69, 0.77, 0.85, 0.92, 1.00 } },
+    { 15, { 0.00, 0.07, 0.14, 0.21, 0.29, 0.36, 0.43, 0.50, 0.57, 0.64, 0.71, 0.79, 0.86, 0.93, 1.00 } },
+    { 16, { 0.00, 0.07, 0.13, 0.20, 0.27, 0.33, 0.40, 0.47, 0.53, 0.60, 0.67, 0.73, 0.80, 0.87, 0.93, 1.00 } },
+    { 17, { 0.00, 0.06, 0.13, 0.19, 0.25, 0.31, 0.38, 0.44, 0.50, 0.56, 0.63, 0.69, 0.75, 0.81, 0.88, 0.94, 1.00 } },
+    { 18, { 0.00, 0.06, 0.12, 0.18, 0.24, 0.29, 0.35, 0.41, 0.47, 0.53, 0.59, 0.65, 0.71, 0.76, 0.82, 0.88, 0.94, 1.00 } },
+    { 19, { 0.00, 0.06, 0.11, 0.17, 0.22, 0.28, 0.33, 0.39, 0.44, 0.50, 0.56, 0.61, 0.67, 0.72, 0.78, 0.83, 0.89, 0.94, 1.00 } },
+    { 20, { 0.00, 0.05, 0.11, 0.16, 0.21, 0.26, 0.32, 0.37, 0.42, 0.47, 0.53, 0.58, 0.63, 0.68, 0.74, 0.79, 0.84, 0.89, 0.95, 1.00 } },
+    { 21, { 0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00 } },
+    { 22, { 0.00, 0.05, 0.10, 0.14, 0.19, 0.24, 0.29, 0.33, 0.38, 0.43, 0.48, 0.52, 0.57, 0.62, 0.67, 0.71, 0.76, 0.81, 0.86, 0.90, 0.95, 1.00 } },
+    { 23, { 0.00, 0.05, 0.09, 0.14, 0.18, 0.23, 0.27, 0.32, 0.36, 0.41, 0.45, 0.50, 0.55, 0.59, 0.64, 0.68, 0.73, 0.77, 0.82, 0.86, 0.91, 0.95, 1.00 } },
+    { 24, { 0.00, 0.04, 0.09, 0.13, 0.17, 0.22, 0.26, 0.30, 0.35, 0.39, 0.43, 0.48, 0.52, 0.57, 0.61, 0.65, 0.70, 0.74, 0.78, 0.83, 0.87, 0.91, 0.96, 1.00 } },
+    { 25, { 0.00, 0.04, 0.08, 0.13, 0.17, 0.21, 0.25, 0.29, 0.33, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.63, 0.67, 0.71, 0.75, 0.79, 0.83, 0.88, 0.92, 0.96, 1.00 } },
+    { 26, { 0.00, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.60, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00 } },
+    { 27, { 0.00, 0.04, 0.08, 0.12, 0.15, 0.19, 0.23, 0.27, 0.31, 0.35, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.62, 0.65, 0.69, 0.73, 0.77, 0.81, 0.85, 0.88, 0.92, 0.96, 1.00 } },
+    { 28, { 0.00, 0.04, 0.07, 0.11, 0.15, 0.19, 0.22, 0.26, 0.30, 0.33, 0.37, 0.41, 0.44, 0.48, 0.52, 0.56, 0.59, 0.63, 0.67, 0.70, 0.74, 0.78, 0.81, 0.85, 0.89, 0.93, 0.96, 1.00 } },
+    { 29, { 0.00, 0.04, 0.07, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.32, 0.36, 0.39, 0.43, 0.46, 0.50, 0.54, 0.57, 0.61, 0.64, 0.68, 0.71, 0.75, 0.79, 0.82, 0.86, 0.89, 0.93, 0.96, 1.00 } },
+    { 30, { 0.00, 0.03, 0.07, 0.10, 0.14, 0.17, 0.21, 0.24, 0.28, 0.31, 0.34, 0.38, 0.41, 0.45, 0.48, 0.52, 0.55, 0.59, 0.62, 0.66, 0.69, 0.72, 0.76, 0.79, 0.83, 0.86, 0.90, 0.93, 0.97, 1.00 } }
+};
+
+void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, map<string, string> widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -920,9 +952,17 @@ void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  sha
     if(acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
         acceleratedDeltaValues = widget->GetAccelerationValues();
     
-    if(steppedValues.size() == 0)
-        steppedValues = TheManager->GetSteppedValues(zone->GetName(), paramNumber);
+    int steppedValueCount = 0;
     
+    if(widgetProperties.count("Steps") > 0)
+        steppedValueCount = atoi(widgetProperties["Steps"].c_str());
+    else
+        steppedValueCount = TheManager->GetSteppedValueCount(zone->GetName(), paramNumber);
+    
+    if(steppedValues.size() == 0 && steppedValueCount > 1)
+        for(auto value : steppedValueDictionary[steppedValueCount])
+            steppedValues.push_back(value);
+     
     if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
     {
         double stepSize = deltaValue;
@@ -1657,49 +1697,6 @@ void Manager::WriteFXParamAliases()
     }
 }
 
-void Manager::InitFXParamStepValues()
-{
-    string fxParamStepValuesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamStepValuesCache.txt";
-    
-    filesystem::path fxParamStepValuesFile { fxParamStepValuesFilePath };
-
-    if (filesystem::exists(fxParamStepValuesFile))
-    {
-        int lineNumber = 0;
-
-        try
-        {
-            ifstream fxParamStepValues(fxParamStepValuesFile);
-                   
-            for (string line; getline(fxParamStepValues, line) ; )
-            {
-                line = regex_replace(line, regex(TabChars), " ");
-                line = regex_replace(line, regex(CRLFChars), "");
-                
-                
-                if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
-                    continue;
-                
-                vector<string> tokens(GetTokens(line));
-                
-                if(tokens.size() < 3)
-                    continue;
-                
-                for(int i = 2; i < tokens.size(); i++)
-                    fxParamSteppedValues_[tokens[0]][atoi(tokens[1].c_str())].push_back(stod(tokens[i]));
-
-                lineNumber++;
-            }
-        }
-        catch (exception &e)
-        {
-            char buffer[250];
-            snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamStepValuesFilePath.c_str(), lineNumber);
-            DAW::ShowConsoleMsg(buffer);
-        }
-    }
-}
-
 void Manager::Init()
 {
     pages_.clear();
@@ -1850,7 +1847,6 @@ void Manager::Init()
     }
       
     InitFXParamAliases();
-    //InitFXParamStepValues();
     
     for(auto page : pages_)
         page->OnInitialization();
@@ -2015,7 +2011,7 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
     if(params.size() > 0)
         SetColor(params, supportsColor_, supportsTrackColor_, colorValues_);
     
-    GetSteppedValues(widget, action_, zone_, paramIndex_, params, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
+    GetSteppedValues(widget, action_, zone_, paramIndex_, params, widgetProperties_, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
 
     if(acceleratedTickValues_.size() < 1)
         acceleratedTickValues_.push_back(10);
@@ -2943,48 +2939,18 @@ bool ZoneManager::EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fx
         return false;
 }
 
-map<int, vector<double>> steppedValueDictionary
-{
-    { 2, { 0.00, 1.00 } },
-    { 3, { 0.00, 0.50, 1.00 } },
-    { 4, { 0.00, 0.33, 0.67, 1.00 } },
-    { 5, { 0.00, 0.25, 0.50, 0.75, 1.00 } },
-    { 6, { 0.00, 0.20, 0.40, 0.60, 0.80, 1.00 } },
-    { 7, { 0.00, 0.17, 0.33, 0.50, 0.67, 0.83, 1.00 } },
-    { 8, { 0.00, 0.14, 0.29, 0.43, 0.57, 0.71, 0.86, 1.00 } },
-    { 9, { 0.00, 0.13, 0.25, 0.38, 0.50, 0.63, 0.75, 0.88, 1.00 } },
-    { 10, { 0.00, 0.11, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 0.89, 1.00 } },
-    { 11, { 0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00 } },
-    { 12, { 0.00, 0.09, 0.18, 0.27, 0.36, 0.45, 0.55, 0.64, 0.73, 0.82, 0.91, 1.00 } },
-    { 13, { 0.00, 0.08, 0.17, 0.25, 0.33, 0.42, 0.50, 0.58, 0.67, 0.75, 0.83, 0.92, 1.00 } },
-    { 14, { 0.00, 0.08, 0.15, 0.23, 0.31, 0.38, 0.46, 0.54, 0.62, 0.69, 0.77, 0.85, 0.92, 1.00 } },
-    { 15, { 0.00, 0.07, 0.14, 0.21, 0.29, 0.36, 0.43, 0.50, 0.57, 0.64, 0.71, 0.79, 0.86, 0.93, 1.00 } },
-    { 16, { 0.00, 0.07, 0.13, 0.20, 0.27, 0.33, 0.40, 0.47, 0.53, 0.60, 0.67, 0.73, 0.80, 0.87, 0.93, 1.00 } },
-    { 17, { 0.00, 0.06, 0.13, 0.19, 0.25, 0.31, 0.38, 0.44, 0.50, 0.56, 0.63, 0.69, 0.75, 0.81, 0.88, 0.94, 1.00 } },
-    { 18, { 0.00, 0.06, 0.12, 0.18, 0.24, 0.29, 0.35, 0.41, 0.47, 0.53, 0.59, 0.65, 0.71, 0.76, 0.82, 0.88, 0.94, 1.00 } },
-    { 19, { 0.00, 0.06, 0.11, 0.17, 0.22, 0.28, 0.33, 0.39, 0.44, 0.50, 0.56, 0.61, 0.67, 0.72, 0.78, 0.83, 0.89, 0.94, 1.00 } },
-    { 20, { 0.00, 0.05, 0.11, 0.16, 0.21, 0.26, 0.32, 0.37, 0.42, 0.47, 0.53, 0.58, 0.63, 0.68, 0.74, 0.79, 0.84, 0.89, 0.95, 1.00 } },
-    { 21, { 0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00 } },
-    { 22, { 0.00, 0.05, 0.10, 0.14, 0.19, 0.24, 0.29, 0.33, 0.38, 0.43, 0.48, 0.52, 0.57, 0.62, 0.67, 0.71, 0.76, 0.81, 0.86, 0.90, 0.95, 1.00 } },
-    { 23, { 0.00, 0.05, 0.09, 0.14, 0.18, 0.23, 0.27, 0.32, 0.36, 0.41, 0.45, 0.50, 0.55, 0.59, 0.64, 0.68, 0.73, 0.77, 0.82, 0.86, 0.91, 0.95, 1.00 } },
-    { 24, { 0.00, 0.04, 0.09, 0.13, 0.17, 0.22, 0.26, 0.30, 0.35, 0.39, 0.43, 0.48, 0.52, 0.57, 0.61, 0.65, 0.70, 0.74, 0.78, 0.83, 0.87, 0.91, 0.96, 1.00 } },
-    { 25, { 0.00, 0.04, 0.08, 0.13, 0.17, 0.21, 0.25, 0.29, 0.33, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.63, 0.67, 0.71, 0.75, 0.79, 0.83, 0.88, 0.92, 0.96, 1.00 } },
-    { 26, { 0.00, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.60, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00 } },
-    { 27, { 0.00, 0.04, 0.08, 0.12, 0.15, 0.19, 0.23, 0.27, 0.31, 0.35, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.62, 0.65, 0.69, 0.73, 0.77, 0.81, 0.85, 0.88, 0.92, 0.96, 1.00 } },
-    { 28, { 0.00, 0.04, 0.07, 0.11, 0.15, 0.19, 0.22, 0.26, 0.30, 0.33, 0.37, 0.41, 0.44, 0.48, 0.52, 0.56, 0.59, 0.63, 0.67, 0.70, 0.74, 0.78, 0.81, 0.85, 0.89, 0.93, 0.96, 1.00 } },
-    { 29, { 0.00, 0.04, 0.07, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.32, 0.36, 0.39, 0.43, 0.46, 0.50, 0.54, 0.57, 0.61, 0.64, 0.68, 0.71, 0.75, 0.79, 0.82, 0.86, 0.89, 0.93, 0.96, 1.00 } },
-    { 30, { 0.00, 0.03, 0.07, 0.10, 0.14, 0.17, 0.21, 0.24, 0.28, 0.31, 0.34, 0.38, 0.41, 0.45, 0.48, 0.52, 0.55, 0.59, 0.62, 0.66, 0.69, 0.72, 0.76, 0.79, 0.83, 0.86, 0.90, 0.93, 0.97, 1.00 } }
-};
-
 void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex)
 {
-    TheManager->AddSteppedValue(fxName, -1, 0.0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
-    
-    int numParams = DAW::TrackFX_GetNumParams(track, fxIndex);
-    
-    if(numParams > 200)
+    TheManager->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+
+    // Check for UAD / Plugin Alliance and bail if neither
+    if(fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
         return;
     
+    int totalLayoutCount = 0;
+    
+    for(auto layout : fxLayouts_)
+        totalLayoutCount += layout.channelCount;
     bool wasMuted = false;
     DAW::GetTrackUIMute(track, &wasMuted);
     
@@ -2994,16 +2960,17 @@ void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int f
     double minvalOut = 0.0;
     double maxvalOut = 0.0;
 
+    int numParams = DAW::TrackFX_GetNumParams(track, fxIndex);
+
     vector<double> currentValues;
-    
-    for(int i = 0; i < numParams; i++)
+
+    for(int i = 0; i < numParams && i <= totalLayoutCount; i++)
         currentValues.push_back(DAW::TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
     
-    for(int i = 0; i < numParams; i++)
+    for(int i = 0; i < numParams && i <= totalLayoutCount; i++)
     {
-        vector<double> steps;
-        
-        steps.push_back(0.0);
+        int stepCount = 1;
+        double stepValue = 0.0;
         
         for(double value = 0.0; value < 1.01; value += .01)
         {
@@ -3011,18 +2978,18 @@ void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int f
             
             double fxValue = DAW::TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
             
-            if(steps.back() != fxValue)
-                steps.push_back(fxValue);
+            if(stepValue != fxValue)
+            {
+                stepValue = fxValue;
+                stepCount++;
+            }
         }
         
-        if(steps.size() > 1 && steps.size() < 31)
-        {
-            for(auto step : steppedValueDictionary[steps.size()])
-                TheManager->AddSteppedValue(fxName, i, step);
-        }
+        if(stepCount > 1 && stepCount < 31)
+            TheManager->SetSteppedValueCount(fxName, i, stepCount);
     }
     
-    for(int i = 0; i < numParams; i++)
+    for(int i = 0; i < numParams && i <= totalLayoutCount; i++)
         DAW::TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
     
     if( ! wasMuted)

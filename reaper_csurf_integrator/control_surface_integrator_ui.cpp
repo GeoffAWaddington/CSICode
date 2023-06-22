@@ -168,6 +168,7 @@ struct FXParamStruct
     string paramType = "";
     string paramNum = "";
     string displayName = "";
+    string steps = "";
     
     FXParamStruct(string aParamType, string aParamNum, string aDisplayName) : paramType(aParamType), paramNum(aParamNum), displayName(aDisplayName) {}
     FXParamStruct();
