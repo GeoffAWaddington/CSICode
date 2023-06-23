@@ -45,6 +45,7 @@
 #define IDC_RADIO_TCP                   1098
 #define IDC_EditDisplayName             1098
 #define IDC_PARAM_LIST                  1099
+#define IDC_EditNumberOfSteps           1099
 #define IDSAVE                          1100
 #define IDC_FXNAME                      1101
 #define IDC_EDIT_FXAlias                1102

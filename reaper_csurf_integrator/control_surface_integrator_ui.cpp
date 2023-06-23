@@ -191,6 +191,16 @@ static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wPa
     {
         case WM_INITDIALOG:
         {
+            string steps = to_string(TheManager->GetSteppedValueCount(fxName, fxParamIndex));
+
+            string stepsStr = params[fxParamIndex].steps;
+            
+            if(stepsStr != "" && stepsStr.substr(0, 6) == "Steps=" && stepsStr.length() > 6 && isdigit(stepsStr[6]))
+                steps = stepsStr.substr(6, stepsStr.length() - 6);
+
+            if(steps != "")
+                SetDlgItemText(hwndDlg, IDC_EditNumberOfSteps, steps.c_str());
+            
             SetDlgItemText(hwndDlg, IDC_EditDisplayName, params[fxParamIndex].displayName.c_str());
             SetFocus(GetDlgItem(hwndDlg, IDC_EditDisplayName));
             SendMessage(GetDlgItem(hwndDlg, IDC_EditDisplayName), EM_SETSEL, 0, params[fxParamIndex].displayName.length());
@@ -216,6 +226,13 @@ static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wPa
                         GetDlgItemText(hwndDlg, IDC_EditDisplayName , buf, sizeof(buf));
                         
                         params[fxParamIndex].displayName = string(buf);
+                        
+                        GetDlgItemText(hwndDlg, IDC_EditNumberOfSteps , buf, sizeof(buf));
+                        
+                        if(string(buf) == "")
+                            params[fxParamIndex].steps = "";
+                        else
+                            params[fxParamIndex].steps = "Steps=" + string(buf);
                         
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -243,7 +260,7 @@ static string GetParamString(int index)
         for(int i = 1; i < prefixTokens.size(); i++)
             prefix += prefixTokens[i] + "+";
     
-    return prefix + layouts[index].suffix + layouts[index].slot + " " + params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName;
+    return prefix + layouts[index].suffix + layouts[index].slot + " " + params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName + " " + params[index].steps;
 }
 
 static void PopulateListView(HWND hwndParamList)
@@ -646,10 +663,12 @@ bool RemapAutoZoneDialog(string fullPath)
                 fxAlias = tokens[2];
         }
 
-        else if(tokens.size() == 6 && tokens[0].find("FXLayout") != string::npos)
+        else if(tokens.size() > 5 && tokens[0].find("FXLayout") != string::npos)
         {
             layouts.push_back(FXLayoutStruct(tokens[0], tokens[1], (tokens[2])));
             params.push_back(FXParamStruct(tokens[3], tokens[4], (tokens[5])));
+            if(tokens.size() > 6)
+                params.back().steps = tokens[6];
         }
     }
     
@@ -671,7 +690,7 @@ bool RemapAutoZoneDialog(string fullPath)
                     fxFile << allLines[allLinesIndex] + GetLineEnding();
                 else if(layoutIndex < layouts.size())
                 {
-                    fxFile << "\t" + layouts[layoutIndex].prefix + " \"" + layouts[layoutIndex].suffix + "\" " + layouts[layoutIndex].slot + " " + params[layoutIndex].paramType + " " + params[layoutIndex].paramNum + " \"" + params[layoutIndex].displayName + "\"" + GetLineEnding();
+                    fxFile << "\t" + layouts[layoutIndex].prefix + " \"" + layouts[layoutIndex].suffix + "\" " + layouts[layoutIndex].slot + " " + params[layoutIndex].paramType + " " + params[layoutIndex].paramNum + " \"" + params[layoutIndex].displayName + "\" " + params[layoutIndex].steps + "\"" + GetLineEnding();
 
                     layoutIndex++;
                 }
