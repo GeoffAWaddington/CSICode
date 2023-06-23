@@ -310,12 +310,18 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         if(templateParams[0] == "FXParam" && tokens[3] == "JSFXParam")
             templateParams[0] = "JSFXParam";
           
-        string steps = "";
+        string push = "";
         
         for(auto token : tokens)
-            if(token.substr(0, 6) == "Steps=" && token.length() > 6 && isdigit(token[6]))
-                steps = token;
-        
+        {
+            if((token.substr(0, 6) == "Steps=" && token.length() > 6 && isdigit(token[6]))
+               || (token.substr(0, 5) == "Push=" && token.length() > 5 && isdigit(token[5])))
+            {
+                push = token;
+                break;
+            }
+        }
+                
         string widgetBaseName = widgetName;
         
         if(widgetBaseName == "Rotary" && templateParams[0] == "FXParam")
@@ -325,7 +331,7 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
             
             string noActionBaseName = widgetBaseName;
             
-            if(steps != "")
+            if(push.substr(0, 5) == "Push=")
                 widgetBaseName = widgetBaseName + "Push";
             else
                 noActionBaseName = widgetBaseName + "Push";
@@ -395,8 +401,8 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         for(auto property : properties)
             params.push_back(property);
         
-        if(steps != "")
-            params.push_back(steps);
+        if(push != "")
+            params.push_back(push);
         
         actionTemplate->params = params;
         actionTemplate->provideFeedback = true;
@@ -956,8 +962,8 @@ void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  sha
     
     if(widgetProperties.count("Steps") > 0)
         steppedValueCount = atoi(widgetProperties["Steps"].c_str());
-    else
-        steppedValueCount = TheManager->GetSteppedValueCount(zone->GetName(), paramNumber);
+    else if(widgetProperties.count("Push") > 0)
+        steppedValueCount = atoi(widgetProperties["Push"].c_str());
     
     if(steppedValues.size() == 0 && steppedValueCount > 1)
         for(auto value : steppedValueDictionary[steppedValueCount])
