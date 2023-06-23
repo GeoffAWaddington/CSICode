@@ -146,20 +146,18 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,70,191,10
 END
 
-IDD_DIALOG_EditFXDisplayName DIALOGEX 0, 0, 134, 144
+IDD_DIALOG_EditFXDisplayName DIALOGEX 0, 0, 134, 115
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,16,116,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,68,116,50,14
+    DEFPUSHBUTTON   "OK",IDOK,16,90,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,90,50,14
     EDITTEXT        IDC_EditDisplayName,15,26,102,14,ES_AUTOHSCROLL
     LTEXT           "Use No Action to place a blank",IDC_STATIC,18,12,97,8
-    LTEXT           "You can tell CSI to use the ",IDC_STATIC,17,56,87,8
-    LTEXT           "Rotary Push by entering the",IDC_STATIC,17,69,89,8
-    LTEXT           "number of steps for the value",IDC_STATIC,17,82,94,8
-    LTEXT           "Number of steps",IDC_STATIC,17,98,53,8
-    EDITTEXT        IDC_EditNumberOfSteps,81,96,21,14,ES_AUTOHSCROLL
+    LTEXT           "Number of steps",IDC_STATIC,17,72,53,8
+    EDITTEXT        IDC_EditNumberOfSteps,81,70,21,14,ES_AUTOHSCROLL
+    CONTROL         " Use Rotary Push",IDC_UseRotaryPush,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,52,70,10
 END
 
 IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 464, 549
@@ -229,7 +227,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 127
         TOPMARGIN, 7
-        BOTTOMMARGIN, 137
+        BOTTOMMARGIN, 108
     END
 
     IDD_DIALOG_RemapAutoFX, DIALOG

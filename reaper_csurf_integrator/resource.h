@@ -51,6 +51,7 @@
 #define IDC_EDIT_FXAlias                1102
 #define IDC_BUTTONUP                    1103
 #define IDC_BUTTONDOWN                  1104
+#define IDC_UseRotaryPush               1105
 
 // Next default values for new objects
 // 
@@ -58,7 +59,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1104
+#define _APS_NEXT_CONTROL_VALUE         1106
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
