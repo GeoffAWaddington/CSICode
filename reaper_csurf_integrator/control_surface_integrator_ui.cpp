@@ -690,8 +690,12 @@ bool RemapAutoZoneDialog(string fullPath)
                     fxFile << allLines[allLinesIndex] + GetLineEnding();
                 else if(layoutIndex < layouts.size())
                 {
-                    fxFile << "\t" + layouts[layoutIndex].prefix + " \"" + layouts[layoutIndex].suffix + "\" " + layouts[layoutIndex].slot + " " + params[layoutIndex].paramType + " " + params[layoutIndex].paramNum + " \"" + params[layoutIndex].displayName + "\" " + params[layoutIndex].steps + "\"" + GetLineEnding();
-
+                    fxFile << "\t" + layouts[layoutIndex].prefix + " \"" + layouts[layoutIndex].suffix + "\" " + layouts[layoutIndex].slot + " " + params[layoutIndex].paramType + " " + params[layoutIndex].paramNum + " \"" + params[layoutIndex].displayName + "\"";
+                    if(params[layoutIndex].steps != "")
+                        fxFile << " \"" + params[layoutIndex].steps + "\"" + GetLineEnding();
+                    else
+                        fxFile <<  GetLineEnding();
+                    
                     layoutIndex++;
                 }
             }
