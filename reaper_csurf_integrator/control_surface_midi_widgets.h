@@ -556,7 +556,7 @@ public:
 
         if(properties.count("Background") > 0)
             background = GetColorValue(properties["Background"]);
-        else if(properties.count("Foreground") > 0)
+        if(properties.count("Foreground") > 0)
             foreground = GetColorValue(properties["Foreground"]);
 
         struct
