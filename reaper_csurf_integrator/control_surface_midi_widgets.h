@@ -524,7 +524,8 @@ public:
 
     virtual void SetValue(map<string, string> &properties, string value) override
     {
-        ForceValue(properties, value);
+        if(lastStringSent_ != value)
+            ForceValue(properties, value);
     }
     
     virtual void ForceValue(map<string, string> &properties, string displayText) override
