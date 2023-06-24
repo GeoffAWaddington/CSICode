@@ -1709,6 +1709,16 @@ public:
             
             restrictedText = restrictedText.substr(1, restrictedText.length() - 1);
             
+            restrictedText = regex_replace(restrictedText, regex("[\\s]"), "");
+
+            if(restrictedText.length() <= restrictedTextLength_ - 1)
+                return firstLetter + restrictedText;
+            
+            restrictedText = regex_replace(restrictedText, regex("[`~!@#$%^&*:()_|=?;:'\",]"), "");
+
+            if(restrictedText.length() <= restrictedTextLength_ - 1)
+                return firstLetter + restrictedText;
+            
             restrictedText = regex_replace(restrictedText, regex("[aeiouAEIOU\\s]"), "");
 
             restrictedText = firstLetter + restrictedText;
@@ -3619,6 +3629,9 @@ public:
     
     string GetFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
     {
+        if(! track)
+            return "";
+        
         char fxName[BUFSZ];
         DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
 
