@@ -2860,6 +2860,8 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigat
     
     DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
     
+    EnsureZoneAvailable(FXName, track, fxSlot);
+    
     if(zoneFilePaths_.count(FXName) > 0)
     {
         vector<shared_ptr<Navigator>> navigators;
