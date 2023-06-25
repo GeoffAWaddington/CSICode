@@ -785,15 +785,7 @@ public:
             
             if(properties.count("LEDRingColor") > 0)
                 color.ringColor = GetColorValue(properties["LEDRingColor"]);
-            /*
-            if(properties.count("LEDRingRangeLow") > 0)
-                color.ringRangeLow = atoi(properties["LEDRingRangeLow"].c_str());
-            
-            if(properties.count("LEDRingRangeMedium") > 0)
-                color.ringRangeMedium = atoi(properties["LEDRingRangeMedium"].c_str());
-            
-            if(properties.count("LEDRingRangeHigh") > 0)
-             */
+
             color.ringRangeLow = 120;
             color.ringRangeMedium = 127;
             color.ringRangeHigh = 15;
