@@ -2633,7 +2633,7 @@ void  Widget::UpdateColorValue(rgba_color color)
 void  Widget::SetColorValue(map<string, string> &properties)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetColorValue(properties);
+        processor->SetInitialValues(properties);
 }
 
 void Widget::SetXTouchDisplayColors(string zoneName, string color)

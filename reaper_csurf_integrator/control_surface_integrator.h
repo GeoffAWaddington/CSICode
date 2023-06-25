@@ -1920,7 +1920,7 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
-    virtual void SetColorValue(map<string, string> &properties) {}
+    virtual void SetInitialValues(map<string, string> &properties) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, string value) {}

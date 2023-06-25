@@ -535,6 +535,11 @@ public:
             ForceValue(properties, value);
     }
     
+    virtual void SetInitialValues(map<string, string> &properties) override
+    {
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
         lastValue_ = value;
@@ -747,7 +752,7 @@ public:
         return val + 64;
     }
     
-    virtual void SetColorValue(map<string, string> &properties) override
+    virtual void SetInitialValues(map<string, string> &properties) override
     {
         if(properties.size() == 0)
             return;
