@@ -789,6 +789,7 @@ public:
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void UpdateColorValue(rgba_color);
+    void SetColorValue(map<string, string> &properties);
     void SetXTouchDisplayColors(string zoneName, string color);
     void RestoreXTouchDisplayColors();
     void Clear();
@@ -1919,7 +1920,7 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
-    virtual void SetColorValue(map<string, string> &properties, rgba_color color) {}
+    virtual void SetColorValue(map<string, string> &properties) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, string value) {}

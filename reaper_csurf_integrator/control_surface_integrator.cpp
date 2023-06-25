@@ -1934,6 +1934,8 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
             nonWidgetPropertyParams.push_back(param);
     }
     
+    widget_->SetColorValue(widgetProperties_);
+    
     params = nonWidgetPropertyParams;
     
     string actionName = "";
@@ -2618,6 +2620,12 @@ void  Widget::UpdateColorValue(rgba_color color)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetColorValue(color);
+}
+
+void  Widget::SetColorValue(map<string, string> &properties)
+{
+    for(auto processor : feedbackProcessors_)
+        processor->SetColorValue(properties);
 }
 
 void Widget::SetXTouchDisplayColors(string zoneName, string color)

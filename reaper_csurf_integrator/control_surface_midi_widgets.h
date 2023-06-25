@@ -607,12 +607,12 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(properties, value));
     }
 
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(properties, value));
     }
     
     int GetMidiValue(map<string, string> &properties, double value)
@@ -636,20 +636,24 @@ public:
         int val = 0;
         
         if(displayMode == 3)
-            val = (1+((valueInt*11)>>8)) | (displayMode << 4);
+            val = (1+((valueInt*15)>>8)) | (displayMode << 4);
         else
-            val = (1+((valueInt*11)>>7)) | (displayMode << 4);
+            val = (1+((valueInt*15)>>7)) | (displayMode << 4);
 
         //if(displayMode) // Should light up lower middle light
         //val |= 0x40;
 
-        return val;
+        return val + 64;
     }
     
-    virtual void SetColorValue(map<string, string> &properties, rgba_color color) override
+    virtual void SetColorValue(map<string, string> &properties) override
     {
+        if(properties.size() == 0)
+            return;
+        
         rgba_color ringColor;
         int ringRangeHigh = 0;
+        int ringRangeMedium = 0;
         int ringRangeLow = 0;
 
         if(properties.count("LEDRingColor") > 0)
@@ -658,8 +662,11 @@ public:
         if(properties.count("LEDRingRangeHigh") > 0)
             ringRangeHigh = atoi(properties["LEDRingRangeHigh"].c_str());
         
+        if(properties.count("LEDRingRangeMedium") > 0)
+            ringRangeMedium = atoi(properties["LEDRingRangeMedium"].c_str());
+
         if(properties.count("LEDRingRangeLow") > 0)
-            ringRangeHigh = atoi(properties["LEDRingRangeLow"].c_str());
+            ringRangeLow = atoi(properties["LEDRingRangeLow"].c_str());
 
         struct
         {
@@ -676,6 +683,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeHigh;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeMedium;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeLow;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.r / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.g / 2;
