@@ -517,6 +517,99 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    double lastValue_ = 0.0;
+
+public:
+    virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
+    SCE24OLED_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    
+    virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
+
+    virtual void SetValue(map<string, string> &properties, double value) override
+    {
+        if(lastValue_ != value)
+            ForceValue(properties, value);
+    }
+    
+    virtual void ForceValue(map<string, string> &properties, double value) override
+    {
+        lastValue_ = value;
+                
+        int topMargin = 0;
+        int bottomMargin = 0;
+        int font = 0;
+        rgba_color background;
+        rgba_color foreground;
+
+        if(properties.count("TopMargin") > 0)
+            topMargin = atoi(properties["TopMargin"].c_str());
+        if(properties.count("BottomMargin") > 0)
+            bottomMargin = atoi(properties["BottomMargin"].c_str());
+        if(properties.count("Font") > 0)
+            font = atoi(properties["Font"].c_str());
+
+        if(value == 0)
+        {
+            if(properties.count("BackgroundOff") > 0)
+                background = GetColorValue(properties["BackgroundOff"]);
+            if(properties.count("ForegroundOff") > 0)
+                foreground = GetColorValue(properties["ForegroundOff"]);
+        }
+        else
+        {
+            if(properties.count("BackgroundOn") > 0)
+                background = GetColorValue(properties["BackgroundOn"]);
+            if(properties.count("ForegroundOn") > 0)
+                foreground = GetColorValue(properties["ForegroundOn "]);
+        }
+        
+        string displayText = "";
+        
+        if(properties.count("DisplayText") > 0)
+            displayText = properties["DisplayText"];
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
+        
+        for(int i = 0; i < displayText.length(); i++)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
+
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -595,6 +688,14 @@ public:
     }
 };
 
+struct LEDColor
+{
+    rgba_color ringColor;
+    int ringRangeHigh = 0;
+    int ringRangeMedium = 0;
+    int ringRangeLow = 0;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -651,23 +752,20 @@ public:
         if(properties.size() == 0)
             return;
         
-        rgba_color ringColor;
-        int ringRangeHigh = 0;
-        int ringRangeMedium = 0;
-        int ringRangeLow = 0;
-
-        if(properties.count("LEDRingColor") > 0)
-            ringColor = GetColorValue(properties["LEDRingColor"]);
-
-        if(properties.count("LEDRingRangeHigh") > 0)
-            ringRangeHigh = atoi(properties["LEDRingRangeHigh"].c_str());
+        LEDColor color;
         
-        if(properties.count("LEDRingRangeMedium") > 0)
-            ringRangeMedium = atoi(properties["LEDRingRangeMedium"].c_str());
+        if(properties.count("LEDRingColor") > 0)
+            color.ringColor = GetColorValue(properties["LEDRingColor"]);
 
         if(properties.count("LEDRingRangeLow") > 0)
-            ringRangeLow = atoi(properties["LEDRingRangeLow"].c_str());
+            color.ringRangeLow = atoi(properties["LEDRingRangeLow"].c_str());
 
+        if(properties.count("LEDRingRangeMedium") > 0)
+            color.ringRangeMedium = atoi(properties["LEDRingRangeMedium"].c_str());
+
+        if(properties.count("LEDRingRangeHigh") > 0)
+            color.ringRangeHigh = atoi(properties["LEDRingRangeHigh"].c_str());
+        
         struct
         {
             MIDI_event_ex_t evt;
@@ -682,12 +780,12 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeHigh;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeMedium;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringRangeLow;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ringColor.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeLow;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeMedium;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeHigh;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.b / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
         SendMidiSysExMessage(&midiSysExData.evt);

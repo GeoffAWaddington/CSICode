@@ -327,6 +327,14 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         if(widgetBaseName == "Rotary" && templateParams[0] == "FXParam")
         {
             shared_ptr<ActionTemplate> noActionTemplate = make_shared<ActionTemplate>();
+            
+            // GAW -- the follwing was just a test, should be properties to set LED indicator and blank all Ring lights when RotaryPush is used
+            
+            for(int i = 1; i < templateParams.size(); i++)
+                noActionTemplate->params.push_back(templateParams[i]);
+            //
+            
+            
             noActionTemplate->actionName = "NoAction";
             
             string noActionBaseName = widgetBaseName;
@@ -1192,7 +1200,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         }
         else if(widgetType == "FB_SCE24OLEDButton" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24Text_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = make_shared<SCE24OLED_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if(widgetType == "FB_SCE24Encoder" && size == 4)
         {
