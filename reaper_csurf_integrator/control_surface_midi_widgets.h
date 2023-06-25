@@ -757,19 +757,59 @@ public:
         if(properties.size() == 0)
             return;
         
-        LEDColor color;
+        vector<LEDColor> colors;
         
-        if(properties.count("LEDRingColor") > 0)
-            color.ringColor = GetColorValue(properties["LEDRingColor"]);
+        if(properties.count("Push") > 0 && properties.count("PushColor") > 0 )
+        {
+            LEDColor color;
+            
+            color.ringColor = GetColorValue(properties["PushColor"]);
+            color.ringRangeLow = 7;
+            color.ringRangeMedium = 0;
+            color.ringRangeHigh = 0;
+            
+            colors.push_back(color);
+            
+            color.ringColor.r = 0;
+            color.ringColor.g = 0;
+            color.ringColor.b = 0;
+            color.ringRangeLow = 120;
+            color.ringRangeMedium = 127;
+            color.ringRangeHigh = 15;
+            
+            colors.push_back(color);
+        }
+        else
+        {
+            LEDColor color;
+            
+            if(properties.count("LEDRingColor") > 0)
+                color.ringColor = GetColorValue(properties["LEDRingColor"]);
+            /*
+            if(properties.count("LEDRingRangeLow") > 0)
+                color.ringRangeLow = atoi(properties["LEDRingRangeLow"].c_str());
+            
+            if(properties.count("LEDRingRangeMedium") > 0)
+                color.ringRangeMedium = atoi(properties["LEDRingRangeMedium"].c_str());
+            
+            if(properties.count("LEDRingRangeHigh") > 0)
+             */
+            color.ringRangeLow = 120;
+            color.ringRangeMedium = 127;
+            color.ringRangeHigh = 15;
 
-        if(properties.count("LEDRingRangeLow") > 0)
-            color.ringRangeLow = atoi(properties["LEDRingRangeLow"].c_str());
+            
+            colors.push_back(color);
+            
+            color.ringColor.r = 0;
+            color.ringColor.g = 0;
+            color.ringColor.b = 0;
+            color.ringRangeLow = 7;
+            color.ringRangeMedium = 0;
+            color.ringRangeHigh = 0;
 
-        if(properties.count("LEDRingRangeMedium") > 0)
-            color.ringRangeMedium = atoi(properties["LEDRingRangeMedium"].c_str());
-
-        if(properties.count("LEDRingRangeHigh") > 0)
-            color.ringRangeHigh = atoi(properties["LEDRingRangeHigh"].c_str());
+            colors.push_back(color);
+        }
         
         struct
         {
@@ -777,23 +817,26 @@ public:
             char data[512];
         } midiSysExData;
          
-        midiSysExData.evt.frame_offset=0;
-        midiSysExData.evt.size=0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeLow;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeMedium;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeHigh;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.b / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
-         
-        SendMidiSysExMessage(&midiSysExData.evt);
+        for(auto color : colors)
+        {
+            midiSysExData.evt.frame_offset=0;
+            midiSysExData.evt.size=0;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeLow;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeMedium;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeHigh;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.r / 2;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.g / 2;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.b / 2;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+            
+            SendMidiSysExMessage(&midiSysExData.evt);
+        }
     }
 };
 

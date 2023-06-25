@@ -327,20 +327,19 @@ static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> t
         if(widgetBaseName == "Rotary" && templateParams[0] == "FXParam")
         {
             shared_ptr<ActionTemplate> noActionTemplate = make_shared<ActionTemplate>();
-            
-            // GAW -- the follwing was just a test, should be properties to set LED indicator and blank all Ring lights when RotaryPush is used
-            
+                       
             for(int i = 1; i < templateParams.size(); i++)
                 noActionTemplate->params.push_back(templateParams[i]);
-            //
-            
             
             noActionTemplate->actionName = "NoAction";
             
             string noActionBaseName = widgetBaseName;
             
             if(push.substr(0, 5) == "Push=")
+            {
                 widgetBaseName = widgetBaseName + "Push";
+                noActionTemplate->params.push_back(push);
+            }
             else
                 noActionBaseName = widgetBaseName + "Push";
 
