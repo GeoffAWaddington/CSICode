@@ -790,7 +790,6 @@ public:
             color.ringRangeMedium = 127;
             color.ringRangeHigh = 15;
 
-            
             colors.push_back(color);
             
             color.ringColor.r = 0;

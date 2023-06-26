@@ -1720,7 +1720,7 @@ public:
             if(restrictedText.length() <= restrictedTextLength_ - 1)
                 return firstLetter + restrictedText;
             
-            restrictedText = regex_replace(restrictedText, regex("[aeiouAEIOU\\s]"), "");
+            restrictedText = regex_replace(restrictedText, regex("[aeiou]"), "");
 
             restrictedText = firstLetter + restrictedText;
             
