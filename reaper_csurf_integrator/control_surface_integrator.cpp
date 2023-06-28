@@ -291,133 +291,7 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ExpandFXLayout(shared_ptr<ZoneManager> zoneManager, vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary, string zoneName)
-{
-    if(tokens.size() < 6)
-        return;
-    
-    istringstream layoutAndModifiers(tokens[0]);
-    vector<string> prefixTokens;
-    string prefixToken;
-    
-    while (getline(layoutAndModifiers, prefixToken, '+'))
-        prefixTokens.push_back(prefixToken);
-
-    map<string, vector<string>> surfaceFXLayout = zoneManager->GetSurfaceFXLayout(prefixTokens[0]);
-       
-    for(auto [widgetName, templateParams] : surfaceFXLayout)
-    {
-        if(templateParams[0] == "FXParam" && tokens[3] == "JSFXParam")
-            templateParams[0] = "JSFXParam";
-          
-        string push = "";
-        
-        for(auto token : tokens)
-        {
-            if((token.substr(0, 6) == "Steps=" && token.length() > 6 && isdigit(token[6]))
-               || (token.substr(0, 5) == "Push=" && token.length() > 5 && isdigit(token[5])))
-            {
-                push = token;
-                break;
-            }
-        }
-                
-        string widgetBaseName = widgetName;
-        
-        if(widgetBaseName == "Rotary" && templateParams[0] == "FXParam")
-        {
-            shared_ptr<ActionTemplate> noActionTemplate = make_shared<ActionTemplate>();
-                       
-            for(int i = 1; i < templateParams.size(); i++)
-                noActionTemplate->params.push_back(templateParams[i]);
-            
-            noActionTemplate->actionName = "NoAction";
-            
-            string noActionBaseName = widgetBaseName;
-            
-            if(push.substr(0, 5) == "Push=")
-            {
-                widgetBaseName = widgetBaseName + "Push";
-                noActionTemplate->params.push_back(push);
-            }
-            else
-                noActionBaseName = widgetBaseName + "Push";
-
-            GetWidgetNameAndModifiers(tokens[0] + "+" + noActionBaseName + tokens[1] + tokens[2], noActionTemplate);
-
-            actionTemplatesDictionary[noActionTemplate->widgetName][noActionTemplate->modifier].push_back(noActionTemplate);
-        }
-        
-        shared_ptr<ActionTemplate> actionTemplate = make_shared<ActionTemplate>();
-        string expandedWidgetName = tokens[0] + "+" + widgetBaseName + tokens[1] + tokens[2];
-        GetWidgetNameAndModifiers(expandedWidgetName, actionTemplate);
-
-        if(tokens[4] == "-1")
-            actionTemplate->actionName = "NoAction";
-        else
-            actionTemplate->actionName = templateParams[0];
-        vector<string> params;
-        params.push_back(actionTemplate->actionName);
-        
-        if(templateParams[0] == "FixedTextDisplay")
-            params.push_back(tokens[5]);
-        else
-            params.push_back(tokens[4]);
-               
-        vector<string> properties;
-        
-        for(int i = 6; i < tokens.size(); i++)
-        {
-            string fixedTextDisplayPrefix = "FixedTextDisplay_";
-            
-            if(tokens[i].find(fixedTextDisplayPrefix) == 0)
-            {
-                if(templateParams[0] == "FixedTextDisplay")
-                    properties.push_back(tokens[i].substr(fixedTextDisplayPrefix.length(), tokens[i].length() - fixedTextDisplayPrefix.length()));
-            }
-            else
-                properties.push_back(tokens[i]);
-        }
-        
-        for(int i = 1; i < templateParams.size(); i++)
-        {
-            string property = templateParams[i];
-        
-            int index = property.find('=');
-         
-            if (index != string::npos)
-            {
-                string propertyType = property.substr(0, index + 1);
-                
-                bool hasBeenOverridden = false;
-                
-                for(auto localProperty : properties)
-                {
-                    if(localProperty.find(propertyType) != string::npos)
-                    {
-                        hasBeenOverridden = true;
-                        break;
-                    }
-                }
-                  
-                if( ! hasBeenOverridden)
-                    properties.push_back(property);
-            }
-        }
-        
-        for(auto property : properties)
-            params.push_back(property);
-        
-        if(push != "")
-            params.push_back(push);
-        
-        actionTemplate->params = params;
-        actionTemplate->provideFeedback = true;
-        actionTemplatesDictionary[actionTemplate->widgetName][actionTemplate->modifier].push_back(actionTemplate);
-    }
-}
-
-static void ProcessSurfaceFXLayout(string filePath, map<string, map<string, vector<string>>> &surfaceFXLayout)
+static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surfaceFXLayout)
 {
     try
     {
@@ -440,13 +314,8 @@ static void ProcessSurfaceFXLayout(string filePath, map<string, map<string, vect
         
             vector<string> tokens = GetTokens(line);
             
-            if(tokens.size() == 3 && tokens[0] == "Zone")
-                layoutName = tokens[2];
-            else if(layoutName != "")
-            {
-                for(int i = 1; i < tokens.size(); i++)
-                surfaceFXLayout[layoutName][tokens[0]].push_back(tokens[i]);
-            }
+            if(tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
+                surfaceFXLayout.push_back(tokens);
         }
     }
     catch (exception &e)
@@ -481,14 +350,10 @@ static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
                 vector<string> tokens = GetTokens(line);
                 
                 CSILayoutInfo info;
-                
-                if(tokens.size() > 0)
-                    info.prefix = tokens[0];
 
-                if(tokens.size() == 2)
-                    info.channelCount = atoi(tokens[1].c_str());
-                else if(tokens.size() == 3)
+                if(tokens.size() == 3)
                 {
+                    info.modifiers = tokens[0];
                     info.suffix = tokens[1];
                     info.channelCount = atoi(tokens[2].c_str());
                 }
@@ -782,10 +647,7 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
                 
                 else if(isInAssociatedZonesSection)
                     associatedZones.push_back(tokens[0]);
-                
-                else if(tokens[0].find("FXLayout") != string::npos)
-                    ExpandFXLayout(zoneManager, tokens, actionTemplatesDictionary, zoneName);
-                
+                               
                 else if(tokens.size() > 1)
                     BuildActionTemplate(tokens, actionTemplatesDictionary);
             }
@@ -864,39 +726,6 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-map<int, vector<double>> steppedValueDictionary
-{
-    { 2, { 0.00, 1.00 } },
-    { 3, { 0.00, 0.50, 1.00 } },
-    { 4, { 0.00, 0.33, 0.67, 1.00 } },
-    { 5, { 0.00, 0.25, 0.50, 0.75, 1.00 } },
-    { 6, { 0.00, 0.20, 0.40, 0.60, 0.80, 1.00 } },
-    { 7, { 0.00, 0.17, 0.33, 0.50, 0.67, 0.83, 1.00 } },
-    { 8, { 0.00, 0.14, 0.29, 0.43, 0.57, 0.71, 0.86, 1.00 } },
-    { 9, { 0.00, 0.13, 0.25, 0.38, 0.50, 0.63, 0.75, 0.88, 1.00 } },
-    { 10, { 0.00, 0.11, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 0.89, 1.00 } },
-    { 11, { 0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00 } },
-    { 12, { 0.00, 0.09, 0.18, 0.27, 0.36, 0.45, 0.55, 0.64, 0.73, 0.82, 0.91, 1.00 } },
-    { 13, { 0.00, 0.08, 0.17, 0.25, 0.33, 0.42, 0.50, 0.58, 0.67, 0.75, 0.83, 0.92, 1.00 } },
-    { 14, { 0.00, 0.08, 0.15, 0.23, 0.31, 0.38, 0.46, 0.54, 0.62, 0.69, 0.77, 0.85, 0.92, 1.00 } },
-    { 15, { 0.00, 0.07, 0.14, 0.21, 0.29, 0.36, 0.43, 0.50, 0.57, 0.64, 0.71, 0.79, 0.86, 0.93, 1.00 } },
-    { 16, { 0.00, 0.07, 0.13, 0.20, 0.27, 0.33, 0.40, 0.47, 0.53, 0.60, 0.67, 0.73, 0.80, 0.87, 0.93, 1.00 } },
-    { 17, { 0.00, 0.06, 0.13, 0.19, 0.25, 0.31, 0.38, 0.44, 0.50, 0.56, 0.63, 0.69, 0.75, 0.81, 0.88, 0.94, 1.00 } },
-    { 18, { 0.00, 0.06, 0.12, 0.18, 0.24, 0.29, 0.35, 0.41, 0.47, 0.53, 0.59, 0.65, 0.71, 0.76, 0.82, 0.88, 0.94, 1.00 } },
-    { 19, { 0.00, 0.06, 0.11, 0.17, 0.22, 0.28, 0.33, 0.39, 0.44, 0.50, 0.56, 0.61, 0.67, 0.72, 0.78, 0.83, 0.89, 0.94, 1.00 } },
-    { 20, { 0.00, 0.05, 0.11, 0.16, 0.21, 0.26, 0.32, 0.37, 0.42, 0.47, 0.53, 0.58, 0.63, 0.68, 0.74, 0.79, 0.84, 0.89, 0.95, 1.00 } },
-    { 21, { 0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00 } },
-    { 22, { 0.00, 0.05, 0.10, 0.14, 0.19, 0.24, 0.29, 0.33, 0.38, 0.43, 0.48, 0.52, 0.57, 0.62, 0.67, 0.71, 0.76, 0.81, 0.86, 0.90, 0.95, 1.00 } },
-    { 23, { 0.00, 0.05, 0.09, 0.14, 0.18, 0.23, 0.27, 0.32, 0.36, 0.41, 0.45, 0.50, 0.55, 0.59, 0.64, 0.68, 0.73, 0.77, 0.82, 0.86, 0.91, 0.95, 1.00 } },
-    { 24, { 0.00, 0.04, 0.09, 0.13, 0.17, 0.22, 0.26, 0.30, 0.35, 0.39, 0.43, 0.48, 0.52, 0.57, 0.61, 0.65, 0.70, 0.74, 0.78, 0.83, 0.87, 0.91, 0.96, 1.00 } },
-    { 25, { 0.00, 0.04, 0.08, 0.13, 0.17, 0.21, 0.25, 0.29, 0.33, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.63, 0.67, 0.71, 0.75, 0.79, 0.83, 0.88, 0.92, 0.96, 1.00 } },
-    { 26, { 0.00, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.60, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00 } },
-    { 27, { 0.00, 0.04, 0.08, 0.12, 0.15, 0.19, 0.23, 0.27, 0.31, 0.35, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.62, 0.65, 0.69, 0.73, 0.77, 0.81, 0.85, 0.88, 0.92, 0.96, 1.00 } },
-    { 28, { 0.00, 0.04, 0.07, 0.11, 0.15, 0.19, 0.22, 0.26, 0.30, 0.33, 0.37, 0.41, 0.44, 0.48, 0.52, 0.56, 0.59, 0.63, 0.67, 0.70, 0.74, 0.78, 0.81, 0.85, 0.89, 0.93, 0.96, 1.00 } },
-    { 29, { 0.00, 0.04, 0.07, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.32, 0.36, 0.39, 0.43, 0.46, 0.50, 0.54, 0.57, 0.61, 0.64, 0.68, 0.71, 0.75, 0.79, 0.82, 0.86, 0.89, 0.93, 0.96, 1.00 } },
-    { 30, { 0.00, 0.03, 0.07, 0.10, 0.14, 0.17, 0.21, 0.24, 0.28, 0.31, 0.34, 0.38, 0.41, 0.45, 0.48, 0.52, 0.55, 0.59, 0.62, 0.66, 0.69, 0.72, 0.76, 0.79, 0.83, 0.86, 0.90, 0.93, 0.97, 1.00 } }
-};
-
 void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, map<string, string> widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
@@ -964,18 +793,7 @@ void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  sha
     
     if(acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
         acceleratedDeltaValues = widget->GetAccelerationValues();
-    
-    int steppedValueCount = 0;
-    
-    if(widgetProperties.count("Steps") > 0)
-        steppedValueCount = atoi(widgetProperties["Steps"].c_str());
-    else if(widgetProperties.count("Push") > 0)
-        steppedValueCount = atoi(widgetProperties["Push"].c_str());
-    
-    if(steppedValues.size() == 0 && steppedValueCount > 1)
-        for(auto value : steppedValueDictionary[steppedValueCount])
-            steppedValues.push_back(value);
-     
+         
     if(steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
     {
         double stepSize = deltaValue;
@@ -986,37 +804,6 @@ void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  sha
             int baseTickCount = TheManager->GetBaseTickCount(steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
-        }
-    }
-    
-    if(action->GetName() == "JSFXParam" && rangeMinimum == 0.0 && rangeMaximum == 1.0)
-    {
-        double min, max = 0.0;
-        
-        DAW::TrackFX_GetParam(zone->GetNavigator()->GetTrack(), zone->GetSlotIndex(), paramNumber, &min, &max);
-        
-        rangeMinimum = min;
-        rangeMaximum = max;
-        
-        double step = 0.0;
-        double smallstep = 0.0;
-        double largestep = 0.0;
-        bool isToggle = false;
-        if(steppedValues.size() == 0 && DAW::TrackFX_GetParameterStepSizes(zone->GetNavigator()->GetTrack(), zone->GetSlotIndex(), paramNumber, &step, &smallstep, &largestep, &isToggle))
-        {
-            if(step != 0.0)
-            {
-                int numSteps = (rangeMaximum - rangeMinimum) / step;
-
-                if(numSteps < 100)
-                {
-                    for(int i = 0; i <= numSteps; i++)
-                    {
-                        steppedValues.push_back(rangeMinimum + i * step);
-                        acceleratedTickValues.push_back(1);
-                    }
-                }
-            }
         }
     }
 }
@@ -2885,8 +2672,11 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigat
         if(sharedThisPtr_ != nullptr)
             ProcessZoneFile(zoneFilePaths_[FXName].filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
         
-        fxSlotZones_.back()->SetSlotIndex(fxSlot);
-        fxSlotZones_.back()->Activate();
+        if(fxSlotZones_.size() > 0)
+        {
+            fxSlotZones_.back()->SetSlotIndex(fxSlot);
+            fxSlotZones_.back()->Activate();
+        }
     }
 }
 
@@ -2894,7 +2684,7 @@ void ZoneManager::RemapAutoZone()
 {
     if(focusedFXZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(focusedFXZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(sharedThisPtr_, focusedFXZones_[0]->GetSourceFilePath()))
         {
             PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), sharedThisPtr_);
             GoFocusedFX();
@@ -2902,7 +2692,7 @@ void ZoneManager::RemapAutoZone()
     }
     else if(fxSlotZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(fxSlotZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(sharedThisPtr_, fxSlotZones_[0]->GetSourceFilePath()))
         {
             vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(fxSlotZones_[0]->GetNavigator());
@@ -3024,6 +2814,45 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     if(zoneFilePaths_.count(fxName) > 0)
         return true;
 
+    if(fxLayouts_.size() == 0)
+        return false;
+
+    if(surfaceFXLayout_.size() == 0)
+        return false;
+    
+    map<int, vector<double>> steppedValueDictionary
+    {
+        { 2, { 0.00, 1.00 } },
+        { 3, { 0.00, 0.50, 1.00 } },
+        { 4, { 0.00, 0.33, 0.67, 1.00 } },
+        { 5, { 0.00, 0.25, 0.50, 0.75, 1.00 } },
+        { 6, { 0.00, 0.20, 0.40, 0.60, 0.80, 1.00 } },
+        { 7, { 0.00, 0.17, 0.33, 0.50, 0.67, 0.83, 1.00 } },
+        { 8, { 0.00, 0.14, 0.29, 0.43, 0.57, 0.71, 0.86, 1.00 } },
+        { 9, { 0.00, 0.13, 0.25, 0.38, 0.50, 0.63, 0.75, 0.88, 1.00 } },
+        { 10, { 0.00, 0.11, 0.22, 0.33, 0.44, 0.56, 0.67, 0.78, 0.89, 1.00 } },
+        { 11, { 0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00 } },
+        { 12, { 0.00, 0.09, 0.18, 0.27, 0.36, 0.45, 0.55, 0.64, 0.73, 0.82, 0.91, 1.00 } },
+        { 13, { 0.00, 0.08, 0.17, 0.25, 0.33, 0.42, 0.50, 0.58, 0.67, 0.75, 0.83, 0.92, 1.00 } },
+        { 14, { 0.00, 0.08, 0.15, 0.23, 0.31, 0.38, 0.46, 0.54, 0.62, 0.69, 0.77, 0.85, 0.92, 1.00 } },
+        { 15, { 0.00, 0.07, 0.14, 0.21, 0.29, 0.36, 0.43, 0.50, 0.57, 0.64, 0.71, 0.79, 0.86, 0.93, 1.00 } },
+        { 16, { 0.00, 0.07, 0.13, 0.20, 0.27, 0.33, 0.40, 0.47, 0.53, 0.60, 0.67, 0.73, 0.80, 0.87, 0.93, 1.00 } },
+        { 17, { 0.00, 0.06, 0.13, 0.19, 0.25, 0.31, 0.38, 0.44, 0.50, 0.56, 0.63, 0.69, 0.75, 0.81, 0.88, 0.94, 1.00 } },
+        { 18, { 0.00, 0.06, 0.12, 0.18, 0.24, 0.29, 0.35, 0.41, 0.47, 0.53, 0.59, 0.65, 0.71, 0.76, 0.82, 0.88, 0.94, 1.00 } },
+        { 19, { 0.00, 0.06, 0.11, 0.17, 0.22, 0.28, 0.33, 0.39, 0.44, 0.50, 0.56, 0.61, 0.67, 0.72, 0.78, 0.83, 0.89, 0.94, 1.00 } },
+        { 20, { 0.00, 0.05, 0.11, 0.16, 0.21, 0.26, 0.32, 0.37, 0.42, 0.47, 0.53, 0.58, 0.63, 0.68, 0.74, 0.79, 0.84, 0.89, 0.95, 1.00 } },
+        { 21, { 0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00 } },
+        { 22, { 0.00, 0.05, 0.10, 0.14, 0.19, 0.24, 0.29, 0.33, 0.38, 0.43, 0.48, 0.52, 0.57, 0.62, 0.67, 0.71, 0.76, 0.81, 0.86, 0.90, 0.95, 1.00 } },
+        { 23, { 0.00, 0.05, 0.09, 0.14, 0.18, 0.23, 0.27, 0.32, 0.36, 0.41, 0.45, 0.50, 0.55, 0.59, 0.64, 0.68, 0.73, 0.77, 0.82, 0.86, 0.91, 0.95, 1.00 } },
+        { 24, { 0.00, 0.04, 0.09, 0.13, 0.17, 0.22, 0.26, 0.30, 0.35, 0.39, 0.43, 0.48, 0.52, 0.57, 0.61, 0.65, 0.70, 0.74, 0.78, 0.83, 0.87, 0.91, 0.96, 1.00 } },
+        { 25, { 0.00, 0.04, 0.08, 0.13, 0.17, 0.21, 0.25, 0.29, 0.33, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.63, 0.67, 0.71, 0.75, 0.79, 0.83, 0.88, 0.92, 0.96, 1.00 } },
+        { 26, { 0.00, 0.04, 0.08, 0.12, 0.16, 0.20, 0.24, 0.28, 0.32, 0.36, 0.40, 0.44, 0.48, 0.52, 0.56, 0.60, 0.64, 0.68, 0.72, 0.76, 0.80, 0.84, 0.88, 0.92, 0.96, 1.00 } },
+        { 27, { 0.00, 0.04, 0.08, 0.12, 0.15, 0.19, 0.23, 0.27, 0.31, 0.35, 0.38, 0.42, 0.46, 0.50, 0.54, 0.58, 0.62, 0.65, 0.69, 0.73, 0.77, 0.81, 0.85, 0.88, 0.92, 0.96, 1.00 } },
+        { 28, { 0.00, 0.04, 0.07, 0.11, 0.15, 0.19, 0.22, 0.26, 0.30, 0.33, 0.37, 0.41, 0.44, 0.48, 0.52, 0.56, 0.59, 0.63, 0.67, 0.70, 0.74, 0.78, 0.81, 0.85, 0.89, 0.93, 0.96, 1.00 } },
+        { 29, { 0.00, 0.04, 0.07, 0.11, 0.14, 0.18, 0.21, 0.25, 0.29, 0.32, 0.36, 0.39, 0.43, 0.46, 0.50, 0.54, 0.57, 0.61, 0.64, 0.68, 0.71, 0.75, 0.79, 0.82, 0.86, 0.89, 0.93, 0.96, 1.00 } },
+        { 30, { 0.00, 0.03, 0.07, 0.10, 0.14, 0.17, 0.21, 0.24, 0.28, 0.31, 0.34, 0.38, 0.41, 0.45, 0.48, 0.52, 0.55, 0.59, 0.62, 0.66, 0.69, 0.72, 0.76, 0.79, 0.83, 0.86, 0.90, 0.93, 0.97, 1.00 } }
+    };
+        
     string path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
     
     if(! filesystem::exists(path) || ! filesystem::is_directory(path))
@@ -3084,9 +2913,6 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     CSIZoneInfo info;
     info.filePath = path;
     info.alias = alias;
-    
-    if(fxLayouts_.size() == 0)
-        return false;
 
     int totalAvailableChannels = 0;
     
@@ -3112,7 +2938,38 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
              
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableChannels; i++)
         {
-            fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(channelIndex++) + paramAction + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            for(int j = 0; j < surfaceFXLayout_.size(); j++)
+            {
+                for(int k = 0; k < surfaceFXLayout_[j].size(); k++)
+                {
+                    if(k == 0)
+                    {
+                        string modifiers = "";
+                        
+                        if(fxLayouts_[layoutIndex].modifiers != "")
+                            modifiers = fxLayouts_[layoutIndex].modifiers + "+";
+                        
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[j][k] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\t";
+                    }
+                    else if(k == 1)
+                    {
+                        fxZone << " " + surfaceFXLayout_[j][k];
+                        
+                        if(surfaceFXLayout_[j][k] == "FixedTextDisplay")
+                            fxZone << " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"";
+                        else
+                            fxZone << " " + to_string(i);
+                    }
+                    else
+                        fxZone << " " + surfaceFXLayout_[j][k];
+                }
+                
+                fxZone << GetLineEnding();
+            }
+            
+            channelIndex++;
+            
+            fxZone << GetLineEnding();
             
             if(channelIndex > fxLayouts_[layoutIndex].channelCount)
             {
@@ -3124,21 +2981,71 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     break;
             }
         }
-        
+                
         // GAW -- pad partial rows
         if(channelIndex != 1 && channelIndex <= fxLayouts_[layoutIndex].channelCount)
         {
-            for(int i = channelIndex; i <= fxLayouts_[layoutIndex].channelCount; i++)
-                fxZone << "\t" + fxLayouts_[layoutIndex].prefix + " \"" + fxLayouts_[layoutIndex].suffix + "\" " + to_string(i) + paramAction + "-1 \"\"" + GetLineEnding();
-            
-            layoutIndex++;
+            for(int index = channelIndex; index <= fxLayouts_[layoutIndex].channelCount; index++)
+            {
+                for(int j = 0; j < surfaceFXLayout_.size(); j++)
+                {
+                    for(int k = 0; k < surfaceFXLayout_[j].size(); k++)
+                    {
+                        if(k == 0)
+                        {
+                            string modifiers = "";
+                            
+                            if(fxLayouts_[layoutIndex].modifiers != "")
+                                modifiers = fxLayouts_[layoutIndex].modifiers + "+";
+                            
+                            fxZone << "\t" + modifiers + surfaceFXLayout_[j][k] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\t";
+                        }
+                        else if(k == 1)
+                        {
+                            fxZone << "NoAction";
+                        }
+                    }
+                    
+                    fxZone << GetLineEnding();
+                }
+                
+                fxZone << GetLineEnding();
+            }
         }
+
+        layoutIndex++;
         
         // GAW --pad the remaining rows
-        for(int i = layoutIndex; i < fxLayouts_.size(); i++)
-            for(int j = 1; j <= fxLayouts_[layoutIndex].channelCount; j++)
-                fxZone << "\t" + fxLayouts_[i].prefix + " \"" + fxLayouts_[i].suffix + "\" " + to_string(j) + paramAction + "-1 \"\"" + GetLineEnding();
-
+        for(int layoutIdx = layoutIndex; layoutIdx < fxLayouts_.size(); layoutIdx++)
+        {
+            for(int index = 1; index <= fxLayouts_[layoutIdx].channelCount; index++)
+            {
+                for(int j = 0; j < surfaceFXLayout_.size(); j++)
+                {
+                    for(int k = 0; k < surfaceFXLayout_[j].size(); k++)
+                    {
+                        if(k == 0)
+                        {
+                            string modifiers = "";
+                            
+                            if(fxLayouts_[layoutIdx].modifiers != "")
+                                modifiers = fxLayouts_[layoutIdx].modifiers + "+";
+                            
+                            fxZone << "\t" + modifiers + surfaceFXLayout_[j][k] + fxLayouts_[layoutIdx].suffix + to_string(index) + "\t";
+                        }
+                        else if(k == 1)
+                        {
+                            fxZone << "NoAction";
+                        }
+                    }
+                    
+                    fxZone << GetLineEnding();
+                }
+                
+                fxZone << GetLineEnding();
+            }
+        }
+        
         if(fxEpilogue_.size() > 0)
             fxZone << GetLineEnding();
         

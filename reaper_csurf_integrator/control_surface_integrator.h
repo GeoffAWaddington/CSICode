@@ -64,8 +64,9 @@ const string TabChars = "[\t]";
 const int TempDisplayTime = 1250;
 
 class Manager;
+class ZoneManager;
 extern unique_ptr<Manager> TheManager;
-extern bool RemapAutoZoneDialog(string fullPath);
+extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath);
 
 static vector<string> GetTokens(string line)
 {
@@ -814,7 +815,7 @@ struct CSIZoneInfo
 struct CSILayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string prefix = "";
+    string modifiers = "";
     string suffix = "";
     int channelCount = 0;
 };
@@ -839,7 +840,7 @@ private:
     bool isAutoFocusedFXMappingEnabled_ = true;
     bool isAutoFXMappingEnabled_ = true;
     
-    map<string, map<string, vector<string>>> surfaceFXLayout_;
+    vector<vector<string>> surfaceFXLayout_;
     vector<CSILayoutInfo> fxLayouts_;
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
@@ -981,14 +982,9 @@ public:
         }
     }
     
-    map<string, vector<string>> GetSurfaceFXLayout(string surfaceFXLayout)
+    vector<vector<string>> &GetSurfaceFXLayout(string surfaceFXLayout)
     {
-        map<string, vector<string>> emptyLayout;
-        
-        if(surfaceFXLayout_.count(surfaceFXLayout) > 0)
-            return surfaceFXLayout_[surfaceFXLayout];
-        else
-            return emptyLayout;
+        return surfaceFXLayout_;
     }
     
     void GoAssociatedZone(string zoneName)

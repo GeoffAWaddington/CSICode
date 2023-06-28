@@ -662,7 +662,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(string fullPath)
+bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath)
 {
     ifstream autoFXFile(fullPath);
     
