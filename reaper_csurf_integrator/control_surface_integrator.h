@@ -66,7 +66,7 @@ const int TempDisplayTime = 1250;
 class Manager;
 class ZoneManager;
 extern unique_ptr<Manager> TheManager;
-extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath);
+extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue);
 
 static vector<string> GetTokens(string line)
 {

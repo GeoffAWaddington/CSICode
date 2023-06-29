@@ -2684,7 +2684,7 @@ void ZoneManager::RemapAutoZone()
 {
     if(focusedFXZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(sharedThisPtr_, focusedFXZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(sharedThisPtr_, focusedFXZones_[0]->GetSourceFilePath(), fxPrologue_, fxEpilogue_))
         {
             PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), sharedThisPtr_);
             GoFocusedFX();
@@ -2692,7 +2692,7 @@ void ZoneManager::RemapAutoZone()
     }
     else if(fxSlotZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(sharedThisPtr_, fxSlotZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(sharedThisPtr_, fxSlotZones_[0]->GetSourceFilePath(), fxPrologue_, fxEpilogue_))
         {
             vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(fxSlotZones_[0]->GetNavigator());

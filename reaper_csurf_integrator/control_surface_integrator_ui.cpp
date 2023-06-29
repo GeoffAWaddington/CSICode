@@ -154,6 +154,188 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static string fxName = "";
+static string fxAlias = "";
+
+struct FXParamDefinition
+{
+    string paramNumber = "";
+    string modifiers = "";
+
+    string widget = "";
+    string widgetAction = "";
+    map<string, string> widgetProperties;
+
+    string aliasDisplayWidget = "";
+    string aliasAction = "";
+    string alias = "";
+    map<string, string> aliasDisplayWidgetProperties;
+    
+    string valueDisplayWidget = "";
+    string valueAction = "";
+    map<string, string> valueDisplayWidgetProperties;
+
+    vector<string> steps;
+    
+    
+    
+};
+
+static void GetWidgetNameAndModifiers(string line, string &widgetName, string &modiferString)
+{
+    istringstream modifiersAndWidgetName(line);
+    vector<string> modifiersAndWidgetNameTokens;
+    string modifiersAndWidgetNameToken;
+    
+    while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
+        modifiersAndWidgetNameTokens.push_back(modifiersAndWidgetNameToken);
+    
+    widgetName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
+
+    string modifiers = "";
+    
+    if(modifiersAndWidgetNameTokens.size() > 1)
+        for(int i = 0; i < modifiersAndWidgetNameTokens.size() - 1; i++)
+            modifiers = modifiers + modifiersAndWidgetNameTokens[i] + "+";
+    
+    modiferString = modifiers;
+}
+
+static void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
+{
+    for(int i = start; i < finish; i++)
+    {
+        if(tokens[i].find("=") != string::npos)
+        {
+            istringstream property(tokens[i]);
+            vector<string> kvp;
+            string token;
+            
+            while(getline(property, token, '='))
+                kvp.push_back(token);
+
+            if(kvp.size() == 2)
+                properties[kvp[0]] = kvp[1];
+        }
+    }
+}
+
+static vector<FXParamDefinition> paramDefs;
+
+vector<string> allParams;
+
+void UnpackZone(string fullPath)
+{
+    fxName = "";
+    fxAlias = "";
+
+    paramDefs.clear();
+    allParams.clear();
+    
+    bool inZone = false;
+
+    ifstream autoFXFile(fullPath);
+    
+    for (string line; getline(autoFXFile, line) ; )
+    {
+        line = regex_replace(line, regex(CRLFChars), "");
+
+        if(line == "")
+            continue;
+        
+        vector<string> tokens = GetTokens(line);
+        
+        if(line.substr(0, 5) == "Zone ")
+        {
+            inZone = true;
+            
+            if(tokens.size() > 1)
+                fxName = tokens[1];
+            if(tokens.size() > 2)
+                fxAlias = tokens[2];
+        }
+        else if(line == "ZoneEnd")
+        {
+            inZone = false;
+        }
+        else if(! inZone)
+        {
+            line = regex_replace(line, regex("/"), "");
+            
+            allParams.push_back(line);
+        }
+        else
+        {
+            tokens = GetTokens(line);
+            
+            if(tokens.size() > 2 && tokens[1] == "FXParam")
+            {
+                FXParamDefinition def;
+                
+                GetWidgetNameAndModifiers(tokens[0], def.widget, def.modifiers);
+                
+                def.paramNumber = tokens[2];
+                def.widgetAction = tokens[1];
+                
+                if(tokens.size() > 4 && tokens[3] == "[")
+                    for(int i = 4; i < tokens.size() && tokens[i] != "]"; i++)
+                        def.steps.push_back(tokens[i]);
+                
+                if(tokens.size() > def.steps.size() + 5)
+                    GetProperties(def.steps.size() + 5,  tokens.size(), tokens, def.widgetProperties);
+                
+                if(getline(autoFXFile, line))
+                {
+                    tokens = GetTokens(line);
+
+                    if(tokens.size() > 2)
+                    {
+                        string modifers = "";
+                        
+                        GetWidgetNameAndModifiers(tokens[0], def.aliasDisplayWidget, modifers);
+                        
+                        def.aliasAction = tokens[1];
+                        def.alias = tokens[2];
+                        
+                        if(tokens.size() > 3)
+                            GetProperties(3, tokens.size(), tokens, def.aliasDisplayWidgetProperties);
+                    }
+                }
+                else
+                    continue;
+                
+                if(getline(autoFXFile, line))
+                {
+                    tokens = GetTokens(line);
+
+                    if(tokens.size() > 2)
+                    {
+                        string modifers = "";
+                        
+                        GetWidgetNameAndModifiers(tokens[0], def.valueDisplayWidget, modifers);
+                        
+                        def.valueAction = tokens[1];
+                        
+                        if(tokens.size() > 3)
+                            GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
+                    }
+                }
+                else
+                    continue;
+                
+                paramDefs.push_back(def);
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
 struct FXLayoutStruct
 {
     string prefix;
@@ -179,37 +361,29 @@ vector<string> allLines;
 vector<FXLayoutStruct> layouts;
 vector<FXParamStruct> params;
 
-string fxName = "";
-string fxAlias = "";
+
+
+
+
 
 int fxListIndex = 0;
 
 static int dlgResult = 0;
 
-static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static WDL_DLGRET dlgEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
         case WM_INITDIALOG:
         {
-            string steps = to_string(TheManager->GetSteppedValueCount(fxName, atoi(params[fxListIndex].paramNum.c_str())));
-
-            string stepsStr = params[fxListIndex].steps;
-            
-            if(stepsStr != "" && stepsStr.substr(0, 6) == "Steps=" && stepsStr.length() > 6 && isdigit(stepsStr[6]))
-                steps = stepsStr.substr(6, stepsStr.length() - 6);
-
-            else if(stepsStr != "" && stepsStr.substr(0, 5) == "Push=" && stepsStr.length() > 5 && isdigit(stepsStr[5]))
-                steps = stepsStr.substr(5, stepsStr.length() - 5);
+            string steps = to_string(TheManager->GetSteppedValueCount(fxName, atoi(paramDefs[fxListIndex].paramNumber.c_str())));
 
             if(steps != "0")
                 SetDlgItemText(hwndDlg, IDC_EditNumberOfSteps, steps.c_str());
             
-            SetDlgItemText(hwndDlg, IDC_EditDisplayName, params[fxListIndex].displayName.c_str());
+            SetDlgItemText(hwndDlg, IDC_EditDisplayName, paramDefs[fxListIndex].alias.c_str());
             SetFocus(GetDlgItem(hwndDlg, IDC_EditDisplayName));
-            SendMessage(GetDlgItem(hwndDlg, IDC_EditDisplayName), EM_SETSEL, 0, params[fxListIndex].displayName.length());
-            
-            CheckDlgButton(hwndDlg, IDC_UseRotaryPush, params[fxListIndex].usePush);
+            SendMessage(GetDlgItem(hwndDlg, IDC_EditDisplayName), EM_SETSEL, 0, paramDefs[fxListIndex].alias.length());
 
             break;
         }
@@ -271,20 +445,7 @@ static WDL_DLGRET dlgProcRenameFXDisplayName(HWND hwndDlg, UINT uMsg, WPARAM wPa
 
 static string GetParamString(int index)
 {
-    istringstream layoutAndModifiers(layouts[index].prefix);
-    vector<string> prefixTokens;
-    string prefixToken;
-    
-    while (getline(layoutAndModifiers, prefixToken, '+'))
-        prefixTokens.push_back(prefixToken);
-
-    string prefix = "";
-    
-    if(prefixTokens.size() > 1)
-        for(int i = 1; i < prefixTokens.size(); i++)
-            prefix += prefixTokens[i] + "+";
-    
-    return prefix + layouts[index].suffix + layouts[index].slot + " " + params[index].paramType + " " + params[index].paramNum + " " + params[index].displayName + " " + params[index].steps;
+    return paramDefs[index].paramNumber + " \t" + paramDefs[index].modifiers + paramDefs[index].widget + " \t" + paramDefs[index].alias;
 }
 
 static void PopulateListView(HWND hwndParamList)
@@ -297,7 +458,7 @@ static void PopulateListView(HWND hwndParamList)
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    for(int i = 0; i < params.size(); i++)
+    for(int i = 0; i < paramDefs.size(); i++)
     {
         char buf[BUFSZ];
         
@@ -366,7 +527,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         case WM_NOTIFY:
         {
             if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
-            {
+            {/*
                 HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
                
                 POINT p;
@@ -389,7 +550,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     ImageList_DragEnter(GetDesktopWindow(), pt.x, pt.y);
 
                     SetCapture(hwndDlg);
-                }
+                }*/
             }
             
             else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
@@ -400,7 +561,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if(index >= 0)
                 {
                     fxListIndex = index;
-                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcRenameFXDisplayName);
                     
                     if(dlgResult == IDOK)
                         ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
@@ -477,6 +638,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             switch(LOWORD(wParam))
             {
+                    /*
                 case IDC_BUTTONUP:
                     MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
@@ -484,7 +646,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 case IDC_BUTTONDOWN:
                     MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
-                    
+                    */
                 case IDSAVE:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -506,7 +668,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if(index >= 0)
                         {
                             fxListIndex = index;
-                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcRenameFXDisplayName);
                             
                             if(dlgResult == IDOK)
                                 ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
@@ -536,10 +698,10 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         case WM_NOTIFY:
         {
             if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
-            {
+            {/*
                 isDragging = true;
                 GetCursorPos(&lastCursorPosition);
-                SetCapture(hwndDlg);
+                SetCapture(hwndDlg);*/
             }
             
             else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
@@ -550,7 +712,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if(index >= 0)
                 {
                     fxListIndex = index;
-                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgEditFXParam);
                     
                     if(dlgResult == IDOK)
                         ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
@@ -606,14 +768,14 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_KEYDOWN:
             switch (wParam)
-            {
+            {/*
                 case VK_LEFT:
                     MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break;
                     
                 case VK_RIGHT:
                     MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                    break;
+                    break;*/
             }
             break;
 
@@ -642,7 +804,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if(index >= 0)
                         {
                             fxListIndex = index;
-                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXDisplayName), g_hwnd, dlgProcRenameFXDisplayName);
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgEditFXParam);
                             
                             if(dlgResult == IDOK)
                                 ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
@@ -662,52 +824,22 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath)
+bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
-    ifstream autoFXFile(fullPath);
-    
-    allLines.clear();
-    layouts.clear();
-    params.clear();
-
-    for (string line; getline(autoFXFile, line) ; )
-    {
-        line = regex_replace(line, regex(CRLFChars), "");
-        allLines.push_back(line);
-        
-        vector<string> tokens = GetTokens(line);
-        
-        if(line.substr(0, 5) == "Zone ")
-        {
-            if(tokens.size() > 1)
-                fxName = tokens[1];
-            if(tokens.size() > 2)
-                fxAlias = tokens[2];
-        }
-
-        else if(tokens.size() > 5 && tokens[0].find("FXLayout") != string::npos)
-        {
-            layouts.push_back(FXLayoutStruct(tokens[0], tokens[1], (tokens[2])));
-            params.push_back(FXParamStruct(tokens[3], tokens[4], (tokens[5])));
-            if(tokens.size() > 6)
-            {
-                params.back().steps = tokens[6];
-                if(tokens[6].substr(0, 5) == "Push=")
-                    params.back().usePush = true;
-            }
-        }
-    }
+    UnpackZone(fullPath);
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
     if(dlgResult == IDSAVE)
     {
+        /*
         int layoutIndex = 0;
 
         ofstream fxFile(fullPath);
 
         if(fxFile.is_open())
         {
+            
             for(int allLinesIndex = 0; allLinesIndex < allLines.size(); allLinesIndex++)
             {
                 if(allLinesIndex == 0)
@@ -728,6 +860,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath)
 
             fxFile.close();
         }
+         */
         
         return true;
     }

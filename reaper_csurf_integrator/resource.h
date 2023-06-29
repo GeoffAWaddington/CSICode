@@ -4,7 +4,7 @@
 //
 #define IDEDIT                          3
 #define IDD_DIALOG_Page                 103
-#define IDD_DIALOG_EditFXDisplayName    115
+#define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_RemapAutoFX          117
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
