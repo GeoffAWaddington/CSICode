@@ -364,18 +364,14 @@ void UnpackZone(string fullPath)
                 def.paramNumber = tokens[2];
                 def.widgetAction = tokens[1];
                 
-                string paramStr = "";
-                
                 if(tokens.size() > 4 && tokens[3] == "[")
                 {
-                    for(int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
-                        paramStr += tokens[i] + " ";
-                    
-                    paramStr += "]";
-                    
                     vector<string> params;
+
+                    for(int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
+                        params.push_back(tokens[i]);
                     
-                    params.push_back(paramStr);
+                    params.push_back("]");
                     
                     GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
                 }
@@ -428,7 +424,13 @@ void UnpackZone(string fullPath)
     }
 }
 
-int fxListIndex = 0;
+static vector<int> paramNumEditControls = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
+static vector<int> displayTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
+static vector<int> widgetTypeControls = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
+static vector<int> stepPickControls = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
+static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
+
+static int fxListIndex = 0;
 
 static int dlgResult = 0;
 
@@ -438,13 +440,38 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            SendDlgItemMessage(hwndDlg, IDC_PickSteps1, CB_ADDSTRING, 0, (LPARAM)"Custom");
-            
-            for(auto [key, value] : SteppedValueDictionary)
-                SendDlgItemMessage(hwndDlg, IDC_PickSteps1, CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
+            for(int i = 0; i < stepPickControls.size(); i++)
+            {
+                SendDlgItemMessage(hwndDlg, stepPickControls[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
+                
+                for(auto [key, value] : SteppedValueDictionary)
+                    SendDlgItemMessage(hwndDlg, stepPickControls[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
+
+            }
              
+            for(auto param : allParams)
+                SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_ADDSTRING, 0, (LPARAM)param.c_str());
+
+            for(int i = 0; i < paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
+            {
+                SetDlgItemText(hwndDlg, paramNumEditControls[i], paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
+                SetDlgItemText(hwndDlg, displayTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
+
+                for(auto layout : surfaceLayoutTemplate)
+                    if(layout.size() > 0 && layout[0].find("Display") == string::npos)
+                        SendDlgItemMessage(hwndDlg, widgetTypeControls[i], CB_ADDSTRING, 0, (LPARAM)layout[0].c_str());
+                
+                SetDlgItemText(hwndDlg, widgetTypeControls[i], paramDefs[fxListIndex].definitions[i].widget.c_str());
+                
+                string steps = "";
+                
+                for(auto step : paramDefs[fxListIndex].definitions[i].steps)
+                    steps += step + "  ";
+                
+                SetDlgItemText(hwndDlg, stepEditControls[i], steps.c_str());
+            }
             
-           
+            
             break;
         }
             
