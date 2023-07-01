@@ -438,10 +438,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            SendDlgItemMessage(hwndDlg, IDC_S1PickSteps, CB_ADDSTRING, 0, (LPARAM)"Custom");
+            SendDlgItemMessage(hwndDlg, IDC_PickSteps1, CB_ADDSTRING, 0, (LPARAM)"Custom");
             
             for(auto [key, value] : SteppedValueDictionary)
-                SendDlgItemMessage(hwndDlg, IDC_S1PickSteps, CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
+                SendDlgItemMessage(hwndDlg, IDC_PickSteps1, CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
              
             
            
@@ -469,17 +469,17 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     }
                     break ;
                     
-                case IDC_S1PickSteps:
+                case IDC_PickSteps1:
                 {
                     switch (HIWORD(wParam))
                     {
                         case CBN_SELCHANGE:
                         {
-                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_S1PickSteps), CB_GETCURSEL, 0, 0);
+                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_PickSteps1), CB_GETCURSEL, 0, 0);
                             if(index >= 0)
                             {
                                 if(index == 0)
-                                    SetDlgItemText(hwndDlg, IDC_S1EditSteps, "");
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps1, "");
                                 else
                                 {
                                     ostringstream stepStr;
@@ -490,7 +490,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                         stepStr <<  "  ";
                                     }
                                         
-                                    SetDlgItemText(hwndDlg, IDC_S1EditSteps, (stepStr.str()).c_str());
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps1, (stepStr.str()).c_str());
                                 }
                             }
                         }
