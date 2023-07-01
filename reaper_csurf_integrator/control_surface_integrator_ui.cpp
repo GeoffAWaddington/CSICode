@@ -312,9 +312,7 @@ void UnpackZone(string fullPath)
     int listSlotIndex = 0;
     
     FXParamDefinitions definitions;
-    
     definitions.suffix = fxLayoutSuffixes[listSlotIndex];
-    
     paramDefs.push_back(definitions);
     
     for (string line; getline(autoFXFile, line) ; )
@@ -354,11 +352,8 @@ void UnpackZone(string fullPath)
                 if(tokens[0].find(fxLayoutSuffixes[listSlotIndex]) == string::npos)
                 {
                     listSlotIndex++;
-                    
                     FXParamDefinitions definitions;
-                    
                     definitions.suffix = fxLayoutSuffixes[listSlotIndex];
-                    
                     paramDefs.push_back(definitions);
                 }
                 
@@ -432,43 +427,6 @@ void UnpackZone(string fullPath)
         }
     }
 }
-
-
-
-
-
-
-
-
-struct FXLayoutStruct
-{
-    string prefix;
-    string suffix;
-    string slot;
-    
-    FXLayoutStruct(string aPrefix, string aSuffix, string aSlot) : prefix(aPrefix), suffix(aSuffix), slot(aSlot) {}
-};
-
-struct FXParamStruct
-{
-    string paramType = "";
-    string paramNum = "";
-    string displayName = "";
-    string steps = "";
-    bool usePush = false;
-    
-    FXParamStruct(string aParamType, string aParamNum, string aDisplayName) : paramType(aParamType), paramNum(aParamNum), displayName(aDisplayName) {}
-    FXParamStruct(string aParamType, string aParamNum, string aDisplayName, string numSteps, bool shouldUsePush) : paramType(aParamType), paramNum(aParamNum), displayName(aDisplayName), steps(numSteps), usePush(shouldUsePush) {}
-};
-
-vector<string> allLines;
-vector<FXLayoutStruct> layouts;
-vector<FXParamStruct> params;
-
-
-
-
-
 
 int fxListIndex = 0;
 
@@ -590,9 +548,14 @@ static void MoveUp(HWND hwndParamList)
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
     if(index > 0)
     {
-        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName, params[index].steps, params[index].usePush);
-        params.erase(params.begin() + index);
-        params.insert(params.begin() + index - 1, itemToMove);
+        FXParamDefinitions itemToMove;
+        itemToMove.suffix = paramDefs[index].suffix;
+        
+        for(auto def : paramDefs[index].definitions)
+            itemToMove.definitions.push_back(def);
+        
+        paramDefs.erase(paramDefs.begin() + index);
+        paramDefs.insert(paramDefs.begin() + index - 1, itemToMove);
         
         ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
         ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
@@ -608,11 +571,16 @@ static void MoveUp(HWND hwndParamList)
 static void MoveDown(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if(index >= 0 && index < params.size() - 1)
+    if(index >= 0 && index < paramDefs.size() - 1)
     {
-        FXParamStruct itemToMove(params[index].paramType, params[index].paramNum, params[index].displayName, params[index].steps, params[index].usePush);
-        params.erase(params.begin() + index);
-        params.insert(params.begin() + index + 1, itemToMove);
+        FXParamDefinitions itemToMove;
+        itemToMove.suffix = paramDefs[index].suffix;
+        
+        for(auto def : paramDefs[index].definitions)
+            itemToMove.definitions.push_back(def);
+        
+        paramDefs.erase(paramDefs.begin() + index);
+        paramDefs.insert(paramDefs.begin() + index + 1, itemToMove);
 
         ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
         ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
@@ -724,10 +692,16 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if ((lvhti.flags & LVHT_ONITEMLABEL == 0) &&
                           (lvhti.flags & LVHT_ONITEMSTATEICON == 0))
                     break;
-
-                FXParamStruct itemToMove(params[oldPosition].paramType, params[oldPosition].paramNum, params[oldPosition].displayName, params[oldPosition].steps, params[oldPosition].usePush);
-                params.erase(params.begin() + oldPosition);
-                params.insert(params.begin() + lvhti.iItem, itemToMove);
+                
+                FXParamDefinitions itemToMove;
+                
+                itemToMove.suffix = paramDefs[oldPosition].suffix;
+                
+                for(auto def : paramDefs[oldPosition].definitions)
+                    itemToMove.definitions.push_back(def);
+                
+                paramDefs.erase(paramDefs.begin() + oldPosition);
+                paramDefs.insert(paramDefs.begin() + lvhti.iItem, itemToMove);
                 
                 PopulateListView(hwndParamList);
             }
