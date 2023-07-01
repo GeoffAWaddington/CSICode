@@ -154,7 +154,7 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-vector<CSILayoutInfo> fxLayouts;
+vector<string> fxLayoutSuffixes;
 static vector<string> fxParamSlots;
 static vector<vector<string>> surfaceLayoutTemplate;
 
@@ -179,13 +179,21 @@ struct FXParamDefinition
     string valueAction = "";
     map<string, string> valueDisplayWidgetProperties;
 
+    string delta = "";
+    vector<string> deltas;
+    string rangeMinimum = "";
+    string rangeMaximum = "";
     vector<string> steps;
-    
-    
-    
+    vector<string> ticks;
 };
 
-static void GetWidgetNameAndModifiers(string line, string &widgetName, vector<string> &modifiers)
+struct FXParamDefinitions
+{
+    string suffix = "";
+    vector<FXParamDefinition> definitions;
+};
+
+static void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &widgetName, vector<string> &modifiers)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> modifiersAndWidgetNameTokens;
@@ -196,26 +204,11 @@ static void GetWidgetNameAndModifiers(string line, string &widgetName, vector<st
     
     widgetName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
 
-    widgetName = regex_replace(widgetName, regex("[\\d+$]"), "");
-    
-    for(auto layout : fxLayouts)
-    {
-        if(layout.suffix != "")
-        {
-            if(widgetName.substr(widgetName.length() - layout.suffix.length(), layout.suffix.length()) == layout.suffix)
-            {
-                widgetName = widgetName.substr(0, widgetName.length() - layout.suffix.length());
-                break;
-            }
-        }
-        
-        //string suffix = widgetName.substr(
-    }
+    widgetName = widgetName.substr(0, widgetName.length() - fxLayoutSuffixes[listSlotIndex].length());
     
     if(modifiersAndWidgetNameTokens.size() > 1)
         for(int i = 0; i < modifiersAndWidgetNameTokens.size() - 1; i++)
             modifiers.push_back(modifiersAndWidgetNameTokens[i]);
-
 }
 
 static void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
@@ -237,7 +230,70 @@ static void GetProperties(int start, int finish, vector<string> &tokens, map<str
     }
 }
 
-static vector<FXParamDefinition> paramDefs;
+static void GetSteppedValues(vector<string> params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
+{
+    auto openSquareBrace = find(params.begin(), params.end(), "[");
+    auto closeSquareBrace = find(params.begin(), params.end(), "]");
+    
+    if(openSquareBrace != params.end() && closeSquareBrace != params.end())
+    {
+        for(auto it = openSquareBrace + 1; it != closeSquareBrace; ++it)
+        {
+            string strVal = *(it);
+            
+            if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
+                steppedValues.push_back(strVal);
+            else if(regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
+                deltaValue = stod(strVal);
+            else if(regex_match(strVal, regex("[(]-?[0-9]+[)]")))
+                acceleratedTickValues.push_back(strVal);
+            else if(regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
+            {
+                istringstream acceleratedDeltaValueStream(strVal);
+                string deltaValue;
+                
+                while (getline(acceleratedDeltaValueStream, deltaValue, ','))
+                    acceleratedDeltaValues.push_back(deltaValue);
+            }
+            else if(regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
+            {
+                istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
+                string tickValue;
+                
+                while (getline(acceleratedTickValueStream, tickValue, ','))
+                    acceleratedTickValues.push_back(tickValue);
+            }
+            else if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
+            {
+                istringstream range(strVal);
+                vector<string> range_tokens;
+                string range_token;
+                
+                while (getline(range, range_token, '>'))
+                    range_tokens.push_back(range_token);
+                
+                if(range_tokens.size() == 2)
+                {
+                    string firstValue = range_tokens[0];
+                    string lastValue = range_tokens[1];
+                    
+                    if(lastValue > firstValue)
+                    {
+                        rangeMinimum = firstValue;
+                        rangeMaximum = lastValue;
+                    }
+                    else
+                    {
+                        rangeMinimum = lastValue;
+                        rangeMaximum = firstValue;
+                    }
+                }
+            }
+        }
+    }
+}
+
+static vector<FXParamDefinitions> paramDefs;
 
 vector<string> allParams;
 
@@ -252,6 +308,14 @@ void UnpackZone(string fullPath)
     bool inZone = false;
 
     ifstream autoFXFile(fullPath);
+    
+    int listSlotIndex = 0;
+    
+    FXParamDefinitions definitions;
+    
+    definitions.suffix = fxLayoutSuffixes[listSlotIndex];
+    
+    paramDefs.push_back(definitions);
     
     for (string line; getline(autoFXFile, line) ; )
     {
@@ -287,16 +351,39 @@ void UnpackZone(string fullPath)
             
             if(tokens.size() > 2 && tokens[1] == "FXParam")
             {
+                if(tokens[0].find(fxLayoutSuffixes[listSlotIndex]) == string::npos)
+                {
+                    listSlotIndex++;
+                    
+                    FXParamDefinitions definitions;
+                    
+                    definitions.suffix = fxLayoutSuffixes[listSlotIndex];
+                    
+                    paramDefs.push_back(definitions);
+                }
+                
                 FXParamDefinition def;
                 
-                GetWidgetNameAndModifiers(tokens[0], def.widget, def.modifiers);
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget, def.modifiers);
                 
                 def.paramNumber = tokens[2];
                 def.widgetAction = tokens[1];
                 
+                string paramStr = "";
+                
                 if(tokens.size() > 4 && tokens[3] == "[")
-                    for(int i = 4; i < tokens.size() && tokens[i] != "]"; i++)
-                        def.steps.push_back(tokens[i]);
+                {
+                    for(int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
+                        paramStr += tokens[i] + " ";
+                    
+                    paramStr += "]";
+                    
+                    vector<string> params;
+                    
+                    params.push_back(paramStr);
+                    
+                    GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+                }
                 
                 if(tokens.size() > def.steps.size() + 5)
                     GetProperties(def.steps.size() + 5,  tokens.size(), tokens, def.widgetProperties);
@@ -309,7 +396,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], def.aliasDisplayWidget, modifers);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget, modifers);
                         
                         def.aliasAction = tokens[1];
                         def.alias = tokens[2];
@@ -329,7 +416,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], def.valueDisplayWidget, modifers);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget, modifers);
                         
                         def.valueAction = tokens[1];
                         
@@ -339,8 +426,8 @@ void UnpackZone(string fullPath)
                 }
                 else
                     continue;
-                
-                paramDefs.push_back(def);
+               
+                paramDefs.back().definitions.push_back(def);
             }
         }
     }
@@ -460,12 +547,19 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
 static string GetParamString(int index)
 {
-    string widgetName = paramDefs[index].widget;
-    
-    if(widgetName == "RotaryPush")
-        widgetName = "Push";
-    
-    return fxParamSlots[index] +  " \t" + widgetName + " " + paramDefs[index].paramNumber + " " + paramDefs[index].alias;
+    string paramString = fxParamSlots[index];
+
+    for(auto paramDef :  paramDefs[index].definitions)
+    {
+        string widgetName = paramDef.widget;
+        
+        if(widgetName == "RotaryPush")
+            widgetName = "Push";
+        
+        paramString += "   " + widgetName + " " + paramDef.alias;
+    }
+
+    return paramString;;
 }
 
 static void PopulateListView(HWND hwndParamList)
@@ -845,9 +939,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
-    fxLayouts = zoneManager->GetFXLayouts();
-    
-    for(auto layout : fxLayouts)
+    for(auto layout : zoneManager->GetFXLayouts())
     {
         for(int i = 0; i < layout.channelCount; i++)
         {
@@ -855,6 +947,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
             if(layout.modifiers != "")
                 modifiers = layout.modifiers + "+";
             fxParamSlots.push_back(modifiers + layout.suffix + to_string(i + 1));
+            fxLayoutSuffixes.push_back(layout.suffix + to_string(i + 1));
         }
     }
     

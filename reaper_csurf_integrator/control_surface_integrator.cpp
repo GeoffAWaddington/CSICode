@@ -465,7 +465,7 @@ static void ExpandLine(int numChannels, vector<string> &tokens)
         tokens.push_back(regex_replace(templateString, regex("[|]"), to_string(i)));
 }
 
-vector<rgba_color> GetColorValues(vector<string> colors)
+static vector<rgba_color> GetColorValues(vector<string> colors)
 {
     vector<rgba_color> colorValues;
     
@@ -667,7 +667,7 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
     }
 }
 
-void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+static void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
     vector<string> hexColors;
@@ -732,7 +732,7 @@ void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackCol
     }
 }
 
-void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, map<string, string> widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, map<string, string> widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
