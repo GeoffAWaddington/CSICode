@@ -874,6 +874,7 @@ private:
     bool isAutoFXMappingEnabled_ = true;
     
     vector<vector<string>> surfaceFXLayout_;
+    vector<vector<string>> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
@@ -954,7 +955,9 @@ public:
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
-    
+    vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
+    vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+
     shared_ptr<ControlSurface> GetSurface() { return surface_; }
     
     void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }

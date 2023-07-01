@@ -291,13 +291,11 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surfaceFXLayout)
+static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate)
 {
     try
     {
         ifstream file(filePath);
-        
-        string layoutName = "";
         
         for (string line; getline(file, line) ; )
         {
@@ -309,13 +307,21 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
             // Trim leading and trailing spaces
             line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
             
-            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+            if(line == "") // ignore blank lines
                 continue;
         
             vector<string> tokens = GetTokens(line);
             
             if(tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
-                surfaceFXLayout.push_back(tokens);
+            {
+                if(tokens[0] == "/")
+                {
+                    tokens.erase(tokens.begin());
+                    surfaceFXLayoutTemplate.push_back(tokens);
+                }
+                else
+                    surfaceFXLayout.push_back(tokens);
+            }
         }
     }
     catch (exception &e)
@@ -2568,7 +2574,7 @@ void ZoneManager::Initialize()
     if(zoneFilePaths_.count("FocusedFXParam") > 0 && sharedThisPtr_ != nullptr)
         ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, sharedThisPtr_, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("SurfaceFXLayout") > 0)
-        ProcessSurfaceFXLayout(zoneFilePaths_["SurfaceFXLayout"].filePath, surfaceFXLayout_);
+        ProcessSurfaceFXLayout(zoneFilePaths_["SurfaceFXLayout"].filePath, surfaceFXLayout_, surfaceFXLayoutTemplate_);
     if(zoneFilePaths_.count("FXLayouts") > 0)
         ProcessFXLayouts(zoneFilePaths_["FXLayouts"].filePath, fxLayouts_);
     if(zoneFilePaths_.count("FXPrologue") > 0)
