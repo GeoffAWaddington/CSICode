@@ -467,6 +467,37 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 {
     switch (uMsg)
     {
+            
+        case WM_PAINT:
+        {
+            /*
+            PAINTSTRUCT ps;
+            //HDC hdc = BeginPaint(GetDlgItem(hwndDlg, IDC_IndicatorColor), &ps);
+            HDC hdc = BeginPaint(hwndDlg, &ps);
+
+            HBRUSH brush = CreateSolidBrush(buttonColors[IDC_FXParamRingColor1]);
+            
+            RECT rc, rc2;
+            POINT p;
+            GetClientRect(GetDlgItem(hwndDlg, IDC_IndicatorColor), &rc);
+            GetWindowRect(GetDlgItem(hwndDlg, IDC_IndicatorColor), &rc2);
+            int width = rc.right - rc.left, height = rc.bottom - rc.top;
+            p.x=rc2.left;
+            p.y=rc2.top;
+            ScreenToClient(hwndDlg, &p);
+
+            rc2.left = p.x;
+            rc2.top = p.y;
+            
+            
+            FillRect(hdc, &rc2, brush);
+
+            EndPaint(GetDlgItem(hwndDlg, IDC_IndicatorColor), &ps);
+             */
+
+        }
+            break;
+            
         case WM_INITDIALOG:
         {
             for(int i = 0; i < stepPickers.size(); i++)
@@ -475,57 +506,71 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 for(auto [key, value] : SteppedValueDictionary)
                     SendDlgItemMessage(hwndDlg, stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
-
             }
                           
             for(auto param : allParams)
                 SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_ADDSTRING, 0, (LPARAM)param.c_str());
+
+            bool hasFonts = false;
+            
+            for(auto layout : surfaceLayoutTemplate)
+            {
+                if(layout.size() > 0 )
+                {
+                    if(layout[0] == "WidgetTypes")
+                    {
+                        for(int i = 0; i < widgetTypePickers.size(); i++)
+                            for(int j = 1; j < layout.size(); j++)
+                                SendDlgItemMessage(hwndDlg, widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                    }
+                    else if(layout[0] == "RingStyles")
+                    {
+                        for(int i = 0; i < ringStylePickers.size(); i++)
+                            for(int j = 1; j < layout.size(); j++)
+                                SendDlgItemMessage(hwndDlg, ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                    }
+                    else if(layout[0] == "DisplayRows")
+                    {
+                        for(int i = 0; i < fixedTextDisplayRowPickers.size(); i++)
+                            for(int j = 1; j < layout.size(); j++)
+                                SendDlgItemMessage(hwndDlg, fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        
+                        for(int i = 0; i < paramValueDisplayRowPickers.size(); i++)
+                            for(int j = 1; j < layout.size(); j++)
+                                SendDlgItemMessage(hwndDlg, paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                    }
+                    else if(layout[0] == "DisplayFonts")
+                    {
+                        hasFonts = true;
+                        
+                        for(int i = 0; i < fixedTextDisplayFontPickers.size(); i++)
+                            for(int j = 1; j < layout.size(); j++)
+                                SendDlgItemMessage(hwndDlg, fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        
+                        for(int i = 0; i < paramValueDisplayFontPickers.size(); i++)
+                            for(int j = 1; j < layout.size(); j++)
+                                SendDlgItemMessage(hwndDlg, paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                    }
+                }
+            }
+
+            if( ! hasFonts)
+            {
+                for(int i = 0; i < fixedTextDisplayFontPickers.size(); i++)
+                {
+                    ShowWindow(GetDlgItem(hwndDlg, fixedTextDisplayFontPickers[i]), false);
+                    ShowWindow(GetDlgItem(hwndDlg, paramValueDisplayFontPickers[i]), false);
+                }
+                 
+                for(auto [key, value] : buttonColors)
+                    ShowWindow(GetDlgItem(hwndDlg, key), false);
+            }
 
             for(int i = 0; i < paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
             {
                 SetDlgItemText(hwndDlg, paramNumEditControls[i], paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
                 SetDlgItemText(hwndDlg, fixedTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
 
-                for(auto layout : surfaceLayoutTemplate)
-                {
-                    if(layout.size() > 0 )
-                    {
-                        if(layout[0] == "WidgetTypes")
-                        {
-                            for(int i = 0; i < widgetTypePickers.size(); i++)
-                                for(int j = 1; j < layout.size(); j++)
-                                    SendDlgItemMessage(hwndDlg, widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
-                        }
-                        else if(layout[0] == "RingStyles")
-                        {
-                            for(int i = 0; i < ringStylePickers.size(); i++)
-                                for(int j = 1; j < layout.size(); j++)
-                                    SendDlgItemMessage(hwndDlg, ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
-                        }
-                        else if(layout[0] == "DisplayRows")
-                        {
-                            for(int i = 0; i < fixedTextDisplayRowPickers.size(); i++)
-                                for(int j = 1; j < layout.size(); j++)
-                                    SendDlgItemMessage(hwndDlg, fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
-                            
-                            for(int i = 0; i < paramValueDisplayRowPickers.size(); i++)
-                                for(int j = 1; j < layout.size(); j++)
-                                    SendDlgItemMessage(hwndDlg, paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
-                        }
-                        else if(layout[0] == "DisplayFonts")
-                        {
-                            for(int i = 0; i < fixedTextDisplayFontPickers.size(); i++)
-                                for(int j = 1; j < layout.size(); j++)
-                                    SendDlgItemMessage(hwndDlg, fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
-                            
-                            for(int i = 0; i < paramValueDisplayFontPickers.size(); i++)
-                                for(int j = 1; j < layout.size(); j++)
-                                    SendDlgItemMessage(hwndDlg, paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
-                        }
-                        
-                    }
-                }
-                
                 SetDlgItemText(hwndDlg, widgetTypePickers[i], paramDefs[fxListIndex].definitions[i].widget.c_str());
                 SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], paramDefs[fxListIndex].definitions[i].aliasDisplayWidget.c_str());
                 SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], paramDefs[fxListIndex].definitions[i].valueDisplayWidget.c_str());
@@ -706,6 +751,65 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         }
                     }
                 }
+                    break;
+                
+                case IDC_PickSteps2:
+                {
+                    switch (HIWORD(wParam))
+                    {
+                        case CBN_SELCHANGE:
+                        {
+                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_PickSteps2), CB_GETCURSEL, 0, 0);
+                            if(index >= 0)
+                            {
+                                if(index == 0)
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps2, "");
+                                else
+                                {
+                                    ostringstream stepStr;
+                                    
+                                    for(auto step : SteppedValueDictionary[index + 1])
+                                    {
+                                        stepStr << std::setprecision(2) << step;
+                                        stepStr <<  "  ";
+                                    }
+                                        
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps2, (stepStr.str()).c_str());
+                                }
+                            }
+                        }
+                    }
+                }
+                    break;
+                
+                case IDC_PickSteps3:
+                {
+                    switch (HIWORD(wParam))
+                    {
+                        case CBN_SELCHANGE:
+                        {
+                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_PickSteps3), CB_GETCURSEL, 0, 0);
+                            if(index >= 0)
+                            {
+                                if(index == 0)
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps3, "");
+                                else
+                                {
+                                    ostringstream stepStr;
+                                    
+                                    for(auto step : SteppedValueDictionary[index + 1])
+                                    {
+                                        stepStr << std::setprecision(2) << step;
+                                        stepStr <<  "  ";
+                                    }
+                                        
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps3, (stepStr.str()).c_str());
+                                }
+                            }
+                        }
+                    }
+                }
+                    break;
             }
         }
     }
@@ -724,7 +828,7 @@ static string GetParamString(int index)
         if(widgetName == "RotaryPush")
             widgetName = "Push";
         
-        paramString += "   " + widgetName + " " + paramDef.alias;
+        paramString += "   " + widgetName + "->" + paramDef.alias;
     }
 
     return paramString;;
@@ -1123,6 +1227,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
+    fxParamSlots.clear();
+    fxLayoutSuffixes.clear();
+    
     for(auto layout : zoneManager->GetFXLayouts())
     {
         for(int i = 0; i < layout.channelCount; i++)
