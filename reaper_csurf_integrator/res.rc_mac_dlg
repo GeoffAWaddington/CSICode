@@ -196,36 +196,24 @@ COMBOBOX        IDC_FixedTextDisplayPickFont1,502,58,16,12,CBS_DROPDOWN | CBS_SO
 COMBOBOX        IDC_FixedTextDisplayPickFont2,502,187,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
 COMBOBOX        IDC_FixedTextDisplayPickFont3,502,319,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
 LTEXT           "Font",IDC_STATIC,480,321,15,8
-CONTROL         "Ring Color",IDC_FXParamRingColor1,"Button",BS_OWNERDRAW | WS_TABSTOP,193,75,81,12
-CONTROL         "Indicator Color",IDC_FXParamIndicatorColor1,"Button",BS_OWNERDRAW | WS_TABSTOP,193,92,81,12
-CONTROL         "Ring Color",IDC_FXParamRingColor2,"Button",BS_OWNERDRAW | WS_TABSTOP,193,205,81,12
-CONTROL         "Indicator Color",IDC_FXParamIndicatorColor2,"Button",BS_OWNERDRAW | WS_TABSTOP,193,222,81,12
-CONTROL         "Ring Color",IDC_FXParamRingColor3,"Button",BS_OWNERDRAW | WS_TABSTOP,193,337,81,12
-CONTROL         "Indicator Color",IDC_FXParamIndicatorColor3,"Button",BS_OWNERDRAW | WS_TABSTOP,193,354,81,12
-CONTROL         "Foreground Color",IDC_FixedTextDisplayForegroundColor1,
-"Button",BS_OWNERDRAW | WS_TABSTOP,389,75,81,12
-CONTROL         "Foreground Color",IDC_FixedTextDisplayForegroundColor2,
-"Button",BS_OWNERDRAW | WS_TABSTOP,388,205,81,12
-CONTROL         "Foreground Color",IDC_FixedTextDisplayForegroundColor3,
-"Button",BS_OWNERDRAW | WS_TABSTOP,389,337,81,12
-CONTROL         "Background Color",IDC_FixedTextDisplayBackgroundColor1,
-"Button",BS_OWNERDRAW | WS_TABSTOP,389,92,81,12
-CONTROL         "Background Color",IDC_FixedTextDisplayBackgroundColor2,
-"Button",BS_OWNERDRAW | WS_TABSTOP,389,222,81,12
-CONTROL         "Background Color",IDC_FixedTextDisplayBackgroundColor3,
-"Button",BS_OWNERDRAW | WS_TABSTOP,389,354,81,12
-CONTROL         "Foreground Color",IDC_FXParamDisplayForegroundColor1,
-"Button",BS_OWNERDRAW | WS_TABSTOP,544,75,81,12
-CONTROL         "Foreground Color",IDC_FXParamDisplayForegroundColor2,
-"Button",BS_OWNERDRAW | WS_TABSTOP,544,205,81,12
-CONTROL         "Foreground Color",IDC_FXParamDisplayForegroundColor3,
-"Button",BS_OWNERDRAW | WS_TABSTOP,544,337,81,12
-CONTROL         "Background Color",IDC_FXParamDisplayBackgroundColor1,
-"Button",BS_OWNERDRAW | WS_TABSTOP,544,92,81,12
-CONTROL         "Background Color",IDC_FXParamDisplayBackgroundColor2,
-"Button",BS_OWNERDRAW | WS_TABSTOP,544,222,81,12
-CONTROL         "Background Color",IDC_FXParamDisplayBackgroundColor3,
-"Button",BS_OWNERDRAW | WS_TABSTOP,544,354,81,12
+PUSHBUTTON      "Ring Color",IDC_FXParamRingColor1,193,75,81,12
+PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor1,193,92,81,12
+PUSHBUTTON      "Ring Color",IDC_FXParamRingColor2,193,205,81,12
+PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor2,193,222,81,12
+PUSHBUTTON      "Ring Color",IDC_FXParamRingColor3,193,337,81,12
+PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor3,193,354,81,12
+PUSHBUTTON      "Foreground Color",IDC_FixedTextDisplayForegroundColor1,389,75,81,12
+PUSHBUTTON      "Foreground Color",IDC_FixedTextDisplayForegroundColor2,388,205,81,12
+PUSHBUTTON      "Foreground Color",IDC_FixedTextDisplayForegroundColor3,389,337,81,12
+PUSHBUTTON      "Background Color",IDC_FixedTextDisplayBackgroundColor1,389,92,81,12
+PUSHBUTTON      "Background Color",IDC_FixedTextDisplayBackgroundColor2,389,222,81,12
+PUSHBUTTON      "Background Color",IDC_FixedTextDisplayBackgroundColor3,389,354,81,12
+PUSHBUTTON      "Foreground Color",IDC_FXParamDisplayForegroundColor1,544,75,81,12
+PUSHBUTTON      "Foreground Color",IDC_FXParamDisplayForegroundColor2,544,205,81,12
+PUSHBUTTON      "Foreground Color",IDC_FXParamDisplayForegroundColor3,544,337,81,12
+PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor1,544,92,81,12
+PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor2,544,222,81,12
+PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor3,544,354,81,12
 END
 SWELL_DEFINE_DIALOG_RESOURCE_END(IDD_DIALOG_EditFXParam)
 

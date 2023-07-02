@@ -429,10 +429,21 @@ static vector<int> displayTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParam
 static vector<int> widgetTypeControls = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
 static vector<int> stepPickControls = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
 static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
+static vector<int> colorButtons = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
+//static vector<int> colorButtons = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3, IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
 
 static int fxListIndex = 0;
 
 static int dlgResult = 0;
+
+static map<int, int> buttonColors =
+{
+    { IDC_FXParamRingColor1, 0x00ff0000 },
+    { IDC_FXParamRingColor2, 0x00ff0000 },
+    { IDC_FXParamRingColor3, 0x00ff0000 }
+
+    
+};
 
 static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -479,6 +490,21 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             switch(LOWORD(wParam))
             {
+                case IDC_FXParamRingColor1:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor1]);
+                    }
+                        break;
+                case IDC_FXParamRingColor2:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor2]);
+                    }
+                        break;
+                case IDC_FXParamRingColor3:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor3]);
+                    }
+                        break;
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
