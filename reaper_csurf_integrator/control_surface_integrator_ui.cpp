@@ -425,25 +425,43 @@ void UnpackZone(string fullPath)
 }
 
 static vector<int> paramNumEditControls = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
-static vector<int> displayTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
-static vector<int> widgetTypeControls = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
-static vector<int> stepPickControls = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
+static vector<int> widgetTypePickers = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
+static vector<int> ringStylePickers = { IDC_PickRingStyle1, IDC_PickRingStyle2, IDC_PickRingStyle3 };
+static vector<int> fixedTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
+static vector<int> fixedTextDisplayRowPickers = { IDC_FixedTextDisplayPickRow1 , IDC_FixedTextDisplayPickRow2, IDC_FixedTextDisplayPickRow3 };
+static vector<int> fixedTextDisplayFontPickers = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
+static vector<int> paramValueDisplayRowPickers = { IDC_FXParamValueDisplayPickRow1 , IDC_FXParamValueDisplayPickRow2, IDC_FXParamValueDisplayPickRow3 };
+static vector<int> paramValueDisplayFontPickers = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
+
+static vector<int> stepPickers = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
 static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
-static vector<int> colorButtons = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
-//static vector<int> colorButtons = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3, IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
 
-static int fxListIndex = 0;
-
-static int dlgResult = 0;
 
 static map<int, int> buttonColors =
 {
     { IDC_FXParamRingColor1, 0x00ff0000 },
     { IDC_FXParamRingColor2, 0x00ff0000 },
-    { IDC_FXParamRingColor3, 0x00ff0000 }
-
-    
+    { IDC_FXParamRingColor3, 0x00ff0000 },
+    { IDC_FXParamIndicatorColor1, 0x00ff0000 },
+    { IDC_FXParamIndicatorColor2, 0x00ff0000 },
+    { IDC_FXParamIndicatorColor3, 0x00ff0000 },
+    { IDC_FixedTextDisplayForegroundColor1, 0x00ff0000 },
+    { IDC_FixedTextDisplayForegroundColor2, 0x00ff0000 },
+    { IDC_FixedTextDisplayForegroundColor3, 0x00ff0000 },
+    { IDC_FixedTextDisplayBackgroundColor1, 0x00ff0000 },
+    { IDC_FixedTextDisplayBackgroundColor2, 0x00ff0000 },
+    { IDC_FixedTextDisplayBackgroundColor3, 0x00ff0000 },
+    { IDC_FXParamDisplayForegroundColor1, 0x00ff0000 },
+    { IDC_FXParamDisplayForegroundColor2, 0x00ff0000 },
+    { IDC_FXParamDisplayForegroundColor3, 0x00ff0000 },
+    { IDC_FXParamDisplayBackgroundColor1, 0x00ff0000 },
+    { IDC_FXParamDisplayBackgroundColor2, 0x00ff0000 },
+    { IDC_FXParamDisplayBackgroundColor3, 0x00ff0000 }
 };
+
+static int fxListIndex = 0;
+
+static int dlgResult = 0;
 
 static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -451,29 +469,76 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            for(int i = 0; i < stepPickControls.size(); i++)
+            for(int i = 0; i < stepPickers.size(); i++)
             {
-                SendDlgItemMessage(hwndDlg, stepPickControls[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
+                SendDlgItemMessage(hwndDlg, stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
                 for(auto [key, value] : SteppedValueDictionary)
-                    SendDlgItemMessage(hwndDlg, stepPickControls[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
+                    SendDlgItemMessage(hwndDlg, stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
 
             }
-             
+                          
             for(auto param : allParams)
                 SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_ADDSTRING, 0, (LPARAM)param.c_str());
 
             for(int i = 0; i < paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
             {
                 SetDlgItemText(hwndDlg, paramNumEditControls[i], paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
-                SetDlgItemText(hwndDlg, displayTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
+                SetDlgItemText(hwndDlg, fixedTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
 
                 for(auto layout : surfaceLayoutTemplate)
-                    if(layout.size() > 0 && layout[0].find("Display") == string::npos)
-                        SendDlgItemMessage(hwndDlg, widgetTypeControls[i], CB_ADDSTRING, 0, (LPARAM)layout[0].c_str());
+                {
+                    if(layout.size() > 0 )
+                    {
+                        if(layout[0] == "WidgetTypes")
+                        {
+                            for(int i = 0; i < widgetTypePickers.size(); i++)
+                                for(int j = 1; j < layout.size(); j++)
+                                    SendDlgItemMessage(hwndDlg, widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        }
+                        else if(layout[0] == "RingStyles")
+                        {
+                            for(int i = 0; i < ringStylePickers.size(); i++)
+                                for(int j = 1; j < layout.size(); j++)
+                                    SendDlgItemMessage(hwndDlg, ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        }
+                        else if(layout[0] == "DisplayRows")
+                        {
+                            for(int i = 0; i < fixedTextDisplayRowPickers.size(); i++)
+                                for(int j = 1; j < layout.size(); j++)
+                                    SendDlgItemMessage(hwndDlg, fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                            
+                            for(int i = 0; i < paramValueDisplayRowPickers.size(); i++)
+                                for(int j = 1; j < layout.size(); j++)
+                                    SendDlgItemMessage(hwndDlg, paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        }
+                        else if(layout[0] == "DisplayFonts")
+                        {
+                            for(int i = 0; i < fixedTextDisplayFontPickers.size(); i++)
+                                for(int j = 1; j < layout.size(); j++)
+                                    SendDlgItemMessage(hwndDlg, fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                            
+                            for(int i = 0; i < paramValueDisplayFontPickers.size(); i++)
+                                for(int j = 1; j < layout.size(); j++)
+                                    SendDlgItemMessage(hwndDlg, paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        }
+                        
+                    }
+                }
                 
-                SetDlgItemText(hwndDlg, widgetTypeControls[i], paramDefs[fxListIndex].definitions[i].widget.c_str());
+                SetDlgItemText(hwndDlg, widgetTypePickers[i], paramDefs[fxListIndex].definitions[i].widget.c_str());
+                SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], paramDefs[fxListIndex].definitions[i].aliasDisplayWidget.c_str());
+                SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], paramDefs[fxListIndex].definitions[i].valueDisplayWidget.c_str());
+
+                if(paramDefs[fxListIndex].definitions[i].widgetProperties.count("RingStyle") > 0)
+                    SetDlgItemText(hwndDlg, ringStylePickers[i], paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"].c_str());
                 
+                if(paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Font") > 0)
+                    SetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"].c_str());
+
+                if(paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Font") > 0)
+                    SetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"].c_str());
+
                 string steps = "";
                 
                 for(auto step : paramDefs[fxListIndex].definitions[i].steps)
@@ -481,7 +546,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 SetDlgItemText(hwndDlg, stepEditControls[i], steps.c_str());
             }
-            
             
             break;
         }
@@ -495,16 +559,109 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor1]);
                     }
                         break;
+                    
                 case IDC_FXParamRingColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor2]);
                     }
                         break;
+                    
                 case IDC_FXParamRingColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor3]);
                     }
                         break;
+                    
+                case IDC_FXParamIndicatorColor1:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamIndicatorColor1]);
+                    }
+                        break;
+                    
+                case IDC_FXParamIndicatorColor2:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamIndicatorColor2]);
+                    }
+                        break;
+                    
+                case IDC_FXParamIndicatorColor3:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamIndicatorColor3]);
+                    }
+                        break;
+                    
+                case IDC_FixedTextDisplayForegroundColor1:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayForegroundColor1]);
+                    }
+                        break;
+                    
+                case IDC_FixedTextDisplayForegroundColor2:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayForegroundColor2]);
+                    }
+                        break;
+                    
+                case IDC_FixedTextDisplayForegroundColor3:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayForegroundColor3]);
+                    }
+                        break;
+                    
+                case IDC_FixedTextDisplayBackgroundColor1:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayBackgroundColor1]);
+                    }
+                        break;
+                    
+                case IDC_FixedTextDisplayBackgroundColor2:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayBackgroundColor2]);
+                    }
+                        break;
+                    
+                case IDC_FixedTextDisplayBackgroundColor3:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayBackgroundColor3]);
+                    }
+                        break;
+                    
+                case IDC_FXParamDisplayForegroundColor1:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayForegroundColor1]);
+                    }
+                        break;
+                    
+                case IDC_FXParamDisplayForegroundColor2:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayForegroundColor2]);
+                    }
+                        break;
+                    
+                case IDC_FXParamDisplayForegroundColor3:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayForegroundColor3]);
+                    }
+                        break;
+                    
+                case IDC_FXParamDisplayBackgroundColor1:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayBackgroundColor1]);
+                    }
+                        break;
+                    
+                case IDC_FXParamDisplayBackgroundColor2:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayBackgroundColor2]);
+                    }
+                        break;
+                    
+                case IDC_FXParamDisplayBackgroundColor3:
+                    {
+                        DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayBackgroundColor3]);
+                    }
+                        break;
+                     
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
