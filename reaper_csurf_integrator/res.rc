@@ -146,170 +146,98 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,70,191,10
 END
 
-IDD_DIALOG_EditFXParam DIALOGEX 0, 0, 632, 571
+IDD_DIALOG_EditFXParam DIALOGEX 0, 0, 782, 416
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,513,547,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,565,547,50,14
-    EDITTEXT        IDC_EditSteps1,20,27,479,14,ES_AUTOHSCROLL
-    COMBOBOX        IDC_PickSteps1,504,28,44,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,666,387,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,718,387,50,14
+    EDITTEXT        IDC_EditSteps1,20,27,605,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickSteps1,635,28,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     CTEXT           "Steps",IDC_STATIC,267,16,18,8
-    GROUPBOX        "Group 1",IDC_Group1,14,7,541,164
-    LISTBOX         IDC_AllParams,562,10,52,531,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "FXParam",IDC_GroupFXParam1,20,45,80,121
+    GROUPBOX        "Group 1",IDC_Group1,14,7,675,114
+    LISTBOX         IDC_AllParams,698,12,69,370,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "FXParam",IDC_GroupFXParam1,20,45,262,67
     LTEXT           "Param num",IDC_STATIC,31,60,37,8
-    EDITTEXT        IDC_FXParamNumEdit1,72,58,16,12,ES_CENTER | ES_AUTOHSCROLL
-    COMBOBOX        IDC_PickWidgetType1,31,75,57,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_PickRingStyle1,31,92,57,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CTEXT           "RingColor",IDC_FXParamRingColor1,33,111,54,8
-    CTEXT           "#00ff00ff",IDC_FXParamRingRGB1,33,122,54,8
-    CTEXT           "IndicatorColor",IDC_FXParamIndicatorColor1,33,139,54,8
-    CTEXT           "#ff00ffff",IDC_FXParamIndicatorRGB1,33,150,54,8
-    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay1,110,45,189,121
-    EDITTEXT        IDC_FXParamNameEdit1,115,58,81,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "ForegroundColorOn",IDC_FixedTextDisplayForegroundColorOn1,212,59,73,8
-    CTEXT           "#00ff00ff",IDC_FixedTextDisplayForegroundRGBOn1,221,70,54,8
-    CTEXT           "ForegroundColorOff",IDC_FixedTextDisplayForegroundColorOff1,212,117,73,8
-    CTEXT           "#ff00ffff",IDC_FixedTextDisplayForegroundRGBOff1,221,128,54,8
-    CTEXT           "BackgroundColorOn",IDC_FixedTextDisplayBackgroundColorOn1,212,84,73,8
-    CTEXT           "#00ff00ff",IDC_FixedTextDisplayBackgroundRGBOn1,221,95,54,8
-    CTEXT           "BackgroundColorOff",IDC_FixedTextDisplayBackgroundColorOff1,214,142,73,8
-    CTEXT           "#ff00ffff",IDC_FixedTextDisplayBackgroundRGBOff1,223,153,54,8
-    CTEXT           "Font",IDC_FixedTextDisplayProperty1Caption1,117,77,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty1Edit1,175,75,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "TopMargin",IDC_FixedTextDisplayProperty2Caption1,117,94,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty2Edit1,175,92,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "BottomMargin",IDC_FixedTextDisplayProperty3Caption1,117,111,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty3Edit1,175,109,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property4",IDC_FixedTextDisplayProperty4Caption1,117,128,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty4Edit1,175,126,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property5",IDC_FixedTextDisplayProperty5Caption1,117,145,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty5Edit1,175,141,21,12,ES_CENTER | ES_AUTOHSCROLL
-    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay1,309,48,189,121
-    CTEXT           "ForegroundColorOn",IDC_FXParamValueDisplayForegroundColorOn1,411,62,73,8
-    CTEXT           "#00ff00ff",IDC_FXParamValueDisplayForegroundRGBOn1,420,73,54,8
-    CTEXT           "ForegroundColorOff",IDC_FXParamValueDisplayForegroundColorOff1,411,120,73,8
-    CTEXT           "#ff00ffff",IDC_FXParamValueDisplayForegroundRGBOff1,420,131,54,8
-    CTEXT           "BackgroundColorOn",IDC_FXParamValueDisplayBackgroundColorOn1,411,87,73,8
-    CTEXT           "#00ff00ff",IDC_FXParamValueDisplayBackgroundRGBOn1,420,98,54,8
-    CTEXT           "BackgroundColorOff",IDC_FXParamValueDisplayBackgroundColorOff1,413,145,73,8
-    CTEXT           "#ff00ffff",IDC_FXParamValueDisplayBackgroundRGBOff1,422,156,54,8
-    CTEXT           "Font",IDC_FXParamValueDisplayProperty1Caption1,316,63,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty1Edit1,374,61,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "TopMargin",IDC_FXParamValueDisplayProperty2Caption1,316,84,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty2Edit1,374,82,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "BottomMargin",IDC_FXParamValueDisplayProperty3Caption1,316,106,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty3Edit1,374,104,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property4",IDC_FXParamValueDisplayProperty4Caption1,316,127,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty4Edit1,374,125,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property5",IDC_FXParamValueDisplayProperty5Caption1,316,149,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty5Edit1,374,147,21,12,ES_CENTER | ES_AUTOHSCROLL
-    EDITTEXT        IDC_EditSteps2,21,212,479,14,ES_AUTOHSCROLL
-    COMBOBOX        IDC_PickSteps2,505,213,44,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    CTEXT           "Steps",IDC_STATIC,268,201,18,8
-    GROUPBOX        "Group 2",IDC_Group2,15,192,541,164
-    GROUPBOX        "FXParam",IDC_GroupFXParam2,21,230,80,121
-    LTEXT           "Param num",IDC_STATIC,32,245,37,8
-    EDITTEXT        IDC_FXParamNumEdit2,73,243,16,12,ES_CENTER | ES_AUTOHSCROLL
-    COMBOBOX        IDC_PickWidgetType2,32,260,57,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_PickRingStyle2,32,277,57,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CTEXT           "RingColor",IDC_FXParamRingColor2,34,296,54,8
-    CTEXT           "#00ff00ff",IDC_FXParamRingRGB2,34,307,54,8
-    CTEXT           "IndicatorColor",IDC_FXParamIndicatorColor2,34,324,54,8
-    CTEXT           "#ff00ffff",IDC_FXParamIndicatorRGB2,34,335,54,8
-    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay2,111,230,189,121
-    EDITTEXT        IDC_FXParamNameEdit2,116,243,81,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "ForegroundColorOn",IDC_FixedTextDisplayForegroundColorOn2,213,244,73,8
-    CTEXT           "#00ff00ff",IDC_FixedTextDisplayForegroundRGBOn2,222,255,54,8
-    CTEXT           "ForegroundColorOff",IDC_FixedTextDisplayForegroundColorOff2,213,302,73,8
-    CTEXT           "#ff00ffff",IDC_FixedTextDisplayForegroundRGBOff2,222,313,54,8
-    CTEXT           "BackgroundColorOn",IDC_FixedTextDisplayBackgroundColorOn2,213,269,73,8
-    CTEXT           "#00ff00ff",IDC_FixedTextDisplayBackgroundRGBOn2,222,280,54,8
-    CTEXT           "BackgroundColorOff",IDC_FixedTextDisplayBackgroundColorOff2,215,327,73,8
-    CTEXT           "#ff00ffff",IDC_FixedTextDisplayBackgroundRGBOff2,224,338,54,8
-    CTEXT           "Font",IDC_FixedTextDisplayProperty1Caption2,118,262,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty1Edit2,176,260,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "TopMargin",IDC_FixedTextDisplayProperty2Caption2,118,279,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty2Edit2,176,277,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "BottomMargin",IDC_FixedTextDisplayProperty3Caption2,118,296,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty3Edit2,176,294,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property4",IDC_FixedTextDisplayProperty4Caption2,118,313,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty4Edit2,176,311,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property5",IDC_FixedTextDisplayProperty5Caption2,118,330,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty5Edit2,176,326,21,12,ES_CENTER | ES_AUTOHSCROLL
-    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay2,310,233,189,121
-    CTEXT           "ForegroundColorOn",IDC_FXParamValueDisplayForegroundColorOn2,412,247,73,8
-    CTEXT           "#00ff00ff",IDC_FXParamValueDisplayForegroundRGBOn2,421,258,54,8
-    CTEXT           "ForegroundColorOff",IDC_FXParamValueDisplayForegroundColorOff2,412,305,73,8
-    CTEXT           "#ff00ffff",IDC_FXParamValueDisplayForegroundRGBOff2,421,316,54,8
-    CTEXT           "BackgroundColorOn",IDC_FXParamValueDisplayBackgroundColorOn2,412,272,73,8
-    CTEXT           "#00ff00ff",IDC_FXParamValueDisplayBackgroundRGBOn2,421,283,54,8
-    CTEXT           "BackgroundColorOff",IDC_FXParamValueDisplayBackgroundColorOff2,414,330,73,8
-    CTEXT           "#ff00ffff",IDC_FXParamValueDisplayBackgroundRGBOff2,423,341,54,8
-    CTEXT           "Font",IDC_FXParamValueDisplayProperty1Caption2,317,248,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty1Edit2,375,246,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "TopMargin",IDC_FXParamValueDisplayProperty2Caption2,317,269,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty2Edit2,375,267,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "BottomMargin",IDC_FXParamValueDisplayProperty3Caption2,317,291,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty3Edit2,375,289,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property4",IDC_FXParamValueDisplayProperty4Caption2,317,312,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty4Edit2,375,310,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property5",IDC_FXParamValueDisplayProperty5Caption2,317,334,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty5Edit2,375,332,21,12,ES_CENTER | ES_AUTOHSCROLL
-    EDITTEXT        IDC_EditSteps3,21,397,479,14,ES_AUTOHSCROLL
-    COMBOBOX        IDC_PickSteps3,505,398,44,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    CTEXT           "Steps",IDC_STATIC,268,386,18,8
-    GROUPBOX        "Group 3",IDC_Group3,15,377,541,164
-    GROUPBOX        "FXParam",IDC_GroupFXParam3,21,415,80,121
-    LTEXT           "Param num",IDC_STATIC,32,430,37,8
-    EDITTEXT        IDC_FXParamNumEdit3,73,428,16,12,ES_CENTER | ES_AUTOHSCROLL
-    COMBOBOX        IDC_PickWidgetType3,32,445,57,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_PickRingStyle3,32,462,57,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    CTEXT           "RingColor",IDC_FXParamRingColor3,34,481,54,8
-    CTEXT           "#00ff00ff",IDC_FXParamRingRGB3,34,492,54,8
-    CTEXT           "IndicatorColor",IDC_FXParamIndicatorColor3,34,509,54,8
-    CTEXT           "#ff00ffff",IDC_FXParamIndicatorRGB3,34,520,54,8
-    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay3,111,415,189,121
-    EDITTEXT        IDC_FXParamNameEdit3,116,428,81,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "ForegroundColorOn",IDC_FixedTextDisplayForegroundColorOn3,213,429,73,8
-    CTEXT           "#00ff00ff",IDC_FixedTextDisplayForegroundRGBOn3,222,440,54,8
-    CTEXT           "ForegroundColorOff",IDC_FixedTextDisplayForegroundColorOff3,213,487,73,8
-    CTEXT           "#ff00ffff",IDC_FixedTextDisplayForegroundRGBOff3,222,498,54,8
-    CTEXT           "BackgroundColorOn",IDC_FixedTextDisplayBackgroundColorOn3,213,454,73,8
-    CTEXT           "#00ff00ff",IDC_FixedTextDisplayBackgroundRGBOn3,222,465,54,8
-    CTEXT           "BackgroundColorOff",IDC_FixedTextDisplayBackgroundColorOff3,215,512,73,8
-    CTEXT           "#ff00ffff",IDC_FixedTextDisplayBackgroundRGBOff3,224,523,54,8
-    CTEXT           "Font",IDC_FixedTextDisplayProperty1Caption3,118,447,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty1Edit3,176,445,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "TopMargin",IDC_FixedTextDisplayProperty2Caption3,118,464,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty2Edit3,176,462,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "BottomMargin",IDC_FixedTextDisplayProperty3Caption3,118,481,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty3Edit3,176,479,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property4",IDC_FixedTextDisplayProperty4Caption3,118,498,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty4Edit3,176,496,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property5",IDC_FixedTextDisplayProperty5Caption3,118,515,55,8
-    EDITTEXT        IDC_FixedTextDisplayProperty5Edit3,176,511,21,12,ES_CENTER | ES_AUTOHSCROLL
-    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay3,310,418,189,121
-    CTEXT           "ForegroundColorOn",IDC_FXParamValueDisplayForegroundColorOn3,412,432,73,8
-    CTEXT           "#00ff00ff",IDC_FXParamValueDisplayForegroundRGBOn3,421,443,54,8
-    CTEXT           "ForegroundColorOff",IDC_FXParamValueDisplayForegroundColorOff3,412,490,73,8
-    CTEXT           "#ff00ffff",IDC_FXParamValueDisplayForegroundRGBOff3,421,501,54,8
-    CTEXT           "BackgroundColorOn",IDC_FXParamValueDisplayBackgroundColorOn3,412,457,73,8
-    CTEXT           "#00ff00ff",IDC_FXParamValueDisplayBackgroundRGBOn3,421,468,54,8
-    CTEXT           "BackgroundColorOff",IDC_FXParamValueDisplayBackgroundColorOff3,414,515,73,8
-    CTEXT           "#ff00ffff",IDC_FXParamValueDisplayBackgroundRGBOff3,423,526,54,8
-    CTEXT           "Font",IDC_FXParamValueDisplayProperty1Caption3,317,433,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty1Edit3,375,431,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "TopMargin",IDC_FXParamValueDisplayProperty2Caption3,317,454,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty2Edit3,375,452,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "BottomMargin",IDC_FXParamValueDisplayProperty3Caption3,317,476,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty3Edit3,375,474,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property4",IDC_FXParamValueDisplayProperty4Caption3,317,497,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty4Edit3,375,495,21,12,ES_CENTER | ES_AUTOHSCROLL
-    CTEXT           "Property5",IDC_FXParamValueDisplayProperty5Caption3,317,519,55,8
-    EDITTEXT        IDC_FXParamValueDisplayProperty5Edit3,375,517,21,12,ES_CENTER | ES_AUTOHSCROLL
+    EDITTEXT        IDC_FXParamNumEdit1,77,58,16,12,ES_CENTER | ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickWidgetType1,104,58,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PickRingStyle1,193,58,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay1,290,45,237,67
+    EDITTEXT        IDC_FXParamNameEdit1,299,58,81,12,ES_CENTER | ES_AUTOHSCROLL
+    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay1,536,45,144,67
+    EDITTEXT        IDC_EditSteps2,21,157,605,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickSteps2,635,158,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    CTEXT           "Steps",IDC_STATIC,268,146,18,8
+    GROUPBOX        "Group 2",IDC_Group2,15,137,674,114
+    GROUPBOX        "FXParam",IDC_GroupFXParam2,21,175,262,67
+    LTEXT           "Param num",IDC_STATIC,31,190,37,8
+    EDITTEXT        IDC_FXParamNumEdit2,77,188,16,12,ES_CENTER | ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickWidgetType2,104,188,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PickRingStyle2,193,188,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay2,291,175,237,67
+    EDITTEXT        IDC_FXParamNameEdit2,300,188,81,12,ES_CENTER | ES_AUTOHSCROLL
+    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay2,536,175,144,67
+    EDITTEXT        IDC_EditSteps3,21,288,605,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickSteps3,635,289,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    CTEXT           "Steps",IDC_STATIC,268,277,18,8
+    GROUPBOX        "Group 3",IDC_Group3,15,268,675,114
+    GROUPBOX        "FXParam",IDC_GroupFXParam3,21,306,262,67
+    LTEXT           "Param num",IDC_STATIC,31,321,37,8
+    EDITTEXT        IDC_FXParamNumEdit3,77,319,16,12,ES_CENTER | ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickWidgetType3,104,319,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PickRingStyle3,193,319,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay3,291,306,237,67
+    EDITTEXT        IDC_FXParamNameEdit3,300,319,81,12,ES_CENTER | ES_AUTOHSCROLL
+    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay3,536,306,144,67
+    COMBOBOX        IDC_FixedTextDisplayPickRow1,388,58,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FixedTextDisplayPickRow2,388,188,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FixedTextDisplayPickRow3,388,319,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickRow1,544,58,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickRow2,544,188,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickRow3,544,319,81,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_STATIC,636,59,15,8
+    COMBOBOX        IDC_FXParamValueDisplayPickFont1,657,57,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_STATIC,636,189,15,8
+    LTEXT           "Font",IDC_STATIC,636,320,15,8
+    COMBOBOX        IDC_FXParamValueDisplayPickFont2,657,187,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickFont3,657,318,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_STATIC,480,59,15,8
+    LTEXT           "Font",IDC_STATIC,480,189,15,8
+    COMBOBOX        IDC_FixedTextDisplayPickFont1,502,58,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FixedTextDisplayPickFont2,502,187,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FixedTextDisplayPickFont3,502,319,16,12,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_STATIC,480,321,15,8
+    CONTROL         "Ring Color",IDC_FXParamRingColor1,"Button",BS_OWNERDRAW | WS_TABSTOP,193,75,81,12
+    CONTROL         "Indicator Color",IDC_FXParamIndicatorColor1,"Button",BS_OWNERDRAW | WS_TABSTOP,193,92,81,12
+    CONTROL         "Ring Color",IDC_FXParamRingColor2,"Button",BS_OWNERDRAW | WS_TABSTOP,193,205,81,12
+    CONTROL         "Indicator Color",IDC_FXParamIndicatorColor2,"Button",BS_OWNERDRAW | WS_TABSTOP,193,222,81,12
+    CONTROL         "Ring Color",IDC_FXParamRingColor3,"Button",BS_OWNERDRAW | WS_TABSTOP,193,337,81,12
+    CONTROL         "Indicator Color",IDC_FXParamIndicatorColor3,"Button",BS_OWNERDRAW | WS_TABSTOP,193,354,81,12
+    CONTROL         "Foreground Color",IDC_FixedTextDisplayForegroundColor1,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,389,75,81,12
+    CONTROL         "Foreground Color",IDC_FixedTextDisplayForegroundColor2,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,388,205,81,12
+    CONTROL         "Foreground Color",IDC_FixedTextDisplayForegroundColor3,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,389,337,81,12
+    CONTROL         "Background Color",IDC_FixedTextDisplayBackgroundColor1,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,389,92,81,12
+    CONTROL         "Background Color",IDC_FixedTextDisplayBackgroundColor2,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,389,222,81,12
+    CONTROL         "Background Color",IDC_FixedTextDisplayBackgroundColor3,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,389,354,81,12
+    CONTROL         "Foreground Color",IDC_FXParamDisplayForegroundColor1,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,544,75,81,12
+    CONTROL         "Foreground Color",IDC_FXParamDisplayForegroundColor2,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,544,205,81,12
+    CONTROL         "Foreground Color",IDC_FXParamDisplayForegroundColor3,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,544,337,81,12
+    CONTROL         "Background Color",IDC_FXParamDisplayBackgroundColor1,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,544,92,81,12
+    CONTROL         "Background Color",IDC_FXParamDisplayBackgroundColor2,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,544,222,81,12
+    CONTROL         "Background Color",IDC_FXParamDisplayBackgroundColor3,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,544,354,81,12
 END
 
 IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 464, 549
@@ -377,9 +305,9 @@ BEGIN
     IDD_DIALOG_EditFXParam, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 625
+        RIGHTMARGIN, 775
         TOPMARGIN, 7
-        BOTTOMMARGIN, 564
+        BOTTOMMARGIN, 409
     END
 
     IDD_DIALOG_RemapAutoFX, DIALOG
