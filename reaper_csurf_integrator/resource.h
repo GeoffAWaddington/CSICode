@@ -139,11 +139,8 @@
 #define IDC_PickRingStyle3              1238
 #define IDC_AdvancedGroup2              1239
 #define IDC_AdvancedGroup3              1240
-#define IDC_ParamNumLabel1              1241
-#define IDC_ParamNumLabel2              1242
 #define IDC_GroupFixedTextDisplay3      1243
 #define IDC_FXParamNameEdit3            1244
-#define IDC_ParamNumLabel3              1245
 #define IDC_GroupFXParamValueDisplay3   1263
 
 // Next default values for new objects

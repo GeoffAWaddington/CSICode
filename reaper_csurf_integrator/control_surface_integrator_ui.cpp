@@ -473,7 +473,6 @@ void UnpackZone(string fullPath)
     }
 }
 
-static vector<int> paramNumLabels = { IDC_ParamNumLabel1, IDC_ParamNumLabel2, IDC_ParamNumLabel3 };
 static vector<int> paramNumEditControls = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
 static vector<int> widgetTypePickers = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
 static vector<int> ringStylePickers = { IDC_PickRingStyle1, IDC_PickRingStyle2, IDC_PickRingStyle3 };
@@ -511,7 +510,6 @@ static vector<int> fxParamDisplayGroupBoxes = { IDC_GroupFXParamValueDisplay1 , 
 static vector<int> advancedButtons = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
 
 static vector<vector<int>> allControls = {
-    paramNumLabels,
     paramNumEditControls,
     widgetTypePickers,
     ringStylePickers,
