@@ -619,23 +619,26 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 for(auto [ colorPicker, colorValue ] :  buttonColors)
                 {
-                    HBRUSH brush = CreateSolidBrush(colorValue);
-                    
-                    RECT clientRect, windowRect;
-                    POINT p;
-                    GetClientRect(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker]), &clientRect);
-                    GetWindowRect(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker]), &windowRect);
-                    p.x = windowRect.left;
-                    p.y = windowRect.top;
-                    ScreenToClient(hwndDlg, &p);
-                    
-                    windowRect.left = p.x;
-                    windowRect.right = windowRect.left + clientRect.right;
-                    windowRect.top = p.y;
-                    windowRect.bottom = windowRect.top + clientRect.bottom;
-                    
-                    FillRect(hdc, &windowRect, brush);
-                    DeleteObject(brush);
+                    if(IsWindowVisible(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker])))
+                    {
+                        HBRUSH brush = CreateSolidBrush(colorValue);
+                        
+                        RECT clientRect, windowRect;
+                        POINT p;
+                        GetClientRect(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker]), &clientRect);
+                        GetWindowRect(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker]), &windowRect);
+                        p.x = windowRect.left;
+                        p.y = windowRect.top;
+                        ScreenToClient(hwndDlg, &p);
+                        
+                        windowRect.left = p.x;
+                        windowRect.right = windowRect.left + clientRect.right;
+                        windowRect.top = p.y;
+                        windowRect.bottom = windowRect.top + clientRect.bottom;
+                        
+                        FillRect(hdc, &windowRect, brush);
+                        DeleteObject(brush);
+                    }
                 }
                 
                 EndPaint(hwndDlg, &ps);
@@ -937,7 +940,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_ShowGroup2:
                 {
                     if(SendMessage(GetDlgItem(hwndDlg, IDC_ShowGroup2), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
                         ShowAllControls(hwndDlg, 1, 2, true);
+                        InvalidateRect(hwndDlg, NULL, true);
+                    }
                     else
                     {
                         ShowAllControls(hwndDlg, 1, 3, false);
@@ -949,7 +955,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_ShowGroup3:
                 {
                     if(SendMessage(GetDlgItem(hwndDlg, IDC_ShowGroup3), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
                         ShowAllControls(hwndDlg, 2, 3, true);
+                        InvalidateRect(hwndDlg, NULL, true);
+                    }
                     else
                         ShowAllControls(hwndDlg, 2, 3, false);
                 }
