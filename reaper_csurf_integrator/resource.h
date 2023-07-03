@@ -126,13 +126,24 @@
 #define IDC_FXParamValueDisplayForegroundColorBox1 1221
 #define IDC_FXParamValueDisplayForegroundColorBox2 1222
 #define IDC_FXParamValueDisplayForegroundColorBox3 1223
+#define IDC_StepsPromptGroup2           1224
+#define IDC_StepsPromptGroup3           1225
+#define IDC_ShowGroup2                  1229
+#define IDC_ShowGroup3                  1230
+#define IDC_StepsPromptGroup1           1231
+#define IDC_AdvancedGroup1              1233
 #define IDC_Group3                      1234
 #define IDC_GroupFXParam3               1235
 #define IDC_FXParamNumEdit3             1236
 #define IDC_PickWidgetType3             1237
 #define IDC_PickRingStyle3              1238
+#define IDC_AdvancedGroup2              1239
+#define IDC_AdvancedGroup3              1240
+#define IDC_ParamNumLabel1              1241
+#define IDC_ParamNumLabel2              1242
 #define IDC_GroupFixedTextDisplay3      1243
 #define IDC_FXParamNameEdit3            1244
+#define IDC_ParamNumLabel3              1245
 #define IDC_GroupFXParamValueDisplay3   1263
 
 // Next default values for new objects
@@ -141,7 +152,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1206
+#define _APS_NEXT_CONTROL_VALUE         1246
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

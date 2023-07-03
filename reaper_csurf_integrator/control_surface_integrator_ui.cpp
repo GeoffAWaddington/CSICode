@@ -473,6 +473,7 @@ void UnpackZone(string fullPath)
     }
 }
 
+static vector<int> paramNumLabels = { IDC_ParamNumLabel1, IDC_ParamNumLabel2, IDC_ParamNumLabel3 };
 static vector<int> paramNumEditControls = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
 static vector<int> widgetTypePickers = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
 static vector<int> ringStylePickers = { IDC_PickRingStyle1, IDC_PickRingStyle2, IDC_PickRingStyle3 };
@@ -486,6 +487,7 @@ static vector<int> paramValueDisplayFontPickers = { IDC_FXParamValueDisplayPickF
 
 static vector<int> stepPickers = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
 static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
+static vector<int> stepPrompts = { IDC_StepsPromptGroup1, IDC_StepsPromptGroup2, IDC_StepsPromptGroup3 };
 
 static vector<int> widgetRingColors = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
 static vector<int> widgetRingIndicators = { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
@@ -493,6 +495,55 @@ static vector<int> fixedTextDisplayForegroundColors = { IDC_FixedTextDisplayFore
 static vector<int> fixedTextDisplayBackgroundColors = { IDC_FixedTextDisplayBackgroundColor1, IDC_FixedTextDisplayBackgroundColor2, IDC_FixedTextDisplayBackgroundColor3 };
 static vector<int> fxParamDisplayForegroundColors = { IDC_FXParamDisplayForegroundColor1, IDC_FXParamDisplayForegroundColor2, IDC_FXParamDisplayForegroundColor3 };
 static vector<int> fxParamDisplayBackgroundColors = { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamDisplayBackgroundColor2, IDC_FXParamDisplayBackgroundColor3 };
+
+
+// for show / hide
+static vector<int> groupBoxes = { IDC_Group1, IDC_Group2, IDC_Group3 };
+static vector<int> fxParamGroupBoxes = { IDC_GroupFXParam1, IDC_GroupFXParam2, IDC_GroupFXParam3 };
+static vector<int> fixedTextDisplayGroupBoxes = { IDC_GroupFixedTextDisplay1 , IDC_GroupFixedTextDisplay2, IDC_GroupFixedTextDisplay3 };
+static vector<int> fxParamDisplayGroupBoxes = { IDC_GroupFXParamValueDisplay1 , IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
+static vector<int> advancedButtons = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
+
+static vector<vector<int>> allControls = {
+    paramNumLabels,
+    paramNumEditControls,
+    widgetTypePickers,
+    ringStylePickers,
+    fixedTextEditControls,
+    fixedTextDisplayRowPickers,
+    fixedTextDisplayFontLabels,
+    fixedTextDisplayFontPickers,
+    paramValueDisplayRowPickers,
+    paramValueDisplayFontLabels,
+    paramValueDisplayFontPickers,
+    
+    stepPickers,
+    stepEditControls,
+    stepPrompts,
+    
+    widgetRingColors,
+    widgetRingIndicators,
+    fixedTextDisplayForegroundColors,
+    fixedTextDisplayBackgroundColors,
+    fxParamDisplayForegroundColors,
+    fxParamDisplayBackgroundColors,
+    
+    groupBoxes,
+    fxParamGroupBoxes,
+    fixedTextDisplayGroupBoxes,
+    fxParamDisplayGroupBoxes,
+    advancedButtons
+};
+
+static void ShowAllControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
+{
+    for(auto controls : allControls)
+        for(int i = startIndex; i < endIndex; i++)
+            ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
+    
+    if(startIndex == 1)
+        ShowWindow(GetDlgItem(hwndDlg, IDC_ShowGroup3), show);
+}
 
 static map<int, int> buttonColors =
 {
@@ -584,6 +635,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_INITDIALOG:
         {
+            SetWindowText(hwndDlg, (fxAlias + "   " + fxParamSlots[fxListIndex]).c_str());
+            
+            ShowAllControls(hwndDlg, 1, stepPickers.size(), false);
+
             for(int i = 0; i < stepPickers.size(); i++)
             {
                 SendDlgItemMessage(hwndDlg, stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
@@ -651,6 +706,18 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for(int i = 0; i < paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
             {
+                if(i == 1)
+                {
+                    ShowAllControls(hwndDlg, 1, 2, true);
+                    CheckDlgButton(hwndDlg, IDC_ShowGroup2, true);
+                }
+                
+                if(i == 2)
+                {
+                    ShowAllControls(hwndDlg, 2, 3, true);
+                    CheckDlgButton(hwndDlg, IDC_ShowGroup3, true);
+                }
+                
                 SetDlgItemText(hwndDlg, paramNumEditControls[i], paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
                 SetDlgItemText(hwndDlg, fixedTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
 
@@ -856,7 +923,28 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
-                     
+                 
+                case IDC_ShowGroup2:
+                {
+                    if(SendMessage(GetDlgItem(hwndDlg, IDC_ShowGroup2), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                        ShowAllControls(hwndDlg, 1, 2, true);
+                    else
+                    {
+                        ShowAllControls(hwndDlg, 1, 3, false);
+                        CheckDlgButton(hwndDlg, IDC_ShowGroup3, false);
+                    }
+                }
+                    break;
+                    
+                case IDC_ShowGroup3:
+                {
+                    if(SendMessage(GetDlgItem(hwndDlg, IDC_ShowGroup3), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                        ShowAllControls(hwndDlg, 2, 3, true);
+                    else
+                        ShowAllControls(hwndDlg, 2, 3, false);
+                }
+                    break;
+                    
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {

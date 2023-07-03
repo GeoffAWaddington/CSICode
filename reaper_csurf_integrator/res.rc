@@ -153,35 +153,35 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,674,387,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,726,387,50,14
-    EDITTEXT        IDC_EditSteps1,76,93,607,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EditSteps1,76,93,549,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps1,20,94,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_STATIC,20,109,328,8
+    LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup1,20,109,328,8
     GROUPBOX        "Group 1",IDC_Group1,14,9,675,114
     LISTBOX         IDC_AllParams,696,12,79,370,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
     GROUPBOX        "FXParam",IDC_GroupFXParam1,21,21,261,67
-    LTEXT           "Param num",IDC_STATIC,31,36,37,8
+    LTEXT           "Param num",IDC_ParamNumLabel1,31,36,37,8
     EDITTEXT        IDC_FXParamNumEdit1,77,34,16,12,ES_CENTER | ES_AUTOHSCROLL
     COMBOBOX        IDC_PickWidgetType1,104,34,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_PickRingStyle1,193,34,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay1,290,21,237,67
     EDITTEXT        IDC_FXParamNameEdit1,299,34,81,12,ES_CENTER | ES_AUTOHSCROLL
     GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay1,536,21,146,67
-    EDITTEXT        IDC_EditSteps2,76,223,605,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EditSteps2,76,223,549,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps2,20,223,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Group 2",IDC_Group2,15,137,674,114
     GROUPBOX        "FXParam",IDC_GroupFXParam2,21,150,262,67
-    LTEXT           "Param num",IDC_STATIC,31,165,37,8
+    LTEXT           "Param num",IDC_ParamNumLabel2,31,165,37,8
     EDITTEXT        IDC_FXParamNumEdit2,77,163,16,12,ES_CENTER | ES_AUTOHSCROLL
     COMBOBOX        IDC_PickWidgetType2,104,163,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_PickRingStyle2,193,163,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay2,291,150,237,67
     EDITTEXT        IDC_FXParamNameEdit2,300,163,81,12,ES_CENTER | ES_AUTOHSCROLL
     GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay2,536,150,144,67
-    EDITTEXT        IDC_EditSteps3,76,354,605,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EditSteps3,76,354,549,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps3,20,355,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Group 3",IDC_Group3,15,268,675,114
     GROUPBOX        "FXParam",IDC_GroupFXParam3,21,281,262,67
-    LTEXT           "Param num",IDC_STATIC,31,296,37,8
+    LTEXT           "Param num",IDC_ParamNumLabel3,31,296,37,8
     EDITTEXT        IDC_FXParamNumEdit3,77,294,16,12,ES_CENTER | ES_AUTOHSCROLL
     COMBOBOX        IDC_PickWidgetType3,104,294,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_PickRingStyle3,193,294,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
@@ -224,8 +224,8 @@ BEGIN
     PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor1,544,68,81,12
     PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor2,544,197,81,12
     PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor3,544,329,81,12
-    LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_STATIC,20,238,328,8
-    LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_STATIC,20,369,328,8
+    LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup2,20,238,328,8
+    LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup3,20,369,328,8
     LTEXT           "",IDC_FXParamRingColorBox1,174,53,8,8
     LTEXT           "",IDC_FXParamRingColorBox2,174,182,8,8
     LTEXT           "",IDC_FXParamRingColorBox3,174,314,8,8
@@ -244,6 +244,11 @@ BEGIN
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,638,53,8,8
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,638,181,8,8
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,638,313,8,8
+    CONTROL         "Show Group 2",IDC_ShowGroup2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,295,127,61,10
+    CONTROL         "Show Group 3",IDC_ShowGroup3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,295,256,61,10
+    PUSHBUTTON      "Advanced",IDC_AdvancedGroup1,636,91,44,14
+    PUSHBUTTON      "Advanced",IDC_AdvancedGroup2,636,222,44,14
+    PUSHBUTTON      "Advanced",IDC_AdvancedGroup3,636,353,44,14
 END
 
 IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 464, 549
