@@ -429,16 +429,21 @@ static vector<int> widgetTypePickers = { IDC_PickWidgetType1, IDC_PickWidgetType
 static vector<int> ringStylePickers = { IDC_PickRingStyle1, IDC_PickRingStyle2, IDC_PickRingStyle3 };
 static vector<int> fixedTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
 static vector<int> fixedTextDisplayRowPickers = { IDC_FixedTextDisplayPickRow1 , IDC_FixedTextDisplayPickRow2, IDC_FixedTextDisplayPickRow3 };
-static vector<int> fixedTextDisplayFontPickers = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
 static vector<int> fixedTextDisplayFontLabels = { IDC_FixedTextDisplayFontLabel1, IDC_FixedTextDisplayFontLabel2, IDC_FixedTextDisplayFontLabel3 };
+static vector<int> fixedTextDisplayFontPickers = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
 static vector<int> paramValueDisplayRowPickers = { IDC_FXParamValueDisplayPickRow1 , IDC_FXParamValueDisplayPickRow2, IDC_FXParamValueDisplayPickRow3 };
-static vector<int> paramValueDisplayFontPickers = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
 static vector<int> paramValueDisplayFontLabels = { IDC_FXParamValueDisplayFontLabel1, IDC_FXParamValueDisplayFontLabel2, IDC_FXParamValueDisplayFontLabel3 };
-
+static vector<int> paramValueDisplayFontPickers = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
 
 static vector<int> stepPickers = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
 static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
 
+static vector<int> widgetRingColors = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
+static vector<int> widgetRingIndicators = { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
+static vector<int> fixedTextDisplayForegroundColors = { IDC_FixedTextDisplayForegroundColor1, IDC_FixedTextDisplayForegroundColor2, IDC_FixedTextDisplayForegroundColor3 };
+static vector<int> fixedTextDisplayBackgroundColors = { IDC_FixedTextDisplayBackgroundColor1, IDC_FixedTextDisplayBackgroundColor2, IDC_FixedTextDisplayBackgroundColor3 };
+static vector<int> fxParamDisplayForegroundColors = { IDC_FXParamDisplayForegroundColor1, IDC_FXParamDisplayForegroundColor2, IDC_FXParamDisplayForegroundColor3 };
+static vector<int> fxParamDisplayBackgroundColors = { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamDisplayBackgroundColor2, IDC_FXParamDisplayBackgroundColor3 };
 
 static map<int, int> buttonColors =
 {
