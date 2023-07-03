@@ -430,8 +430,11 @@ static vector<int> ringStylePickers = { IDC_PickRingStyle1, IDC_PickRingStyle2, 
 static vector<int> fixedTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
 static vector<int> fixedTextDisplayRowPickers = { IDC_FixedTextDisplayPickRow1 , IDC_FixedTextDisplayPickRow2, IDC_FixedTextDisplayPickRow3 };
 static vector<int> fixedTextDisplayFontPickers = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
+static vector<int> fixedTextDisplayFontLabels = { IDC_FixedTextDisplayFontLabel1, IDC_FixedTextDisplayFontLabel2, IDC_FixedTextDisplayFontLabel3 };
 static vector<int> paramValueDisplayRowPickers = { IDC_FXParamValueDisplayPickRow1 , IDC_FXParamValueDisplayPickRow2, IDC_FXParamValueDisplayPickRow3 };
 static vector<int> paramValueDisplayFontPickers = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
+static vector<int> paramValueDisplayFontLabels = { IDC_FXParamValueDisplayFontLabel1, IDC_FXParamValueDisplayFontLabel2, IDC_FXParamValueDisplayFontLabel3 };
+
 
 static vector<int> stepPickers = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
 static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
@@ -559,7 +562,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 for(int i = 0; i < fixedTextDisplayFontPickers.size(); i++)
                 {
                     ShowWindow(GetDlgItem(hwndDlg, fixedTextDisplayFontPickers[i]), false);
+                    ShowWindow(GetDlgItem(hwndDlg, fixedTextDisplayFontLabels[i]), false);
                     ShowWindow(GetDlgItem(hwndDlg, paramValueDisplayFontPickers[i]), false);
+                    ShowWindow(GetDlgItem(hwndDlg, paramValueDisplayFontLabels[i]), false);
                 }
                  
                 for(auto [key, value] : buttonColors)

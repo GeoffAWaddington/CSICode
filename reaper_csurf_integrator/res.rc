@@ -194,18 +194,18 @@ BEGIN
     COMBOBOX        IDC_FXParamValueDisplayPickRow1,544,34,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FXParamValueDisplayPickRow2,544,163,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FXParamValueDisplayPickRow3,544,294,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Font",IDC_STATIC,636,35,15,8
+    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel1,636,35,15,8
     COMBOBOX        IDC_FXParamValueDisplayPickFont1,653,33,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Font",IDC_STATIC,636,164,15,8
-    LTEXT           "Font",IDC_STATIC,636,295,15,8
+    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel2,636,164,15,8
+    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel3,636,295,15,8
     COMBOBOX        IDC_FXParamValueDisplayPickFont2,653,162,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FXParamValueDisplayPickFont3,653,293,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Font",IDC_STATIC,480,35,15,8
-    LTEXT           "Font",IDC_STATIC,480,164,15,8
+    LTEXT           "Font",IDC_FixedTextDisplayFontLabel1,480,35,15,8
+    LTEXT           "Font",IDC_FixedTextDisplayFontLabel2,480,164,15,8
     COMBOBOX        IDC_FixedTextDisplayPickFont1,497,33,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FixedTextDisplayPickFont2,497,162,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FixedTextDisplayPickFont3,497,294,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Font",IDC_STATIC,480,296,15,8
+    LTEXT           "Font",IDC_FixedTextDisplayFontLabel3,480,296,15,8
     PUSHBUTTON      "Ring Color",IDC_FXParamRingColor1,193,51,81,12
     PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor1,193,68,81,12
     PUSHBUTTON      "Ring Color",IDC_FXParamRingColor2,193,180,81,12
@@ -226,6 +226,24 @@ BEGIN
     PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor3,544,329,81,12
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_STATIC,20,238,328,8
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_STATIC,20,369,328,8
+    LTEXT           "",IDC_FXParamRingColorBox1,174,53,8,8
+    LTEXT           "",IDC_FXParamRingColorBox2,174,182,8,8
+    LTEXT           "",IDC_FXParamRingColorBox3,174,313,8,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox1,175,70,8,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox2,175,199,8,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox3,175,331,8,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox1,482,53,8,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox2,482,182,8,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox3,482,313,8,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox1,482,70,8,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox2,482,198,8,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox3,482,330,8,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox1,639,70,8,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox2,638,198,8,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox3,638,330,8,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,638,53,8,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,638,181,8,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,638,313,8,8
 END
 
 IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 464, 549

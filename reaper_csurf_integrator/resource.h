@@ -101,7 +101,31 @@
 #define IDC_FXParamDisplayBackgroundColor3 1192
 #define IDC_GroupFixedTextDisplay2      1195
 #define IDC_FXParamNameEdit2            1196
+#define IDC_FixedTextDisplayFontLabel1  1199
+#define IDC_FixedTextDisplayFontLabel2  1200
+#define IDC_FixedTextDisplayFontLabel3  1201
+#define IDC_FXParamValueDisplayFontLabel1 1202
+#define IDC_FXParamValueDisplayFontLabel2 1203
+#define IDC_FXParamValueDisplayFontLabel3 1204
+#define IDC_FXParamRingColorBox1        1205
+#define IDC_FXParamRingColorBox2        1206
+#define IDC_FXParamRingColorBox3        1207
+#define IDC_FXParamIndicatorColorBox1   1208
+#define IDC_FXParamIndicatorColorBox2   1209
+#define IDC_FXParamIndicatorColorBox3   1210
+#define IDC_FXFixedTextDisplayForegroundColorBox1 1211
+#define IDC_FXFixedTextDisplayForegroundColorBox2 1212
+#define IDC_FXFixedTextDisplayForegroundColorBox3 1213
+#define IDC_FXFixedTextDisplayBackgroundColorBox1 1214
 #define IDC_GroupFXParamValueDisplay2   1215
+#define IDC_FXFixedTextDisplayBackgroundColorBox2 1216
+#define IDC_FXFixedTextDisplayBackgroundColorBox3 1217
+#define IDC_FXParamValueDisplayBackgroundColorBox1 1218
+#define IDC_FXParamValueDisplayBackgroundColorBox2 1219
+#define IDC_FXParamValueDisplayBackgroundColorBox3 1220
+#define IDC_FXParamValueDisplayForegroundColorBox1 1221
+#define IDC_FXParamValueDisplayForegroundColorBox2 1222
+#define IDC_FXParamValueDisplayForegroundColorBox3 1223
 #define IDC_Group3                      1234
 #define IDC_GroupFXParam3               1235
 #define IDC_FXParamNumEdit3             1236
@@ -117,7 +141,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        119
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1199
+#define _APS_NEXT_CONTROL_VALUE         1206
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
