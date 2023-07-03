@@ -574,6 +574,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     windowRect.bottom = windowRect.top + clientRect.bottom;
                     
                     FillRect(hdc, &windowRect, brush);
+                    DeleteObject(brush);
                 }
                 
                 EndPaint(hwndDlg, &ps);
@@ -718,12 +719,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             
             if(hasColors)
-            {
                 InvalidateRect(hwndDlg, NULL, true);
-            }
             else
                 for(auto [key, value] : buttonColors)
-                    ShowWindow(GetDlgItem(hwndDlg, key), false);            
+                    ShowWindow(GetDlgItem(hwndDlg, key), false);
             
             break;
         }
