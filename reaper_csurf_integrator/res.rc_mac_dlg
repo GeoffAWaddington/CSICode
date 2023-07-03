@@ -216,10 +216,10 @@ LTEXT           "Choose number of steps from the dropdown or enter custom steps 
 LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_STATIC,20,369,328,8
 LTEXT           "",IDC_FXParamRingColorBox1,174,53,8,8
 LTEXT           "",IDC_FXParamRingColorBox2,174,182,8,8
-LTEXT           "",IDC_FXParamRingColorBox3,174,313,8,8
-LTEXT           "",IDC_FXParamIndicatorColorBox1,175,70,8,8
-LTEXT           "",IDC_FXParamIndicatorColorBox2,175,199,8,8
-LTEXT           "",IDC_FXParamIndicatorColorBox3,175,331,8,8
+LTEXT           "",IDC_FXParamRingColorBox3,174,314,8,8
+LTEXT           "",IDC_FXParamIndicatorColorBox1,174,70,8,8
+LTEXT           "",IDC_FXParamIndicatorColorBox2,174,199,8,8
+LTEXT           "",IDC_FXParamIndicatorColorBox3,174,331,8,8
 LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox1,482,53,8,8
 LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox2,482,182,8,8
 LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox3,482,313,8,8

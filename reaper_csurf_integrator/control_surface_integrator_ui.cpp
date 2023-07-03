@@ -516,6 +516,28 @@ static map<int, int> buttonColors =
     { IDC_FXParamDisplayBackgroundColor3, 0x00ff0000 }
 };
 
+static map<int, int> buttonColorBoxes =
+{
+    { IDC_FXParamRingColor1, IDC_FXParamRingColorBox1 },
+    { IDC_FXParamRingColor2, IDC_FXParamRingColorBox2 },
+    { IDC_FXParamRingColor3, IDC_FXParamRingColorBox3 },
+    { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColorBox1 },
+    { IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColorBox2 },
+    { IDC_FXParamIndicatorColor3, IDC_FXParamIndicatorColorBox3 },
+    { IDC_FixedTextDisplayForegroundColor1, IDC_FXFixedTextDisplayForegroundColorBox1 },
+    { IDC_FixedTextDisplayForegroundColor2, IDC_FXFixedTextDisplayForegroundColorBox2 },
+    { IDC_FixedTextDisplayForegroundColor3, IDC_FXFixedTextDisplayForegroundColorBox3 },
+    { IDC_FixedTextDisplayBackgroundColor1, IDC_FXFixedTextDisplayBackgroundColorBox1 },
+    { IDC_FixedTextDisplayBackgroundColor2, IDC_FXFixedTextDisplayBackgroundColorBox2 },
+    { IDC_FixedTextDisplayBackgroundColor3, IDC_FXFixedTextDisplayBackgroundColorBox3 },
+    { IDC_FXParamDisplayForegroundColor1, IDC_FXParamValueDisplayForegroundColorBox1 },
+    { IDC_FXParamDisplayForegroundColor2, IDC_FXParamValueDisplayForegroundColorBox2 },
+    { IDC_FXParamDisplayForegroundColor3, IDC_FXParamValueDisplayForegroundColorBox3 },
+    { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamValueDisplayBackgroundColorBox1 },
+    { IDC_FXParamDisplayBackgroundColor2, IDC_FXParamValueDisplayBackgroundColorBox2 },
+    { IDC_FXParamDisplayBackgroundColor3, IDC_FXParamValueDisplayBackgroundColorBox3 }
+};
+
 static int fxListIndex = 0;
 
 static int dlgResult = 0;
@@ -527,30 +549,35 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_PAINT:
         {
-            /*
-            PAINTSTRUCT ps;
-            //HDC hdc = BeginPaint(GetDlgItem(hwndDlg, IDC_IndicatorColor), &ps);
-            HDC hdc = BeginPaint(hwndDlg, &ps);
-
-            HBRUSH brush = CreateSolidBrush(buttonColors[IDC_FXParamRingColor1]);
             
-            RECT rc, rc2;
-            POINT p;
-            GetClientRect(GetDlgItem(hwndDlg, IDC_IndicatorColor), &rc);
-            GetWindowRect(GetDlgItem(hwndDlg, IDC_IndicatorColor), &rc2);
-            int width = rc.right - rc.left, height = rc.bottom - rc.top;
-            p.x=rc2.left;
-            p.y=rc2.top;
-            ScreenToClient(hwndDlg, &p);
 
-            rc2.left = p.x;
-            rc2.top = p.y;
-            
-            
-            FillRect(hdc, &rc2, brush);
+            for(auto [ket, value] : buttonColorBoxes)
+            {
+                PAINTSTRUCT ps;
+                HDC hdc = BeginPaint(hwndDlg, &ps);
 
-            EndPaint(GetDlgItem(hwndDlg, IDC_IndicatorColor), &ps);
-             */
+                HBRUSH brush = CreateSolidBrush(buttonColors[IDC_FXParamRingColor1]);
+                
+                RECT clientRect, windowRect;
+                POINT p;
+                GetClientRect(GetDlgItem(hwndDlg, value), &clientRect);
+                GetWindowRect(GetDlgItem(hwndDlg, value), &windowRect);
+                p.x=windowRect.left;
+                p.y=windowRect.top;
+                ScreenToClient(hwndDlg, &p);
+
+                windowRect.left = p.x;
+                windowRect.right = windowRect.left + clientRect.right;
+                windowRect.top = p.y;
+                windowRect.bottom = windowRect.top + clientRect.bottom;
+                
+                FillRect(hdc, &windowRect, brush);
+                
+                EndPaint(GetDlgItem(hwndDlg, value), &ps);
+            }
+
+            
+             
 
         }
             break;
