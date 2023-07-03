@@ -441,28 +441,6 @@ public:
     }
 };
 
-static rgba_color GetColorValue(string hexColor)
-{
-    rgba_color colorValue;
-    
-    if(hexColor.length() == 7)
-    {
-        regex pattern("#([0-9a-fA-F]{6})");
-        smatch match;
-        if (regex_match(hexColor, match, pattern))
-            sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
-    }
-    else if(hexColor.length() == 9)
-    {
-        regex pattern("#([0-9a-fA-F]{8})");
-        smatch match;
-        if (regex_match(hexColor, match, pattern))
-            sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
-    }
- 
-    return colorValue;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24TwoStateLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
