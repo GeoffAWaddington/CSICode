@@ -420,6 +420,55 @@ void UnpackZone(string fullPath)
                
                 paramDefs.back().definitions.push_back(def);
             }
+            else if(tokens.size() > 1 && tokens[1] == "NoAction")
+            {
+                listSlotIndex++;
+                FXParamDefinitions definitions;
+                definitions.suffix = fxLayoutSuffixes[listSlotIndex];
+                paramDefs.push_back(definitions);
+
+                FXParamDefinition def;
+
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget, def.modifiers);
+                
+                def.paramNumber = "";
+                def.widgetAction = tokens[1];
+
+                if(getline(autoFXFile, line))
+                {
+                    tokens = GetTokens(line);
+
+                    if(tokens.size() > 1)
+                    {
+                        vector<string> modifers;
+                        
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget, modifers);
+                        
+                        def.aliasAction = tokens[1];
+                        def.alias = "";
+                    }
+                }
+                else
+                    continue;
+                
+                if(getline(autoFXFile, line))
+                {
+                    tokens = GetTokens(line);
+
+                    if(tokens.size() > 1)
+                    {
+                        vector<string> modifers;
+                        
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget, modifers);
+                        
+                        def.valueAction = tokens[1];
+                    }
+                }
+                else
+                    continue;
+               
+                paramDefs.back().definitions.push_back(def);
+            }
         }
     }
 }
@@ -838,7 +887,12 @@ static string GetParamString(int index)
         if(widgetName == "RotaryPush")
             widgetName = "Push";
         
-        paramString += "   " + widgetName + "->" + paramDef.alias;
+        string alias = paramDef.alias;
+        
+        if(paramDef.widgetAction == "NoAction")
+            alias = "NoAction";
+        
+        paramString += "   " + widgetName + "->" + alias;
     }
 
     return paramString;;
