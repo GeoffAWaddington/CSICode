@@ -549,13 +549,11 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_PAINT:
         {
-            
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwndDlg, &ps);
 
             for(auto [ colorPicker, colorValue ] :  buttonColors)
             {
-                PAINTSTRUCT ps;
-                HDC hdc = BeginPaint(hwndDlg, &ps);
-
                 HBRUSH brush = CreateSolidBrush(colorValue);
                 
                 RECT clientRect, windowRect;
@@ -572,13 +570,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 windowRect.bottom = windowRect.top + clientRect.bottom;
                 
                 FillRect(hdc, &windowRect, brush);
-                
-                EndPaint(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker]), &ps);
             }
 
-            
-             
-
+            EndPaint(hwndDlg, &ps);
         }
             break;
             
