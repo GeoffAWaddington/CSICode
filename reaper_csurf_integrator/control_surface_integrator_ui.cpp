@@ -489,12 +489,18 @@ static vector<int> stepPickers = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps
 static vector<int> stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
 static vector<int> stepPrompts = { IDC_StepsPromptGroup1, IDC_StepsPromptGroup2, IDC_StepsPromptGroup3 };
 
+static vector<int> widgetRingColorBoxes = { IDC_FXParamRingColorBox1, IDC_FXParamRingColorBox2, IDC_FXParamRingColorBox3 };
 static vector<int> widgetRingColors = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
+static vector<int> widgetRingIndicatorColorBoxes = { IDC_FXParamIndicatorColorBox1, IDC_FXParamIndicatorColorBox2, IDC_FXParamIndicatorColorBox3 };
 static vector<int> widgetRingIndicators = { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
 static vector<int> fixedTextDisplayForegroundColors = { IDC_FixedTextDisplayForegroundColor1, IDC_FixedTextDisplayForegroundColor2, IDC_FixedTextDisplayForegroundColor3 };
+static vector<int> fixedTextDisplayForegroundColorBoxes = { IDC_FXFixedTextDisplayForegroundColorBox1, IDC_FXFixedTextDisplayForegroundColorBox2, IDC_FXFixedTextDisplayForegroundColorBox3 };
 static vector<int> fixedTextDisplayBackgroundColors = { IDC_FixedTextDisplayBackgroundColor1, IDC_FixedTextDisplayBackgroundColor2, IDC_FixedTextDisplayBackgroundColor3 };
+static vector<int> fixedTextDisplayBackgroundColorBoxes = { IDC_FXFixedTextDisplayBackgroundColorBox1, IDC_FXFixedTextDisplayBackgroundColorBox2, IDC_FXFixedTextDisplayBackgroundColorBox3 };
 static vector<int> fxParamDisplayForegroundColors = { IDC_FXParamDisplayForegroundColor1, IDC_FXParamDisplayForegroundColor2, IDC_FXParamDisplayForegroundColor3 };
+static vector<int> fxParamDisplayForegroundColorBoxes = { IDC_FXParamValueDisplayForegroundColorBox1, IDC_FXParamValueDisplayForegroundColorBox2, IDC_FXParamValueDisplayForegroundColorBox3 };
 static vector<int> fxParamDisplayBackgroundColors = { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamDisplayBackgroundColor2, IDC_FXParamDisplayBackgroundColor3 };
+static vector<int> fxParamDisplayBackgroundColorBoxes = { IDC_FXParamValueDisplayBackgroundColorBox1, IDC_FXParamValueDisplayBackgroundColorBox2, IDC_FXParamValueDisplayBackgroundColorBox3 };
 
 
 // for show / hide
@@ -521,12 +527,18 @@ static vector<vector<int>> allControls = {
     stepEditControls,
     stepPrompts,
     
+    widgetRingColorBoxes,
     widgetRingColors,
+    widgetRingIndicatorColorBoxes,
     widgetRingIndicators,
     fixedTextDisplayForegroundColors,
+    fixedTextDisplayForegroundColorBoxes,
     fixedTextDisplayBackgroundColors,
+    fixedTextDisplayBackgroundColorBoxes,
     fxParamDisplayForegroundColors,
+    fxParamDisplayForegroundColorBoxes,
     fxParamDisplayBackgroundColors,
+    fxParamDisplayBackgroundColorBoxes,
     
     groupBoxes,
     fxParamGroupBoxes,
