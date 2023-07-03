@@ -542,8 +542,6 @@ static int fxListIndex = 0;
 
 static int dlgResult = 0;
 
-static int colorPicker = -1;
-
 static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -553,12 +551,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             
 
-            if(colorPicker != -1)
+            for(auto [ colorPicker, colorValue ] :  buttonColors)
             {
                 PAINTSTRUCT ps;
                 HDC hdc = BeginPaint(hwndDlg, &ps);
 
-                HBRUSH brush = CreateSolidBrush(buttonColors[colorPicker]);
+                HBRUSH brush = CreateSolidBrush(colorValue);
                 
                 RECT clientRect, windowRect;
                 POINT p;
@@ -576,8 +574,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 FillRect(hdc, &windowRect, brush);
                 
                 EndPaint(GetDlgItem(hwndDlg, buttonColorBoxes[colorPicker]), &ps);
-                
-                colorPicker = -1;
             }
 
             
@@ -692,7 +688,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamRingColor1:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor1]);
-                        colorPicker = IDC_FXParamRingColor1;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -700,7 +695,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamRingColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor2]);
-                        colorPicker = IDC_FXParamRingColor2;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -708,7 +702,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamRingColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamRingColor3]);
-                        colorPicker = IDC_FXParamRingColor3;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -716,7 +709,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamIndicatorColor1:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamIndicatorColor1]);
-                        colorPicker = IDC_FXParamIndicatorColor1;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -724,7 +716,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamIndicatorColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamIndicatorColor2]);
-                        colorPicker = IDC_FXParamIndicatorColor2;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -732,7 +723,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamIndicatorColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamIndicatorColor3]);
-                        colorPicker = IDC_FXParamIndicatorColor3;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -740,7 +730,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FixedTextDisplayForegroundColor1:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayForegroundColor1]);
-                        colorPicker = IDC_FixedTextDisplayForegroundColor1;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -748,7 +737,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FixedTextDisplayForegroundColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayForegroundColor2]);
-                        colorPicker = IDC_FixedTextDisplayForegroundColor2;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -756,7 +744,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FixedTextDisplayForegroundColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayForegroundColor3]);
-                        colorPicker = IDC_FixedTextDisplayForegroundColor3;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -764,7 +751,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FixedTextDisplayBackgroundColor1:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayBackgroundColor1]);
-                        colorPicker = IDC_FixedTextDisplayBackgroundColor1;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -772,7 +758,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FixedTextDisplayBackgroundColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayBackgroundColor2]);
-                        colorPicker = IDC_FixedTextDisplayBackgroundColor2;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -780,7 +765,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FixedTextDisplayBackgroundColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FixedTextDisplayBackgroundColor3]);
-                        colorPicker = IDC_FixedTextDisplayBackgroundColor3;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -788,7 +772,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayForegroundColor1:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayForegroundColor1]);
-                        colorPicker = IDC_FXParamDisplayForegroundColor1;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -796,7 +779,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayForegroundColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayForegroundColor2]);
-                        colorPicker = IDC_FXParamDisplayForegroundColor2;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -804,7 +786,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayForegroundColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayForegroundColor3]);
-                        colorPicker = IDC_FXParamDisplayForegroundColor3;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -812,7 +793,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayBackgroundColor1:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayBackgroundColor1]);
-                        colorPicker = IDC_FXParamDisplayBackgroundColor1;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -820,7 +800,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayBackgroundColor2:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayBackgroundColor2]);
-                        colorPicker = IDC_FXParamDisplayBackgroundColor2;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -828,7 +807,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayBackgroundColor3:
                     {
                         DAW::GR_SelectColor(hwndDlg, &buttonColors[IDC_FXParamDisplayBackgroundColor3]);
-                        colorPicker = IDC_FXParamDisplayBackgroundColor3;
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
