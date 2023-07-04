@@ -623,6 +623,29 @@ static map<int, int> buttonColorBoxes =
     { IDC_FXParamDisplayBackgroundColor3, IDC_FXParamValueDisplayBackgroundColorBox3 }
 };
 
+static void PopulateParamListView(HWND hwndParamList)
+{
+    ListView_DeleteAllItems(hwndParamList);
+        
+    LVITEM lvi;
+    lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
+    lvi.stateMask = 0;
+    lvi.iSubItem  = 0;
+    lvi.state     = 0;
+
+    for(int i = 0; i < allParams.size(); i++)
+    {
+        char buf[BUFSZ];
+        
+        sprintf(buf, allParams[i].c_str());
+                       
+        lvi.iItem = i;
+        lvi.pszText = buf;
+        
+        ListView_InsertItem(hwndParamList, &lvi);
+    }
+}
+
 static int fxListIndex = 0;
 
 static int dlgResult = 0;
@@ -690,23 +713,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     SendDlgItemMessage(hwndDlg, stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
             }
                                       
-            LVITEM lvi;
-            lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
-            lvi.stateMask = 0;
-            lvi.iSubItem  = 0;
-            lvi.state     = 0;
-            
-            for(int i = 0; i < allParams.size(); i++)
-            {
-                char buf[BUFSZ];
-                
-                sprintf(buf, allParams[i].c_str());
-                
-                lvi.iItem = i;
-                lvi.pszText = buf;
-                
-                ListView_InsertItem(GetDlgItem(hwndDlg, IDC_AllParams), &lvi);
-            }
+            PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
             
             for(auto layout : surfaceLayoutTemplate)
             {
