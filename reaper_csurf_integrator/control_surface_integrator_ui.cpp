@@ -675,7 +675,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             SetWindowText(hwndDlg, (fxAlias + "   " + fxParamSlots[fxListIndex]).c_str());
             
-            ShowAllControls(hwndDlg, 1, stepPickers.size(), false);
+            hasFonts = false;
+            hasColors = false;
+            
+            ShowAllControls(hwndDlg, 1, 3, false);
+            ShowFontControls(hwndDlg, 1, 3, false);
+            ShowColorControls(hwndDlg, 1, 3, false);
 
             for(int i = 0; i < stepPickers.size(); i++)
             {
@@ -684,9 +689,24 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 for(auto [key, value] : SteppedValueDictionary)
                     SendDlgItemMessage(hwndDlg, stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
             }
-                          
-            for(auto param : allParams)
-                SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_ADDSTRING, 0, (LPARAM)param.c_str());
+                                      
+            LVITEM lvi;
+            lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
+            lvi.stateMask = 0;
+            lvi.iSubItem  = 0;
+            lvi.state     = 0;
+            
+            for(int i = 0; i < allParams.size(); i++)
+            {
+                char buf[BUFSZ];
+                
+                sprintf(buf, allParams[i].c_str());
+                
+                lvi.iItem = i;
+                lvi.pszText = buf;
+                
+                ListView_InsertItem(GetDlgItem(hwndDlg, IDC_AllParams), &lvi);
+            }
             
             for(auto layout : surfaceLayoutTemplate)
             {
@@ -981,6 +1001,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     else
                     {
                         ShowAllControls(hwndDlg, 1, 3, false);
+                        ShowFontControls(hwndDlg, 1, 3, false);
+                        ShowColorControls(hwndDlg, 1, 3, false);
+
                         CheckDlgButton(hwndDlg, IDC_ShowGroup3, false);
                     }
                 }
@@ -998,7 +1021,11 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             ShowColorControls(hwndDlg, 2, 3, true);
                     }
                     else
+                    {
                         ShowAllControls(hwndDlg, 2, 3, false);
+                        ShowFontControls(hwndDlg, 2, 3, false);
+                        ShowColorControls(hwndDlg, 2, 3, false);
+                    }
                 }
                     break;
                     

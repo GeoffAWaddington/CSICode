@@ -157,7 +157,6 @@ BEGIN
     COMBOBOX        IDC_PickSteps1,20,94,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup1,20,109,328,8
     GROUPBOX        "Group 1",IDC_Group1,14,9,631,114
-    LISTBOX         IDC_AllParams,652,12,123,370,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
     GROUPBOX        "FXParam",IDC_GroupFXParam1,21,21,216,67
     EDITTEXT        IDC_FXParamNumEdit1,30,34,16,12,ES_CENTER | ES_AUTOHSCROLL
     COMBOBOX        IDC_PickWidgetType1,57,34,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
@@ -174,7 +173,7 @@ BEGIN
     COMBOBOX        IDC_PickRingStyle2,146,163,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay2,246,150,237,67
     EDITTEXT        IDC_FXParamNameEdit2,255,163,81,12,ES_CENTER | ES_AUTOHSCROLL
-    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay2,492,150,144,67
+    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay2,492,150,146,67
     EDITTEXT        IDC_EditSteps3,76,354,505,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps3,20,355,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Group 3",IDC_Group3,15,268,631,114
@@ -184,7 +183,7 @@ BEGIN
     COMBOBOX        IDC_PickRingStyle3,146,294,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay3,246,281,237,67
     EDITTEXT        IDC_FXParamNameEdit3,255,294,81,12,ES_CENTER | ES_AUTOHSCROLL
-    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay3,492,281,144,67
+    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay3,492,281,146,67
     COMBOBOX        IDC_FixedTextDisplayPickRow1,344,34,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FixedTextDisplayPickRow2,345,163,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FixedTextDisplayPickRow3,345,294,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
@@ -246,6 +245,7 @@ BEGIN
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup1,594,91,44,14,WS_DISABLED
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup2,594,222,44,14,WS_DISABLED
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup3,594,353,44,14,WS_DISABLED
+    CONTROL         "",IDC_AllParams,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,652,12,123,369
 END
 
 IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 464, 549
