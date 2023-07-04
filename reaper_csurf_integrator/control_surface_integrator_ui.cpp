@@ -158,7 +158,6 @@ static vector<vector<string>> surfaceLayoutTemplate;
 
 struct FXParamLayoutTemplate
 {
-    string paramSlot = "";
     string modifiers = "";
     string suffix = "";
     string widgetAction = "";
@@ -686,7 +685,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].paramSlot).c_str());
+            SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].modifiers + layoutTemplates[fxListIndex].suffix).c_str());
 
             hasFonts = false;
             hasColors = false;
@@ -1138,7 +1137,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
 static string GetParamString(int index)
 {
-    string paramString = layoutTemplates[index].paramSlot;
+    string paramString = layoutTemplates[index].modifiers + layoutTemplates[index].suffix;
 
     for(auto paramDef :  paramDefs[index].definitions)
     {
@@ -1580,7 +1579,6 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
             
             FXParamLayoutTemplate layoutTemplate;
             
-            layoutTemplate.paramSlot = modifiers + layout.suffix + to_string(i + 1);
             layoutTemplate.modifiers = modifiers;
             layoutTemplate.suffix = layout.suffix + to_string(i + 1);
             
