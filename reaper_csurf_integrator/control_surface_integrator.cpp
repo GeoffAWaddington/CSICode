@@ -563,6 +563,9 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
             
+            if(line == BeginAutoSection || line == EndAutoSection)
+                continue;
+            
             vector<string> tokens(GetTokens(line));
             
             if(tokens.size() > 0)
@@ -3077,7 +3080,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
         
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
-            fxZone << "/ " + to_string(i) + " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"" + GetLineEnding();
+            fxZone << to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxIndex, i) + GetLineEnding();
         
         fxZone.close();
     }

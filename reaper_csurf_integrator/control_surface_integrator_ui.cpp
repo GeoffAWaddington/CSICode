@@ -322,9 +322,12 @@ void UnpackZone(string fullPath)
     {
         line = regex_replace(line, regex(CRLFChars), "");
 
-        if(line == "")
-            continue;
+        // Trim leading and trailing spaces
+        line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
         
+        if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+            continue;
+
         vector<string> tokens = GetTokens(line);
         
         if(line.substr(0, 5) == "Zone ")
@@ -345,7 +348,6 @@ void UnpackZone(string fullPath)
         }
         else if(inZone && ! inAutoZone)
         {
-            line = regex_replace(line, regex(CRLFChars), "");
             prologue.push_back(line);
             continue;
         }
@@ -361,14 +363,11 @@ void UnpackZone(string fullPath)
         }
         else if(inZone && pastAutoZone)
         {
-            line = regex_replace(line, regex(CRLFChars), "");
             epilogue.push_back(line);
             continue;
         }
         else if(! inZone && pastAutoZone)
         {
-            line = regex_replace(line, regex("/"), "");
-            line = regex_replace(line, regex(CRLFChars), "");
             rawParams.push_back(line);
             continue;
         }

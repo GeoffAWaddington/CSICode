@@ -60,8 +60,8 @@ const string OSCSurfaceToken = "OSCSurface";
 const string BadFileChars = "[ \\:*?<>|.,()/]";
 const string CRLFChars = "[\r\n]";
 const string TabChars = "[\t]";
-const string BeginAutoSection = "/ Begin auto generated section";
-const string EndAutoSection = "/ End auto generated section";
+const string BeginAutoSection = "#Begin auto generated section";
+const string EndAutoSection = "#End auto generated section";
 
 const int TempDisplayTime = 1250;
 
