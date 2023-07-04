@@ -159,7 +159,7 @@ static vector<vector<string>> surfaceLayoutTemplate;
 struct FXParamLayoutTemplate
 {
     string paramSlot = "";
-    string modifiers= "";
+    string modifiers = "";
     string suffix = "";
     string widgetAction = "";
     string aliasDisplayAction = "";
@@ -192,8 +192,6 @@ struct FXParamDefinition
 
 struct FXParamDefinitions
 {
-    string suffix = "";
-    string modifiers = "";
     vector<FXParamDefinition> definitions;
 };
 
@@ -1189,8 +1187,6 @@ static void MoveUp(HWND hwndParamList)
     if(index > 0)
     {
         FXParamDefinitions itemToMove;
-        itemToMove.modifiers = paramDefs[index].modifiers;
-        itemToMove.suffix = paramDefs[index].suffix;
         
         for(auto def : paramDefs[index].definitions)
             itemToMove.definitions.push_back(def);
@@ -1215,8 +1211,6 @@ static void MoveDown(HWND hwndParamList)
     if(index >= 0 && index < paramDefs.size() - 1)
     {
         FXParamDefinitions itemToMove;
-        itemToMove.modifiers = paramDefs[index].modifiers;
-        itemToMove.suffix = paramDefs[index].suffix;
         
         for(auto def : paramDefs[index].definitions)
             itemToMove.definitions.push_back(def);
