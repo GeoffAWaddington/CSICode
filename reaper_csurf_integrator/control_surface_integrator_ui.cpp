@@ -195,7 +195,7 @@ struct FXParamDefinitions
     vector<FXParamDefinition> definitions;
 };
 
-static void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &widgetName)
+static void GetWidgetName(string line, int listSlotIndex, string &widgetName)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> modifiersAndWidgetNameTokens;
@@ -358,7 +358,7 @@ void UnpackZone(string fullPath)
                 
                 FXParamDefinition def;
                 
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget);
+                GetWidgetName(tokens[0], listSlotIndex, def.widget);
                 
                 def.paramNumber = tokens[2];
                 
@@ -385,7 +385,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget);
+                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget);
                         
                         def.alias = tokens[2];
                         
@@ -404,7 +404,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget);
+                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget);
                         
                         if(tokens.size() > 3)
                             GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
@@ -423,7 +423,7 @@ void UnpackZone(string fullPath)
 
                 FXParamDefinition def;
 
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget);
+                GetWidgetName(tokens[0], listSlotIndex, def.widget);
                 
                 def.paramNumber = "";
 
@@ -435,7 +435,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget);
+                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget);
                         
                         def.alias = "";
                     }
@@ -451,7 +451,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget);
+                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget);
                     }
                 }
                 else
