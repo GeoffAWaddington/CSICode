@@ -320,7 +320,37 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
                     surfaceFXLayoutTemplate.push_back(tokens);
                 }
                 else
+                {
                     surfaceFXLayout.push_back(tokens);
+                    
+                    if(tokens.size() > 1 && tokens[1] == "FXParam")
+                    {
+                        vector<string> widgetAction;
+                        
+                        widgetAction.push_back("WidgetAction");
+                        widgetAction.push_back(tokens[1]);
+
+                        surfaceFXLayoutTemplate.push_back(widgetAction);
+                    }
+                    if(tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
+                    {
+                        vector<string> widgetAction;
+                        
+                        widgetAction.push_back("AliasDisplayAction");
+                        widgetAction.push_back(tokens[1]);
+
+                        surfaceFXLayoutTemplate.push_back(widgetAction);
+                    }
+                    if(tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
+                    {
+                        vector<string> widgetAction;
+                        
+                        widgetAction.push_back("ValueDisplayAction");
+                        widgetAction.push_back(tokens[1]);
+
+                        surfaceFXLayoutTemplate.push_back(widgetAction);
+                    }
+                }
             }
         }
     }

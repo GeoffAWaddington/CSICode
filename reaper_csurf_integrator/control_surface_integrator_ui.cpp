@@ -154,29 +154,32 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-vector<string> fxLayoutSuffixes;
-static vector<string> fxParamSlots;
 static vector<vector<string>> surfaceLayoutTemplate;
 
-static string fxName = "";
-static string fxAlias = "";
+struct FXParamLayoutTemplate
+{
+    string paramSlot = "";
+    string modifiers= "";
+    string suffix = "";
+    string widgetAction = "";
+    string aliasDisplayAction = "";
+    string valueDisplayAction = "";
+};
+
+static vector<FXParamLayoutTemplate> layoutTemplates;
 
 struct FXParamDefinition
 {
     string paramNumber = "";
-    vector<string> modifiers;
 
     string widget = "";
-    string widgetAction = "";
     map<string, string> widgetProperties;
 
     string aliasDisplayWidget = "";
-    string aliasAction = "";
     string alias = "";
     map<string, string> aliasDisplayWidgetProperties;
     
     string valueDisplayWidget = "";
-    string valueAction = "";
     map<string, string> valueDisplayWidgetProperties;
 
     string delta = "";
@@ -190,10 +193,11 @@ struct FXParamDefinition
 struct FXParamDefinitions
 {
     string suffix = "";
+    string modifiers = "";
     vector<FXParamDefinition> definitions;
 };
 
-static void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &widgetName, vector<string> &modifiers)
+static void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &widgetName)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> modifiersAndWidgetNameTokens;
@@ -204,11 +208,7 @@ static void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &wi
     
     widgetName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
 
-    widgetName = widgetName.substr(0, widgetName.length() - fxLayoutSuffixes[listSlotIndex].length());
-    
-    if(modifiersAndWidgetNameTokens.size() > 1)
-        for(int i = 0; i < modifiersAndWidgetNameTokens.size() - 1; i++)
-            modifiers.push_back(modifiersAndWidgetNameTokens[i]);
+    widgetName = widgetName.substr(0, widgetName.length() - layoutTemplates[listSlotIndex].suffix.length());
 }
 
 static void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
@@ -297,6 +297,9 @@ static vector<FXParamDefinitions> paramDefs;
 
 vector<string> allParams;
 
+static string fxName = "";
+static string fxAlias = "";
+
 void UnpackZone(string fullPath)
 {
     fxName = "";
@@ -312,7 +315,6 @@ void UnpackZone(string fullPath)
     int listSlotIndex = 0;
     
     FXParamDefinitions definitions;
-    definitions.suffix = fxLayoutSuffixes[listSlotIndex];
     paramDefs.push_back(definitions);
     
     for (string line; getline(autoFXFile, line) ; )
@@ -349,20 +351,18 @@ void UnpackZone(string fullPath)
             
             if(tokens.size() > 2 && tokens[1] == "FXParam")
             {
-                if(tokens[0].find(fxLayoutSuffixes[listSlotIndex]) == string::npos)
+                if(tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
                     listSlotIndex++;
                     FXParamDefinitions definitions;
-                    definitions.suffix = fxLayoutSuffixes[listSlotIndex];
                     paramDefs.push_back(definitions);
                 }
                 
                 FXParamDefinition def;
                 
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget, def.modifiers);
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget);
                 
                 def.paramNumber = tokens[2];
-                def.widgetAction = tokens[1];
                 
                 if(tokens.size() > 4 && tokens[3] == "[")
                 {
@@ -387,9 +387,8 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget, modifers);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget);
                         
-                        def.aliasAction = tokens[1];
                         def.alias = tokens[2];
                         
                         if(tokens.size() > 3)
@@ -407,9 +406,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget, modifers);
-                        
-                        def.valueAction = tokens[1];
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget);
                         
                         if(tokens.size() > 3)
                             GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
@@ -424,15 +421,13 @@ void UnpackZone(string fullPath)
             {
                 listSlotIndex++;
                 FXParamDefinitions definitions;
-                definitions.suffix = fxLayoutSuffixes[listSlotIndex];
                 paramDefs.push_back(definitions);
 
                 FXParamDefinition def;
 
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget, def.modifiers);
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.widget);
                 
                 def.paramNumber = "";
-                def.widgetAction = tokens[1];
 
                 if(getline(autoFXFile, line))
                 {
@@ -442,9 +437,8 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget, modifers);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget);
                         
-                        def.aliasAction = tokens[1];
                         def.alias = "";
                     }
                 }
@@ -459,9 +453,7 @@ void UnpackZone(string fullPath)
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget, modifers);
-                        
-                        def.valueAction = tokens[1];
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget);
                     }
                 }
                 else
@@ -646,9 +638,9 @@ static void PopulateParamListView(HWND hwndParamList)
     }
 }
 
-static int fxListIndex = 0;
-
 static int dlgResult = 0;
+
+static int fxListIndex = 0;
 
 static bool hasFonts = false;
 static bool hasColors = false;
@@ -696,8 +688,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, (fxAlias + "   " + fxParamSlots[fxListIndex]).c_str());
-            
+            SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].paramSlot).c_str());
+
             hasFonts = false;
             hasColors = false;
             
@@ -1148,7 +1140,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
 static string GetParamString(int index)
 {
-    string paramString = fxParamSlots[index];
+    string paramString = layoutTemplates[index].paramSlot;
 
     for(auto paramDef :  paramDefs[index].definitions)
     {
@@ -1159,7 +1151,7 @@ static string GetParamString(int index)
         
         string alias = paramDef.alias;
         
-        if(paramDef.widgetAction == "NoAction")
+        if(paramDef.paramNumber == "")
             alias = "NoAction";
         
         paramString += "   " + widgetName + "->" + alias;
@@ -1197,6 +1189,7 @@ static void MoveUp(HWND hwndParamList)
     if(index > 0)
     {
         FXParamDefinitions itemToMove;
+        itemToMove.modifiers = paramDefs[index].modifiers;
         itemToMove.suffix = paramDefs[index].suffix;
         
         for(auto def : paramDefs[index].definitions)
@@ -1222,6 +1215,7 @@ static void MoveDown(HWND hwndParamList)
     if(index >= 0 && index < paramDefs.size() - 1)
     {
         FXParamDefinitions itemToMove;
+        itemToMove.modifiers = paramDefs[index].modifiers;
         itemToMove.suffix = paramDefs[index].suffix;
         
         for(auto def : paramDefs[index].definitions)
@@ -1561,8 +1555,26 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
-    fxParamSlots.clear();
-    fxLayoutSuffixes.clear();
+    layoutTemplates.clear();
+    
+    surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
+
+    string widgetAction = "";
+    string aliasDisplayAction = "";
+    string valueDisplayAction = "";
+    
+    for(auto row : surfaceLayoutTemplate)
+    {
+        if(row.size() > 1)
+        {
+            if(row[0] == "WidgetAction")
+                widgetAction = row[1];
+            else if(row[0] == "AliasDisplayAction")
+                aliasDisplayAction = row[1];
+            else if(row[0] == "ValueDisplayAction")
+                valueDisplayAction = row[1];
+        }
+    }
     
     for(auto layout : zoneManager->GetFXLayouts())
     {
@@ -1571,12 +1583,20 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
             string modifiers = "";
             if(layout.modifiers != "")
                 modifiers = layout.modifiers + "+";
-            fxParamSlots.push_back(modifiers + layout.suffix + to_string(i + 1));
-            fxLayoutSuffixes.push_back(layout.suffix + to_string(i + 1));
+            
+            FXParamLayoutTemplate layoutTemplate;
+            
+            layoutTemplate.paramSlot = modifiers + layout.suffix + to_string(i + 1);
+            layoutTemplate.modifiers = modifiers;
+            layoutTemplate.suffix = layout.suffix + to_string(i + 1);
+            
+            layoutTemplate.widgetAction = widgetAction;
+            layoutTemplate.aliasDisplayAction = aliasDisplayAction;
+            layoutTemplate.valueDisplayAction = valueDisplayAction;
+            
+            layoutTemplates.push_back(layoutTemplate);
         }
     }
-    
-    surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
 
     UnpackZone(fullPath);
     
