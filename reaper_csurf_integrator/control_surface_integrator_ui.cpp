@@ -169,9 +169,8 @@ static vector<FXParamLayoutTemplate> layoutTemplates;
 
 struct FXParamDefinition
 {
-    string paramNumber = "";
-
     string widget = "";
+    string paramNumber = "";
     map<string, string> widgetProperties;
 
     string aliasDisplayWidget = "";
@@ -292,21 +291,26 @@ static void GetSteppedValues(vector<string> params, string &deltaValue, vector<s
 
 static vector<FXParamDefinitions> paramDefs;
 
-vector<string> allParams;
+static vector<string> prologue;
+static vector<string> epilogue;
+static vector<string> rawParams;
 
 static string fxName = "";
 static string fxAlias = "";
 
 void UnpackZone(string fullPath)
 {
+    bool inZone = false;
+    bool inEpilogue = false;
+    bool inAutoZone = false;
+    bool pastAutoZone = false;
+
     fxName = "";
     fxAlias = "";
 
     paramDefs.clear();
-    allParams.clear();
+    rawParams.clear();
     
-    bool inZone = false;
-
     ifstream autoFXFile(fullPath);
     
     int listSlotIndex = 0;
@@ -331,16 +335,42 @@ void UnpackZone(string fullPath)
                 fxName = tokens[1];
             if(tokens.size() > 2)
                 fxAlias = tokens[2];
+            
+            continue;
+        }
+        else if(line == BeginAutoSection)
+        {
+            inAutoZone = true;
+            continue;
+        }
+        else if(inZone && ! inAutoZone)
+        {
+            line = regex_replace(line, regex(CRLFChars), "");
+            prologue.push_back(line);
+            continue;
+        }
+        else if(line == EndAutoSection)
+        {
+            pastAutoZone = true;
+            continue;
         }
         else if(line == "ZoneEnd")
         {
             inZone = false;
+            continue;
         }
-        else if(! inZone)
+        else if(inZone && pastAutoZone)
+        {
+            line = regex_replace(line, regex(CRLFChars), "");
+            epilogue.push_back(line);
+            continue;
+        }
+        else if(! inZone && pastAutoZone)
         {
             line = regex_replace(line, regex("/"), "");
-            
-            allParams.push_back(line);
+            line = regex_replace(line, regex(CRLFChars), "");
+            rawParams.push_back(line);
+            continue;
         }
         else
         {
@@ -622,11 +652,11 @@ static void PopulateParamListView(HWND hwndParamList)
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    for(int i = 0; i < allParams.size(); i++)
+    for(int i = 0; i < rawParams.size(); i++)
     {
         char buf[BUFSZ];
         
-        sprintf(buf, allParams[i].c_str());
+        sprintf(buf, rawParams[i].c_str());
                        
         lvi.iItem = i;
         lvi.pszText = buf;
@@ -1036,6 +1066,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+                        
+                        // GAW -- transfer results to paramdefs
+                        
                        
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);

@@ -2933,8 +2933,8 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         
         for(auto line : fxPrologue_)
             fxZone << "\t" + line + GetLineEnding();
-        
-        fxZone << GetLineEnding();
+               
+        fxZone << "\n" + BeginAutoSection +  "\n" + GetLineEnding();
         
         int layoutIndex = 0;
         int channelIndex = 1;
@@ -3069,9 +3069,8 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             }
         }
         
-        if(fxEpilogue_.size() > 0)
-            fxZone << GetLineEnding();
-        
+        fxZone << EndAutoSection + "\n" + GetLineEnding();
+                
         for(auto line : fxEpilogue_)
             fxZone << "\t" + line + GetLineEnding();
 
