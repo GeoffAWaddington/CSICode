@@ -509,22 +509,38 @@ static vector<int> fixedTextDisplayGroupBoxes = { IDC_GroupFixedTextDisplay1 , I
 static vector<int> fxParamDisplayGroupBoxes = { IDC_GroupFXParamValueDisplay1 , IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
 static vector<int> advancedButtons = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
 
-static vector<vector<int>> allControls = {
+static vector<vector<int>> allControls =
+{
     paramNumEditControls,
     widgetTypePickers,
     ringStylePickers,
+    
     fixedTextEditControls,
     fixedTextDisplayRowPickers,
-    fixedTextDisplayFontLabels,
-    fixedTextDisplayFontPickers,
+    
     paramValueDisplayRowPickers,
-    paramValueDisplayFontLabels,
-    paramValueDisplayFontPickers,
     
     stepPickers,
     stepEditControls,
     stepPrompts,
     
+    groupBoxes,
+    fxParamGroupBoxes,
+    fixedTextDisplayGroupBoxes,
+    fxParamDisplayGroupBoxes,
+    advancedButtons
+};
+
+static vector<vector<int>> fontControls =
+{
+    fixedTextDisplayFontLabels,
+    fixedTextDisplayFontPickers,
+    paramValueDisplayFontLabels,
+    paramValueDisplayFontPickers
+};
+
+static vector<vector<int>> colorControls =
+{
     widgetRingColorBoxes,
     widgetRingColors,
     widgetRingIndicatorColorBoxes,
@@ -537,12 +553,6 @@ static vector<vector<int>> allControls = {
     fxParamDisplayForegroundColorBoxes,
     fxParamDisplayBackgroundColors,
     fxParamDisplayBackgroundColorBoxes,
-    
-    groupBoxes,
-    fxParamGroupBoxes,
-    fixedTextDisplayGroupBoxes,
-    fxParamDisplayGroupBoxes,
-    advancedButtons
 };
 
 static void ShowAllControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
@@ -553,6 +563,20 @@ static void ShowAllControls(HWND hwndDlg, int startIndex, int endIndex, bool sho
     
     if(startIndex == 1)
         ShowWindow(GetDlgItem(hwndDlg, IDC_ShowGroup3), show);
+}
+
+static void ShowFontControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
+{
+    for(auto controls : fontControls)
+        for(int i = startIndex; i < endIndex; i++)
+            ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
+}
+
+static void ShowColorControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
+{
+    for(auto controls : colorControls)
+        for(int i = startIndex; i < endIndex; i++)
+            ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
 }
 
 static map<int, int> buttonColors =
@@ -603,6 +627,7 @@ static int fxListIndex = 0;
 
 static int dlgResult = 0;
 
+static bool hasFonts = false;
 static bool hasColors = false;
 
 static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -662,8 +687,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                           
             for(auto param : allParams)
                 SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_ADDSTRING, 0, (LPARAM)param.c_str());
-
-            bool hasFonts = false;
             
             for(auto layout : surfaceLayoutTemplate)
             {
@@ -719,18 +742,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for(int i = 0; i < paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
             {
-                if(i == 1)
-                {
-                    ShowAllControls(hwndDlg, 1, 2, true);
-                    CheckDlgButton(hwndDlg, IDC_ShowGroup2, true);
-                }
-                
-                if(i == 2)
-                {
-                    ShowAllControls(hwndDlg, 2, 3, true);
-                    CheckDlgButton(hwndDlg, IDC_ShowGroup3, true);
-                }
-                
                 SetDlgItemText(hwndDlg, paramNumEditControls[i], paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
                 SetDlgItemText(hwndDlg, fixedTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
 
@@ -795,8 +806,27 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     steps += step + "  ";
                 
                 SetDlgItemText(hwndDlg, stepEditControls[i], steps.c_str());
+                
+                if(i == 1)
+                {
+                    ShowAllControls(hwndDlg, 1, 2, true);
+                    CheckDlgButton(hwndDlg, IDC_ShowGroup2, true);
+                    if(hasFonts)
+                        ShowFontControls(hwndDlg, 1, 2, true);
+                    if(hasColors)
+                        ShowColorControls(hwndDlg, 1, 2, true);
+                }
+                
+                if(i == 2)
+                {
+                    ShowAllControls(hwndDlg, 2, 3, true);
+                    CheckDlgButton(hwndDlg, IDC_ShowGroup3, true);
+                    if(hasFonts)
+                        ShowFontControls(hwndDlg, 2, 3, true);
+                    if(hasColors)
+                        ShowColorControls(hwndDlg, 2, 3, true);
+                }
             }
-            
             
             if(hasColors)
                 InvalidateRect(hwndDlg, NULL, true);
@@ -943,6 +973,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     {
                         ShowAllControls(hwndDlg, 1, 2, true);
                         InvalidateRect(hwndDlg, NULL, true);
+                        if(hasFonts)
+                            ShowFontControls(hwndDlg, 1, 2, true);
+                        if(hasColors)
+                            ShowColorControls(hwndDlg, 1, 2, true);
                     }
                     else
                     {
@@ -958,6 +992,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     {
                         ShowAllControls(hwndDlg, 2, 3, true);
                         InvalidateRect(hwndDlg, NULL, true);
+                        if(hasFonts)
+                            ShowFontControls(hwndDlg, 2, 3, true);
+                        if(hasColors)
+                            ShowColorControls(hwndDlg, 2, 3, true);
                     }
                     else
                         ShowAllControls(hwndDlg, 2, 3, false);
