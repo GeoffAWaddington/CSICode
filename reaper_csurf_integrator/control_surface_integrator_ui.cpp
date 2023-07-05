@@ -1631,35 +1631,34 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
     
     if(dlgResult == IDSAVE)
     {
-        /*
-        int layoutIndex = 0;
-
-        ofstream fxFile(fullPath);
+        ofstream fxFile(fullPath + "g");
 
         if(fxFile.is_open())
         {
-            
-            for(int allLinesIndex = 0; allLinesIndex < allLines.size(); allLinesIndex++)
-            {
-                if(allLinesIndex == 0)
-                    fxFile << "Zone \"" + fxName + "\" \"" + fxAlias + "\"" + GetLineEnding();
-                else if(allLines[allLinesIndex].find("FXLayout") == string::npos)
-                    fxFile << allLines[allLinesIndex] + GetLineEnding();
-                else if(layoutIndex < layouts.size())
-                {
-                    fxFile << "\t" + layouts[layoutIndex].prefix + " \"" + layouts[layoutIndex].suffix + "\" " + layouts[layoutIndex].slot + " " + params[layoutIndex].paramType + " " + params[layoutIndex].paramNum + " \"" + params[layoutIndex].displayName + "\"";
-                    if(params[layoutIndex].steps != "")
-                        fxFile << " \"" + params[layoutIndex].steps + "\"" + GetLineEnding();
-                    else
-                        fxFile << GetLineEnding();
-                    
-                    layoutIndex++;
-                }
-            }
+            fxFile << "Zone \"" + fxName + "\" \"" + fxAlias + "\"" + GetLineEnding();
 
+            for(auto line : prologue)
+                fxFile << line + GetLineEnding();
+            
+            fxFile << BeginAutoSection + GetLineEnding();
+
+            
+            // GAW TDB -- write  paramDefs
+            
+            
+            fxFile <<  EndAutoSection + GetLineEnding();
+
+            for(auto line : epilogue)
+                fxFile << line + GetLineEnding();
+
+            fxFile << "ZoneEnd" + GetLineEnding();
+
+            for(auto line : rawParams)
+                fxFile << line + GetLineEnding();
+            
             fxFile.close();
         }
-         */
+
         
         return true;
     }
