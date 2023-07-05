@@ -977,6 +977,15 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             GetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], buf, sizeof(buf));
                             paramDefs[fxListIndex].definitions[i].valueDisplayWidget = buf;
 
+                            GetDlgItemText(hwndDlg, stepEditControls[i], buf, sizeof(buf));
+                            
+                            if(string(buf) != "")
+                            {
+                                paramDefs[fxListIndex].definitions[i].steps.clear();
+                                for(auto step : GetTokens(buf))
+                                    paramDefs[fxListIndex].definitions[i].steps.push_back(step);
+                            }
+
                             if(hasFonts)
                             {
                                 GetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], buf, sizeof(buf));
