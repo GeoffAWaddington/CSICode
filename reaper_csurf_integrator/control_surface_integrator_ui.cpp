@@ -1538,7 +1538,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                     
                     if(j > 0 || paramDefs[i].definitions[j].paramNumber == "")
                     {
-                        fxFile << "NoAction";
+                        fxFile << "NoAction" + GetLineEnding();
                     }
                     else
                     {
@@ -1551,18 +1551,47 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                             for(auto step : paramDefs[i].definitions[j].steps)
                                 fxFile << step + " " ;
                                 
-                            fxFile << "] ";
+                            fxFile << "]";
                         }
                         
                         for(auto [ key, value ] : paramDefs[i].definitions[j].widgetProperties)
-                            fxFile << key + "=" + value + " ";
+                            fxFile << " " + key + "=" + value ;
                         
                         fxFile << GetLineEnding();
-
-                        
                     }
                     
+                    if(paramDefs[i].definitions[j].paramNumber == "")
+                    {
+                        fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
+                    }
+                    else
+                    {
+                        fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].aliasDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        
+                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + paramDefs[i].definitions[j].alias + "\" ";
+                        
+                        for(auto [ key, value ] : paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
+                            fxFile << " " + key + "=" + value;
+                        
+                        fxFile << GetLineEnding();
+                    }
                     
+                    if(paramDefs[i].definitions[j].paramNumber == "")
+                    {
+                        fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
+                    }
+                    else
+                    {
+                        fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].valueDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        
+                        fxFile << layoutTemplates[i].valueDisplayAction + " " + paramDefs[i].definitions[j].paramNumber;
+                        
+                        for(auto [ key, value ] : paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
+                            fxFile << " " + key + "=" + value;
+                        
+                        fxFile << GetLineEnding();
+                    }
+
                     fxFile << GetLineEnding();
                 }
                 

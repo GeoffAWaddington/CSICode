@@ -3043,37 +3043,14 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             {
                 for(int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    for(int lineIdx = 0; lineIdx < surfaceFXLayout_.size(); lineIdx++)
-                    {
-                        for(int tokenIdx = 0; tokenIdx < surfaceFXLayout_[lineIdx].size(); tokenIdx++)
-                        {
-                            if(tokenIdx == 0)
-                            {
-                                string modifiers = "";
-                                
-                                if(fxLayouts_[layoutIndex].modifiers != "")
-                                    modifiers = fxLayouts_[layoutIndex].modifiers + "+";
-                                
-                                if(widgetIdx == 0)
-                                    fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\t";
-                                else
-                                {
-                                    if(lineIdx == 0)
-                                        fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\t";
-                                    else
-                                        fxZone << "\t" + string("NullDisplay");
-                                }
-                            }
-                            else if(tokenIdx == 1)
-                            {
-                                fxZone << "\t" + string("NoAction");
-                            }
-                        }
-                        
-                        fxZone << GetLineEnding();
-                    }
+                    string modifiers = "";
                     
-                    fxZone << GetLineEnding();
+                    if(fxLayouts_[layoutIndex].modifiers != "")
+                        modifiers = fxLayouts_[layoutIndex].modifiers + "+";
+                    
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();;
+                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
                 }
                 
                 fxZone << GetLineEnding();
@@ -3089,37 +3066,14 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             {
                 for(int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    for(int lineIdx = 0; lineIdx < surfaceFXLayout_.size(); lineIdx++)
-                    {
-                        for(int tokenIdx = 0; tokenIdx < surfaceFXLayout_[lineIdx].size(); tokenIdx++)
-                        {
-                            if(tokenIdx == 0)
-                            {
-                                string modifiers = "";
-                                
-                                if(fxLayouts_[layoutIdx].modifiers != "")
-                                    modifiers = fxLayouts_[layoutIdx].modifiers + "+";
-                                
-                                if(widgetIdx == 0)
-                                    fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIdx].suffix + to_string(index) + "\t";
-                                else
-                                {
-                                    if(lineIdx == 0)
-                                        fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIdx].suffix + to_string(index) + "\t";
-                                    else
-                                        fxZone << "\t" + string("NullDisplay");
-                                }
-                            }
-                            else if(tokenIdx == 1)
-                            {
-                                fxZone << "\t" + string("NoAction");
-                            }
-                        }
-                        
-                        fxZone << GetLineEnding();
-                    }
+                    string modifiers = "";
                     
-                    fxZone << GetLineEnding();
+                    if(fxLayouts_[layoutIndex].modifiers != "")
+                        modifiers = fxLayouts_[layoutIndex].modifiers + "+";
+                    
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();;
+                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
                 }
                 
                 fxZone << GetLineEnding();
