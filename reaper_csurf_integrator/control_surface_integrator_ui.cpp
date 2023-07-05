@@ -1639,7 +1639,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                         
                         fxFile << layoutTemplates[i].valueDisplayAction + " " + paramDefs[i].definitions[j].paramNumber;
                         
-                        for(auto [ key, value ] : paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
+                        for(auto [ key, value ] : paramDefs[i].definitions[j].valueDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
                         fxFile << GetLineEnding();
