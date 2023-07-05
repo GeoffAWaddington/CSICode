@@ -977,10 +977,37 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             GetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], buf, sizeof(buf));
                             paramDefs[fxListIndex].definitions[i].valueDisplayWidget = buf;
 
+                            if(hasFonts)
+                            {
+                                GetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], buf, sizeof(buf));
+                                paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"] = buf;
+                                
+                                GetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], buf, sizeof(buf));
+                                paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"] = buf;
+                            }
                             
-                            
-                            
-                            
+                            if(hasColors)
+                            {
+                                rgba_color color;
+                                
+                                DAW::ColorFromNative(buttonColors[widgetRingColors[i]], &color.r, &color.g, &color.b);
+                                paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"] = color.to_string();
+                                
+                                DAW::ColorFromNative(buttonColors[widgetRingIndicators[i]], &color.r, &color.g, &color.b);
+                                paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"] = color.to_string();
+
+                                DAW::ColorFromNative(buttonColors[fixedTextDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
+                                paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"] = color.to_string();
+
+                                DAW::ColorFromNative(buttonColors[fixedTextDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
+                                paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"] = color.to_string();
+
+                                DAW::ColorFromNative(buttonColors[fxParamDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
+                                paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"] = color.to_string();
+
+                                DAW::ColorFromNative(buttonColors[fxParamDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
+                                paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"] = color.to_string();
+                            }
                         }
                        
                         dlgResult = IDOK;
