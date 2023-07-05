@@ -314,9 +314,9 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
             
             if(tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
             {
-                if(tokens[0] == "/")
+                if(tokens[0][0] == '#')
                 {
-                    tokens.erase(tokens.begin());
+                    tokens[0] = tokens[0].substr(1, tokens[0].length() - 1);
                     surfaceFXLayoutTemplate.push_back(tokens);
                 }
                 else
