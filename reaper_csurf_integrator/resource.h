@@ -128,8 +128,6 @@
 #define IDC_FXParamValueDisplayForegroundColorBox3 1223
 #define IDC_StepsPromptGroup2           1224
 #define IDC_StepsPromptGroup3           1225
-#define IDC_ShowGroup2                  1229
-#define IDC_ShowGroup3                  1230
 #define IDC_StepsPromptGroup1           1231
 #define IDC_AdvancedGroup1              1233
 #define IDC_Group3                      1234

@@ -581,9 +581,6 @@ static void ShowAllControls(HWND hwndDlg, int startIndex, int endIndex, bool sho
     for(auto controls : allControls)
         for(int i = startIndex; i < endIndex; i++)
             ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
-    
-    if(startIndex == 1)
-        ShowWindow(GetDlgItem(hwndDlg, IDC_ShowGroup3), show);
 }
 
 static void ShowFontControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
@@ -858,7 +855,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if(i == 1)
                 {
                     ShowAllControls(hwndDlg, 1, 2, true);
-                    CheckDlgButton(hwndDlg, IDC_ShowGroup2, true);
                     if(hasFonts)
                         ShowFontControls(hwndDlg, 1, 2, true);
                     if(hasColors)
@@ -868,7 +864,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if(i == 2)
                 {
                     ShowAllControls(hwndDlg, 2, 3, true);
-                    CheckDlgButton(hwndDlg, IDC_ShowGroup3, true);
                     if(hasFonts)
                         ShowFontControls(hwndDlg, 2, 3, true);
                     if(hasColors)
@@ -1014,49 +1009,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
-                 
-                case IDC_ShowGroup2:
-                {
-                    if(SendMessage(GetDlgItem(hwndDlg, IDC_ShowGroup2), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                    {
-                        ShowAllControls(hwndDlg, 1, 2, true);
-                        InvalidateRect(hwndDlg, NULL, true);
-                        if(hasFonts)
-                            ShowFontControls(hwndDlg, 1, 2, true);
-                        if(hasColors)
-                            ShowColorControls(hwndDlg, 1, 2, true);
-                    }
-                    else
-                    {
-                        ShowAllControls(hwndDlg, 1, 3, false);
-                        ShowFontControls(hwndDlg, 1, 3, false);
-                        ShowColorControls(hwndDlg, 1, 3, false);
-
-                        CheckDlgButton(hwndDlg, IDC_ShowGroup3, false);
-                    }
-                }
-                    break;
-                    
-                case IDC_ShowGroup3:
-                {
-                    if(SendMessage(GetDlgItem(hwndDlg, IDC_ShowGroup3), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                    {
-                        ShowAllControls(hwndDlg, 2, 3, true);
-                        InvalidateRect(hwndDlg, NULL, true);
-                        if(hasFonts)
-                            ShowFontControls(hwndDlg, 2, 3, true);
-                        if(hasColors)
-                            ShowColorControls(hwndDlg, 2, 3, true);
-                    }
-                    else
-                    {
-                        ShowAllControls(hwndDlg, 2, 3, false);
-                        ShowFontControls(hwndDlg, 2, 3, false);
-                        ShowColorControls(hwndDlg, 2, 3, false);
-                    }
-                }
-                    break;
-                    
+                                     
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {

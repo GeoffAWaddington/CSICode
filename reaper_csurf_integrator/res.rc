@@ -240,8 +240,6 @@ BEGIN
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,594,53,8,8
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,595,181,8,8
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,595,313,8,8
-    CONTROL         "Show Group 2",IDC_ShowGroup2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,249,127,61,10
-    CONTROL         "Show Group 3",IDC_ShowGroup3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,249,256,61,10
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup1,594,91,44,14,WS_DISABLED
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup2,594,222,44,14,WS_DISABLED
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup3,594,353,44,14,WS_DISABLED
