@@ -2976,7 +2976,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                                 if(lineIdx == 0)
                                     fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\t";
                                 else
-                                    fxZone << "\t" + string("NullDisplay");
+                                    fxZone << "\t" + string("NullDisplay") + "\t";
                             }
                         }
                         else if(tokenIdx == 1)
@@ -2984,7 +2984,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                             if(widgetIdx == 0)
                                 fxZone <<  surfaceFXLayout_[lineIdx][tokenIdx];
                             else
-                                fxZone <<  "\t" + string("NoAction");
+                                fxZone <<  string("NoAction");
                             
                             if(widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
                                 fxZone << " \"" + TheManager->GetTCPFXParamName(track, fxIndex, paramIdx) + "\"";

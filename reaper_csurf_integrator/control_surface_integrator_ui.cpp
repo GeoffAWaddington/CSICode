@@ -406,8 +406,13 @@ void UnpackZone(string fullPath)
                 GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
             }
             
-            if(tokens.size() > def.steps.size() + 5)
-                GetProperties(def.steps.size() + 5,  tokens.size(), tokens, def.widgetProperties);
+            int propertiesOffset = 3;
+            
+            if (def.steps.size() != 0)
+                propertiesOffset = def.steps.size() + 5;
+            
+            if(tokens.size() > propertiesOffset)
+                GetProperties(propertiesOffset,  tokens.size(), tokens, def.widgetProperties);
             
             if(getline(autoFXFile, line))
             {
@@ -1525,9 +1530,44 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
             
             fxFile << BeginAutoSection + GetLineEnding();
 
-            
-            // GAW TDB -- write  paramDefs
-            
+            for(int i = 0; i < paramDefs.size(); i++)
+            {
+                for(int j = 0; j < paramDefs[i].definitions.size(); j++)
+                {
+                    fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
+                    
+                    if(j > 0 || paramDefs[i].definitions[j].paramNumber == "")
+                    {
+                        fxFile << "NoAction";
+                    }
+                    else
+                    {
+                        fxFile << layoutTemplates[i].widgetAction + " " + paramDefs[i].definitions[j].paramNumber + " ";
+                        
+                        if(paramDefs[i].definitions[j].steps.size() > 0)
+                        {
+                            fxFile << "[ ";
+                            
+                            for(auto step : paramDefs[i].definitions[j].steps)
+                                fxFile << step + " " ;
+                                
+                            fxFile << "] ";
+                        }
+                        
+                        for(auto [ key, value ] : paramDefs[i].definitions[j].widgetProperties)
+                            fxFile << key + "=" + value + " ";
+                        
+                        fxFile << GetLineEnding();
+
+                        
+                    }
+                    
+                    
+                    fxFile << GetLineEnding();
+                }
+                
+                fxFile << GetLineEnding();
+            }
             
             fxFile <<  EndAutoSection + GetLineEnding();
 
