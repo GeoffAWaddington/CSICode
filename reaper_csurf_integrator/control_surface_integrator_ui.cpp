@@ -322,11 +322,14 @@ void UnpackZone(string fullPath)
     {
         line = regex_replace(line, regex(CRLFChars), "");
 
-        // Trim leading and trailing spaces
-        line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
-        
-        if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-            continue;
+        if(inAutoZone && ! pastAutoZone)
+        {
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        }
 
         vector<string> tokens = GetTokens(line);
         
