@@ -3089,7 +3089,6 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
             {
                 for(int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    
                     for(int lineIdx = 0; lineIdx < surfaceFXLayout_.size(); lineIdx++)
                     {
                         for(int tokenIdx = 0; tokenIdx < surfaceFXLayout_[lineIdx].size(); tokenIdx++)
@@ -3102,11 +3101,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                                     modifiers = fxLayouts_[layoutIdx].modifiers + "+";
                                 
                                 if(widgetIdx == 0)
-                                    fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\t";
+                                    fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIdx].suffix + to_string(index) + "\t";
                                 else
                                 {
                                     if(lineIdx == 0)
-                                        fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\t";
+                                        fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIdx].suffix + to_string(index) + "\t";
                                     else
                                         fxZone << "\t" + string("NullDisplay");
                                 }
