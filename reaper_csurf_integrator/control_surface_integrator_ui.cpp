@@ -1312,8 +1312,6 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 
                 FXParamDefinitions itemToMove;
                 
-                itemToMove.suffix = paramDefs[oldPosition].suffix;
-                
                 for(auto def : paramDefs[oldPosition].definitions)
                     itemToMove.definitions.push_back(def);
                 
