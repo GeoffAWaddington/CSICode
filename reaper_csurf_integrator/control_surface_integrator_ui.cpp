@@ -154,6 +154,7 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static vector<vector<string>> surfaceLayout;
 static vector<vector<string>> surfaceLayoutTemplate;
 
 struct FXParamLayoutTemplate
@@ -314,6 +315,7 @@ void UnpackZone(string fullPath)
     ifstream autoFXFile(fullPath);
     
     int listSlotIndex = 0;
+    int groupLine = 1;
     
     FXParamDefinitions definitions;
     paramDefs.push_back(definitions);
@@ -378,118 +380,72 @@ void UnpackZone(string fullPath)
         {
             tokens = GetTokens(line);
             
-            if(tokens.size() > 2 && tokens[1] == "FXParam")
-            {
-                if(tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
-                {
-                    listSlotIndex++;
-                    FXParamDefinitions definitions;
-                    paramDefs.push_back(definitions);
-                }
-                
-                FXParamDefinition def;
-                
-                GetWidgetName(tokens[0], listSlotIndex, def.widget);
-                
-                def.paramNumber = tokens[2];
-                
-                if(tokens.size() > 4 && tokens[3] == "[")
-                {
-                    vector<string> params;
-
-                    for(int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
-                        params.push_back(tokens[i]);
-                    
-                    params.push_back("]");
-                    
-                    GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
-                }
-                
-                if(tokens.size() > def.steps.size() + 5)
-                    GetProperties(def.steps.size() + 5,  tokens.size(), tokens, def.widgetProperties);
-                
-                if(getline(autoFXFile, line))
-                {
-                    tokens = GetTokens(line);
-
-                    if(tokens.size() > 2)
-                    {
-                        vector<string> modifers;
-                        
-                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget);
-                        
-                        def.alias = tokens[2];
-                        
-                        if(tokens.size() > 3)
-                            GetProperties(3, tokens.size(), tokens, def.aliasDisplayWidgetProperties);
-                    }
-                }
-                else
-                    continue;
-                
-                if(getline(autoFXFile, line))
-                {
-                    tokens = GetTokens(line);
-
-                    if(tokens.size() > 2)
-                    {
-                        vector<string> modifers;
-                        
-                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget);
-                        
-                        if(tokens.size() > 3)
-                            GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
-                    }
-                }
-                else
-                    continue;
-               
-                paramDefs.back().definitions.push_back(def);
-            }
-            else if(tokens.size() > 1 && tokens[1] == "NoAction")
+            if(tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
             {
                 listSlotIndex++;
                 FXParamDefinitions definitions;
                 paramDefs.push_back(definitions);
-
-                FXParamDefinition def;
-
-                GetWidgetName(tokens[0], listSlotIndex, def.widget);
-                
-                def.paramNumber = "";
-
-                if(getline(autoFXFile, line))
-                {
-                    tokens = GetTokens(line);
-
-                    if(tokens.size() > 1)
-                    {
-                        vector<string> modifers;
-                        
-                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget);
-                        
-                        def.alias = "";
-                    }
-                }
-                else
-                    continue;
-                
-                if(getline(autoFXFile, line))
-                {
-                    tokens = GetTokens(line);
-
-                    if(tokens.size() > 1)
-                    {
-                        vector<string> modifers;
-                        
-                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget);
-                    }
-                }
-                else
-                    continue;
-               
-                paramDefs.back().definitions.push_back(def);
             }
+            
+            FXParamDefinition def;
+            
+            GetWidgetName(tokens[0], listSlotIndex, def.widget);
+            
+            if(tokens.size() > 2)
+                def.paramNumber = tokens[2];
+            
+            if(tokens.size() > 4 && tokens[3] == "[")
+            {
+                vector<string> params;
+
+                for(int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
+                    params.push_back(tokens[i]);
+                
+                params.push_back("]");
+                
+                GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+            }
+            
+            if(tokens.size() > def.steps.size() + 5)
+                GetProperties(def.steps.size() + 5,  tokens.size(), tokens, def.widgetProperties);
+            
+            if(getline(autoFXFile, line))
+            {
+                tokens = GetTokens(line);
+
+                if(tokens.size() > 2)
+                {
+                    vector<string> modifers;
+                    
+                    GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget);
+                    
+                    def.alias = tokens[2];
+                    
+                    if(tokens.size() > 3)
+                        GetProperties(3, tokens.size(), tokens, def.aliasDisplayWidgetProperties);
+                }
+            }
+            else
+                continue;
+            
+            if(getline(autoFXFile, line))
+            {
+                tokens = GetTokens(line);
+
+                if(tokens.size() > 2)
+                {
+                    vector<string> modifers;
+                    
+                    GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget);
+                    
+                    if(tokens.size() > 3)
+                        GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
+                }
+            }
+            else
+                continue;
+           
+            paramDefs.back().definitions.push_back(def);
         }
     }
 }
@@ -1538,6 +1494,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
 {
     layoutTemplates.clear();
     
+    surfaceLayout = zoneManager->GetSurfaceFXLayout();
     surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
 
     string widgetAction = "";

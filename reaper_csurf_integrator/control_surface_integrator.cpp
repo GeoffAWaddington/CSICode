@@ -2942,52 +2942,80 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         int layoutIndex = 0;
         int channelIndex = 1;
              
-        for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex) && i < totalAvailableChannels; i++)
+        vector<string> actionWidgets;
+        
+        string actionWidget = surfaceFXLayout_[0][0];
+     
+        actionWidgets.push_back(actionWidget);
+        
+        for(auto tag : surfaceFXLayoutTemplate_)
+            if(tag[0] == "WidgetTypes")
+                for(int i = 1; i < tag.size(); i++)
+                    if(tag[i] != actionWidget)
+                        actionWidgets.push_back(tag[i]);
+
+        for(int paramIdx = 0; paramIdx < DAW::TrackFX_GetNumParams(track, fxIndex) && paramIdx < totalAvailableChannels; paramIdx++)
         {
-            for(int j = 0; j < surfaceFXLayout_.size(); j++)
+            for(int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
             {
-                for(int k = 0; k < surfaceFXLayout_[j].size(); k++)
+                for(int lineIdx = 0; lineIdx < surfaceFXLayout_.size(); lineIdx++)
                 {
-                    if(k == 0)
+                    for(int tokenIdx = 0; tokenIdx < surfaceFXLayout_[lineIdx].size(); tokenIdx++)
                     {
-                        string modifiers = "";
-                        
-                        if(fxLayouts_[layoutIndex].modifiers != "")
-                            modifiers = fxLayouts_[layoutIndex].modifiers + "+";
-                        
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[j][k] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\t";
-                    }
-                    else if(k == 1)
-                    {
-                        fxZone << " " + surfaceFXLayout_[j][k];
-                        
-                        if(surfaceFXLayout_[j][k] == "FixedTextDisplay")
-                            fxZone << " \"" + TheManager->GetTCPFXParamName(track, fxIndex, i) + "\"";
-                        else
-                            fxZone << " " + to_string(i);
-                        
-                        if(surfaceFXLayout_[j][k] == "FXParam")
+                        if(tokenIdx == 0)
                         {
-                            int steppedValueCount =  TheManager->GetSteppedValueCount(fxName, i);
+                            string modifiers = "";
                             
-                            if(steppedValueCount > 1 && steppedValueCount < SteppedValueDictionary.size())
+                            if(fxLayouts_[layoutIndex].modifiers != "")
+                                modifiers = fxLayouts_[layoutIndex].modifiers + "+";
+                            
+                            if(widgetIdx == 0)
+                                fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\t";
+                            else
                             {
-                                fxZone << " [ ";
-                                
-                                for(auto step : SteppedValueDictionary[steppedValueCount])
-                                {
-                                    ostringstream stepStr;
-                                    stepStr << std::setprecision(2) << step;
-                                    fxZone << stepStr.str();
-                                    fxZone << " ";
-                                }
-                                
-                                fxZone << "]";
+                                if(lineIdx == 0)
+                                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\t";
+                                else
+                                    fxZone << "\t" + string("NullDisplay");
                             }
                         }
+                        else if(tokenIdx == 1)
+                        {
+                            if(widgetIdx == 0)
+                                fxZone <<  surfaceFXLayout_[lineIdx][tokenIdx];
+                            else
+                                fxZone <<  "\t" + string("NoAction");
+                            
+                            if(widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
+                                fxZone << " \"" + TheManager->GetTCPFXParamName(track, fxIndex, paramIdx) + "\"";
+                            else if(widgetIdx == 0)
+                                fxZone << " " + to_string(paramIdx);
+                            
+                            if(widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FXParam")
+                            {
+                                int steppedValueCount =  TheManager->GetSteppedValueCount(fxName, paramIdx);
+                                
+                                if(steppedValueCount > 1 && steppedValueCount < SteppedValueDictionary.size())
+                                {
+                                    fxZone << " [ ";
+                                    
+                                    for(auto step : SteppedValueDictionary[steppedValueCount])
+                                    {
+                                        ostringstream stepStr;
+                                        stepStr << std::setprecision(2) << step;
+                                        fxZone << stepStr.str();
+                                        fxZone << " ";
+                                    }
+                                    
+                                    fxZone << "]";
+                                }
+                            }
+                        }
+                        else if(widgetIdx == 0)
+                            fxZone << " " + surfaceFXLayout_[lineIdx][tokenIdx];
                     }
-                    else
-                        fxZone << " " + surfaceFXLayout_[j][k];
+                    
+                    fxZone << GetLineEnding();
                 }
                 
                 fxZone << GetLineEnding();

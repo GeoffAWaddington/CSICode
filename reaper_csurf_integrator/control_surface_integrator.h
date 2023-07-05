@@ -1020,7 +1020,7 @@ public:
         }
     }
     
-    vector<vector<string>> &GetSurfaceFXLayout(string surfaceFXLayout)
+    vector<vector<string>> &GetSurfaceFXLayout()
     {
         return surfaceFXLayout_;
     }
