@@ -301,21 +301,21 @@ static string fxAlias = "";
 
 void UnpackZone(string fullPath)
 {
-    bool inZone = false;
-    bool inEpilogue = false;
-    bool inAutoZone = false;
-    bool pastAutoZone = false;
+    prologue.clear();
+    epilogue.clear();
+    rawParams.clear();
+    paramDefs.clear();
 
     fxName = "";
     fxAlias = "";
 
-    paramDefs.clear();
-    rawParams.clear();
+    bool inZone = false;
+    bool inAutoZone = false;
+    bool pastAutoZone = false;
     
     ifstream autoFXFile(fullPath);
     
     int listSlotIndex = 0;
-    int groupLine = 1;
     
     FXParamDefinitions definitions;
     paramDefs.push_back(definitions);
@@ -955,9 +955,33 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        
-                        // GAW -- transfer results to paramdefs
-                        
+                        for(int i = 0; i < paramDefs[fxListIndex].definitions.size(); i++)
+                        {
+                            char buf[BUFSZ];
+                            
+                            GetDlgItemText(hwndDlg, paramNumEditControls[i], buf, sizeof(buf));
+                            paramDefs[fxListIndex].definitions[i].paramNumber = buf;
+
+                            GetDlgItemText(hwndDlg, widgetTypePickers[i], buf, sizeof(buf));
+                            paramDefs[fxListIndex].definitions[i].widget = buf;
+                            
+                            GetDlgItemText(hwndDlg, ringStylePickers[i], buf, sizeof(buf));
+                            paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"] = buf;
+                            
+                            GetDlgItemText(hwndDlg, fixedTextEditControls[i], buf, sizeof(buf));
+                            paramDefs[fxListIndex].definitions[i].alias = buf;
+
+                            GetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], buf, sizeof(buf));
+                            paramDefs[fxListIndex].definitions[i].aliasDisplayWidget = buf;
+
+                            GetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], buf, sizeof(buf));
+                            paramDefs[fxListIndex].definitions[i].valueDisplayWidget = buf;
+
+                            
+                            
+                            
+                            
+                        }
                        
                         dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -1430,7 +1454,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 case IDSAVE:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        char buf[100];
+                        char buf[BUFSZ];
                         GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
                         fxAlias = buf;
                         
@@ -1471,6 +1495,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
     layoutTemplates.clear();
+    surfaceLayout.clear();
+    surfaceLayoutTemplate.clear();
     
     surfaceLayout = zoneManager->GetSurfaceFXLayout();
     surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
@@ -1519,7 +1545,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
     
     if(dlgResult == IDSAVE)
     {
-        ofstream fxFile(fullPath + "g");
+        ofstream fxFile(fullPath);
 
         if(fxFile.is_open())
         {
@@ -1528,7 +1554,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
             for(auto line : prologue)
                 fxFile << line + GetLineEnding();
             
-            fxFile << BeginAutoSection + GetLineEnding();
+            fxFile << BeginAutoSection + GetLineEnding() + GetLineEnding();
 
             for(int i = 0; i < paramDefs.size(); i++)
             {
