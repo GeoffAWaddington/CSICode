@@ -2937,7 +2937,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         for(auto line : fxPrologue_)
             fxZone << "\t" + line + GetLineEnding();
                
-        fxZone << "\n" + BeginAutoSection +  "\n" + GetLineEnding();
+        fxZone << "\n" + BeginAutoSection + GetLineEnding();
         
         int layoutIndex = 0;
         int channelIndex = 1;
@@ -3060,9 +3060,9 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         layoutIndex++;
         
         // GAW --pad the remaining rows
-        for(int layoutIdx = layoutIndex; layoutIdx < fxLayouts_.size(); layoutIdx++)
+        while(layoutIndex < fxLayouts_.size())
         {
-            for(int index = 1; index <= fxLayouts_[layoutIdx].channelCount; index++)
+            for(int index = 1; index <= fxLayouts_[layoutIndex].channelCount; index++)
             {
                 for(int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
@@ -3078,9 +3078,11 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                 
                 fxZone << GetLineEnding();
             }
+            
+            layoutIndex++;
         }
         
-        fxZone << EndAutoSection + "\n" + GetLineEnding();
+        fxZone << EndAutoSection + GetLineEnding();
                 
         for(auto line : fxEpilogue_)
             fxZone << "\t" + line + GetLineEnding();
