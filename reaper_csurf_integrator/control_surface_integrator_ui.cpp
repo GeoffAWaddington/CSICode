@@ -1598,7 +1598,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                 {
                     fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
                     
-                    if(j > 0 || paramDefs[i].definitions[j].paramNumber == "")
+                    if(paramDefs[i].definitions[j].paramNumber == "")
                     {
                         fxFile << "NoAction" + GetLineEnding();
                     }
@@ -1622,7 +1622,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                         fxFile << GetLineEnding();
                     }
                     
-                    if(paramDefs[i].definitions[j].paramNumber == "")
+                    if(paramDefs[i].definitions[j].paramNumber == "" || paramDefs[i].definitions[j].aliasDisplayWidget == "")
                     {
                         fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
                     }
@@ -1638,7 +1638,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                         fxFile << GetLineEnding();
                     }
                     
-                    if(paramDefs[i].definitions[j].paramNumber == "")
+                    if(paramDefs[i].definitions[j].paramNumber == "" || paramDefs[i].definitions[j].valueDisplayWidget == "")
                     {
                         fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
                     }
