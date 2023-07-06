@@ -295,6 +295,7 @@ static vector<FXParamDefinitions> paramDefs;
 static vector<string> prologue;
 static vector<string> epilogue;
 static vector<string> rawParams;
+static map<string, string> rawParamsDictionary;
 
 static string fxName = "";
 static string fxAlias = "";
@@ -305,6 +306,7 @@ void UnpackZone(string fullPath)
     prologue.clear();
     epilogue.clear();
     rawParams.clear();
+    rawParamsDictionary.clear();
 
     fxName = "";
     fxAlias = "";
@@ -373,7 +375,8 @@ void UnpackZone(string fullPath)
         }
         else if(! inZone && pastAutoZone)
         {
-            rawParams.push_back(line);
+            if(line != "")
+                rawParams.push_back(line);
             continue;
         }
         else
@@ -617,11 +620,22 @@ static void PopulateParamListView(HWND hwndParamList)
         char buf[BUFSZ];
         
         sprintf(buf, rawParams[i].c_str());
-                       
+        
         lvi.iItem = i;
         lvi.pszText = buf;
         
         ListView_InsertItem(hwndParamList, &lvi);
+        
+        
+        int spaceBreak = rawParams[i].find( " ");
+          
+        if(spaceBreak != -1)
+        {
+            string key = rawParams[i].substr(0, spaceBreak);
+            string value = rawParams[i].substr(spaceBreak + 1, rawParams[i].length() - spaceBreak - 1);
+            
+            rawParamsDictionary[key] = value;
+        }
     }
 }
 
@@ -1140,7 +1154,9 @@ static string GetParamString(int index)
         
         string alias = paramDef.alias;
         
-        if(paramDef.paramNumber == "")
+        if(paramDef.alias == "" && paramDef.paramNumber != "" && rawParamsDictionary.count(paramDef.paramNumber) > 0)
+            alias = rawParamsDictionary[paramDef.paramNumber];
+        else if(paramDef.paramNumber == "")
             alias = "NoAction";
         
         paramString += "   " + widgetName + "->" + alias;
