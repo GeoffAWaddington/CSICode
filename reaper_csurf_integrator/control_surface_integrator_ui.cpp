@@ -1184,17 +1184,24 @@ static void PopulateListView(HWND hwndParamList)
     {
         char buf[BUFSZ];
         vector<string> components = GetLineComponents(i);
-        sprintf(buf, components[0].c_str());
+        
+        string preamble = components[0];
+        
+#ifdef _WIN32
+        preamble += "                                                       ";
+#endif
+        
+        sprintf(buf, preamble.c_str());
                        
         lvi.iItem = i;
         lvi.pszText = buf;
         
         ListView_InsertItem(hwndParamList, &lvi);
         
-        for(int i = 1; i < components.size(); i++)
+        for(int j = 1; j < components.size(); j++)
         {
-            lvi.iSubItem = i;
-            sprintf(buf, components[i].c_str());
+            lvi.iSubItem = j;
+            sprintf(buf, components[j].c_str());
             lvi.pszText = buf;
 
             ListView_SetItem(hwndParamList, &lvi);
@@ -1487,7 +1494,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 columnSizes.push_back(75);
             }
             
-            LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, 0, 0, (char*)"" };
+            LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
             columnDescriptor.cx = columnSizes[0];
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
