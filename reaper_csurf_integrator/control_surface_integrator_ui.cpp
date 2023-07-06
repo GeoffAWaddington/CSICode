@@ -301,10 +301,10 @@ static string fxAlias = "";
 
 void UnpackZone(string fullPath)
 {
+    paramDefs.clear();
     prologue.clear();
     epilogue.clear();
     rawParams.clear();
-    paramDefs.clear();
 
     fxName = "";
     fxAlias = "";
@@ -625,7 +625,7 @@ static void PopulateParamListView(HWND hwndParamList)
     }
 }
 
-static int dlgResult = 0;
+static int dlgResult = IDCANCEL;
 
 static int fxListIndex = 0;
 
@@ -672,14 +672,16 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].modifiers + layoutTemplates[fxListIndex].suffix).c_str());
-
+            dlgResult = IDCANCEL;
+            
             hasFonts = false;
             hasColors = false;
             
             ShowBaseControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), false );
             ShowFontControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), false);
             ShowColorControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), false);
+
+            SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].modifiers + layoutTemplates[fxListIndex].suffix).c_str());
 
             for(int i = 0; i < stepPickers.size(); i++)
             {
@@ -1510,6 +1512,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             
                             if(dlgResult == IDOK)
                                 ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                            
+                            dlgResult = IDCANCEL;
                         }
                     }
                     break ;
@@ -1529,8 +1533,6 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
     layoutTemplates.clear();
-    surfaceLayout.clear();
-    surfaceLayoutTemplate.clear();
     
     surfaceLayout = zoneManager->GetSurfaceFXLayout();
     surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
