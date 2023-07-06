@@ -156,6 +156,7 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static vector<vector<string>> surfaceLayout;
 static vector<vector<string>> surfaceLayoutTemplate;
+int numGroups = 0;
 
 struct FXParamLayoutTemplate
 {
@@ -691,9 +692,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             hasFonts = false;
             hasColors = false;
             
-            ShowBaseControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), false );
-            ShowFontControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), false);
-            ShowColorControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), false);
+            ShowBaseControls(hwndDlg, 0, groupBoxes.size(), false );
+            ShowFontControls(hwndDlg, 0, groupBoxes.size(), false);
+            ShowColorControls(hwndDlg, 0, groupBoxes.size(), false);
 
             SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].modifiers + layoutTemplates[fxListIndex].suffix).c_str());
 
@@ -1141,10 +1142,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
-static string GetParamString(int index)
+vector<string> GetLineComponents(int index)
 {
-    string paramString = layoutTemplates[index].modifiers + layoutTemplates[index].suffix;
-
+    vector<string> components;
+    
+    components.push_back(layoutTemplates[index].modifiers + layoutTemplates[index].suffix);
+    
     for(auto paramDef :  paramDefs[index].definitions)
     {
         string widgetName = paramDef.widget;
@@ -1152,17 +1155,19 @@ static string GetParamString(int index)
         if(widgetName == "RotaryPush")
             widgetName = "Push";
         
-        string alias = paramDef.alias;
+        components.push_back(widgetName);
         
+        string alias = paramDef.alias;
+
         if(paramDef.alias == "" && paramDef.paramNumber != "" && rawParamsDictionary.count(paramDef.paramNumber) > 0)
             alias = rawParamsDictionary[paramDef.paramNumber];
         else if(paramDef.paramNumber == "")
             alias = "NoAction";
         
-        paramString += "   " + widgetName + "->" + alias;
+        components.push_back(alias);
     }
-
-    return paramString;;
+        
+    return components;
 }
 
 static void PopulateListView(HWND hwndParamList)
@@ -1178,13 +1183,24 @@ static void PopulateListView(HWND hwndParamList)
     for(int i = 0; i < paramDefs.size(); i++)
     {
         char buf[BUFSZ];
-        
-        sprintf(buf, GetParamString(i).c_str());
+        vector<string> components = GetLineComponents(i);
+        sprintf(buf, components[0].c_str());
                        
         lvi.iItem = i;
         lvi.pszText = buf;
         
         ListView_InsertItem(hwndParamList, &lvi);
+        
+        for(int i = 1; i < components.size(); i++)
+        {
+            lvi.iSubItem = i;
+            sprintf(buf, components[i].c_str());
+            lvi.pszText = buf;
+
+            ListView_SetItem(hwndParamList, &lvi);
+        }
+
+        lvi.iSubItem = 0;
     }
 }
 
@@ -1201,12 +1217,7 @@ static void MoveUp(HWND hwndParamList)
         paramDefs.erase(paramDefs.begin() + index);
         paramDefs.insert(paramDefs.begin() + index - 1, itemToMove);
         
-        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
-        ListView_SetItemText(hwndParamList, index - 1, 0, (LPSTR)GetParamString(index - 1).c_str());
- 
-#ifdef _WIN32
         PopulateListView(hwndParamList);
-#endif
         
         ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
@@ -1225,12 +1236,7 @@ static void MoveDown(HWND hwndParamList)
         paramDefs.erase(paramDefs.begin() + index);
         paramDefs.insert(paramDefs.begin() + index + 1, itemToMove);
 
-        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
-        ListView_SetItemText(hwndParamList, index + 1, 0, (LPSTR)GetParamString(index + 1).c_str());
-
-#ifdef _WIN32
         PopulateListView(hwndParamList);
-#endif
 
         ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
@@ -1289,7 +1295,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                     
                     if(dlgResult == IDOK)
-                        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                        PopulateListView(hwndParamList);
                 }
             }
         }
@@ -1297,6 +1303,27 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_INITDIALOG:
         {
+            HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+            
+            vector<int> columnSizes = { 160 };
+            
+            for(int i = 1; i <= numGroups; i++)
+            {
+                columnSizes.push_back(80);
+                columnSizes.push_back(150);
+            }
+            
+            LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, 0, 0, (char*)"" };
+            columnDescriptor.cx = columnSizes[0];
+            
+            ListView_InsertColumn(paramList, 0, &columnDescriptor);
+            
+            for(int i = 1; i <= numGroups * 2; i++)
+            {
+                columnDescriptor.cx = columnSizes[i];
+                ListView_InsertColumn(paramList, i, &columnDescriptor);
+            }
+
             dlgResult = IDCANCEL;
             
             SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
@@ -1399,7 +1426,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                             
                             if(dlgResult == IDOK)
-                                ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                                PopulateListView(hwndParamList);
                         }
                     }
                     break ;
@@ -1443,14 +1470,34 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                     
                     if(dlgResult == IDOK)
-                        ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
-                }
+                        PopulateListView(hwndParamList);                }
             }
         }
             break;
             
         case WM_INITDIALOG:
         {
+            HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+            
+            vector<int> columnSizes = { 65 };
+            
+            for(int i = 1; i <= numGroups; i++)
+            {
+                columnSizes.push_back(38);
+                columnSizes.push_back(75);
+            }
+            
+            LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, 0, 0, (char*)"" };
+            columnDescriptor.cx = columnSizes[0];
+            
+            ListView_InsertColumn(paramList, 0, &columnDescriptor);
+            
+            for(int i = 1; i <= numGroups * 2; i++)
+            {
+                columnDescriptor.cx = columnSizes[i];
+                ListView_InsertColumn(paramList, i, &columnDescriptor);
+            }
+            
             dlgResult = IDCANCEL;
             
             SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
@@ -1535,7 +1582,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                             
                             if(dlgResult == IDOK)
-                                ListView_SetItemText(hwndParamList, index, 0, (LPSTR)GetParamString(index).c_str());
+                                PopulateListView(hwndParamList);
                             
                             dlgResult = IDCANCEL;
                         }
@@ -1561,6 +1608,17 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
     surfaceLayout = zoneManager->GetSurfaceFXLayout();
     surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
 
+    numGroups = 0;
+    
+    for(auto layout : surfaceLayoutTemplate)
+    {
+        if(layout.size() > 0 && layout[0] == "WidgetTypes")
+        {
+            numGroups = layout.size() - 1;
+            break;
+        }
+    }
+    
     string widgetAction = "";
     string aliasDisplayAction = "";
     string valueDisplayAction = "";
