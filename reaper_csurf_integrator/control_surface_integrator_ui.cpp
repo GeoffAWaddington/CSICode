@@ -712,12 +712,20 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     else if(layout[0] == "DisplayRows")
                     {
                         for(int i = 0; i < fixedTextDisplayRowPickers.size(); i++)
+                        {
+                            SendDlgItemMessage(hwndDlg, fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"");
+
                             for(int j = 1; j < layout.size(); j++)
                                 SendDlgItemMessage(hwndDlg, fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        }
                         
                         for(int i = 0; i < paramValueDisplayRowPickers.size(); i++)
+                        {
+                            SendDlgItemMessage(hwndDlg, paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"");
+
                             for(int j = 1; j < layout.size(); j++)
                                 SendDlgItemMessage(hwndDlg, paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        }
                     }
                     else if(layout[0] == "DisplayFonts")
                     {
