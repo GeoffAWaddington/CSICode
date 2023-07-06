@@ -1170,45 +1170,49 @@ vector<string> GetLineComponents(int index)
     return components;
 }
 
-static void PopulateListView(HWND hwndParamList)
+static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
 {
-    ListView_DeleteAllItems(hwndParamList);
-        
     LVITEM lvi;
     lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
     lvi.stateMask = 0;
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    for(int i = 0; i < paramDefs.size(); i++)
-    {
-        char buf[BUFSZ];
-        vector<string> components = GetLineComponents(i);
-        
-        string preamble = components[0];
-        
+    char buf[BUFSZ];
+    vector<string> components = GetLineComponents(index);
+    
+    string preamble = components[0];
+    
 #ifdef _WIN32
-        preamble += "                                                       ";
+    preamble += "                                                       ";
 #endif
-        
-        sprintf(buf, preamble.c_str());
-                       
-        lvi.iItem = i;
-        lvi.pszText = buf;
-        
+    
+    sprintf(buf, preamble.c_str());
+                   
+    lvi.iItem = index;
+    lvi.pszText = buf;
+    
+    if(shouldInsert)
         ListView_InsertItem(hwndParamList, &lvi);
-        
-        for(int j = 1; j < components.size(); j++)
-        {
-            lvi.iSubItem = j;
-            sprintf(buf, components[j].c_str());
-            lvi.pszText = buf;
+    else
+        ListView_SetItem(hwndParamList, &lvi);
+    
+    for(int i = 1; i < components.size(); i++)
+    {
+        lvi.iSubItem = i;
+        sprintf(buf, components[i].c_str());
+        lvi.pszText = buf;
 
-            ListView_SetItem(hwndParamList, &lvi);
-        }
-
-        lvi.iSubItem = 0;
+        ListView_SetItem(hwndParamList, &lvi);
     }
+}
+
+static void PopulateListView(HWND hwndParamList)
+{
+    ListView_DeleteAllItems(hwndParamList);
+        
+    for(int i = 0; i < paramDefs.size(); i++)
+        SetListViewItem(hwndParamList, i, true);
 }
 
 static void MoveUp(HWND hwndParamList)
@@ -1224,8 +1228,9 @@ static void MoveUp(HWND hwndParamList)
         paramDefs.erase(paramDefs.begin() + index);
         paramDefs.insert(paramDefs.begin() + index - 1, itemToMove);
         
-        PopulateListView(hwndParamList);
-        
+        SetListViewItem(hwndParamList, index, false);
+        SetListViewItem(hwndParamList, index - 1, false);
+
         ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
 }
@@ -1243,7 +1248,8 @@ static void MoveDown(HWND hwndParamList)
         paramDefs.erase(paramDefs.begin() + index);
         paramDefs.insert(paramDefs.begin() + index + 1, itemToMove);
 
-        PopulateListView(hwndParamList);
+        SetListViewItem(hwndParamList, index, false);
+        SetListViewItem(hwndParamList, index + 1, false);
 
         ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
     }
@@ -1302,7 +1308,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                     
                     if(dlgResult == IDOK)
-                        PopulateListView(hwndParamList);
+                        SetListViewItem(hwndParamList, index, false);
                 }
             }
         }
@@ -1378,7 +1384,10 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 paramDefs.erase(paramDefs.begin() + oldPosition);
                 paramDefs.insert(paramDefs.begin() + lvhti.iItem, itemToMove);
                 
-                PopulateListView(hwndParamList);
+                SetListViewItem(hwndParamList, oldPosition, false);
+                SetListViewItem(hwndParamList, lvhti.iItem, false);
+                
+                ListView_SetItemState(hwndParamList, lvhti.iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
             }
             break;
         }
@@ -1433,7 +1442,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                             
                             if(dlgResult == IDOK)
-                                PopulateListView(hwndParamList);
+                                SetListViewItem(hwndParamList, index, false);
                         }
                     }
                     break ;
@@ -1477,7 +1486,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                     
                     if(dlgResult == IDOK)
-                        PopulateListView(hwndParamList);                }
+                        SetListViewItem(hwndParamList, index, false);
+                }
             }
         }
             break;
@@ -1589,7 +1599,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
                             
                             if(dlgResult == IDOK)
-                                PopulateListView(hwndParamList);
+                                SetListViewItem(hwndParamList, index, false);
                             
                             dlgResult = IDCANCEL;
                         }
