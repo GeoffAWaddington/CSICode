@@ -1416,8 +1416,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 paramDefs.erase(paramDefs.begin() + oldPosition);
                 paramDefs.insert(paramDefs.begin() + lvhti.iItem, itemToMove);
                 
-                SetListViewItem(hwndParamList, oldPosition, false);
-                SetListViewItem(hwndParamList, lvhti.iItem, false);
+                PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                 
                 ListView_SetItemState(hwndParamList, lvhti.iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
             }
