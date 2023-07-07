@@ -841,6 +841,17 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     steps += step + "  ";
                 
                 SetDlgItemText(hwndDlg, stepEditControls[i], steps.c_str());
+                
+                char buf[BUFSZ];
+                
+                GetDlgItemText(hwndDlg, widgetTypePickers[i], buf, sizeof(buf));
+                paramDefs[fxListIndex].definitions[i].widget = buf;
+
+                if(string(buf) == "RotaryPush" && steps == "")
+                {
+                    SetDlgItemText(hwndDlg, stepEditControls[i], "0  1");
+                    SetDlgItemText(hwndDlg, stepPickers[i], "2");
+                }
             }
             
             ShowBaseControls(hwndDlg, 0, numGroups, true);
@@ -1514,12 +1525,12 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
-            vector<int> columnSizes = { 65 };
+            vector<int> columnSizes = { 65 }; // modifiers
             
             for(int i = 1; i <= numGroups; i++)
             {
-                columnSizes.push_back(38);
-                columnSizes.push_back(75);
+                columnSizes.push_back(38); // widget
+                columnSizes.push_back(75); // param name
             }
             
             LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
