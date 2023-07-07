@@ -1284,6 +1284,22 @@ static void MoveDown(HWND hwndParamList)
     }
 }
 
+static void EditItem(HWND hwndParamList)
+{
+    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+    
+    if(index >= 0)
+    {
+        fxListIndex = index;
+        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
+        
+        if(dlgResult == IDOK)
+            SetListViewItem(hwndParamList, index, false);
+        
+        dlgResult = IDCANCEL;
+    }
+}
+
 static bool isDragging = false;
 
 #ifdef _WIN32
@@ -1299,7 +1315,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_NOTIFY:
         {
-            if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
+            if(((LPNMHDR)lParam)->code == NM_DBLCLK)
+                EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+            else if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
             {
                 HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
                
@@ -1323,21 +1341,6 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     ImageList_DragEnter(GetDesktopWindow(), pt.x, pt.y);
 
                     SetCapture(hwndDlg);
-                }
-            }
-            
-            else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
-            {
-                HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-                
-                int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-                if(index >= 0)
-                {
-                    fxListIndex = index;
-                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
-                    
-                    if(dlgResult == IDOK)
-                        SetListViewItem(hwndParamList, index, false);
                 }
             }
         }
@@ -1461,19 +1464,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                    
                 case IDEDIT:
                     if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-                        
-                        int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-                        if(index >= 0)
-                        {
-                            fxListIndex = index;
-                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
-                            
-                            if(dlgResult == IDOK)
-                                SetListViewItem(hwndParamList, index, false);
-                        }
-                    }
+                        EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break ;
                     
                 case IDCANCEL:
@@ -1497,26 +1488,13 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_NOTIFY:
         {
-            if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
+            if(((LPNMHDR)lParam)->code == NM_DBLCLK)
+                EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+            else if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
             {
                 isDragging = true;
                 GetCursorPos(&lastCursorPosition);
                 SetCapture(hwndDlg);
-            }
-            
-            else if(((LPNMHDR)lParam)->code == NM_DBLCLK)
-            {
-                HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-                
-                int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-                if(index >= 0)
-                {
-                    fxListIndex = index;
-                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
-                    
-                    if(dlgResult == IDOK)
-                        SetListViewItem(hwndParamList, index, false);
-                }
             }
         }
             break;
@@ -1618,21 +1596,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                    
                 case IDEDIT:
                     if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-                        
-                        int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-                        if(index >= 0)
-                        {
-                            fxListIndex = index;
-                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
-                            
-                            if(dlgResult == IDOK)
-                                SetListViewItem(hwndParamList, index, false);
-                            
-                            dlgResult = IDCANCEL;
-                        }
-                    }
+                         EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break ;
                     
                 case IDCANCEL:

@@ -1767,8 +1767,6 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
             nonWidgetPropertyParams.push_back(param);
     }
     
-    widget_->SetColorValue(widgetProperties_);
-    
     params = nonWidgetPropertyParams;
     
     string actionName = "";
@@ -1919,6 +1917,11 @@ void ActionContext::RequestUpdate()
 void ActionContext::ClearWidget()
 {
     widget_->Clear();
+}
+
+void ActionContext::SetColorValue()
+{
+    widget_->SetColorValue(widgetProperties_);
 }
 
 void ActionContext::UpdateColorValue(double value)
@@ -2235,6 +2238,9 @@ void Zone::Activate()
 {
     UpdateCurrentActionContextModifiers();
     
+    zoneManager_->GetSurface()->HardClear();
+    SetColors();
+    
     for(auto [widget, isUsed] : widgets_)
         if(widget->GetName() == "OnZoneActivation")
             for(auto context : GetActionContexts(widget))
@@ -2374,6 +2380,8 @@ void Zone::UpdateCurrentActionContextModifiers()
     for(auto [widget, isUsed] : widgets_)
         UpdateCurrentActionContextModifier(widget);
     
+    SetColors();
+    
     for(auto zone : includedZones_)
         zone->UpdateCurrentActionContextModifiers();
 
@@ -2483,6 +2491,12 @@ void  Widget::ForceClear()
 {
     for(auto processor : feedbackProcessors_)
         processor->ForceClear();
+}
+
+void  Widget::HardClear()
+{
+    for(auto processor : feedbackProcessors_)
+        processor->HardClear();
 }
 
 void Widget::LogInput(double value)
@@ -2717,6 +2731,26 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigat
             fxSlotZones_.back()->Activate();
         }
     }
+}
+
+void ZoneManager::UpdateCurrentActionContextModifiers()
+{
+    surface_->HardClear();
+    
+    if(focusedFXParamZone_ != nullptr)
+        focusedFXParamZone_->UpdateCurrentActionContextModifiers();
+    
+    for(auto zone : focusedFXZones_)
+        zone->UpdateCurrentActionContextModifiers();
+    
+    for(auto zone : selectedTrackFXZones_)
+        zone->UpdateCurrentActionContextModifiers();
+    
+    for(auto zone : fxSlotZones_)
+        zone->UpdateCurrentActionContextModifiers();
+    
+    if(homeZone_ != nullptr)
+        homeZone_->UpdateCurrentActionContextModifiers();
 }
 
 void ZoneManager::RemapAutoZone()

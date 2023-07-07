@@ -363,6 +363,7 @@ public:
     void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateWidgetValue(string value);
     void UpdateColorValue(double value);
+    void SetColorValue();
 
     void   SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
@@ -516,6 +517,13 @@ protected:
     
     void AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators);
     void UpdateCurrentActionContextModifier(shared_ptr<Widget> widget);
+    
+    void SetColors()
+    {
+        for(auto [ widget, isUsed] : widgets_)
+            for(auto context : GetActionContexts(widget))
+                    context->SetColorValue();
+    }
     
 public:
     Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
@@ -830,6 +838,7 @@ public:
     void RestoreXTouchDisplayColors();
     void Clear();
     void ForceClear();
+    void HardClear();
     void LogInput(double value);
     
     void AddFeedbackProcessor(shared_ptr<FeedbackProcessor> feedbackProcessor)
@@ -951,6 +960,7 @@ public:
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
     void RemapAutoZone();
+    void UpdateCurrentActionContextModifiers();
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
@@ -1185,24 +1195,6 @@ public:
         }
     }
        
-    void UpdateCurrentActionContextModifiers()
-    {
-        if(focusedFXParamZone_ != nullptr)
-            focusedFXParamZone_->UpdateCurrentActionContextModifiers();
-        
-        for(auto zone : focusedFXZones_)
-            zone->UpdateCurrentActionContextModifiers();
-        
-        for(auto zone : selectedTrackFXZones_)
-            zone->UpdateCurrentActionContextModifiers();
-        
-        for(auto zone : fxSlotZones_)
-            zone->UpdateCurrentActionContextModifiers();
-        
-        if(homeZone_ != nullptr)
-            homeZone_->UpdateCurrentActionContextModifiers();
-    }
-
     void RequestUpdate()
     {
         CheckFocusedFXState();
@@ -1792,6 +1784,12 @@ public:
             widget->ForceClear();
     }
     
+    void HardClear()
+    {
+        for(auto widget : widgets_)
+            widget->HardClear();
+    }
+    
     void TrackFXListChanged(MediaTrack* track)
     {
         OnTrackSelection(track);
@@ -1963,7 +1961,7 @@ public:
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
-    virtual int GetMaxCharacters() { return 0; }
+    virtual void HardClear() {}
 
     virtual void SetValue(map<string, string> &properties, double value)
     {

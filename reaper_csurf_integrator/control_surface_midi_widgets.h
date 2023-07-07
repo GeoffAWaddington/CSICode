@@ -605,6 +605,42 @@ public:
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
 
+    virtual void HardClear() override
+    {
+        lastStringSent_ = "";
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 64;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+                
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
+    }
+    
     virtual void SetValue(map<string, string> &properties, string value) override
     {
         if(lastStringSent_ != value)
@@ -728,6 +764,43 @@ public:
         //val |= 0x40;
 
         return val + 64;
+    }
+    
+    virtual void HardClear() override
+    {
+        LEDColor color;
+        
+        color.ringRangeLow = 127;
+        color.ringRangeMedium = 127;
+        color.ringRangeHigh = 15;
+
+        color.ringColor.r = 0;
+        color.ringColor.g = 0;
+        color.ringColor.b = 0;
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeLow;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeMedium;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeHigh;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiSysExMessage(&midiSysExData.evt);
     }
     
     virtual void SetInitialValues(map<string, string> &properties) override
