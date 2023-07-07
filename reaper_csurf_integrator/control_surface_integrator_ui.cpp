@@ -661,6 +661,24 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 for(auto [ colorPicker, colorValue ] :  buttonColors)
                 {
+                    // GAW TBD -- think of a more elegant way to do this :)
+                    if(numGroups < 3 && ( colorPicker == widgetRingColors[2] ||
+                                            colorPicker == widgetRingIndicators[2] ||
+                                            colorPicker == fixedTextDisplayForegroundColors[2] ||
+                                            colorPicker == fixedTextDisplayBackgroundColors[2] ||
+                                            colorPicker == fxParamDisplayForegroundColors[2] ||
+                                            colorPicker == fxParamDisplayBackgroundColors[2] ))
+                            continue;
+
+                    if(numGroups < 2 && ( colorPicker == widgetRingColors[1] ||
+                                            colorPicker == widgetRingIndicators[1] ||
+                                            colorPicker == fixedTextDisplayForegroundColors[1] ||
+                                            colorPicker == fixedTextDisplayBackgroundColors[1] ||
+                                            colorPicker == fxParamDisplayForegroundColors[1] ||
+                                            colorPicker == fxParamDisplayBackgroundColors[1] ))
+                            continue;
+
+
                     HBRUSH brush = CreateSolidBrush(colorValue);
                     
                     RECT clientRect, windowRect;
@@ -825,14 +843,14 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, stepEditControls[i], steps.c_str());
             }
             
-            ShowBaseControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), true);
+            ShowBaseControls(hwndDlg, 0, numGroups, true);
             
             if(hasFonts)
-                ShowFontControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), true);
+                ShowFontControls(hwndDlg, 0, numGroups, true);
             
             if(hasColors)
             {
-                ShowColorControls(hwndDlg, 0, paramDefs[fxListIndex].definitions.size(), true);
+                ShowColorControls(hwndDlg, 0, numGroups, true);
                 InvalidateRect(hwndDlg, NULL, true);
             }
             
