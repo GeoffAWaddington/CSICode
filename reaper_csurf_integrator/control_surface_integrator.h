@@ -1782,6 +1782,8 @@ public:
     {
         for(auto widget : widgets_)
             widget->ForceClear();
+        
+        HardClear();
     }
     
     void HardClear()
