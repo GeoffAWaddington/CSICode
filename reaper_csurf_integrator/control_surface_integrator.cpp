@@ -3039,7 +3039,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         // GAW -- pad partial rows
         if(channelIndex != 1 && channelIndex <= fxLayouts_[layoutIndex].channelCount)
         {
-            for(int index = channelIndex; index <= fxLayouts_[layoutIndex].channelCount; index++)
+            while(channelIndex <= fxLayouts_[layoutIndex].channelCount)
             {
                 for(int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
@@ -3048,12 +3048,23 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     if(fxLayouts_[layoutIndex].modifiers != "")
                         modifiers = fxLayouts_[layoutIndex].modifiers + "+";
                     
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();;
-                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
-                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding();
+                    
+                    if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
+                    {
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding();
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                    }
+                    else
+                    {
+                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                    }
                 }
                 
                 fxZone << GetLineEnding();
+                
+                channelIndex++;
             }
         }
 
@@ -3071,9 +3082,18 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     if(fxLayouts_[layoutIndex].modifiers != "")
                         modifiers = fxLayouts_[layoutIndex].modifiers + "+";
                     
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();;
-                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
-                    fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();
+                    
+                    if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
+                    {
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                    }
+                    else
+                    {
+                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                    }
                 }
                 
                 fxZone << GetLineEnding();
