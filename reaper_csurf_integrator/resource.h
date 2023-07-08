@@ -6,6 +6,7 @@
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_RemapAutoFX          117
+#define IDD_DIALOG_Advanced             119
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -140,15 +141,20 @@
 #define IDC_GroupFixedTextDisplay3      1243
 #define IDC_FXParamNameEdit3            1244
 #define IDC_LIST1                       1246
+#define IDC_EDIT_Delta                  1248
+#define IDC_EDIT_RangeMin               1249
+#define IDC_EDIT_RangeMax               1250
+#define IDC_EDIT_DeltaValues            1251
+#define IDC_EDIT_TickValues             1252
 #define IDC_GroupFXParamValueDisplay3   1263
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        119
+#define _APS_NEXT_RESOURCE_VALUE        121
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1247
+#define _APS_NEXT_CONTROL_VALUE         1252
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

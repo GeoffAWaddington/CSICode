@@ -242,7 +242,7 @@ static void GetSteppedValues(vector<string> params, string &deltaValue, vector<s
             if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
                 steppedValues.push_back(strVal);
             else if(regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
-                deltaValue = stod(strVal);
+                deltaValue = regex_replace(strVal, regex("[()]"), "");
             else if(regex_match(strVal, regex("[(]-?[0-9]+[)]")))
                 acceleratedTickValues.push_back(strVal);
             else if(regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
@@ -251,7 +251,7 @@ static void GetSteppedValues(vector<string> params, string &deltaValue, vector<s
                 string deltaValue;
                 
                 while (getline(acceleratedDeltaValueStream, deltaValue, ','))
-                    acceleratedDeltaValues.push_back(deltaValue);
+                    acceleratedDeltaValues.push_back(regex_replace(deltaValue, regex("[()]"), "") + "  ");
             }
             else if(regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
             {
@@ -259,7 +259,7 @@ static void GetSteppedValues(vector<string> params, string &deltaValue, vector<s
                 string tickValue;
                 
                 while (getline(acceleratedTickValueStream, tickValue, ','))
-                    acceleratedTickValues.push_back(tickValue);
+                    acceleratedTickValues.push_back(tickValue + "  ");
             }
             else if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
             {
@@ -398,6 +398,8 @@ void UnpackZone(string fullPath)
             if(tokens.size() > 2)
                 def.paramNumber = tokens[2];
             
+            int propertiesOffset = 3;
+            
             if(tokens.size() > 4 && tokens[3] == "[")
             {
                 vector<string> params;
@@ -406,15 +408,12 @@ void UnpackZone(string fullPath)
                     params.push_back(tokens[i]);
                 
                 params.push_back("]");
+             
+                propertiesOffset += params.size();
                 
                 GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
             }
-            
-            int propertiesOffset = 3;
-            
-            if (def.steps.size() != 0)
-                propertiesOffset = def.steps.size() + 5;
-            
+                                   
             if(tokens.size() > propertiesOffset)
                 GetProperties(propertiesOffset,  tokens.size(), tokens, def.widgetProperties);
             
@@ -458,6 +457,112 @@ void UnpackZone(string fullPath)
         }
     }
 }
+
+static int dlgResult = IDCANCEL;
+
+static int fxListIndex = 0;
+static int groupIndex = 0;
+
+static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+        {
+            SetWindowText(hwndDlg, ("Advanced Edit Group " + to_string(groupIndex + 1)).c_str());
+
+            dlgResult = IDCANCEL;
+               
+            if(paramDefs[fxListIndex].definitions[groupIndex].delta != "")
+                SetDlgItemText(hwndDlg, IDC_EDIT_Delta , paramDefs[fxListIndex].definitions[groupIndex].delta.c_str());
+
+            if(paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum != "")
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin , paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum.c_str());
+
+            if(paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum != "")
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax , paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum.c_str());
+
+            if(paramDefs[fxListIndex].definitions[groupIndex].deltas.size() > 0)
+            {
+                string deltas = "";
+                
+                for(auto delta : paramDefs[fxListIndex].definitions[groupIndex].deltas)
+                    deltas += delta + " ";
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues , deltas.c_str());
+            }
+
+            if(paramDefs[fxListIndex].definitions[groupIndex].ticks.size() > 0)
+            {
+                string ticks = "";
+                
+                for(auto tick : paramDefs[fxListIndex].definitions[groupIndex].ticks)
+                    ticks += tick + " ";
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues , ticks.c_str());
+            }
+        }
+            break;
+            
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        char buf[BUFSZ];
+                        
+                        GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
+                        if(string(buf) != "")
+                            paramDefs[fxListIndex].definitions[groupIndex].delta = buf;
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
+                        if(string(buf) != "")
+                            paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum = buf;
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
+                        if(string(buf) != "")
+                            paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum = buf;
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
+                        if(string(buf) != "")
+                        {
+                            paramDefs[fxListIndex].definitions[groupIndex].deltas.clear();
+                            for(auto delta : GetTokens(buf))
+                                paramDefs[fxListIndex].definitions[groupIndex].deltas.push_back(delta);
+                        }
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
+                        if(string(buf) != "")
+                        {
+                            paramDefs[fxListIndex].definitions[groupIndex].ticks.clear();
+                            for(auto tick : GetTokens(buf))
+                                paramDefs[fxListIndex].definitions[groupIndex].ticks.push_back(tick);
+                        }
+
+                        dlgResult = IDOK;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        dlgResult = IDCANCEL;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+
+
 
 static vector<int> paramNumEditControls = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
 static vector<int> widgetTypePickers = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
@@ -639,10 +744,6 @@ static void PopulateParamListView(HWND hwndParamList)
         }
     }
 }
-
-static int dlgResult = IDCANCEL;
-
-static int fxListIndex = 0;
 
 static bool hasFonts = false;
 static bool hasColors = false;
@@ -865,9 +966,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 InvalidateRect(hwndDlg, NULL, true);
             }
             
-            break;
         }
-            
+            break;
+
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
@@ -997,7 +1098,31 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
-                                     
+                          
+                case IDC_AdvancedGroup1:
+                {
+                    groupIndex = 0;
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
+                    dlgResult = IDCANCEL;
+                }
+                    break;
+                    
+                case IDC_AdvancedGroup2:
+                {
+                    groupIndex = 1;
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
+                    dlgResult = IDCANCEL;
+                }
+                    break;
+                    
+                case IDC_AdvancedGroup3:
+                {
+                    groupIndex = 2;
+                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
+                    dlgResult = IDCANCEL;
+                }
+                    break;
+                    
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1348,6 +1473,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_INITDIALOG:
         {
+            SetWindowText(hwndDlg, "Remap Auto Zone");
+
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
             vector<int> columnSizes = { 160 };
@@ -1417,6 +1544,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 paramDefs.insert(paramDefs.begin() + lvhti.iItem, itemToMove);
                 
                 PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+                
+                ListView_EnsureVisible(GetDlgItem(hwndDlg, IDC_PARAM_LIST), lvhti.iItem, false);
                 
                 ListView_SetItemState(hwndParamList, lvhti.iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
             }
@@ -1500,6 +1629,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_INITDIALOG:
         {
+            SetWindowText(hwndDlg, "Remap Auto Zone");
+
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
             vector<int> columnSizes = { 65 }; // modifiers
@@ -1697,9 +1828,47 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
                     {
                         fxFile << layoutTemplates[i].widgetAction + " " + paramDefs[i].definitions[j].paramNumber + " ";
                         
-                        if(paramDefs[i].definitions[j].steps.size() > 0)
+                        if(paramDefs[i].definitions[j].delta != "" ||
+                           (paramDefs[i].definitions[j].rangeMinimum != ""  && paramDefs[i].definitions[j].rangeMaximum != "") ||
+                           paramDefs[i].definitions[j].deltas.size() > 0 ||
+                           paramDefs[i].definitions[j].ticks.size() > 0 ||
+                           paramDefs[i].definitions[j].steps.size() > 0)
                         {
                             fxFile << "[ ";
+                            
+                            if(paramDefs[i].definitions[j].rangeMinimum != ""  && paramDefs[i].definitions[j].rangeMaximum != "")
+                                fxFile << " " + paramDefs[i].definitions[j].rangeMinimum + ">" + paramDefs[i].definitions[j].rangeMaximum + " ";
+                            
+                            if(paramDefs[i].definitions[j].delta != "")
+                                fxFile << " (" + paramDefs[i].definitions[j].delta + ") ";
+                            
+                            if(paramDefs[i].definitions[j].deltas.size() > 0)
+                            {
+                                string deltaStr = " (";
+                                
+                                for(auto delta : paramDefs[i].definitions[j].deltas)
+                                    deltaStr += delta + ",";
+                                
+                                deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
+                                
+                                deltaStr += ") ";
+                                
+                                fxFile << deltaStr;
+                            }
+                            
+                            if(paramDefs[i].definitions[j].ticks.size() > 0)
+                            {
+                                string tickStr = " (";
+                                
+                                for(auto tick : paramDefs[i].definitions[j].ticks)
+                                    tickStr += tick + ",";
+                                
+                                tickStr = tickStr.substr(0, tickStr.length() - 1);
+                                
+                                tickStr += ") ";
+                                
+                                fxFile << tickStr;
+                            }
                             
                             for(auto step : paramDefs[i].definitions[j].steps)
                                 fxFile << step + " " ;
