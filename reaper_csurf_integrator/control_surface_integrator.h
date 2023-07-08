@@ -1458,7 +1458,7 @@ public:
     {
         modifierCombinations_.push_back(0);
         
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i < modifierNames_.size(); i++)
             modifiers_.push_back(Modifier());
         
         int value = 2;
@@ -1601,12 +1601,12 @@ private:
     
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
-
+    
     map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
     
     bool shouldUnlearnFXParam_ = false;
-    vector<LearnInfo> channelLearns_;
+    map<int, vector<LearnInfo>> channelLearns_;
 
 protected:
     ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
@@ -1618,7 +1618,6 @@ protected:
         {
             channelTouches_[i] = false;
             channelToggles_[i] = false;
-            channelLearns_.push_back(LearnInfo());
         }
     }
 
@@ -1714,7 +1713,20 @@ public:
 
     void ToggleLearnFXParam() { shouldUnlearnFXParam_ = ! shouldUnlearnFXParam_; }
     bool GetShouldUnlearn() { return shouldUnlearnFXParam_; }
-    LearnInfo &GetLearnInfo(int channel) { return channelLearns_[channel]; }
+    
+    LearnInfo &GetLearnInfo(int channel)
+    {
+        vector<int> modifiers = GetModifiers();
+        
+        if(modifiers.size() > 0)
+        {
+            if(channelLearns_.count(modifiers[0]) < 1)
+                for(int i = 0 ; i < numChannels_; i++)
+                    channelLearns_[modifiers[0]].push_back(LearnInfo());
+        }
+
+        return channelLearns_[modifiers[0]][channel];
+    }
     
     void TouchChannel(int channelNum, bool isTouched)
     {
