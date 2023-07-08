@@ -1420,7 +1420,8 @@ void Manager::InitActionsDictionary()
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
-    actions_["ToggleLearnFXParam"] =                make_shared<ToggleLearnFXParam>();
+    actions_["SaveLearnedFXParam"] =                make_shared<SaveLearnedFXParam>();
+    actions_["ToggleEraseFXParam"] =                make_shared<ToggleEraseFXParam>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
     actions_["ToggleFXBypass"] =                    make_shared<ToggleFXBypass>();
@@ -2827,6 +2828,50 @@ bool ZoneManager::EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fx
         return EnsureZoneAvailable(fxName, track, fxIndex);
     else
         return false;
+}
+
+void ZoneManager::CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex)
+{
+    // Check for UAD / Plugin Alliance and bail if neither
+    if(fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
+        return;
+    
+    bool wasMuted = false;
+    DAW::GetTrackUIMute(track, &wasMuted);
+    
+    if( ! wasMuted)
+        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, true), NULL);
+
+    double minvalOut = 0.0;
+    double maxvalOut = 0.0;
+
+    double currentValue;
+
+    currentValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+    
+        int stepCount = 1;
+        double stepValue = 0.0;
+        
+        for(double value = 0.0; value < 1.01; value += .01)
+        {
+            DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
+            
+            double fxValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+            
+            if(stepValue != fxValue)
+            {
+                stepValue = fxValue;
+                stepCount++;
+            }
+        }
+        
+    if(stepCount > 1 && stepCount < 31)
+        TheManager->SetSteppedValueCount(fxName, paramIndex, stepCount);
+
+    DAW::TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
+    
+    if( ! wasMuted)
+        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
 void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex)

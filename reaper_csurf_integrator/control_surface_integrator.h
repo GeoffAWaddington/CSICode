@@ -959,6 +959,7 @@ public:
     void GoFocusedFX();
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
+    void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
 
@@ -1491,6 +1492,34 @@ public:
     bool GetZoom() { return modifiers_[Zoom].isEngaged; }
     bool GetScrub() { return modifiers_[Scrub].isEngaged; }
 
+    string GetModifierString()
+    {
+        string str = "";
+        
+        if(modifiers_[Shift].isEngaged)
+            str += modifierNames_[Shift] + "+";
+        if(modifiers_[Option].isEngaged)
+            str += modifierNames_[Option] + "+";
+        if(modifiers_[Control].isEngaged)
+            str += modifierNames_[Control] + "+";
+        if(modifiers_[Alt].isEngaged)
+            str += modifierNames_[Alt] + "+";
+        if(modifiers_[Flip].isEngaged)
+            str += modifierNames_[Flip] + "+";
+        if(modifiers_[Global].isEngaged)
+            str += modifierNames_[Global] + "+";
+        if(modifiers_[Marker].isEngaged)
+            str += modifierNames_[Marker] + "+";
+        if(modifiers_[Nudge].isEngaged)
+            str += modifierNames_[Nudge] + "+";
+        if(modifiers_[Zoom].isEngaged)
+            str += modifierNames_[Zoom] + "+";
+        if(modifiers_[Scrub].isEngaged)
+            str += modifierNames_[Scrub] + "+";
+        
+        return str;
+    }
+    
     int GetModifierValue()
     {
         int modifierValue = 0;
@@ -1580,6 +1609,12 @@ public:
 struct LearnInfo
 {
     bool isLearned = false;
+    string fxName = "";
+    string modifiers = "";
+    string fxParamWidget = "";
+    string fxParamNameWidget = "";
+    string fxParamValueWidget = "";
+    int numSteps = 0;
     MediaTrack* track = nullptr;
     int slotNumber = 0;
     int paramNumber = 0;
@@ -1605,7 +1640,7 @@ private:
     map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
     
-    bool shouldUnlearnFXParam_ = false;
+    bool shouldEraseFXParam_ = false;
     map<int, vector<LearnInfo>> channelLearns_;
 
 protected:
@@ -1711,8 +1746,14 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
-    void ToggleLearnFXParam() { shouldUnlearnFXParam_ = ! shouldUnlearnFXParam_; }
-    bool GetShouldUnlearn() { return shouldUnlearnFXParam_; }
+    void ToggleEraseFXParam() { shouldEraseFXParam_ = ! shouldEraseFXParam_; }
+    bool GetShouldErase() { return shouldEraseFXParam_; }
+    
+    void SaveLearnedFXParam()
+    {
+        
+        
+    }
     
     LearnInfo &GetLearnInfo(int channel)
     {
