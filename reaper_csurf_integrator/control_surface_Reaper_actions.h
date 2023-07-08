@@ -90,7 +90,7 @@ public:
         {
             LearnInfo info = context->GetSurface()->GetLearnInfo(channelNum);
 
-            if(info.isLearned && ! context->GetSurface()->GetShouldUnlearn())
+            if(info.isLearned)
                 DAW::TrackFX_SetParam(info.track, info.slotNumber, info.paramNumber, value);
         }
     }
