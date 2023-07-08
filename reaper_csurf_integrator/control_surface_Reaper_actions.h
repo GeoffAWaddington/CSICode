@@ -37,6 +37,133 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class LearnFXParam : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "LearnFXParam"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        double min, max = 0.0;
+    
+        LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+
+        return DAW::TrackFX_GetParam(info.track, info.slotNumber, info.paramNumber, &min, &max);
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
+        {
+            double currentValue = GetCurrentNormalizedValue(context);
+            
+            context->UpdateWidgetValue(currentValue);
+        }
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        int channelNum = context->GetWidget()->GetChannelNumber() - 1;
+        
+        if(context->GetSurface()->GetLearnInfo(channelNum).isLearned && context->GetSurface()->GetShouldUnlearn())
+        {
+            context->GetSurface()->GetLearnInfo(channelNum).isLearned = false;
+        }
+        else if(! context->GetSurface()->GetLearnInfo(channelNum).isLearned && ! context->GetSurface()->GetShouldUnlearn())
+        {
+            int trackNum = 0;
+            int fxSlotNum = 0;
+            int fxParamNum = 0;
+            
+            if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+            {
+                context->GetSurface()->GetLearnInfo(channelNum).isLearned = true;
+                context->GetSurface()->GetLearnInfo(channelNum).track = DAW::GetTrack(trackNum);
+                context->GetSurface()->GetLearnInfo(channelNum).slotNumber = fxSlotNum;
+                context->GetSurface()->GetLearnInfo(channelNum).paramNumber = fxParamNum;
+            }
+        }
+        else
+        {
+            LearnInfo info = context->GetSurface()->GetLearnInfo(channelNum);
+
+            if(info.isLearned && ! context->GetSurface()->GetShouldUnlearn())
+                DAW::TrackFX_SetParam(info.track, info.slotNumber, info.paramNumber, value);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ToggleLearnFXParam : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ToggleLearnFXParam"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        return ! context->GetSurface()->GetShouldUnlearn();
+    }
+
+    void RequestUpdate(ActionContext* context) override
+    {
+        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+    }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->ToggleLearnFXParam();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class LearnFXParamNameDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "LearnFXParamNameDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
+        {
+            LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+            
+            context->UpdateWidgetValue(TheManager->GetFXParamName(info.track, info.slotNumber, info.paramNumber));
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class LearnFXParamValueDisplay : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "LearnFXParamValueDisplay"; }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
+        {
+            LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+            
+            char fxParamValue[128];
+            DAW::TrackFX_GetFormattedParamValue(info.track, info.slotNumber, info.paramNumber, fxParamValue, sizeof(fxParamValue));
+            context->UpdateWidgetValue(string(fxParamValue));
+        }
+        else
+            context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class JSFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

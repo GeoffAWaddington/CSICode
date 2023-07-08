@@ -1419,6 +1419,8 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeterMaxPeakLR"] =         make_shared<TrackOutputMeterMaxPeakLR>();
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
+    actions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
+    actions_["ToggleLearnFXParam"] =                make_shared<ToggleLearnFXParam>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
     actions_["ToggleFXBypass"] =                    make_shared<ToggleFXBypass>();
@@ -1429,8 +1431,10 @@ void Manager::InitActionsDictionary()
     actions_["FXMenuNameDisplay"] =                 make_shared<FXMenuNameDisplay>();
     actions_["SpeakFXMenuName"] =                   make_shared<SpeakFXMenuName>();
     actions_["FXParamNameDisplay"] =                make_shared<FXParamNameDisplay>();
+    actions_["LearnFXParamNameDisplay"] =           make_shared<LearnFXParamNameDisplay>();
     actions_["TCPFXParamNameDisplay"] =             make_shared<TCPFXParamNameDisplay>();
     actions_["FXParamValueDisplay"] =               make_shared<FXParamValueDisplay>();
+    actions_["LearnFXParamValueDisplay"] =          make_shared<LearnFXParamValueDisplay>();
     actions_["TCPFXParamValueDisplay"] =            make_shared<TCPFXParamValueDisplay>();
     actions_["FocusedFXParamNameDisplay"] =         make_shared<FocusedFXParamNameDisplay>();
     actions_["FocusedFXParamValueDisplay"] =        make_shared<FocusedFXParamValueDisplay>();
@@ -2307,7 +2311,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
 {
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
-    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" )
+    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" || zoneName == "LearnFXParams")
     {
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
         {

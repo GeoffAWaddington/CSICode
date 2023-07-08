@@ -1577,6 +1577,14 @@ public:
     }
 };
 
+struct LearnInfo
+{
+    bool isLearned = false;
+    MediaTrack* track = nullptr;
+    int slotNumber = 0;
+    int paramNumber = 0;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1596,6 +1604,9 @@ private:
 
     map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
+    
+    bool shouldUnlearnFXParam_ = false;
+    vector<LearnInfo> channelLearns_;
 
 protected:
     ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
@@ -1607,6 +1618,7 @@ protected:
         {
             channelTouches_[i] = false;
             channelToggles_[i] = false;
+            channelLearns_.push_back(LearnInfo());
         }
     }
 
@@ -1700,6 +1712,10 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
+    void ToggleLearnFXParam() { shouldUnlearnFXParam_ = ! shouldUnlearnFXParam_; }
+    bool GetShouldUnlearn() { return shouldUnlearnFXParam_; }
+    LearnInfo &GetLearnInfo(int channel) { return channelLearns_[channel]; }
+    
     void TouchChannel(int channelNum, bool isTouched)
     {
         if(channelNum > 0 && channelNum <= numChannels_)
