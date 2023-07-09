@@ -47,16 +47,16 @@ public:
     {
         double min, max = 0.0;
     
-        LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
 
-        return DAW::TrackFX_GetParam(info.track, info.slotNumber, info.paramNumber, &min, &max);
+        return DAW::TrackFX_GetParam(info->track, info->slotNumber, info->paramNumber, &min, &max);
     }
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
         
-        if(info.isLearned && info.fxParamWidget == context->GetWidget()->GetName())
+        if(info->isLearned && info->fxParamWidget == context->GetWidget()->GetName())
         {
             double currentValue = GetCurrentNormalizedValue(context);
             
@@ -69,31 +69,6 @@ public:
     virtual void Do(ActionContext* context, double value) override
     {
         context->GetSurface()->GetZoneManager()->DoLearn(context, value);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleEraseFXParam : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleEraseFXParam"; }
-
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
-    {
-        return context->GetSurface()->GetZoneManager()->GetShouldErase();
-    }
-
-    void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-    }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleEraseFXParam();
     }
 };
 
@@ -121,16 +96,16 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        int channel = context->GetWidget()->GetChannelNumber() - 1;
+        int channel = context->GetWidget()->GetChannelNumber();
         
-        LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channel);
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channel);
 
-        if(info.isLearned)
+        if(info->isLearned)
         {
-            if(info.fxParamNameWidget == "")
+            if(info->fxParamNameWidget == "")
                 context->GetSurface()->GetZoneManager()->SetLearnFXParamNameWidget(channel, context->GetWidget()->GetName());
             
-            context->UpdateWidgetValue(TheManager->GetFXParamName(info.track, info.slotNumber, info.paramNumber));
+            context->UpdateWidgetValue(TheManager->GetFXParamName(info->track, info->slotNumber, info->paramNumber));
         }
         else
             context->ClearWidget();
@@ -146,21 +121,36 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        int channel = context->GetWidget()->GetChannelNumber() - 1;
+        int channel = context->GetWidget()->GetChannelNumber();
 
-        LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channel);
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channel);
 
-        if(info.isLearned)
+        if(info->isLearned)
         {
-            if(info.fxParamValueWidget == "")
+            if(info->fxParamValueWidget == "")
                 context->GetSurface()->GetZoneManager()->SetLearnFXParamValueWidget(channel, context->GetWidget()->GetName());
 
             char fxParamValue[128];
-            DAW::TrackFX_GetFormattedParamValue(info.track, info.slotNumber, info.paramNumber, fxParamValue, sizeof(fxParamValue));
+            DAW::TrackFX_GetFormattedParamValue(info->track, info->slotNumber, info->paramNumber, fxParamValue, sizeof(fxParamValue));
             context->UpdateWidgetValue(string(fxParamValue));
         }
         else
             context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class EraseLastTouchedFXParam : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "EraseLastTouchedFXParam"; }
+   
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->EraseLastTouchedFXParam();
     }
 };
 

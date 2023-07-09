@@ -1421,7 +1421,7 @@ void Manager::InitActionsDictionary()
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
     actions_["SaveLearnedFXParam"] =                make_shared<SaveLearnedFXParam>();
-    actions_["ToggleEraseFXParam"] =                make_shared<ToggleEraseFXParam>();
+    actions_["EraseLastTouchedFXParam"] =           make_shared<EraseLastTouchedFXParam>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
     actions_["ToggleFXBypass"] =                    make_shared<ToggleFXBypass>();
@@ -2758,36 +2758,57 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
         homeZone_->UpdateCurrentActionContextModifiers();
 }
 
-LearnInfo &ZoneManager::GetLearnInfo(int channel)
+void ZoneManager::EraseLastTouchedFXParam()
+{
+    if(lastTouchedParamTrack_ == nullptr)
+        return;
+    
+    LearnInfo* info =  &channelLearns_[lastTouchedParamModifier_][lastTouchedChannel_ - 1];
+    
+    info->isLearned = false;
+    info->fxName = "";
+    info->modifiers = "";
+    info->fxParamWidget = "";
+    info->track = nullptr;
+    info->slotNumber = 0;
+    info->paramNumber = 0;
+}
+
+LearnInfo* ZoneManager::GetLearnInfo(int channel)
 {
     vector<int> modifiers = surface_->GetModifiers();
     
     if(modifiers.size() > 0)
     {
         if(channelLearns_.count(modifiers[0]) < 1)
+        {
             for(int i = 0 ; i < surface_->GetNumChannels(); i++)
+            {
                 channelLearns_[modifiers[0]].push_back(LearnInfo());
+                channelLearns_[modifiers[0]][i].modifier = modifiers[0];
+            }
+        }
     }
 
-    return channelLearns_[modifiers[0]][channel];
+    return &channelLearns_[modifiers[0]][channel - 1];
 }
 
-void ZoneManager::SetLearnFXParamWidget(int channel, string name, string modifierStr)
+void ZoneManager::SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr)
 {
     string channelNumStr = to_string(channel + 1);
     
     string baseName = name.substr(0, name.length() - channelNumStr.length());
     
-    vector<int> modifiers = surface_->GetModifiers();
-    
-    if(modifiers.size() > 0  && channelLearns_[modifiers[0]][0].fxParamWidget == "")
+    if(channelLearns_.count(modifier) > 0)
     {
-        if(channelLearns_.count(modifiers[0]) > 0)
+        for(int i = 0 ; i < surface_->GetNumChannels(); i++)
         {
-            for(int i = 0 ; i < surface_->GetNumChannels(); i++)
+            if(channelLearns_[modifier][i].fxParamWidget == "")
             {
-                channelLearns_[modifiers[0]][i].fxParamWidget = baseName + to_string(i + 1);
-                channelLearns_[modifiers[0]][i].modifiers = modifierStr;
+                channelLearns_[modifier][i].fxName = fxName;
+                channelLearns_[modifier][i].fxParamWidget = baseName + to_string(i + 1);
+                channelLearns_[modifier][i].modifier = modifier;
+                channelLearns_[modifier][i].modifiers = modifierStr;
             }
         }
     }
@@ -2801,7 +2822,7 @@ void ZoneManager::SetLearnFXParamNameWidget(int channel, string name)
     
     vector<int> modifiers = surface_->GetModifiers();
     
-    if(modifiers.size() > 0 && channelLearns_[modifiers[0]][0].fxParamNameWidget == "")
+    if(modifiers.size() > 0)
     {
         if(channelLearns_.count(modifiers[0]) > 0)
             for(int i = 0 ; i < surface_->GetNumChannels(); i++)
@@ -2811,13 +2832,13 @@ void ZoneManager::SetLearnFXParamNameWidget(int channel, string name)
 
 void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
 {
-    string channelNumStr = to_string(channel + 1);
+    string channelNumStr = to_string(channel);
     
     string baseName = name.substr(0, name.length() - channelNumStr.length());
     
     vector<int> modifiers = surface_->GetModifiers();
     
-    if(modifiers.size() > 0  && channelLearns_[modifiers[0]][0].fxParamValueWidget == "")
+    if(modifiers.size() > 0)
     {
         if(channelLearns_.count(modifiers[0]) > 0)
             for(int i = 0 ; i < surface_->GetNumChannels(); i++)
@@ -2827,22 +2848,11 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
 
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
-    int channel = context->GetWidget()->GetChannelNumber() - 1;
+    int channel = context->GetWidget()->GetChannelNumber();
+ 
+    LearnInfo* info = GetLearnInfo(channel);
     
-    if(context->GetSurface()->GetZoneManager()->GetLearnInfo(channel).isLearned && context->GetSurface()->GetZoneManager()->GetShouldErase())
-    {
-        GetLearnInfo(channel).isLearned = false;
-        GetLearnInfo(channel).fxName = "";
-        GetLearnInfo(channel).modifiers = "";
-        GetLearnInfo(channel).fxParamWidget = "";
-        GetLearnInfo(channel).fxParamNameWidget = "";
-        GetLearnInfo(channel).fxParamValueWidget = "";
-        GetLearnInfo(channel).track = nullptr;
-        GetLearnInfo(channel).slotNumber = 0;
-        GetLearnInfo(channel).paramNumber = 0;
-
-    }
-    else if(! context->GetSurface()->GetZoneManager()->GetLearnInfo(channel).isLearned && ! context->GetSurface()->GetZoneManager()->GetShouldErase())
+    if(! info->isLearned)
     {
         int trackNum = 0;
         int fxSlotNum = 0;
@@ -2856,8 +2866,6 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             
             learnFXName_ = fxName;
-            
-            GetLearnInfo(channel).fxName = fxName;
 
             if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
                 context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
@@ -2867,22 +2875,26 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
                 numSteps = 2;
             
-            GetLearnInfo(channel).numSteps = numSteps;
+            info->numSteps = numSteps;
             
-            SetLearnFXParamWidget(channel, context->GetWidget()->GetName(), context->GetPage()->GetModifierManager()->GetModifierString());
+            vector<int> modifiers = surface_->GetModifiers();
+            
+            SetLearnFXParamWidget(fxName, channel, context->GetWidget()->GetName(), modifiers[0], context->GetPage()->GetModifierManager()->GetModifierString());
            
-            GetLearnInfo(channel).isLearned = true;
-            GetLearnInfo(channel).track = track;
-            GetLearnInfo(channel).slotNumber = fxSlotNum;
-            GetLearnInfo(channel).paramNumber = fxParamNum;
+            info->isLearned = true;
+            info->track = track;
+            info->slotNumber = fxSlotNum;
+            info->paramNumber = fxParamNum;
         }
     }
     else
     {
-        LearnInfo info = GetLearnInfo(channel);
-
-        if(info.isLearned && info.fxParamWidget == context->GetWidget()->GetName())
-            DAW::TrackFX_SetParam(info.track, info.slotNumber, info.paramNumber, value);
+        lastTouchedChannel_ = channel;
+        lastTouchedParamTrack_ = info->track;
+        lastTouchedParamModifier_ = info->modifiers[0];
+        
+        if(info->isLearned && info->fxParamWidget == context->GetWidget()->GetName())
+            DAW::TrackFX_SetParam(info->track, info->slotNumber, info->paramNumber, value);
     }
 }
 

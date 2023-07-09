@@ -869,6 +869,7 @@ struct LearnInfo
     bool isLearned = false;
     string fxName = "";
     string modifiers = "";
+    int modifier = 0;
     string fxParamWidget = "";
     string fxParamNameWidget = "";
     string fxParamValueWidget = "";
@@ -956,11 +957,14 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
-    bool shouldEraseFXParam_ = false;
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
 
-    void SetLearnFXParamWidget(int channel, string name, string modifierStr);
+    void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
+    
+    MediaTrack* lastTouchedParamTrack_ = nullptr;
+    int lastTouchedChannel_ = 0;
+    int lastTouchedParamModifier_ = 0;
     
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
@@ -982,9 +986,10 @@ public:
     void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
+    
     void DoLearn(ActionContext* context, double value);
-    LearnInfo &GetLearnInfo(int channel);
-
+    LearnInfo* GetLearnInfo(int channel);
+    
     void DoTouch(shared_ptr<Widget> widget, double value);
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
@@ -1012,11 +1017,9 @@ public:
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
       
-    void ToggleEraseFXParam() { shouldEraseFXParam_ = ! shouldEraseFXParam_; }
-    bool GetShouldErase() { return shouldEraseFXParam_; }
-
     void SetLearnFXParamNameWidget(int channel, string name);
     void SetLearnFXParamValueWidget(int channel, string name);
+    void EraseLastTouchedFXParam();
 
     void SaveLearnedFXParam()
     {
@@ -1044,19 +1047,22 @@ public:
                 {
                     for(auto info : infos)
                     {
-                        string fxParamAction = "\tFXParam ";
+                        if(info.fxName != learnFXName_)
+                            continue;
+                        
+                        string fxParamAction = "\tFXParam "  + to_string(info.paramNumber);
                         if(! info.isLearned)
                             fxParamAction = "\tNoAction ";
                         
-                        string fxParamNameAction = "\tFXParamNameDisplay ";
+                        string fxParamNameAction = "\tFXParamNameDisplay "  + to_string(info.paramNumber);
                         if(! info.isLearned)
                             fxParamNameAction = "\tNoAction ";
                         
-                        string fxParamValueAction = "\tFXParamValueDisplay ";
+                        string fxParamValueAction = "\tFXParamValueDisplay "  + to_string(info.paramNumber);
                         if(! info.isLearned)
                             fxParamValueAction = "\tNoAction ";
                         
-                        fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction + to_string(info.paramNumber);
+                        fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction;
                         
                         if(info.numSteps > 0)
                         {
@@ -1074,9 +1080,9 @@ public:
 
                         fxZone << GetLineEnding();
                         
-                        fxZone << "\t" + info.modifiers + info.fxParamNameWidget + fxParamNameAction + to_string(info.paramNumber) + GetLineEnding();
+                        fxZone << "\t" + info.modifiers + info.fxParamNameWidget + fxParamNameAction + GetLineEnding();
                         
-                        fxZone << "\t" + info.modifiers + info.fxParamValueWidget + fxParamValueAction + to_string(info.paramNumber) + GetLineEnding() + GetLineEnding();
+                        fxZone << "\t" + info.modifiers + info.fxParamValueWidget + fxParamValueAction + GetLineEnding() + GetLineEnding();
                     }
                 }
                 
