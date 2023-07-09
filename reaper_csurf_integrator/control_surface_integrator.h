@@ -1042,7 +1042,23 @@ public:
                     {
                         if(info.isLearned)
                         {
-                            fxZone << "\t" + info.modifiers + info.fxParamWidget + "\tFXParam " + to_string(info.paramNumber) + GetLineEnding();
+                            fxZone << "\t" + info.modifiers + info.fxParamWidget + "\tFXParam " + to_string(info.paramNumber);
+                            
+                            if(info.numSteps > 0)
+                            {
+                                fxZone << " [ ";
+                                
+                                for(auto step : SteppedValueDictionary[info.numSteps])
+                                {
+                                    ostringstream stepStr;
+                                    stepStr << std::setprecision(2) << step;
+                                    fxZone << stepStr.str() + " ";
+                                }
+                                
+                                fxZone << "]";
+                            }
+
+                            fxZone << GetLineEnding();
                             
                             fxZone << "\t" + info.modifiers + info.fxParamNameWidget + "\tFXParamNameDisplay " + to_string(info.paramNumber) + GetLineEnding();
                             
