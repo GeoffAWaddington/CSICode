@@ -958,6 +958,56 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
+    string GetAlias(string fxName)
+    {
+        vector<string> prefixes =
+        {
+            "AU: Tube-Tech ",
+            "AU: AU ",
+            "AU: UAD UA ",
+            "AU: UAD Pultec ",
+            "AU: UAD Tube-Tech ",
+            "AU: UAD Softube ",
+            "AU: UAD Teletronix ",
+            "AU: UADx ",
+            "AU: UAD ",
+            "AU: ",
+            "AUi: ",
+            "VST: TDR ",
+            "VST: UAD UA ",
+            "VST: UAD Pultec ",
+            "VST: UAD Tube-Tech ",
+            "VST: UAD Softube ",
+            "VST: UAD Teletronix ",
+            "VST: UAD ",
+            "VST3: UADx ",
+            "VST3i: UADx ",
+            "VST: ",
+            "VSTi: ",
+            "VST3: ",
+            "VST3i: ",
+            "JS: ",
+            "Rewire: ",
+            "CLAP: ",
+            "CLAPi: ",
+        };
+        
+        string alias = fxName;
+        
+        for(auto prefix : prefixes)
+        {
+            if(fxName.find(prefix) == 0)
+            {
+                alias = fxName.substr(prefix.length(), fxName.length());
+                break;
+            }
+        }
+               
+        alias = alias.substr(0, alias.find(" ("));
+        
+        return alias;
+    }
+    
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
 
     vector<string> paramList_;
@@ -1051,8 +1101,8 @@ public:
 
             if(fxZone.is_open())
             {
-                fxZone << "Zone \"" + learnFXName_ + "\"" + GetLineEnding();
-                                       
+                fxZone << "Zone \"" + learnFXName_ + "\" \"" + GetAlias(learnFXName_) + "\"" + GetLineEnding();
+                
                 for(auto line : fxPrologue_)
                     fxZone << "\t" + line + GetLineEnding();
                        

@@ -3116,55 +3116,12 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
     
     path += "/" + regex_replace(fxName, regex(BadFileChars), "_") + ".zon";
 
-    vector<string> prefixes =
-    {
-        "AU: Tube-Tech ",
-        "AU: AU ",
-        "AU: UAD UA ",
-        "AU: UAD Pultec ",
-        "AU: UAD Tube-Tech ",
-        "AU: UAD Softube ",
-        "AU: UAD Teletronix ",
-        "AU: UADx ",
-        "AU: UAD ",
-        "AU: ",
-        "AUi: ",
-        "VST: TDR ",
-        "VST: UAD UA ",
-        "VST: UAD Pultec ",
-        "VST: UAD Tube-Tech ",
-        "VST: UAD Softube ",
-        "VST: UAD Teletronix ",
-        "VST: UAD ",
-        "VST3: UADx ",
-        "VST3i: UADx ",
-        "VST: ",
-        "VSTi: ",
-        "VST3: ",
-        "VST3i: ",
-        "JS: ",
-        "Rewire: ",
-        "CLAP: ",
-        "CLAPi: ",
-    };
-    
+    string alias = GetAlias(fxName);
+
     string paramAction = " FXParam ";
     
     if(fxName.find("JS:") != string::npos)
         paramAction = " JSFXParam ";
-    
-    string alias = fxName;
-    
-    for(auto prefix : prefixes)
-    {
-        if(fxName.find(prefix) == 0)
-        {
-            alias = fxName.substr(prefix.length(), fxName.length());
-            break;
-        }
-    }
-           
-    alias = alias.substr(0, alias.find(" ("));
     
     CSIZoneInfo info;
     info.filePath = path;
