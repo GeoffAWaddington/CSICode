@@ -2765,6 +2765,107 @@ void ZoneManager::EraseLastTouchedFXParam()
     info->paramNumber = 0;
 }
 
+void ZoneManager::SaveLearnedFXParams()
+{
+    if(learnFXName_ != "")
+    {
+        string path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/LearnedFXZones";
+        
+        if(! filesystem::exists(path) || ! filesystem::is_directory(path))
+            filesystem::create_directory(path);
+        
+        path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
+
+        //AddZoneFilePath(fxName, info);
+        //surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, fxName, info);
+
+        ofstream fxZone(path);
+
+        if(fxZone.is_open())
+        {
+            fxZone << "Zone \"" + learnFXName_ + "\" \"" + GetAlias(learnFXName_) + "\"" + GetLineEnding();
+            
+            for(auto line : fxPrologue_)
+                fxZone << "\t" + line + GetLineEnding();
+                   
+            fxZone << "\n" + BeginAutoSection + GetLineEnding();
+
+            for(auto [modifiers, infos] : channelLearns_)
+            {
+                for(auto info : infos)
+                {
+                    if(info.fxName != learnFXName_)
+                        continue;
+                    
+                    string fxParamAction = "\tFXParam "  + to_string(info.paramNumber);
+                    string fxParamNameAction = "\tFixedTextDisplay \""  + info.paramName + "\"";
+                    string fxParamValueAction = "\tFXParamValueDisplay "  + to_string(info.paramNumber);
+                    
+                    if(! info.isLearned)
+                    {
+                        fxParamAction = "\tNoAction";
+
+                        if(surface_->GetName() == "SCE24")
+                        {
+                            fxParamNameAction = "\tFixedTextDisplay \" \" ";
+                            
+                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[1].size(); tokenIdx++)
+                                fxParamNameAction += surfaceFXLayout_[1][tokenIdx] + " ";
+
+                            fxParamValueAction = "\tFixedTextDisplay \" \" ";
+                            
+                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[2].size(); tokenIdx++)
+                                fxParamValueAction += surfaceFXLayout_[2][tokenIdx] + " ";
+                        }
+                        else
+                        {
+                            fxParamNameAction = "\tNoAction";
+                            fxParamValueAction = "\tNoAction";
+                        }
+                    }
+                    
+                    fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction;
+                    
+                    if(info.numSteps > 0)
+                    {
+                        fxZone << " [ ";
+                        
+                        for(auto step : SteppedValueDictionary[info.numSteps])
+                        {
+                            ostringstream stepStr;
+                            stepStr << std::setprecision(2) << step;
+                            fxZone << stepStr.str() + " ";
+                        }
+                        
+                        fxZone << "]";
+                    }
+
+                    fxZone << GetLineEnding();
+                    
+                    fxZone << "\t" + info.modifiers + info.fxParamNameWidget + fxParamNameAction + GetLineEnding();
+                    
+                    fxZone << "\t" + info.modifiers + info.fxParamValueWidget + fxParamValueAction + GetLineEnding() + GetLineEnding();
+                }
+            }
+            
+            
+            fxZone << EndAutoSection + GetLineEnding();
+                    
+            for(auto line : fxEpilogue_)
+                fxZone << "\t" + line + GetLineEnding();
+
+            fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
+            
+            for(auto paramStr : paramList_)
+                fxZone << paramStr + GetLineEnding();
+            
+            fxZone.close();
+        }
+        
+        ClearLearnedFXParams();
+    }
+}
+
 LearnInfo* ZoneManager::GetLearnInfo(int channel)
 {
     vector<int> modifiers = surface_->GetModifiers();
