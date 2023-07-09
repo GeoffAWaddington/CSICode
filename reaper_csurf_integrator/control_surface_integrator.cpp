@@ -2772,24 +2772,77 @@ LearnInfo &ZoneManager::GetLearnInfo(int channel)
     return channelLearns_[modifiers[0]][channel];
 }
 
+void ZoneManager::SetLearnFXParamWidget(int channel, string name, string modifierStr)
+{
+    string channelNumStr = to_string(channel + 1);
+    
+    string baseName = name.substr(0, name.length() - channelNumStr.length());
+    
+    vector<int> modifiers = surface_->GetModifiers();
+    
+    if(modifiers.size() > 0  && channelLearns_[modifiers[0]][0].fxParamWidget == "")
+    {
+        if(channelLearns_.count(modifiers[0]) > 0)
+        {
+            for(int i = 0 ; i < surface_->GetNumChannels(); i++)
+            {
+                channelLearns_[modifiers[0]][i].fxParamWidget = baseName + to_string(i + 1);
+                channelLearns_[modifiers[0]][i].modifiers = modifierStr;
+            }
+        }
+    }
+}
+
+void ZoneManager::SetLearnFXParamNameWidget(int channel, string name)
+{
+    string channelNumStr = to_string(channel + 1);
+    
+    string baseName = name.substr(0, name.length() - channelNumStr.length());
+    
+    vector<int> modifiers = surface_->GetModifiers();
+    
+    if(modifiers.size() > 0 && channelLearns_[modifiers[0]][0].fxParamNameWidget == "")
+    {
+        if(channelLearns_.count(modifiers[0]) > 0)
+            for(int i = 0 ; i < surface_->GetNumChannels(); i++)
+                channelLearns_[modifiers[0]][i].fxParamNameWidget = baseName + to_string(i + 1);
+    }
+}
+
+void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
+{
+    string channelNumStr = to_string(channel + 1);
+    
+    string baseName = name.substr(0, name.length() - channelNumStr.length());
+    
+    vector<int> modifiers = surface_->GetModifiers();
+    
+    if(modifiers.size() > 0  && channelLearns_[modifiers[0]][0].fxParamValueWidget == "")
+    {
+        if(channelLearns_.count(modifiers[0]) > 0)
+            for(int i = 0 ; i < surface_->GetNumChannels(); i++)
+                channelLearns_[modifiers[0]][i].fxParamValueWidget = baseName + to_string(i + 1);
+    }
+}
+
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
-    int channelNum = context->GetWidget()->GetChannelNumber() - 1;
+    int channel = context->GetWidget()->GetChannelNumber() - 1;
     
-    if(context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned && context->GetSurface()->GetZoneManager()->GetShouldErase())
+    if(context->GetSurface()->GetZoneManager()->GetLearnInfo(channel).isLearned && context->GetSurface()->GetZoneManager()->GetShouldErase())
     {
-        GetLearnInfo(channelNum).isLearned = false;
-        GetLearnInfo(channelNum).fxName = "";
-        GetLearnInfo(channelNum).modifiers = "";
-        GetLearnInfo(channelNum).fxParamWidget = "";
-        GetLearnInfo(channelNum).fxParamNameWidget = "";
-        GetLearnInfo(channelNum).fxParamValueWidget = "";
-        GetLearnInfo(channelNum).track = nullptr;
-        GetLearnInfo(channelNum).slotNumber = 0;
-        GetLearnInfo(channelNum).paramNumber = 0;
+        GetLearnInfo(channel).isLearned = false;
+        GetLearnInfo(channel).fxName = "";
+        GetLearnInfo(channel).modifiers = "";
+        GetLearnInfo(channel).fxParamWidget = "";
+        GetLearnInfo(channel).fxParamNameWidget = "";
+        GetLearnInfo(channel).fxParamValueWidget = "";
+        GetLearnInfo(channel).track = nullptr;
+        GetLearnInfo(channel).slotNumber = 0;
+        GetLearnInfo(channel).paramNumber = 0;
 
     }
-    else if(! context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned && ! context->GetSurface()->GetZoneManager()->GetShouldErase())
+    else if(! context->GetSurface()->GetZoneManager()->GetLearnInfo(channel).isLearned && ! context->GetSurface()->GetZoneManager()->GetShouldErase())
     {
         int trackNum = 0;
         int fxSlotNum = 0;
@@ -2802,9 +2855,9 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             
-            SetLearnFXName(fxName);
+            learnFXName_ = fxName;
             
-            GetLearnInfo(channelNum).fxName = fxName;
+            GetLearnInfo(channel).fxName = fxName;
 
             if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
                 context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
@@ -2814,19 +2867,19 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
                 numSteps = 2;
             
-            GetLearnInfo(channelNum).numSteps = numSteps;
+            GetLearnInfo(channel).numSteps = numSteps;
             
-            GetLearnInfo(channelNum).isLearned = true;
-            GetLearnInfo(channelNum).modifiers = context->GetPage()->GetModifierManager()->GetModifierString();
-            GetLearnInfo(channelNum).fxParamWidget = context->GetWidget()->GetName();
-            GetLearnInfo(channelNum).track = track;
-            GetLearnInfo(channelNum).slotNumber = fxSlotNum;
-            GetLearnInfo(channelNum).paramNumber = fxParamNum;
+            SetLearnFXParamWidget(channel, context->GetWidget()->GetName(), context->GetPage()->GetModifierManager()->GetModifierString());
+           
+            GetLearnInfo(channel).isLearned = true;
+            GetLearnInfo(channel).track = track;
+            GetLearnInfo(channel).slotNumber = fxSlotNum;
+            GetLearnInfo(channel).paramNumber = fxParamNum;
         }
     }
     else
     {
-        LearnInfo info = GetLearnInfo(channelNum);
+        LearnInfo info = GetLearnInfo(channel);
 
         if(info.isLearned && info.fxParamWidget == context->GetWidget()->GetName())
             DAW::TrackFX_SetParam(info.track, info.slotNumber, info.paramNumber, value);

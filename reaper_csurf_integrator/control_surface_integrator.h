@@ -959,6 +959,8 @@ private:
     bool shouldEraseFXParam_ = false;
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
+
+    void SetLearnFXParamWidget(int channel, string name, string modifierStr);
     
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
@@ -1012,9 +1014,10 @@ public:
       
     void ToggleEraseFXParam() { shouldEraseFXParam_ = ! shouldEraseFXParam_; }
     bool GetShouldErase() { return shouldEraseFXParam_; }
-    
-    void SetLearnFXName(string name) { learnFXName_ = name; }
-    
+
+    void SetLearnFXParamNameWidget(int channel, string name);
+    void SetLearnFXParamValueWidget(int channel, string name);
+
     void SaveLearnedFXParam()
     {
         if(learnFXName_ != "")
@@ -1041,30 +1044,39 @@ public:
                 {
                     for(auto info : infos)
                     {
-                        if(info.isLearned)
+                        string fxParamAction = "\tFXParam ";
+                        if(! info.isLearned)
+                            fxParamAction = "\tNoAction ";
+                        
+                        string fxParamNameAction = "\tFXParamNameDisplay ";
+                        if(! info.isLearned)
+                            fxParamNameAction = "\tNoAction ";
+                        
+                        string fxParamValueAction = "\tFXParamValueDisplay ";
+                        if(! info.isLearned)
+                            fxParamValueAction = "\tNoAction ";
+                        
+                        fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction + to_string(info.paramNumber);
+                        
+                        if(info.numSteps > 0)
                         {
-                            fxZone << "\t" + info.modifiers + info.fxParamWidget + "\tFXParam " + to_string(info.paramNumber);
+                            fxZone << " [ ";
                             
-                            if(info.numSteps > 0)
+                            for(auto step : SteppedValueDictionary[info.numSteps])
                             {
-                                fxZone << " [ ";
-                                
-                                for(auto step : SteppedValueDictionary[info.numSteps])
-                                {
-                                    ostringstream stepStr;
-                                    stepStr << std::setprecision(2) << step;
-                                    fxZone << stepStr.str() + " ";
-                                }
-                                
-                                fxZone << "]";
+                                ostringstream stepStr;
+                                stepStr << std::setprecision(2) << step;
+                                fxZone << stepStr.str() + " ";
                             }
-
-                            fxZone << GetLineEnding();
                             
-                            fxZone << "\t" + info.modifiers + info.fxParamNameWidget + "\tFXParamNameDisplay " + to_string(info.paramNumber) + GetLineEnding();
-                            
-                            fxZone << "\t" + info.modifiers + info.fxParamValueWidget + "\tFXParamValueDisplay " + to_string(info.paramNumber) + GetLineEnding() + GetLineEnding();
+                            fxZone << "]";
                         }
+
+                        fxZone << GetLineEnding();
+                        
+                        fxZone << "\t" + info.modifiers + info.fxParamNameWidget + fxParamNameAction + to_string(info.paramNumber) + GetLineEnding();
+                        
+                        fxZone << "\t" + info.modifiers + info.fxParamValueWidget + fxParamValueAction + to_string(info.paramNumber) + GetLineEnding() + GetLineEnding();
                     }
                 }
                 
