@@ -868,6 +868,7 @@ struct LearnInfo
 {
     bool isLearned = false;
     string fxName = "";
+    string paramName = "";
     string modifiers = "";
     int modifier = 0;
     string fxParamWidget = "";
@@ -959,6 +960,7 @@ private:
     
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
 
+    vector<string> paramList_;
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
     MediaTrack* lastTouchedParamTrack_ = nullptr;
@@ -1020,7 +1022,18 @@ public:
     void SetLearnFXParamValueWidget(int channel, string name);
     void EraseLastTouchedFXParam();
 
-    void SaveLearnedFXParam()
+    void ClearLearnedFXParams()
+    {
+        paramList_.clear();
+        channelLearns_.clear();
+        learnFXName_ = "";
+        lastTouchedParamTrack_ = nullptr;
+        lastTouchedChannel_ = 0;
+        lastTouchedParamModifier_ = 0;
+    
+    }
+    
+    void SaveLearnedFXParams()
     {
         if(learnFXName_ != "")
         {
@@ -1040,6 +1053,9 @@ public:
             {
                 fxZone << "Zone \"" + learnFXName_ + "\"" + GetLineEnding();
                                        
+                for(auto line : fxPrologue_)
+                    fxZone << "\t" + line + GetLineEnding();
+                       
                 fxZone << "\n" + BeginAutoSection + GetLineEnding();
 
                 for(auto [modifiers, infos] : channelLearns_)
@@ -1050,7 +1066,7 @@ public:
                             continue;
                         
                         string fxParamAction = "\tFXParam "  + to_string(info.paramNumber);
-                        string fxParamNameAction = "\tFXParamNameDisplay "  + to_string(info.paramNumber);
+                        string fxParamNameAction = "\tFixedTextDisplay \""  + info.paramName + "\"";
                         string fxParamValueAction = "\tFXParamValueDisplay "  + to_string(info.paramNumber);
                         
                         if(! info.isLearned)
@@ -1084,18 +1100,21 @@ public:
                     }
                 }
                 
-                fxZone << EndAutoSection + GetLineEnding() + GetLineEnding();
                 
-                fxZone << "ZoneEnd" + GetLineEnding();
+                fxZone << EndAutoSection + GetLineEnding();
+                        
+                for(auto line : fxEpilogue_)
+                    fxZone << "\t" + line + GetLineEnding();
+
+                fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
+                
+                for(auto paramStr : paramList_)
+                    fxZone << paramStr + GetLineEnding();
                 
                 fxZone.close();
             }
             
-            channelLearns_.clear();
-            learnFXName_ = "";
-            lastTouchedParamTrack_ = nullptr;
-            lastTouchedChannel_ = 0;
-            lastTouchedParamModifier_ = 0;
+            ClearLearnedFXParams();
         }
     }
     

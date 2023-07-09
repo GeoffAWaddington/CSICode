@@ -73,17 +73,17 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SaveLearnedFXParam : public Action
+class SaveLearnedFXParams : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SaveLearnedFXParam"; }
+    virtual string GetName() override { return "SaveLearnedFXParams"; }
    
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->SaveLearnedFXParam();
+        context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
     }
 };
 

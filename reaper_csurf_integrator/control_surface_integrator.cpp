@@ -1420,7 +1420,7 @@ void Manager::InitActionsDictionary()
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
-    actions_["SaveLearnedFXParam"] =                make_shared<SaveLearnedFXParam>();
+    actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
     actions_["EraseLastTouchedFXParam"] =           make_shared<EraseLastTouchedFXParam>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
@@ -2858,13 +2858,32 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     
     if(! info->isLearned)
     {
-        
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             MediaTrack* track = DAW::GetTrack(trackNum);
             
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            
+            string paramName = TheManager->GetTCPFXParamName(track, fxSlotNum, fxParamNum);
+            
+            if(paramList_.size() == 0)
+                for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
+                    paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
+                       
+            /*
+            if(learnFXName_ != "" && learnFXName_ != fxName)
+            {
+                const int result = MessageBox(NULL, "Test message", "Unsaved Changes",  MB_YESNOCANCEL);
+
+                if(result == IDYES)
+                    SaveLearnedFXParams();
+                else if(result == IDNO)
+                    ClearLearnedFXParams();
+                else if(result == IDCANCEL)
+                    return;
+            }
+             */
             
             learnFXName_ = fxName;
 
@@ -2883,6 +2902,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             SetLearnFXParamWidget(fxName, channel, context->GetWidget()->GetName(), modifiers[0], context->GetPage()->GetModifierManager()->GetModifierString());
            
             info->isLearned = true;
+            info->paramName = paramName;
             info->track = track;
             info->slotNumber = fxSlotNum;
             info->paramNumber = fxParamNum;
