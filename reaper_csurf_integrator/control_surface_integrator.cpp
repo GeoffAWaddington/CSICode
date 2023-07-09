@@ -2772,6 +2772,66 @@ LearnInfo &ZoneManager::GetLearnInfo(int channel)
     return channelLearns_[modifiers[0]][channel];
 }
 
+void ZoneManager::DoLearn(ActionContext* context, double value)
+{
+    int channelNum = context->GetWidget()->GetChannelNumber() - 1;
+    
+    if(context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned && context->GetSurface()->GetZoneManager()->GetShouldErase())
+    {
+        GetLearnInfo(channelNum).isLearned = false;
+        GetLearnInfo(channelNum).fxName = "";
+        GetLearnInfo(channelNum).modifiers = "";
+        GetLearnInfo(channelNum).fxParamWidget = "";
+        GetLearnInfo(channelNum).fxParamNameWidget = "";
+        GetLearnInfo(channelNum).fxParamValueWidget = "";
+        GetLearnInfo(channelNum).track = nullptr;
+        GetLearnInfo(channelNum).slotNumber = 0;
+        GetLearnInfo(channelNum).paramNumber = 0;
+
+    }
+    else if(! context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned && ! context->GetSurface()->GetZoneManager()->GetShouldErase())
+    {
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+        
+        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        {
+            MediaTrack* track = DAW::GetTrack(trackNum);
+            
+            char fxName[BUFSZ];
+            DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            
+            SetLearnFXName(fxName);
+            
+            GetLearnInfo(channelNum).fxName = fxName;
+
+            if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
+                context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
+            
+            int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
+            
+            if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
+                numSteps = 2;
+            
+            GetLearnInfo(channelNum).numSteps = numSteps;
+            
+            GetLearnInfo(channelNum).isLearned = true;
+            GetLearnInfo(channelNum).modifiers = context->GetPage()->GetModifierManager()->GetModifierString();
+            GetLearnInfo(channelNum).fxParamWidget = context->GetWidget()->GetName();
+            GetLearnInfo(channelNum).track = track;
+            GetLearnInfo(channelNum).slotNumber = fxSlotNum;
+            GetLearnInfo(channelNum).paramNumber = fxParamNum;
+        }
+    }
+    else
+    {
+        LearnInfo info = GetLearnInfo(channelNum);
+
+        if(info.isLearned && info.fxParamWidget == context->GetWidget()->GetName())
+            DAW::TrackFX_SetParam(info.track, info.slotNumber, info.paramNumber, value);
+    }
+}
 
 void ZoneManager::RemapAutoZone()
 {

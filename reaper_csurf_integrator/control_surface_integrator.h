@@ -980,6 +980,7 @@ public:
     void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
+    void DoLearn(ActionContext* context, double value);
     LearnInfo &GetLearnInfo(int channel);
 
     void DoTouch(shared_ptr<Widget> widget, double value);
