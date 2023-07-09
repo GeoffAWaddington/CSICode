@@ -2848,15 +2848,16 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
 
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
+    int trackNum = 0;
+    int fxSlotNum = 0;
+    int fxParamNum = 0;
+
     int channel = context->GetWidget()->GetChannelNumber();
  
     LearnInfo* info = GetLearnInfo(channel);
     
     if(! info->isLearned)
     {
-        int trackNum = 0;
-        int fxSlotNum = 0;
-        int fxParamNum = 0;
         
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
@@ -2887,14 +2888,20 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             info->paramNumber = fxParamNum;
         }
     }
-    else
+    else if(info->isLearned)
     {
         lastTouchedChannel_ = channel;
         lastTouchedParamTrack_ = info->track;
-        lastTouchedParamModifier_ = info->modifiers[0];
+        lastTouchedParamModifier_ = info->modifier;
         
-        if(info->isLearned && info->fxParamWidget == context->GetWidget()->GetName())
-            DAW::TrackFX_SetParam(info->track, info->slotNumber, info->paramNumber, value);
+        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+            if(info->paramNumber != fxParamNum)
+                info->paramNumber = fxParamNum;
+        
+        if(info->fxParamWidget != context->GetWidget()->GetName())
+            info->fxParamWidget = context->GetWidget()->GetName();
+
+        DAW::TrackFX_SetParam(info->track, info->slotNumber, info->paramNumber, value);
     }
 }
 

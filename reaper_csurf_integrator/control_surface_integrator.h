@@ -957,11 +957,10 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
+    void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
+
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
-
-    void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
-    
     MediaTrack* lastTouchedParamTrack_ = nullptr;
     int lastTouchedChannel_ = 0;
     int lastTouchedParamModifier_ = 0;
@@ -1051,16 +1050,15 @@ public:
                             continue;
                         
                         string fxParamAction = "\tFXParam "  + to_string(info.paramNumber);
-                        if(! info.isLearned)
-                            fxParamAction = "\tNoAction ";
-                        
                         string fxParamNameAction = "\tFXParamNameDisplay "  + to_string(info.paramNumber);
-                        if(! info.isLearned)
-                            fxParamNameAction = "\tNoAction ";
-                        
                         string fxParamValueAction = "\tFXParamValueDisplay "  + to_string(info.paramNumber);
+                        
                         if(! info.isLearned)
-                            fxParamValueAction = "\tNoAction ";
+                        {
+                            fxParamAction = "\tNoAction";
+                            fxParamNameAction = "\tNoAction";
+                            fxParamValueAction = "\tNoAction";
+                        }
                         
                         fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction;
                         
@@ -1092,6 +1090,12 @@ public:
                 
                 fxZone.close();
             }
+            
+            channelLearns_.clear();
+            learnFXName_ = "";
+            lastTouchedParamTrack_ = nullptr;
+            lastTouchedChannel_ = 0;
+            lastTouchedParamModifier_ = 0;
         }
     }
     
