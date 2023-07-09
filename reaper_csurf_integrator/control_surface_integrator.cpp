@@ -3252,7 +3252,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     {
                         if(surface_->GetName() == "SCE24")
                         {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tFixedTextDisplay \"\" ";
+                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tFixedTextDisplay \" \" ";
                             
                             for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[1].size(); tokenIdx++)
                                 fxZone << surfaceFXLayout_[1][tokenIdx] + " ";
@@ -3266,7 +3266,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                         
                         if(surface_->GetName() == "SCE24")
                         {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tFixedTextDisplay \"\" ";
+                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tFixedTextDisplay \" \" ";
                             
                             for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[2].size(); tokenIdx++)
                                 fxZone << surfaceFXLayout_[2][tokenIdx] + " ";
@@ -3311,7 +3311,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     {
                         if(surface_->GetName() == "SCE24")
                         {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tFixedTextDisplay \"\" ";
+                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tFixedTextDisplay \" \" ";
                             
                             for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[1].size(); tokenIdx++)
                                 fxZone << surfaceFXLayout_[1][tokenIdx] + " ";
@@ -3325,7 +3325,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                         
                         if(surface_->GetName() == "SCE24")
                         {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tFixedTextDisplay \"\" ";
+                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tFixedTextDisplay \" \" ";
                             
                             for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[2].size(); tokenIdx++)
                                 fxZone << surfaceFXLayout_[2][tokenIdx] + " ";
