@@ -838,7 +838,6 @@ public:
     void RestoreXTouchDisplayColors();
     void Clear();
     void ForceClear();
-    void HardClear();
     void LogInput(double value);
     
     void AddFeedbackProcessor(shared_ptr<FeedbackProcessor> feedbackProcessor)
@@ -1989,16 +1988,8 @@ public:
     {
         for(auto widget : widgets_)
             widget->ForceClear();
-        
-        HardClear();
     }
-    
-    void HardClear()
-    {
-        for(auto widget : widgets_)
-            widget->HardClear();
-    }
-    
+       
     void TrackFXListChanged(MediaTrack* track)
     {
         OnTrackSelection(track);
@@ -2170,7 +2161,6 @@ public:
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
-    virtual void HardClear() {}
 
     virtual void SetValue(map<string, string> &properties, double value)
     {
