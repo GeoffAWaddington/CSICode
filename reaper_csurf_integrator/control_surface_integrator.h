@@ -864,6 +864,20 @@ struct CSILayoutInfo
     int channelCount = 0;
 };
 
+struct LearnInfo
+{
+    bool isLearned = false;
+    string fxName = "";
+    string modifiers = "";
+    string fxParamWidget = "";
+    string fxParamNameWidget = "";
+    string fxParamValueWidget = "";
+    int numSteps = 0;
+    MediaTrack* track = nullptr;
+    int slotNumber = 0;
+    int paramNumber = 0;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -942,6 +956,10 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
     
+    bool shouldEraseFXParam_ = false;
+    map<int, vector<LearnInfo>> channelLearns_;
+    string learnFXName_ = "";
+    
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
         
@@ -962,6 +980,7 @@ public:
     void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
+    LearnInfo &GetLearnInfo(int channel);
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
@@ -990,6 +1009,57 @@ public:
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
       
+    void ToggleEraseFXParam() { shouldEraseFXParam_ = ! shouldEraseFXParam_; }
+    bool GetShouldErase() { return shouldEraseFXParam_; }
+    
+    void SetLearnFXName(string name) { learnFXName_ = name; }
+    
+    void SaveLearnedFXParam()
+    {
+        if(learnFXName_ != "")
+        {
+            string path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/LearnedFXZones";
+            
+            if(! filesystem::exists(path) || ! filesystem::is_directory(path))
+                filesystem::create_directory(path);
+            
+            path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
+
+            //AddZoneFilePath(fxName, info);
+            //surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, fxName, info);
+
+            ofstream fxZone(path);
+
+            if(fxZone.is_open())
+            {
+                fxZone << "Zone \"" + learnFXName_ + "\"" + GetLineEnding();
+                                       
+                fxZone << "\n" + BeginAutoSection + GetLineEnding();
+
+                for(auto [modifiers, infos] : channelLearns_)
+                {
+                    for(auto info : infos)
+                    {
+                        if(info.isLearned)
+                        {
+                            fxZone << "\t" + info.modifiers + info.fxParamWidget + "\tFXParam " + to_string(info.paramNumber) + GetLineEnding();
+                            
+                            fxZone << "\t" + info.modifiers + info.fxParamNameWidget + "\tFXParamNameDisplay " + to_string(info.paramNumber) + GetLineEnding();
+                            
+                            fxZone << "\t" + info.modifiers + info.fxParamValueWidget + "\tFXParamValueDisplay " + to_string(info.paramNumber) + GetLineEnding() + GetLineEnding();
+                        }
+                    }
+                }
+                
+                fxZone << EndAutoSection + GetLineEnding() + GetLineEnding();
+                
+                fxZone << "ZoneEnd" + GetLineEnding();
+                
+                fxZone.close();
+            }
+        }
+    }
+    
     void ClearFocusedFXParam()
     {
         if(focusedFXParamZone_ != nullptr)
@@ -1606,20 +1676,6 @@ public:
     }
 };
 
-struct LearnInfo
-{
-    bool isLearned = false;
-    string fxName = "";
-    string modifiers = "";
-    string fxParamWidget = "";
-    string fxParamNameWidget = "";
-    string fxParamValueWidget = "";
-    int numSteps = 0;
-    MediaTrack* track = nullptr;
-    int slotNumber = 0;
-    int paramNumber = 0;
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1640,9 +1696,6 @@ private:
     map<int, bool> channelTouches_;
     map<int, bool> channelToggles_;
     
-    bool shouldEraseFXParam_ = false;
-    map<int, vector<LearnInfo>> channelLearns_;
-
 protected:
     ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
@@ -1746,29 +1799,6 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
-    void ToggleEraseFXParam() { shouldEraseFXParam_ = ! shouldEraseFXParam_; }
-    bool GetShouldErase() { return shouldEraseFXParam_; }
-    
-    void SaveLearnedFXParam()
-    {
-        
-        
-    }
-    
-    LearnInfo &GetLearnInfo(int channel)
-    {
-        vector<int> modifiers = GetModifiers();
-        
-        if(modifiers.size() > 0)
-        {
-            if(channelLearns_.count(modifiers[0]) < 1)
-                for(int i = 0 ; i < numChannels_; i++)
-                    channelLearns_[modifiers[0]].push_back(LearnInfo());
-        }
-
-        return channelLearns_[modifiers[0]][channel];
-    }
-    
     void TouchChannel(int channelNum, bool isTouched)
     {
         if(channelNum > 0 && channelNum <= numChannels_)

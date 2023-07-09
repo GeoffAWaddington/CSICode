@@ -2758,6 +2758,21 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
         homeZone_->UpdateCurrentActionContextModifiers();
 }
 
+LearnInfo &ZoneManager::GetLearnInfo(int channel)
+{
+    vector<int> modifiers = surface_->GetModifiers();
+    
+    if(modifiers.size() > 0)
+    {
+        if(channelLearns_.count(modifiers[0]) < 1)
+            for(int i = 0 ; i < surface_->GetNumChannels(); i++)
+                channelLearns_[modifiers[0]].push_back(LearnInfo());
+    }
+
+    return channelLearns_[modifiers[0]][channel];
+}
+
+
 void ZoneManager::RemapAutoZone()
 {
     if(focusedFXZones_.size() == 1)

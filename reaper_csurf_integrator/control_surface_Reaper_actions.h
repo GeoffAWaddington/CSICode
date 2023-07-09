@@ -47,14 +47,14 @@ public:
     {
         double min, max = 0.0;
     
-        LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+        LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
 
         return DAW::TrackFX_GetParam(info.track, info.slotNumber, info.paramNumber, &min, &max);
     }
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+        LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
         
         if(info.isLearned && info.fxParamWidget == context->GetWidget()->GetName())
         {
@@ -70,20 +70,20 @@ public:
     {
         int channelNum = context->GetWidget()->GetChannelNumber() - 1;
         
-        if(context->GetSurface()->GetLearnInfo(channelNum).isLearned && context->GetSurface()->GetShouldErase())
+        if(context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned && context->GetSurface()->GetZoneManager()->GetShouldErase())
         {
-            context->GetSurface()->GetLearnInfo(channelNum).isLearned = false;
-            context->GetSurface()->GetLearnInfo(channelNum).fxName = "";
-            context->GetSurface()->GetLearnInfo(channelNum).modifiers = "";
-            context->GetSurface()->GetLearnInfo(channelNum).fxParamWidget = "";
-            context->GetSurface()->GetLearnInfo(channelNum).fxParamNameWidget = "";
-            context->GetSurface()->GetLearnInfo(channelNum).fxParamValueWidget = "";
-            context->GetSurface()->GetLearnInfo(channelNum).track = nullptr;
-            context->GetSurface()->GetLearnInfo(channelNum).slotNumber = 0;
-            context->GetSurface()->GetLearnInfo(channelNum).paramNumber = 0;
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned = false;
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).fxName = "";
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).modifiers = "";
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).fxParamWidget = "";
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).fxParamNameWidget = "";
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).fxParamValueWidget = "";
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).track = nullptr;
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).slotNumber = 0;
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).paramNumber = 0;
 
         }
-        else if(! context->GetSurface()->GetLearnInfo(channelNum).isLearned && ! context->GetSurface()->GetShouldErase())
+        else if(! context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned && ! context->GetSurface()->GetZoneManager()->GetShouldErase())
         {
             int trackNum = 0;
             int fxSlotNum = 0;
@@ -95,7 +95,10 @@ public:
                 
                 char fxName[BUFSZ];
                 DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
-                context->GetSurface()->GetLearnInfo(channelNum).fxName = fxName;
+                
+                context->GetSurface()->GetZoneManager()->SetLearnFXName(fxName);
+                
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).fxName = fxName;
 
                 if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
                     context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
@@ -105,19 +108,19 @@ public:
                 if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
                     numSteps = 2;
                 
-                context->GetSurface()->GetLearnInfo(channelNum).numSteps = numSteps;
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).numSteps = numSteps;
                 
-                context->GetSurface()->GetLearnInfo(channelNum).isLearned = true;
-                context->GetSurface()->GetLearnInfo(channelNum).modifiers = context->GetPage()->GetModifierManager()->GetModifierString();
-                context->GetSurface()->GetLearnInfo(channelNum).fxParamWidget = context->GetWidget()->GetName();
-                context->GetSurface()->GetLearnInfo(channelNum).track = track;
-                context->GetSurface()->GetLearnInfo(channelNum).slotNumber = fxSlotNum;
-                context->GetSurface()->GetLearnInfo(channelNum).paramNumber = fxParamNum;
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).isLearned = true;
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).modifiers = context->GetPage()->GetModifierManager()->GetModifierString();
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).fxParamWidget = context->GetWidget()->GetName();
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).track = track;
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).slotNumber = fxSlotNum;
+                context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum).paramNumber = fxParamNum;
             }
         }
         else
         {
-            LearnInfo info = context->GetSurface()->GetLearnInfo(channelNum);
+            LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channelNum);
 
             if(info.isLearned && info.fxParamWidget == context->GetWidget()->GetName())
                 DAW::TrackFX_SetParam(info.track, info.slotNumber, info.paramNumber, value);
@@ -134,7 +137,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        return context->GetSurface()->GetShouldErase();
+        return context->GetSurface()->GetZoneManager()->GetShouldErase();
     }
 
     void RequestUpdate(ActionContext* context) override
@@ -146,7 +149,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->ToggleEraseFXParam();
+        context->GetSurface()->GetZoneManager()->ToggleEraseFXParam();
     }
 };
 
@@ -161,7 +164,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->SaveLearnedFXParam();
+        context->GetSurface()->GetZoneManager()->SaveLearnedFXParam();
     }
 };
 
@@ -174,11 +177,11 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if(context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
+        if(context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
         {
-            context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).fxParamNameWidget = context->GetWidget()->GetName();
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).fxParamNameWidget = context->GetWidget()->GetName();
             
-            LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+            LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
             
             context->UpdateWidgetValue(TheManager->GetFXParamName(info.track, info.slotNumber, info.paramNumber));
         }
@@ -196,11 +199,11 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        if(context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
+        if(context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).isLearned)
         {
-            context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).fxParamValueWidget = context->GetWidget()->GetName();
+            context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1).fxParamValueWidget = context->GetWidget()->GetName();
             
-            LearnInfo info = context->GetSurface()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
+            LearnInfo info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber() - 1);
             
             char fxParamValue[128];
             DAW::TrackFX_GetFormattedParamValue(info.track, info.slotNumber, info.paramNumber, fxParamValue, sizeof(fxParamValue));
