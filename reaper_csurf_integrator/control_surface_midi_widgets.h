@@ -564,7 +564,7 @@ public:
     
     virtual void SetInitialValues(map<string, string> &properties) override
     {
-        ForceValue(properties, 0.0);
+        ClearSCE24(properties, 0.0);
     }
     
     virtual void ForceValue(map<string, string> &properties, double value) override
@@ -654,6 +654,11 @@ public:
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
+    virtual void SetInitialValues(map<string, string> &properties) override
+    {
+        ClearSCE24(properties, " ");
+    }
+
     virtual void ClearSCE24(map<string, string> &properties, string value) override
     {
         if(lastStringSent_ == value)
