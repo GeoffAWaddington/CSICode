@@ -2804,24 +2804,8 @@ void ZoneManager::SaveLearnedFXParams()
                     if(! info.isLearned)
                     {
                         fxParamAction = "\tNoAction";
-
-                        if(surface_->GetName() == "SCE24")
-                        {
-                            fxParamNameAction = "\tFixedTextDisplay \" \" ";
-                            
-                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[1].size(); tokenIdx++)
-                                fxParamNameAction += surfaceFXLayout_[1][tokenIdx] + " ";
-
-                            fxParamValueAction = "\tFixedTextDisplay \" \" ";
-                            
-                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[2].size(); tokenIdx++)
-                                fxParamValueAction += surfaceFXLayout_[2][tokenIdx] + " ";
-                        }
-                        else
-                        {
-                            fxParamNameAction = "\tNoAction";
-                            fxParamValueAction = "\tNoAction";
-                        }
+                        fxParamNameAction = "\tNoAction";
+                        fxParamValueAction = "\tNoAction";
                     }
                     
                     fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction;
@@ -3351,28 +3335,8 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     
                     if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        if(surface_->GetName() == "SCE24")
-                        {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tFixedTextDisplay \" \" ";
-                            
-                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[1].size(); tokenIdx++)
-                                fxZone << surfaceFXLayout_[1][tokenIdx] + " ";
-                            
-                            fxZone << GetLineEnding();
-                            
-                            
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tFixedTextDisplay \" \" ";
-                            
-                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[2].size(); tokenIdx++)
-                                fxZone << surfaceFXLayout_[2][tokenIdx] + " ";
-                            
-                            fxZone << GetLineEnding() + GetLineEnding();
-                        }
-                        else
-                        {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding();
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding() + GetLineEnding();
-                        }
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding();
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding() + GetLineEnding();
                     }
                     else
                     {
@@ -3405,28 +3369,8 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                     
                     if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        if(surface_->GetName() == "SCE24")
-                        {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tFixedTextDisplay \" \" ";
-                            
-                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[1].size(); tokenIdx++)
-                                fxZone << surfaceFXLayout_[1][tokenIdx] + " ";
-                            
-                            fxZone << GetLineEnding();
-                            
-                            
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tFixedTextDisplay \" \" ";
-                            
-                            for(int tokenIdx = 2; tokenIdx < surfaceFXLayout_[2].size(); tokenIdx++)
-                                fxZone << surfaceFXLayout_[2][tokenIdx] + " ";
-                            
-                            fxZone << GetLineEnding() + GetLineEnding();
-                        }
-                        else
-                        {
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();
-                            fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding() + GetLineEnding();
-                        }
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding() + GetLineEnding();
                     }
                     else
                     {

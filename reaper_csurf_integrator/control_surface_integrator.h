@@ -2077,6 +2077,8 @@ public:
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
+    virtual void ClearSCE24(map<string, string> &properties, double value) {}
+    virtual void ClearSCE24(map<string, string> &properties, string value) {}
 
     virtual void SetValue(map<string, string> &properties, double value)
     {
@@ -2106,19 +2108,28 @@ public:
     {
         map<string, string> properties;
         
+        ClearSCE24(properties, 0.0);
+        ClearSCE24(properties, " ");
+        
         rgba_color color;
+        SetColorValue(color);
+
         SetValue(properties, 0.0);
         SetValue(properties, "");
-        SetColorValue(color);
     }
     
     void ForceClear()
     {
         map<string, string> properties;
+        
+        ClearSCE24(properties, 0.0);
+        ClearSCE24(properties, " ");
+        
         rgba_color color;
+        ForceColorValue(color);
+
         ForceValue(properties, 0.0);
         ForceValue(properties, "");
-        ForceColorValue(color);
     }
 };
 

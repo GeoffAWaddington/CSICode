@@ -499,7 +499,7 @@ class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    double lastValue_ = 0.0;
+    double lastValueSent_ = 0.0;
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
@@ -507,9 +507,58 @@ public:
     
     virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
 
+    virtual void ClearSCE24(map<string, string> &properties, double value) override
+    {
+        if(lastValueSent_ == value)
+            return;
+        
+        lastValueSent_ = value;
+
+        int topMargin = 0;
+        int bottomMargin = 64;
+        int font = 9;
+        rgba_color background;
+        rgba_color foreground;
+        string displayText = "          ";
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
+        
+        for(int i = 0; i < displayText.length(); i++)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(lastValue_ != value)
+        if(lastValueSent_ != value)
             ForceValue(properties, value);
     }
     
@@ -520,7 +569,7 @@ public:
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        lastValue_ = value;
+        lastValueSent_ = value;
                 
         int topMargin = 0;
         int bottomMargin = 0;
@@ -605,6 +654,55 @@ public:
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
+    virtual void ClearSCE24(map<string, string> &properties, string value) override
+    {
+        if(lastStringSent_ == value)
+            return;
+        
+        lastStringSent_ = value;
+
+        int topMargin = 0;
+        int bottomMargin = 64;
+        int font = 9;
+        rgba_color background;
+        rgba_color foreground;
+        string displayText = "          ";
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
+        
+        for(int i = 0; i < displayText.length(); i++)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
+    }
+
     virtual void SetValue(map<string, string> &properties, string value) override
     {
         if(lastStringSent_ != value)
