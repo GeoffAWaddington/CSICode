@@ -782,6 +782,61 @@ struct LEDColor
     int ringRangeLow = 0;
 };
 
+static vector<LEDColor> GetColorValues(string property)
+{
+    vector<LEDColor> colors;
+    
+    property = regex_replace(property, regex("\""), "");
+    
+    istringstream iss(property);
+    string colorDef = "";
+    vector<string> colorDefs;
+    while (getline(iss, colorDef, '+'))
+        colorDefs.push_back(colorDef);
+
+    for(auto colorDef : colorDefs)
+    {
+        vector<string> rangeDefs;
+        
+        istringstream iss(colorDef);
+        string rangeDef;
+        while (getline(iss, rangeDef, '-'))
+            rangeDefs.push_back(rangeDef);
+        
+        if(rangeDefs.size() > 2)
+        {
+            LEDColor color;
+            
+            color.ringColor = GetColorValue(rangeDefs[2]);
+
+            for(int i = stoi(rangeDefs[0]); i <= stoi(rangeDefs[1]); i++)
+            {
+                if(i < 7)
+                    color.ringRangeLow += 1 << i;
+                else if(i > 6 && i < 14)
+                    color.ringRangeMedium += 1 << (i - 7);
+                else if(i > 13)
+                    color.ringRangeHigh += 1 << (i - 14);
+            }
+  
+            colors.push_back(color);
+        }
+    }
+    
+    LEDColor color;
+
+    color.ringColor.r = 0;
+    color.ringColor.g = 0;
+    color.ringColor.b = 0;
+    color.ringRangeLow = 7;
+    color.ringRangeMedium = 0;
+    color.ringRangeHigh = 0;
+    
+    colors.push_back(color);
+    
+    return colors;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -860,12 +915,11 @@ public:
             
             colors.push_back(color);
         }
-        else
+        else if(properties.count("LEDRingColor") > 0)
         {
             LEDColor color;
             
-            if(properties.count("LEDRingColor") > 0)
-                color.ringColor = GetColorValue(properties["LEDRingColor"]);
+            color.ringColor = GetColorValue(properties["LEDRingColor"]);
 
             color.ringRangeLow = 120;
             color.ringRangeMedium = 127;
@@ -882,7 +936,11 @@ public:
 
             colors.push_back(color);
         }
-        
+        else if(properties.count("LEDRingColors") > 0)
+        {
+            colors = GetColorValues(properties["LEDRingColors"]);
+        }
+
         struct
         {
             MIDI_event_ex_t evt;
