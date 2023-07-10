@@ -2776,14 +2776,20 @@ void ZoneManager::SaveLearnedFXParams()
         
         path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
 
-        //AddZoneFilePath(fxName, info);
-        //surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, fxName, info);
+        string alias = GetAlias(learnFXName_);        
+        
+        CSIZoneInfo info;
+        info.filePath = path;
+        info.alias = alias;
+            
+        AddZoneFilePath(learnFXName_, info);
+        surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
 
         ofstream fxZone(path);
 
         if(fxZone.is_open())
         {
-            fxZone << "Zone \"" + learnFXName_ + "\" \"" + GetAlias(learnFXName_) + "\"" + GetLineEnding();
+            fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\"" + GetLineEnding();
             
             for(auto line : fxPrologue_)
                 fxZone << "\t" + line + GetLineEnding();
