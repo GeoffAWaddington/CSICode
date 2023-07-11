@@ -1015,8 +1015,8 @@ private:
     MediaTrack* lastTouchedParamTrack_ = nullptr;
     int lastTouchedChannel_ = 0;
     int lastTouchedParamModifier_ = 0;
-    bool hasDuplicateFXDialogBeenShownRecently_ = false;
-    int timeDuplicateFXDialogShown_ = 0;
+    bool hasExistingFXBeenLoadedRecently_ = false;
+    int timeExistingFXLoaded_ = 0;
     bool hasDifferentFXDialogBeenShownRecently_ = false;
     int timeDifferentFXDialogShown_ = 0;
 
@@ -1302,12 +1302,12 @@ public:
        
     void RequestUpdate()
     {
-        if(hasDuplicateFXDialogBeenShownRecently_)
+        if(hasExistingFXBeenLoadedRecently_)
         {
-            if(DAW::GetCurrentNumberOfMilliseconds() - timeDuplicateFXDialogShown_ > 250)
+            if(DAW::GetCurrentNumberOfMilliseconds() - timeExistingFXLoaded_ > 250)
             {
-                timeDuplicateFXDialogShown_ = 0;
-                hasDuplicateFXDialogBeenShownRecently_ = false;
+                timeExistingFXLoaded_ = 0;
+                hasExistingFXBeenLoadedRecently_ = false;
             }
         }
         

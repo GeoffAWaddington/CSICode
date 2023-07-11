@@ -2941,7 +2941,7 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
 
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
-    if(hasDuplicateFXDialogBeenShownRecently_ || hasDifferentFXDialogBeenShownRecently_)
+    if(hasExistingFXBeenLoadedRecently_ || hasDifferentFXDialogBeenShownRecently_)
         return;
 
     int trackNum = 0;
@@ -2966,17 +2966,19 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             if(paramList_.size() == 0)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
                     paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
-             /*
-            if(! hasDuplicateFXDialogBeenShownRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+
+            
+            /*
+            if(! hasExistingFXBeenLoadedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
                 if(MessageBox(NULL, "An FX Zone already exists for this plugin. If you learn a new Zone, your existing Zone will be overwritten when saved. Are you sure you want to continue?", "Zone Found", MB_YESNO) == IDNO)
                 {
-                    hasDuplicateFXDialogBeenShownRecently_ = true;
-                    timeDuplicateFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                    hasExistingFXBeenLoadedRecently_ = true;
+                    timeExistingFXLoaded_ = DAW::GetCurrentNumberOfMilliseconds();
                     return;
                 }
             }
-            */
+           */
             
             if(! hasDifferentFXDialogBeenShownRecently_ && GetAlias(learnFXName_) != "" && learnFXName_ != fxName)
             {
