@@ -3,6 +3,7 @@
 // Used by res.rc
 //
 #define IDEDIT                          3
+#define IDC_Delete                      4
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_RemapAutoFX          117

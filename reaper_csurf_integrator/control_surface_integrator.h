@@ -1015,6 +1015,11 @@ private:
     MediaTrack* lastTouchedParamTrack_ = nullptr;
     int lastTouchedChannel_ = 0;
     int lastTouchedParamModifier_ = 0;
+    bool hasDuplicateFXDialogBeenShownRecently_ = false;
+    int timeDuplicateFXDialogShown_ = 0;
+    bool hasDifferentFXDialogBeenShownRecently_ = false;
+    int timeDifferentFXDialogShown_ = 0;
+
     
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
@@ -1072,6 +1077,13 @@ public:
     void EraseLastTouchedFXParam();
     void SaveLearnedFXParams();
     
+    void Shutdown()
+    {
+        if(learnFXName_ != "")
+            if(MessageBox(NULL, (string("You have ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+                SaveLearnedFXParams();
+    }
+    
     void ClearLearnedFXParams()
     {
         paramList_.clear();
@@ -1080,7 +1092,6 @@ public:
         lastTouchedParamTrack_ = nullptr;
         lastTouchedChannel_ = 0;
         lastTouchedParamModifier_ = 0;
-    
     }
         
     void ClearFocusedFXParam()
@@ -1291,6 +1302,24 @@ public:
        
     void RequestUpdate()
     {
+        if(hasDuplicateFXDialogBeenShownRecently_)
+        {
+            if(DAW::GetCurrentNumberOfMilliseconds() - timeDuplicateFXDialogShown_ > 250)
+            {
+                timeDuplicateFXDialogShown_ = 0;
+                hasDuplicateFXDialogBeenShownRecently_ = false;
+            }
+        }
+        
+        if(hasDifferentFXDialogBeenShownRecently_)
+        {
+            if(DAW::GetCurrentNumberOfMilliseconds() - timeDifferentFXDialogShown_ > 250)
+            {
+                timeDifferentFXDialogShown_ = 0;
+                hasDifferentFXDialogBeenShownRecently_ = false;
+            }
+        }
+        
         CheckFocusedFXState();
             
         for(auto &[key, value] : usedWidgets_)
@@ -1906,6 +1935,11 @@ public:
             widget->ForceClear();
     }
        
+    void Shutdown()
+    {
+        zoneManager_->Shutdown();
+    }
+    
     void TrackFXListChanged(MediaTrack* track)
     {
         OnTrackSelection(track);
@@ -3193,7 +3227,13 @@ public:
         for(auto surface : surfaces_)
             surface->ForceUpdateTrackColors();
     }
-        
+      
+    void Shutdown()
+    {
+        for(auto surface : surfaces_)
+            surface->Shutdown();
+    }
+    
     bool GetTouchState(MediaTrack* track, int touchedControl)
     {
         return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
@@ -3554,7 +3594,10 @@ public:
         shouldRun_ = false;
         
         if(pages_.size() > 0)
+        {
+            pages_[currentPageIndex_]->Shutdown();
             pages_[currentPageIndex_]->ForceClear();
+        }
     }
     
     void Init();

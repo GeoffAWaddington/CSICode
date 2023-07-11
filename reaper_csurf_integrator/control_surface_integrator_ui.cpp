@@ -300,8 +300,9 @@ static map<string, string> rawParamsDictionary;
 
 static string fxName = "";
 static string fxAlias = "";
+static string fullPath = "";
 
-void UnpackZone(string fullPath)
+void UnpackZone()
 {
     paramDefs.clear();
     prologue.clear();
@@ -1422,6 +1423,16 @@ static void EditItem(HWND hwndParamList)
     }
 }
 
+static bool DeleteZone()
+{
+    if(MessageBox(NULL, (string("This will permanently delete\n\n") + fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + fxAlias).c_str(), MB_YESNO) == IDNO)
+       return false;
+    
+    remove(fullPath.c_str());
+    
+    return true;
+}
+
 static bool isDragging = false;
 
 #ifdef _WIN32
@@ -1592,6 +1603,12 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break ;
                     
+                case IDC_Delete:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                         if(DeleteZone())
+                             EndDialog(hwndDlg, 0);
+                    break ;
+
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                         EndDialog(hwndDlg, 0);
@@ -1726,6 +1743,12 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                          EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     break ;
                     
+                case IDC_Delete:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        if(DeleteZone())
+                            EndDialog(hwndDlg, 0);
+                    break ;
+                    
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                         EndDialog(hwndDlg, 0);
@@ -1738,8 +1761,10 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
+bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
 {
+    fullPath = fullFilePath;
+    
     layoutTemplates.clear();
     
     surfaceLayout = zoneManager->GetSurfaceFXLayout();
@@ -1794,7 +1819,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, v
         }
     }
 
-    UnpackZone(fullPath);
+    UnpackZone();
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
