@@ -154,20 +154,6 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-static vector<vector<string>> surfaceLayout;
 static vector<vector<string>> surfaceLayoutTemplate;
 int numGroups = 0;
 
@@ -1483,7 +1469,6 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
     
     layoutTemplates.clear();
     
-    surfaceLayout = zoneManager->GetSurfaceFXLayout();
     surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
 
     numGroups = 0;
