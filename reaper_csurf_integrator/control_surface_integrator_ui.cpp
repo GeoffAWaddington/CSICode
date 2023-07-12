@@ -1465,14 +1465,15 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePath)
 {
-    autoZoneDef.fullPath = fullFilePath;
-    
-    layoutTemplates.clear();
-    
-    surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
+    string widgetAction = "";
+    string aliasDisplayAction = "";
+    string valueDisplayAction = "";
 
     numGroups = 0;
-    
+    layoutTemplates.clear();
+    autoZoneDef.fullPath = fullFilePath;
+    surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
+
     for(auto layout : surfaceLayoutTemplate)
     {
         if(layout.size() > 0 && layout[0] == "WidgetTypes")
@@ -1481,10 +1482,6 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
             break;
         }
     }
-    
-    string widgetAction = "";
-    string aliasDisplayAction = "";
-    string valueDisplayAction = "";
     
     for(auto row : surfaceLayoutTemplate)
     {
