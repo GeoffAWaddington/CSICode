@@ -2934,7 +2934,7 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName)
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
     // This is just to let things settle a bit, you may have turned an encoder and there may be a few "spurious" message yet to come
-    if(hasDifferentFXDialogBeenShownRecently_)
+    if(hasDuplicateFXBeenLoadedRecently_ || hasDifferentFXDialogBeenShownRecently_)
         return;
 
     int trackNum = 0;
@@ -2960,10 +2960,12 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
                     paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
 
-            if(learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+            if(! hasDuplicateFXBeenLoadedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
                 ParseExistingZoneFileForLearn(fxName);
                 learnFXName_ = fxName;
+                hasDuplicateFXBeenLoadedRecently_ = true;
+                timeDuplicateFXLoaded_ = DAW::GetCurrentNumberOfMilliseconds();
             }
             else
             {

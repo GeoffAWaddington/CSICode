@@ -1079,6 +1079,8 @@ private:
     MediaTrack* lastTouchedParamTrack_ = nullptr;
     int lastTouchedChannel_ = 0;
     int lastTouchedParamModifier_ = 0;
+    bool hasDuplicateFXBeenLoadedRecently_ = false;
+    int timeDuplicateFXLoaded_ = 0;
     bool hasDifferentFXDialogBeenShownRecently_ = false;
     int timeDifferentFXDialogShown_ = 0;
 
@@ -1469,6 +1471,15 @@ public:
        
     void RequestUpdate()
     {
+        if(hasDuplicateFXBeenLoadedRecently_)
+        {
+            if(DAW::GetCurrentNumberOfMilliseconds() - timeDuplicateFXLoaded_ > 250)
+            {
+                timeDuplicateFXLoaded_ = 0;
+                hasDuplicateFXBeenLoadedRecently_ = false;
+            }
+        }
+        
         if(hasDifferentFXDialogBeenShownRecently_)
         {
             if(DAW::GetCurrentNumberOfMilliseconds() - timeDifferentFXDialogShown_ > 250)
@@ -1478,6 +1489,7 @@ public:
             }
         }
         
+
         CheckFocusedFXState();
             
         for(auto &[key, value] : usedWidgets_)
