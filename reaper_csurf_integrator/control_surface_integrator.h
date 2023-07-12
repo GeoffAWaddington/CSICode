@@ -134,6 +134,20 @@ struct AutoZoneDefinition
     string fxName = "";
     string fxAlias = "";
     string fullPath = "";
+    
+    void Clear()
+    {
+        prologue.clear();
+        epilogue.clear();
+        paramDefs.clear();
+        
+        rawParams.clear();
+        rawParamsDictionary.clear();
+
+        fxName = "";
+        fxAlias = "";
+        fullPath = "";
+    }
 };
 
 static map<int, vector<double>> SteppedValueDictionary

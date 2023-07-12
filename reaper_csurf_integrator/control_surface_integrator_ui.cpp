@@ -1464,6 +1464,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 bool RemapAutoZoneDialog(shared_ptr<ZoneManager> aZoneManager, string fullFilePath)
 {
+    zoneDef.Clear();
     zoneManager = aZoneManager;
     zoneDef.fullPath = fullFilePath;
     numGroups = zoneManager->GetNumGroups();
