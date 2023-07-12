@@ -1247,11 +1247,11 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 
                 FXParamDefinitions itemToMove;
                 
-                for(auto def : paramDefs[oldPosition].definitions)
+                for(auto def : autoZoneDef.paramDefs[oldPosition].definitions)
                     itemToMove.definitions.push_back(def);
                 
-                paramDefs.erase(paramDefs.begin() + oldPosition);
-                paramDefs.insert(paramDefs.begin() + lvhti.iItem, itemToMove);
+                autoZoneDef.paramDefs.erase(autoZoneDef.paramDefs.begin() + oldPosition);
+                autoZoneDef.paramDefs.insert(autoZoneDef.paramDefs.begin() + lvhti.iItem, itemToMove);
                 
                 PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                 
