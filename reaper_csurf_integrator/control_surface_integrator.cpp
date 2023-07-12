@@ -2947,13 +2947,13 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
             
             int modifierValue = modifierManager.GetModifierValue(modifiers);
                         
-            for(int j = 0; j < layoutInfo.channelCount; j++)
+            for(int j = 1; j <= layoutInfo.channelCount; j++)
             {
-                for(auto paramDef : existingZoneDef_.paramDefs[j].definitions)
+                for(auto paramDef : existingZoneDef_.paramDefs[i++].definitions)
                 {
                     if(paramDef.aliasDisplayWidget != "")
                     {
-                        LearnInfo* info = GetLearnInfo(j + 1, modifierValue);
+                        LearnInfo* info = GetLearnInfo(j, modifierValue);
 
                         info->isLearned = true;
                         
