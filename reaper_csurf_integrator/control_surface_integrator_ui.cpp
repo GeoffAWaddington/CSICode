@@ -154,15 +154,8 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static vector<vector<string>> surfaceLayout;
-static vector<vector<string>> surfaceLayoutTemplate;
-int numGroups = 0;
 
-static vector<FXParamLayoutTemplate> layoutTemplates;
-
-AutoZoneDefinition autoZoneDef;
-
-static void GetWidgetName(string line, int listSlotIndex, string &widgetName)
+static void GetWidgetName(string line, int listSlotIndex, string &widgetName, vector<FXParamLayoutTemplate> &layoutTemplates)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> modifiersAndWidgetNameTokens;
@@ -258,11 +251,7 @@ static void GetSteppedValues(vector<string> params, string &deltaValue, vector<s
     }
 }
 
-
-
-
-
-void UnpackZone(AutoZoneDefinition &zoneDef)
+void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
 {
     zoneDef.paramDefs.clear();
     zoneDef.prologue.clear();
@@ -354,7 +343,7 @@ void UnpackZone(AutoZoneDefinition &zoneDef)
             
             FXParamDefinition def;
             
-            GetWidgetName(tokens[0], listSlotIndex, def.widget);
+            GetWidgetName(tokens[0], listSlotIndex, def.widget, layoutTemplates);
             
             if(tokens.size() > 2)
                 def.paramNumber = tokens[2];
@@ -386,7 +375,7 @@ void UnpackZone(AutoZoneDefinition &zoneDef)
                 {
                     vector<string> modifers;
                     
-                    GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget);
+                    GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget, layoutTemplates);
                     
                     def.alias = tokens[2];
                     
@@ -405,7 +394,7 @@ void UnpackZone(AutoZoneDefinition &zoneDef)
                 {
                     vector<string> modifers;
                     
-                    GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget);
+                    GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget, layoutTemplates);
                     
                     if(tokens.size() > 3)
                         GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
@@ -418,6 +407,163 @@ void UnpackZone(AutoZoneDefinition &zoneDef)
         }
     }
 }
+
+static void SaveAutoZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates, vector<vector<string>> &surfaceLayout)
+{
+    ofstream fxFile(zoneDef.fullPath);
+    
+    if(fxFile.is_open())
+    {
+        fxFile << "Zone \"" + zoneDef.fxName + "\" \"" + zoneDef.fxAlias + "\"" + GetLineEnding();
+        
+        for(auto line : zoneDef.prologue)
+            fxFile << line + GetLineEnding();
+        
+        fxFile << BeginAutoSection + GetLineEnding() + GetLineEnding();
+        
+        for(int i = 0; i < zoneDef.paramDefs.size(); i++)
+        {
+            for(int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
+            {
+                fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
+                
+                if(zoneDef.paramDefs[i].definitions[j].paramNumber == "")
+                {
+                    fxFile << "NoAction" + GetLineEnding();
+                }
+                else
+                {
+                    fxFile << layoutTemplates[i].widgetAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber + " ";
+                    
+                    if(zoneDef.paramDefs[i].definitions[j].delta != "" ||
+                       (zoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && zoneDef.paramDefs[i].definitions[j].rangeMaximum != "") ||
+                       zoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
+                       zoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
+                       zoneDef.paramDefs[i].definitions[j].steps.size() > 0)
+                    {
+                        fxFile << "[ ";
+                        
+                        if(zoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && zoneDef.paramDefs[i].definitions[j].rangeMaximum != "")
+                            fxFile << " " + zoneDef.paramDefs[i].definitions[j].rangeMinimum + ">" + zoneDef.paramDefs[i].definitions[j].rangeMaximum + " ";
+                        
+                        if(zoneDef.paramDefs[i].definitions[j].delta != "")
+                            fxFile << " (" + zoneDef.paramDefs[i].definitions[j].delta + ") ";
+                        
+                        if(zoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
+                        {
+                            string deltaStr = " (";
+                            
+                            for(auto delta : zoneDef.paramDefs[i].definitions[j].deltas)
+                                deltaStr += delta + ",";
+                            
+                            deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
+                            
+                            deltaStr += ") ";
+                            
+                            fxFile << deltaStr;
+                        }
+                        
+                        if(zoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
+                        {
+                            string tickStr = " (";
+                            
+                            for(auto tick : zoneDef.paramDefs[i].definitions[j].ticks)
+                                tickStr += tick + ",";
+                            
+                            tickStr = tickStr.substr(0, tickStr.length() - 1);
+                            
+                            tickStr += ") ";
+                            
+                            fxFile << tickStr;
+                        }
+                        
+                        for(auto step : zoneDef.paramDefs[i].definitions[j].steps)
+                            fxFile << step + " " ;
+                        
+                        fxFile << "]";
+                    }
+                    
+                    for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].widgetProperties)
+                        fxFile << " " + key + "=" + value ;
+                    
+                    fxFile << GetLineEnding();
+                }
+                
+                if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].aliasDisplayWidget == "")
+                {
+                    if(j == 0 && surfaceLayout.size() > 1 && surfaceLayout[1].size() > 0)
+                        fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
+                    else
+                        fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
+                }
+                else
+                {
+                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].aliasDisplayWidget + layoutTemplates[i].suffix + "\t";
+                    
+                    fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].alias + "\" ";
+                    
+                    for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
+                        fxFile << " " + key + "=" + value;
+                    
+                    fxFile << GetLineEnding();
+                }
+                
+                if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].valueDisplayWidget == "")
+                {
+                    if(j == 0 && surfaceLayout.size() > 2 && surfaceLayout[2].size() > 0)
+                        fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
+                    else
+                        fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
+                }
+                else
+                {
+                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].valueDisplayWidget + layoutTemplates[i].suffix + "\t";
+                    
+                    fxFile << layoutTemplates[i].valueDisplayAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber;
+                    
+                    for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].valueDisplayWidgetProperties)
+                        fxFile << " " + key + "=" + value;
+                    
+                    fxFile << GetLineEnding();
+                }
+                
+                fxFile << GetLineEnding();
+            }
+            
+            fxFile << GetLineEnding();
+        }
+        
+        fxFile <<  EndAutoSection + GetLineEnding();
+        
+        for(auto line : zoneDef.epilogue)
+            fxFile << line + GetLineEnding();
+        
+        fxFile << "ZoneEnd" + GetLineEnding();
+        
+        for(auto line : zoneDef.rawParams)
+            fxFile << line + GetLineEnding();
+        
+        fxFile.close();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+static vector<vector<string>> surfaceLayout;
+static vector<vector<string>> surfaceLayoutTemplate;
+int numGroups = 0;
+
+AutoZoneDefinition autoZoneDef;
+
+static vector<FXParamLayoutTemplate> layoutTemplates;
 
 static int dlgResult = IDCANCEL;
 
@@ -1779,149 +1925,13 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
         }
     }
     
-    UnpackZone(autoZoneDef);
+    UnpackZone(autoZoneDef, layoutTemplates);
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
     if(dlgResult == IDSAVE)
     {
-        ofstream fxFile(autoZoneDef.fullPath);
-
-        if(fxFile.is_open())
-        {
-            fxFile << "Zone \"" + autoZoneDef.fxName + "\" \"" + autoZoneDef.fxAlias + "\"" + GetLineEnding();
-
-            for(auto line : autoZoneDef.prologue)
-                fxFile << line + GetLineEnding();
-            
-            fxFile << BeginAutoSection + GetLineEnding() + GetLineEnding();
-
-            for(int i = 0; i < autoZoneDef.paramDefs.size(); i++)
-            {
-                for(int j = 0; j < autoZoneDef.paramDefs[i].definitions.size(); j++)
-                {
-                    fxFile << "\t" + layoutTemplates[i].modifiers + autoZoneDef.paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
-                    
-                    if(autoZoneDef.paramDefs[i].definitions[j].paramNumber == "")
-                    {
-                        fxFile << "NoAction" + GetLineEnding();
-                    }
-                    else
-                    {
-                        fxFile << layoutTemplates[i].widgetAction + " " + autoZoneDef.paramDefs[i].definitions[j].paramNumber + " ";
-                        
-                        if(autoZoneDef.paramDefs[i].definitions[j].delta != "" ||
-                           (autoZoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && autoZoneDef.paramDefs[i].definitions[j].rangeMaximum != "") ||
-                           autoZoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
-                           autoZoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
-                           autoZoneDef.paramDefs[i].definitions[j].steps.size() > 0)
-                        {
-                            fxFile << "[ ";
-                            
-                            if(autoZoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && autoZoneDef.paramDefs[i].definitions[j].rangeMaximum != "")
-                                fxFile << " " + autoZoneDef.paramDefs[i].definitions[j].rangeMinimum + ">" + autoZoneDef.paramDefs[i].definitions[j].rangeMaximum + " ";
-                            
-                            if(autoZoneDef.paramDefs[i].definitions[j].delta != "")
-                                fxFile << " (" + autoZoneDef.paramDefs[i].definitions[j].delta + ") ";
-                            
-                            if(autoZoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
-                            {
-                                string deltaStr = " (";
-                                
-                                for(auto delta : autoZoneDef.paramDefs[i].definitions[j].deltas)
-                                    deltaStr += delta + ",";
-                                
-                                deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
-                                
-                                deltaStr += ") ";
-                                
-                                fxFile << deltaStr;
-                            }
-                            
-                            if(autoZoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
-                            {
-                                string tickStr = " (";
-                                
-                                for(auto tick : autoZoneDef.paramDefs[i].definitions[j].ticks)
-                                    tickStr += tick + ",";
-                                
-                                tickStr = tickStr.substr(0, tickStr.length() - 1);
-                                
-                                tickStr += ") ";
-                                
-                                fxFile << tickStr;
-                            }
-                            
-                            for(auto step : autoZoneDef.paramDefs[i].definitions[j].steps)
-                                fxFile << step + " " ;
-                                
-                            fxFile << "]";
-                        }
-                        
-                        for(auto [ key, value ] : autoZoneDef.paramDefs[i].definitions[j].widgetProperties)
-                            fxFile << " " + key + "=" + value ;
-                        
-                        fxFile << GetLineEnding();
-                    }
-                    
-                    if(autoZoneDef.paramDefs[i].definitions[j].paramNumber == "" || autoZoneDef.paramDefs[i].definitions[j].aliasDisplayWidget == "")
-                    {
-                        if(j == 0 && surfaceLayout.size() > 1 && surfaceLayout[1].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
-                        else
-                            fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
-                    }
-                    else
-                    {
-                        fxFile << "\t" + layoutTemplates[i].modifiers + autoZoneDef.paramDefs[i].definitions[j].aliasDisplayWidget + layoutTemplates[i].suffix + "\t";
-                        
-                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + autoZoneDef.paramDefs[i].definitions[j].alias + "\" ";
-                        
-                        for(auto [ key, value ] : autoZoneDef.paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
-                            fxFile << " " + key + "=" + value;
-                        
-                        fxFile << GetLineEnding();
-                    }
-                    
-                    if(autoZoneDef.paramDefs[i].definitions[j].paramNumber == "" || autoZoneDef.paramDefs[i].definitions[j].valueDisplayWidget == "")
-                    {
-                        if(j == 0 && surfaceLayout.size() > 2 && surfaceLayout[2].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
-                        else
-                            fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
-                    }
-                    else
-                    {
-                        fxFile << "\t" + layoutTemplates[i].modifiers + autoZoneDef.paramDefs[i].definitions[j].valueDisplayWidget + layoutTemplates[i].suffix + "\t";
-                        
-                        fxFile << layoutTemplates[i].valueDisplayAction + " " + autoZoneDef.paramDefs[i].definitions[j].paramNumber;
-                        
-                        for(auto [ key, value ] : autoZoneDef.paramDefs[i].definitions[j].valueDisplayWidgetProperties)
-                            fxFile << " " + key + "=" + value;
-                        
-                        fxFile << GetLineEnding();
-                    }
-
-                    fxFile << GetLineEnding();
-                }
-                
-                fxFile << GetLineEnding();
-            }
-            
-            fxFile <<  EndAutoSection + GetLineEnding();
-
-            for(auto line : autoZoneDef.epilogue)
-                fxFile << line + GetLineEnding();
-
-            fxFile << "ZoneEnd" + GetLineEnding();
-
-            for(auto line : autoZoneDef.rawParams)
-                fxFile << line + GetLineEnding();
-            
-            fxFile.close();
-        }
-
-        
+        SaveAutoZone(autoZoneDef, layoutTemplates, surfaceLayout);
         return true;
     }
     else
