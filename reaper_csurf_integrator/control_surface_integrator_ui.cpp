@@ -154,11 +154,10 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static shared_ptr<ZoneManager> zoneManager;
 static vector<vector<string>> surfaceLayoutTemplate;
-int numGroups = 0;
-
-AutoZoneDefinition zoneDef;
-
+static int numGroups = 0;
+static AutoZoneDefinition zoneDef;
 static vector<FXParamLayoutTemplate> layoutTemplates;
 
 static int dlgResult = IDCANCEL;
@@ -1130,7 +1129,7 @@ static bool DeleteZone()
     if(MessageBox(NULL, (string("This will permanently delete\n\n") + zoneDef.fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + zoneDef.fxAlias).c_str(), MB_YESNO) == IDNO)
        return false;
     
-    remove(zoneDef.fullPath.c_str());
+    zoneManager->RemoveZone(zoneDef.fxName);
     
     return true;
 }
@@ -1463,59 +1462,13 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePath)
+bool RemapAutoZoneDialog(shared_ptr<ZoneManager> aZoneManager, string fullFilePath)
 {
-    string widgetAction = "";
-    string aliasDisplayAction = "";
-    string valueDisplayAction = "";
-
-    numGroups = 0;
-    layoutTemplates.clear();
+    zoneManager = aZoneManager;
     zoneDef.fullPath = fullFilePath;
+    numGroups = zoneManager->GetNumGroups();
+    layoutTemplates = zoneManager->GetFXLayoutTemplates();
     surfaceLayoutTemplate = zoneManager->GetSurfaceFXLayoutTemplate();
-
-    for(auto layout : surfaceLayoutTemplate)
-    {
-        if(layout.size() > 0 && layout[0] == "WidgetTypes")
-        {
-            numGroups = layout.size() - 1;
-            break;
-        }
-    }
-    
-    for(auto row : surfaceLayoutTemplate)
-    {
-        if(row.size() > 1)
-        {
-            if(row[0] == "WidgetAction")
-                widgetAction = row[1];
-            else if(row[0] == "AliasDisplayAction")
-                aliasDisplayAction = row[1];
-            else if(row[0] == "ValueDisplayAction")
-                valueDisplayAction = row[1];
-        }
-    }
-    
-    for(auto layout : zoneManager->GetFXLayouts())
-    {
-        for(int i = 0; i < layout.channelCount; i++)
-        {
-            string modifiers = "";
-            if(layout.modifiers != "")
-                modifiers = layout.modifiers + "+";
-            
-            FXParamLayoutTemplate layoutTemplate;
-            
-            layoutTemplate.modifiers = modifiers;
-            layoutTemplate.suffix = layout.suffix + to_string(i + 1);
-            
-            layoutTemplate.widgetAction = widgetAction;
-            layoutTemplate.aliasDisplayAction = aliasDisplayAction;
-            layoutTemplate.valueDisplayAction = valueDisplayAction;
-            
-            layoutTemplates.push_back(layoutTemplate);
-        }
-    }
     
     zoneManager->UnpackZone(zoneDef, layoutTemplates);
     

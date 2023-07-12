@@ -1220,6 +1220,15 @@ public:
     void SetLearnFXParamValueWidget(int channel, string name);
     void EraseLastTouchedFXParam();
     void SaveLearnedFXParams();
+        
+    void RemoveZone(string zoneName)
+    {
+        if(zoneFilePaths_.count(zoneName) > 0)
+        {
+            remove(zoneFilePaths_[zoneName].filePath.c_str());
+            zoneFilePaths_.erase(zoneName);
+        }
+    }
     
     void Shutdown()
     {
@@ -1583,6 +1592,67 @@ public:
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
+    int GetNumGroups()
+    {
+        int numGroups = 0;
+        
+        for(auto layout : surfaceFXLayoutTemplate_)
+        {
+            if(layout.size() > 0 && layout[0] == "WidgetTypes")
+            {
+                numGroups = layout.size() - 1;
+                break;
+            }
+        }
+        
+        return  numGroups;
+    }
+    
+    vector<FXParamLayoutTemplate> GetFXLayoutTemplates()
+    {
+        vector<FXParamLayoutTemplate> layoutTemplates;
+        
+        string widgetAction = "";
+        string aliasDisplayAction = "";
+        string valueDisplayAction = "";
+
+        for(auto row : surfaceFXLayoutTemplate_)
+        {
+            if(row.size() > 1)
+            {
+                if(row[0] == "WidgetAction")
+                    widgetAction = row[1];
+                else if(row[0] == "AliasDisplayAction")
+                    aliasDisplayAction = row[1];
+                else if(row[0] == "ValueDisplayAction")
+                    valueDisplayAction = row[1];
+            }
+        }
+        
+        for(auto layout : GetFXLayouts())
+        {
+            for(int i = 0; i < layout.channelCount; i++)
+            {
+                string modifiers = "";
+                if(layout.modifiers != "")
+                    modifiers = layout.modifiers + "+";
+                
+                FXParamLayoutTemplate layoutTemplate;
+                
+                layoutTemplate.modifiers = modifiers;
+                layoutTemplate.suffix = layout.suffix + to_string(i + 1);
+                
+                layoutTemplate.widgetAction = widgetAction;
+                layoutTemplate.aliasDisplayAction = aliasDisplayAction;
+                layoutTemplate.valueDisplayAction = valueDisplayAction;
+                
+                layoutTemplates.push_back(layoutTemplate);
+            }
+        }
+
+        return layoutTemplates;
+    }
+
     void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         zoneDef.paramDefs.clear();
