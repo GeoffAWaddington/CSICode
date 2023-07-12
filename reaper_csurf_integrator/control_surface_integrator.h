@@ -1489,7 +1489,6 @@ public:
             }
         }
         
-
         CheckFocusedFXState();
             
         for(auto &[key, value] : usedWidgets_)
