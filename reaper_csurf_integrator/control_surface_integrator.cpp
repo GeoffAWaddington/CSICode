@@ -2921,11 +2921,12 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
 
 void ZoneManager::ParseExistingZoneFileForLearn(string fxName)
 {
-    string fullPath = zoneFilePaths_[fxName].filePath;
-    
-    
+    AutoZoneDefinition zoneDef;
+    vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
 
-    
+    zoneDef.fullPath = zoneFilePaths_[fxName].filePath;
+
+    UnpackZone(zoneDef, layoutTemplates);
     
     
 }
