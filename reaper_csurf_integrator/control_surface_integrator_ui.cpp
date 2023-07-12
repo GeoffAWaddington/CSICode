@@ -158,42 +158,9 @@ static vector<vector<string>> surfaceLayout;
 static vector<vector<string>> surfaceLayoutTemplate;
 int numGroups = 0;
 
-struct FXParamLayoutTemplate
-{
-    string modifiers = "";
-    string suffix = "";
-    string widgetAction = "";
-    string aliasDisplayAction = "";
-    string valueDisplayAction = "";
-};
-
 static vector<FXParamLayoutTemplate> layoutTemplates;
 
-struct FXParamDefinition
-{
-    string widget = "";
-    string paramNumber = "";
-    map<string, string> widgetProperties;
-
-    string aliasDisplayWidget = "";
-    string alias = "";
-    map<string, string> aliasDisplayWidgetProperties;
-    
-    string valueDisplayWidget = "";
-    map<string, string> valueDisplayWidgetProperties;
-
-    string delta = "";
-    vector<string> deltas;
-    string rangeMinimum = "";
-    string rangeMaximum = "";
-    vector<string> steps;
-    vector<string> ticks;
-};
-
-struct FXParamDefinitions
-{
-    vector<FXParamDefinition> definitions;
-};
+AutoZoneDefinition autoZoneDef;
 
 static void GetWidgetName(string line, int listSlotIndex, string &widgetName)
 {
@@ -291,38 +258,31 @@ static void GetSteppedValues(vector<string> params, string &deltaValue, vector<s
     }
 }
 
-static vector<FXParamDefinitions> paramDefs;
 
-static vector<string> prologue;
-static vector<string> epilogue;
-static vector<string> rawParams;
-static map<string, string> rawParamsDictionary;
 
-static string fxName = "";
-static string fxAlias = "";
-static string fullPath = "";
 
-void UnpackZone()
+
+void UnpackZone(AutoZoneDefinition &zoneDef)
 {
-    paramDefs.clear();
-    prologue.clear();
-    epilogue.clear();
-    rawParams.clear();
-    rawParamsDictionary.clear();
+    zoneDef.paramDefs.clear();
+    zoneDef.prologue.clear();
+    zoneDef.epilogue.clear();
+    zoneDef.rawParams.clear();
+    zoneDef.rawParamsDictionary.clear();
 
-    fxName = "";
-    fxAlias = "";
+    zoneDef.fxName = "";
+    zoneDef.fxAlias = "";
 
     bool inZone = false;
     bool inAutoZone = false;
     bool pastAutoZone = false;
     
-    ifstream autoFXFile(fullPath);
+    ifstream autoFXFile(zoneDef.fullPath);
     
     int listSlotIndex = 0;
     
     FXParamDefinitions definitions;
-    paramDefs.push_back(definitions);
+    zoneDef.paramDefs.push_back(definitions);
     
     for (string line; getline(autoFXFile, line) ; )
     {
@@ -344,9 +304,9 @@ void UnpackZone()
             inZone = true;
             
             if(tokens.size() > 1)
-                fxName = tokens[1];
+                zoneDef.fxName = tokens[1];
             if(tokens.size() > 2)
-                fxAlias = tokens[2];
+                zoneDef.fxAlias = tokens[2];
             
             continue;
         }
@@ -357,7 +317,7 @@ void UnpackZone()
         }
         else if(inZone && ! inAutoZone)
         {
-            prologue.push_back(line);
+            zoneDef.prologue.push_back(line);
             continue;
         }
         else if(line == EndAutoSection)
@@ -372,13 +332,13 @@ void UnpackZone()
         }
         else if(inZone && pastAutoZone)
         {
-            epilogue.push_back(line);
+            zoneDef.epilogue.push_back(line);
             continue;
         }
         else if(! inZone && pastAutoZone)
         {
             if(line != "")
-                rawParams.push_back(line);
+                zoneDef.rawParams.push_back(line);
             continue;
         }
         else
@@ -389,7 +349,7 @@ void UnpackZone()
             {
                 listSlotIndex++;
                 FXParamDefinitions definitions;
-                paramDefs.push_back(definitions);
+                zoneDef.paramDefs.push_back(definitions);
             }
             
             FXParamDefinition def;
@@ -454,7 +414,7 @@ void UnpackZone()
             else
                 continue;
            
-            paramDefs.back().definitions.push_back(def);
+            zoneDef.paramDefs.back().definitions.push_back(def);
         }
     }
 }
@@ -474,30 +434,30 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
             dlgResult = IDCANCEL;
                
-            if(paramDefs[fxListIndex].definitions[groupIndex].delta != "")
-                SetDlgItemText(hwndDlg, IDC_EDIT_Delta , paramDefs[fxListIndex].definitions[groupIndex].delta.c_str());
+            if(autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].delta != "")
+                SetDlgItemText(hwndDlg, IDC_EDIT_Delta , autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].delta.c_str());
 
-            if(paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum != "")
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin , paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum.c_str());
+            if(autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum != "")
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin , autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum.c_str());
 
-            if(paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum != "")
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax , paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum.c_str());
+            if(autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum != "")
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax , autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum.c_str());
 
-            if(paramDefs[fxListIndex].definitions[groupIndex].deltas.size() > 0)
+            if(autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].deltas.size() > 0)
             {
                 string deltas = "";
                 
-                for(auto delta : paramDefs[fxListIndex].definitions[groupIndex].deltas)
+                for(auto delta : autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].deltas)
                     deltas += delta + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues , deltas.c_str());
             }
 
-            if(paramDefs[fxListIndex].definitions[groupIndex].ticks.size() > 0)
+            if(autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].ticks.size() > 0)
             {
                 string ticks = "";
                 
-                for(auto tick : paramDefs[fxListIndex].definitions[groupIndex].ticks)
+                for(auto tick : autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].ticks)
                     ticks += tick + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues , ticks.c_str());
@@ -517,30 +477,30 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
                         if(string(buf) != "")
-                            paramDefs[fxListIndex].definitions[groupIndex].delta = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].delta = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
                         if(string(buf) != "")
-                            paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].rangeMinimum = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
                         if(string(buf) != "")
-                            paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].rangeMaximum = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
                         if(string(buf) != "")
                         {
-                            paramDefs[fxListIndex].definitions[groupIndex].deltas.clear();
+                            autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].deltas.clear();
                             for(auto delta : GetTokens(buf))
-                                paramDefs[fxListIndex].definitions[groupIndex].deltas.push_back(delta);
+                                autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].deltas.push_back(delta);
                         }
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
                         if(string(buf) != "")
                         {
-                            paramDefs[fxListIndex].definitions[groupIndex].ticks.clear();
+                            autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].ticks.clear();
                             for(auto tick : GetTokens(buf))
-                                paramDefs[fxListIndex].definitions[groupIndex].ticks.push_back(tick);
+                                autoZoneDef.paramDefs[fxListIndex].definitions[groupIndex].ticks.push_back(tick);
                         }
 
                         dlgResult = IDOK;
@@ -719,11 +679,11 @@ static void PopulateParamListView(HWND hwndParamList)
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    for(int i = 0; i < rawParams.size(); i++)
+    for(int i = 0; i < autoZoneDef.rawParams.size(); i++)
     {
         char buf[BUFSZ];
         
-        sprintf(buf, rawParams[i].c_str());
+        sprintf(buf, autoZoneDef.rawParams[i].c_str());
         
         lvi.iItem = i;
         lvi.pszText = buf;
@@ -731,14 +691,14 @@ static void PopulateParamListView(HWND hwndParamList)
         ListView_InsertItem(hwndParamList, &lvi);
         
         
-        int spaceBreak = rawParams[i].find( " ");
+        int spaceBreak = autoZoneDef.rawParams[i].find( " ");
           
         if(spaceBreak != -1)
         {
-            string key = rawParams[i].substr(0, spaceBreak);
-            string value = rawParams[i].substr(spaceBreak + 1, rawParams[i].length() - spaceBreak - 1);
+            string key = autoZoneDef.rawParams[i].substr(0, spaceBreak);
+            string value = autoZoneDef.rawParams[i].substr(spaceBreak + 1, autoZoneDef.rawParams[i].length() - spaceBreak - 1);
             
-            rawParamsDictionary[key] = value;
+            autoZoneDef.rawParamsDictionary[key] = value;
         }
     }
 }
@@ -813,7 +773,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             ShowFontControls(hwndDlg, 0, groupBoxes.size(), false);
             ShowColorControls(hwndDlg, 0, groupBoxes.size(), false);
 
-            SetWindowText(hwndDlg, (fxAlias + "   " + layoutTemplates[fxListIndex].modifiers + layoutTemplates[fxListIndex].suffix).c_str());
+            SetWindowText(hwndDlg, (autoZoneDef.fxAlias + "   " + layoutTemplates[fxListIndex].modifiers + layoutTemplates[fxListIndex].suffix).c_str());
 
             for(int i = 0; i < stepPickers.size(); i++)
             {
@@ -874,69 +834,69 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 }
             }
 
-            for(int i = 0; i < paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
+            for(int i = 0; i < autoZoneDef.paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
             {
-                SetDlgItemText(hwndDlg, paramNumEditControls[i], paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
-                SetDlgItemText(hwndDlg, fixedTextEditControls[i], paramDefs[fxListIndex].definitions[i].alias.c_str());
+                SetDlgItemText(hwndDlg, paramNumEditControls[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
+                SetDlgItemText(hwndDlg, fixedTextEditControls[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].alias.c_str());
 
-                SetDlgItemText(hwndDlg, widgetTypePickers[i], paramDefs[fxListIndex].definitions[i].widget.c_str());
-                SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], paramDefs[fxListIndex].definitions[i].aliasDisplayWidget.c_str());
-                SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], paramDefs[fxListIndex].definitions[i].valueDisplayWidget.c_str());
+                SetDlgItemText(hwndDlg, widgetTypePickers[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].widget.c_str());
+                SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidget.c_str());
+                SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidget.c_str());
 
-                if(paramDefs[fxListIndex].definitions[i].widgetProperties.count("RingStyle") > 0)
-                    SetDlgItemText(hwndDlg, ringStylePickers[i], paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"].c_str());
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties.count("RingStyle") > 0)
+                    SetDlgItemText(hwndDlg, ringStylePickers[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"].c_str());
                 
-                if(paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Font") > 0)
-                    SetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"].c_str());
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Font") > 0)
+                    SetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"].c_str());
 
-                if(paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Font") > 0)
-                    SetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"].c_str());
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Font") > 0)
+                    SetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"].c_str());
 
-                if(paramDefs[fxListIndex].definitions[i].widgetProperties.count("LEDRingColor") > 0)
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties.count("LEDRingColor") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"]);
+                    rgba_color color = GetColorValue(autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"]);
                     buttonColors[widgetRingColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(paramDefs[fxListIndex].definitions[i].widgetProperties.count("PushColor") > 0)
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties.count("PushColor") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"]);
+                    rgba_color color = GetColorValue(autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"]);
                     buttonColors[widgetRingIndicators[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Foreground") > 0)
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"]);
+                    rgba_color color = GetColorValue(autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"]);
                     buttonColors[fixedTextDisplayForegroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Background") > 0)
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Background") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"]);
+                    rgba_color color = GetColorValue(autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"]);
                     buttonColors[fixedTextDisplayBackgroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Foreground") > 0)
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"]);
+                    rgba_color color = GetColorValue(autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"]);
                     buttonColors[fxParamDisplayForegroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Background") > 0)
+                if(autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Background") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"]);
+                    rgba_color color = GetColorValue(autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"]);
                     buttonColors[fxParamDisplayBackgroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 string steps = "";
                 
-                for(auto step : paramDefs[fxListIndex].definitions[i].steps)
+                for(auto step : autoZoneDef.paramDefs[fxListIndex].definitions[i].steps)
                     steps += step + "  ";
                 
                 SetDlgItemText(hwndDlg, stepEditControls[i], steps.c_str());
@@ -944,7 +904,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 char buf[BUFSZ];
                 
                 GetDlgItemText(hwndDlg, widgetTypePickers[i], buf, sizeof(buf));
-                paramDefs[fxListIndex].definitions[i].widget = buf;
+                autoZoneDef.paramDefs[fxListIndex].definitions[i].widget = buf;
 
                 if(string(buf) == "RotaryPush" && steps == "")
                 {
@@ -1132,44 +1092,44 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        for(int i = 0; i < paramDefs[fxListIndex].definitions.size(); i++)
+                        for(int i = 0; i < autoZoneDef.paramDefs[fxListIndex].definitions.size(); i++)
                         {
                             char buf[BUFSZ];
                             
                             GetDlgItemText(hwndDlg, paramNumEditControls[i], buf, sizeof(buf));
-                            paramDefs[fxListIndex].definitions[i].paramNumber = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[i].paramNumber = buf;
 
                             GetDlgItemText(hwndDlg, widgetTypePickers[i], buf, sizeof(buf));
-                            paramDefs[fxListIndex].definitions[i].widget = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[i].widget = buf;
                             
                             GetDlgItemText(hwndDlg, ringStylePickers[i], buf, sizeof(buf));
-                            paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"] = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"] = buf;
                             
                             GetDlgItemText(hwndDlg, fixedTextEditControls[i], buf, sizeof(buf));
-                            paramDefs[fxListIndex].definitions[i].alias = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[i].alias = buf;
 
                             GetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], buf, sizeof(buf));
-                            paramDefs[fxListIndex].definitions[i].aliasDisplayWidget = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidget = buf;
 
                             GetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], buf, sizeof(buf));
-                            paramDefs[fxListIndex].definitions[i].valueDisplayWidget = buf;
+                            autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidget = buf;
 
                             GetDlgItemText(hwndDlg, stepEditControls[i], buf, sizeof(buf));
                             
                             if(string(buf) != "")
                             {
-                                paramDefs[fxListIndex].definitions[i].steps.clear();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].steps.clear();
                                 for(auto step : GetTokens(buf))
-                                    paramDefs[fxListIndex].definitions[i].steps.push_back(step);
+                                    autoZoneDef.paramDefs[fxListIndex].definitions[i].steps.push_back(step);
                             }
 
                             if(hasFonts)
                             {
                                 GetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], buf, sizeof(buf));
-                                paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"] = buf;
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"] = buf;
                                 
                                 GetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], buf, sizeof(buf));
-                                paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"] = buf;
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"] = buf;
                             }
                             
                             if(hasColors)
@@ -1177,22 +1137,22 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 rgba_color color;
                                 
                                 DAW::ColorFromNative(buttonColors[widgetRingColors[i]], &color.r, &color.g, &color.b);
-                                paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"] = color.to_string();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"] = color.to_string();
                                 
                                 DAW::ColorFromNative(buttonColors[widgetRingIndicators[i]], &color.r, &color.g, &color.b);
-                                paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"] = color.to_string();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fixedTextDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
-                                paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"] = color.to_string();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fixedTextDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
-                                paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"] = color.to_string();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fxParamDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
-                                paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"] = color.to_string();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fxParamDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
-                                paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"] = color.to_string();
+                                autoZoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"] = color.to_string();
                             }
                         }
                        
@@ -1300,7 +1260,7 @@ vector<string> GetLineComponents(int index)
     
     components.push_back(layoutTemplates[index].modifiers + layoutTemplates[index].suffix);
     
-    for(auto paramDef :  paramDefs[index].definitions)
+    for(auto paramDef :  autoZoneDef.paramDefs[index].definitions)
     {
         string widgetName = paramDef.widget;
         
@@ -1311,8 +1271,8 @@ vector<string> GetLineComponents(int index)
         
         string alias = paramDef.alias;
 
-        if(paramDef.alias == "" && paramDef.paramNumber != "" && rawParamsDictionary.count(paramDef.paramNumber) > 0)
-            alias = rawParamsDictionary[paramDef.paramNumber];
+        if(paramDef.alias == "" && paramDef.paramNumber != "" && autoZoneDef.rawParamsDictionary.count(paramDef.paramNumber) > 0)
+            alias = autoZoneDef.rawParamsDictionary[paramDef.paramNumber];
         else if(paramDef.paramNumber == "")
             alias = "NoAction";
         
@@ -1363,7 +1323,7 @@ static void PopulateListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
         
-    for(int i = 0; i < paramDefs.size(); i++)
+    for(int i = 0; i < autoZoneDef.paramDefs.size(); i++)
         SetListViewItem(hwndParamList, i, true);
 }
 
@@ -1374,11 +1334,11 @@ static void MoveUp(HWND hwndParamList)
     {
         FXParamDefinitions itemToMove;
         
-        for(auto def : paramDefs[index].definitions)
+        for(auto def : autoZoneDef.paramDefs[index].definitions)
             itemToMove.definitions.push_back(def);
         
-        paramDefs.erase(paramDefs.begin() + index);
-        paramDefs.insert(paramDefs.begin() + index - 1, itemToMove);
+        autoZoneDef.paramDefs.erase(autoZoneDef.paramDefs.begin() + index);
+        autoZoneDef.paramDefs.insert(autoZoneDef.paramDefs.begin() + index - 1, itemToMove);
         
         SetListViewItem(hwndParamList, index, false);
         SetListViewItem(hwndParamList, index - 1, false);
@@ -1390,15 +1350,15 @@ static void MoveUp(HWND hwndParamList)
 static void MoveDown(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if(index >= 0 && index < paramDefs.size() - 1)
+    if(index >= 0 && index < autoZoneDef.paramDefs.size() - 1)
     {
         FXParamDefinitions itemToMove;
         
-        for(auto def : paramDefs[index].definitions)
+        for(auto def : autoZoneDef.paramDefs[index].definitions)
             itemToMove.definitions.push_back(def);
         
-        paramDefs.erase(paramDefs.begin() + index);
-        paramDefs.insert(paramDefs.begin() + index + 1, itemToMove);
+        autoZoneDef.paramDefs.erase(autoZoneDef.paramDefs.begin() + index);
+        autoZoneDef.paramDefs.insert(autoZoneDef.paramDefs.begin() + index + 1, itemToMove);
 
         SetListViewItem(hwndParamList, index, false);
         SetListViewItem(hwndParamList, index + 1, false);
@@ -1425,10 +1385,10 @@ static void EditItem(HWND hwndParamList)
 
 static bool DeleteZone()
 {
-    if(MessageBox(NULL, (string("This will permanently delete\n\n") + fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + fxAlias).c_str(), MB_YESNO) == IDNO)
+    if(MessageBox(NULL, (string("This will permanently delete\n\n") + autoZoneDef.fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + autoZoneDef.fxAlias).c_str(), MB_YESNO) == IDNO)
        return false;
     
-    remove(fullPath.c_str());
+    remove(autoZoneDef.fullPath.c_str());
     
     return true;
 }
@@ -1506,8 +1466,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
             dlgResult = IDCANCEL;
             
-            SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
-            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
+            SetDlgItemText(hwndDlg, IDC_FXNAME, autoZoneDef.fxName.c_str());
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, autoZoneDef.fxAlias.c_str());
             
             PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
             
@@ -1591,7 +1551,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     {
                         char buf[100];
                         GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
-                        fxAlias = buf;
+                        autoZoneDef.fxAlias = buf;
                         
                         dlgResult = IDSAVE;
                         EndDialog(hwndDlg, 0);
@@ -1668,8 +1628,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             dlgResult = IDCANCEL;
             
-            SetDlgItemText(hwndDlg, IDC_FXNAME, fxName.c_str());
-            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, fxAlias.c_str());
+            SetDlgItemText(hwndDlg, IDC_FXNAME, autoZoneDef.fxName.c_str());
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, autoZoneDef.fxAlias.c_str());
             
             PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
             
@@ -1731,7 +1691,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     {
                         char buf[BUFSZ];
                         GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
-                        fxAlias = buf;
+                        autoZoneDef.fxAlias = buf;
                         
                         dlgResult = IDSAVE;
                         EndDialog(hwndDlg, 0);
@@ -1761,9 +1721,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePath, vector<string> &fxPrologue,  vector<string> &fxEpilogue)
+bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePath)
 {
-    fullPath = fullFilePath;
+    autoZoneDef.fullPath = fullFilePath;
     
     layoutTemplates.clear();
     
@@ -1818,57 +1778,57 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
             layoutTemplates.push_back(layoutTemplate);
         }
     }
-
-    UnpackZone();
+    
+    UnpackZone(autoZoneDef);
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
     if(dlgResult == IDSAVE)
     {
-        ofstream fxFile(fullPath);
+        ofstream fxFile(autoZoneDef.fullPath);
 
         if(fxFile.is_open())
         {
-            fxFile << "Zone \"" + fxName + "\" \"" + fxAlias + "\"" + GetLineEnding();
+            fxFile << "Zone \"" + autoZoneDef.fxName + "\" \"" + autoZoneDef.fxAlias + "\"" + GetLineEnding();
 
-            for(auto line : prologue)
+            for(auto line : autoZoneDef.prologue)
                 fxFile << line + GetLineEnding();
             
             fxFile << BeginAutoSection + GetLineEnding() + GetLineEnding();
 
-            for(int i = 0; i < paramDefs.size(); i++)
+            for(int i = 0; i < autoZoneDef.paramDefs.size(); i++)
             {
-                for(int j = 0; j < paramDefs[i].definitions.size(); j++)
+                for(int j = 0; j < autoZoneDef.paramDefs[i].definitions.size(); j++)
                 {
-                    fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
+                    fxFile << "\t" + layoutTemplates[i].modifiers + autoZoneDef.paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
                     
-                    if(paramDefs[i].definitions[j].paramNumber == "")
+                    if(autoZoneDef.paramDefs[i].definitions[j].paramNumber == "")
                     {
                         fxFile << "NoAction" + GetLineEnding();
                     }
                     else
                     {
-                        fxFile << layoutTemplates[i].widgetAction + " " + paramDefs[i].definitions[j].paramNumber + " ";
+                        fxFile << layoutTemplates[i].widgetAction + " " + autoZoneDef.paramDefs[i].definitions[j].paramNumber + " ";
                         
-                        if(paramDefs[i].definitions[j].delta != "" ||
-                           (paramDefs[i].definitions[j].rangeMinimum != ""  && paramDefs[i].definitions[j].rangeMaximum != "") ||
-                           paramDefs[i].definitions[j].deltas.size() > 0 ||
-                           paramDefs[i].definitions[j].ticks.size() > 0 ||
-                           paramDefs[i].definitions[j].steps.size() > 0)
+                        if(autoZoneDef.paramDefs[i].definitions[j].delta != "" ||
+                           (autoZoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && autoZoneDef.paramDefs[i].definitions[j].rangeMaximum != "") ||
+                           autoZoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
+                           autoZoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
+                           autoZoneDef.paramDefs[i].definitions[j].steps.size() > 0)
                         {
                             fxFile << "[ ";
                             
-                            if(paramDefs[i].definitions[j].rangeMinimum != ""  && paramDefs[i].definitions[j].rangeMaximum != "")
-                                fxFile << " " + paramDefs[i].definitions[j].rangeMinimum + ">" + paramDefs[i].definitions[j].rangeMaximum + " ";
+                            if(autoZoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && autoZoneDef.paramDefs[i].definitions[j].rangeMaximum != "")
+                                fxFile << " " + autoZoneDef.paramDefs[i].definitions[j].rangeMinimum + ">" + autoZoneDef.paramDefs[i].definitions[j].rangeMaximum + " ";
                             
-                            if(paramDefs[i].definitions[j].delta != "")
-                                fxFile << " (" + paramDefs[i].definitions[j].delta + ") ";
+                            if(autoZoneDef.paramDefs[i].definitions[j].delta != "")
+                                fxFile << " (" + autoZoneDef.paramDefs[i].definitions[j].delta + ") ";
                             
-                            if(paramDefs[i].definitions[j].deltas.size() > 0)
+                            if(autoZoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
                             {
                                 string deltaStr = " (";
                                 
-                                for(auto delta : paramDefs[i].definitions[j].deltas)
+                                for(auto delta : autoZoneDef.paramDefs[i].definitions[j].deltas)
                                     deltaStr += delta + ",";
                                 
                                 deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
@@ -1878,11 +1838,11 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
                                 fxFile << deltaStr;
                             }
                             
-                            if(paramDefs[i].definitions[j].ticks.size() > 0)
+                            if(autoZoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
                             {
                                 string tickStr = " (";
                                 
-                                for(auto tick : paramDefs[i].definitions[j].ticks)
+                                for(auto tick : autoZoneDef.paramDefs[i].definitions[j].ticks)
                                     tickStr += tick + ",";
                                 
                                 tickStr = tickStr.substr(0, tickStr.length() - 1);
@@ -1892,19 +1852,19 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
                                 fxFile << tickStr;
                             }
                             
-                            for(auto step : paramDefs[i].definitions[j].steps)
+                            for(auto step : autoZoneDef.paramDefs[i].definitions[j].steps)
                                 fxFile << step + " " ;
                                 
                             fxFile << "]";
                         }
                         
-                        for(auto [ key, value ] : paramDefs[i].definitions[j].widgetProperties)
+                        for(auto [ key, value ] : autoZoneDef.paramDefs[i].definitions[j].widgetProperties)
                             fxFile << " " + key + "=" + value ;
                         
                         fxFile << GetLineEnding();
                     }
                     
-                    if(paramDefs[i].definitions[j].paramNumber == "" || paramDefs[i].definitions[j].aliasDisplayWidget == "")
+                    if(autoZoneDef.paramDefs[i].definitions[j].paramNumber == "" || autoZoneDef.paramDefs[i].definitions[j].aliasDisplayWidget == "")
                     {
                         if(j == 0 && surfaceLayout.size() > 1 && surfaceLayout[1].size() > 0)
                             fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
@@ -1913,17 +1873,17 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
                     }
                     else
                     {
-                        fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].aliasDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        fxFile << "\t" + layoutTemplates[i].modifiers + autoZoneDef.paramDefs[i].definitions[j].aliasDisplayWidget + layoutTemplates[i].suffix + "\t";
                         
-                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + paramDefs[i].definitions[j].alias + "\" ";
+                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + autoZoneDef.paramDefs[i].definitions[j].alias + "\" ";
                         
-                        for(auto [ key, value ] : paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
+                        for(auto [ key, value ] : autoZoneDef.paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
                         fxFile << GetLineEnding();
                     }
                     
-                    if(paramDefs[i].definitions[j].paramNumber == "" || paramDefs[i].definitions[j].valueDisplayWidget == "")
+                    if(autoZoneDef.paramDefs[i].definitions[j].paramNumber == "" || autoZoneDef.paramDefs[i].definitions[j].valueDisplayWidget == "")
                     {
                         if(j == 0 && surfaceLayout.size() > 2 && surfaceLayout[2].size() > 0)
                             fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
@@ -1932,11 +1892,11 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
                     }
                     else
                     {
-                        fxFile << "\t" + layoutTemplates[i].modifiers + paramDefs[i].definitions[j].valueDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        fxFile << "\t" + layoutTemplates[i].modifiers + autoZoneDef.paramDefs[i].definitions[j].valueDisplayWidget + layoutTemplates[i].suffix + "\t";
                         
-                        fxFile << layoutTemplates[i].valueDisplayAction + " " + paramDefs[i].definitions[j].paramNumber;
+                        fxFile << layoutTemplates[i].valueDisplayAction + " " + autoZoneDef.paramDefs[i].definitions[j].paramNumber;
                         
-                        for(auto [ key, value ] : paramDefs[i].definitions[j].valueDisplayWidgetProperties)
+                        for(auto [ key, value ] : autoZoneDef.paramDefs[i].definitions[j].valueDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
                         fxFile << GetLineEnding();
@@ -1950,12 +1910,12 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
             
             fxFile <<  EndAutoSection + GetLineEnding();
 
-            for(auto line : epilogue)
+            for(auto line : autoZoneDef.epilogue)
                 fxFile << line + GetLineEnding();
 
             fxFile << "ZoneEnd" + GetLineEnding();
 
-            for(auto line : rawParams)
+            for(auto line : autoZoneDef.rawParams)
                 fxFile << line + GetLineEnding();
             
             fxFile.close();

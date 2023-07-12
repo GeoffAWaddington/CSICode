@@ -216,29 +216,7 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
                 actionTemplate->modifier += 1;
             else if(tokens[i] == "Toggle")
                 actionTemplate->modifier += 2;
-            
-            else if(tokens[i] == "Shift")
-                modifierManager.SetShift(true);
-            else if(tokens[i] == "Option")
-                modifierManager.SetOption(true);
-            else if(tokens[i] == "Control")
-                modifierManager.SetControl(true);
-            else if(tokens[i] == "Alt")
-                modifierManager.SetAlt(true);
-            else if(tokens[i] == "Flip")
-                modifierManager.SetFlip(true);
-            else if(tokens[i] == "Global")
-                modifierManager.SetGlobal(true);
-
-            else if(tokens[i] == "Marker")
-                modifierManager.SetMarker(true);
-            else if(tokens[i] == "Nudge")
-                modifierManager.SetNudge(true);
-            else if(tokens[i] == "Zoom")
-                modifierManager.SetZoom(true);
-            else if(tokens[i] == "Scrub")
-                modifierManager.SetScrub(true);
-            
+                        
             else if(tokens[i] == "Invert")
                 actionTemplate->isValueInverted = true;
             else if(tokens[i] == "InvertFB")
@@ -252,7 +230,7 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
         }
     }
     
-    actionTemplate->modifier += modifierManager.GetModifierValue();
+    actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
 static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
@@ -2870,20 +2848,22 @@ void ZoneManager::SaveLearnedFXParams()
 LearnInfo* ZoneManager::GetLearnInfo(int channel)
 {
     vector<int> modifiers = surface_->GetModifiers();
-    
-    if(modifiers.size() > 0)
+
+    return GetLearnInfo(channel, modifiers[0]);
+}
+
+LearnInfo* ZoneManager::GetLearnInfo(int channel, int modifier)
+{
+    if(channelLearns_.count(modifier) < 1)
     {
-        if(channelLearns_.count(modifiers[0]) < 1)
+        for(int i = 0 ; i < surface_->GetNumChannels(); i++)
         {
-            for(int i = 0 ; i < surface_->GetNumChannels(); i++)
-            {
-                channelLearns_[modifiers[0]].push_back(LearnInfo());
-                channelLearns_[modifiers[0]][i].modifier = modifiers[0];
-            }
+            channelLearns_[modifier].push_back(LearnInfo());
+            channelLearns_[modifier][i].modifier = modifier;
         }
     }
 
-    return &channelLearns_[modifiers[0]][channel - 1];
+    return &channelLearns_[modifier][channel - 1];
 }
 
 void ZoneManager::SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr)
@@ -2939,9 +2919,21 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
     }
 }
 
+void ZoneManager::ParseExistingZoneFileForLearn(string fxName)
+{
+    string fullPath = zoneFilePaths_[fxName].filePath;
+    
+    
+
+    
+    
+    
+}
+
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
-    if(hasExistingFXBeenLoadedRecently_ || hasDifferentFXDialogBeenShownRecently_)
+    // This is just to let things settle a bit, you may have turned an encoder and there may be a few "spurious" message yet to come
+    if(hasDifferentFXDialogBeenShownRecently_)
         return;
 
     int trackNum = 0;
@@ -2967,66 +2959,69 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
                     paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
 
-            
-            /*
-            if(! hasExistingFXBeenLoadedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+            if(learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
-                if(MessageBox(NULL, "An FX Zone already exists for this plugin. If you learn a new Zone, your existing Zone will be overwritten when saved. Are you sure you want to continue?", "Zone Found", MB_YESNO) == IDNO)
-                {
-                    hasExistingFXBeenLoadedRecently_ = true;
-                    timeExistingFXLoaded_ = DAW::GetCurrentNumberOfMilliseconds();
-                    return;
-                }
+                ParseExistingZoneFileForLearn(fxName);
+                learnFXName_ = fxName;
             }
-           */
-            
-            if(! hasDifferentFXDialogBeenShownRecently_ && GetAlias(learnFXName_) != "" && learnFXName_ != fxName)
+            else
             {
-                string message = string("You are currently learning ") + GetAlias(learnFXName_) + string(". Do you want to save those changes ? \n\nPress\n\nYes to save the ") + GetAlias(learnFXName_) + string(" changes\n\nNo to lose those changes and continue\n\nCancel to cancel");
-
-                int result = MessageBox(NULL, message.c_str(), "Different FX", MB_YESNOCANCEL);
+                if(! hasDifferentFXDialogBeenShownRecently_ && learnFXName_ != "" && learnFXName_ != fxName)
+                {
+                    string message = string("You are currently learning ") + GetAlias(learnFXName_) + string(". Do you want to save those changes ? \n\nPress\n\nYes to save the ") + GetAlias(learnFXName_) + string(" changes\n\nNo to lose those changes and continue\n\nCancel to cancel");
+                    
+                    int result = MessageBox(NULL, message.c_str(), "Different FX", MB_YESNOCANCEL);
+                    
+                    if(result == IDYES)
+                    {
+                        SaveLearnedFXParams();
+                        hasDifferentFXDialogBeenShownRecently_ = true;
+                        timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                    }
+                    else if(result == IDNO)
+                    {
+                        ClearLearnedFXParams();
+                        hasDifferentFXDialogBeenShownRecently_ = true;
+                        timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                    }
+                    else if(result == IDCANCEL)
+                    {
+                        hasDifferentFXDialogBeenShownRecently_ = true;
+                        timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                        return;
+                    }
+                }
                 
-                if(result == IDYES)
+                if(zoneFilePaths_.count(fxName) > 0)
                 {
-                    SaveLearnedFXParams();
-                    hasDifferentFXDialogBeenShownRecently_ = true;
-                    timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                    ParseExistingZoneFileForLearn(fxName);
+                    learnFXName_ = fxName;
                 }
-                else if(result == IDNO)
+                else
                 {
-                    ClearLearnedFXParams();
-                    hasDifferentFXDialogBeenShownRecently_ = true;
-                    timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
-                }
-                else if(result == IDCANCEL)
-                {
-                    hasDifferentFXDialogBeenShownRecently_ = true;
-                    timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
-                    return;
+                    learnFXName_ = fxName;
+                    
+                    if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
+                        context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
+                    
+                    int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
+                    
+                    if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
+                        numSteps = 2;
+                    
+                    info->numSteps = numSteps;
+                    
+                    vector<int> modifiers = surface_->GetModifiers();
+                    
+                    SetLearnFXParamWidget(fxName, channel, context->GetWidget()->GetName(), modifiers[0], context->GetPage()->GetModifierManager()->GetModifierString());
+                    
+                    info->isLearned = true;
+                    info->paramName = paramName;
+                    info->track = track;
+                    info->slotNumber = fxSlotNum;
+                    info->paramNumber = fxParamNum;
                 }
             }
-
-            learnFXName_ = fxName;
-
-            if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
-                context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
-            
-            int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
-            
-            if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
-                numSteps = 2;
-            
-            info->numSteps = numSteps;
-            
-            vector<int> modifiers = surface_->GetModifiers();
-            
-            SetLearnFXParamWidget(fxName, channel, context->GetWidget()->GetName(), modifiers[0], context->GetPage()->GetModifierManager()->GetModifierString());
-           
-            info->isLearned = true;
-            info->paramName = paramName;
-            info->track = track;
-            info->slotNumber = fxSlotNum;
-            info->paramNumber = fxParamNum;
         }
     }
     else if(info->isLearned)
@@ -3050,7 +3045,7 @@ void ZoneManager::RemapAutoZone()
 {
     if(focusedFXZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(sharedThisPtr_, focusedFXZones_[0]->GetSourceFilePath(), fxPrologue_, fxEpilogue_))
+        if(::RemapAutoZoneDialog(sharedThisPtr_, focusedFXZones_[0]->GetSourceFilePath()))
         {
             PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), sharedThisPtr_);
             GoFocusedFX();
@@ -3058,7 +3053,7 @@ void ZoneManager::RemapAutoZone()
     }
     else if(fxSlotZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(sharedThisPtr_, fxSlotZones_[0]->GetSourceFilePath(), fxPrologue_, fxEpilogue_))
+        if(::RemapAutoZoneDialog(sharedThisPtr_, fxSlotZones_[0]->GetSourceFilePath()))
         {
             vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(fxSlotZones_[0]->GetNavigator());

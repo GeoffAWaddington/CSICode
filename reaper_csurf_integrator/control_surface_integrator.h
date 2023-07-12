@@ -68,7 +68,7 @@ const int TempDisplayTime = 1250;
 class Manager;
 class ZoneManager;
 extern unique_ptr<Manager> TheManager;
-extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath, vector<string> &fxPrologue,  vector<string> &fxEpilogue);
+extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath);
 
 static vector<string> GetTokens(string line)
 {
@@ -86,6 +86,55 @@ static int strToHex(string valueStr)
 {
     return strtol(valueStr.c_str(), nullptr, 16);
 }
+
+struct FXParamLayoutTemplate
+{
+    string modifiers = "";
+    string suffix = "";
+    string widgetAction = "";
+    string aliasDisplayAction = "";
+    string valueDisplayAction = "";
+};
+
+struct FXParamDefinition
+{
+    string widget = "";
+    string paramNumber = "";
+    map<string, string> widgetProperties;
+
+    string aliasDisplayWidget = "";
+    string alias = "";
+    map<string, string> aliasDisplayWidgetProperties;
+    
+    string valueDisplayWidget = "";
+    map<string, string> valueDisplayWidgetProperties;
+
+    string delta = "";
+    vector<string> deltas;
+    string rangeMinimum = "";
+    string rangeMaximum = "";
+    vector<string> steps;
+    vector<string> ticks;
+};
+
+struct FXParamDefinitions
+{
+    vector<FXParamDefinition> definitions;
+};
+
+struct AutoZoneDefinition
+{
+    vector<string> prologue;
+    vector<string> epilogue;
+    vector<FXParamDefinitions> paramDefs;
+    
+    vector<string> rawParams;
+    map<string, string> rawParamsDictionary;
+
+    string fxName = "";
+    string fxAlias = "";
+    string fullPath = "";
+};
 
 static map<int, vector<double>> SteppedValueDictionary
 {
@@ -1007,6 +1056,7 @@ private:
         return alias;
     }
     
+    void ParseExistingZoneFileForLearn(string fxName);
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
 
     vector<string> paramList_;
@@ -1015,8 +1065,6 @@ private:
     MediaTrack* lastTouchedParamTrack_ = nullptr;
     int lastTouchedChannel_ = 0;
     int lastTouchedParamModifier_ = 0;
-    bool hasExistingFXBeenLoadedRecently_ = false;
-    int timeExistingFXLoaded_ = 0;
     bool hasDifferentFXDialogBeenShownRecently_ = false;
     int timeDifferentFXDialogShown_ = 0;
 
@@ -1044,7 +1092,8 @@ public:
     
     void DoLearn(ActionContext* context, double value);
     LearnInfo* GetLearnInfo(int channel);
-    
+    LearnInfo* GetLearnInfo(int channel, int modifier);
+
     void DoTouch(shared_ptr<Widget> widget, double value);
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
@@ -1302,15 +1351,6 @@ public:
        
     void RequestUpdate()
     {
-        if(hasExistingFXBeenLoadedRecently_)
-        {
-            if(DAW::GetCurrentNumberOfMilliseconds() - timeExistingFXLoaded_ > 250)
-            {
-                timeExistingFXLoaded_ = 0;
-                hasExistingFXBeenLoadedRecently_ = false;
-            }
-        }
-        
         if(hasDifferentFXDialogBeenShownRecently_)
         {
             if(DAW::GetCurrentNumberOfMilliseconds() - timeDifferentFXDialogShown_ > 250)
@@ -1642,8 +1682,33 @@ public:
         return str;
     }
     
-    int GetModifierValue()
+    int GetModifierValue(vector<string> tokens)
     {
+        for(int i = 0; i < tokens.size() - 1; i++)
+        {
+            if(tokens[i] == "Shift")
+                SetShift(true);
+            else if(tokens[i] == "Option")
+                SetOption(true);
+            else if(tokens[i] == "Control")
+                SetControl(true);
+            else if(tokens[i] == "Alt")
+                SetAlt(true);
+            else if(tokens[i] == "Flip")
+                SetFlip(true);
+            else if(tokens[i] == "Global")
+                SetGlobal(true);
+
+            else if(tokens[i] == "Marker")
+                SetMarker(true);
+            else if(tokens[i] == "Nudge")
+                SetNudge(true);
+            else if(tokens[i] == "Zoom")
+                SetZoom(true);
+            else if(tokens[i] == "Scrub")
+                SetScrub(true);
+        }
+
         int modifierValue = 0;
         
         for(auto modifier : modifiers_)
@@ -1652,7 +1717,7 @@ public:
         
         return modifierValue;
     }
-    
+       
     void SetShift(bool value)
     {
         SetLatchModifier(value, Shift);
