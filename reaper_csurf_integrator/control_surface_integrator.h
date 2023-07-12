@@ -1068,7 +1068,102 @@ private:
     bool hasDifferentFXDialogBeenShownRecently_ = false;
     int timeDifferentFXDialogShown_ = 0;
 
-    
+    void GetWidgetName(string line, int listSlotIndex, string &widgetName, vector<FXParamLayoutTemplate> &layoutTemplates)
+    {
+        istringstream modifiersAndWidgetName(line);
+        vector<string> modifiersAndWidgetNameTokens;
+        string modifiersAndWidgetNameToken;
+        
+        while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
+            modifiersAndWidgetNameTokens.push_back(modifiersAndWidgetNameToken);
+        
+        widgetName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
+
+        widgetName = widgetName.substr(0, widgetName.length() - layoutTemplates[listSlotIndex].suffix.length());
+    }
+
+    void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
+    {
+        for(int i = start; i < finish; i++)
+        {
+            if(tokens[i].find("=") != string::npos)
+            {
+                istringstream property(tokens[i]);
+                vector<string> kvp;
+                string token;
+                
+                while(getline(property, token, '='))
+                    kvp.push_back(token);
+
+                if(kvp.size() == 2)
+                    properties[kvp[0]] = kvp[1];
+            }
+        }
+    }
+
+    void GetSteppedValues(vector<string> params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
+    {
+        auto openSquareBrace = find(params.begin(), params.end(), "[");
+        auto closeSquareBrace = find(params.begin(), params.end(), "]");
+        
+        if(openSquareBrace != params.end() && closeSquareBrace != params.end())
+        {
+            for(auto it = openSquareBrace + 1; it != closeSquareBrace; ++it)
+            {
+                string strVal = *(it);
+                
+                if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
+                    steppedValues.push_back(strVal);
+                else if(regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
+                    deltaValue = regex_replace(strVal, regex("[()]"), "");
+                else if(regex_match(strVal, regex("[(]-?[0-9]+[)]")))
+                    acceleratedTickValues.push_back(strVal);
+                else if(regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
+                {
+                    istringstream acceleratedDeltaValueStream(strVal);
+                    string deltaValue;
+                    
+                    while (getline(acceleratedDeltaValueStream, deltaValue, ','))
+                        acceleratedDeltaValues.push_back(regex_replace(deltaValue, regex("[()]"), "") + "  ");
+                }
+                else if(regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
+                {
+                    istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
+                    string tickValue;
+                    
+                    while (getline(acceleratedTickValueStream, tickValue, ','))
+                        acceleratedTickValues.push_back(tickValue + "  ");
+                }
+                else if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
+                {
+                    istringstream range(strVal);
+                    vector<string> range_tokens;
+                    string range_token;
+                    
+                    while (getline(range, range_token, '>'))
+                        range_tokens.push_back(range_token);
+                    
+                    if(range_tokens.size() == 2)
+                    {
+                        string firstValue = range_tokens[0];
+                        string lastValue = range_tokens[1];
+                        
+                        if(lastValue > firstValue)
+                        {
+                            rangeMinimum = firstValue;
+                            rangeMaximum = lastValue;
+                        }
+                        else
+                        {
+                            rangeMinimum = lastValue;
+                            rangeMaximum = firstValue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
         
@@ -1488,103 +1583,6 @@ public:
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
-    
-    void GetWidgetName(string line, int listSlotIndex, string &widgetName, vector<FXParamLayoutTemplate> &layoutTemplates)
-    {
-        istringstream modifiersAndWidgetName(line);
-        vector<string> modifiersAndWidgetNameTokens;
-        string modifiersAndWidgetNameToken;
-        
-        while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
-            modifiersAndWidgetNameTokens.push_back(modifiersAndWidgetNameToken);
-        
-        widgetName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
-
-        widgetName = widgetName.substr(0, widgetName.length() - layoutTemplates[listSlotIndex].suffix.length());
-    }
-
-    void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
-    {
-        for(int i = start; i < finish; i++)
-        {
-            if(tokens[i].find("=") != string::npos)
-            {
-                istringstream property(tokens[i]);
-                vector<string> kvp;
-                string token;
-                
-                while(getline(property, token, '='))
-                    kvp.push_back(token);
-
-                if(kvp.size() == 2)
-                    properties[kvp[0]] = kvp[1];
-            }
-        }
-    }
-
-    void GetSteppedValues(vector<string> params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
-    {
-        auto openSquareBrace = find(params.begin(), params.end(), "[");
-        auto closeSquareBrace = find(params.begin(), params.end(), "]");
-        
-        if(openSquareBrace != params.end() && closeSquareBrace != params.end())
-        {
-            for(auto it = openSquareBrace + 1; it != closeSquareBrace; ++it)
-            {
-                string strVal = *(it);
-                
-                if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
-                    steppedValues.push_back(strVal);
-                else if(regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
-                    deltaValue = regex_replace(strVal, regex("[()]"), "");
-                else if(regex_match(strVal, regex("[(]-?[0-9]+[)]")))
-                    acceleratedTickValues.push_back(strVal);
-                else if(regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
-                {
-                    istringstream acceleratedDeltaValueStream(strVal);
-                    string deltaValue;
-                    
-                    while (getline(acceleratedDeltaValueStream, deltaValue, ','))
-                        acceleratedDeltaValues.push_back(regex_replace(deltaValue, regex("[()]"), "") + "  ");
-                }
-                else if(regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
-                {
-                    istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
-                    string tickValue;
-                    
-                    while (getline(acceleratedTickValueStream, tickValue, ','))
-                        acceleratedTickValues.push_back(tickValue + "  ");
-                }
-                else if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
-                {
-                    istringstream range(strVal);
-                    vector<string> range_tokens;
-                    string range_token;
-                    
-                    while (getline(range, range_token, '>'))
-                        range_tokens.push_back(range_token);
-                    
-                    if(range_tokens.size() == 2)
-                    {
-                        string firstValue = range_tokens[0];
-                        string lastValue = range_tokens[1];
-                        
-                        if(lastValue > firstValue)
-                        {
-                            rangeMinimum = firstValue;
-                            rangeMaximum = lastValue;
-                        }
-                        else
-                        {
-                            rangeMinimum = lastValue;
-                            rangeMaximum = firstValue;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         zoneDef.paramDefs.clear();
@@ -1742,7 +1740,7 @@ public:
         }
     }
 
-    void SaveAutoZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates, vector<vector<string>> &surfaceLayout)
+    void SaveAutoZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         ofstream fxFile(zoneDef.fullPath);
         
@@ -1825,8 +1823,8 @@ public:
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].aliasDisplayWidget == "")
                     {
-                        if(j == 0 && surfaceLayout.size() > 1 && surfaceLayout[1].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
+                        if(j == 0 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
+                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
                         else
                             fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
                     }
@@ -1844,8 +1842,8 @@ public:
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].valueDisplayWidget == "")
                     {
-                        if(j == 0 && surfaceLayout.size() > 2 && surfaceLayout[2].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceLayout[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
+                        if(j == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
+                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
                         else
                             fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
                     }

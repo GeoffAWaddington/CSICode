@@ -1541,7 +1541,7 @@ bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullFilePat
     
     if(dlgResult == IDSAVE)
     {
-        zoneManager->SaveAutoZone(autoZoneDef, layoutTemplates, surfaceLayout);
+        zoneManager->SaveAutoZone(autoZoneDef, layoutTemplates);
         return true;
     }
     else
