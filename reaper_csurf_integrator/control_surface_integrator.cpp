@@ -2949,19 +2949,25 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                         
             for(int j = 1; j <= layoutInfo.channelCount; j++)
             {
-                for(auto paramDef : existingZoneDef_.paramDefs[i++].definitions)
+                for(auto paramDef : existingZoneDef_.paramDefs[i].definitions)
                 {
                     if(paramDef.aliasDisplayWidget != "")
                     {
                         LearnInfo* info = GetLearnInfo(j, modifierValue);
 
                         info->isLearned = true;
-                        
+                        info->fxName = fxName;
+                        info->paramName = paramDef.alias;
+                        info->modifiers = layoutInfo.modifiers;
+                        info->modifier = modifierValue;
+                        info->numSteps = paramDef.steps.size();
+                        string fxParamWidget = paramDef.widget;
+                        string fxParamNameWidget = paramDef.aliasDisplayWidget;
+                        string fxParamValueWidget = paramDef.valueDisplayWidget;
                         info->track = track;
                         info->slotNumber = fxSlotNum;
                         info->paramNumber = stoi(paramDef.paramNumber);
-                        info->numSteps = paramDef.steps.size();
-                        info->modifier = modifierValue;
+                        i++;
                         break;
                     }
                 }
