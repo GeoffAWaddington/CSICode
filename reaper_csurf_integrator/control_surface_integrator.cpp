@@ -2919,16 +2919,57 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
     }
 }
 
-void ZoneManager::ParseExistingZoneFileForLearn(string fxName)
+void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum)
 {
-    AutoZoneDefinition zoneDef;
+    existingZoneDef_.Clear();
+    
     vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
 
-    zoneDef.fullPath = zoneFilePaths_[fxName].filePath;
+    UnpackZone(existingZoneDef_, layoutTemplates);
+    
+    vector<CSILayoutInfo> layouts = GetFXLayouts();
+            
+    for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
+    {
+        for(auto layoutInfo : layouts)
+        {
+            istringstream modifierStr(layoutInfo.modifiers);
+            string modifier;
+            vector<string> modifiers;
+            
+            while(getline(modifierStr, modifier, '+'))
+                modifiers.push_back(modifier);
+             
+            modifiers.push_back("");
+            
+            ModifierManager modifierManager;
+            
+            int modifierValue = modifierManager.GetModifierValue(modifiers);
+                        
+            for(int j = 0; j < layoutInfo.channelCount; j++)
+            {
+                /*
+                for(auto paramDef : existingZoneDef_.paramDefs[j].definitions)
+                {
 
-    UnpackZone(zoneDef, layoutTemplates);
-    
-    
+                    if(paramDef.aliasDisplayWidget != "")
+                    {
+                        LearnInfo* info = GetLearnInfo(j + 1, modifierValue);
+
+                        info->isLearned = true;
+                        
+                        info->track = track;
+                        info->slotNumber = fxSlotNum;
+                        info->paramNumber = stoi(paramDef.paramNumber);
+                        info->numSteps = paramDef.steps.size();
+                        info->modifier = modifierValue;
+                        break;
+                    }
+                }
+                 */
+            }
+        }
+    }
 }
 
 void ZoneManager::DoLearn(ActionContext* context, double value)
@@ -2962,7 +3003,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
 
             if(! hasDuplicateFXBeenLoadedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
-                ParseExistingZoneFileForLearn(fxName);
+                ParseExistingZoneFileForLearn(fxName, track, fxSlotNum);
                 learnFXName_ = fxName;
                 hasDuplicateFXBeenLoadedRecently_ = true;
                 timeDuplicateFXLoaded_ = DAW::GetCurrentNumberOfMilliseconds();
@@ -2997,7 +3038,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 
                 if(zoneFilePaths_.count(fxName) > 0)
                 {
-                    ParseExistingZoneFileForLearn(fxName);
+                    ParseExistingZoneFileForLearn(fxName, track, fxSlotNum);
                     learnFXName_ = fxName;
                 }
                 else

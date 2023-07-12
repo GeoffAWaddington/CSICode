@@ -1070,9 +1070,10 @@ private:
         return alias;
     }
     
-    void ParseExistingZoneFileForLearn(string fxName);
+    void ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
 
+    AutoZoneDefinition existingZoneDef_;
     vector<string> paramList_;
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
