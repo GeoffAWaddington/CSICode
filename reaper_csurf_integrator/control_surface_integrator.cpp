@@ -1400,6 +1400,7 @@ void Manager::InitActionsDictionary()
     actions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
     actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
     actions_["EraseLastTouchedFXParam"] =           make_shared<EraseLastTouchedFXParam>();
+    actions_["RevertToExistingZoneParam"] =         make_shared<RevertToExistingZoneParam>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
     actions_["ToggleFXBypass"] =                    make_shared<ToggleFXBypass>();
@@ -2200,7 +2201,10 @@ void Zone::GoAssociatedZone(string zoneName)
     
     for(auto [key, zones] : associatedZones_)
         for(auto zone : zones)
+        {
+            zoneManager_->UnsavedLearnFXParameters();            
             zone->Deactivate();
+        }
         
     if(associatedZones_.count(zoneName) > 0)
         for(auto zone : associatedZones_[zoneName])
@@ -2963,9 +2967,9 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                         info->modifiers = layoutInfo.modifiers;
                         info->modifier = modifierValue;
                         info->numSteps = paramDef.steps.size();
-                        string fxParamWidget = paramDef.widget;
-                        string fxParamNameWidget = paramDef.aliasDisplayWidget;
-                        string fxParamValueWidget = paramDef.valueDisplayWidget;
+                        info->fxParamWidget = paramDef.paramWidget;
+                        info->fxParamNameWidget = paramDef.aliasDisplayWidget;
+                        info->fxParamValueWidget = paramDef.valueDisplayWidget;
                         info->track = track;
                         info->slotNumber = fxSlotNum;
                         info->paramNumber = stoi(paramDef.paramNumber);
@@ -3081,6 +3085,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     }
     else if(info->isLearned)
     {
+        lastTouchedWidget_ = info->fxParamWidget;
         lastTouchedChannel_ = channel;
         lastTouchedParamTrack_ = info->track;
         lastTouchedParamModifier_ = info->modifier;

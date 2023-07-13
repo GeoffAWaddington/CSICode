@@ -98,15 +98,18 @@ struct FXParamLayoutTemplate
 
 struct FXParamDefinition
 {
-    string widget = "";
+    string paramWidget = "";
+    string paramWidgetFullName = "";
     string paramNumber = "";
     map<string, string> widgetProperties;
 
     string aliasDisplayWidget = "";
+    string aliasDisplayWidgetFullName = "";
     string alias = "";
     map<string, string> aliasDisplayWidgetProperties;
     
     string valueDisplayWidget = "";
+    string valueDisplayWidgetFullName = "";
     map<string, string> valueDisplayWidgetProperties;
 
     string delta = "";
@@ -1078,6 +1081,7 @@ private:
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
     MediaTrack* lastTouchedParamTrack_ = nullptr;
+    string lastTouchedWidget_ = "";
     int lastTouchedChannel_ = 0;
     int lastTouchedParamModifier_ = 0;
     bool hasDuplicateFXBeenLoadedRecently_ = false;
@@ -1085,7 +1089,7 @@ private:
     bool hasDifferentFXDialogBeenShownRecently_ = false;
     int timeDifferentFXDialogShown_ = 0;
 
-    void GetWidgetName(string line, int listSlotIndex, string &widgetName, vector<FXParamLayoutTemplate> &layoutTemplates)
+    void GetWidgetName(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         istringstream modifiersAndWidgetName(line);
         vector<string> modifiersAndWidgetNameTokens;
@@ -1094,9 +1098,9 @@ private:
         while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
             modifiersAndWidgetNameTokens.push_back(modifiersAndWidgetNameToken);
         
-        widgetName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
+        paramWidgetFullName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
 
-        widgetName = widgetName.substr(0, widgetName.length() - layoutTemplates[listSlotIndex].suffix.length());
+        paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
     }
 
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
@@ -1251,7 +1255,24 @@ public:
     {
         if(learnFXName_ != "")
             if(MessageBox(NULL, (string("You have ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            {
                 SaveLearnedFXParams();
+            }
+    }
+    
+    void UnsavedLearnFXParameters()
+    {
+        if(learnFXName_ != "")
+        {
+            if(MessageBox(NULL, (string("You have ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            {
+                SaveLearnedFXParams();
+            }
+            else
+            {
+                ClearLearnedFXParams();
+            }
+        }
     }
     
     void ClearLearnedFXParams()
@@ -1679,6 +1700,34 @@ public:
         return layoutTemplates;
     }
 
+    void RevertToExistingZoneParam()
+    {
+        if(existingZoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != "")
+        {
+            bool foundIt = false;
+            
+            for(auto paramDefs : existingZoneDef_.paramDefs)
+            {
+                if(foundIt)
+                    break;
+                
+                for(auto paramDef : paramDefs.definitions)
+                {
+                    if(paramDef.paramWidgetFullName == lastTouchedWidget_)
+                    {
+                        LearnInfo* info = GetLearnInfo(lastTouchedChannel_);
+                        
+                        info->paramNumber = stoi(paramDef.paramNumber);
+                        
+                        foundIt = true;
+                        
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
     void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         zoneDef.paramDefs.clear();
@@ -1771,7 +1820,7 @@ public:
                 
                 FXParamDefinition def;
                 
-                GetWidgetName(tokens[0], listSlotIndex, def.widget, layoutTemplates);
+                GetWidgetName(tokens[0], listSlotIndex, def.paramWidget, def.paramWidgetFullName, layoutTemplates);
                 
                 if(tokens.size() > 2)
                     def.paramNumber = tokens[2];
@@ -1803,7 +1852,7 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget, layoutTemplates);
+                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget, def.aliasDisplayWidgetFullName, layoutTemplates);
                         
                         def.alias = tokens[2];
                         
@@ -1822,7 +1871,7 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget, layoutTemplates);
+                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget, def.valueDisplayWidgetFullName, layoutTemplates);
                         
                         if(tokens.size() > 3)
                             GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
@@ -1853,7 +1902,7 @@ public:
             {
                 for(int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
                 {
-                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].widget + layoutTemplates[i].suffix + "\t";
+                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramWidget + layoutTemplates[i].suffix + "\t";
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "")
                     {

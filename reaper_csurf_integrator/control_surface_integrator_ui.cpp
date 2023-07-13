@@ -580,7 +580,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, paramNumEditControls[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
                 SetDlgItemText(hwndDlg, fixedTextEditControls[i], zoneDef.paramDefs[fxListIndex].definitions[i].alias.c_str());
 
-                SetDlgItemText(hwndDlg, widgetTypePickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].widget.c_str());
+                SetDlgItemText(hwndDlg, widgetTypePickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramWidget.c_str());
                 SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidget.c_str());
                 SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidget.c_str());
 
@@ -645,7 +645,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 char buf[BUFSZ];
                 
                 GetDlgItemText(hwndDlg, widgetTypePickers[i], buf, sizeof(buf));
-                zoneDef.paramDefs[fxListIndex].definitions[i].widget = buf;
+                zoneDef.paramDefs[fxListIndex].definitions[i].paramWidget = buf;
 
                 if(string(buf) == "RotaryPush" && steps == "")
                 {
@@ -841,7 +841,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             zoneDef.paramDefs[fxListIndex].definitions[i].paramNumber = buf;
 
                             GetDlgItemText(hwndDlg, widgetTypePickers[i], buf, sizeof(buf));
-                            zoneDef.paramDefs[fxListIndex].definitions[i].widget = buf;
+                            zoneDef.paramDefs[fxListIndex].definitions[i].paramWidget = buf;
                             
                             GetDlgItemText(hwndDlg, ringStylePickers[i], buf, sizeof(buf));
                             zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"] = buf;
@@ -1003,7 +1003,7 @@ vector<string> GetLineComponents(int index)
     
     for(auto paramDef :  zoneDef.paramDefs[index].definitions)
     {
-        string widgetName = paramDef.widget;
+        string widgetName = paramDef.paramWidget;
         
         if(widgetName == "RotaryPush")
             widgetName = "Push";
