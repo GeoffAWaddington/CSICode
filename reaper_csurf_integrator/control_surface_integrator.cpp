@@ -2929,8 +2929,10 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
     UnpackZone(existingZoneDef_, layoutTemplates);
     
     vector<CSILayoutInfo> layouts = GetFXLayouts();
-            
-    for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
+         
+    int numParams = DAW::TrackFX_GetNumParams(track, fxSlotNum);
+    
+    for(int i = 0; i < numParams; i++)
     {
         for(auto layoutInfo : layouts)
         {
@@ -2967,8 +2969,13 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                         info->track = track;
                         info->slotNumber = fxSlotNum;
                         info->paramNumber = stoi(paramDef.paramNumber);
+                        
                         i++;
-                        break;
+                        
+                        if(i < numParams)
+                            break;
+                        else
+                            return;
                     }
                 }
             }
