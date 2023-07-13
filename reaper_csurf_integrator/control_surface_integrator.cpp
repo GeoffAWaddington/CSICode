@@ -2768,14 +2768,14 @@ void ZoneManager::SaveLearnedFXParams()
 
             alias = GetAlias(learnFXName_);
             
+            path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
+            
             CSIZoneInfo info;
             info.filePath = path;
             info.alias = alias;
             
             AddZoneFilePath(learnFXName_, info);
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
-            
-            path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
         }
         
         ofstream fxZone(path);
