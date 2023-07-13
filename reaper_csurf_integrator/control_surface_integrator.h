@@ -1307,6 +1307,7 @@ public:
         {
             if(fxSlotZones_[i]->GetName() == zone->GetName() && fxSlotZones_[i]->GetSlotIndex() == zone->GetSlotIndex())
             {
+                fxSlotZones_[i]->Deactivate();
                 fxSlotZones_[i]->ClearWidgets();
                 fxSlotZones_.erase(fxSlotZones_.begin() + i);
                 if(homeZone_ != nullptr)
@@ -2332,6 +2333,8 @@ private:
     bool isTextLengthRestricted_ = false;
     int restrictedTextLength_ = 6;
     
+    bool usesLocalModifiers_ = false;
+    
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
     
@@ -2441,6 +2444,8 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
+    void ToggleUseLocalModifiers() { usesLocalModifiers_ = ! usesLocalModifiers_; }
+    
     void TouchChannel(int channelNum, bool isTouched)
     {
         if(channelNum > 0 && channelNum <= numChannels_)
@@ -2670,7 +2675,7 @@ public:
     
     void UpdateCurrentActionContextModifiers()
     {
-        if(modifierManager_ == nullptr)
+        if(! usesLocalModifiers_)
             GetZoneManager()->UpdateCurrentActionContextModifiers();
     }
 };
@@ -2857,7 +2862,7 @@ public:
     Midi_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<Midi_ControlSurfaceIO> surfaceIO, ProtectedTag)
     : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
     
-    static shared_ptr<Midi_ControlSurface> GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
+    static shared_ptr<Midi_ControlSurface> GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3001,7 +3006,7 @@ public:
     OSC_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<OSC_ControlSurfaceIO> surfaceIO, ProtectedTag)
     : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
     
-    static shared_ptr<OSC_ControlSurface> GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);
+    static shared_ptr<OSC_ControlSurface> GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     

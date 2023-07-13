@@ -1331,6 +1331,7 @@ void Manager::InitActionsDictionary()
     actions_["SetXTouchDisplayColors"] =            make_shared<SetXTouchDisplayColors>();
     actions_["RestoreXTouchDisplayColors"] =        make_shared<RestoreXTouchDisplayColors>();
     actions_["GoFXSlot"] =                          make_shared<GoFXSlot>();
+    actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
     actions_["ToggleAutoFocusedFXMapping"] =        make_shared<ToggleAutoFocusedFXMapping>();
@@ -1622,21 +1623,13 @@ void Manager::Init()
                 {
                     if(currentPage && (tokens.size() == 6 || tokens.size() == 7))
                     {
-                        bool useLocalModifiers = false;
-                        
-                        if(tokens[0] == "LocalModifiers")
-                        {
-                            useLocalModifiers = true;
-                            tokens.erase(tokens.begin()); // pop front
-                        }
-                        
                         string zoneFolder = tokens[4];
                         string fxZoneFolder = tokens[5];
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(Midi_ControlSurface::GetInstance(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
+                            currentPage->AddSurface(Midi_ControlSurface::GetInstance(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(OSC_ControlSurface::GetInstance(useLocalModifiers, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
+                            currentPage->AddSurface(OSC_ControlSurface::GetInstance(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
                     }
                 }
             }
@@ -3816,7 +3809,7 @@ void ControlSurface::RequestUpdate()
 
 bool ControlSurface::GetShift()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetShift();
     else
         return page_->GetModifierManager()->GetShift();
@@ -3824,7 +3817,7 @@ bool ControlSurface::GetShift()
 
 bool ControlSurface::GetOption()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetOption();
     else
         return page_->GetModifierManager()->GetOption();
@@ -3832,7 +3825,7 @@ bool ControlSurface::GetOption()
 
 bool ControlSurface::GetControl()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetControl();
     else
         return page_->GetModifierManager()->GetControl();
@@ -3840,7 +3833,7 @@ bool ControlSurface::GetControl()
 
 bool ControlSurface::GetAlt()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetAlt();
     else
         return page_->GetModifierManager()->GetAlt();
@@ -3848,7 +3841,7 @@ bool ControlSurface::GetAlt()
 
 bool ControlSurface::GetFlip()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetFlip();
     else
         return page_->GetModifierManager()->GetFlip();
@@ -3856,7 +3849,7 @@ bool ControlSurface::GetFlip()
 
 bool ControlSurface::GetGlobal()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetGlobal();
     else
         return page_->GetModifierManager()->GetGlobal();
@@ -3864,7 +3857,7 @@ bool ControlSurface::GetGlobal()
 
 bool ControlSurface::GetMarker()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetMarker();
     else
         return page_->GetModifierManager()->GetMarker();
@@ -3872,7 +3865,7 @@ bool ControlSurface::GetMarker()
 
 bool ControlSurface::GetNudge()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetNudge();
     else
         return page_->GetModifierManager()->GetNudge();
@@ -3880,7 +3873,7 @@ bool ControlSurface::GetNudge()
 
 bool ControlSurface::GetZoom()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetZoom();
     else
         return page_->GetModifierManager()->GetZoom();
@@ -3888,7 +3881,7 @@ bool ControlSurface::GetZoom()
 
 bool ControlSurface::GetScrub()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetScrub();
     else
         return page_->GetModifierManager()->GetScrub();
@@ -3896,7 +3889,7 @@ bool ControlSurface::GetScrub()
 
 void ControlSurface::SetShift(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetShift(value);
     else
         page_->GetModifierManager()->SetShift(value);
@@ -3904,7 +3897,7 @@ void ControlSurface::SetShift(bool value)
 
 void ControlSurface::SetOption(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetOption(value);
     else
         page_->GetModifierManager()->SetOption(value);
@@ -3912,7 +3905,7 @@ void ControlSurface::SetOption(bool value)
 
 void ControlSurface::SetControl(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetControl(value);
     else
         page_->GetModifierManager()->SetControl(value);
@@ -3920,7 +3913,7 @@ void ControlSurface::SetControl(bool value)
 
 void ControlSurface::SetAlt(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetAlt(value);
     else
         page_->GetModifierManager()->SetAlt(value);
@@ -3928,7 +3921,7 @@ void ControlSurface::SetAlt(bool value)
 
 void ControlSurface::SetFlip(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetShift(value);
     else
         page_->GetModifierManager()->SetFlip(value);
@@ -3936,7 +3929,7 @@ void ControlSurface::SetFlip(bool value)
 
 void ControlSurface::SetGlobal(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetGlobal(value);
     else
         page_->GetModifierManager()->SetGlobal(value);
@@ -3944,7 +3937,7 @@ void ControlSurface::SetGlobal(bool value)
 
 void ControlSurface::SetMarker(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetMarker(value);
     else
         page_->GetModifierManager()->SetMarker(value);
@@ -3952,7 +3945,7 @@ void ControlSurface::SetMarker(bool value)
 
 void ControlSurface::SetNudge(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetNudge(value);
     else
         page_->GetModifierManager()->SetNudge(value);
@@ -3960,7 +3953,7 @@ void ControlSurface::SetNudge(bool value)
 
 void ControlSurface::SetZoom(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetZoom(value);
     else
         page_->GetModifierManager()->SetZoom(value);
@@ -3968,7 +3961,7 @@ void ControlSurface::SetZoom(bool value)
 
 void ControlSurface::SetScrub(bool value)
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->SetScrub(value);
     else
         page_->GetModifierManager()->SetScrub(value);
@@ -3976,7 +3969,7 @@ void ControlSurface::SetScrub(bool value)
 
 vector<int> &ControlSurface::GetModifiers()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         return modifierManager_->GetModifiers();
     else
         return page_->GetModifierManager()->GetModifiers();
@@ -3984,7 +3977,7 @@ vector<int> &ControlSurface::GetModifiers()
 
 void ControlSurface::ClearModifiers()
 {
-    if(modifierManager_ != nullptr)
+    if(usesLocalModifiers_)
         modifierManager_->ClearModifiers();
     else
         page_->GetModifierManager()->ClearModifiers();
@@ -4009,7 +4002,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
+shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
 {
     shared_ptr<Midi_ControlSurface> surface = make_shared<Midi_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
     
@@ -4021,8 +4014,7 @@ shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(bool useLocalmo
     surface->InitializeMeters();
     surface->zoneManager_->Initialize();
 
-    if(useLocalmodifiers)
-        surface->modifierManager_ = make_shared<ModifierManager>(surface);
+    surface->modifierManager_ = make_shared<ModifierManager>(surface);
             
     return surface;
 }
@@ -4162,7 +4154,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(bool useLocalmodifiers, shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
+shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
 {
     shared_ptr<OSC_ControlSurface> surface = make_shared<OSC_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
     
@@ -4173,8 +4165,7 @@ shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(bool useLocalmodi
     surface->InitHardwiredWidgets(surface);
     surface->zoneManager_->Initialize();
     
-    if(useLocalmodifiers)
-        surface->modifierManager_ = make_shared<ModifierManager>(surface);
+    surface->modifierManager_ = make_shared<ModifierManager>(surface);
             
     return surface;
 }

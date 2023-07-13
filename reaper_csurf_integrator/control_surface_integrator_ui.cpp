@@ -1535,7 +1535,6 @@ struct PageSurfaceLine
     string pageSurfaceName = "";
     int numChannels = 0;
     int channelOffset = 0;
-    bool useLocalmodifiers = false;
     string templateFilename = "";
     string zoneTemplateFolder = "";
     string fxZoneTemplateFolder = "";
@@ -1569,7 +1568,6 @@ static bool scrollSynch = false;
 static char pageSurfaceName[BUFSZ];
 static int numChannels = 0;
 static int channelOffset = 0;
-static bool useLocalmodifiers = false;
 static char templateFilename[BUFSZ];
 static char zoneTemplateFolder[BUFSZ];
 static char fxZoneTemplateFolder[BUFSZ];
@@ -1690,9 +1688,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
-
-                CheckDlgButton(hwndDlg, IDC_CHECK_LocalModifiers, useLocalmodifiers);
-                
+               
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
                 for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
@@ -1722,8 +1718,6 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
-                
-                CheckDlgButton(hwndDlg, IDC_CHECK_LocalModifiers, useLocalmodifiers);
                 
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                             
@@ -1818,9 +1812,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         channelOffset = atoi(buf);
-                        
-                        useLocalmodifiers = IsDlgButtonChecked(hwndDlg, IDC_CHECK_LocalModifiers);
-                        
+                                                
                         GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, templateFilename, sizeof(templateFilename));
                         GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, zoneTemplateFolder, sizeof(zoneTemplateFolder));
                         GetDlgItemText(hwndDlg, IDC_COMBO_FXZoneTemplates, fxZoneTemplateFolder, sizeof(fxZoneTemplateFolder));
@@ -2219,7 +2211,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 pageSurface->pageSurfaceName = pageSurfaceName;
                                 pageSurface->numChannels = numChannels;
                                 pageSurface->channelOffset = channelOffset;
-                                pageSurface->useLocalmodifiers = useLocalmodifiers;
                                 pageSurface->templateFilename = templateFilename;
                                 pageSurface->zoneTemplateFolder = zoneTemplateFolder;
                                 pageSurface->fxZoneTemplateFolder = fxZoneTemplateFolder;
@@ -2319,7 +2310,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 {
                                     numChannels = pages[pageIndex]->surfaces[index]->numChannels;
                                     channelOffset = pages[pageIndex]->surfaces[index]->channelOffset;
-                                    useLocalmodifiers = pages[pageIndex]->surfaces[index]->useLocalmodifiers;
                                     
                                     strcpy(templateFilename, pages[pageIndex]->surfaces[index]->templateFilename.c_str());
                                     strcpy(zoneTemplateFolder, pages[pageIndex]->surfaces[index]->zoneTemplateFolder.c_str());
@@ -2331,7 +2321,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     {
                                         pages[pageIndex]->surfaces[index]->numChannels = numChannels;
                                         pages[pageIndex]->surfaces[index]->channelOffset = channelOffset;
-                                        pages[pageIndex]->surfaces[index]->useLocalmodifiers = useLocalmodifiers;
                                         pages[pageIndex]->surfaces[index]->templateFilename = templateFilename;
                                         pages[pageIndex]->surfaces[index]->zoneTemplateFolder = zoneTemplateFolder;
                                         pages[pageIndex]->surfaces[index]->fxZoneTemplateFolder = fxZoneTemplateFolder;
@@ -2505,7 +2494,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         {
                             pages.back()->surfaces.push_back(surface);
                             
-                            surface->useLocalmodifiers = useLocalModifiers;
                             surface->pageSurfaceName = tokens[0];
                             surface->numChannels = atoi(tokens[1].c_str());
                             surface->channelOffset = atoi(tokens[2].c_str());
@@ -2584,8 +2572,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     for(auto surface : page->surfaces)
                     {
                         line = "";
-                        if(surface->useLocalmodifiers)
-                            line += "\"LocalModifiers\" ";
                         line += "\"" + surface->pageSurfaceName + "\" ";
                         line += to_string(surface->numChannels) + " " ;
                         line += to_string(surface->channelOffset) + " " ;

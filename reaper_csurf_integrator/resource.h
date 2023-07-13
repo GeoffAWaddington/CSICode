@@ -41,7 +41,6 @@
 #define IDC_COMBO_PageSurface           1091
 #define IDC_CHECK_SynchPages            1093
 #define IDC_CHECK_ScrollLink            1094
-#define IDC_CHECK_LocalModifiers        1096
 #define IDC_CHECK_ScrollSynch           1096
 #define IDC_RADIO_MCP                   1097
 #define IDC_RADIO_TCP                   1098

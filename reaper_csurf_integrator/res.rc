@@ -142,8 +142,6 @@ BEGIN
     EDITTEXT        IDC_EDIT_ChannelOffset,13,50,19,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_COMBO_FXZoneTemplates,63,143,148,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "FXZone Folder",-1,14,145,46,8
-    CONTROL         " Shift, Alt, etc. on this Surface affect only this Surface",IDC_CHECK_LocalModifiers,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,70,191,10
 END
 
 IDD_DIALOG_EditFXParam DIALOGEX 0, 0, 782, 416
