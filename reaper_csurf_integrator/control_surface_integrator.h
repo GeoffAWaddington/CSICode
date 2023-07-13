@@ -98,6 +98,9 @@ struct FXParamLayoutTemplate
 
 struct FXParamDefinition
 {
+    vector<string> modifiers;
+    int modifier = 0;
+    
     string paramWidget = "";
     string paramWidgetFullName = "";
     string paramNumber = "";
@@ -1075,6 +1078,7 @@ private:
     
     void ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
+    void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
 
     AutoZoneDefinition existingZoneDef_;
     vector<string> paramList_;
@@ -1088,20 +1092,6 @@ private:
     int timeDuplicateFXLoaded_ = 0;
     bool hasDifferentFXDialogBeenShownRecently_ = false;
     int timeDifferentFXDialogShown_ = 0;
-
-    void GetWidgetName(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<FXParamLayoutTemplate> &layoutTemplates)
-    {
-        istringstream modifiersAndWidgetName(line);
-        vector<string> modifiersAndWidgetNameTokens;
-        string modifiersAndWidgetNameToken;
-        
-        while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
-            modifiersAndWidgetNameTokens.push_back(modifiersAndWidgetNameToken);
-        
-        paramWidgetFullName = modifiersAndWidgetNameTokens[modifiersAndWidgetNameTokens.size() - 1];
-
-        paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
-    }
 
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
@@ -1655,6 +1645,33 @@ public:
         return  numGroups;
     }
     
+    void RevertToExistingZoneParam()
+    {
+        if(existingZoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != "")
+        {
+            bool foundIt = false;
+            
+            for(auto paramDefs : existingZoneDef_.paramDefs)
+            {
+                if(foundIt)
+                    break;
+                
+                for(auto paramDef : paramDefs.definitions)
+                {
+                    if(paramDef.paramWidgetFullName == lastTouchedWidget_ && paramDef.modifier == lastTouchedParamModifier_)
+                    {
+                        LearnInfo* info = GetLearnInfo(lastTouchedChannel_);
+
+                        info->paramNumber = stoi(paramDef.paramNumber);
+                        
+                        foundIt = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     vector<FXParamLayoutTemplate> GetFXLayoutTemplates()
     {
         vector<FXParamLayoutTemplate> layoutTemplates;
@@ -1698,34 +1715,6 @@ public:
         }
 
         return layoutTemplates;
-    }
-
-    void RevertToExistingZoneParam()
-    {
-        if(existingZoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != "")
-        {
-            bool foundIt = false;
-            
-            for(auto paramDefs : existingZoneDef_.paramDefs)
-            {
-                if(foundIt)
-                    break;
-                
-                for(auto paramDef : paramDefs.definitions)
-                {
-                    if(paramDef.paramWidgetFullName == lastTouchedWidget_)
-                    {
-                        LearnInfo* info = GetLearnInfo(lastTouchedChannel_);
-                        
-                        info->paramNumber = stoi(paramDef.paramNumber);
-                        
-                        foundIt = true;
-                        
-                        break;
-                    }
-                }
-            }
-        }
     }
     
     void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
@@ -1820,7 +1809,7 @@ public:
                 
                 FXParamDefinition def;
                 
-                GetWidgetName(tokens[0], listSlotIndex, def.paramWidget, def.paramWidgetFullName, layoutTemplates);
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                 
                 if(tokens.size() > 2)
                     def.paramNumber = tokens[2];
@@ -1852,7 +1841,7 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetName(tokens[0], listSlotIndex, def.aliasDisplayWidget, def.aliasDisplayWidgetFullName, layoutTemplates);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget, def.aliasDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         def.alias = tokens[2];
                         
@@ -1871,7 +1860,7 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetName(tokens[0], listSlotIndex, def.valueDisplayWidget, def.valueDisplayWidgetFullName, layoutTemplates);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget, def.valueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         if(tokens.size() > 3)
                             GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);

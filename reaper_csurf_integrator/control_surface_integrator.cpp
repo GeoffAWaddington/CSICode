@@ -2891,6 +2891,23 @@ void ZoneManager::SetLearnFXParamWidget(string fxName, int channel, string name,
     }
 }
 
+void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
+{
+    istringstream modifiersAndWidgetName(line);
+    string modifiersAndWidgetNameToken;
+    
+    while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
+        modifiers.push_back(modifiersAndWidgetNameToken);
+     
+    ModifierManager modifierManager;
+    
+    modifier = modifierManager.GetModifierValue(modifiers);
+    
+    paramWidgetFullName = modifiers[modifiers.size() - 1];
+
+    paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
+}
+
 void ZoneManager::SetLearnFXParamNameWidget(int channel, string name)
 {
     string channelNumStr = to_string(channel + 1);
