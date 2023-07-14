@@ -2934,12 +2934,12 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
 
 void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum)
 {
-    existingZoneDef_.Clear();
-    existingZoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
+    zoneDef_.Clear();
+    zoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
 
     vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
 
-    UnpackZone(existingZoneDef_, layoutTemplates);
+    UnpackZone(zoneDef_, layoutTemplates);
     
     vector<CSILayoutInfo> layouts = GetFXLayouts();
          
@@ -2964,7 +2964,7 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                         
             for(int j = 1; j <= layoutInfo.channelCount; j++)
             {
-                for(auto paramDef : existingZoneDef_.paramDefs[i].definitions)
+                for(auto paramDef : zoneDef_.paramDefs[i].definitions)
                 {
                     if(paramDef.aliasDisplayWidget != "")
                     {

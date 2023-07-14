@@ -98,6 +98,8 @@ struct FXParamLayoutTemplate
 
 struct FXParamDefinition
 {
+    bool isLearned = false;
+    
     vector<string> modifiers;
     int modifier = 0;
     
@@ -1080,7 +1082,7 @@ private:
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
 
-    AutoZoneDefinition existingZoneDef_;
+    AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
     map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
@@ -1648,11 +1650,11 @@ public:
     
     void RevertToExistingZoneParam()
     {
-        if(existingZoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != "")
+        if(zoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != "")
         {
             bool foundIt = false;
             
-            for(auto paramDefs : existingZoneDef_.paramDefs)
+            for(auto paramDefs : zoneDef_.paramDefs)
             {
                 if(foundIt)
                     break;
