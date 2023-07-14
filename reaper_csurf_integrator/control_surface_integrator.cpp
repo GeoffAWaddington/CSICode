@@ -2194,10 +2194,7 @@ void Zone::GoAssociatedZone(string zoneName)
     
     for(auto [key, zones] : associatedZones_)
         for(auto zone : zones)
-        {
-            zoneManager_->UnsavedLearnFXParameters();            
             zone->Deactivate();
-        }
         
     if(associatedZones_.count(zoneName) > 0)
         for(auto zone : associatedZones_[zoneName])
@@ -2250,6 +2247,8 @@ void Zone::Activate()
 
 void Zone::Deactivate()
 {
+    zoneManager_->UnsavedLearnFXParameters();
+    
     for(auto [widget, isUsed] : widgets_)
         if(widget->GetName() == "OnZoneDeactivation")
             for(auto context : GetActionContexts(widget))
