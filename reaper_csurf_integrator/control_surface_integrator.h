@@ -960,16 +960,7 @@ struct CSILayoutInfo
 struct LearnInfo
 {
     bool isLearned = false;
-    string fxName = "";
-    string paramName = "";
-    string modifiers = "";
-    int modifier = 0;
     string fxParamWidget = "";
-    string fxParamNameWidget = "";
-    string fxParamValueWidget = "";
-    int numSteps = 0;
-    MediaTrack* track = nullptr;
-    int slotNumber = 0;
     int paramNumber = 0;
 };
 
@@ -1254,8 +1245,6 @@ public:
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
       
-    void SetLearnFXParamNameWidget(int channel, string name);
-    void SetLearnFXParamValueWidget(int channel, string name);
     void EraseLastTouchedFXParam();
     void SaveLearnedFXParams();
         

@@ -49,13 +49,19 @@ public:
     
         LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
 
-        return DAW::TrackFX_GetParam(info->track, info->slotNumber, info->paramNumber, &min, &max);
+        int trackNum;
+        int fxSlotNum;
+        int fxParamNum;
+
+        DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum);
+        
+        return DAW::TrackFX_GetParam(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, &min, &max);
     }
 
     virtual void RequestUpdate(ActionContext* context) override
     {
         LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
-        
+
         if(info->isLearned && info->fxParamWidget == context->GetWidget()->GetName())
         {
             double currentValue = GetCurrentNormalizedValue(context);
@@ -81,16 +87,15 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        int channel = context->GetWidget()->GetChannelNumber();
-        
-        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channel);
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
 
-        if(info->isLearned)
+        int trackNum;
+        int fxSlotNum;
+        int fxParamNum;
+        
+        if(info->isLearned && DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
-            if(info->fxParamNameWidget == "")
-                context->GetSurface()->GetZoneManager()->SetLearnFXParamNameWidget(channel, context->GetWidget()->GetName());
-            
-            context->UpdateWidgetValue(TheManager->GetFXParamName(info->track, info->slotNumber, info->paramNumber));
+            context->UpdateWidgetValue(TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber));
         }
         else
             context->ClearWidget();
@@ -106,17 +111,16 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        int channel = context->GetWidget()->GetChannelNumber();
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
 
-        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(channel);
-
-        if(info->isLearned)
+        int trackNum;
+        int fxSlotNum;
+        int fxParamNum;
+        
+        if(info->isLearned && DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
-            if(info->fxParamValueWidget == "")
-                context->GetSurface()->GetZoneManager()->SetLearnFXParamValueWidget(channel, context->GetWidget()->GetName());
-
             char fxParamValue[128];
-            DAW::TrackFX_GetFormattedParamValue(info->track, info->slotNumber, info->paramNumber, fxParamValue, sizeof(fxParamValue));
+            DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, fxParamValue, sizeof(fxParamValue));
             context->UpdateWidgetValue(string(fxParamValue));
         }
         else
