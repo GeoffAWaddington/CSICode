@@ -1105,7 +1105,8 @@ private:
     void ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
-
+    int GetModifierValue(vector<string> modifiers);
+    
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
     map<int, vector<LearnInfo>> channelLearns_;

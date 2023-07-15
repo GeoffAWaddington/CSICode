@@ -2894,10 +2894,8 @@ void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, stri
     
     while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
         modifiers.push_back(modifiersAndWidgetNameToken);
-     
-    ModifierManager modifierManager;
-    
-    modifier = modifierManager.GetModifierValue(modifiers);
+        
+    modifier = GetModifierValue(modifiers);
     
     paramWidgetFullName = modifiers[modifiers.size() - 1];
 
@@ -2936,6 +2934,13 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
     }
 }
 
+int ZoneManager::GetModifierValue(vector<string> modifierTokens)
+{
+    ModifierManager modifierManager;
+
+    return modifierManager.GetModifierValue(modifierTokens);
+}
+
 void ZoneManager::InitializeFXParamsLearnZone()
 {
     if(homeZone_ != nullptr)
@@ -2963,14 +2968,11 @@ void ZoneManager::InitializeFXParamsLearnZone()
             
             if(paramWidgets.size() > 0 && nameDisplayWidget != "" && valueDisplayWidget != "")
             {
-                ModifierManager modifierManager;
                 vector<string> memberParams;
                 
                 for(auto layout : fxLayouts_)
                 {
-                    ModifierManager modifierManager;
-
-                    int modifier = modifierManager.GetModifierValue(layout.GetModifierTokens());
+                    int modifier = GetModifierValue(layout.GetModifierTokens());
                     
                     for(int i = 1; i <= layout.channelCount; i++)
                     {
@@ -3029,9 +3031,7 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
     {
         for(auto layoutInfo : layouts)
         {
-            ModifierManager modifierManager;
-            
-            int modifierValue = modifierManager.GetModifierValue(layoutInfo.GetModifierTokens());
+            int modifierValue = GetModifierValue(layoutInfo.GetModifierTokens());
                         
             for(int j = 1; j <= layoutInfo.channelCount; j++)
             {
