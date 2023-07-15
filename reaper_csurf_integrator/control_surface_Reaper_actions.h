@@ -47,7 +47,7 @@ public:
     {
         double min, max = 0.0;
     
-        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
+        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         int trackNum;
         int fxSlotNum;
@@ -60,9 +60,9 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
+        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
-        if(info->isLearned && info->fxParamWidget == context->GetWidget()->GetName())
+        if(info->isLearned && info->fxParamWidget == context->GetWidget())
         {
             double currentValue = GetCurrentNormalizedValue(context);
             
@@ -87,7 +87,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
+        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         int trackNum;
         int fxSlotNum;
@@ -111,7 +111,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget()->GetChannelNumber());
+        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         int trackNum;
         int fxSlotNum;

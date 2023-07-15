@@ -2729,14 +2729,13 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
 
 void ZoneManager::EraseLastTouchedFXParam()
 {
-    if(lastTouchedParamTrack_ == nullptr)
-        return;
-    
-    LearnInfo* info =  &channelLearns_[lastTouchedParamModifier_][lastTouchedChannel_ - 1];
-    
-    info->isLearned = false;
-    info->fxParamWidget = "";
-    info->paramNumber = 0;
+    if(learnedFXParams_.count(lastTouchedWidget_) > 0 && learnedFXParams_[lastTouchedWidget_].count(lastTouchedParamModifier_) > 0)
+    {
+        shared_ptr<LearnInfo> info = learnedFXParams_[lastTouchedWidget_][lastTouchedParamModifier_];
+        
+        info->isLearned = false;
+        info->paramNumber = 0;
+    }
 }
 
 void ZoneManager::SaveLearnedFXParams()
@@ -2781,11 +2780,12 @@ void ZoneManager::SaveLearnedFXParams()
                    
             fxZone << "\n" + BeginAutoSection + GetLineEnding();
 
+            
+            /*
             for(auto [modifiers, infos] : channelLearns_)
             {
                 for(auto info : infos)
                 {
-                    /*
                     if(info.fxName != learnFXName_)
                         continue;
                     
@@ -2821,10 +2821,10 @@ void ZoneManager::SaveLearnedFXParams()
                     fxZone << "\t" + info.modifiers + info.fxParamNameWidget + fxParamNameAction + GetLineEnding();
                     
                     fxZone << "\t" + info.modifiers + info.fxParamValueWidget + fxParamValueAction + GetLineEnding() + GetLineEnding();
-                */
                 }
             }
-            
+             */
+
             
             fxZone << EndAutoSection + GetLineEnding();
                     
@@ -2843,40 +2843,24 @@ void ZoneManager::SaveLearnedFXParams()
     }
 }
 
-LearnInfo* ZoneManager::GetLearnInfo(int channel)
+
+
+shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget)
 {
     vector<int> modifiers = surface_->GetModifiers();
 
-    return GetLearnInfo(channel, modifiers[0]);
+    if(modifiers.size() > 0)
+        return GetLearnInfo(widget, modifiers[0]);
+    else
+        return  shared_ptr<LearnInfo>(nullptr);
 }
 
-LearnInfo* ZoneManager::GetLearnInfo(int channel, int modifier)
+shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget, int modifier)
 {
-    if(channelLearns_.count(modifier) < 1)
-    {
-        for(int i = 0 ; i < surface_->GetNumChannels(); i++)
-        {
-            channelLearns_[modifier].push_back(LearnInfo());
-        }
-    }
-
-    return &channelLearns_[modifier][channel - 1];
-}
-
-void ZoneManager::SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr)
-{
-    string channelNumStr = to_string(channel + 1);
-    
-    string baseName = name.substr(0, name.length() - channelNumStr.length());
-    
-    if(channelLearns_.count(modifier) > 0)
-    {
-        for(int i = 0 ; i < surface_->GetNumChannels(); i++)
-        {
-            if(channelLearns_[modifier][i].fxParamWidget == "")
-                channelLearns_[modifier][i].fxParamWidget = baseName + to_string(i + 1);
-        }
-    }
+    if(learnedFXParams_.count(widget) > 0)
+        return learnedFXParams_[widget][modifier];
+    else
+        return  shared_ptr<LearnInfo>(nullptr);
 }
 
 void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
@@ -2938,13 +2922,16 @@ void ZoneManager::InitializeFXParamsLearnZone()
                     {
                         for(auto widgetName : paramWidgets)
                         {
+                            shared_ptr<LearnInfo> info = make_shared<LearnInfo>();
+                            
                             shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + layout.suffix + to_string(i));
                             if(widget == nullptr)
                                 continue;
                             zone->AddWidget(widget, widget->GetName());
                             shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, memberParams);
                             zone->AddActionContext(widget, modifier, context);
-
+                            info->fxParamWidget = widget;
+                            learnedFXParams_[widget][modifier] = info;
 
                             widget = GetSurface()->GetWidgetByName(nameDisplayWidget + layout.suffix + to_string(i));
                             if(widget == nullptr)
@@ -2952,7 +2939,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, memberParams);
                             zone->AddActionContext(widget, modifier, context);
-
+                            learnedFXParams_[widget][modifier] = info;
 
                             widget = GetSurface()->GetWidgetByName(valueDisplayWidget + layout.suffix + to_string(i));
                             if(widget == nullptr)
@@ -2960,6 +2947,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, memberParams);
                             zone->AddActionContext(widget, modifier, context);
+                            learnedFXParams_[widget][modifier] = info;
                         }
                     }
                 }
@@ -2993,10 +2981,10 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                 {
                     if(paramDef.aliasDisplayWidget != "")
                     {
-                        LearnInfo* info = GetLearnInfo(j, modifierValue);
+                        shared_ptr<LearnInfo> info = GetLearnInfo(GetSurface()->GetWidgetByName(paramDef.paramWidgetFullName), modifierValue);
 
                         info->isLearned = true;
-                        info->fxParamWidget = paramDef.paramWidget;
+                        info->fxParamWidget = surface_->GetWidgetByName(paramDef.paramWidget);
                         info->paramNumber = stoi(paramDef.paramNumber);
                         
                         i++;
@@ -3024,9 +3012,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
 
     MediaTrack* track = nullptr;
     
-    int channel = context->GetWidget()->GetChannelNumber();
- 
-    LearnInfo* info = GetLearnInfo(channel);
+    shared_ptr<LearnInfo> info = GetLearnInfo(context->GetWidget());
     
     if(! info->isLearned)
     {
@@ -3042,7 +3028,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             if(paramList_.size() == 0)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
                     paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
-
+            
             if(! hasDuplicateFXBeenLoadedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
                 ParseExistingZoneFileForLearn(fxName, track, fxSlotNum);
@@ -3095,10 +3081,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
                         numSteps = 2;
                     
-                    
                     vector<int> modifiers = surface_->GetModifiers();
                     
-                    SetLearnFXParamWidget(fxName, channel, context->GetWidget()->GetName(), modifiers[0], context->GetPage()->GetModifierManager()->GetModifierString());
                     
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
@@ -3109,14 +3093,17 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     else if(info->isLearned)
     {
         lastTouchedWidget_ = info->fxParamWidget;
-        lastTouchedChannel_ = channel;
+        lastTouchedParamModifier_ = 0;
+        
+        if(GetSurface()->GetModifiers().size() > 0)
+            lastTouchedParamModifier_ = GetSurface()->GetModifiers()[0];
         
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
             if(info->paramNumber != fxParamNum)
                 info->paramNumber = fxParamNum;
         
-        if(info->fxParamWidget != context->GetWidget()->GetName())
-            info->fxParamWidget = context->GetWidget()->GetName();
+        if(info->fxParamWidget != context->GetWidget())
+            info->fxParamWidget = context->GetWidget();
 
         DAW::TrackFX_SetParam(track, fxSlotNum, info->paramNumber, value);
     }

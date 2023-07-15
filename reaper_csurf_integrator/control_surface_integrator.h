@@ -960,7 +960,7 @@ struct CSILayoutInfo
 struct LearnInfo
 {
     bool isLearned = false;
-    string fxParamWidget = "";
+    shared_ptr<Widget> fxParamWidget = nullptr;
     int paramNumber = 0;
 };
 
@@ -1094,18 +1094,16 @@ private:
     
     void InitializeFXParamsLearnZone();
     void ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum);
-    void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(vector<string> modifiers);
     
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
-    map<int, vector<LearnInfo>> channelLearns_;
     string learnFXName_ = "";
-    MediaTrack* lastTouchedParamTrack_ = nullptr;
-    string lastTouchedWidget_ = "";
-    int lastTouchedChannel_ = 0;
+    shared_ptr<Widget> lastTouchedWidget_ = nullptr;
     int lastTouchedParamModifier_ = 0;
+    map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
+    
     bool hasDuplicateFXBeenLoadedRecently_ = false;
     int timeDuplicateFXLoaded_ = 0;
     bool hasDifferentFXDialogBeenShownRecently_ = false;
@@ -1215,8 +1213,8 @@ public:
     void UpdateCurrentActionContextModifiers();
     
     void DoLearn(ActionContext* context, double value);
-    LearnInfo* GetLearnInfo(int channel);
-    LearnInfo* GetLearnInfo(int channel, int modifier);
+    shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget> widget);
+    shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget>, int modifier);
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
@@ -1284,10 +1282,18 @@ public:
     void ClearLearnedFXParams()
     {
         paramList_.clear();
-        channelLearns_.clear();
         learnFXName_ = "";
-        lastTouchedParamTrack_ = nullptr;
-        lastTouchedChannel_ = 0;
+        
+        for(auto [widget, modifiers] : learnedFXParams_)
+        {
+            for(auto [modifier, info] : modifiers)
+            {
+                info->isLearned = false;
+                info->paramNumber = 0;
+            }
+        }
+        
+        lastTouchedWidget_ = nullptr;
         lastTouchedParamModifier_ = 0;
     }
         
@@ -1664,7 +1670,7 @@ public:
     
     void RevertToExistingZoneParam()
     {
-        if(zoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != "")
+        if(zoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != nullptr)
         {
             bool foundIt = false;
             
@@ -1675,9 +1681,9 @@ public:
                 
                 for(auto paramDef : paramDefs.definitions)
                 {
-                    if(paramDef.paramWidgetFullName == lastTouchedWidget_ && paramDef.modifier == lastTouchedParamModifier_)
+                    if(paramDef.paramWidgetFullName == lastTouchedWidget_->GetName() && paramDef.modifier == lastTouchedParamModifier_)
                     {
-                        LearnInfo* info = GetLearnInfo(lastTouchedChannel_);
+                        shared_ptr<LearnInfo> info = GetLearnInfo(lastTouchedWidget_, lastTouchedParamModifier_);
 
                         info->paramNumber = stoi(paramDef.paramNumber);
                         
@@ -4282,7 +4288,7 @@ public:
 
     shared_ptr<ActionContext> GetLearnFXActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params)
     {
-        if(actions_.count(actionName) > 0)
+        if(learnFXActions_.count(actionName) > 0)
             return make_shared<ActionContext>(learnFXActions_[actionName], widget, zone, params);
         else
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
