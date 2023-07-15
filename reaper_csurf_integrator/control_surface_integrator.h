@@ -67,6 +67,7 @@ const int TempDisplayTime = 1250;
 
 class Manager;
 class ZoneManager;
+class Widget;
 extern unique_ptr<Manager> TheManager;
 extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath);
 
@@ -158,6 +159,13 @@ struct AutoZoneDefinition
     }
 };
 
+struct LearnFXCell
+{
+    vector<shared_ptr<Widget>> fxParamWidgets;
+    shared_ptr<Widget> fxParamNameDisplayWidget = nullptr;
+    shared_ptr<Widget> fxParamValueDisplayWidget = nullptr;
+};
+
 static map<int, vector<double>> SteppedValueDictionary
 {
     { 2, { 0.00, 1.00 } },
@@ -217,6 +225,7 @@ public:
 
     virtual void Touch(ActionContext* context, double value) {}
     virtual void RequestUpdate(ActionContext* context) {}
+    virtual void RequestUpdate(ActionContext* context, int paramNum) {}
     virtual void Do(ActionContext* context, double value) {}
     virtual double GetCurrentNormalizedValue(ActionContext* context) { return 0.0; }
     virtual double GetCurrentDBValue(ActionContext* context) { return 0.0; }
@@ -335,8 +344,6 @@ private:
     shared_ptr<Action> const action_ = nullptr;
     shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
-    
-    shared_ptr<Widget> fxParamWidget_ = nullptr;
 
     int intParam_ = 0;
     
@@ -429,6 +436,7 @@ public:
     void DoRelativeAction(int accelerationIndex, double value);
     
     void RequestUpdate();
+    void RequestUpdate(int paramNum);
     void RequestUpdateWidgetMode();
     void RunDeferredActions();
     void ClearWidget();
@@ -445,9 +453,6 @@ public:
     int    GetNumberOfSteppedValues() { return steppedValues_.size(); }
     void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
-    
-    void SetFXParamWidget(shared_ptr<Widget> widget) { fxParamWidget_ = widget; }
-    shared_ptr<Widget> GetFXParamWidget() { return fxParamWidget_;  }
     
     double GetRangeMinimum() { return rangeMinimum_; }
     double GetRangeMaximum() { return rangeMaximum_; }
@@ -583,6 +588,8 @@ protected:
     map<shared_ptr<Widget>, bool> widgets_;
     map<string, shared_ptr<Widget>> widgetsByName_;
     
+    map<int, map<string, LearnFXCell>> learnFXCells_;
+    
     vector<shared_ptr<Zone>> includedZones_;
     map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
@@ -606,41 +613,39 @@ public:
     
     virtual ~Zone() {}
     
+    void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
+    void GoAssociatedZone(string associatedZoneName);
+    void ReactivateFXMenuZone();
+    int GetSlotIndex();
+    void SetXTouchDisplayColors(string color);
+    void RestoreXTouchDisplayColors();
+    void UpdateCurrentActionContextModifiers();
+    vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget);
+    void Activate();
+    void Deactivate();
+    void ClearWidgets();
+    void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
+    int GetChannelNumber();
+    void RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
+    
     string GetSourceFilePath() { return sourceFilePath_; }
     
     shared_ptr<Navigator> GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
-    void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
-
-    void GoAssociatedZone(string associatedZoneName);
-
-    shared_ptr<Zone> GetFXParamsLearnZone()
+    void AddLearnFXCell(int modifier, string cellAddress, LearnFXCell cell)
+    {
+        learnFXCells_[modifier][cellAddress] = cell;
+    }
+    
+    shared_ptr<Zone> GetLearnFXParamsZone()
     {
         if(associatedZones_.count("LearnFXParams") && associatedZones_["LearnFXParams"].size() == 1)
             return associatedZones_["LearnFXParams"][0];
         else
             return shared_ptr<Zone>(nullptr);
     }
-
-    void ReactivateFXMenuZone();
-
-    int GetSlotIndex();
-    
-    void SetXTouchDisplayColors(string color);
-    void RestoreXTouchDisplayColors();
-
-    void UpdateCurrentActionContextModifiers();
-    vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget);
-
-    void Activate();
-    void Deactivate();
-    void ClearWidgets();
-    
-    void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
-    
-    int GetChannelNumber();
     
     bool GetIsMainZoneOnlyActive()
     {
@@ -1533,6 +1538,12 @@ public:
             
         for(auto &[key, value] : usedWidgets_)
             value = false;
+        
+        if(homeZone_ != nullptr)
+        {
+            if(homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
+                homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate(usedWidgets_);
+        }
         
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate(usedWidgets_);
