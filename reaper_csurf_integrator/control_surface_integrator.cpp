@@ -2929,6 +2929,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                                 continue;
                             zone->AddWidget(widget, widget->GetName());
                             shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, memberParams);
+                            context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
                             info->fxParamWidget = widget;
                             learnedFXParams_[widget][modifier] = info;
@@ -2938,6 +2939,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                                 continue;
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, memberParams);
+                            context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
                             learnedFXParams_[widget][modifier] = info;
 
@@ -2946,6 +2948,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                                 continue;
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, memberParams);
+                            context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
                             learnedFXParams_[widget][modifier] = info;
                         }
@@ -3105,7 +3108,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
         if(info->fxParamWidget != context->GetWidget())
             info->fxParamWidget = context->GetWidget();
 
-        DAW::TrackFX_SetParam(track, fxSlotNum, info->paramNumber, value);
+        DAW::TrackFX_SetParam(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, value);
     }
 }
 
