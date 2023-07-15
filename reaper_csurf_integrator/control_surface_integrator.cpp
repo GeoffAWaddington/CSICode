@@ -3096,7 +3096,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     }
     else if(info->isLearned)
     {
-        lastTouchedWidget_ = info->fxParamWidget;
+        lastTouchedWidget_ = context->GetWidget();
         lastTouchedParamModifier_ = 0;
         
         if(GetSurface()->GetModifiers().size() > 0)
