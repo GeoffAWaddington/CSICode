@@ -1398,7 +1398,6 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeterMaxPeakLR"] =         make_shared<TrackOutputMeterMaxPeakLR>();
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
-    actions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
     actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
     actions_["EraseLastTouchedFXParam"] =           make_shared<EraseLastTouchedFXParam>();
     actions_["RevertToExistingZoneParam"] =         make_shared<RevertToExistingZoneParam>();
@@ -1412,10 +1411,8 @@ void Manager::InitActionsDictionary()
     actions_["FXMenuNameDisplay"] =                 make_shared<FXMenuNameDisplay>();
     actions_["SpeakFXMenuName"] =                   make_shared<SpeakFXMenuName>();
     actions_["FXParamNameDisplay"] =                make_shared<FXParamNameDisplay>();
-    actions_["LearnFXParamNameDisplay"] =           make_shared<LearnFXParamNameDisplay>();
     actions_["TCPFXParamNameDisplay"] =             make_shared<TCPFXParamNameDisplay>();
     actions_["FXParamValueDisplay"] =               make_shared<FXParamValueDisplay>();
-    actions_["LearnFXParamValueDisplay"] =          make_shared<LearnFXParamValueDisplay>();
     actions_["TCPFXParamValueDisplay"] =            make_shared<TCPFXParamValueDisplay>();
     actions_["FocusedFXParamNameDisplay"] =         make_shared<FocusedFXParamNameDisplay>();
     actions_["FocusedFXParamValueDisplay"] =        make_shared<FocusedFXParamValueDisplay>();
@@ -1446,6 +1443,10 @@ void Manager::InitActionsDictionary()
     actions_["TrackReceiveVolumeDisplay"] =         make_shared<TrackReceiveVolumeDisplay>();
     actions_["TrackReceivePanDisplay"] =            make_shared<TrackReceivePanDisplay>();
     actions_["TrackReceivePrePostDisplay"] =        make_shared<TrackReceivePrePostDisplay>();
+    
+    learnFXActions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
+    learnFXActions_["LearnFXParamNameDisplay"] =           make_shared<LearnFXParamNameDisplay>();
+    learnFXActions_["LearnFXParamValueDisplay"] =          make_shared<LearnFXParamValueDisplay>();
 }
 
 void Manager::InitFXParamAliases()
@@ -2285,7 +2286,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
 {
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
-    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu" || zoneName == "LearnFXParams")
+    else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu")
     {
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
         {
@@ -2600,6 +2601,9 @@ void ZoneManager::Initialize()
         ProcessFXBoilerplate(zoneFilePaths_["FXPrologue"].filePath, fxPrologue_);
     if(zoneFilePaths_.count("FXEpilogue") > 0)
         ProcessFXBoilerplate(zoneFilePaths_["FXEpilogue"].filePath, fxEpilogue_);
+    
+    InitializeFXParamsLearnZone();
+    
     GoHome();
 }
 
@@ -2932,6 +2936,82 @@ void ZoneManager::SetLearnFXParamValueWidget(int channel, string name)
     }
 }
 
+void ZoneManager::InitializeFXParamsLearnZone()
+{
+    if(homeZone_ != nullptr)
+    {
+        if(shared_ptr<Zone> zone = homeZone_->GetFXParamsLearnZone())
+        {
+            vector<string> paramWidgets;
+            string nameDisplayWidget = "";
+            string valueDisplayWidget = "";
+
+            for(auto row : surfaceFXLayoutTemplate_)
+            {
+                if(row.size() > 0 && row[0] == "WidgetTypes")
+                {
+                    for(int i = 1; i < row.size(); i++)
+                        paramWidgets.push_back(row[i]);
+                }
+                    
+                if(row.size() > 2 && row[0] == "DisplayRows")
+                {
+                    nameDisplayWidget = row[1];
+                    valueDisplayWidget = row[2];
+                }
+            }
+            
+            if(paramWidgets.size() > 0 && nameDisplayWidget != "" && valueDisplayWidget != "")
+            {
+                ModifierManager modifierManager;
+                vector<string> memberParams;
+                
+                for(auto layout : fxLayouts_)
+                {
+                    ModifierManager modifierManager;
+
+                    int modifier = modifierManager.GetModifierValue(layout.GetModifierTokens());
+                    
+                    for(int i = 1; i <= layout.channelCount; i++)
+                    {
+                        for(auto widgetName : paramWidgets)
+                        {
+                            shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + layout.suffix + to_string(i));
+                                                        
+                            if(widget == nullptr)
+                                continue;
+ 
+                            zone->AddWidget(widget, widget->GetName());
+                            shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, memberParams);
+                            zone->AddActionContext(widget, modifier, context);
+
+
+                            widget = GetSurface()->GetWidgetByName(nameDisplayWidget + layout.suffix + to_string(i));
+                                                        
+                            if(widget == nullptr)
+                                continue;
+ 
+                            zone->AddWidget(widget, widget->GetName());
+                            context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, memberParams);
+                            zone->AddActionContext(widget, modifier, context);
+
+
+                            widget = GetSurface()->GetWidgetByName(valueDisplayWidget + layout.suffix + to_string(i));
+                                                        
+                            if(widget == nullptr)
+                                continue;
+ 
+                            zone->AddWidget(widget, widget->GetName());
+                            context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, memberParams);
+                            zone->AddActionContext(widget, modifier, context);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum)
 {
     zoneDef_.Clear();
@@ -2949,18 +3029,9 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
     {
         for(auto layoutInfo : layouts)
         {
-            istringstream modifierStr(layoutInfo.modifiers);
-            string modifier;
-            vector<string> modifiers;
-            
-            while(getline(modifierStr, modifier, '+'))
-                modifiers.push_back(modifier);
-             
-            modifiers.push_back("");
-            
             ModifierManager modifierManager;
             
-            int modifierValue = modifierManager.GetModifierValue(modifiers);
+            int modifierValue = modifierManager.GetModifierValue(layoutInfo.GetModifierTokens());
                         
             for(int j = 1; j <= layoutInfo.channelCount; j++)
             {

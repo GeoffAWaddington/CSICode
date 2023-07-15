@@ -610,6 +610,15 @@ public:
     void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
 
     void GoAssociatedZone(string associatedZoneName);
+
+    shared_ptr<Zone> GetFXParamsLearnZone()
+    {
+        if(associatedZones_.count("LearnFXParams") && associatedZones_["LearnFXParams"].size() == 1)
+            return associatedZones_["LearnFXParams"][0];
+        else
+            return shared_ptr<Zone>(nullptr);
+    }
+
     void ReactivateFXMenuZone();
 
     int GetSlotIndex();
@@ -932,6 +941,20 @@ struct CSILayoutInfo
     string modifiers = "";
     string suffix = "";
     int channelCount = 0;
+    
+    vector<string> GetModifierTokens()
+    {
+        istringstream modifierStr(modifiers);
+        string modifier;
+        vector<string> modifiers;
+        
+        while(getline(modifierStr, modifier, '+'))
+            modifiers.push_back(modifier);
+         
+        modifiers.push_back("");
+
+        return modifiers;
+    }
 };
 
 struct LearnInfo
@@ -1078,6 +1101,7 @@ private:
         return alias;
     }
     
+    void InitializeFXParamsLearnZone();
     void ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void SetLearnFXParamWidget(string fxName, int channel, string name, int modifier, string modifierStr);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
@@ -4102,6 +4126,7 @@ class Manager
 {
 private:
     map<string, shared_ptr<Action>> actions_;
+    map<string, shared_ptr<Action>> learnFXActions_;
 
     vector <shared_ptr<Page>> pages_;
     
@@ -4249,7 +4274,6 @@ public:
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
     }
 
-    
     shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex)
     {
         if(actions_.count(actionName) > 0)
@@ -4264,6 +4288,14 @@ public:
             return make_shared<ActionContext>(actions_[actionName], widget, zone, stringParam);
         else
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, stringParam);
+    }
+
+    shared_ptr<ActionContext> GetLearnFXActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params)
+    {
+        if(actions_.count(actionName) > 0)
+            return make_shared<ActionContext>(learnFXActions_[actionName], widget, zone, params);
+        else
+            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
     }
 
     void OnTrackSelection(MediaTrack *track)
