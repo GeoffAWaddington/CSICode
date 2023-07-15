@@ -87,15 +87,19 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
-
-        int trackNum;
-        int fxSlotNum;
-        int fxParamNum;
-        
-        if(info->isLearned && DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if(shared_ptr<Widget> fxParamWidget = context->GetFXParamWidget())
         {
-            context->UpdateWidgetValue(TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber));
+            if(shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(fxParamWidget))
+            {
+                int trackNum;
+                int fxSlotNum;
+                int fxParamNum;
+                
+                if(info->isLearned && DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+                {
+                    context->UpdateWidgetValue(TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber));
+                }
+            }
         }
         else
             context->ClearWidget();
@@ -111,17 +115,21 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
-
-        int trackNum;
-        int fxSlotNum;
-        int fxParamNum;
-        
-        if(info->isLearned && DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if(shared_ptr<Widget> fxParamWidget = context->GetFXParamWidget())
         {
-            char fxParamValue[128];
-            DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, fxParamValue, sizeof(fxParamValue));
-            context->UpdateWidgetValue(string(fxParamValue));
+            if(shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(fxParamWidget))
+            {
+                int trackNum;
+                int fxSlotNum;
+                int fxParamNum;
+                
+                if(info->isLearned && DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+                {
+                    char fxParamValue[128];
+                    DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, fxParamValue, sizeof(fxParamValue));
+                    context->UpdateWidgetValue(string(fxParamValue));
+                }
+            }
         }
         else
             context->ClearWidget();

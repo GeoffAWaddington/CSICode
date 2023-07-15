@@ -336,6 +336,8 @@ private:
     shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
     
+    shared_ptr<Widget> fxParamWidget_ = nullptr;
+
     int intParam_ = 0;
     
     string stringParam_ = "";
@@ -443,7 +445,10 @@ public:
     int    GetNumberOfSteppedValues() { return steppedValues_.size(); }
     void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
-
+    
+    void SetFXParamWidget(shared_ptr<Widget> widget) { fxParamWidget_ = widget; }
+    shared_ptr<Widget> GetFXParamWidget() { return fxParamWidget_;  }
+    
     double GetRangeMinimum() { return rangeMinimum_; }
     double GetRangeMaximum() { return rangeMaximum_; }
     

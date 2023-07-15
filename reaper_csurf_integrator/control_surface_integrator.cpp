@@ -2925,6 +2925,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             shared_ptr<LearnInfo> info = make_shared<LearnInfo>();
                             
                             shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + layout.suffix + to_string(i));
+                            shared_ptr<Widget> fxParamWidget = widget;
                             if(widget == nullptr)
                                 continue;
                             zone->AddWidget(widget, widget->GetName());
@@ -2940,8 +2941,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, memberParams);
                             context->SetProvideFeedback(true);
+                            context->SetFXParamWidget(fxParamWidget);
                             zone->AddActionContext(widget, modifier, context);
-                            learnedFXParams_[widget][modifier] = info;
 
                             widget = GetSurface()->GetWidgetByName(valueDisplayWidget + layout.suffix + to_string(i));
                             if(widget == nullptr)
@@ -2949,8 +2950,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, memberParams);
                             context->SetProvideFeedback(true);
+                            context->SetFXParamWidget(fxParamWidget);
                             zone->AddActionContext(widget, modifier, context);
-                            learnedFXParams_[widget][modifier] = info;
                         }
                     }
                 }
