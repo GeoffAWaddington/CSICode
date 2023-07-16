@@ -1115,10 +1115,8 @@ private:
     int lastTouchedParamModifier_ = 0;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
     
-    bool hasDuplicateFXBeenLoadedRecently_ = false;
-    int timeDuplicateFXLoaded_ = 0;
-    bool hasDifferentFXDialogBeenShownRecently_ = false;
-    int timeDifferentFXDialogShown_ = 0;
+    bool hasLearnBeenEngagedRecently_ = false;
+    int timeLearnEngaged_ = 0;
 
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
@@ -1517,21 +1515,12 @@ public:
        
     void RequestUpdate()
     {
-        if(hasDuplicateFXBeenLoadedRecently_)
+        if(hasLearnBeenEngagedRecently_)
         {
-            if(DAW::GetCurrentNumberOfMilliseconds() - timeDuplicateFXLoaded_ > 250)
+            if(DAW::GetCurrentNumberOfMilliseconds() - timeLearnEngaged_ > 250)
             {
-                timeDuplicateFXLoaded_ = 0;
-                hasDuplicateFXBeenLoadedRecently_ = false;
-            }
-        }
-        
-        if(hasDifferentFXDialogBeenShownRecently_)
-        {
-            if(DAW::GetCurrentNumberOfMilliseconds() - timeDifferentFXDialogShown_ > 250)
-            {
-                timeDifferentFXDialogShown_ = 0;
-                hasDifferentFXDialogBeenShownRecently_ = false;
+                timeLearnEngaged_ = 0;
+                hasLearnBeenEngagedRecently_ = false;
             }
         }
         

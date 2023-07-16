@@ -3067,7 +3067,7 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
     // This is just to let things settle a bit, you may have turned an encoder and there may be a few "spurious" message yet to come
-    if(hasDuplicateFXBeenLoadedRecently_ || hasDifferentFXDialogBeenShownRecently_)
+    if(hasLearnBeenEngagedRecently_)
         return;
 
     int trackNum = 0;
@@ -3093,16 +3093,16 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
                     paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
             
-            if(! hasDuplicateFXBeenLoadedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+            if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
                 ParseExistingZoneFileForLearn(fxName, track, fxSlotNum);
                 learnFXName_ = fxName;
-                hasDuplicateFXBeenLoadedRecently_ = true;
-                timeDuplicateFXLoaded_ = DAW::GetCurrentNumberOfMilliseconds();
+                hasLearnBeenEngagedRecently_ = true;
+                timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
             }
             else
             {
-                if(! hasDifferentFXDialogBeenShownRecently_ && learnFXName_ != "" && learnFXName_ != fxName)
+                if(! hasLearnBeenEngagedRecently_ && learnFXName_ != "" && learnFXName_ != fxName)
                 {
                     string message = string("You are currently learning ") + GetAlias(learnFXName_) + string(". Do you want to save those changes ? \n\nPress\n\nYes to save the ") + GetAlias(learnFXName_) + string(" changes\n\nNo to lose those changes and continue\n\nCancel to cancel");
                     
@@ -3111,19 +3111,19 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     if(result == IDYES)
                     {
                         SaveLearnedFXParams();
-                        hasDifferentFXDialogBeenShownRecently_ = true;
-                        timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                        hasLearnBeenEngagedRecently_ = true;
+                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
                     }
                     else if(result == IDNO)
                     {
                         ClearLearnedFXParams();
-                        hasDifferentFXDialogBeenShownRecently_ = true;
-                        timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                        hasLearnBeenEngagedRecently_ = true;
+                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
                     }
                     else if(result == IDCANCEL)
                     {
-                        hasDifferentFXDialogBeenShownRecently_ = true;
-                        timeDifferentFXDialogShown_ = DAW::GetCurrentNumberOfMilliseconds();
+                        hasLearnBeenEngagedRecently_ = true;
+                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
                         return;
                     }
                 }
@@ -3135,6 +3135,9 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 }
                 else
                 {
+                    hasLearnBeenEngagedRecently_ = true;
+                    timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
+
                     learnFXName_ = fxName;
                     
                     if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
