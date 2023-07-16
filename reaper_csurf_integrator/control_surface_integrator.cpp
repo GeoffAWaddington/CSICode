@@ -3040,7 +3040,12 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
                 if(learnContexts.size() > 0)
                     learnContext = learnContexts[0];
                 
+                string displayName = "";
+                if(existingContext != nullptr && learnContext != nullptr && existingContext->GetStringParam() != "")
+                    displayName = existingContext->GetStringParam();
+                
                 int blah = 0;
+                
                 
                 
                 
