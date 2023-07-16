@@ -3008,6 +3008,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
                             info->fxParamWidget = widget;
+                            info->cell = layout.suffix + to_string(i);
                             learnedFXParams_[widget][modifier] = info;
                         }
                         
@@ -3165,9 +3166,11 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             if(info->paramNumber != fxParamNum)
                 info->paramNumber = fxParamNum;
         
-        if(info->fxParamWidget != context->GetWidget())
-            info->fxParamWidget = context->GetWidget();
-
+        for(auto [widget, modifiers] : learnedFXParams_)
+            for(auto [modifier, widgetInfo] : modifiers)
+                if(modifier == lastTouchedParamModifier_ && widgetInfo->isLearned && widgetInfo->cell == info->cell && widget != context->GetWidget())
+                    GetLearnInfo(widget)->isLearned = false;
+        
         DAW::TrackFX_SetParam(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, value);
     }
 }

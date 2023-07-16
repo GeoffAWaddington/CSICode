@@ -971,6 +971,7 @@ struct LearnInfo
 {
     bool isLearned = false;
     shared_ptr<Widget> fxParamWidget = nullptr;
+    string cell = "";
     int paramNumber = 0;
 };
 
