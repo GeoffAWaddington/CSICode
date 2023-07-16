@@ -2837,51 +2837,39 @@ void ZoneManager::SaveLearnedFXParams()
                    
             fxZone << "\n" + BeginAutoSection + GetLineEnding();
 
-            
-            /*
-            for(auto [modifiers, infos] : channelLearns_)
+            for(auto [modifier, widgetCells] : homeZone_->GetLearnFXParamsZone()->GetLearnFXCells())
             {
-                for(auto info : infos)
+                string modifierStr = ModifierManager::GetModifierString(modifier);
+                
+                for(auto [address, cell] : widgetCells)
                 {
-                    if(info.fxName != learnFXName_)
-                        continue;
-                    
-                    string fxParamAction = "\tFXParam "  + to_string(info.paramNumber);
-                    string fxParamNameAction = "\tFixedTextDisplay \""  + info.paramName + "\"";
-                    string fxParamValueAction = "\tFXParamValueDisplay "  + to_string(info.paramNumber);
-                    
-                    if(! info.isLearned)
+                    for(int i = 0; i < cell.fxParamWidgets.size(); i++)
                     {
-                        fxParamAction = "\tNoAction";
-                        fxParamNameAction = "\tNoAction";
-                        fxParamValueAction = "\tNoAction";
-                    }
-                    
-                    fxZone << "\t" + info.modifiers + info.fxParamWidget + fxParamAction;
-                    
-                    if(info.numSteps > 0)
-                    {
-                        fxZone << " [ ";
+                        shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
                         
-                        for(auto step : SteppedValueDictionary[info.numSteps])
+                        if(info->isLearned)
                         {
-                            ostringstream stepStr;
-                            stepStr << std::setprecision(2) << step;
-                            fxZone << stepStr.str() + " ";
+                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + GetLineEnding() + GetLineEnding();
                         }
-                        
-                        fxZone << "]";
+                        else if(i == 0 && ! info->isLearned)
+                        {
+                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction" + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                        }
+                        else
+                        {
+                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
+                            fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                            fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                        }
                     }
-
+                    
                     fxZone << GetLineEnding();
-                    
-                    fxZone << "\t" + info.modifiers + info.fxParamNameWidget + fxParamNameAction + GetLineEnding();
-                    
-                    fxZone << "\t" + info.modifiers + info.fxParamValueWidget + fxParamValueAction + GetLineEnding() + GetLineEnding();
                 }
             }
-             */
-
             
             fxZone << EndAutoSection + GetLineEnding();
                     
@@ -2997,7 +2985,6 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         
                         for(auto widgetName : paramWidgets)
                         {
-                            shared_ptr<LearnInfo> info = make_shared<LearnInfo>();
                             
                             shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + layout.suffix + to_string(i));
                             if(widget == nullptr)
@@ -3007,8 +2994,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, memberParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
-                            info->fxParamWidget = widget;
-                            info->cell = layout.suffix + to_string(i);
+                            shared_ptr<LearnInfo> info = make_shared<LearnInfo>(widget, layout.suffix + to_string(i));
                             learnedFXParams_[widget][modifier] = info;
                         }
                         
@@ -3044,7 +3030,7 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                 for(auto paramDef : zoneDef_.paramDefs[i].definitions)
                 {
                     if(paramDef.aliasDisplayWidget != "")
-                    {
+                    {/*
                         shared_ptr<LearnInfo> info = GetLearnInfo(GetSurface()->GetWidgetByName(paramDef.paramWidgetFullName), modifierValue);
 
                         info->isLearned = true;
@@ -3057,6 +3043,7 @@ void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track
                             break;
                         else
                             return;
+                      */
                     }
                 }
             }
@@ -3154,6 +3141,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
+                    info->paramName = TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
                 }
             }
         }

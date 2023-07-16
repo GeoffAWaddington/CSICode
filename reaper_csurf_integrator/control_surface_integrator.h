@@ -634,6 +634,8 @@ public:
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
+    map<int, map<string, LearnFXCell>> &GetLearnFXCells() { return learnFXCells_; }
+    
     void AddLearnFXCell(int modifier, string cellAddress, LearnFXCell cell)
     {
         learnFXCells_[modifier][cellAddress] = cell;
@@ -969,10 +971,14 @@ struct CSILayoutInfo
 
 struct LearnInfo
 {
+    shared_ptr<Widget> const fxParamWidget = nullptr;
+    string const cell = "";
+    
     bool isLearned = false;
-    shared_ptr<Widget> fxParamWidget = nullptr;
-    string cell = "";
     int paramNumber = 0;
+    string paramName = "";
+    
+    LearnInfo(shared_ptr<Widget> paramWidget, string cellPosition) : fxParamWidget(paramWidget), cell(cellPosition) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1299,6 +1305,7 @@ public:
             {
                 info->isLearned = false;
                 info->paramNumber = 0;
+                info->paramName = "";
             }
         }
         
@@ -1517,7 +1524,7 @@ public:
     {
         if(hasLearnBeenEngagedRecently_)
         {
-            if(DAW::GetCurrentNumberOfMilliseconds() - timeLearnEngaged_ > 250)
+            if(DAW::GetCurrentNumberOfMilliseconds() - timeLearnEngaged_ > 100)
             {
                 timeLearnEngaged_ = 0;
                 hasLearnBeenEngagedRecently_ = false;
@@ -2235,7 +2242,35 @@ public:
         
         return str;
     }
-    
+       
+    static string GetModifierString(int modifierValue)
+    {
+        string modifierString = "";
+        
+        if(modifierValue & 0x04)
+            modifierString += "Shift+";
+        if(modifierValue & 0x08)
+            modifierString += "Option+";
+        if(modifierValue & 0x10)
+            modifierString += "Control+";
+        if(modifierValue & 0x20)
+            modifierString += "Alt+";
+        if(modifierValue & 0x40)
+            modifierString += "Flip+";
+        if(modifierValue & 0x80)
+            modifierString += "Global+";
+        if(modifierValue & 0x0100)
+            modifierString += "Marker+";
+        if(modifierValue & 0x0200)
+            modifierString += "Nudge+";
+        if(modifierValue & 0x0400)
+            modifierString += "Zoom+";
+        if(modifierValue & 0x0800)
+            modifierString += "Scrub+";
+
+        return modifierString;;
+    }
+
     int GetModifierValue(vector<string> tokens)
     {
         for(int i = 0; i < tokens.size() - 1; i++)
