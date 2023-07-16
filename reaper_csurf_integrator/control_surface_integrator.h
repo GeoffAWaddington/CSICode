@@ -1541,6 +1541,7 @@ public:
 
         if(homeZone_ != nullptr && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
         {
+            homeZone_->RequestUpdate(usedWidgets_);
             homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate(usedWidgets_);
         }
 

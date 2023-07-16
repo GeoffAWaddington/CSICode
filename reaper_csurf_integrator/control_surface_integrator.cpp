@@ -2304,11 +2304,7 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                 if(info->isLearned)
                 {
                     foundIt = true;
-                    
-                   if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
-                       for(auto context : actionContextDictionary_[widget][modifier])
-                           context->RequestUpdate();
-                    
+
                     if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
                         for(auto context : actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier])
                             context->RequestUpdate(info->paramNumber);
