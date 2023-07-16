@@ -1538,13 +1538,12 @@ public:
             
         for(auto &[key, value] : usedWidgets_)
             value = false;
-        
-        if(homeZone_ != nullptr)
+
+        if(homeZone_ != nullptr && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
         {
-            if(homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
-                homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate(usedWidgets_);
+            homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate(usedWidgets_);
         }
-        
+
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate(usedWidgets_);
 

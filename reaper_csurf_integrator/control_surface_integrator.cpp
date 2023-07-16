@@ -2985,6 +2985,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         if(widget == nullptr)
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
+                        zone->AddWidget(widget, widget->GetName());
                         shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, memberParams);
                         context->SetProvideFeedback(true);
                         zone->AddActionContext(widget, modifier, context);
@@ -2993,6 +2994,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         if(widget == nullptr)
                             continue;
                         cell.fxParamValueDisplayWidget = widget;
+                        zone->AddWidget(widget, widget->GetName());
                         context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, memberParams);
                         context->SetProvideFeedback(true);
                         zone->AddActionContext(widget, modifier, context);
@@ -3005,6 +3007,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             if(widget == nullptr)
                                 continue;
                             cell.fxParamWidgets.push_back(widget);
+                            zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, memberParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
