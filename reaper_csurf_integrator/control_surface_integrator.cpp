@@ -3142,11 +3142,12 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     
                     int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
                     
-                    if(numSteps == 0 && context->GetWidget()->GetName().find("Push") != string::npos)
-                        numSteps = 2;
-                    
-                    vector<int> modifiers = surface_->GetModifiers();
-                    
+                    if(context->GetWidget()->GetName().find("Push") != string::npos)
+                    {
+                        if(numSteps == 0)
+                            numSteps = 2;
+                        context->SetStepValues(SteppedValueDictionary[numSteps]);
+                    }
                     
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
@@ -3154,7 +3155,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             }
         }
     }
-    else if(info->isLearned)
+    else
     {
         lastTouchedWidget_ = context->GetWidget();
         lastTouchedParamModifier_ = 0;
