@@ -2906,7 +2906,7 @@ shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget, int m
         return  shared_ptr<LearnInfo>(nullptr);
 }
 
-void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
 {
     istringstream modifiersAndWidgetName(line);
     string modifiersAndWidgetNameToken;
@@ -2919,6 +2919,8 @@ void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, stri
     paramWidgetFullName = modifiers[modifiers.size() - 1];
 
     paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
+    
+    cell = layoutTemplates[listSlotIndex].suffix;
 }
 
 int ZoneManager::GetModifierValue(vector<string> modifierTokens)
@@ -3006,46 +3008,45 @@ void ZoneManager::InitializeFXParamsLearnZone()
     }
 }
 
-void ZoneManager::ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum)
+void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum)
 {
-    zoneDef_.Clear();
-    zoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
-
-    vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
-
-    UnpackZone(zoneDef_, layoutTemplates);
-    
-    vector<CSILayoutInfo> layouts = GetFXLayouts();
-         
-    int numParams = DAW::TrackFX_GetNumParams(track, fxSlotNum);
-    
-    for(int i = 0; i < numParams; i++)
+    if(shared_ptr<Zone> learnZone = homeZone_->GetLearnFXParamsZone())
     {
-        for(auto layoutInfo : layouts)
-        {
-            int modifierValue = GetModifierValue(layoutInfo.GetModifierTokens());
-                        
-            for(int j = 1; j <= layoutInfo.channelCount; j++)
-            {
-                for(auto paramDef : zoneDef_.paramDefs[i].definitions)
-                {
-                    if(paramDef.aliasDisplayWidget != "")
-                    {/*
-                        shared_ptr<LearnInfo> info = GetLearnInfo(GetSurface()->GetWidgetByName(paramDef.paramWidgetFullName), modifierValue);
+        vector<shared_ptr<Navigator>> navigators;
+        navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
+        vector<shared_ptr<Zone>> existingZones;
+        
+        ProcessZoneFile(zoneFilePaths_[fxName].filePath, sharedThisPtr_, navigators, existingZones, nullptr);
 
-                        info->isLearned = true;
-                        info->fxParamWidget = surface_->GetWidgetByName(paramDef.paramWidget);
-                        info->paramNumber = stoi(paramDef.paramNumber);
-                        
-                        i++;
-                        
-                        if(i < numParams)
-                            break;
-                        else
-                            return;
-                      */
-                    }
-                }
+        shared_ptr<Zone> existingZone = nullptr;
+        if(existingZones.size() > 0)
+            existingZone = existingZones[0];
+        if(existingZone == nullptr)
+            return;
+
+        map<int, map<string, LearnFXCell>> cells = learnZone->GetLearnFXCells();
+        
+        for(auto [modifier, addresses] : cells)
+        {
+            for(auto [address, cell] : addresses)
+            {
+                vector<shared_ptr<ActionContext>> existingContexts = existingZone->GetActionContexts(cell.fxParamNameDisplayWidget, modifier);
+                shared_ptr<ActionContext> existingContext = nullptr;
+                if(existingContexts.size() > 0)
+                    existingContext = existingContexts[0];
+                
+                vector<shared_ptr<ActionContext>> learnContexts = learnZone->GetActionContexts(cell.fxParamNameDisplayWidget, modifier);
+                shared_ptr<ActionContext> learnContext = nullptr;
+                if(learnContexts.size() > 0)
+                    learnContext = learnContexts[0];
+                
+                int blah = 0;
+                
+                
+                
+                
+                
+                
             }
         }
     }
@@ -3082,7 +3083,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             
             if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
-                ParseExistingZoneFileForLearn(fxName, track, fxSlotNum);
+                GetExistingZoneParamsForLearn(fxName, track, fxSlotNum);
                 learnFXName_ = fxName;
                 hasLearnBeenEngagedRecently_ = true;
                 timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
@@ -3117,7 +3118,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 
                 if(zoneFilePaths_.count(fxName) > 0)
                 {
-                    ParseExistingZoneFileForLearn(fxName, track, fxSlotNum);
+                    GetExistingZoneParamsForLearn(fxName, track, fxSlotNum);
                     learnFXName_ = fxName;
                 }
                 else

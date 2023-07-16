@@ -99,10 +99,10 @@ struct FXParamLayoutTemplate
 
 struct FXParamDefinition
 {
-    bool isLearned = false;
-    
     vector<string> modifiers;
     int modifier = 0;
+    
+    string cell = "";
     
     string paramWidget = "";
     string paramWidgetFullName = "";
@@ -595,6 +595,7 @@ protected:
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
     map<shared_ptr<Widget>, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
+    vector<shared_ptr<ActionContext>> empty;
     map<shared_ptr<Widget>, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
@@ -707,6 +708,14 @@ public:
     void AddActionContext(shared_ptr<Widget> widget, int modifier, shared_ptr<ActionContext> actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
+    }
+    
+    vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget, int modifier)
+    {
+        if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
+            return actionContextDictionary_[widget][modifier];
+        else
+            return empty;
     }
     
     virtual void GoSubZone(string subZoneName)
@@ -1110,8 +1119,8 @@ private:
     }
     
     void InitializeFXParamsLearnZone();
-    void ParseExistingZoneFileForLearn(string fxName, MediaTrack* track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
+    void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
+    void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(vector<string> modifiers);
     
     AutoZoneDefinition zoneDef_;
@@ -1845,7 +1854,7 @@ public:
                 
                 FXParamDefinition def;
                 
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                 
                 if(tokens.size() > 2)
                     def.paramNumber = tokens[2];
@@ -1877,7 +1886,7 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.aliasDisplayWidget, def.aliasDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.aliasDisplayWidget, def.aliasDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         def.alias = tokens[2];
                         
@@ -1896,7 +1905,7 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.valueDisplayWidget, def.valueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.valueDisplayWidget, def.valueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         if(tokens.size() > 3)
                             GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
