@@ -2300,6 +2300,12 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
             {
                 shared_ptr<LearnInfo> info = zoneManager_->GetLearnInfo(widget, modifier);
                 
+                if(info == nullptr)
+                {
+                    widget->Clear();
+                    continue;
+                }
+                
                 if(info->isLearned)
                 {
                     foundIt = true;
@@ -2849,6 +2855,9 @@ void ZoneManager::SaveLearnedFXParams()
                     {
                         shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
                         
+                        if(info == nullptr)
+                            continue;
+                        
                         if(info->isLearned)
                         {
                             fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + GetLineEnding();
@@ -2902,7 +2911,7 @@ shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget)
 
 shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget, int modifier)
 {
-    if(learnedFXParams_.count(widget) > 0)
+    if(learnedFXParams_.count(widget) > 0 && learnedFXParams_[widget].count(modifier) > 0)
         return learnedFXParams_[widget][modifier];
     else
         return  shared_ptr<LearnInfo>(nullptr);
