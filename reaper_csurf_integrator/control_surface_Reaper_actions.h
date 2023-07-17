@@ -66,7 +66,10 @@ public:
         shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         if(info == nullptr)
+        {
             context->ClearWidget();
+            return;
+        }
 
         if(info->isLearned && info->fxParamWidget == context->GetWidget())
         {
