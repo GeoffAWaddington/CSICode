@@ -3160,6 +3160,28 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                         context->SetStepValues(SteppedValueDictionary[numSteps]);
                     }
                     
+                    int currentModifier = 0;
+                    
+                    vector<int> modifiers = surface_->GetModifiers();
+
+                    if(modifiers.size() > 0)
+                        currentModifier = modifiers[0];
+
+                    for(auto [widget, modifiers] : learnedFXParams_)
+                    {
+                        for(auto [modifier, widgetInfo] : modifiers)
+                        {
+                            if(modifier == currentModifier && widgetInfo->cell == info->cell)
+                            {
+                                widgetInfo->isLearned = false;
+                                widgetInfo->paramNumber = 0;
+                                widgetInfo->paramName = "";
+                                widgetInfo->track = nullptr;
+                                widgetInfo->fxSlotNum = 0;
+                            }
+                        }
+                    }
+
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
                     info->paramName = TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
