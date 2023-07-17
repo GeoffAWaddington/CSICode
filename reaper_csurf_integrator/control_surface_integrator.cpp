@@ -1400,7 +1400,6 @@ void Manager::InitActionsDictionary()
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
     actions_["EraseLastTouchedFXParam"] =           make_shared<EraseLastTouchedFXParam>();
-    actions_["RevertToExistingZoneParam"] =         make_shared<RevertToExistingZoneParam>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
     actions_["ToggleFXBypass"] =                    make_shared<ToggleFXBypass>();
@@ -2786,12 +2785,13 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
 
 void ZoneManager::EraseLastTouchedFXParam()
 {
-    if(learnedFXParams_.count(lastTouchedWidget_) > 0 && learnedFXParams_[lastTouchedWidget_].count(lastTouchedParamModifier_) > 0)
+    if(lastTouched_ != nullptr)
     {
-        shared_ptr<LearnInfo> info = learnedFXParams_[lastTouchedWidget_][lastTouchedParamModifier_];
-        
-        info->isLearned = false;
-        info->paramNumber = 0;
+        lastTouched_->isLearned = false;
+        lastTouched_->paramNumber = 0;
+        lastTouched_->paramName = "";
+        lastTouched_->track = nullptr;
+        lastTouched_->fxSlotNum = 0;
     }
 }
 
@@ -3163,22 +3163,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     }
     else
     {
-        lastTouchedWidget_ = context->GetWidget();
-        lastTouchedParamModifier_ = 0;
-        
-        if(GetSurface()->GetModifiers().size() > 0)
-            lastTouchedParamModifier_ = GetSurface()->GetModifiers()[0];
-               
-        /*
-        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
-            if(info->paramNumber != fxParamNum)
-                info->paramNumber = fxParamNum;
-        
-        for(auto [widget, modifiers] : learnedFXParams_)
-            for(auto [modifier, widgetInfo] : modifiers)
-                if(modifier == lastTouchedParamModifier_ && widgetInfo->isLearned && widgetInfo->cell == info->cell && widget != context->GetWidget())
-                    GetLearnInfo(widget)->isLearned = false;
-        */
+        lastTouched_ = info;
+                       
         DAW::TrackFX_SetParam(info->track, info->fxSlotNum, info->paramNumber, value);
     }
 }

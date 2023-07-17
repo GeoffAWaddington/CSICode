@@ -1128,8 +1128,7 @@ private:
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
     string learnFXName_ = "";
-    shared_ptr<Widget> lastTouchedWidget_ = nullptr;
-    int lastTouchedParamModifier_ = 0;
+    shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
     
     bool hasLearnBeenEngagedRecently_ = false;
@@ -1322,8 +1321,7 @@ public:
             }
         }
         
-        lastTouchedWidget_ = nullptr;
-        lastTouchedParamModifier_ = 0;
+        lastTouched_ = nullptr;
     }
         
     void ClearFocusedFXParam()
@@ -1694,33 +1692,6 @@ public:
         return  numGroups;
     }
     
-    void RevertToExistingZoneParam()
-    {
-        if(zoneDef_.paramDefs.size() != 0 && lastTouchedWidget_ != nullptr)
-        {
-            bool foundIt = false;
-            
-            for(auto paramDefs : zoneDef_.paramDefs)
-            {
-                if(foundIt)
-                    break;
-                
-                for(auto paramDef : paramDefs.definitions)
-                {
-                    if(paramDef.paramWidgetFullName == lastTouchedWidget_->GetName() && paramDef.modifier == lastTouchedParamModifier_)
-                    {
-                        shared_ptr<LearnInfo> info = GetLearnInfo(lastTouchedWidget_, lastTouchedParamModifier_);
-
-                        info->paramNumber = stoi(paramDef.paramNumber);
-                        
-                        foundIt = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     vector<FXParamLayoutTemplate> GetFXLayoutTemplates()
     {
         vector<FXParamLayoutTemplate> layoutTemplates;
