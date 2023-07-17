@@ -2864,12 +2864,6 @@ void ZoneManager::SaveLearnedFXParams()
                             fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + GetLineEnding();
                             fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + GetLineEnding() + GetLineEnding();
                         }
-                        else if(i == 0 && ! info->isLearned)
-                        {
-                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction" + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction" + GetLineEnding() + GetLineEnding();
-                        }
                         else
                         {
                             fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
