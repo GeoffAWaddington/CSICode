@@ -1268,7 +1268,7 @@ public:
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
       
-    void EraseLastTouchedFXParam();
+    void EraseLastTouchedControl();
     void SaveLearnedFXParams();
         
     void RemoveZone(string zoneName)

@@ -1399,7 +1399,7 @@ void Manager::InitActionsDictionary()
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
-    actions_["EraseLastTouchedFXParam"] =           make_shared<EraseLastTouchedFXParam>();
+    actions_["EraseLastTouchedControl"] =           make_shared<EraseLastTouchedControl>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
     actions_["ToggleFXBypass"] =                    make_shared<ToggleFXBypass>();
@@ -2783,7 +2783,7 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
         homeZone_->UpdateCurrentActionContextModifiers();
 }
 
-void ZoneManager::EraseLastTouchedFXParam()
+void ZoneManager::EraseLastTouchedControl()
 {
     if(lastTouched_ != nullptr)
     {

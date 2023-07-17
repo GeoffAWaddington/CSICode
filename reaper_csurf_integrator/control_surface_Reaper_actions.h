@@ -123,17 +123,17 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class EraseLastTouchedFXParam : public Action
+class EraseLastTouchedControl : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "EraseLastTouchedFXParam"; }
+    virtual string GetName() override { return "EraseLastTouchedControl"; }
    
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->EraseLastTouchedFXParam();
+        context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
     }
 };
 
