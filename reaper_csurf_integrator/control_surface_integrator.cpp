@@ -3089,6 +3089,9 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     
     shared_ptr<LearnInfo> info = GetLearnInfo(context->GetWidget());
     
+    if(info == nullptr)
+        return;
+    
     if(! info->isLearned)
     {
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
