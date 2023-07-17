@@ -3044,14 +3044,21 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
                 if(existingContext != nullptr && learnContext != nullptr && existingContext->GetStringParam() != "")
                     displayName = existingContext->GetStringParam();
                 
-                int blah = 0;
-                
-                
-                
-                
-                
-                
-                
+                for(auto widget : cell.fxParamWidgets)
+                {
+                    vector<shared_ptr<ActionContext>> existingContexts = existingZone->GetActionContexts(widget, modifier);
+                    shared_ptr<ActionContext> existingContext = nullptr;
+                    if(existingContexts.size() > 0)
+                        existingContext = existingContexts[0];
+
+                    if(existingContext->GetAction()->GetName() != "NoAction")
+                    {
+                        learnedFXParams_[widget][modifier]->isLearned = true;
+                        learnedFXParams_[widget][modifier]->paramName = displayName;
+                        learnedFXParams_[widget][modifier]->paramNumber = existingContext->GetIntParam();
+                        break;
+                    }
+                }
             }
         }
     }
