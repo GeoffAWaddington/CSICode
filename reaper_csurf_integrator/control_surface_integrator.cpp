@@ -2792,6 +2792,8 @@ void ZoneManager::EraseLastTouchedControl()
         lastTouched_->paramName = "";
         lastTouched_->track = nullptr;
         lastTouched_->fxSlotNum = 0;
+        
+        lastTouched_ = nullptr;
     }
 }
 
