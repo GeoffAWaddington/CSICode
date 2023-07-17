@@ -3155,6 +3155,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
                     info->paramName = TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+                    info->track = DAW::GetTrack(trackNum);
+                    info->fxSlotNum = fxSlotNum;
                 }
             }
         }
@@ -3166,7 +3168,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
         
         if(GetSurface()->GetModifiers().size() > 0)
             lastTouchedParamModifier_ = GetSurface()->GetModifiers()[0];
-        
+               
+        /*
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
             if(info->paramNumber != fxParamNum)
                 info->paramNumber = fxParamNum;
@@ -3175,8 +3178,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             for(auto [modifier, widgetInfo] : modifiers)
                 if(modifier == lastTouchedParamModifier_ && widgetInfo->isLearned && widgetInfo->cell == info->cell && widget != context->GetWidget())
                     GetLearnInfo(widget)->isLearned = false;
-        
-        DAW::TrackFX_SetParam(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, value);
+        */
+        DAW::TrackFX_SetParam(info->track, info->fxSlotNum, info->paramNumber, value);
     }
 }
 

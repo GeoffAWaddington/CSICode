@@ -986,6 +986,8 @@ struct LearnInfo
     bool isLearned = false;
     int paramNumber = 0;
     string paramName = "";
+    MediaTrack* track = nullptr;
+    int fxSlotNum = 0;
     
     LearnInfo(shared_ptr<Widget> paramWidget, string cellPosition) : fxParamWidget(paramWidget), cell(cellPosition) {}
 };
@@ -1315,6 +1317,8 @@ public:
                 info->isLearned = false;
                 info->paramNumber = 0;
                 info->paramName = "";
+                info->track = nullptr;
+                info->fxSlotNum = 0;
             }
         }
         
