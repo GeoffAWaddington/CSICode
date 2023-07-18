@@ -1131,9 +1131,7 @@ private:
     string learnFXName_ = "";
     shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
-    
-    bool isMutuallyExclusiveCellFXLearnMode_ = true;
-    
+        
     bool hasLearnBeenEngagedRecently_ = false;
     int timeLearnEngaged_ = 0;
 
@@ -1248,9 +1246,6 @@ public:
     
     void EraseLastTouchedControl();
     void SaveLearnedFXParams();
-        
-    void ToggleMutuallyExclusiveCellFXLearnMode() { isMutuallyExclusiveCellFXLearnMode_ = ! isMutuallyExclusiveCellFXLearnMode_; }
-    bool GetMutuallyExclusiveCellFXLearnMode() { return isMutuallyExclusiveCellFXLearnMode_; }
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
