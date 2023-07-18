@@ -986,6 +986,7 @@ struct LearnInfo
     bool isLearned = false;
     int paramNumber = 0;
     string paramName = "";
+    string params = "";
     MediaTrack* track = nullptr;
     int fxSlotNum = 0;
     
@@ -1131,6 +1132,8 @@ private:
     shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
     
+    bool isMutuallyExclusiveCellFXLearnMode_ = true;
+    
     bool hasLearnBeenEngagedRecently_ = false;
     int timeLearnEngaged_ = 0;
 
@@ -1243,6 +1246,12 @@ public:
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
+    void EraseLastTouchedControl();
+    void SaveLearnedFXParams();
+        
+    void ToggleMutuallyExclusiveCellFXLearnMode() { isMutuallyExclusiveCellFXLearnMode_ = ! isMutuallyExclusiveCellFXLearnMode_; }
+    bool GetMutuallyExclusiveCellFXLearnMode() { return isMutuallyExclusiveCellFXLearnMode_; }
+    
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
@@ -1267,10 +1276,7 @@ public:
     bool GetIsAutoFocusedFXMappingEnabled() { return isAutoFocusedFXMappingEnabled_; }
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-      
-    void EraseLastTouchedControl();
-    void SaveLearnedFXParams();
-        
+          
     void RemoveZone(string zoneName)
     {
         if(zoneFilePaths_.count(zoneName) > 0)
@@ -1316,6 +1322,7 @@ public:
                 info->isLearned = false;
                 info->paramNumber = 0;
                 info->paramName = "";
+                info->params = "";
                 info->track = nullptr;
                 info->fxSlotNum = 0;
             }

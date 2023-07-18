@@ -1398,6 +1398,7 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeterMaxPeakLR"] =         make_shared<TrackOutputMeterMaxPeakLR>();
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
+    actions_["ToggleMutuallyExclusiveCellFXLearnMode"] = make_shared<ToggleMutuallyExclusiveCellFXLearnMode>();
     actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
     actions_["EraseLastTouchedControl"] =           make_shared<EraseLastTouchedControl>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
@@ -2796,6 +2797,7 @@ void ZoneManager::EraseLastTouchedControl()
         lastTouched_->isLearned = false;
         lastTouched_->paramNumber = 0;
         lastTouched_->paramName = "";
+        lastTouched_->params = "";
         lastTouched_->track = nullptr;
         lastTouched_->fxSlotNum = 0;
         
@@ -2851,6 +2853,16 @@ void ZoneManager::SaveLearnedFXParams()
                 
                 for(auto [address, cell] : widgetCells)
                 {
+                    bool isNonPushWidgetLearned = false;
+                    
+                    for(auto widget : cell.fxParamWidgets)
+                    {
+                        shared_ptr<LearnInfo> info = GetLearnInfo(widget, modifier);
+
+                        if(info->isLearned && widget->GetName().find("Push") == string::npos)
+                            isNonPushWidgetLearned = true;
+                    }
+                    
                     for(int i = 0; i < cell.fxParamWidgets.size(); i++)
                     {
                         shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
@@ -2858,9 +2870,15 @@ void ZoneManager::SaveLearnedFXParams()
                         if(info == nullptr)
                             continue;
                         
-                        if(info->isLearned)
+                        if(info->isLearned && cell.fxParamWidgets[i]->GetName().find("Push") != string::npos &&  isNonPushWidgetLearned == true)
                         {
-                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
+                            fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                            fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding() + GetLineEnding();
+                        }
+                        else if(info->isLearned)
+                        {
+                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
                             fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + GetLineEnding();
                             fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + GetLineEnding() + GetLineEnding();
                         }
@@ -3157,7 +3175,37 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     {
                         if(numSteps == 0)
                             numSteps = 2;
+                    }
+                    
+                    if(numSteps > 1)
                         context->SetStepValues(SteppedValueDictionary[numSteps]);
+                    
+                    string paramStr = "";
+                    
+                    if(numSteps > 1)
+                    {
+                        ostringstream stepStr;
+                        
+                        stepStr << "";
+
+                        stepStr << "[ ";
+                        
+                        for(auto step : SteppedValueDictionary[numSteps])
+                        {
+                            stepStr << std::setprecision(2) << step;
+                            stepStr <<  "  ";
+                        }
+                        
+                        stepStr << "]";
+                        
+                        paramStr = stepStr.str();
+                    }
+                    
+                    if(context->GetWidget()->GetName().find("Rotary") != string::npos && context->GetWidget()->GetName().find("Push") == string::npos)
+                    {
+                        if(surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
+                            for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
+                                paramStr += " " + surfaceFXLayout_[0][i];
                     }
                     
                     int currentModifier = 0;
@@ -3173,11 +3221,16 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                         {
                             if(modifier == currentModifier && widgetInfo->cell == info->cell)
                             {
-                                widgetInfo->isLearned = false;
-                                widgetInfo->paramNumber = 0;
-                                widgetInfo->paramName = "";
-                                widgetInfo->track = nullptr;
-                                widgetInfo->fxSlotNum = 0;
+                                if(isMutuallyExclusiveCellFXLearnMode_ || ( ! isMutuallyExclusiveCellFXLearnMode_ && widget->GetName().find("Push") == string::npos))
+                                {
+                                    widgetInfo->isLearned = false;
+                                    widgetInfo->paramNumber = 0;
+                                    widgetInfo->paramName = "";
+                                    widgetInfo->params = "";
+                                    widgetInfo->track = nullptr;
+                                    widgetInfo->fxSlotNum = 0;
+                                }
+
                             }
                         }
                     }
@@ -3185,6 +3238,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
                     info->paramName = TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+                    info->params = paramStr;
                     info->track = DAW::GetTrack(trackNum);
                     info->fxSlotNum = fxSlotNum;
                 }
