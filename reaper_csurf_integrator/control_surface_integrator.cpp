@@ -3016,53 +3016,40 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
 void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum)
 {
-    if(shared_ptr<Zone> learnZone = homeZone_->GetLearnFXParamsZone())
+    zoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
+    vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
+        
+    UnpackZone(zoneDef_, layoutTemplates);
+    
+    for(auto paramDefs : zoneDef_.paramDefs)
     {
-        vector<shared_ptr<Navigator>> navigators;
-        navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
-        vector<shared_ptr<Zone>> existingZones;
-        
-        ProcessZoneFile(zoneFilePaths_[fxName].filePath, sharedThisPtr_, navigators, existingZones, nullptr);
-
-        shared_ptr<Zone> existingZone = nullptr;
-        if(existingZones.size() > 0)
-            existingZone = existingZones[0];
-        if(existingZone == nullptr)
-            return;
-
-        map<int, map<string, LearnFXCell>> cells = learnZone->GetLearnFXCells();
-        
-        for(auto [modifier, addresses] : cells)
+        for(auto def : paramDefs.definitions)
         {
-            for(auto [address, cell] : addresses)
+            if(shared_ptr<Widget> widget = surface_->GetWidgetByName(def.paramWidgetFullName))
             {
-                vector<shared_ptr<ActionContext>> existingContexts = existingZone->GetActionContexts(cell.fxParamNameDisplayWidget, modifier);
-                shared_ptr<ActionContext> existingContext = nullptr;
-                if(existingContexts.size() > 0)
-                    existingContext = existingContexts[0];
-                
-                vector<shared_ptr<ActionContext>> learnContexts = learnZone->GetActionContexts(cell.fxParamNameDisplayWidget, modifier);
-                shared_ptr<ActionContext> learnContext = nullptr;
-                if(learnContexts.size() > 0)
-                    learnContext = learnContexts[0];
-                
-                string displayName = "";
-                if(existingContext != nullptr && learnContext != nullptr && existingContext->GetStringParam() != "")
-                    displayName = existingContext->GetStringParam();
-                
-                for(auto widget : cell.fxParamWidgets)
+                if(shared_ptr<LearnInfo> info = GetLearnInfo(widget, def.modifier))
                 {
-                    vector<shared_ptr<ActionContext>> existingContexts = existingZone->GetActionContexts(widget, modifier);
-                    shared_ptr<ActionContext> existingContext = nullptr;
-                    if(existingContexts.size() > 0)
-                        existingContext = existingContexts[0];
-
-                    if(existingContext->GetAction()->GetName() != "NoAction")
+                    if(def.paramNumber != "" && def.paramNameDisplayWidget != "NullDisplay")
                     {
-                        learnedFXParams_[widget][modifier]->isLearned = true;
-                        learnedFXParams_[widget][modifier]->paramName = displayName;
-                        learnedFXParams_[widget][modifier]->paramNumber = existingContext->GetIntParam();
-                        break;
+                        info->isLearned = true;
+                        info->paramName = def.paramName;
+                        info->track = track;
+                        info->fxSlotNum =fxSlotNum;
+                        info->paramNumber = stoi(def.paramNumber);
+
+                        if(def.steps.size() > 0)
+                        {
+                            if(shared_ptr<Zone> learnZone = homeZone_->GetLearnFXParamsZone())
+                            {
+                                vector<double> steps;
+                                
+                                for(auto step : def.steps)
+                                    steps.push_back(stod(step));
+                                
+                                for(auto context : learnZone->GetActionContexts(widget, def.modifier))
+                                    context->SetStepValues(steps);
+                            }
+                        }
                     }
                 }
             }
@@ -3070,9 +3057,54 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
     }
 }
 
+bool ZoneManager::ZoneAlreadyExistsStopLearning(string fxName, MediaTrack* track, int fxSlotNum)
+{
+    ifstream file(zoneFilePaths_[fxName].filePath);
+     
+    string line = "";
+    
+    if(getline(file, line))
+    {
+        vector<string> tokens = GetTokens(line);
+        
+        if(tokens.size() > 3 && tokens[3] == GeneratedByLearn)
+        {
+            learnFXName_ = fxName;
+            GetExistingZoneParamsForLearn(fxName, track, fxSlotNum);
+        }
+        
+        file.close();
+        hasLearnBeenEngagedRecently_ = true;
+        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
+        return false;
+    }
+    
+    file.close();
+
+    string message = string("There is already a ") + GetAlias(fxName) + string(". \nIt was not generated by Learn. \n\nPress Ok to permanently erase ") + GetAlias(fxName) + string(" from disk and continue to learn. \n\nPress Cancel to stop learning."  );
+    
+    int result = MessageBox(NULL, message.c_str(), "Zone Not Generated by Learn", MB_OKCANCEL);
+    
+    if(result == IDOK)
+    {
+        RemoveZone(fxName);
+        hasLearnBeenEngagedRecently_ = true;
+        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
+        return false;
+    }
+    else
+    {
+        hasLearnBeenEngagedRecently_ = true;
+        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
+        return true;
+    }
+    
+    return true;
+}
+
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
-    // This is just to let things settle a bit, you may have turned an encoder and there may be a few "spurious" message yet to come
+    // This is just to let things settle a bit, you may have turned an encoder and there may be a few "spurious" messages yet to come
     if(hasLearnBeenEngagedRecently_)
         return;
 
@@ -3104,40 +3136,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             
             if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
-                ifstream file(zoneFilePaths_[fxName].filePath);
-                 
-                string line = "";
-                
-                if(getline(file, line))
-                {
-                    vector<string> tokens = GetTokens(line);
-                    
-                    if(tokens.size() > 3 && tokens[3] == GeneratedByLearn)
-                    {
-                        learnFXName_ = fxName;
-                        GetExistingZoneParamsForLearn(fxName, track, fxSlotNum);
-                    }
-                }
-
-                if(learnFXName_ == "")
-                {
-                    string message = string("There is already a ") + GetAlias(fxName) + string(". \nIt was not generated by Learn. \n\nPress Ok to permanently erase ") + GetAlias(fxName) + string(" from disk and continue to learn. \n\nPress Cancel to stop learning."  );
-                    
-                    int result = MessageBox(NULL, message.c_str(), "Zone Not Generated by Learn", MB_OKCANCEL);
-                    
-                    if(result == IDOK)
-                    {
-                        RemoveZone(fxName);
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-                    }
-                    else
-                    {
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-                        return;
-                    }
-                }
+                if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
+                   return;
             }
             else
             {
@@ -3169,22 +3169,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 
                 if(zoneFilePaths_.count(fxName) > 0)
                 {
-                    string message = string("There is already a ") + GetAlias(fxName) + string(". \nIt was not generated by Learn. \n\nPress Ok to permanently erase ") + GetAlias(fxName) + string(" from disk and continue to learn. \n\nPress Cancel to stop learning."  );
-                    
-                    int result = MessageBox(NULL, message.c_str(), "Zone Not Generated by Learn", MB_OKCANCEL);
-                    
-                    if(result == IDOK)
-                    {
-                        RemoveZone(fxName);
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-                    }
-                    else
-                    {
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-                        return;
-                    }
+                    if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
+                       return;
                 }
                 else
                 {
@@ -3268,9 +3254,6 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     info->track = DAW::GetTrack(trackNum);
                     info->fxSlotNum = fxSlotNum;
                 }
-                
-                
-                
             }
         }
     }

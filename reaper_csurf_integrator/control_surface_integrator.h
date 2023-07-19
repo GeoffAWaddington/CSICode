@@ -108,16 +108,16 @@ struct FXParamDefinition
     string paramWidget = "";
     string paramWidgetFullName = "";
     string paramNumber = "";
-    map<string, string> widgetProperties;
+    map<string, string> paramWidgetProperties;
 
-    string aliasDisplayWidget = "";
-    string aliasDisplayWidgetFullName = "";
-    string alias = "";
-    map<string, string> aliasDisplayWidgetProperties;
+    string paramNameDisplayWidget = "";
+    string paramNameDisplayWidgetFullName = "";
+    string paramName = "";
+    map<string, string> paramNameDisplayWidgetProperties;
     
-    string valueDisplayWidget = "";
-    string valueDisplayWidgetFullName = "";
-    map<string, string> valueDisplayWidgetProperties;
+    string paramValueDisplayWidget = "";
+    string paramValueDisplayWidgetFullName = "";
+    map<string, string> paramValueDisplayWidgetProperties;
 
     string delta = "";
     vector<string> deltas;
@@ -451,6 +451,7 @@ public:
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
     double GetStepSize() { return deltaValue_; }
     void   SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
+    vector<double> GetStepValues() { return steppedValues_; }
     int    GetNumberOfSteppedValues() { return steppedValues_.size(); }
     void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
@@ -1122,6 +1123,7 @@ private:
         return alias;
     }
     
+    bool ZoneAlreadyExistsStopLearning(string fxName, MediaTrack* track, int fxSlotNum);
     void InitializeFXParamsLearnZone();
     void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
@@ -1854,7 +1856,7 @@ public:
                 }
                                        
                 if(tokens.size() > propertiesOffset)
-                    GetProperties(propertiesOffset,  tokens.size(), tokens, def.widgetProperties);
+                    GetProperties(propertiesOffset,  tokens.size(), tokens, def.paramWidgetProperties);
                 
                 if(getline(autoFXFile, line))
                 {
@@ -1864,12 +1866,12 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.aliasDisplayWidget, def.aliasDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
-                        def.alias = tokens[2];
+                        def.paramName = tokens[2];
                         
                         if(tokens.size() > 3)
-                            GetProperties(3, tokens.size(), tokens, def.aliasDisplayWidgetProperties);
+                            GetProperties(3, tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
                     }
                 }
                 else
@@ -1883,10 +1885,10 @@ public:
                     {
                         vector<string> modifers;
                         
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.valueDisplayWidget, def.valueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         if(tokens.size() > 3)
-                            GetProperties(3, tokens.size(), tokens, def.valueDisplayWidgetProperties);
+                            GetProperties(3, tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
                     }
                 }
                 else
@@ -1972,13 +1974,13 @@ public:
                             fxFile << "]";
                         }
                         
-                        for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].widgetProperties)
+                        for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramWidgetProperties)
                             fxFile << " " + key + "=" + value ;
                         
                         fxFile << GetLineEnding();
                     }
                     
-                    if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].aliasDisplayWidget == "")
+                    if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
                     {
                         if(j == 0 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
                             fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
@@ -1987,17 +1989,17 @@ public:
                     }
                     else
                     {
-                        fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].aliasDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget + layoutTemplates[i].suffix + "\t";
                         
-                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].alias + "\" ";
+                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].paramName + "\" ";
                         
-                        for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].aliasDisplayWidgetProperties)
+                        for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
                         fxFile << GetLineEnding();
                     }
                     
-                    if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].valueDisplayWidget == "")
+                    if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
                     {
                         if(j == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
                             fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
@@ -2006,11 +2008,11 @@ public:
                     }
                     else
                     {
-                        fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].valueDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget + layoutTemplates[i].suffix + "\t";
                         
                         fxFile << layoutTemplates[i].valueDisplayAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber;
                         
-                        for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].valueDisplayWidgetProperties)
+                        for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
                         fxFile << GetLineEnding();

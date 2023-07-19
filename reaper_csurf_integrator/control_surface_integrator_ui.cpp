@@ -578,60 +578,60 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for(int i = 0; i < zoneDef.paramDefs[fxListIndex].definitions.size() && i < paramNumEditControls.size(); i++)
             {
                 SetDlgItemText(hwndDlg, paramNumEditControls[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramNumber.c_str());
-                SetDlgItemText(hwndDlg, fixedTextEditControls[i], zoneDef.paramDefs[fxListIndex].definitions[i].alias.c_str());
+                SetDlgItemText(hwndDlg, fixedTextEditControls[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramName.c_str());
 
                 SetDlgItemText(hwndDlg, widgetTypePickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramWidget.c_str());
-                SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidget.c_str());
-                SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidget.c_str());
+                SetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidget.c_str());
+                SetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidget.c_str());
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties.count("RingStyle") > 0)
-                    SetDlgItemText(hwndDlg, ringStylePickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"].c_str());
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties.count("RingStyle") > 0)
+                    SetDlgItemText(hwndDlg, ringStylePickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties["RingStyle"].c_str());
                 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Font") > 0)
-                    SetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"].c_str());
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Font") > 0)
+                    SetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Font"].c_str());
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Font") > 0)
-                    SetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"].c_str());
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Font") > 0)
+                    SetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Font"].c_str());
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties.count("LEDRingColor") > 0)
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties.count("LEDRingColor") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"]);
+                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties["LEDRingColor"]);
                     buttonColors[widgetRingColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties.count("PushColor") > 0)
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties.count("PushColor") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"]);
+                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties["PushColor"]);
                     buttonColors[widgetRingIndicators[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Foreground") > 0)
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"]);
+                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Foreground"]);
                     buttonColors[fixedTextDisplayForegroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties.count("Background") > 0)
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Background") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"]);
+                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Background"]);
                     buttonColors[fixedTextDisplayBackgroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Foreground") > 0)
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"]);
+                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Foreground"]);
                     buttonColors[fxParamDisplayForegroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties.count("Background") > 0)
+                if(zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Background") > 0)
                 {
                     hasColors = true;
-                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"]);
+                    rgba_color color = GetColorValue(zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Background"]);
                     buttonColors[fxParamDisplayBackgroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
@@ -844,16 +844,16 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             zoneDef.paramDefs[fxListIndex].definitions[i].paramWidget = buf;
                             
                             GetDlgItemText(hwndDlg, ringStylePickers[i], buf, sizeof(buf));
-                            zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["RingStyle"] = buf;
+                            zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties["RingStyle"] = buf;
                             
                             GetDlgItemText(hwndDlg, fixedTextEditControls[i], buf, sizeof(buf));
-                            zoneDef.paramDefs[fxListIndex].definitions[i].alias = buf;
+                            zoneDef.paramDefs[fxListIndex].definitions[i].paramName = buf;
 
                             GetDlgItemText(hwndDlg, fixedTextDisplayRowPickers[i], buf, sizeof(buf));
-                            zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidget = buf;
+                            zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidget = buf;
 
                             GetDlgItemText(hwndDlg, paramValueDisplayRowPickers[i], buf, sizeof(buf));
-                            zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidget = buf;
+                            zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidget = buf;
 
                             GetDlgItemText(hwndDlg, stepEditControls[i], buf, sizeof(buf));
                             
@@ -867,10 +867,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             if(hasFonts)
                             {
                                 GetDlgItemText(hwndDlg, fixedTextDisplayFontPickers[i], buf, sizeof(buf));
-                                zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Font"] = buf;
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Font"] = buf;
                                 
                                 GetDlgItemText(hwndDlg, paramValueDisplayFontPickers[i], buf, sizeof(buf));
-                                zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Font"] = buf;
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Font"] = buf;
                             }
                             
                             if(hasColors)
@@ -878,22 +878,22 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 rgba_color color;
                                 
                                 DAW::ColorFromNative(buttonColors[widgetRingColors[i]], &color.r, &color.g, &color.b);
-                                zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["LEDRingColor"] = color.to_string();
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties["LEDRingColor"] = color.to_string();
                                 
                                 DAW::ColorFromNative(buttonColors[widgetRingIndicators[i]], &color.r, &color.g, &color.b);
-                                zoneDef.paramDefs[fxListIndex].definitions[i].widgetProperties["PushColor"] = color.to_string();
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramWidgetProperties["PushColor"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fixedTextDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
-                                zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Foreground"] = color.to_string();
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Foreground"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fixedTextDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
-                                zoneDef.paramDefs[fxListIndex].definitions[i].aliasDisplayWidgetProperties["Background"] = color.to_string();
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Background"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fxParamDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
-                                zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Foreground"] = color.to_string();
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Foreground"] = color.to_string();
 
                                 DAW::ColorFromNative(buttonColors[fxParamDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
-                                zoneDef.paramDefs[fxListIndex].definitions[i].valueDisplayWidgetProperties["Background"] = color.to_string();
+                                zoneDef.paramDefs[fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Background"] = color.to_string();
                             }
                         }
                        
@@ -1010,9 +1010,9 @@ vector<string> GetLineComponents(int index)
         
         components.push_back(widgetName);
         
-        string alias = paramDef.alias;
+        string alias = paramDef.paramName;
 
-        if(paramDef.alias == "" && paramDef.paramNumber != "" && zoneDef.rawParamsDictionary.count(paramDef.paramNumber) > 0)
+        if(paramDef.paramName == "" && paramDef.paramNumber != "" && zoneDef.rawParamsDictionary.count(paramDef.paramNumber) > 0)
             alias = zoneDef.rawParamsDictionary[paramDef.paramNumber];
         else if(paramDef.paramNumber == "")
             alias = "NoAction";
