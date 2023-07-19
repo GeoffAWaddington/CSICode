@@ -142,7 +142,8 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
+        if(context->GetZone()->GetName() == "LearnFXParams")
+            context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
     }
 };
 
@@ -157,7 +158,8 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->CheckForExistingLearnZone();
+        if(context->GetZone()->GetName() == "LearnFXParams")
+            context->GetSurface()->GetZoneManager()->CheckForExistingLearnZone();
     }
 };
 
@@ -172,7 +174,8 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
+        if(context->GetZone()->GetName() == "LearnFXParams")
+            context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
     }
 };
 
