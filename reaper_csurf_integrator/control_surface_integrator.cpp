@@ -1398,7 +1398,8 @@ void Manager::InitActionsDictionary()
     actions_["TrackOutputMeterMaxPeakLR"] =         make_shared<TrackOutputMeterMaxPeakLR>();
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
-    actions_["SaveLearnedFXParams"] =                make_shared<SaveLearnedFXParams>();
+    actions_["SaveLearnedFXParams"] =               make_shared<SaveLearnedFXParams>();
+    actions_["CheckForExistingLearnZone"] =         make_shared<CheckForExistingLearnZone>();
     actions_["EraseLastTouchedControl"] =           make_shared<EraseLastTouchedControl>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();

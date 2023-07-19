@@ -1273,7 +1273,30 @@ public:
     bool GetIsAutoFocusedFXMappingEnabled() { return isAutoFocusedFXMappingEnabled_; }
 
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-          
+      
+    void CheckForExistingLearnZone()
+    {
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+
+        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        {
+            MediaTrack* track = DAW::GetTrack(trackNum);
+            
+            char fxName[BUFSZ];
+            DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            
+            if(learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+            {
+                if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
+                   return;
+            
+                learnFXName_ = fxName;
+            }
+        }
+    }
+    
     void RemoveZone(string zoneName)
     {
         if(zoneFilePaths_.count(zoneName) > 0)
