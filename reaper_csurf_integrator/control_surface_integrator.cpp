@@ -3039,6 +3039,13 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
 
                         if(def.steps.size() > 0)
                         {
+                            info->params = "[ ";
+                            
+                            for(auto step : def.steps)
+                                info->params += step + "  ";
+                            
+                            info->params += "]";
+                            
                             if(shared_ptr<Zone> learnZone = homeZone_->GetLearnFXParamsZone())
                             {
                                 vector<double> steps;
@@ -3049,6 +3056,13 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
                                 for(auto context : learnZone->GetActionContexts(widget, def.modifier))
                                     context->SetStepValues(steps);
                             }
+                        }
+                        
+                        if(def.paramWidget.find("Rotary") != string::npos && def.paramWidget.find("Push") == string::npos)
+                        {
+                            if(surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
+                                for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
+                                    info->params += " " + surfaceFXLayout_[0][i];
                         }
                     }
                 }
@@ -3138,6 +3152,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             {
                 if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
                    return;
+            
+                learnFXName_ = fxName;
             }
             else
             {
@@ -3167,10 +3183,12 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                     }
                 }
                 
-                if(zoneFilePaths_.count(fxName) > 0)
+                if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
                 {
                     if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
                        return;
+                    
+                    learnFXName_ = fxName;
                 }
                 else
                 {
