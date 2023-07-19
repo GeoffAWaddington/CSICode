@@ -451,7 +451,6 @@ public:
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
     double GetStepSize() { return deltaValue_; }
     void   SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
-    vector<double> GetStepValues() { return steppedValues_; }
     int    GetNumberOfSteppedValues() { return steppedValues_.size(); }
     void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
