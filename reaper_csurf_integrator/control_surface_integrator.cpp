@@ -1449,79 +1449,6 @@ void Manager::InitActionsDictionary()
     learnFXActions_["LearnFXParamValueDisplay"] =          make_shared<LearnFXParamValueDisplay>();
 }
 
-void Manager::InitFXParamAliases()
-{
-    string fxParamAliasesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamAliasesCache.txt";
-    
-    filesystem::path fxParamAliasesFile { fxParamAliasesFilePath };
-
-    if (filesystem::exists(fxParamAliasesFile))
-    {
-        int lineNumber = 0;
-
-        try
-        {
-            ifstream fxParamAliases(fxParamAliasesFile);
-                   
-            for (string line; getline(fxParamAliases, line) ; )
-            {
-                line = regex_replace(line, regex(TabChars), " ");
-                line = regex_replace(line, regex(CRLFChars), "");
-                
-                
-                if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
-                    continue;
-                
-                vector<string> tokens(GetTokens(line));
-                
-                if(tokens.size() != 3)
-                    continue;
-                
-                fxParamAliases_[tokens[0]][atoi(tokens[1].c_str())] = tokens[2];
-                
-                lineNumber++;
-            }
-        }
-        catch (exception &e)
-        {
-            char buffer[250];
-            snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamAliasesFilePath.c_str(), lineNumber);
-            DAW::ShowConsoleMsg(buffer);
-        }
-    }
-}
-
-void Manager::WriteFXParamAliases()
-{
-    string fxParamAliasesFilePath = string(DAW::GetResourcePath()) + "/CSI/FXParamAliasesCache.txt";
-    
-    filesystem::path fxParamAliasesFile { fxParamAliasesFilePath };
-
-    int lineNumber = 0;
-
-    try
-    {
-        ofstream fxParamAliases(fxParamAliasesFile);
-               
-        for (auto [fxName, paramAlias] : fxParamAliases_)
-        {
-            for(auto [paramIndex, alias] : paramAlias)
-            {
-                fxParamAliases << "\"" + fxName + "\" " + to_string(paramIndex) + " \"" + alias + "\"" + GetLineEnding();
-                lineNumber++;
-            }
-        }
-        
-        fxParamAliases.close();
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", fxParamAliasesFilePath.c_str(), lineNumber);
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
 void Manager::Init()
 {
     pages_.clear();
@@ -1662,8 +1589,6 @@ void Manager::Init()
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", iniFilePath.c_str(), lineNumber);
         DAW::ShowConsoleMsg(buffer);
     }
-      
-    InitFXParamAliases();
     
     for(auto page : pages_)
         page->OnInitialization();
@@ -3143,11 +3068,11 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             
-            string paramName = TheManager->GetTCPFXParamName(track, fxSlotNum, fxParamNum);
+            string paramName = DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum);
             
             if(paramList_.size() == 0)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
-                    paramList_.push_back(to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxSlotNum, i));
+                    paramList_.push_back(to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxSlotNum, i));
             
             if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
             {
@@ -3268,7 +3193,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
 
                     info->isLearned = true;
                     info->paramNumber = fxParamNum;
-                    info->paramName = TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+                    info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
                     info->params = paramStr;
                     info->track = DAW::GetTrack(trackNum);
                     info->fxSlotNum = fxSlotNum;
@@ -3553,7 +3478,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
                                 fxZone <<  string("NoAction");
                             
                             if(widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
-                                fxZone << " \"" + TheManager->GetTCPFXParamName(track, fxIndex, paramIdx) + "\"";
+                                fxZone << " \"" + DAW::TrackFX_GetParamName(track, fxIndex, paramIdx) + "\"";
                             else if(widgetIdx == 0)
                                 fxZone << " " + to_string(paramIdx);
                             
@@ -3676,7 +3601,7 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
         
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
-            fxZone << to_string(i) + " " + TheManager->GetTCPFXParamName(track, fxIndex, i) + GetLineEnding();
+            fxZone << to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxIndex, i) + GetLineEnding();
         
         fxZone.close();
     }

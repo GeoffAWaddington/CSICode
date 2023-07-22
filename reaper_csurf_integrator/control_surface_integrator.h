@@ -4203,10 +4203,7 @@ private:
     
     void InitActionsDictionary();
 
-    void InitFXParamAliases();
     void InitFXParamStepValues();
-    
-    void WriteFXParamAliases();
 
     double GetPrivateProfileDouble(string key)
     {
@@ -4253,8 +4250,6 @@ public:
 
     void Shutdown()
     {
-        WriteFXParamAliases();
-        
         fxParamsDisplay_ = false;
         surfaceInDisplay_ = false;
         surfaceOutDisplay_ = false;
@@ -4438,7 +4433,7 @@ public:
         if(fxParamsDisplay_ || fxParamsWrite_)
         {
             char fxName[BUFSZ];
-            char fxParamName[BUFSZ];
+            string fxParamName;
             
             ofstream fxFile;
             
@@ -4462,7 +4457,7 @@ public:
 
                 for(int j = 0; j < DAW::TrackFX_GetNumParams(track, i); j++)
                 {
-                    DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
+                    fxParamName = DAW::TrackFX_GetParamName(track, i, j);
 
                     if(fxParamsDisplay_)
                         DAW::ShowConsoleMsg(("\n\tFXParam " + to_string(j) + " \"" + string(fxParamName) + "\"").c_str());
@@ -4498,32 +4493,13 @@ public:
         char fxName[BUFSZ];
         DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
 
-        char fxParamName[BUFSZ];
-        DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
+        string fxParamName = DAW::TrackFX_GetParamName(track, fxIndex, paramIndex);
         
         fxParamAliases_[fxName][paramIndex] = fxParamName;
 
         return fxParamAliases_[fxName][paramIndex];
     }
     
-    string GetFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
-    {
-        if(! track)
-            return "";
-        
-        char fxName[BUFSZ];
-        DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
-
-        if(fxParamAliases_.count(fxName) > 0 && fxParamAliases_[fxName].count(paramIndex) > 0)
-            return fxParamAliases_[fxName][paramIndex];
-        else
-        {
-            char fxParamName[BUFSZ];
-            DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
-            return fxParamName;
-        }
-    }
-
     void SetSteppedValueCount(string fxName, int paramIndex, int steppedValuecount)
     {
         fxParamSteppedValueCounts_[fxName][paramIndex] = steppedValuecount;

@@ -319,16 +319,16 @@ public:
             return 0;
     }
     
-    static bool TrackFX_GetParamName(MediaTrack* track, int fx, int param, char* buf, int buf_sz)
+    static string TrackFX_GetParamName(MediaTrack* track, int fxIndex, int paramIndex)
     {
         if(ValidateTrackPtr(track))
-            return ::TrackFX_GetParamName(track, fx, param, buf, buf_sz);
-        else
         {
-            if(buf_sz > 0)
-                buf[0] = 0;
-            return false;
+            char fxParamName[BUFSZ];
+            DAW::TrackFX_GetParamName(track, fxIndex, paramIndex);
+            return fxParamName;
         }
+        else
+            return "";
     }
     
     static bool TrackFX_GetFormattedParamValue(MediaTrack* track, int fx, int param, char* buf, int buf_sz)

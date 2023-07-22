@@ -101,7 +101,7 @@ public:
         int fxParamNum;
 
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
-            context->UpdateWidgetValue(TheManager->GetFXParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum));
+            context->UpdateWidgetValue(DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum));
         else
             context->ClearWidget();
     }
@@ -2317,7 +2317,7 @@ public:
             if(context->GetFXParamDisplayName() != "")
                 context->UpdateWidgetValue(context->GetFXParamDisplayName());
             else
-                context->UpdateWidgetValue(TheManager->GetFXParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
+                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
         }
         else
             context->ClearWidget();
@@ -2426,11 +2426,7 @@ public:
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             if(MediaTrack* track = DAW::GetTrack(trackNum))
-            {
-                char fxParamName[128];
-                DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum, fxParamName, sizeof(fxParamName));
-                context->UpdateWidgetValue(string(fxParamName));
-            }
+                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum));
         }
         else
             context->ClearWidget();
