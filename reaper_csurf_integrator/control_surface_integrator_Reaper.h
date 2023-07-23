@@ -324,8 +324,8 @@ public:
         if(ValidateTrackPtr(track))
         {
             char fxParamName[BUFSZ];
-            DAW::TrackFX_GetParamName(track, fxIndex, paramIndex);
-            return fxParamName;
+            ::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
+            return string(fxParamName);
         }
         else
             return "";
