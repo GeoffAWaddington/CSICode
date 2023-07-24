@@ -1248,6 +1248,7 @@ public:
     
     void EraseLastTouchedControl();
     void SaveLearnedFXParams();
+    void Shutdown();
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
@@ -1305,16 +1306,7 @@ public:
             zoneFilePaths_.erase(zoneName);
         }
     }
-    
-    void Shutdown()
-    {
-        if(learnFXName_ != "")
-            if(MessageBox(NULL, (string("You have ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
-            {
-                SaveLearnedFXParams();
-            }
-    }
-    
+        
     void UnsavedLearnFXParameters()
     {
         if(learnFXName_ != "")
@@ -4005,6 +3997,12 @@ public:
             surface->GetZoneManager()->ClearFXSlot(zone);
     }
 
+    void SaveLearnedFXParams()
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->SaveLearnedFXParams();
+    }
+    
     void GoHome()
     {
         for(auto surface : surfaces_)

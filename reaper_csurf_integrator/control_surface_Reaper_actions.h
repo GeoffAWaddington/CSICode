@@ -175,7 +175,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(context->GetZone()->GetName() == "LearnFXParams")
-            context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
+            context->GetPage()->SaveLearnedFXParams();
     }
 };
 
