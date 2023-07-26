@@ -641,6 +641,20 @@ public:
     }
 };
 
+static map<int, int> fontHeights =
+{
+    { 0, 8 },
+    { 1, 13 },
+    { 2, 16 },
+    { 3, 18 },
+    { 4, 20 },
+    { 5, 24 },
+    { 6, 28 },
+    { 7, 32 },
+    { 8, 48 },
+    { 9, 60 }
+};
+
 struct RowInfo
 {
     int topMargin = 0;
@@ -649,12 +663,33 @@ struct RowInfo
     string lastStringSent = "";
 };
 
-static map<int, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionContext>>> contexts)
+static map<string, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionContext>>> contexts)
 {
-    map<int, RowInfo> rows;
+    map<string, RowInfo> rows;
     
-    // GAW TBD -- use font and new property Row to determine top and bottom margin
-
+    for(auto [modifier, actionContexts] : contexts)
+    {
+        for(auto context : actionContexts)
+        {
+            map<string, string> properties = context->GetWidgetProperties();
+            
+            if(properties.count("Row") > 0)
+            {
+                if(rows.count(properties["Row"]) < 1)
+                    rows[properties["Row"]] = RowInfo();
+              
+                if(properties.count("Font") > 0)
+                {
+                    int fontSize = stoi(properties["Font"]);
+                    
+                    if(fontSize > rows[properties["Row"]].maxFontSize)
+                        rows[properties["Row"]].maxFontSize = fontSize;
+                }
+                
+                context->SetProvideFeedback(true);
+            }
+        }
+    }
     
     return rows;
 }
@@ -665,7 +700,7 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 private:
     string lastStringSent_ = "";
-    map<int, RowInfo> rows;
+    map<string, RowInfo> rows_;
     
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
@@ -735,7 +770,7 @@ public:
     
     virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) override
     {
-        rows = CalculateRowInfo(contexts);
+        rows_ = CalculateRowInfo(contexts);
     }
 
     virtual void SetValue(map<string, string> &properties, string value) override

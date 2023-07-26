@@ -426,7 +426,9 @@ public:
     shared_ptr<Page> GetPage();
     shared_ptr<ControlSurface> GetSurface();
     int GetParamIndex() { return paramIndex_; }
-       
+      
+    map<string, string> &GetWidgetProperties() { return widgetProperties_; }
+    
     void SetIsValueInverted() { isValueInverted_ = true; }
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount * 1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
