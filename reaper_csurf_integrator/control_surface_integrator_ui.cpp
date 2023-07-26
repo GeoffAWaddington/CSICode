@@ -560,7 +560,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 SendDlgItemMessage(hwndDlg, paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
                         }
                     }
-                    else if(layout[0] == "DisplayFonts")
+                    else if(layout[0] == "DisplayFonts" && layoutTemplates[fxListIndex].modifiers == "")
                     {
                         hasFonts = true;
                         

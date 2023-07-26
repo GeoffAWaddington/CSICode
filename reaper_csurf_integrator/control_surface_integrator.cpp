@@ -1288,6 +1288,7 @@ static void ProcessOSCWidgetFile(string filePath, shared_ptr<OSC_ControlSurface>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {
+    actions_["DumpHex"] =                           make_shared<DumpHex>();
     actions_["MetronomePrimaryVolumeDisplay"] =     make_shared<MetronomePrimaryVolumeDisplay>();
     actions_["MetronomeSecondaryVolumeDisplay"] =   make_shared<MetronomeSecondaryVolumeDisplay>();
     actions_["MetronomePrimaryVolume"] =            make_shared<MetronomePrimaryVolume>();
