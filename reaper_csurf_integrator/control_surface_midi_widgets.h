@@ -641,18 +641,41 @@ public:
     }
 };
 
+struct RowInfo
+{
+    int topMargin = 0;
+    int bottomMargin = 0;
+    int maxFontSize = 0;
+    string lastStringSent = "";
+};
+
+static map<int, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionContext>>> contexts)
+{
+    map<int, RowInfo> rows;
+    
+    // GAW TBD -- use font and new property Row to determine top and bottom margin
+
+    
+    return rows;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
     string lastStringSent_ = "";
+    map<int, RowInfo> rows;
     
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
     SCE24Text_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
+    
+   
+    
+    
     
     virtual void SetInitialValues(map<string, string> &properties) override
     {
@@ -708,6 +731,13 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
     }
 
+    
+    
+    virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) override
+    {
+        rows = CalculateRowInfo(contexts);
+    }
+
     virtual void SetValue(map<string, string> &properties, string value) override
     {
         if(lastStringSent_ != value)
@@ -726,13 +756,13 @@ public:
         rgba_color background;
         rgba_color foreground;
 
-        if(properties.count("TopMargin") > 0)
-            topMargin = atoi(properties["TopMargin"].c_str());
-        if(properties.count("BottomMargin") > 0)
-            bottomMargin = atoi(properties["BottomMargin"].c_str());
+
         if(properties.count("Font") > 0)
             font = atoi(properties["Font"].c_str());
 
+        
+        
+        
         if(properties.count("Background") > 0)
             background = GetColorValue(properties["Background"]);
         if(properties.count("Foreground") > 0)

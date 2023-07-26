@@ -1329,6 +1329,7 @@ void Manager::InitActionsDictionary()
     actions_["AllSurfacesGoHome"] =                 make_shared<AllSurfacesGoHome>();
     actions_["GoSubZone"] =                         make_shared<GoSubZone>();
     actions_["LeaveSubZone"] =                      make_shared<LeaveSubZone>();
+    actions_["ConfigureWidgets"] =                  make_shared<ConfigureWidgets>();
     actions_["SetXTouchDisplayColors"] =            make_shared<SetXTouchDisplayColors>();
     actions_["RestoreXTouchDisplayColors"] =        make_shared<RestoreXTouchDisplayColors>();
     actions_["GoFXSlot"] =                          make_shared<GoFXSlot>();
@@ -2294,6 +2295,12 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
 
+void Zone::ConfigureWidgets()
+{
+    for(auto [widget, contexts] : actionContextDictionary_)
+        widget->Configure(actionContextDictionary_[widget]);
+}
+
 void Zone::SetXTouchDisplayColors(string color)
 {
     for(auto [widget, isUsed] : widgets_)
@@ -2411,6 +2418,12 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(shared_ptr<Widget> wi
 shared_ptr<ZoneManager> Widget::GetZoneManager()
 {
     return surface_->GetZoneManager();
+}
+
+void Widget::Configure(map<int, vector<shared_ptr<ActionContext>>> contexts)
+{
+    for(auto processor : feedbackProcessors_)
+        processor->Configure(contexts);
 }
 
 void  Widget::UpdateValue(map<string, string> &properties, double value)

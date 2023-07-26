@@ -619,6 +619,7 @@ public:
     void GoAssociatedZone(string associatedZoneName);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
+    void ConfigureWidgets();
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
@@ -932,6 +933,7 @@ public:
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
+    void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts);
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void UpdateColorValue(rgba_color);
@@ -2764,6 +2766,7 @@ public:
     shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
     virtual void SetInitialValues(map<string, string> &properties) {}
+    virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, string value) {}
