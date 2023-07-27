@@ -613,7 +613,6 @@ public:
     void GoAssociatedZone(string associatedZoneName);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
-    void ConfigureWidgets();
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();

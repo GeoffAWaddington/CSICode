@@ -2287,12 +2287,6 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
 
-void Zone::ConfigureWidgets()
-{
-    for(auto [widget, contexts] : actionContextDictionary_)
-        widget->Configure(GetActionContexts(widget));
-}
-
 void Zone::SetXTouchDisplayColors(string color)
 {
     for(auto [widget, isUsed] : widgets_)
