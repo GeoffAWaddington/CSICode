@@ -2291,7 +2291,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
 void Zone::ConfigureWidgets()
 {
     for(auto [widget, contexts] : actionContextDictionary_)
-        widget->Configure(actionContextDictionary_[widget]);
+        widget->Configure(GetActionContexts(widget));
 }
 
 void Zone::SetXTouchDisplayColors(string color)
@@ -2411,7 +2411,7 @@ shared_ptr<ZoneManager> Widget::GetZoneManager()
     return surface_->GetZoneManager();
 }
 
-void Widget::Configure(map<int, vector<shared_ptr<ActionContext>>> contexts)
+void Widget::Configure(vector<shared_ptr<ActionContext>> contexts)
 {
     for(auto processor : feedbackProcessors_)
         processor->Configure(contexts);

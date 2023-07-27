@@ -609,33 +609,31 @@ struct RowInfo
     string lastStringSent = "";
 };
 
-static map<string, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionContext>>> contexts)
+static map<string, RowInfo> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
 {
     map<string, RowInfo> rows;
     
-    for(auto [modifier, actionContexts] : contexts)
+    for(auto context : contexts)
     {
-        for(auto context : actionContexts)
+        map<string, string> properties = context->GetWidgetProperties();
+        
+        if(properties.count("Row") > 0)
         {
-            map<string, string> properties = context->GetWidgetProperties();
-            
-            if(properties.count("Row") > 0)
+            if(rows.count(properties["Row"]) < 1)
+                rows[properties["Row"]] = RowInfo();
+          
+            if(properties.count("Font") > 0)
             {
-                if(rows.count(properties["Row"]) < 1)
-                    rows[properties["Row"]] = RowInfo();
-              
-                if(properties.count("Font") > 0)
-                {
-                    int fontSize = stoi(properties["Font"]);
-                    
-                    if(fontSize < 10 && fontSize > rows[properties["Row"]].maxFontSize)
-                        rows[properties["Row"]].maxFontSize = fontSize;
-                }
+                int fontSize = stoi(properties["Font"]);
                 
-                context->SetProvideFeedback(true);
+                if(fontSize < 10 && fontSize > rows[properties["Row"]].maxFontSize)
+                    rows[properties["Row"]].maxFontSize = fontSize;
             }
+            
+            context->SetProvideFeedback(true);
         }
     }
+
     
     int totalFontHeight = 0;
     
@@ -678,7 +676,7 @@ public:
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
-    virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) override
+    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
     }
@@ -871,15 +869,12 @@ public:
         return val + 64;
     }
         
-    virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) override
+    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
-        if(contexts.count(0) < 1)
+        if(contexts.size() == 0)
             return;
         
-        if(contexts[0].size() == 0)
-            return;
-        
-        map<string, string> properties = contexts[0][0]->GetWidgetProperties();
+        map<string, string> properties = contexts[0]->GetWidgetProperties();
 
         if(properties.size() == 0)
             return;

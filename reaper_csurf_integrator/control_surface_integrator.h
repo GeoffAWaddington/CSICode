@@ -927,7 +927,7 @@ public:
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
-    void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts);
+    void Configure(vector<shared_ptr<ActionContext>> contexts);
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void UpdateColorValue(rgba_color);
@@ -2758,7 +2758,7 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
-    virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) {}
+    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, string value) {}
