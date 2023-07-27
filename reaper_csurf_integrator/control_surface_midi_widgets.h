@@ -506,67 +506,13 @@ public:
     SCE24OLED_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
-
-    virtual void ClearSCE24(map<string, string> &properties, double value) override
-    {
-        if(lastValueSent_ == value)
-            return;
-        
-        lastValueSent_ = value;
-
-        int topMargin = 0;
-        int bottomMargin = 64;
-        int font = 9;
-        rgba_color background;
-        rgba_color foreground;
-        string displayText = "          ";
-        
-        struct
-        {
-            MIDI_event_ex_t evt;
-            char data[512];
-        } midiSysExData;
-         
-        midiSysExData.evt.frame_offset=0;
-        midiSysExData.evt.size=0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
-
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
-        
-        for(int i = 0; i < displayText.length(); i++)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
-         
-        SendMidiSysExMessage(&midiSysExData.evt);
-    }
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(lastValueSent_ != value)
             ForceValue(properties, value);
     }
-    
-    virtual void SetInitialValues(map<string, string> &properties) override
-    {
-        ClearSCE24(properties, 0.0);
-    }
-    
+        
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
         lastValueSent_ = value;
@@ -925,8 +871,16 @@ public:
         return val + 64;
     }
         
-    virtual void SetInitialValues(map<string, string> &properties) override
+    virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) override
     {
+        if(contexts.count(0) < 1)
+            return;
+        
+        if(contexts[0].size() == 0)
+            return;
+        
+        map<string, string> properties = contexts[0][0]->GetWidgetProperties();
+
         if(properties.size() == 0)
             return;
         

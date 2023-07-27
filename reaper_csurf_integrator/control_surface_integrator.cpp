@@ -1830,11 +1830,6 @@ void ActionContext::ClearWidget()
     widget_->Clear();
 }
 
-void ActionContext::SetColorValue()
-{
-    widget_->SetColorValue(widgetProperties_);
-}
-
 void ActionContext::UpdateColorValue(double value)
 {
     if(supportsColor_)
@@ -2149,8 +2144,6 @@ void Zone::Activate()
 {
     UpdateCurrentActionContextModifiers();
     
-    SetColors();
-    
     for(auto [widget, isUsed] : widgets_)
         if(widget->GetName() == "OnZoneActivation")
             for(auto context : GetActionContexts(widget))
@@ -2355,8 +2348,6 @@ void Zone::UpdateCurrentActionContextModifiers()
     for(auto [widget, isUsed] : widgets_)
         UpdateCurrentActionContextModifier(widget);
     
-    SetColors();
-    
     for(auto zone : includedZones_)
         zone->UpdateCurrentActionContextModifiers();
 
@@ -2442,12 +2433,6 @@ void  Widget::UpdateColorValue(rgba_color color)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetColorValue(color);
-}
-
-void  Widget::SetColorValue(map<string, string> &properties)
-{
-    for(auto processor : feedbackProcessors_)
-        processor->SetInitialValues(properties);
 }
 
 void Widget::SetXTouchDisplayColors(string zoneName, string color)

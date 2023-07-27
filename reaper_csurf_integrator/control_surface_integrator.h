@@ -447,7 +447,6 @@ public:
     void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateWidgetValue(string value);
     void UpdateColorValue(double value);
-    void SetColorValue();
 
     void   SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
@@ -604,14 +603,7 @@ protected:
     
     void AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators);
     void UpdateCurrentActionContextModifier(shared_ptr<Widget> widget);
-    
-    void SetColors()
-    {
-        for(auto [ widget, isUsed] : widgets_)
-            for(auto context : GetActionContexts(widget))
-                    context->SetColorValue();
-    }
-    
+        
 public:
     Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
@@ -939,7 +931,6 @@ public:
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void UpdateColorValue(rgba_color);
-    void SetColorValue(map<string, string> &properties);
     void SetXTouchDisplayColors(string zoneName, string color);
     void RestoreXTouchDisplayColors();
     void Clear();
@@ -2767,7 +2758,6 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     shared_ptr<Widget> GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color color) {}
-    virtual void SetInitialValues(map<string, string> &properties) {}
     virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
@@ -2777,8 +2767,6 @@ public:
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
-    virtual void ClearSCE24(map<string, string> &properties, double value) {}
-    virtual void ClearSCE24(map<string, string> &properties, string value) {}
 
     virtual void SetValue(map<string, string> &properties, double value)
     {
@@ -2807,10 +2795,7 @@ public:
     void Clear()
     {
         map<string, string> properties;
-        
-        ClearSCE24(properties, 0.0);
-        ClearSCE24(properties, " ");
-        
+                
         rgba_color color;
         SetColorValue(color);
 
@@ -2821,9 +2806,6 @@ public:
     void ForceClear()
     {
         map<string, string> properties;
-        
-        ClearSCE24(properties, 0.0);
-        ClearSCE24(properties, " ");
         
         rgba_color color;
         ForceColorValue(color);
