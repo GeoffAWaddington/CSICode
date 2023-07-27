@@ -698,6 +698,9 @@ static map<string, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionCo
     
     double factor = 64.0 / totalFontHeight;
     
+    if(factor < 1.0)
+        factor = 1.0;
+    
     int topMargin = 0;
     
     for(auto [rowNum, row] : rows)
@@ -721,7 +724,6 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string lastStringSent_ = "";
     map<string, RowInfo> rows_;
     
 public:
@@ -730,66 +732,6 @@ public:
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
-   
-    
-    
-    
-    virtual void SetInitialValues(map<string, string> &properties) override
-    {
-        ClearSCE24(properties, " ");
-    }
-
-    virtual void ClearSCE24(map<string, string> &properties, string value) override
-    {
-        if(lastStringSent_ == value)
-            return;
-        
-        lastStringSent_ = value;
-
-        int topMargin = 0;
-        int bottomMargin = 64;
-        int font = 9;
-        rgba_color background;
-        rgba_color foreground;
-        string displayText = "          ";
-        
-        struct
-        {
-            MIDI_event_ex_t evt;
-            char data[512];
-        } midiSysExData;
-         
-        midiSysExData.evt.frame_offset=0;
-        midiSysExData.evt.size=0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
-
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
-        
-        for(int i = 0; i < displayText.length(); i++)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
-        
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
-         
-        SendMidiSysExMessage(&midiSysExData.evt);
-    }
-
-    
-    
     virtual void Configure(map<int, vector<shared_ptr<ActionContext>>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
@@ -797,28 +739,39 @@ public:
 
     virtual void SetValue(map<string, string> &properties, string value) override
     {
-        if(lastStringSent_ != value)
-            ForceValue(properties, value);
+        ForceValue(properties, value);
     }
     
     virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
-        lastStringSent_ = displayText;
-        
         displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
         
-        int topMargin = 0;
-        int bottomMargin = 0;
-        int font = 0;
-        rgba_color background;
-        rgba_color foreground;
+        if(properties.count("Row") < 1)
+            return;
 
+        if(rows_.count(properties["Row"]) < 1)
+            return;
+
+        if(properties["Row"] != "1")
+            return;
+        
+        RowInfo row = rows_[properties["Row"]];
+        
+        if(row.lastStringSent == displayText)
+            return;
+        
+        row.lastStringSent = displayText;
+        rows_[properties["Row"]] = row;
+        
+        int topMargin = row.topMargin;
+        int bottomMargin = row.bottomMargin;
+        int font = row.maxFontSize;
 
         if(properties.count("Font") > 0)
             font = atoi(properties["Font"].c_str());
 
-        
-        
+        rgba_color background;
+        rgba_color foreground;
         
         if(properties.count("Background") > 0)
             background = GetColorValue(properties["Background"]);
