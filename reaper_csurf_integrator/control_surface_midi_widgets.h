@@ -605,7 +605,7 @@ struct RowInfo
 {
     int topMargin = 0;
     int bottomMargin = 0;
-    int maxFontSize = 0;
+    int fontSize = 0;
     string lastStringSent = "";
 };
 
@@ -623,22 +623,16 @@ static map<string, RowInfo> CalculateRowInfo(vector<shared_ptr<ActionContext>> c
                 rows[properties["Row"]] = RowInfo();
           
             if(properties.count("Font") > 0)
-            {
-                int fontSize = stoi(properties["Font"]);
-                
-                if(fontSize < 10 && fontSize > rows[properties["Row"]].maxFontSize)
-                    rows[properties["Row"]].maxFontSize = fontSize;
-            }
-            
+                rows[properties["Row"]].fontSize = stoi(properties["Font"]);
+           
             context->SetProvideFeedback(true);
         }
     }
 
-    
     int totalFontHeight = 0;
     
     for(auto [rowNum, row] : rows)
-        totalFontHeight += fontHeights[row.maxFontSize];
+        totalFontHeight += fontHeights[row.fontSize];
     
     double factor = 64.0 / totalFontHeight;
     
@@ -652,7 +646,7 @@ static map<string, RowInfo> CalculateRowInfo(vector<shared_ptr<ActionContext>> c
         if(topMargin > 63)
             topMargin = 63;
         row.topMargin = topMargin;
-        row.bottomMargin = int(factor * fontHeights[row.maxFontSize]) + topMargin;
+        row.bottomMargin = int(factor * fontHeights[row.fontSize]) + topMargin;
         if(row.bottomMargin > 63)
             row.bottomMargin = 63;
         topMargin = row.bottomMargin + 1;
@@ -706,10 +700,7 @@ public:
         
         int topMargin = row.topMargin;
         int bottomMargin = row.bottomMargin;
-        int font = row.maxFontSize;
-
-        if(properties.count("Font") > 0)
-            font = atoi(properties["Font"].c_str());
+        int font = row.fontSize;
 
         rgba_color background;
         rgba_color foreground;
@@ -875,9 +866,6 @@ public:
             return;
         
         map<string, string> properties = contexts[0]->GetWidgetProperties();
-
-        if(properties.size() == 0)
-            return;
         
         vector<LEDColor> colors;
         
@@ -927,6 +915,17 @@ public:
             colors = GetColorValues(properties["LEDRingColors"]);
         }
 
+        if(colors.size() == 0)
+        {
+            LEDColor color;
+            
+            color.ringRangeLow = 127;
+            color.ringRangeMedium = 127;
+            color.ringRangeHigh = 15;
+
+            colors.push_back(color);
+        }
+        
         struct
         {
             MIDI_event_ex_t evt;

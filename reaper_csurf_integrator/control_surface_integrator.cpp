@@ -1329,7 +1329,6 @@ void Manager::InitActionsDictionary()
     actions_["AllSurfacesGoHome"] =                 make_shared<AllSurfacesGoHome>();
     actions_["GoSubZone"] =                         make_shared<GoSubZone>();
     actions_["LeaveSubZone"] =                      make_shared<LeaveSubZone>();
-    actions_["ConfigureWidgets"] =                  make_shared<ConfigureWidgets>();
     actions_["SetXTouchDisplayColors"] =            make_shared<SetXTouchDisplayColors>();
     actions_["RestoreXTouchDisplayColors"] =        make_shared<RestoreXTouchDisplayColors>();
     actions_["GoFXSlot"] =                          make_shared<GoFXSlot>();
@@ -2367,6 +2366,9 @@ void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
         if(actionContextDictionary_[widget].count(modifier) > 0)
         {
             currentActionContextModifiers_[widget] = modifier;
+            
+            widget->Configure(GetActionContexts(widget));
+            
             break;
         }
     }
