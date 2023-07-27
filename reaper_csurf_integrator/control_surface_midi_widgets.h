@@ -686,30 +686,36 @@ public:
         
         if(properties.count("Row") < 1)
             return;
-
-        if(rows_.count(properties["Row"]) < 1)
-            return;
-       
-        RowInfo row = rows_[properties["Row"]];
         
-        if(row.lastStringSent == displayText)
-            return;
+        int topMargin = 0;
+        int bottomMargin = 60;
+        int font = 9;
         
-        row.lastStringSent = displayText;
-        rows_[properties["Row"]] = row;
-        
-        int topMargin = row.topMargin;
-        int bottomMargin = row.bottomMargin;
-        int font = row.fontSize;
-
         rgba_color background;
         rgba_color foreground;
         
-        if(properties.count("Background") > 0)
-            background = GetColorValue(properties["Background"]);
-        if(properties.count("Foreground") > 0)
-            foreground = GetColorValue(properties["Foreground"]);
-
+        if(rows_.count(properties["Row"]) > 0)
+        {
+            RowInfo row = rows_[properties["Row"]];
+            
+            if(row.lastStringSent == displayText)
+                return;
+            
+            row.lastStringSent = displayText;
+            rows_[properties["Row"]] = row;
+            
+            topMargin = row.topMargin;
+            bottomMargin = row.bottomMargin;
+            font = row.fontSize;
+            
+            if(properties.count("Background") > 0)
+                background = GetColorValue(properties["Background"]);
+            if(properties.count("Foreground") > 0)
+                foreground = GetColorValue(properties["Foreground"]);
+        }
+        else
+            displayText = " ";
+        
         struct
         {
             MIDI_event_ex_t evt;
