@@ -682,13 +682,35 @@ static map<string, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionCo
                 {
                     int fontSize = stoi(properties["Font"]);
                     
-                    if(fontSize > rows[properties["Row"]].maxFontSize)
+                    if(fontSize < 10 && fontSize > rows[properties["Row"]].maxFontSize)
                         rows[properties["Row"]].maxFontSize = fontSize;
                 }
                 
                 context->SetProvideFeedback(true);
             }
         }
+    }
+    
+    int totalFontHeight = 0;
+    
+    for(auto [rowNum, row] : rows)
+        totalFontHeight += fontHeights[row.maxFontSize];
+    
+    double factor = 64.0 / totalFontHeight;
+    
+    int topMargin = 0;
+    
+    for(auto [rowNum, row] : rows)
+    {
+        if(topMargin > 64)
+            topMargin = 64;
+        row.topMargin = topMargin;
+        row.bottomMargin = int(factor * fontHeights[row.maxFontSize]) + topMargin;
+        if(row.bottomMargin > 64)
+            row.bottomMargin = 64;
+        topMargin = row.bottomMargin + 1;
+
+        rows[rowNum] = row;
     }
     
     return rows;
