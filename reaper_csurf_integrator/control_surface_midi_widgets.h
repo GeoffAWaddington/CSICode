@@ -705,12 +705,12 @@ static map<string, RowInfo> CalculateRowInfo(map<int, vector<shared_ptr<ActionCo
     
     for(auto [rowNum, row] : rows)
     {
-        if(topMargin > 64)
-            topMargin = 64;
+        if(topMargin > 63)
+            topMargin = 63;
         row.topMargin = topMargin;
         row.bottomMargin = int(factor * fontHeights[row.maxFontSize]) + topMargin;
-        if(row.bottomMargin > 64)
-            row.bottomMargin = 64;
+        if(row.bottomMargin > 63)
+            row.bottomMargin = 63;
         topMargin = row.bottomMargin + 1;
 
         rows[rowNum] = row;
@@ -751,10 +751,7 @@ public:
 
         if(rows_.count(properties["Row"]) < 1)
             return;
-
-        if(properties["Row"] != "1")
-            return;
-        
+       
         RowInfo row = rows_[properties["Row"]];
         
         if(row.lastStringSent == displayText)
