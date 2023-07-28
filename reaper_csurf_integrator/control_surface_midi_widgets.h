@@ -508,12 +508,16 @@ static map<int, int> fontHeights =
     { 9, 60 }
 };
 
+static rgba_color initialColor;
+
 struct RowInfo
 {
     int topMargin = 0;
     int bottomMargin = 0;
     int fontSize = 0;
     string lastStringSent = "";
+    rgba_color lastForegroundSent = initialColor;
+    rgba_color lastBackgroundSent = initialColor;
 };
 
 static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
@@ -567,7 +571,6 @@ class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    double lastValueSent_ = 0.0;
     map<string, shared_ptr<RowInfo>> rows_;
 
 public:
@@ -586,35 +589,34 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(lastValueSent_ != value)
-            ForceValue(properties, value);
+        ForceValue(properties, value);
     }
         
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        lastValueSent_ = value;
-                
-        int topMargin = 0;
-        int bottomMargin = 60;
-        int font = 9;
+
+        if(rows_.count(properties["Row"]) < 1)
+            return;
+        
+        shared_ptr<RowInfo> row = rows_[properties["Row"]];
+
         rgba_color background;
         rgba_color foreground;
-
-        if(rows_.count(properties["Row"]) > 0)
-        {
-            shared_ptr<RowInfo> row = rows_[properties["Row"]];
-                        
-            topMargin = row->topMargin;
-            bottomMargin = row->bottomMargin;
-            font = row->fontSize;
-        }
-
+        
         if(value == 0)
         {
             if(properties.count("BackgroundOff") > 0)
                 background = GetColorValue(properties["BackgroundOff"]);
             if(properties.count("ForegroundOff") > 0)
                 foreground = GetColorValue(properties["ForegroundOff"]);
+            
+            if(row->lastBackgroundSent == background && row->lastForegroundSent == foreground)
+                return;
+            else
+            {
+                row->lastBackgroundSent = background;
+                row->lastForegroundSent = foreground;
+            }
         }
         else
         {
@@ -622,6 +624,14 @@ public:
                 background = GetColorValue(properties["BackgroundOn"]);
             if(properties.count("ForegroundOn") > 0)
                 foreground = GetColorValue(properties["ForegroundOn "]);
+            
+            if(row->lastBackgroundSent == background && row->lastForegroundSent == foreground)
+                return;
+            else
+            {
+                row->lastBackgroundSent = background;
+                row->lastForegroundSent = foreground;
+            }
         }
         
         string displayText = "";
@@ -644,9 +654,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->topMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->bottomMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->fontSize;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
