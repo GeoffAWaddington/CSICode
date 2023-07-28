@@ -579,6 +579,9 @@ public:
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
+        
+        for(auto context : contexts)
+            ForceValue(context->GetWidgetProperties(), 0.0);
     }
 
     virtual void SetValue(map<string, string> &properties, double value) override
@@ -667,6 +670,7 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
+    string lastValue = "";
     map<string, shared_ptr<RowInfo>> rows_;
     
 public:
@@ -682,11 +686,14 @@ public:
 
     virtual void SetValue(map<string, string> &properties, string value) override
     {
-        ForceValue(properties, value);
+        if(lastValue != value)
+            ForceValue(properties, value);
     }
     
     virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
+        lastValue = displayText;
+        
         displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
                
         int topMargin = 0;

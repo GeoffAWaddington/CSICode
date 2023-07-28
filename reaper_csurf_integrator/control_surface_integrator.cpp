@@ -2144,9 +2144,13 @@ void Zone::Activate()
     UpdateCurrentActionContextModifiers();
     
     for(auto [widget, isUsed] : widgets_)
+    {
         if(widget->GetName() == "OnZoneActivation")
             for(auto context : GetActionContexts(widget))
                 context->DoAction(1.0);
+            
+        widget->Configure(GetActionContexts(widget));
+    }
 
     isActive_ = true;
     
@@ -2360,9 +2364,6 @@ void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
         if(actionContextDictionary_[widget].count(modifier) > 0)
         {
             currentActionContextModifiers_[widget] = modifier;
-            
-            widget->Configure(GetActionContexts(widget));
-            
             break;
         }
     }
