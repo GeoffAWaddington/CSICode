@@ -676,7 +676,6 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string lastValue = "";
     map<string, shared_ptr<RowInfo>> rows_;
     
 public:
@@ -692,14 +691,14 @@ public:
 
     virtual void SetValue(map<string, string> &properties, string value) override
     {
-        if(lastValue != value)
-            ForceValue(properties, value);
+        ForceValue(properties, value);
     }
     
     virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
-        lastValue = displayText;
-        
+        if(rows_.count(properties["Row"]) < 1)
+            return;
+            
         displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
                
         int topMargin = 0;
@@ -709,27 +708,22 @@ public:
         rgba_color background;
         rgba_color foreground;
         
-        if(rows_.count(properties["Row"]) > 0)
-        {
-            shared_ptr<RowInfo> row = rows_[properties["Row"]];
-            
-            if(row->lastStringSent == displayText)
-                return;
-            
-            row->lastStringSent = displayText;
-            
-            topMargin = row->topMargin;
-            bottomMargin = row->bottomMargin;
-            font = row->fontSize;
-            
-            if(properties.count("Background") > 0)
-                background = GetColorValue(properties["Background"]);
-            if(properties.count("Foreground") > 0)
-                foreground = GetColorValue(properties["Foreground"]);
-        }
-        else
-            displayText = " ";
+        shared_ptr<RowInfo> row = rows_[properties["Row"]];
         
+        if(row->lastStringSent == displayText)
+            return;
+        
+        row->lastStringSent = displayText;
+        
+        topMargin = row->topMargin;
+        bottomMargin = row->bottomMargin;
+        font = row->fontSize;
+        
+        if(properties.count("Background") > 0)
+            background = GetColorValue(properties["Background"]);
+        if(properties.count("Foreground") > 0)
+            foreground = GetColorValue(properties["Foreground"]);
+
         struct
         {
             MIDI_event_ex_t evt;
