@@ -2343,7 +2343,10 @@ void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
 void Zone::UpdateCurrentActionContextModifiers()
 {
     for(auto [widget, isUsed] : widgets_)
+    {
         UpdateCurrentActionContextModifier(widget);
+        widget->Configure(GetActionContexts(widget, currentActionContextModifiers_[widget]));
+    }
     
     for(auto zone : includedZones_)
         zone->UpdateCurrentActionContextModifiers();
