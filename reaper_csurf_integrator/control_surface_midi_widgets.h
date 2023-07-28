@@ -582,9 +582,6 @@ public:
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
-        
-        for(auto context : contexts)
-            ForceValue(context->GetWidgetProperties(), 0.0);
     }
 
     virtual void SetValue(map<string, string> &properties, double value) override
@@ -594,7 +591,6 @@ public:
         
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-
         if(rows_.count(properties["Row"]) < 1)
             return;
         
