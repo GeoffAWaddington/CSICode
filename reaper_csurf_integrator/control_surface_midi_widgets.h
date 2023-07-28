@@ -494,12 +494,81 @@ public:
     }
 };
 
+static map<int, int> fontHeights =
+{
+    { 0, 8 },
+    { 1, 13 },
+    { 2, 16 },
+    { 3, 18 },
+    { 4, 20 },
+    { 5, 24 },
+    { 6, 28 },
+    { 7, 32 },
+    { 8, 48 },
+    { 9, 60 }
+};
+
+struct RowInfo
+{
+    int topMargin = 0;
+    int bottomMargin = 0;
+    int fontSize = 0;
+    string lastStringSent = "";
+};
+
+static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
+{
+    map<string, shared_ptr<RowInfo>> rows;
+    
+    for(auto context : contexts)
+    {
+        map<string, string> properties = context->GetWidgetProperties();
+        
+        if(properties.count("Row") > 0)
+        {
+            if(rows.count(properties["Row"]) < 1)
+                rows[properties["Row"]] = make_shared<RowInfo>();
+          
+            if(properties.count("Font") > 0)
+                rows[properties["Row"]]->fontSize = stoi(properties["Font"]);
+           
+            context->SetProvideFeedback(true);
+        }
+    }
+
+    int totalFontHeight = 0;
+    
+    for(auto [rowNum, row] : rows)
+        totalFontHeight += fontHeights[row->fontSize];
+    
+    double factor = 64.0 / totalFontHeight;
+    
+    if(factor < 1.0)
+        factor = 1.0;
+    
+    int topMargin = 0;
+    
+    for(auto [rowNum, row] : rows)
+    {
+        if(topMargin > 63)
+            topMargin = 63;
+        row->topMargin = topMargin;
+        row->bottomMargin = int(factor * fontHeights[row->fontSize]) + topMargin;
+        if(row->bottomMargin > 63)
+            row->bottomMargin = 63;
+        topMargin = row->bottomMargin + 1;
+    }
+    
+    return rows;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
     double lastValueSent_ = 0.0;
+    map<string, shared_ptr<RowInfo>> rows_;
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
@@ -507,6 +576,11 @@ public:
     
     virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
     
+    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
+    {
+        rows_ = CalculateRowInfo(contexts);
+    }
+
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(lastValueSent_ != value)
@@ -518,17 +592,19 @@ public:
         lastValueSent_ = value;
                 
         int topMargin = 0;
-        int bottomMargin = 0;
-        int font = 0;
+        int bottomMargin = 60;
+        int font = 9;
         rgba_color background;
         rgba_color foreground;
 
-        if(properties.count("TopMargin") > 0)
-            topMargin = atoi(properties["TopMargin"].c_str());
-        if(properties.count("BottomMargin") > 0)
-            bottomMargin = atoi(properties["BottomMargin"].c_str());
-        if(properties.count("Font") > 0)
-            font = atoi(properties["Font"].c_str());
+        if(rows_.count(properties["Row"]) > 0)
+        {
+            shared_ptr<RowInfo> row = rows_[properties["Row"]];
+                        
+            topMargin = row->topMargin;
+            bottomMargin = row->bottomMargin;
+            font = row->fontSize;
+        }
 
         if(value == 0)
         {
@@ -583,86 +659,15 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
         SendMidiSysExMessage(&midiSysExData.evt);
-
     }
 };
-
-static map<int, int> fontHeights =
-{
-    { 0, 8 },
-    { 1, 13 },
-    { 2, 16 },
-    { 3, 18 },
-    { 4, 20 },
-    { 5, 24 },
-    { 6, 28 },
-    { 7, 32 },
-    { 8, 48 },
-    { 9, 60 }
-};
-
-struct RowInfo
-{
-    int topMargin = 0;
-    int bottomMargin = 0;
-    int fontSize = 0;
-    string lastStringSent = "";
-};
-
-static map<string, RowInfo> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
-{
-    map<string, RowInfo> rows;
-    
-    for(auto context : contexts)
-    {
-        map<string, string> properties = context->GetWidgetProperties();
-        
-        if(properties.count("Row") > 0)
-        {
-            if(rows.count(properties["Row"]) < 1)
-                rows[properties["Row"]] = RowInfo();
-          
-            if(properties.count("Font") > 0)
-                rows[properties["Row"]].fontSize = stoi(properties["Font"]);
-           
-            context->SetProvideFeedback(true);
-        }
-    }
-
-    int totalFontHeight = 0;
-    
-    for(auto [rowNum, row] : rows)
-        totalFontHeight += fontHeights[row.fontSize];
-    
-    double factor = 64.0 / totalFontHeight;
-    
-    if(factor < 1.0)
-        factor = 1.0;
-    
-    int topMargin = 0;
-    
-    for(auto [rowNum, row] : rows)
-    {
-        if(topMargin > 63)
-            topMargin = 63;
-        row.topMargin = topMargin;
-        row.bottomMargin = int(factor * fontHeights[row.fontSize]) + topMargin;
-        if(row.bottomMargin > 63)
-            row.bottomMargin = 63;
-        topMargin = row.bottomMargin + 1;
-
-        rows[rowNum] = row;
-    }
-    
-    return rows;
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, RowInfo> rows_;
+    map<string, shared_ptr<RowInfo>> rows_;
     
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
@@ -683,10 +688,7 @@ public:
     virtual void ForceValue(map<string, string> &properties, string displayText) override
     {
         displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
-        
-        if(properties.count("Row") < 1)
-            return;
-        
+               
         int topMargin = 0;
         int bottomMargin = 60;
         int font = 9;
@@ -696,17 +698,16 @@ public:
         
         if(rows_.count(properties["Row"]) > 0)
         {
-            RowInfo row = rows_[properties["Row"]];
+            shared_ptr<RowInfo> row = rows_[properties["Row"]];
             
-            if(row.lastStringSent == displayText)
+            if(row->lastStringSent == displayText)
                 return;
             
-            row.lastStringSent = displayText;
-            rows_[properties["Row"]] = row;
+            row->lastStringSent = displayText;
             
-            topMargin = row.topMargin;
-            bottomMargin = row.bottomMargin;
-            font = row.fontSize;
+            topMargin = row->topMargin;
+            bottomMargin = row->bottomMargin;
+            font = row->fontSize;
             
             if(properties.count("Background") > 0)
                 background = GetColorValue(properties["Background"]);
