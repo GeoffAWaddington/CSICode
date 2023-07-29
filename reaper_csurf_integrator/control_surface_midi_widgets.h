@@ -508,16 +508,14 @@ static map<int, int> fontHeights =
     { 9, 60 }
 };
 
-static rgba_color initialColor;
-
 struct RowInfo
 {
     int topMargin = 0;
     int bottomMargin = 0;
     int fontSize = 0;
     string lastStringSent = "";
-    rgba_color lastForegroundSent = initialColor;
-    rgba_color lastBackgroundSent = initialColor;
+    rgba_color lastForegroundSent;
+    rgba_color lastBackgroundSent;
 };
 
 static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
@@ -700,25 +698,17 @@ public:
             return;
             
         displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
-               
-        int topMargin = 0;
-        int bottomMargin = 60;
-        int font = 9;
-        
-        rgba_color background;
-        rgba_color foreground;
-        
+                       
         shared_ptr<RowInfo> row = rows_[properties["Row"]];
         
         if(row->lastStringSent == displayText)
             return;
         
         row->lastStringSent = displayText;
-        
-        topMargin = row->topMargin;
-        bottomMargin = row->bottomMargin;
-        font = row->fontSize;
-        
+                  
+        rgba_color background;
+        rgba_color foreground;
+
         if(properties.count("Background") > 0)
             background = GetColorValue(properties["Background"]);
         if(properties.count("Foreground") > 0)
@@ -739,9 +729,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->topMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->bottomMargin;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->fontSize;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
