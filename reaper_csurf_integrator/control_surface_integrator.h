@@ -49,6 +49,8 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 const string ControlSurfaceIntegrator = "ControlSurfaceIntegrator";
 
+const string CSIName = "CSI";
+const string CSIVersion = "vEXP";
 const string VersionToken = "Version 3.0";
 const string PageToken = "Page";
 const string FollowMCPToken = "FollowMCP";

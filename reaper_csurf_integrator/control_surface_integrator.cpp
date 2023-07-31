@@ -1320,6 +1320,8 @@ void Manager::InitActionsDictionary()
     actions_["ToggleSynchPageBanking"] =            make_shared<ToggleSynchPageBanking>();
     actions_["ToggleScrollLink"] =                  make_shared<ToggleScrollLink>();
     actions_["ToggleRestrictTextLength"] =          make_shared<ToggleRestrictTextLength>();
+    actions_["CSINameDisplay"] =                    make_shared<CSINameDisplay>();
+    actions_["CSIVersionDisplay"] =                 make_shared<CSIVersionDisplay>();
     actions_["GlobalModeDisplay"] =                 make_shared<GlobalModeDisplay>();
     actions_["CycleTimeDisplayModes"] =             make_shared<CycleTimeDisplayModes>();
     actions_["NextPage"] =                          make_shared<GoNextPage>();
