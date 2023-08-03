@@ -1158,6 +1158,56 @@ private:
         }
     }
 
+    string GetAlias(string fxName)
+    {
+        vector<string> prefixes =
+        {
+            "AU: Tube-Tech ",
+            "AU: AU ",
+            "AU: UAD UA ",
+            "AU: UAD Pultec ",
+            "AU: UAD Tube-Tech ",
+            "AU: UAD Softube ",
+            "AU: UAD Teletronix ",
+            "AU: UADx ",
+            "AU: UAD ",
+            "AU: ",
+            "AUi: ",
+            "VST: TDR ",
+            "VST: UAD UA ",
+            "VST: UAD Pultec ",
+            "VST: UAD Tube-Tech ",
+            "VST: UAD Softube ",
+            "VST: UAD Teletronix ",
+            "VST: UAD ",
+            "VST3: UADx ",
+            "VST3i: UADx ",
+            "VST: ",
+            "VSTi: ",
+            "VST3: ",
+            "VST3i: ",
+            "JS: ",
+            "Rewire: ",
+            "CLAP: ",
+            "CLAPi: ",
+        };
+        
+        string alias = fxName;
+        
+        for(auto prefix : prefixes)
+        {
+            if(fxName.find(prefix) == 0)
+            {
+                alias = fxName.substr(prefix.length(), fxName.length());
+                break;
+            }
+        }
+               
+        alias = alias.substr(0, alias.find(" ("));
+        
+        return alias;
+    }
+
 public:
     ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
         
@@ -1220,56 +1270,17 @@ public:
         }
     }
       
-    string GetAlias(string fxName)
+    string GetName(MediaTrack* track, int fxIndex)
     {
-        vector<string> prefixes =
-        {
-            "AU: Tube-Tech ",
-            "AU: AU ",
-            "AU: UAD UA ",
-            "AU: UAD Pultec ",
-            "AU: UAD Tube-Tech ",
-            "AU: UAD Softube ",
-            "AU: UAD Teletronix ",
-            "AU: UADx ",
-            "AU: UAD ",
-            "AU: ",
-            "AUi: ",
-            "VST: TDR ",
-            "VST: UAD UA ",
-            "VST: UAD Pultec ",
-            "VST: UAD Tube-Tech ",
-            "VST: UAD Softube ",
-            "VST: UAD Teletronix ",
-            "VST: UAD ",
-            "VST3: UADx ",
-            "VST3i: UADx ",
-            "VST: ",
-            "VSTi: ",
-            "VST3: ",
-            "VST3i: ",
-            "JS: ",
-            "Rewire: ",
-            "CLAP: ",
-            "CLAPi: ",
-        };
-        
-        string alias = fxName;
-        
-        for(auto prefix : prefixes)
-        {
-            if(fxName.find(prefix) == 0)
-            {
-                alias = fxName.substr(prefix.length(), fxName.length());
-                break;
-            }
-        }
-               
-        alias = alias.substr(0, alias.find(" ("));
-        
-        return alias;
+        char fxName[BUFSZ];
+        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+
+        if(zoneFilePaths_.count(fxName) > 0)
+            return zoneFilePaths_[fxName].alias;
+        else
+            return GetAlias(fxName);
     }
-    
+        
     void ClearLearnedFXParams()
     {
         paramList_.clear();

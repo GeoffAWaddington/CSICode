@@ -2244,11 +2244,7 @@ public:
             string name = "";
             
             if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
-            {
-                char fxName[BUFSZ];
-                DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
-                name = context->GetSurface()->GetZoneManager()->GetAlias(fxName);
-            }
+                name = context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex());
             
             context->UpdateWidgetValue(name);
         }
@@ -2273,12 +2269,8 @@ public:
             string name = "";
             
             if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
-            {
-                char fxName[BUFSZ];
-                DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
-                name = context->GetSurface()->GetZoneManager()->GetAlias(fxName);
-            }
-            
+                name = context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex());
+
             TheManager->Speak(name);
         }
     }
