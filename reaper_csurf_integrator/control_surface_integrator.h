@@ -1177,7 +1177,8 @@ public:
     void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
-    
+    void CheckFocusedFXState();
+
     void DoLearn(ActionContext* context, double value);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget> widget);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget>, int modifier);
@@ -1444,41 +1445,7 @@ public:
         if(fxZoneFolder == fxZoneFolder_)
             AddZoneFilePath(name, info);
     }
-        
-    void CheckFocusedFXState()
-    {
-        if(! isFocusedFXMappingEnabled_)
-            return;
-        
-        int trackNumber = 0;
-        int itemNumber = 0;
-        int fxIndex = 0;
-        
-        int retval = DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
-        
-        if((retval & 1) && (fxIndex > -1))
-        {
-            int lastRetval = -1;
-
-            if(focusedFXDictionary_.count(trackNumber) > 0 && focusedFXDictionary_[trackNumber].count(fxIndex) > 0)
-                lastRetval = focusedFXDictionary_[trackNumber][fxIndex];
-            
-            if(lastRetval != retval)
-            {
-                if(retval == 1)
-                    GoFocusedFX();
-                
-                else if(retval & 4)
-                    focusedFXZones_.clear();
-                
-                if(focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
-                    focusedFXDictionary_[trackNumber] = map<int, int>();
-                                   
-                focusedFXDictionary_[trackNumber][fxIndex] = retval;;
-            }
-        }
-    }
-       
+               
     void RequestUpdate()
     {
         CheckFocusedFXState();

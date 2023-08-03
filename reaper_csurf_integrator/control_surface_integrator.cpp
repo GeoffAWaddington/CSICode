@@ -2596,6 +2596,56 @@ void ZoneManager::Initialize()
     GoHome();
 }
 
+void ZoneManager::CheckFocusedFXState()
+{
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int fxIndex = 0;
+    
+    int retval = DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
+
+    if((retval & 1) && (fxIndex > -1))
+    {
+        MediaTrack* track = DAW::GetTrack(trackNumber);
+        
+        char fxName[BUFSZ];
+        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+
+        if(learnFXName_ != "" && learnFXName_ != fxName)
+        {
+            if(MessageBox(NULL, (surface_->GetName() + string(" has ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            {
+                SaveLearnedFXParams();
+            }
+        }
+    }
+    
+    if(! isFocusedFXMappingEnabled_)
+        return;
+            
+    if((retval & 1) && (fxIndex > -1))
+    {
+        int lastRetval = -1;
+
+        if(focusedFXDictionary_.count(trackNumber) > 0 && focusedFXDictionary_[trackNumber].count(fxIndex) > 0)
+            lastRetval = focusedFXDictionary_[trackNumber][fxIndex];
+        
+        if(lastRetval != retval)
+        {
+            if(retval == 1)
+                GoFocusedFX();
+            
+            else if(retval & 4)
+                focusedFXZones_.clear();
+            
+            if(focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
+                focusedFXDictionary_[trackNumber] = map<int, int>();
+                               
+            focusedFXDictionary_[trackNumber][fxIndex] = retval;;
+        }
+    }
+}
+
 void ZoneManager::GoFocusedFX()
 {
     focusedFXZones_.clear();
