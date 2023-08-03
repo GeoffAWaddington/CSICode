@@ -1189,6 +1189,7 @@ public:
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
+    string GetZoneFolder() { return zoneFolder_; }
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
     vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
@@ -3903,10 +3904,20 @@ public:
             surface->GetZoneManager()->GoHome();
     }
     
-    void GoAssociatedZone(string zoneName)
+    void GoAssociatedZone(shared_ptr<ControlSurface> originatingSurface, string zoneName)
     {
         for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoAssociatedZone(zoneName);
+        {
+            if(surface->GetZoneManager()->GetZoneFolder() == originatingSurface->GetZoneManager()->GetZoneFolder())
+                surface->GetZoneManager()->GoAssociatedZone(zoneName);
+            else if(zoneName.find("Selected") != string::npos && surface->GetName() == originatingSurface->GetName())
+            {
+                surface->GetZoneManager()->GoAssociatedZone(zoneName);
+                break;
+            }
+            else
+                surface->GetZoneManager()->GoAssociatedZone(zoneName);
+        }
     }
     
     void GoLearnFXParams()
