@@ -1337,10 +1337,9 @@ void Manager::InitActionsDictionary()
     actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
-    actions_["ToggleAutoFocusedFXMapping"] =        make_shared<ToggleAutoFocusedFXMapping>();
-    actions_["ToggleAutoFXMapping"] =               make_shared<ToggleAutoFXMapping>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
+    actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
     actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
     actions_["ClearFocusedFX"] =                    make_shared<ClearFocusedFX>();
@@ -1402,7 +1401,6 @@ void Manager::InitActionsDictionary()
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["SaveLearnedFXParams"] =               make_shared<SaveLearnedFXParams>();
-    actions_["CheckForExistingLearnZone"] =         make_shared<CheckForExistingLearnZone>();
     actions_["EraseLastTouchedControl"] =           make_shared<EraseLastTouchedControl>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
@@ -2178,13 +2176,15 @@ void Zone::Activate()
 }
 
 void Zone::Deactivate()
-{
-    zoneManager_->UnsavedLearnFXParameters();
-    
+{    
     for(auto [widget, isUsed] : widgets_)
+    {
+        widget->Clear();
+        
         if(widget->GetName() == "OnZoneDeactivation")
             for(auto context : GetActionContexts(widget))
                 context->DoAction(1.0);
+    }
 
     isActive_ = false;
     
@@ -2618,15 +2618,6 @@ void ZoneManager::GoFocusedFX()
         char FXName[BUFSZ];
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
-        if(isAutoFocusedFXMappingEnabled_)
-        {
-            if( ! TheManager->HaveFXSteppedValuesBeenCalculated(FXName))
-                CalculateSteppedValues(FXName, focusedTrack, fxSlot);
-
-            if( ! EnsureFXZoneAvailable(FXName, focusedTrack, fxSlot))
-                return;
-        }
-
         if(zoneFilePaths_.count(FXName) > 0)
         {
             vector<shared_ptr<Navigator>> navigators;
@@ -2674,21 +2665,127 @@ void ZoneManager::GoSelectedTrackFX()
     }
 }
 
+static int dlgResult = IDCANCEL;
+
+static WDL_DLGRET dlgProcChoseAutoMapOrLearn(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDAutoMap:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        dlgResult = IDAutoMap;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDLearn:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        dlgResult = IDLearn;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        dlgResult = IDCANCEL;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+void ZoneManager::GoLearnFXParams()
+{
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int fxSlot = 0;
+    MediaTrack* track = nullptr;
+    
+    if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    {
+        if(trackNumber > 0)
+            track = DAW::GetTrack(trackNumber);
+    }
+    
+    if(track)
+    {
+        char fxName[BUFSZ];
+        DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+        
+        if(zoneFilePaths_.count(fxName) > 0)
+        {
+            ifstream file(zoneFilePaths_[fxName].filePath);
+             
+            string line = "";
+            
+            if(getline(file, line))
+            {
+                vector<string> tokens = GetTokens(line);
+                
+                if(tokens.size() > 3 && tokens[3] == GeneratedByLearn)
+                {
+                    learnFXName_ = fxName;
+                    GetExistingZoneParamsForLearn(fxName, track, fxSlot);
+                    file.close();
+                }
+                else
+                {
+                    file.close();
+                    return;
+                }
+            }
+        }
+        
+        learnFXName_ = fxName;
+        GoAssociatedZone("LearnFXParams");
+    }
+}
+
 void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
 {
-    char FXName[BUFSZ];
+    char fxName[BUFSZ];
     
-    DAW::TrackFX_GetFXName(track, fxSlot, FXName, sizeof(FXName));
+    DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
     
-    EnsureFXZoneAvailable(FXName, track, fxSlot);
+    if( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
+        CalculateSteppedValues(fxName, track, fxSlot);
+
+    if(zoneFilePaths_.count(fxName) < 1)
+    {
+        dlgResult = IDCANCEL;
+        
+        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_AutoOrLearn), g_hwnd, dlgProcChoseAutoMapOrLearn);
+
+        if(dlgResult == IDLearn)
+        {
+            DAW::TrackFX_SetOpen(track, fxSlot, true);
+            learnFXName_ = fxName;
+            GoAssociatedZone("LearnFXParams");
+        }
+        else if(dlgResult == IDAutoMap)
+            AutoMap(fxName, track, fxSlot);
+        else if(dlgResult == IDCANCEL)
+            return;
+    }
     
-    if(zoneFilePaths_.count(FXName) > 0)
+    if(zoneFilePaths_.count(fxName) > 0)
     {
         vector<shared_ptr<Navigator>> navigators;
         navigators.push_back(navigator);
         
         if(sharedThisPtr_ != nullptr)
-            ProcessZoneFile(zoneFilePaths_[FXName].filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+            ProcessZoneFile(zoneFilePaths_[fxName].filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
         
         if(fxSlotZones_.size() > 0)
         {
@@ -2728,17 +2825,6 @@ void ZoneManager::EraseLastTouchedControl()
         lastTouched_->fxSlotNum = 0;
         
         lastTouched_ = nullptr;
-    }
-}
-
-void ZoneManager::Shutdown()
-{
-    if(learnFXName_ != "")
-    {
-        if(MessageBox(NULL, (surface_->GetName() + string(" has ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
-        {
-            SaveLearnedFXParams();
-        }
     }
 }
 
@@ -2829,7 +2915,6 @@ void ZoneManager::SaveLearnedFXParams()
         }
         
         ClearLearnedFXParams();
-        
         GoHome();
     }
 }
@@ -3011,57 +3096,11 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
     }
 }
 
-bool ZoneManager::ZoneAlreadyExistsStopLearning(string fxName, MediaTrack* track, int fxSlotNum)
-{
-    ifstream file(zoneFilePaths_[fxName].filePath);
-     
-    string line = "";
-    
-    if(getline(file, line))
-    {
-        vector<string> tokens = GetTokens(line);
-        
-        if(tokens.size() > 3 && tokens[3] == GeneratedByLearn)
-        {
-            learnFXName_ = fxName;
-            GetExistingZoneParamsForLearn(fxName, track, fxSlotNum);
-        }
-        
-        file.close();
-        hasLearnBeenEngagedRecently_ = true;
-        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-        return false;
-    }
-    
-    file.close();
-
-    string message = surface_->GetName() + string(" already has a ") + GetAlias(fxName) + string(". \nIt was not generated by Learn. \n\nPress Ok to permanently erase ") + GetAlias(fxName) + string(" from disk and continue to learn. \n\nPress Cancel to stop learning."  );
-    
-    int result = MessageBox(NULL, message.c_str(), "Zone Not Generated by Learn", MB_OKCANCEL);
-    
-    if(result == IDOK)
-    {
-        RemoveZone(fxName);
-        hasLearnBeenEngagedRecently_ = true;
-        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-        return false;
-    }
-    else
-    {
-        hasLearnBeenEngagedRecently_ = true;
-        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-        return true;
-    }
-    
-    return true;
-}
-
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
-    // This is just to let things settle a bit, you may have turned an encoder and there may be a few "spurious" messages yet to come
-    if(hasLearnBeenEngagedRecently_)
+    if(value == 0.0)
         return;
-
+    
     int trackNum = 0;
     int fxSlotNum = 0;
     int fxParamNum = 0;
@@ -3087,132 +3126,81 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
             if(paramList_.size() == 0)
                 for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
                     paramList_.push_back(to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxSlotNum, i));
+                                            
+            string paramStr = "";
             
-            if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+            if(context->GetWidget()->GetName().find("Fader") == string::npos)
             {
-                if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
-                   return;
-            
-                learnFXName_ = fxName;
-            }
-            else
-            {
-                if(! hasLearnBeenEngagedRecently_ && learnFXName_ != "" && learnFXName_ != fxName)
+                if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
+                    context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
+                
+                int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
+                
+                if(context->GetWidget()->GetName().find("Push") != string::npos)
                 {
-                    string message = string("You are currently learning ") + GetAlias(learnFXName_) + string(". Do you want to save those changes ? \n\nPress\n\nYes to save the ") + GetAlias(learnFXName_) + string(" changes\n\nNo to lose those changes and continue\n\nCancel to cancel");
+                    if(numSteps == 0)
+                        numSteps = 2;
+                }
+
+                if(numSteps > 1)
+                    context->SetStepValues(SteppedValueDictionary[numSteps]);
+                
+                if(numSteps > 1)
+                {
+                    ostringstream stepStr;
                     
-                    int result = MessageBox(NULL, message.c_str(), "Different FX", MB_YESNOCANCEL);
+                    stepStr << "";
+
+                    stepStr << "[ ";
                     
-                    if(result == IDYES)
+                    for(auto step : SteppedValueDictionary[numSteps])
                     {
-                        SaveLearnedFXParams();
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
+                        stepStr << std::setprecision(2) << step;
+                        stepStr <<  "  ";
                     }
-                    else if(result == IDNO)
-                    {
-                        ClearLearnedFXParams();
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-                    }
-                    else if(result == IDCANCEL)
-                    {
-                        hasLearnBeenEngagedRecently_ = true;
-                        timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-                        return;
-                    }
+                    
+                    stepStr << "]";
+                    
+                    paramStr = stepStr.str();
                 }
                 
-                if(! hasLearnBeenEngagedRecently_ && learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
+                if(context->GetWidget()->GetName().find("Rotary") != string::npos && context->GetWidget()->GetName().find("Push") == string::npos)
                 {
-                    if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
-                       return;
-                    
-                    learnFXName_ = fxName;
-                }
-                else
-                {
-                    hasLearnBeenEngagedRecently_ = true;
-                    timeLearnEngaged_ = DAW::GetCurrentNumberOfMilliseconds();
-
-                    learnFXName_ = fxName;
-                                        
-                    string paramStr = "";
-                    
-                    if(context->GetWidget()->GetName().find("Fader") == string::npos)
-                    {
-                        if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
-                            context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
-                        
-                        int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
-                        
-                        if(context->GetWidget()->GetName().find("Push") != string::npos)
-                        {
-                            if(numSteps == 0)
-                                numSteps = 2;
-                        }
-
-                        if(numSteps > 1)
-                            context->SetStepValues(SteppedValueDictionary[numSteps]);
-                        
-                        if(numSteps > 1)
-                        {
-                            ostringstream stepStr;
-                            
-                            stepStr << "";
-
-                            stepStr << "[ ";
-                            
-                            for(auto step : SteppedValueDictionary[numSteps])
-                            {
-                                stepStr << std::setprecision(2) << step;
-                                stepStr <<  "  ";
-                            }
-                            
-                            stepStr << "]";
-                            
-                            paramStr = stepStr.str();
-                        }
-                        
-                        if(context->GetWidget()->GetName().find("Rotary") != string::npos && context->GetWidget()->GetName().find("Push") == string::npos)
-                        {
-                            if(surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
-                                for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
-                                    paramStr += " " + surfaceFXLayout_[0][i];
-                        }
-                    }
-                   
-                    int currentModifier = 0;
-                    
-                    vector<int> modifiers = surface_->GetModifiers();
-
-                    if(modifiers.size() > 0)
-                        currentModifier = modifiers[0];
-
-                    for(auto [widget, modifiers] : learnedFXParams_)
-                    {
-                        for(auto [modifier, widgetInfo] : modifiers)
-                        {
-                            if(modifier == currentModifier && widgetInfo->cell == info->cell)
-                            {
-                                widgetInfo->isLearned = false;
-                                widgetInfo->paramNumber = 0;
-                                widgetInfo->paramName = "";
-                                widgetInfo->params = "";
-                                widgetInfo->track = nullptr;
-                                widgetInfo->fxSlotNum = 0;
-                            }
-                        }
-                    }
-
-                    info->isLearned = true;
-                    info->paramNumber = fxParamNum;
-                    info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
-                    info->params = paramStr;
-                    info->track = DAW::GetTrack(trackNum);
-                    info->fxSlotNum = fxSlotNum;
+                    if(surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
+                        for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
+                            paramStr += " " + surfaceFXLayout_[0][i];
                 }
             }
+           
+            int currentModifier = 0;
+            
+            vector<int> modifiers = surface_->GetModifiers();
+
+            if(modifiers.size() > 0)
+                currentModifier = modifiers[0];
+
+            for(auto [widget, modifiers] : learnedFXParams_)
+            {
+                for(auto [modifier, widgetInfo] : modifiers)
+                {
+                    if(modifier == currentModifier && widgetInfo->cell == info->cell)
+                    {
+                        widgetInfo->isLearned = false;
+                        widgetInfo->paramNumber = 0;
+                        widgetInfo->paramName = "";
+                        widgetInfo->params = "";
+                        widgetInfo->track = nullptr;
+                        widgetInfo->fxSlotNum = 0;
+                    }
+                }
+            }
+
+            info->isLearned = true;
+            info->paramNumber = fxParamNum;
+            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+            info->params = paramStr;
+            info->track = DAW::GetTrack(trackNum);
+            info->fxSlotNum = fxSlotNum;
         }
     }
     else
@@ -3280,19 +3268,6 @@ void ZoneManager::PreProcessZones()
             for(auto zoneFilename : zoneFilesToProcess)
                 PreProcessZoneFile(zoneFilename, sharedThisPtr_);
     }
-}
-
-bool ZoneManager::EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
-{
-    if( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
-        CalculateSteppedValues(fxName, track, fxIndex);
-    
-    if(zoneFilePaths_.count(fxName) > 0)
-        return true;
-    else if(isAutoFXMappingEnabled_)
-        return EnsureZoneAvailable(fxName, track, fxIndex);
-    else
-        return false;
 }
 
 void ZoneManager::CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex)
@@ -3396,16 +3371,13 @@ void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int f
         DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
-bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex)
+void ZoneManager::AutoMap(string fxName, MediaTrack* track, int fxIndex)
 {    
-    if(zoneFilePaths_.count(fxName) > 0)
-        return true;
-
     if(fxLayouts_.size() == 0)
-        return false;
+        return;
 
     if(surfaceFXLayout_.size() == 0)
-        return false;
+        return;
             
     string path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
     
@@ -3619,8 +3591,6 @@ bool ZoneManager::EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIn
         
         fxZone.close();
     }
-    
-    return true;
 }
 
 void ZoneManager::DoTouch(shared_ptr<Widget> widget, double value)

@@ -148,28 +148,20 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class CheckForExistingLearnZone : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "CheckForExistingLearnZone"; }
-   
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(context->GetZone()->GetName() == "LearnFXParams")
-            context->GetSurface()->GetZoneManager()->CheckForExistingLearnZone();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SaveLearnedFXParams : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
     virtual string GetName() override { return "SaveLearnedFXParams"; }
    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFXParams"))
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+    
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
@@ -2249,17 +2241,13 @@ public:
     {
         if(MediaTrack* track = context->GetTrack())
         {
-            string name = "NoMap";
+            string name = "";
             
-            if(context->GetSlotIndex() >= DAW::TrackFX_GetCount(track))
-                name= "";
-            else
+            if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
             {
                 char fxName[BUFSZ];
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
-                
-                if(context->GetSurface()->GetZoneManager()->EnsureFXZoneAvailable(fxName, track, context->GetSlotIndex()))
-                    name = context->GetSurface()->GetZoneManager()->GetName(fxName);
+                name = context->GetSurface()->GetZoneManager()->GetAlias(fxName);
             }
             
             context->UpdateWidgetValue(name);
@@ -2282,20 +2270,13 @@ public:
 
         if(MediaTrack* track = context->GetTrack())
         {
-            string name = "NoMap";
+            string name = "";
             
-            if(context->GetSlotIndex() >= DAW::TrackFX_GetCount(track))
-                name= "No FX present in this slot";
-            else
+            if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
             {
                 char fxName[BUFSZ];
                 DAW::TrackFX_GetFXName(track, context->GetSlotIndex(), fxName, sizeof(fxName));
-                
-                if(context->GetSurface()->GetZoneManager()->EnsureFXZoneAvailable(fxName, track, context->GetSlotIndex()))
-                    name = context->GetSurface()->GetZoneManager()->GetName(fxName);
-
-                if(name == "NoMap")
-                    name = "No Zone definition for " + string(fxName);
+                name = context->GetSurface()->GetZoneManager()->GetAlias(fxName);
             }
             
             TheManager->Speak(name);

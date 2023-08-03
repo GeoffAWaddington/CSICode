@@ -3,11 +3,13 @@
 // Used by res.rc
 //
 #define IDEDIT                          3
+#define IDAutoMap                       3
 #define IDC_Delete                      4
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_RemapAutoFX          117
 #define IDD_DIALOG_Advanced             119
+#define IDD_AutoOrLearn                 121
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -146,15 +148,16 @@
 #define IDC_EDIT_RangeMax               1250
 #define IDC_EDIT_DeltaValues            1251
 #define IDC_EDIT_TickValues             1252
+#define IDLearn                         1252
 #define IDC_GroupFXParamValueDisplay3   1263
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        121
+#define _APS_NEXT_RESOURCE_VALUE        123
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1252
+#define _APS_NEXT_CONTROL_VALUE         1253
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

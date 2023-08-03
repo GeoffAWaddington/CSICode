@@ -9,7 +9,6 @@
 
 #include "control_surface_integrator.h"
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class DumpHex : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,8 +18,8 @@ public:
 
     void Do(ActionContext* context, double value) override
     {
-        string binFilePath = string(DAW::GetResourcePath()) + "/CSI/file.bin";
-        string hexFilePath = string(DAW::GetResourcePath()) + "/CSI/file.txt";
+        string binFilePath = string(DAW::GetResourcePath()) + "/CSI/EncoderModule.bin";
+        string hexFilePath = string(DAW::GetResourcePath()) + "/CSI/EncoderModuleFirmware.h";
 
         // open the file:
         streampos fileSize;
@@ -517,7 +516,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetPage()->GoTrackFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
+            context->GetSurface()->GetZoneManager()->GoTrackFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
     }
 };
 
@@ -577,46 +576,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleAutoFocusedFXMapping  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleAutoFocusedFXMapping"; }
-
-    void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsAutoFocusedFXMappingEnabled());
-    }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleEnableAutoFocusedFXMapping();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleAutoFXMapping  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleAutoFXMapping"; }
-
-    void RequestUpdate(ActionContext* context) override
-    {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsAutoFXMappingEnabled());
-    }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleEnableAutoFXMapping();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class RemapAutoZone  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -652,6 +611,23 @@ public:
         
         if(MediaTrack* track = context->GetTrack())
             context->GetSurface()->GetZoneManager()->GoSelectedTrackFX();
+    }
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoLearnFXParams : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoLearnFXParams"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetPage()->GoLearnFXParams();
     }
 };
 

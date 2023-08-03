@@ -281,6 +281,20 @@ BEGIN
     EDITTEXT        IDC_EDIT_TickValues,93,50,203,12,ES_AUTOHSCROLL
 END
 
+IDD_AutoOrLearn DIALOGEX 0, 0, 172, 96
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "No FX Map"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Learn",IDLearn,66,70,41,14
+    PUSHBUTTON      "Cancel",IDCANCEL,120,70,41,14
+    DEFPUSHBUTTON   "Auto Map",IDAutoMap,11,70,41,14
+    LTEXT           "There is no map for this FX",IDC_STATIC,39,13,87,8
+    LTEXT           "Press Auto Map to generate a map",IDC_STATIC,30,26,109,8
+    LTEXT           "Press Cancel to do nothing",IDC_STATIC,44,52,85,8
+    LTEXT           "Press Learn to go into Learn mode",IDC_STATIC,30,39,109,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -349,6 +363,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 84
     END
+
+    IDD_AutoOrLearn, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 165
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 89
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -394,6 +416,11 @@ BEGIN
 END
 
 IDD_DIALOG_Advanced AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_AutoOrLearn AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

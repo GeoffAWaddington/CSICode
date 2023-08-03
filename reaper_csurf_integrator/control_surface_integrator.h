@@ -1006,10 +1006,7 @@ private:
     shared_ptr<Zone> homeZone_ = nullptr;
     
     shared_ptr<ZoneManager> sharedThisPtr_ = nullptr;
-    
-    bool isAutoFocusedFXMappingEnabled_ = true;
-    bool isAutoFXMappingEnabled_ = true;
-    
+       
     vector<vector<string>> surfaceFXLayout_;
     vector<vector<string>> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
@@ -1047,7 +1044,7 @@ private:
         { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
     };
     
-    bool EnsureZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
+    void AutoMap(string fxName, MediaTrack* track, int fxIndex);
     void CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex);
 
     void ResetOffsets()
@@ -1067,58 +1064,7 @@ private:
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
     }
-    
-    string GetAlias(string fxName)
-    {
-        vector<string> prefixes =
-        {
-            "AU: Tube-Tech ",
-            "AU: AU ",
-            "AU: UAD UA ",
-            "AU: UAD Pultec ",
-            "AU: UAD Tube-Tech ",
-            "AU: UAD Softube ",
-            "AU: UAD Teletronix ",
-            "AU: UADx ",
-            "AU: UAD ",
-            "AU: ",
-            "AUi: ",
-            "VST: TDR ",
-            "VST: UAD UA ",
-            "VST: UAD Pultec ",
-            "VST: UAD Tube-Tech ",
-            "VST: UAD Softube ",
-            "VST: UAD Teletronix ",
-            "VST: UAD ",
-            "VST3: UADx ",
-            "VST3i: UADx ",
-            "VST: ",
-            "VSTi: ",
-            "VST3: ",
-            "VST3i: ",
-            "JS: ",
-            "Rewire: ",
-            "CLAP: ",
-            "CLAPi: ",
-        };
         
-        string alias = fxName;
-        
-        for(auto prefix : prefixes)
-        {
-            if(fxName.find(prefix) == 0)
-            {
-                alias = fxName.substr(prefix.length(), fxName.length());
-                break;
-            }
-        }
-               
-        alias = alias.substr(0, alias.find(" ("));
-        
-        return alias;
-    }
-    
-    bool ZoneAlreadyExistsStopLearning(string fxName, MediaTrack* track, int fxSlotNum);
     void InitializeFXParamsLearnZone();
     void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
@@ -1130,9 +1076,6 @@ private:
     shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
         
-    bool hasLearnBeenEngagedRecently_ = false;
-    int timeLearnEngaged_ = 0;
-
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
         for(int i = start; i < finish; i++)
@@ -1221,13 +1164,12 @@ public:
     void Initialize();
     
     void PreProcessZones();
-    
-    bool EnsureFXZoneAvailable(string fxName, MediaTrack* track, int fxIndex);
-    
+        
     shared_ptr<Navigator> GetMasterTrackNavigator();
     shared_ptr<Navigator> GetSelectedTrackNavigator();
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
+    void GoLearnFXParams();
     int  GetNumChannels();
     void GoFocusedFX();
     void GoSelectedTrackFX();
@@ -1244,7 +1186,6 @@ public:
     
     void EraseLastTouchedControl();
     void SaveLearnedFXParams();
-    void Shutdown();
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
@@ -1266,34 +1207,8 @@ public:
     int GetMasterTrackFXMenuOffset() { return masterTrackFXMenuOffset_; }
 
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
-    bool GetIsAutoFXMappingEnabled() { return isAutoFXMappingEnabled_; }
-    bool GetIsAutoFocusedFXMappingEnabled() { return isAutoFocusedFXMappingEnabled_; }
-
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-      
-    void CheckForExistingLearnZone()
-    {
-        int trackNum = 0;
-        int fxSlotNum = 0;
-        int fxParamNum = 0;
-
-        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
-        {
-            MediaTrack* track = DAW::GetTrack(trackNum);
-            
-            char fxName[BUFSZ];
-            DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
-            
-            if(learnFXName_ == "" && zoneFilePaths_.count(fxName) > 0)
-            {
-                if(ZoneAlreadyExistsStopLearning(fxName, track, fxSlotNum))
-                   return;
-            
-                learnFXName_ = fxName;
-            }
-        }
-    }
-    
+          
     void RemoveZone(string zoneName)
     {
         if(zoneFilePaths_.count(zoneName) > 0)
@@ -1302,20 +1217,55 @@ public:
             zoneFilePaths_.erase(zoneName);
         }
     }
-        
-    void UnsavedLearnFXParameters()
+      
+    string GetAlias(string fxName)
     {
-        if(learnFXName_ != "")
+        vector<string> prefixes =
         {
-            if(MessageBox(NULL, (string("You have ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            "AU: Tube-Tech ",
+            "AU: AU ",
+            "AU: UAD UA ",
+            "AU: UAD Pultec ",
+            "AU: UAD Tube-Tech ",
+            "AU: UAD Softube ",
+            "AU: UAD Teletronix ",
+            "AU: UADx ",
+            "AU: UAD ",
+            "AU: ",
+            "AUi: ",
+            "VST: TDR ",
+            "VST: UAD UA ",
+            "VST: UAD Pultec ",
+            "VST: UAD Tube-Tech ",
+            "VST: UAD Softube ",
+            "VST: UAD Teletronix ",
+            "VST: UAD ",
+            "VST3: UADx ",
+            "VST3i: UADx ",
+            "VST: ",
+            "VSTi: ",
+            "VST3: ",
+            "VST3i: ",
+            "JS: ",
+            "Rewire: ",
+            "CLAP: ",
+            "CLAPi: ",
+        };
+        
+        string alias = fxName;
+        
+        for(auto prefix : prefixes)
+        {
+            if(fxName.find(prefix) == 0)
             {
-                SaveLearnedFXParams();
-            }
-            else
-            {
-                ClearLearnedFXParams();
+                alias = fxName.substr(prefix.length(), fxName.length());
+                break;
             }
         }
+               
+        alias = alias.substr(0, alias.find(" ("));
+        
+        return alias;
     }
     
     void ClearLearnedFXParams()
@@ -1443,16 +1393,6 @@ public:
         isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_;
     }
 
-    void ToggleEnableAutoFocusedFXMapping()
-    {
-        isAutoFocusedFXMappingEnabled_ = ! isAutoFocusedFXMappingEnabled_;
-    }
-    
-    void ToggleEnableAutoFXMapping()
-    {
-        isAutoFXMappingEnabled_ = ! isAutoFXMappingEnabled_;
-    }
-    
     bool GetIsHomeZoneOnlyActive()
     {
         if(homeZone_ !=  nullptr)
@@ -1490,14 +1430,6 @@ public:
     void AddWidget(shared_ptr<Widget> widget)
     {
         usedWidgets_[widget] = false;
-    }
-
-    string GetName(string name)
-    {
-        if(zoneFilePaths_.count(name) > 0)
-            return zoneFilePaths_[name].alias;
-        else
-            return "No Map";
     }
     
     void AddZoneFilePath(string name, struct CSIZoneInfo info)
@@ -1548,15 +1480,6 @@ public:
        
     void RequestUpdate()
     {
-        if(hasLearnBeenEngagedRecently_)
-        {
-            if(DAW::GetCurrentNumberOfMilliseconds() - timeLearnEngaged_ > 100)
-            {
-                timeLearnEngaged_ = 0;
-                hasLearnBeenEngagedRecently_ = false;
-            }
-        }
-        
         CheckFocusedFXState();
             
         for(auto &[key, value] : usedWidgets_)
@@ -2591,12 +2514,7 @@ public:
         for(auto widget : widgets_)
             widget->ForceClear();
     }
-       
-    void Shutdown()
-    {
-        zoneManager_->Shutdown();
-    }
-    
+           
     void TrackFXListChanged(MediaTrack* track)
     {
         OnTrackSelection(track);
@@ -3877,12 +3795,6 @@ public:
             surface->ForceUpdateTrackColors();
     }
       
-    void Shutdown()
-    {
-        for(auto surface : surfaces_)
-            surface->Shutdown();
-    }
-    
     bool GetTouchState(MediaTrack* track, int touchedControl)
     {
         return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
@@ -3954,13 +3866,7 @@ public:
         for(auto surface : surfaces_)
             surface->HandleRecord();
     }
-    
-    void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoTrackFXSlot(track, navigator, fxSlot);
-    }
-    
+        
     void ClearFocusedFXParam()
     {
         for(auto surface : surfaces_)
@@ -4001,6 +3907,12 @@ public:
     {
         for(auto surface : surfaces_)
             surface->GetZoneManager()->GoAssociatedZone(zoneName);
+    }
+    
+    void GoLearnFXParams()
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->GoLearnFXParams();
     }
     
     void AdjustBank(string zoneName, int amount)
@@ -4245,10 +4157,7 @@ public:
         shouldRun_ = false;
         
         if(pages_.size() > 0)
-        {
-            pages_[currentPageIndex_]->Shutdown();
             pages_[currentPageIndex_]->ForceClear();
-        }
     }
     
     void Init();
