@@ -1044,7 +1044,6 @@ private:
         { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
     };
     
-    void AutoMap(string fxName, MediaTrack* track, int fxIndex);
     void CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex);
 
     void ResetOffsets()
@@ -1220,11 +1219,13 @@ public:
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
     void GoLearnFXParams();
+    void GoAutoMapFX();
     int  GetNumChannels();
     void GoFocusedFX();
     void GoSelectedTrackFX();
     void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
     void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
+    void AutoMapFX(string fxName, MediaTrack* track, int fxIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
@@ -3898,12 +3899,18 @@ public:
         }
     }
     
+    void GoAutoMapFX()
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->GoAutoMapFX();
+    }
+    
     void GoLearnFXParams()
     {
         for(auto surface : surfaces_)
             surface->GetZoneManager()->GoLearnFXParams();
     }
-    
+
     void AdjustBank(string zoneName, int amount)
     {
         if(zoneName == "Track")

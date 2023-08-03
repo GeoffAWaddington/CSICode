@@ -1340,6 +1340,7 @@ void Manager::InitActionsDictionary()
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
+    actions_["GoAutoMapFX"] =                       make_shared<GoAutoMapFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
     actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
     actions_["ClearFocusedFX"] =                    make_shared<ClearFocusedFX>();
@@ -2755,6 +2756,29 @@ static WDL_DLGRET dlgProcChoseAutoMapOrLearn(HWND hwndDlg, UINT uMsg, WPARAM wPa
     return 0;
 }
 
+void ZoneManager::GoAutoMapFX()
+{
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int fxSlot = 0;
+    MediaTrack* track = nullptr;
+    
+    if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    {
+        if(trackNumber > 0)
+            track = DAW::GetTrack(trackNumber);
+        
+        if(track)
+        {
+            char fxName[BUFSZ];
+            DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+            if( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
+                CalculateSteppedValues(fxName, track, fxSlot);
+            AutoMapFX(fxName, track, fxSlot);
+        }
+    }
+}
+
 void ZoneManager::GoLearnFXParams()
 {
     int trackNumber = 0;
@@ -2824,7 +2848,7 @@ void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigat
             GoAssociatedZone("LearnFXParams");
         }
         else if(dlgResult == IDAutoMap)
-            AutoMap(fxName, track, fxSlot);
+            AutoMapFX(fxName, track, fxSlot);
         else if(dlgResult == IDCANCEL)
             return;
     }
@@ -3421,7 +3445,7 @@ void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int f
         DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
-void ZoneManager::AutoMap(string fxName, MediaTrack* track, int fxIndex)
+void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
 {    
     if(fxLayouts_.size() == 0)
         return;
