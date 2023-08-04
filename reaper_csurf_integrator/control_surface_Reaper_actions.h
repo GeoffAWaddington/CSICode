@@ -99,9 +99,32 @@ public:
         int trackNum;
         int fxSlotNum;
         int fxParamNum;
-
+        
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
-            context->UpdateWidgetValue(DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum));
+        {
+            int modifier = 0;
+            
+            if(context->GetSurface()->GetModifiers().size() > 0)
+                modifier = context->GetSurface()->GetModifiers()[0];
+
+            LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
+
+            bool isLearned = false;
+            
+            for(auto widget : cell.fxParamWidgets)
+            {
+                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(widget, modifier)->isLearned)
+                {
+                    isLearned = true;
+                    break;
+                }
+            }
+            
+            if(isLearned)
+                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum));
+            else
+                context->ClearWidget();
+        }
         else
             context->ClearWidget();
     }
@@ -119,12 +142,35 @@ public:
         int trackNum;
         int fxSlotNum;
         int fxParamNum;
-        
+                
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
-            char fxParamValue[128];
-            DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, paramNum, fxParamValue, sizeof(fxParamValue));
-            context->UpdateWidgetValue(string(fxParamValue));
+            int modifier = 0;
+            
+            if(context->GetSurface()->GetModifiers().size() > 0)
+                modifier = context->GetSurface()->GetModifiers()[0];
+
+            LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
+
+            bool isLearned = false;
+            
+            for(auto widget : cell.fxParamWidgets)
+            {
+                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(widget, modifier)->isLearned)
+                {
+                    isLearned = true;
+                    break;
+                }
+            }
+            
+            if(isLearned)
+            {
+                char fxParamValue[128];
+                DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, paramNum, fxParamValue, sizeof(fxParamValue));
+                context->UpdateWidgetValue(string(fxParamValue));
+            }
+            else
+                context->ClearWidget();
         }
         else
             context->ClearWidget();

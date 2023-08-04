@@ -387,6 +387,9 @@ private:
     
     vector<string> zoneNames_;
     
+    // For Learn
+    string cellAddress_ = "";
+    
     void UpdateTrackColor();
 
 public:
@@ -436,6 +439,10 @@ public:
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount * 1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
     
+    // For Learn
+    void SetCellAddress(string cellAddress) { cellAddress_ = cellAddress; }
+    string GetCellAddress() { return cellAddress_; }
+
     void DoAction(double value);
     void DoRelativeAction(double value);
     void DoRelativeAction(int accelerationIndex, double value);
@@ -637,6 +644,13 @@ public:
     void AddLearnFXCell(int modifier, string cellAddress, LearnFXCell cell)
     {
         learnFXCells_[modifier][cellAddress] = cell;
+    }
+    
+    LearnFXCell GetLearnFXCell(int modifier, string cellAddress)
+    {
+        if(learnFXCells_.count(modifier) > 0 && learnFXCells_[modifier].count(cellAddress) > 0)
+            return learnFXCells_[modifier][cellAddress];
+        else return LearnFXCell();
     }
     
     shared_ptr<Zone> GetLearnFXParamsZone()
@@ -978,7 +992,7 @@ struct CSILayoutInfo
 struct LearnInfo
 {
     shared_ptr<Widget> const fxParamWidget = nullptr;
-    string const cell = "";
+    string const cellAddress = "";
     
     bool isLearned = false;
     int paramNumber = 0;
@@ -987,7 +1001,7 @@ struct LearnInfo
     MediaTrack* track = nullptr;
     int fxSlotNum = 0;
     
-    LearnInfo(shared_ptr<Widget> paramWidget, string cellPosition) : fxParamWidget(paramWidget), cell(cellPosition) {}
+    LearnInfo(shared_ptr<Widget> paramWidget, string cellAddress) : fxParamWidget(paramWidget), cellAddress(cellAddress) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1074,7 +1088,7 @@ private:
     string learnFXName_ = "";
     shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
-        
+
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
         for(int i = start; i < finish; i++)
