@@ -405,7 +405,8 @@ public:
 
     static void TrackFX_SetOpen(MediaTrack* track, int fx, bool open)
     {
-        ::TrackFX_SetOpen(track, fx, open);
+        if(ValidateTrackPtr(track))
+            ::TrackFX_SetOpen(track, fx, open);
     }
 
     static bool GetTrackName(MediaTrack* track, char* buf, int buf_sz)

@@ -1334,6 +1334,7 @@ void Manager::InitActionsDictionary()
     actions_["SetXTouchDisplayColors"] =            make_shared<SetXTouchDisplayColors>();
     actions_["RestoreXTouchDisplayColors"] =        make_shared<RestoreXTouchDisplayColors>();
     actions_["GoFXSlot"] =                          make_shared<GoFXSlot>();
+    actions_["ShowFXSlot"] =                        make_shared<ShowFXSlot>();
     actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
