@@ -2821,7 +2821,16 @@ void ZoneManager::GoLearnFXParams()
                 else
                 {
                     file.close();
-                    return;
+                    
+                    if(MessageBox(NULL, (zoneFilePaths_[fxName].alias + " already exists\n\n Do you want to delete it permanently and go into LearnMode ?").c_str(), "Zone Already Exists", MB_YESNO) == IDYES)
+                    {
+                        ClearLearnedFXParams();
+                        RemoveZone(fxName);
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
             }
         }
