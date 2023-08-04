@@ -2614,9 +2614,14 @@ void ZoneManager::CheckFocusedFXState()
 
         if(learnFXName_ != "" && learnFXName_ != fxName)
         {
-            if(MessageBox(NULL, (surface_->GetName() + string(" has ") + GetAlias(learnFXName_) + string(" parameters that have not been saved, do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            if(MessageBox(NULL, (string("You have now shifted focus to ") + GetAlias(fxName) + "\n\n" + GetAlias(learnFXName_) + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
             {
                 SaveLearnedFXParams();
+            }
+            else
+            {
+                ClearLearnedFXParams();
+                GoHome();
             }
         }
     }
