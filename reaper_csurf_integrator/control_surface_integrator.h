@@ -1102,6 +1102,42 @@ private:
     shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
 
+    void ToggleEnableFocusedFXParamMapping()
+    {
+        isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
+        
+        if(focusedFXParamZone_ != nullptr)
+        {
+            if(isFocusedFXParamMappingEnabled_)
+                focusedFXParamZone_->Activate();
+            else
+                focusedFXParamZone_->Deactivate();
+        }
+    }
+
+    void ToggleEnableFocusedFXMapping()
+    {
+        isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_;
+    }
+
+    void ClearFocusedFXParam()
+    {
+        if(focusedFXParamZone_ != nullptr)
+        {
+            focusedFXParamZone_->ClearWidgets();
+            focusedFXParamZone_ = nullptr;
+        }
+    }
+    
+    void ClearFocusedFX()
+    {
+        for(auto zone : focusedFXZones_)
+            zone->ClearWidgets();
+        
+        focusedFXZones_.clear();
+        focusedFXDictionary_.clear();
+    }
+    
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
         for(int i = start; i < finish; i++)
@@ -1376,24 +1412,34 @@ public:
         lastTouched_ = nullptr;
     }
         
-    void ClearFocusedFXParam()
+    void BroadcastClearFocusedFXParam()
     {
-        if(focusedFXParamZone_ != nullptr)
-        {
-            focusedFXParamZone_->ClearWidgets();
-            focusedFXParamZone_ = nullptr;
-        }
-    }
-    
-    void ClearFocusedFX()
-    {
-        for(auto zone : focusedFXZones_)
-            zone->ClearWidgets();
+        ClearFocusedFXParam();
         
-        focusedFXZones_.clear();
-        focusedFXDictionary_.clear();
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveClearFocusedFXParam();
     }
     
+    void ReceiveClearFocusedFXParam()
+    {
+       if(shouldReceiveFocus_)
+           ClearFocusedFXParam();
+    }
+
+    void BroadcastClearFocusedFX()
+    {
+        ClearFocusedFX();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveClearFocusedFX();
+    }
+    
+    void ReceiveClearFocusedFX()
+    {
+       if(shouldReceiveFocus_)
+           ClearFocusedFX();
+    }
+
     void ClearSelectedTrackFX()
     {
         for(auto zone : selectedTrackFXZones_)
@@ -1462,22 +1508,34 @@ public:
         }
     }
     
-    void ToggleEnableFocusedFXParamMapping()
+    void BroadcastToggleEnableFocusedFXParamMapping()
     {
-        isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
+        ToggleEnableFocusedFXParamMapping();
         
-        if(focusedFXParamZone_ != nullptr)
-        {
-            if(isFocusedFXParamMappingEnabled_)
-                focusedFXParamZone_->Activate();
-            else
-                focusedFXParamZone_->Deactivate();
-        }
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveToggleEnableFocusedFXParamMapping();
+        
     }
 
-    void ToggleEnableFocusedFXMapping()
+    void ReceiveToggleEnableFocusedFXParamMapping()
     {
-        isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_;
+        if(shouldReceiveFocus_)
+            ToggleEnableFocusedFXParamMapping();
+    }
+
+    void BroadcastToggleEnableFocusedFXMapping()
+    {
+        ToggleEnableFocusedFXMapping();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveToggleEnableFocusedFXMapping();
+
+    }
+
+    void ReceiveToggleEnableFocusedFXMapping()
+    {
+        if(shouldReceiveFocus_)
+            ToggleEnableFocusedFXMapping();
     }
 
     bool GetIsHomeZoneOnlyActive()
@@ -3922,18 +3980,6 @@ public:
             surface->HandleRecord();
     }
         
-    void ClearFocusedFXParam()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->ClearFocusedFXParam();
-    }
-
-    void ClearFocusedFX()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->ClearFocusedFX();
-    }
-
     void ClearSelectedTrackFX()
     {
         for(auto surface : surfaces_)

@@ -568,7 +568,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->ToggleEnableFocusedFXMapping();
+        context->GetSurface()->GetZoneManager()->BroadcastToggleEnableFocusedFXMapping();
     }
 };
 
@@ -588,7 +588,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->ToggleEnableFocusedFXParamMapping();
+        context->GetSurface()->GetZoneManager()->BroadcastToggleEnableFocusedFXParamMapping();
     }
 };
 
@@ -774,7 +774,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetPage()->ClearFocusedFXParam();
+        context->GetSurface()->GetZoneManager()->BroadcastClearFocusedFXParam();
     }
 };
 
@@ -790,7 +790,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetPage()->ClearFocusedFX();
+        context->GetSurface()->GetZoneManager()->BroadcastClearFocusedFX();
     }
 };
 
