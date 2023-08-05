@@ -1344,6 +1344,7 @@ void Manager::InitActionsDictionary()
     actions_["ToggleShouldReceiveTrack"] =          make_shared<ToggleShouldReceiveTrack>();
     actions_["ToggleShouldReceiveAutoMapLearn"] =   make_shared<ToggleShouldReceiveAutoMapLearn>();
     actions_["ToggleShouldReceiveFocus"] =          make_shared<ToggleShouldReceiveFocus>();
+    actions_["ToggleShouldReceiveHome"] =           make_shared<ToggleShouldReceiveHome>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
@@ -2665,16 +2666,9 @@ void ZoneManager::CheckFocusedFXState()
 void ZoneManager::SetBroadcastGroup(vector<string> surfaceNames)
 {
     for(auto name : surfaceNames)
-    {
         for(auto surface : surface_->GetPage()->GetSurfaces())
-        {
             if(surface->GetName() == name)
-            {
                 broadcastZoneManagers_.push_back(surface->GetZoneManager());
-                break;
-            }
-        }
-    }
 }
 
 void ZoneManager::GoFocusedFX()

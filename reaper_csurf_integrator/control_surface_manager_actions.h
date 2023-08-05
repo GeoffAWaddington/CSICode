@@ -437,7 +437,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->GoHome();
+        context->GetSurface()->GetZoneManager()->BroadcastGoHome();
     }
 };
 
@@ -679,6 +679,21 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         context->GetSurface()->GetZoneManager()->ToggleShouldReceiveFocus();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class ToggleShouldReceiveHome  : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "ToggleShouldReceiveHome"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveHome();
     }
 };
 

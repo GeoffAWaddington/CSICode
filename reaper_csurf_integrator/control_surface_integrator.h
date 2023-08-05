@@ -1036,6 +1036,7 @@ private:
     bool shouldReceiveTrack_ = false;
     bool shouldReceiveAutoMapLearn_ = false;
     bool shouldReceiveFocus_ = false;
+    bool shouldReceiveHome_ = false;
     
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
@@ -1363,7 +1364,8 @@ public:
     void ToggleShouldReceiveTrack() { shouldReceiveTrack_ = ! shouldReceiveTrack_; }
     void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
     void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
-    
+    void ToggleShouldReceiveHome() { shouldReceiveHome_ = ! shouldReceiveHome_; }
+
     void BroadcastGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
     {
         GoFXSlot(track, navigator, fxSlot);
@@ -1562,6 +1564,20 @@ public:
             ResetOffsets();
             homeZone_->Activate();
         }
+    }
+    
+    void BroadcastGoHome()
+    {
+        GoHome();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveGoHome();
+    }
+    
+    void ReceiveGoHome()
+    {
+        if(shouldReceiveHome_)
+            GoHome();
     }
     
     void OnTrackSelection()
