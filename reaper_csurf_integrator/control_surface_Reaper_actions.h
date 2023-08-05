@@ -213,7 +213,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(context->GetZone()->GetName() == "LearnFXParams")
-            context->GetPage()->SaveLearnedFXParams();
+            context->GetSurface()->GetZoneManager()->BroadcastSaveLearnedFXParams();
     }
 };
 

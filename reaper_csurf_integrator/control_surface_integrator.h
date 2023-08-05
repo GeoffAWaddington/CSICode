@@ -1031,7 +1031,7 @@ private:
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     
-    vector<shared_ptr<ControlSurface>> broadcastSurfaces_;
+    vector<shared_ptr<ZoneManager>> broadcastZoneManagers_;
     bool shouldReceiveSelected_ = false;
     bool shouldReceiveTrack_ = false;
     bool shouldReceiveAutoMapLearn_ = false;
@@ -1088,6 +1088,9 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
         
+    void GoLearnFXParams();
+    void GoAutoMapFX();
+    void SaveLearnedFXParams();
     void InitializeFXParamsLearnZone();
     void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
@@ -1244,8 +1247,6 @@ public:
     
     void SetBroadcastGroup(vector<string> surfaceNames);
     
-    void GoLearnFXParams();
-    void GoAutoMapFX();
     int  GetNumChannels();
     void GoFocusedFX();
     void GoSelectedTrackFX();
@@ -1263,7 +1264,6 @@ public:
     void DoTouch(shared_ptr<Widget> widget, double value);
     
     void EraseLastTouchedControl();
-    void SaveLearnedFXParams();
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
@@ -1293,6 +1293,48 @@ public:
     void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
     void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
     
+    void BroadcastGoLearnFXParams()
+    {
+        GoLearnFXParams();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveGoLearnFXParams();
+    }
+    
+    void ReceiveGoLearnFXParams()
+    {
+       if(shouldReceiveAutoMapLearn_)
+           GoLearnFXParams();
+    }
+    
+    void BroadcastGoAutoMapFX()
+    {
+        GoAutoMapFX();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveGoAutoMapFX();
+    }
+    
+    void ReceiveGoAutoMapFX()
+    {
+       if(shouldReceiveAutoMapLearn_)
+           GoAutoMapFX();
+    }
+        
+    void BroadcastSaveLearnedFXParams()
+    {
+        SaveLearnedFXParams();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveSaveLearnedFXParams();
+    }
+    
+    void ReceiveSaveLearnedFXParams()
+    {
+       if(shouldReceiveAutoMapLearn_)
+           SaveLearnedFXParams();
+    }
+           
     void RemoveZone(string zoneName)
     {
         if(zoneFilePaths_.count(zoneName) > 0)
@@ -3903,12 +3945,6 @@ public:
         for(auto surface : surfaces_)
             surface->GetZoneManager()->ClearFXSlot(zone);
     }
-
-    void SaveLearnedFXParams()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->SaveLearnedFXParams();
-    }
     
     void GoHome()
     {
@@ -3931,19 +3967,7 @@ public:
                 surface->GetZoneManager()->GoAssociatedZone(zoneName);
         }
     }
-    
-    void GoAutoMapFX()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoAutoMapFX();
-    }
-    
-    void GoLearnFXParams()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoLearnFXParams();
-    }
-
+        
     void AdjustBank(string zoneName, int amount)
     {
         if(zoneName == "Track")

@@ -718,7 +718,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetPage()->GoAutoMapFX();
+        context->GetSurface()->GetZoneManager()->BroadcastGoAutoMapFX();
     }
 };
 
@@ -734,7 +734,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetPage()->GoLearnFXParams();
+        context->GetSurface()->GetZoneManager()->BroadcastGoLearnFXParams();
     }
 };
 

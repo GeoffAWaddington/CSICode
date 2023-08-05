@@ -2669,7 +2669,7 @@ void ZoneManager::SetBroadcastGroup(vector<string> surfaceNames)
         {
             if(surface->GetName() == name)
             {
-                broadcastSurfaces_.push_back(surface);
+                broadcastZoneManagers_.push_back(surface->GetZoneManager());
                 break;
             }
         }
