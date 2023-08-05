@@ -1335,6 +1335,7 @@ void Manager::InitActionsDictionary()
     actions_["RestoreXTouchDisplayColors"] =        make_shared<RestoreXTouchDisplayColors>();
     actions_["GoFXSlot"] =                          make_shared<GoFXSlot>();
     actions_["ShowFXSlot"] =                        make_shared<ShowFXSlot>();
+    actions_["HideFXSlot"] =                        make_shared<HideFXSlot>();
     actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
@@ -2864,7 +2865,7 @@ void ZoneManager::GoLearnFXParams()
     }
 }
 
-void ZoneManager::GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
+void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
 {
     char fxName[BUFSZ];
     

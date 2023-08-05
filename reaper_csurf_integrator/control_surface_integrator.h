@@ -1087,7 +1087,9 @@ private:
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
     }
-        
+      
+    void GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
+    void GoSelectedTrackFX();
     void GoLearnFXParams();
     void GoAutoMapFX();
     void SaveLearnedFXParams();
@@ -1149,6 +1151,30 @@ private:
         }
     }
     
+    void ClearSelectedTrackFX()
+    {
+        for(auto zone : selectedTrackFXZones_)
+            zone->ClearWidgets();
+        
+        selectedTrackFXZones_.clear();
+    }
+    
+    void ClearFXSlot(shared_ptr<Zone> zone)
+    {
+        for(int i = 0; i < fxSlotZones_.size(); i++)
+        {
+            if(fxSlotZones_[i]->GetName() == zone->GetName() && fxSlotZones_[i]->GetSlotIndex() == zone->GetSlotIndex())
+            {
+                fxSlotZones_[i]->Deactivate();
+                fxSlotZones_[i]->ClearWidgets();
+                fxSlotZones_.erase(fxSlotZones_.begin() + i);
+                if(homeZone_ != nullptr)
+                    homeZone_->ReactivateFXMenuZone();
+                break;
+            }
+        }
+    }
+
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
         for(int i = start; i < finish; i++)
@@ -1296,8 +1322,6 @@ public:
     
     int  GetNumChannels();
     void GoFocusedFX();
-    void GoSelectedTrackFX();
-    void GoTrackFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
     void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
     void AutoMapFX(string fxName, MediaTrack* track, int fxIndex);
     void RemapAutoZone();
@@ -1340,6 +1364,62 @@ public:
     void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
     void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
     
+    void BroadcastGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
+    {
+        GoFXSlot(track, navigator, fxSlot);
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveGoFXSlot(track, navigator, fxSlot);
+    }
+
+    void ReceiveGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
+    {
+        if(shouldReceiveSelected_)
+            GoFXSlot(track, navigator, fxSlot);
+    }
+
+    void BroadcastGoSelectedTrackFX()
+    {
+        GoSelectedTrackFX();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveGoSelectedTrackFX();
+    }
+    
+    void ReceiveGoSelectedTrackFX()
+    {
+       if(shouldReceiveSelected_)
+           GoSelectedTrackFX();
+    }
+
+    void BroadcastClearSelectedTrackFX()
+    {
+        ClearSelectedTrackFX();
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveClearSelectedTrackFX();
+    }
+    
+    void ReceiveClearSelectedTrackFX()
+    {
+       if(shouldReceiveSelected_)
+           ClearSelectedTrackFX();
+    }
+
+    void BroadcastClearFXSlot(shared_ptr<Zone> zone)
+    {
+        ClearFXSlot(zone);
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveClearFXSlot(zone);
+    }
+    
+    void ReceiveClearFXSlot(shared_ptr<Zone> zone)
+    {
+       if(shouldReceiveSelected_)
+           ClearFXSlot(zone);
+    }
+
     void BroadcastGoLearnFXParams()
     {
         GoLearnFXParams();
@@ -1449,30 +1529,6 @@ public:
     {
        if(shouldReceiveFocus_)
            ClearFocusedFX();
-    }
-
-    void ClearSelectedTrackFX()
-    {
-        for(auto zone : selectedTrackFXZones_)
-            zone->ClearWidgets();
-        
-        selectedTrackFXZones_.clear();
-    }
-    
-    void ClearFXSlot(shared_ptr<Zone> zone)
-    {
-        for(int i = 0; i < fxSlotZones_.size(); i++)
-        {
-            if(fxSlotZones_[i]->GetName() == zone->GetName() && fxSlotZones_[i]->GetSlotIndex() == zone->GetSlotIndex())
-            {
-                fxSlotZones_[i]->Deactivate();
-                fxSlotZones_[i]->ClearWidgets();
-                fxSlotZones_.erase(fxSlotZones_.begin() + i);
-                if(homeZone_ != nullptr)
-                    homeZone_->ReactivateFXMenuZone();
-                break;
-            }
-        }
     }
     
     vector<vector<string>> &GetSurfaceFXLayout()
@@ -3996,19 +4052,7 @@ public:
         for(auto surface : surfaces_)
             surface->HandleRecord();
     }
-        
-    void ClearSelectedTrackFX()
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->ClearSelectedTrackFX();
-    }
-
-    void ClearFXSlot(shared_ptr<Zone> zone)
-    {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->ClearFXSlot(zone);
-    }
-    
+            
     void GoHome()
     {
         for(auto surface : surfaces_)

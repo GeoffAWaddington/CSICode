@@ -516,7 +516,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->GoTrackFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
+            context->GetSurface()->GetZoneManager()->BroadcastGoFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
     }
 };
 
@@ -527,13 +527,28 @@ class ShowFXSlot  : public Action
 public:
     virtual string GetName() override { return "ShowFXSlot"; }
 
-
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
             DAW::TrackFX_SetOpen(track, context->GetSlotIndex(), true);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class HideFXSlot  : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "HideFXSlot"; }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0) return; // ignore button releases
+        
+        if(MediaTrack* track = context->GetTrack())
+            DAW::TrackFX_SetOpen(track, context->GetSlotIndex(), false);
     }
 };
 
@@ -702,7 +717,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->GoSelectedTrackFX();
+            context->GetSurface()->GetZoneManager()->BroadcastGoSelectedTrackFX();
     }
 };
 
@@ -806,7 +821,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetPage()->ClearSelectedTrackFX();
+        context->GetSurface()->GetZoneManager()->BroadcastClearSelectedTrackFX();
     }
 };
 
@@ -822,7 +837,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetPage()->ClearFXSlot(context->GetZone());
+        context->GetSurface()->GetZoneManager()->BroadcastClearFXSlot(context->GetZone());
     }
 };
 
