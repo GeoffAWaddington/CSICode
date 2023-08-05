@@ -1338,6 +1338,7 @@ void Manager::InitActionsDictionary()
     actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
+    actions_["BroadcastGroup"] =                    make_shared<BroadcastGroup>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
@@ -1674,6 +1675,9 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
     }
     
     params = nonWidgetPropertyParams;
+    
+    for(int i = 1; i < params.size(); i++)
+        parameters_.push_back(params[i]);
     
     string actionName = "";
     
@@ -3932,6 +3936,21 @@ vector<rgba_color> ControlSurface::GetTrackColors()
         }
         
         return colors;
+    }
+}
+
+void ControlSurface::BroadcastGroup(vector<string> surfaceNames)
+{
+    for(auto name : surfaceNames)
+    {
+        for(auto surface : page_->GetSurfaces())
+        {
+            if(surface->GetName() == name)
+            {
+                broadcastSurfaces_.push_back(surface);
+                break;
+            }
+        }
     }
 }
 

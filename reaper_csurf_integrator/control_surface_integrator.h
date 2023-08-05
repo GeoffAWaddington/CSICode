@@ -348,6 +348,8 @@ private:
     shared_ptr<Widget> const widget_ = nullptr;
     shared_ptr<Zone> const zone_ = nullptr;
 
+    vector<string> parameters_;
+    
     int intParam_ = 0;
     
     string stringParam_ = "";
@@ -415,6 +417,8 @@ public:
     
     vector<string> &GetZoneNames() { return  zoneNames_; }
 
+    vector<string> &GetParameters() { return parameters_; }
+    
     int GetIntParam() { return intParam_; }
     string GetStringParam() { return stringParam_; }
     int GetCommandId() { return commandId_; }
@@ -2314,6 +2318,8 @@ private:
     
     bool usesLocalModifiers_ = false;
     
+    vector<shared_ptr<ControlSurface>> broadcastSurfaces_;
+    
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
     
@@ -2395,6 +2401,8 @@ public:
     void Stop();
     void Play();
     void Record();
+    
+    void BroadcastGroup(vector<string> surfaceNames);
     
     virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
@@ -3759,6 +3767,8 @@ public:
     string GetName() { return name_; }
     
     shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
+    
+    vector<shared_ptr<ControlSurface>> &GetSurfaces() { return surfaces_; }
     
     void AddSurface(shared_ptr<ControlSurface> surface)
     {
