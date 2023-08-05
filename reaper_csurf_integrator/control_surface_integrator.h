@@ -1031,6 +1031,12 @@ private:
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     
+    vector<shared_ptr<ControlSurface>> broadcastSurfaces_;
+    bool shouldReceiveSelected_ = false;
+    bool shouldReceiveTrack_ = false;
+    bool shouldReceiveAutoMapLearn_ = false;
+    bool shouldReceiveFocus_ = false;
+    
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
     
@@ -1236,6 +1242,8 @@ public:
     shared_ptr<Navigator> GetSelectedTrackNavigator();
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
+    void SetBroadcastGroup(vector<string> surfaceNames);
+    
     void GoLearnFXParams();
     void GoAutoMapFX();
     int  GetNumChannels();
@@ -1280,6 +1288,11 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
           
+    void ToggleShouldReceiveSelected() { shouldReceiveSelected_ = ! shouldReceiveSelected_; }
+    void ToggleShouldReceiveTrack() { shouldReceiveTrack_ = ! shouldReceiveTrack_; }
+    void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
+    void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
+    
     void RemoveZone(string zoneName)
     {
         if(zoneFilePaths_.count(zoneName) > 0)
@@ -2317,13 +2330,7 @@ private:
     int restrictedTextLength_ = 6;
     
     bool usesLocalModifiers_ = false;
-    
-    vector<shared_ptr<ControlSurface>> broadcastSurfaces_;
-    bool shouldReceiveSelected_ = false;
-    bool shouldReceiveTrack_ = false;
-    bool shouldReceiveAutoMapLearn_ = false;
-    bool shouldReceiveFocus_ = false;
-    
+        
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
     
@@ -2405,9 +2412,7 @@ public:
     void Stop();
     void Play();
     void Record();
-    
-    void SetBroadcastGroup(vector<string> surfaceNames);
-    
+        
     virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
     void ForceUpdateTrackColors();
@@ -2436,12 +2441,7 @@ public:
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
     void ToggleUseLocalModifiers() { usesLocalModifiers_ = ! usesLocalModifiers_; }
-    
-    void ToggleShouldReceiveSelected() { shouldReceiveSelected_ = ! shouldReceiveSelected_; }
-    void ToggleShouldReceiveTrack() { shouldReceiveTrack_ = ! shouldReceiveTrack_; }
-    void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
-    void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
-    
+        
     void TouchChannel(int channelNum, bool isTouched)
     {
         if(channelNum > 0 && channelNum <= numChannels_)

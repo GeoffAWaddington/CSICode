@@ -2661,6 +2661,21 @@ void ZoneManager::CheckFocusedFXState()
     }
 }
 
+void ZoneManager::SetBroadcastGroup(vector<string> surfaceNames)
+{
+    for(auto name : surfaceNames)
+    {
+        for(auto surface : surface_->GetPage()->GetSurfaces())
+        {
+            if(surface->GetName() == name)
+            {
+                broadcastSurfaces_.push_back(surface);
+                break;
+            }
+        }
+    }
+}
+
 void ZoneManager::GoFocusedFX()
 {
     focusedFXZones_.clear();
@@ -3940,21 +3955,6 @@ vector<rgba_color> ControlSurface::GetTrackColors()
         }
         
         return colors;
-    }
-}
-
-void ControlSurface::SetBroadcastGroup(vector<string> surfaceNames)
-{
-    for(auto name : surfaceNames)
-    {
-        for(auto surface : page_->GetSurfaces())
-        {
-            if(surface->GetName() == name)
-            {
-                broadcastSurfaces_.push_back(surface);
-                break;
-            }
-        }
     }
 }
 

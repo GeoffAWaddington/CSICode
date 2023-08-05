@@ -603,7 +603,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->SetBroadcastGroup(context->GetParameters());
+        context->GetSurface()->GetZoneManager()->SetBroadcastGroup(context->GetParameters());
     }
 };
 
@@ -618,7 +618,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->ToggleShouldReceiveSelected();
+        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveSelected();
     }
 };
 
@@ -633,7 +633,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->ToggleShouldReceiveTrack();
+        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveTrack();
     }
 };
 
@@ -648,7 +648,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->ToggleShouldReceiveAutoMapLearn();
+        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveAutoMapLearn();
     }
 };
 
@@ -663,7 +663,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->ToggleShouldReceiveFocus();
+        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveFocus();
     }
 };
 
