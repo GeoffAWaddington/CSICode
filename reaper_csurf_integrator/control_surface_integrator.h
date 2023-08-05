@@ -1138,6 +1138,17 @@ private:
         focusedFXDictionary_.clear();
     }
     
+    void GoAssociatedZone(string zoneName)
+    {
+        if(homeZone_ != nullptr)
+        {
+            ClearFXMapping();
+            ResetOffsets();
+                    
+            homeZone_->GoAssociatedZone(zoneName);
+        }
+    }
+    
     void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
     {
         for(int i = start; i < finish; i++)
@@ -1469,17 +1480,23 @@ public:
         return surfaceFXLayout_;
     }
     
-    void GoAssociatedZone(string zoneName)
+    void BroadcastGoAssociatedZone(string zoneName)
     {
-        if(homeZone_ != nullptr)
-        {
-            ClearFXMapping();
-            ResetOffsets();
-                    
-            homeZone_->GoAssociatedZone(zoneName);
-        }
+        GoAssociatedZone(zoneName);
+        
+        for(auto zoneManager : broadcastZoneManagers_)
+            zoneManager->ReceiveGoAssociatedZone(zoneName);
     }
-
+    
+    void ReceiveGoAssociatedZone(string zoneName)
+    {
+        if(shouldReceiveTrack_ && (zoneName == "Track" || zoneName == "TrackFXMenu" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "VCA" || zoneName == "Folder"))
+            GoAssociatedZone(zoneName);
+        
+        else if(shouldReceiveSelected_ && (zoneName == "SelectedTrackFXMenu" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrack" || zoneName == "SelectedTrackFX"))
+            GoAssociatedZone(zoneName);
+    }
+    
     void GoHome()
     {
         ClearFXMapping();
@@ -3997,23 +4014,7 @@ public:
         for(auto surface : surfaces_)
             surface->GetZoneManager()->GoHome();
     }
-    
-    void GoAssociatedZone(shared_ptr<ControlSurface> originatingSurface, string zoneName)
-    {
-        for(auto surface : surfaces_)
-        {
-            if(surface->GetZoneManager()->GetZoneFolder() == originatingSurface->GetZoneManager()->GetZoneFolder())
-                surface->GetZoneManager()->GoAssociatedZone(zoneName);
-            else if(zoneName.find("Selected") != string::npos && surface->GetName() == originatingSurface->GetName())
-            {
-                surface->GetZoneManager()->GoAssociatedZone(zoneName);
-                break;
-            }
-            else
-                surface->GetZoneManager()->GoAssociatedZone(zoneName);
-        }
-    }
-        
+            
     void AdjustBank(string zoneName, int amount)
     {
         if(zoneName == "Track")
