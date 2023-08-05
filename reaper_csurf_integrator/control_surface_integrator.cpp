@@ -1338,7 +1338,11 @@ void Manager::InitActionsDictionary()
     actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
-    actions_["BroadcastGroup"] =                    make_shared<BroadcastGroup>();
+    actions_["SetBroadcastGroup"] =                 make_shared<SetBroadcastGroup>();
+    actions_["ToggleShouldReceiveSelected"] =       make_shared<ToggleShouldReceiveSelected>();
+    actions_["ToggleShouldReceiveTrack"] =          make_shared<ToggleShouldReceiveTrack>();
+    actions_["ToggleShouldReceiveAutoMapLearn"] =   make_shared<ToggleShouldReceiveAutoMapLearn>();
+    actions_["ToggleShouldReceiveFocus"] =          make_shared<ToggleShouldReceiveFocus>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
@@ -3939,7 +3943,7 @@ vector<rgba_color> ControlSurface::GetTrackColors()
     }
 }
 
-void ControlSurface::BroadcastGroup(vector<string> surfaceNames)
+void ControlSurface::SetBroadcastGroup(vector<string> surfaceNames)
 {
     for(auto name : surfaceNames)
     {

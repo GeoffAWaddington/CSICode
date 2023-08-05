@@ -2319,6 +2319,10 @@ private:
     bool usesLocalModifiers_ = false;
     
     vector<shared_ptr<ControlSurface>> broadcastSurfaces_;
+    bool shouldReceiveSelected_ = false;
+    bool shouldReceiveTrack_ = false;
+    bool shouldReceiveAutoMapLearn_ = false;
+    bool shouldReceiveFocus_ = false;
     
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
@@ -2402,7 +2406,7 @@ public:
     void Play();
     void Record();
     
-    void BroadcastGroup(vector<string> surfaceNames);
+    void SetBroadcastGroup(vector<string> surfaceNames);
     
     virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
@@ -2432,6 +2436,11 @@ public:
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
     void ToggleUseLocalModifiers() { usesLocalModifiers_ = ! usesLocalModifiers_; }
+    
+    void ToggleShouldReceiveSelected() { shouldReceiveSelected_ = ! shouldReceiveSelected_; }
+    void ToggleShouldReceiveTrack() { shouldReceiveTrack_ = ! shouldReceiveTrack_; }
+    void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
+    void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
     
     void TouchChannel(int channelNum, bool isTouched)
     {
