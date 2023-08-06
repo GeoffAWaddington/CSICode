@@ -2983,6 +2983,8 @@ void ZoneManager::SaveLearnedFXParams()
                 
                 for(auto [address, cell] : widgetCells)
                 {
+                    bool cellHasDisplayWidgetsDefined = false;
+                    
                     for(int i = 0; i < cell.fxParamWidgets.size(); i++)
                     {
                         shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
@@ -2990,11 +2992,19 @@ void ZoneManager::SaveLearnedFXParams()
                         if(info == nullptr)
                             continue;
                         
-                        else if(info->isLearned)
+                        if(info->isLearned)
                         {
+                            cellHasDisplayWidgetsDefined = true;
+                            
                             fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
                             fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + GetLineEnding();
                             fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + GetLineEnding() + GetLineEnding();
+                        }
+                        else if(i == cell.fxParamWidgets.size() - 1 && ! cellHasDisplayWidgetsDefined)
+                        {
+                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction" + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction" + GetLineEnding() + GetLineEnding();
                         }
                         else
                         {

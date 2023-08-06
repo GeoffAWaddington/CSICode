@@ -1143,18 +1143,6 @@ private:
     
     void GoAssociatedZone(string zoneName)
     {
-        if(learnFXName_ != "")
-        {
-            if(MessageBox(NULL, (GetAlias(learnFXName_) + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
-            {
-                SaveLearnedFXParams();
-            }
-            else
-            {
-                ClearLearnedFXParams();
-            }
-        }
-
         if(homeZone_ != nullptr)
         {
             ClearFXMapping();
