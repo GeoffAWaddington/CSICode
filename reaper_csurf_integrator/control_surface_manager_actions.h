@@ -1116,6 +1116,8 @@ public:
    
     void Do(ActionContext* context, double value) override
     {
+        if(value == 0.0) return; // ignore button releases
+
         context->GetSurface()->ClearModifier(context->GetStringParam());
     }
 };

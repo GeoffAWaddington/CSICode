@@ -2362,7 +2362,10 @@ public:
     void ClearModifier(string modifierString)
     {
         if(modifierFromString_.count(modifierString) > 0)
+        {
             modifiers_[modifierFromString_[modifierString]].isEngaged = false;
+            RecalculateModifiers();
+        }
     }
     
     string GetModifierString()
