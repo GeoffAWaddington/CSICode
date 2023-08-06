@@ -387,8 +387,6 @@ private:
     
     map<string, string> widgetProperties_;
     
-    vector<string> zoneNames_;
-    
     // For Learn
     string cellAddress_ = "";
     
@@ -414,8 +412,6 @@ public:
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
     string GetName();
-    
-    vector<string> &GetZoneNames() { return  zoneNames_; }
 
     vector<string> &GetParameters() { return parameters_; }
     
@@ -2273,6 +2269,20 @@ private:
         Scrub
     };
     
+    map<string, Modifiers> modifierFromString_ =
+    {
+        { "Shift", Shift},
+        { "Option", Option},
+        { "Control", Control},
+        { "Alt", Alt},
+        { "Flip", Flip},
+        { "Global", Global},
+        { "Marker", Marker},
+        { "Nudge", Nudge},
+        { "Zoom", Zoom},
+        { "Scrub", Scrub}
+    };
+    
     vector<string> modifierNames_ =
     {
         "Shift",
@@ -2349,6 +2359,12 @@ public:
     bool GetZoom() { return modifiers_[Zoom].isEngaged; }
     bool GetScrub() { return modifiers_[Scrub].isEngaged; }
 
+    void ClearModifier(string modifierString)
+    {
+        if(modifierFromString_.count(modifierString) > 0)
+            modifiers_[modifierFromString_[modifierString]].isEngaged = false;
+    }
+    
     string GetModifierString()
     {
         string str = "";
@@ -2864,7 +2880,8 @@ public:
     
     vector<int> &GetModifiers();
     void ClearModifiers();
-    
+    void ClearModifier(string modifier);
+
     void UpdateCurrentActionContextModifiers()
     {
         if(! usesLocalModifiers_)

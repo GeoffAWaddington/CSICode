@@ -1365,6 +1365,7 @@ void Manager::InitActionsDictionary()
     actions_["Nudge"] =                             make_shared<SetNudge>();
     actions_["Zoom"] =                              make_shared<SetZoom>();
     actions_["Scrub"] =                             make_shared<SetScrub>();
+    actions_["ClearModifier"] =                     make_shared<ClearModifier>();
     actions_["ClearModifiers"] =                    make_shared<ClearModifiers>();
     actions_["ToggleChannel"] =                     make_shared<SetToggleChannel>();
     actions_["CycleTrackAutoMode"] =                make_shared<CycleTrackAutoMode>();
@@ -1757,12 +1758,6 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
                fxParamDisplayName_ = params[2];
     }
     
-    if(params.size() > 1 && (actionName == "Activate" || actionName == "Deactivate" || actionName == "ToggleActivation"))
-    {
-        for(int i = 1; i < params.size(); i++)
-            zoneNames_.push_back(params[i]);
-    }
-
     if(params.size() > 0)
         SetColor(params, supportsColor_, supportsTrackColor_, colorValues_);
     
@@ -4173,6 +4168,14 @@ vector<int> &ControlSurface::GetModifiers()
         return modifierManager_->GetModifiers();
     else
         return page_->GetModifierManager()->GetModifiers();
+}
+
+void ControlSurface::ClearModifier(string modifier)
+{
+    if(usesLocalModifiers_)
+        modifierManager_->ClearModifier(modifier);
+    else
+        page_->GetModifierManager()->ClearModifier(modifier);
 }
 
 void ControlSurface::ClearModifiers()
