@@ -2736,11 +2736,17 @@ void ZoneManager::GoSelectedTrackFX()
 }
 
 static int dlgResult = IDCANCEL;
+static string LearnSurfaceName = "";
 
 static WDL_DLGRET dlgProcChoseAutoMapOrLearn(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+        case WM_INITDIALOG:
+        {
+            SetWindowText(hwndDlg, LearnSurfaceName.c_str());
+            break;
+        }
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
@@ -2866,6 +2872,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
     if(zoneFilePaths_.count(fxName) < 1)
     {
         dlgResult = IDCANCEL;
+        LearnSurfaceName = surface_->GetName();
         
         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_AutoOrLearn), g_hwnd, dlgProcChoseAutoMapOrLearn);
 
