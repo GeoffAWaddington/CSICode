@@ -1038,14 +1038,36 @@ public:
 class Fader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
+private:
+    bool shouldSetToZero_ = false;
+    int timeZeroValueReceived = 0.0;
+    
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
     Fader14Bit_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
 
+    virtual void RunDeferredActions() override
+    {
+        if(shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived > 250)
+        {
+            ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], 0x00, 0x00);
+            shouldSetToZero_ = false;
+        }
+    }
+
     virtual void SetValue(map<string, string> &properties, double value) override
     {
+        if(value == 0.0)
+        {
+            shouldSetToZero_ = true;
+            timeZeroValueReceived = DAW::GetCurrentNumberOfMilliseconds();
+            return;
+        }
+        else
+            shouldSetToZero_ = false;
+    
         int volint = value * 16383.0;
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
     }

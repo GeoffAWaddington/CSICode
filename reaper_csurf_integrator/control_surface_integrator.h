@@ -945,6 +945,7 @@ public:
     void Configure(vector<shared_ptr<ActionContext>> contexts);
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
+    void RunDeferredActions();
     void UpdateColorValue(rgba_color);
     void SetXTouchDisplayColors(string zoneName, string color);
     void RestoreXTouchDisplayColors();
@@ -1717,14 +1718,14 @@ public:
         // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
         map<string, string> properties;
         
-        for(auto &[key, value] : usedWidgets_)
+        for(auto &[widget, value] : usedWidgets_)
         {
             if(value == false)
             {
                 rgba_color color;
-                key->UpdateValue(properties, 0.0);
-                key->UpdateValue(properties, "");
-                key->UpdateColorValue(color);
+                widget->UpdateValue(properties, 0.0);
+                widget->UpdateValue(properties, "");
+                widget->UpdateColorValue(color);
             }
         }
     }
@@ -2913,6 +2914,7 @@ public:
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
     virtual void ForceValue(map<string, string> &properties, string value) {}
+    virtual void RunDeferredActions() {}
     virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}

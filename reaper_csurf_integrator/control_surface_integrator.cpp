@@ -2438,6 +2438,12 @@ void  Widget::UpdateValue(map<string, string> &properties,string value)
         processor->SetValue(properties, value);
 }
 
+void Widget::RunDeferredActions()
+{
+    for(auto processor : feedbackProcessors_)
+        processor->RunDeferredActions();
+}
+
 void  Widget::UpdateColorValue(rgba_color color)
 {
     for(auto processor : feedbackProcessors_)
