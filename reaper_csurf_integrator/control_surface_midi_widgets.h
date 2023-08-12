@@ -370,6 +370,12 @@ public:
     
     virtual string GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
     
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value == 0.0)
@@ -409,6 +415,14 @@ public:
     FPTwoStateRGB_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "FPTwoStateRGB_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        rgba_color color;
+        
+        ForceColorValue(color);
+        active_ = false;
+    }
 
     virtual void SetValue(map<string, string> &properties, double active) override
     {
@@ -454,6 +468,12 @@ public:
     
     virtual string GetName() override { return "SCE24TwoStateLED_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(lastValue_ != value)
@@ -577,6 +597,12 @@ public:
     
     virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
     
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
@@ -682,6 +708,12 @@ public:
     
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, "");
+    }
+
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
@@ -823,6 +855,12 @@ public:
     
     virtual string GetName() override { return "SCE24Encoder_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(properties, value));
@@ -969,6 +1007,12 @@ public:
     
     virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        rgba_color color;
+        ForceColorValue(color);
+    }
+
     virtual void SetColorValue(rgba_color color) override
     {
         if(color != lastColor_)
@@ -1017,6 +1061,12 @@ public:
     
     virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
+    virtual void ForceClear() override
+    {
+        rgba_color color;
+        ForceColorValue(color);
+    }
+
     virtual void SetColorValue(rgba_color color) override
     {
         if(color != lastColor_)
@@ -1048,6 +1098,12 @@ public:
     
     virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void RunDeferredActions() override
     {
         if(shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived > 250)
@@ -1089,6 +1145,12 @@ public:
     
     virtual string GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], value * 127.0);
@@ -1110,6 +1172,12 @@ public:
     
     virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
@@ -1162,6 +1230,12 @@ public:
     
     virtual string GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(value));
@@ -1201,6 +1275,12 @@ public:
     
     virtual string GetName() override { return "ConsoleOneGainReductionMeter_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], fabs(1.0 - value) * 127.0);
@@ -1227,6 +1307,12 @@ public:
     
     virtual string GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         //Master Channel:
@@ -1278,6 +1364,12 @@ public:
     
     virtual string GetName() override { return "MCUVUMeter_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         SendMidiMessage(0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
@@ -1313,6 +1405,12 @@ public:
     FPVUMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber) {}
     
     virtual string GetName() override { return "FPVUMeter_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
@@ -1382,6 +1480,12 @@ public:
 
     virtual string GetName() override { return "FPValueBar_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value == lastValue_)
@@ -1423,6 +1527,12 @@ public:
     MCUDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
     
     virtual string GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, "");
+    }
 
     virtual void SetValue(map<string, string> &properties, string displayText) override
     {
@@ -1547,6 +1657,12 @@ public:
         
     virtual string GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, "");
+    }
+    
     virtual void SetXTouchDisplayColors(string zoneName, string colors) override
     {
         preventUpdateTrackColors_ = true;
@@ -1777,6 +1893,12 @@ public:
     
     virtual string GetName() override { return "FPDisplay_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, "");
+    }
+    
     virtual void ClearCache() override
     {
         lastStringSent_ = " ";
@@ -1873,6 +1995,12 @@ public:
     
     virtual string GetName() override { return "FPScribbleStripMode_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(lastMode_ == GetMode(properties))
@@ -1924,6 +2052,12 @@ public:
     QConLiteDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
     
     virtual string GetName() override { return "QConLiteDisplay_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, "");
+    }
 
     virtual void ClearCache() override
     {
@@ -1998,6 +2132,14 @@ public:
     
     virtual string GetName() override { return "FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+        SendMidiMessage(0xB0, 0x4B, 0x20);
+        SendMidiMessage(0xB0, 0x4A, 0x20);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         if(value == 0.0) // Selected Track
@@ -2035,6 +2177,15 @@ public:
     
     virtual string GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
 
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+
+        for(int i = 0; i < 10; i++)
+            SendMidiMessage(0xB0, 0x40 + i, 0x20);
+    }
+    
     virtual void SetValue(map<string, string> &properties, double value) override
     {
         
@@ -2389,7 +2540,15 @@ class MFT_RGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
     MFT_RGB_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
-    
+  
+    virtual string GetName() override { return "MFT_RGB_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        rgba_color color;
+        ForceColorValue(color);
+    }
+
     virtual void ForceColorValue(rgba_color color) override
     {
         lastColor_ = color;

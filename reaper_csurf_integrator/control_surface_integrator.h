@@ -2920,7 +2920,9 @@ public:
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(string zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
-
+    virtual void ForceClear() {}
+    
+    
     virtual void SetValue(map<string, string> &properties, double value)
     {
         if(lastDoubleValue_ != value)
@@ -2954,17 +2956,6 @@ public:
 
         SetValue(properties, 0.0);
         SetValue(properties, "");
-    }
-    
-    void ForceClear()
-    {
-        map<string, string> properties;
-        
-        rgba_color color;
-        ForceColorValue(color);
-
-        ForceValue(properties, 0.0);
-        ForceValue(properties, "");
     }
 };
 
@@ -3111,6 +3102,7 @@ public:
     virtual void X32SetColorValue(rgba_color color);
     virtual void ForceValue(map<string, string> &properties, double value) override;
     virtual void ForceValue(map<string, string> &properties, string value) override;
+    virtual void ForceClear() override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3124,6 +3116,7 @@ public:
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
 
     virtual void ForceValue(map<string, string> &properties, double value) override;
+    virtual void ForceClear() override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

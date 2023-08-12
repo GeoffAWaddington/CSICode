@@ -2562,6 +2562,15 @@ void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, string v
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
 
+void OSC_FeedbackProcessor::ForceClear()
+{
+    lastDoubleValue_ = 0.0;
+    surface_->SendOSCMessage(this, oscAddress_, 0.0);
+    
+    lastStringValue_ = "";
+    surface_->SendOSCMessage(this, oscAddress_, "");
+}
+
 void OSC_IntFeedbackProcessor::ForceValue(map<string, string> &properties, double value)
 {
     lastDoubleValue_ = value;
@@ -2573,6 +2582,12 @@ void OSC_IntFeedbackProcessor::ForceValue(map<string, string> &properties, doubl
     }
     else
         surface_->SendOSCMessage(this, oscAddress_, (int)value);
+}
+
+void OSC_IntFeedbackProcessor::ForceClear()
+{
+    lastDoubleValue_ = 0.0;
+    surface_->SendOSCMessage(this, oscAddress_, 0.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
