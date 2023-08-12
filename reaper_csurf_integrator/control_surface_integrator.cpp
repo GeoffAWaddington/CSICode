@@ -3655,8 +3655,21 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                     
                     if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding();
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction";
+                        
+                        if(surfaceFXLayout_.size() > 1)
+                            for(int i = 2; i < surfaceFXLayout_[1].size(); i++)
+                                fxZone << " " + surfaceFXLayout_[1][i];
+                        
+                        fxZone << GetLineEnding();
+                        
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction";
+                        
+                        if(surfaceFXLayout_.size() > 2)
+                            for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
+                                fxZone << " " + surfaceFXLayout_[2][i];
+                        
+                        fxZone << GetLineEnding() + GetLineEnding();
                     }
                     else
                     {
@@ -3689,8 +3702,21 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                     
                     if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction";
+                        
+                        if(surfaceFXLayout_.size() > 1)
+                            for(int i = 2; i < surfaceFXLayout_[1].size(); i++)
+                                fxZone << " " + surfaceFXLayout_[1][i];
+                        
+                        fxZone << GetLineEnding();
+                        
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction";
+                        
+                        if(surfaceFXLayout_.size() > 2)
+                            for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
+                                fxZone << " " + surfaceFXLayout_[2][i];
+                        
+                        fxZone << GetLineEnding() + GetLineEnding();
                     }
                     else
                     {
