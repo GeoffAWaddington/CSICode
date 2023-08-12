@@ -628,7 +628,6 @@ public:
     vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget);
     void Activate();
     void Deactivate();
-    void ClearWidgets();
     void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     int GetChannelNumber();
     void RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
@@ -949,7 +948,6 @@ public:
     void UpdateColorValue(rgba_color);
     void SetXTouchDisplayColors(string zoneName, string color);
     void RestoreXTouchDisplayColors();
-    void Clear();
     void ForceClear();
     void LogInput(double value);
     
@@ -1124,7 +1122,7 @@ private:
     {
         if(focusedFXParamZone_ != nullptr)
         {
-            focusedFXParamZone_->ClearWidgets();
+            focusedFXParamZone_->Deactivate();
             focusedFXParamZone_ = nullptr;
         }
     }
@@ -1132,7 +1130,7 @@ private:
     void ClearFocusedFX()
     {
         for(auto zone : focusedFXZones_)
-            zone->ClearWidgets();
+            zone->Deactivate();
         
         focusedFXZones_.clear();
         focusedFXDictionary_.clear();
@@ -1152,7 +1150,7 @@ private:
     void ClearSelectedTrackFX()
     {
         for(auto zone : selectedTrackFXZones_)
-            zone->ClearWidgets();
+            zone->Deactivate();
         
         selectedTrackFXZones_.clear();
     }
@@ -1164,7 +1162,6 @@ private:
             if(fxSlotZones_[i]->GetName() == zone->GetName() && fxSlotZones_[i]->GetSlotIndex() == zone->GetSlotIndex())
             {
                 fxSlotZones_[i]->Deactivate();
-                fxSlotZones_[i]->ClearWidgets();
                 fxSlotZones_.erase(fxSlotZones_.begin() + i);
                 if(homeZone_ != nullptr)
                     homeZone_->ReactivateFXMenuZone();
@@ -2945,17 +2942,6 @@ public:
     {
         lastDoubleValue_ = 0.0;
         lastStringValue_ = "";
-    }
-    
-    void Clear()
-    {
-        map<string, string> properties;
-                
-        rgba_color color;
-        SetColorValue(color);
-
-        SetValue(properties, 0.0);
-        SetValue(properties, "");
     }
 };
 

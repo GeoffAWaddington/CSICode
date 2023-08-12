@@ -1833,7 +1833,8 @@ void ActionContext::RequestUpdate(int paramNum)
 
 void ActionContext::ClearWidget()
 {
-    widget_->Clear();
+    UpdateWidgetValue(0.0);
+    UpdateWidgetValue("");
 }
 
 void ActionContext::UpdateColorValue(double value)
@@ -2186,11 +2187,14 @@ void Zone::Deactivate()
 {    
     for(auto [widget, isUsed] : widgets_)
     {
-        widget->Clear();
-        
-        if(widget->GetName() == "OnZoneDeactivation")
-            for(auto context : GetActionContexts(widget))
+        for(auto context : GetActionContexts(widget))
+        {
+            context->UpdateWidgetValue(0.0);
+            context->UpdateWidgetValue("");
+
+            if(widget->GetName() == "OnZoneDeactivation")
                 context->DoAction(1.0);
+        }
     }
 
     isActive_ = false;
@@ -2235,7 +2239,8 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                 
                 if(info == nullptr)
                 {
-                    widget->Clear();
+                    
+                    //widget->Clear();
                     continue;
                 }
                 
@@ -2253,7 +2258,7 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                 }
                 else
                 {
-                    widget->Clear();
+                    //widget->Clear();
                 }
                 
                 usedWidgets[widget] = true;
@@ -2261,20 +2266,14 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
             
             if(! foundIt)
             {
-                cell.fxParamNameDisplayWidget->Clear();
-                cell.fxParamValueDisplayWidget->Clear();
+                //cell.fxParamNameDisplayWidget->Clear();
+                //cell.fxParamValueDisplayWidget->Clear();
             }
             
             usedWidgets[cell.fxParamNameDisplayWidget] = true;
             usedWidgets[cell.fxParamValueDisplayWidget] = true;
         }
     }
-}
-
-void Zone::ClearWidgets()
-{
-    for(auto [widget, isUsed] : widgets_)
-        widget->Clear();
 }
 
 void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators)
@@ -2460,12 +2459,6 @@ void Widget::RestoreXTouchDisplayColors()
 {
     for(auto processor : feedbackProcessors_)
         processor->RestoreXTouchDisplayColors();
-}
-
-void  Widget::Clear()
-{
-    for(auto processor : feedbackProcessors_)
-        processor->Clear();
 }
 
 void  Widget::ForceClear()
