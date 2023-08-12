@@ -1899,11 +1899,6 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void ClearCache() override
-    {
-        lastStringSent_ = " ";
-    }
-    
     virtual void SetValue(map<string, string> &properties, string displayText) override
     {
         if(displayText == lastStringSent_) // changes since last send
@@ -2057,11 +2052,6 @@ public:
     {
         map<string, string> properties;
         ForceValue(properties, "");
-    }
-
-    virtual void ClearCache() override
-    {
-        lastStringSent_ = " ";
     }
     
     virtual void SetValue(map<string, string> &properties, string displayText) override

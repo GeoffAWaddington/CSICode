@@ -2937,12 +2937,6 @@ public:
             ForceValue(properties, value);
         }
     }
-
-    virtual void ClearCache()
-    {
-        lastDoubleValue_ = 0.0;
-        lastStringValue_ = "";
-    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2978,13 +2972,6 @@ protected:
 
 public:
     virtual string GetName() override { return "Midi_FeedbackProcessor"; }
-
-    virtual void ClearCache() override
-    {
-        lastMessageSent_->midi_message[0] = 0;
-        lastMessageSent_->midi_message[1] = 0;
-        lastMessageSent_->midi_message[2] = 0;
-    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
