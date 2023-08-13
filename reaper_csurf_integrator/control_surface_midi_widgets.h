@@ -20,6 +20,8 @@ private:
     shared_ptr<MIDI_event_ex_t> press_;
     shared_ptr<MIDI_event_ex_t> release_;
     
+    int lastReceived = 0;
+    
 public:
     virtual ~PressRelease_Midi_CSIMessageGenerator() {}
     PressRelease_Midi_CSIMessageGenerator(shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> press) : Midi_CSIMessageGenerator(widget), press_(press) {}
@@ -28,7 +30,14 @@ public:
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
     {
-        widget_->GetZoneManager()->DoAction(widget_, midiMessage->IsEqualTo(press_) ? 1 : 0);
+        int received = midiMessage->IsEqualTo(press_) ? 1 : 0;
+        
+        if(lastReceived == received)
+            return;
+        
+        lastReceived = received;
+        
+        widget_->GetZoneManager()->DoAction(widget_, received);
     }
 };
 
