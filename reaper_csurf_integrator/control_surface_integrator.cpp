@@ -2236,14 +2236,7 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
             for(auto widget : cell.fxParamWidgets)
             {
                 shared_ptr<LearnInfo> info = zoneManager_->GetLearnInfo(widget, modifier);
-                
-                if(info == nullptr)
-                {
-                    
-                    //widget->Clear();
-                    continue;
-                }
-                
+                                
                 if(info->isLearned)
                 {
                     foundIt = true;
@@ -2258,7 +2251,14 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                 }
                 else
                 {
-                    //widget->Clear();
+                    if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
+                    {
+                        for(auto context : actionContextDictionary_[widget][modifier])
+                        {
+                            context->UpdateWidgetValue(0.0);
+                            context->UpdateWidgetValue("");
+                        }
+                    }
                 }
                 
                 usedWidgets[widget] = true;
@@ -2266,12 +2266,28 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
             
             if(! foundIt)
             {
-                //cell.fxParamNameDisplayWidget->Clear();
-                //cell.fxParamValueDisplayWidget->Clear();
+                if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
+                {
+                    for(auto context : actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier])
+                    {
+                        context->UpdateWidgetValue(0.0);
+                        context->UpdateWidgetValue("");
+                    }
+                    
+                    usedWidgets[cell.fxParamNameDisplayWidget] = true;
+                }
+
+                if(actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
+                {
+                    for(auto context : actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier])
+                    {
+                        context->UpdateWidgetValue(0.0);
+                        context->UpdateWidgetValue("");
+                    }
+                    
+                    usedWidgets[cell.fxParamValueDisplayWidget] = true;
+                }
             }
-            
-            usedWidgets[cell.fxParamNameDisplayWidget] = true;
-            usedWidgets[cell.fxParamValueDisplayWidget] = true;
         }
     }
 }
