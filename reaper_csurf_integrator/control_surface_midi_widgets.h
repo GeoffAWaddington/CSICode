@@ -606,6 +606,37 @@ public:
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 5;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+               
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
     }
 
     virtual void SetValue(map<string, string> &properties, double value) override
@@ -717,6 +748,37 @@ public:
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
+
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 5;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+               
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
     }
 
     virtual void SetValue(map<string, string> &properties, string value) override
