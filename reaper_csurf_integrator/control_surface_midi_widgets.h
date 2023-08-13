@@ -534,8 +534,8 @@ struct RowInfo
     int bottomMargin = 0;
     int fontSize = 0;
     string lastStringSent = "";
-    rgba_color lastForegroundSent;
-    rgba_color lastBackgroundSent;
+    rgba_color lastTextColorSent;
+    rgba_color lastBackgroundColorSent;
 };
 
 static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
@@ -651,37 +651,37 @@ public:
         
         shared_ptr<RowInfo> row = rows_[properties["Row"]];
 
-        rgba_color background;
-        rgba_color foreground;
+        rgba_color backgroundColor;
+        rgba_color textColor;
         
         if(value == 0)
         {
-            if(properties.count("BackgroundOff") > 0)
-                background = GetColorValue(properties["BackgroundOff"]);
-            if(properties.count("ForegroundOff") > 0)
-                foreground = GetColorValue(properties["ForegroundOff"]);
+            if(properties.count("BackgroundColorOff") > 0)
+                backgroundColor = GetColorValue(properties["BackgroundColorOff"]);
+            if(properties.count("TextColorOff") > 0)
+                textColor = GetColorValue(properties["TextColorOff"]);
             
-            if(row->lastBackgroundSent == background && row->lastForegroundSent == foreground)
+            if(row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
             else
             {
-                row->lastBackgroundSent = background;
-                row->lastForegroundSent = foreground;
+                row->lastBackgroundColorSent = backgroundColor;
+                row->lastTextColorSent = textColor;
             }
         }
         else
         {
-            if(properties.count("BackgroundOn") > 0)
-                background = GetColorValue(properties["BackgroundOn"]);
-            if(properties.count("ForegroundOn") > 0)
-                foreground = GetColorValue(properties["ForegroundOn "]);
+            if(properties.count("BackgroundColorOn") > 0)
+                backgroundColor = GetColorValue(properties["BackgroundColorOn"]);
+            if(properties.count("TextColorOn") > 0)
+                textColor = GetColorValue(properties["TextColorOn "]);
             
-            if(row->lastBackgroundSent == background && row->lastForegroundSent == foreground)
+            if(row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
             else
             {
-                row->lastBackgroundSent = background;
-                row->lastForegroundSent = foreground;
+                row->lastBackgroundColorSent = backgroundColor;
+                row->lastTextColorSent = textColor;
             }
         }
         
@@ -709,13 +709,13 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->bottomMargin;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->fontSize;
 
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.b / 2;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
         for(int i = 0; i < displayText.length(); i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
@@ -800,13 +800,13 @@ public:
         
         row->lastStringSent = displayText;
                   
-        rgba_color background;
-        rgba_color foreground;
+        rgba_color backgroundColor;
+        rgba_color textColor;
 
-        if(properties.count("Background") > 0)
-            background = GetColorValue(properties["Background"]);
-        if(properties.count("Foreground") > 0)
-            foreground = GetColorValue(properties["Foreground"]);
+        if(properties.count("BackgroundColor") > 0)
+            backgroundColor = GetColorValue(properties["BackgroundColor"]);
+        if(properties.count("TextColor") > 0)
+            textColor = GetColorValue(properties["TextColor"]);
 
         struct
         {
@@ -827,13 +827,13 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->bottomMargin;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->fontSize;
 
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = background.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.b / 2;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.r / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.g / 2;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = foreground.b / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.r / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
         for(int i = 0; i < displayText.length(); i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
