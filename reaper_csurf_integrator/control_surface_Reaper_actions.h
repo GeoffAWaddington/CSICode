@@ -3668,6 +3668,68 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackVolumeWithMeterAverageLR : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackVolumeWithMeterAverageLR"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double vol, pan = 0.0;
+            DAW::GetTrackUIVolPan(track, &vol, &pan);
+            return volToNormalized(vol);
+        }
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        int stopState = DAW::GetPlayState();
+
+        map<string, string> properties;
+        
+        if(stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
+        {
+            if(context->GetTrack())
+                context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+            else
+                context->ClearWidget();
+        }
+        else
+        {
+            if(MediaTrack* track = context->GetTrack())
+            {
+                double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
+                
+                if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+                    context->ClearWidget();
+                else
+                    context->UpdateWidgetValue(volToNormalized(lrVol));
+            }
+            else
+                context->ClearWidget();
+        }
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
+    }
+    
+    virtual void Touch(ActionContext* context, double value) override
+    {
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        if(MediaTrack* track = context->GetTrack())
+            DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackOutputMeterMaxPeakLR : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -3690,6 +3752,71 @@ public:
         }
         else
             context->ClearWidget();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class TrackVolumeWithMeterMaxPeakLR : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "TrackVolumeWithMeterMaxPeakLR"; }
+    
+    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+        {
+            double vol, pan = 0.0;
+            DAW::GetTrackUIVolPan(track, &vol, &pan);
+            return volToNormalized(vol);
+        }
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        int stopState = DAW::GetPlayState();
+
+        map<string, string> properties;
+        
+        if(stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
+        {
+            if(context->GetTrack())
+                context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+            else
+                context->ClearWidget();
+        }
+        else
+        {
+            if(MediaTrack* track = context->GetTrack())
+            {
+                double lVol = DAW::Track_GetPeakInfo(track, 0);
+                double rVol = DAW::Track_GetPeakInfo(track, 1);
+                
+                double lrVol =  lVol > rVol ? lVol : rVol;
+                
+                if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+                    context->ClearWidget();
+                else
+                    context->UpdateWidgetValue(volToNormalized(lrVol));
+            }
+            else
+                context->ClearWidget();
+        }
+    }
+    
+    virtual void Do(ActionContext* context, double value) override
+    {
+        if(MediaTrack* track = context->GetTrack())
+            DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
+    }
+    
+    virtual void Touch(ActionContext* context, double value) override
+    {
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        if(MediaTrack* track = context->GetTrack())
+            DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
 };
 

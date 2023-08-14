@@ -1407,7 +1407,9 @@ void Manager::InitActionsDictionary()
     actions_["TrackPanAutoRightDisplay"] =          make_shared<TrackPanAutoRightDisplay>();
     actions_["TrackOutputMeter"] =                  make_shared<TrackOutputMeter>();
     actions_["TrackOutputMeterAverageLR"] =         make_shared<TrackOutputMeterAverageLR>();
+    actions_["TrackVolumeWithMeterAverageLR"] =     make_shared<TrackVolumeWithMeterAverageLR>();
     actions_["TrackOutputMeterMaxPeakLR"] =         make_shared<TrackOutputMeterMaxPeakLR>();
+    actions_["TrackVolumeWithMeterMaxPeakLR"] =     make_shared<TrackVolumeWithMeterMaxPeakLR>();
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["SaveLearnedFXParams"] =               make_shared<SaveLearnedFXParams>();
