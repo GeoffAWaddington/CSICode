@@ -1546,8 +1546,8 @@ struct Listener
     string name = "";
     bool goHome = false;
     bool subZone = false;
-    bool send = false;
-    bool receive = false;
+    bool sends = false;
+    bool receives = false;
     bool learn = false;
     bool autoMap = false;
     bool fxSlot = false;
@@ -2178,7 +2178,119 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         }
                     }
                     break;
-                  
+                 
+                case IDC_CHECK_GoHome:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = true;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_SubZone:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->subZone = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->subZone = true;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_Sends:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = true;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_Receives:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = true;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_Learn:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = true;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_AutoMap:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = true;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_FXSlot:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = true;
+                        }
+                    }
+                    break;
+                    
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                         EndDialog(hwndDlg, 0);
