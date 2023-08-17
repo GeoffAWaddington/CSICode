@@ -4,12 +4,18 @@
 //
 #define IDEDIT                          3
 #define IDAutoMap                       3
+#define ID_RemoveListener               3
 #define IDC_Delete                      4
+#define ID_RemoveBroadcaster            4
+#define ID_BUTTON_AddBroadcaster        5
+#define ID_BUTTON_AddBroadcaster2       6
+#define ID_BUTTON_AddListener           6
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_RemapAutoFX          117
 #define IDD_DIALOG_Advanced             119
 #define IDD_AutoOrLearn                 121
+#define IDD_DIALOG_Broadcast            123
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -34,6 +40,7 @@
 #define IDC_BUTTON_EditSurface          1034
 #define IDC_BUTTON_RemoveSurface        1035
 #define IDC_BUTTON_AddOSCSurface        1036
+#define IDC_BUTTON_Advanced             1037
 #define IDC_EDIT_OSCSurfaceName         1039
 #define IDC_EDIT_OSCRemoteDeviceIP      1041
 #define IDC_EDIT_OSCOutPort             1043
@@ -143,21 +150,33 @@
 #define IDC_GroupFixedTextDisplay3      1243
 #define IDC_FXParamNameEdit3            1244
 #define IDC_LIST1                       1246
+#define IDC_LIST_Listeners              1246
+#define IDC_LIST_Broadcasters           1247
 #define IDC_EDIT_Delta                  1248
 #define IDC_EDIT_RangeMin               1249
 #define IDC_EDIT_RangeMax               1250
 #define IDC_EDIT_DeltaValues            1251
 #define IDC_EDIT_TickValues             1252
 #define IDLearn                         1252
+#define IDC_ListenCheckboxes            1253
+#define IDC_CHECK_GoHome                1254
+#define IDC_CHECK_SubZone               1255
+#define IDC_CHECK_Sends                 1256
+#define IDC_CHECK_Receives              1257
+#define IDC_CHECK_Learn                 1258
+#define IDC_CHECK_AutoMap               1259
+#define IDC_CHECK_FXSlot                1260
+#define IDC_AddBroadcaster              1261
+#define IDC_AddListener                 1262
 #define IDC_GroupFXParamValueDisplay3   1263
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        123
+#define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1253
+#define _APS_NEXT_CONTROL_VALUE         1264
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

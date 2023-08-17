@@ -634,6 +634,8 @@ public:
     
     string GetSourceFilePath() { return sourceFilePath_; }
     
+    virtual string GetType() { return "Zone"; }
+    
     shared_ptr<Navigator> GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
@@ -891,6 +893,8 @@ public:
 
     virtual ~SubZone() {}
     
+    virtual string GetType() override { return "SubZone"; }
+
     virtual void GoSubZone(string subZoneName) override
     {
         Deactivate();

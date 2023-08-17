@@ -2066,6 +2066,68 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     return 0;
 }
 
+static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+        {
+            for(auto surface : surfaces)
+                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddBroadcaster);
+
+            for(auto surface : surfaces)
+                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddListener);
+
+        }
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case ID_BUTTON_AddBroadcaster:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int index = SendDlgItemMessage(hwndDlg, IDC_AddBroadcaster, LB_GETCURSEL, 0, 0);
+                        if (index >= 0)
+                        {
+                            char broadcasterName[BUFSZ];
+                            //pages[index]->surfaces.push_back(pageSurface);
+                            
+                            GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
+                            AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
+                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                        }
+                    }
+                    break;
+                    
+                case ID_BUTTON_AddListener:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int index = SendDlgItemMessage(hwndDlg, IDC_AddListener, LB_GETCURSEL, 0, 0);
+                        if (index >= 0)
+                        {
+                            char listenerName[BUFSZ];
+                            //pages[index]->surfaces.push_back(pageSurface);
+                            
+                            GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
+
+                            AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
+                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                        }
+                    }
+                    break;
+                  
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+    }
+    
+    return 0;
+}
+
 static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -2293,6 +2355,13 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             }
                         }
                         break ;
+                        
+                    case IDC_BUTTON_Advanced:
+                        if (HIWORD(wParam) == BN_CLICKED)
+                        {
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Broadcast), hwndDlg, dlgProcBroadcast);
+                        }
+                        break;
                         
                     case IDC_BUTTON_EditPageSurface:
                         if (HIWORD(wParam) == BN_CLICKED)

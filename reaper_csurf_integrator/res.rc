@@ -67,9 +67,10 @@ BEGIN
     PUSHBUTTON      "Add",IDC_BUTTON_AddPageSurface,255,147,31,14
     PUSHBUTTON      "Edit",IDC_BUTTON_EditPageSurface,291,147,29,14
     PUSHBUTTON      "Remove",IDC_BUTTON_RemovePageSurface,325,147,37,14
-    LTEXT           "Surfaces",IDC_STATIC,56,6,29,8
-    LTEXT           "Pages",IDC_STATIC,185,6,20,8
-    LTEXT           "Assignments",IDC_STATIC,286,6,41,8
+    LTEXT           "Surfaces",IDC_STATIC,4,6,29,8
+    LTEXT           "Pages",IDC_STATIC,145,6,20,8
+    LTEXT           "Assignments",IDC_STATIC,255,6,41,8
+    PUSHBUTTON      "Advanced",IDC_BUTTON_Advanced,324,3,37,14
 END
 
 IDD_DIALOG_Page DIALOGEX 0, 0, 199, 145
@@ -295,6 +296,33 @@ BEGIN
     LTEXT           "Press Learn to go into Learn mode",IDC_STATIC,30,39,109,8
 END
 
+IDD_DIALOG_Broadcast DIALOGEX 0, 0, 310, 213
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,226,192,37,14
+    PUSHBUTTON      "Cancel",IDCANCEL,266,192,37,14
+    GROUPBOX        "Surface Listens to Actions Relating to",IDC_ListenCheckboxes,156,10,147,73
+    LISTBOX         IDC_LIST_Listeners,156,114,147,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "GoHome",IDC_CHECK_GoHome,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,173,26,44,10
+    CONTROL         "SubZone",IDC_CHECK_SubZone,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,173,40,44,10
+    CONTROL         "Sends",IDC_CHECK_Sends,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,173,54,35,10
+    CONTROL         "Receives",IDC_CHECK_Receives,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,173,69,43,10
+    CONTROL         "Learn",IDC_CHECK_Learn,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,247,26,33,10
+    CONTROL         "AutoMap",IDC_CHECK_AutoMap,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,247,40,44,10
+    CONTROL         "FXSlot",IDC_CHECK_FXSlot,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,247,54,36,10
+    LISTBOX         IDC_LIST_Broadcasters,6,114,147,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Add Broadcaster",IDC_STATIC,6,86,53,8
+    DEFPUSHBUTTON   "Remove",ID_RemoveListener,157,192,37,14,BS_FLAT
+    DEFPUSHBUTTON   "Remove",ID_RemoveBroadcaster,6,192,37,14,BS_FLAT
+    LTEXT           "Add Listener",IDC_STATIC,156,86,41,8
+    COMBOBOX        IDC_AddBroadcaster,7,98,89,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_AddListener,156,98,89,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Add",ID_BUTTON_AddBroadcaster,107,97,37,14,BS_FLAT
+    DEFPUSHBUTTON   "Add",ID_BUTTON_AddListener,255,97,37,14,BS_FLAT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -371,6 +399,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 89
     END
+
+    IDD_DIALOG_Broadcast, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 303
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 206
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -421,6 +457,11 @@ BEGIN
 END
 
 IDD_AutoOrLearn AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_Broadcast AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
