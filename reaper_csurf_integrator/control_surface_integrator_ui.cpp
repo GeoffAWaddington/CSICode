@@ -1540,6 +1540,25 @@ struct PageSurfaceLine
     string fxZoneTemplateFolder = "";
 };
 
+// Broadcast/Listen
+struct Listener
+{
+    string name = "";
+    bool goHome = false;
+    bool subZone = false;
+    bool send = false;
+    bool receive = false;
+    bool learn = false;
+    bool autoMap = false;
+    bool fxSlot = false;
+};
+
+struct Broadcaster
+{
+    string name = "";
+    vector<shared_ptr<Listener>> listeners;
+};
+
 struct PageLine
 {
     string name = "";
@@ -1548,6 +1567,7 @@ struct PageLine
     bool isScrollLinkEnabled = false;
     bool scrollSynch = false;
     vector<shared_ptr<PageSurfaceLine>> surfaces;
+    vector<shared_ptr<Broadcaster>> broadcasters;
 };
 
 // Scratch pad to get in and out of dialogs easily
@@ -2091,11 +2111,20 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if (index >= 0)
                         {
                             char broadcasterName[BUFSZ];
-                            //pages[index]->surfaces.push_back(pageSurface);
-                            
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
-                            AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                            
+                            bool foundit = false;
+                            for(auto broadcaster : pages[index]->broadcasters)
+                                if(broadcasterName == broadcaster->name)
+                                    foundit = true;
+                            if(! foundit)
+                            {
+                                shared_ptr<Broadcaster> broadcaster = make_shared<Broadcaster>();
+                                broadcaster->name = broadcasterName;
+                                pages[index]->broadcasters.push_back(broadcaster);
+                                AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                            }
                         }
                     }
                     break;
@@ -2103,16 +2132,26 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                 case ID_BUTTON_AddListener:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_AddBroadcaster, LB_GETCURSEL, 0, 0);
                         int index = SendDlgItemMessage(hwndDlg, IDC_AddListener, LB_GETCURSEL, 0, 0);
-                        if (index >= 0)
+                        if (broadcasterIndex >= 0 && index >= 0)
                         {
                             char listenerName[BUFSZ];
-                            //pages[index]->surfaces.push_back(pageSurface);
-                            
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
-
-                            AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                            
+                            bool foundit = false;                            
+                            for(auto broadcaster : pages[index]->broadcasters)
+                                for(auto listener : broadcaster->listeners)
+                                    if(listenerName == listener->name)
+                                    foundit = true;
+                            if(! foundit)
+                            {
+                                shared_ptr<Listener> listener = make_shared<Listener>();
+                                listener->name = listenerName;
+                                pages[index]->broadcasters[broadcasterIndex]->listeners.push_back(listener);
+                                AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, pages[index]->surfaces.size() - 1, 0);
+                            }
                         }
                     }
                     break;
