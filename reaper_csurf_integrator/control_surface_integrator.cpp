@@ -1560,6 +1560,11 @@ void Manager::Init()
                         pages_.push_back(currentPage);
                     }
                 }
+                else if(currentPage && tokens.size() > 0 && (tokens[0] == "Broadcaster" || tokens[0] == "Listener"))
+                {
+                    // GAW TBD -- read Broadcasters/Listeners
+
+                }
                 else
                 {
                     if(currentPage && (tokens.size() == 6 || tokens.size() == 7))

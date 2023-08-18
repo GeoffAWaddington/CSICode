@@ -2086,6 +2086,32 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     return 0;
 }
 
+static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
+{
+    SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
+
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_SETCHECK, listener->subZone ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, listener->fxSlot ? BST_CHECKED : BST_UNCHECKED, 0);
+}
+
+static void ClearCheckBoxes(HWND hwndDlg)
+{
+    SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), "Surface Listens to");
+
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, BST_UNCHECKED, 0);
+}
+
 static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -2120,19 +2146,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, 0, 0);
                             
                             if(broadcasterIndex >= 0 &&pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() > 0)
-                            {
-                                shared_ptr<Listener> listener = pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[0];
-                                
-                                SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
-
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_SETCHECK, listener->subZone ? BST_CHECKED : BST_UNCHECKED, 0);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, listener->fxSlot ? BST_CHECKED : BST_UNCHECKED, 0);
-                            }
+                                SetCheckBoxes(hwndDlg, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[0]);
                         }
                         else
                         {
@@ -2148,19 +2162,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                         
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            shared_ptr<Listener> listener = pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex];
-                            
-                            SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
-
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_SETCHECK, listener->subZone ? BST_CHECKED : BST_UNCHECKED, 0);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
-                            SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, listener->fxSlot ? BST_CHECKED : BST_UNCHECKED, 0);
-                        }
+                            SetCheckBoxes(hwndDlg, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]);
                     }
                     break;
 
@@ -2184,6 +2186,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 pages[pageIndex]->broadcasters.push_back(broadcaster);
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[pageIndex]->broadcasters.size() - 1, 0);
+                                ClearCheckBoxes(hwndDlg);
                             }
                         }
                     }
