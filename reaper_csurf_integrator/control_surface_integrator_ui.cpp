@@ -2125,6 +2125,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
             for(auto surface : surfaces)
                 AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddListener);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddListener), CB_SETCURSEL, 0, 0);
+            
+            if(pages[pageIndex]->broadcasters.size() > 0)
+            {
+                for(auto broadcaster : pages[pageIndex]->broadcasters)
+                    AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
+                    
+                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
+            }
         }
             
         case WM_COMMAND:
