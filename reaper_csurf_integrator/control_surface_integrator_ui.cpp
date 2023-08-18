@@ -2828,6 +2828,39 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
+                    else if(tokens[0] == "Broadcaster" && tokens.size() == 2 && pages.size() > 0)
+                    {
+                        shared_ptr<Broadcaster> broadcaster = make_shared<Broadcaster>();
+                        broadcaster->name = tokens[1];
+                        pages.back()->broadcasters.push_back(broadcaster);
+                    }
+                    else if(tokens[0] == "Listener" && tokens.size() == 3 && pages.size() > 0 && pages.back()->broadcasters.size() > 0)
+                    {
+                        shared_ptr<Listener> listener = make_shared<Listener>();
+                        listener->name = tokens[1];
+
+                        vector<string> categoryTokens = GetTokens(tokens[2]);
+                        
+                        for(auto categoryToken : categoryTokens)
+                        {
+                            if(categoryToken == "GoHome")
+                                listener->goHome = true;
+                            if(categoryToken == "SubZone")
+                                listener->subZone = true;
+                            if(categoryToken == "Sends")
+                                listener->sends = true;
+                            if(categoryToken == "Receives")
+                                listener->receives = true;
+                            if(categoryToken == "Learn")
+                                listener->learn = true;
+                            if(categoryToken == "AutoMap")
+                                listener->autoMap = true;
+                            if(categoryToken == "FXSlot")
+                                listener->fxSlot = true;
+                        }
+                        
+                        pages.back()->broadcasters.back()->listeners.push_back(listener);
+                    }
                     else if(tokens.size() == 6 || tokens.size() == 7)
                     {
                         bool useLocalModifiers = false;
