@@ -2334,6 +2334,51 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                     }
                     break;
                  
+                case ID_RemoveBroadcaster:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0)
+                        {
+                            pages[pageIndex]->broadcasters.erase(pages[pageIndex]->broadcasters.begin() + broadcasterIndex);
+                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_RESETCONTENT, 0, 0);
+                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
+                            ClearCheckBoxes(hwndDlg);
+
+                            if(pages[pageIndex]->broadcasters.size() > 0)
+                            {
+                                for(auto broadcaster : pages[pageIndex]->broadcasters)
+                                    AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
+                                    
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[pageIndex]->broadcasters.size() - 1, 0);
+                            }
+                        }
+                    }
+                    break;
+
+                case ID_RemoveListener:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.erase(pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.begin() + listenerIndex);
+                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
+                            ClearCheckBoxes(hwndDlg);
+                            if(pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() > 0)
+                            {
+                                for(auto listener : pages[pageIndex]->broadcasters[broadcasterIndex]->listeners)
+                                    AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
+                                    
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
+                            }
+                        }
+                    }
+                    break;
+
                 case WM_CLOSE:
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
@@ -2341,7 +2386,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         pages[pageIndex]->broadcasters.clear();
                         EndDialog(hwndDlg, 0);
                     }
-                     break ;
+                     break;
+                    
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break;
             }
         }
     }
