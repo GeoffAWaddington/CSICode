@@ -2147,6 +2147,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             
                             if(broadcasterIndex >= 0 &&pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() > 0)
                                 SetCheckBoxes(hwndDlg, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[0]);
+                            else
+                                ClearCheckBoxes(hwndDlg);
                         }
                         else
                         {
