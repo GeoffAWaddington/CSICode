@@ -2689,12 +2689,11 @@ void ZoneManager::CheckFocusedFXState()
     }
 }
 
-void ZoneManager::SetListeners(vector<string> surfaceNames)
+void ZoneManager::AddListener(string surfaceName)
 {
-    for(auto name : surfaceNames)
-        for(auto surface : surface_->GetPage()->GetSurfaces())
-            if(surface->GetName() == name)
-                listeners_.push_back(surface->GetZoneManager());
+    for(auto surface : surface_->GetPage()->GetSurfaces())
+        if(surface->GetName() == surfaceName)
+            listeners_.push_back(surface->GetZoneManager());
 }
 
 void ZoneManager::GoFocusedFX()
