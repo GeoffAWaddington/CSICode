@@ -2921,7 +2921,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                     for(auto surface : page->surfaces)
                     {
-                        line = "";
+                        line = "\t";
                         line += "\"" + surface->pageSurfaceName + "\" ";
                         line += to_string(surface->numChannels) + " " ;
                         line += to_string(surface->channelOffset) + " " ;
@@ -2933,6 +2933,38 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     }
                     
                     iniFile << GetLineEnding();
+                    
+                    for(auto broadcaster : page->broadcasters)
+                    {
+                        if(broadcaster->listeners.size() == 0)
+                            continue;
+                        
+                        iniFile << string("\tBroadcaster ") + "\"" + broadcaster->name + "\"" + GetLineEnding();
+                        
+                        for(auto listener : broadcaster->listeners)
+                        {
+                            string listenerCategories = "";
+                            
+                            if(listener->goHome)
+                                listenerCategories += "GoHome ";
+                            if(listener->subZone)
+                                listenerCategories += "SubZone ";
+                            if(listener->sends)
+                                listenerCategories += "Sends ";
+                            if(listener->receives)
+                                listenerCategories += "Receives ";
+                            if(listener->learn)
+                                listenerCategories += "Learn ";
+                            if(listener->autoMap)
+                                listenerCategories += "AutoMap ";
+                            if(listener->fxSlot)
+                                listenerCategories += "FXSlot ";
+
+                            iniFile << string("\t\tListener ") + "\"" + listener->name + "\" \"" + listenerCategories + "\"" + GetLineEnding();
+                        }
+                        
+                        iniFile << GetLineEnding();
+                    }
                 }
 
                 iniFile.close();
