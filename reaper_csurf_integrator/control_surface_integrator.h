@@ -1030,7 +1030,8 @@ private:
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     
-    vector<shared_ptr<ZoneManager>> broadcastZoneManagers_;
+    vector<shared_ptr<ZoneManager>> listeners_;
+    
     bool shouldReceiveSelected_ = false;
     bool shouldReceiveTrack_ = false;
     bool shouldReceiveAutoMapLearn_ = false;
@@ -1317,7 +1318,7 @@ public:
     shared_ptr<Navigator> GetSelectedTrackNavigator();
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
-    void SetBroadcastGroup(vector<string> surfaceNames);
+    void SetListeners(vector<string> surfaceNames);
     
     int  GetNumChannels();
     void GoFocusedFX();
@@ -1357,106 +1358,100 @@ public:
 
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-          
-    void ToggleShouldReceiveSelected() { shouldReceiveSelected_ = ! shouldReceiveSelected_; }
-    void ToggleShouldReceiveTrack() { shouldReceiveTrack_ = ! shouldReceiveTrack_; }
-    void ToggleShouldReceiveAutoMapLearn() { shouldReceiveAutoMapLearn_ = ! shouldReceiveAutoMapLearn_; }
-    void ToggleShouldReceiveFocus() { shouldReceiveFocus_ = ! shouldReceiveFocus_; }
-    void ToggleShouldReceiveHome() { shouldReceiveHome_ = ! shouldReceiveHome_; }
 
-    void BroadcastGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
+    void DeclareGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
     {
         GoFXSlot(track, navigator, fxSlot);
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveGoFXSlot(track, navigator, fxSlot);
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToGoFXSlot(track, navigator, fxSlot);
     }
 
-    void ReceiveGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
+    void ListenToGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
     {
         if(shouldReceiveSelected_)
             GoFXSlot(track, navigator, fxSlot);
     }
 
-    void BroadcastGoSelectedTrackFX()
+    void DeclareGoSelectedTrackFX()
     {
         GoSelectedTrackFX();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveGoSelectedTrackFX();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToGoSelectedTrackFX();
     }
     
-    void ReceiveGoSelectedTrackFX()
+    void ListenToGoSelectedTrackFX()
     {
        if(shouldReceiveSelected_)
            GoSelectedTrackFX();
     }
 
-    void BroadcastClearSelectedTrackFX()
+    void DeclareClearSelectedTrackFX()
     {
         ClearSelectedTrackFX();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveClearSelectedTrackFX();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToClearSelectedTrackFX();
     }
     
-    void ReceiveClearSelectedTrackFX()
+    void ListenToClearSelectedTrackFX()
     {
        if(shouldReceiveSelected_)
            ClearSelectedTrackFX();
     }
 
-    void BroadcastClearFXSlot(shared_ptr<Zone> zone)
+    void DeclareClearFXSlot(shared_ptr<Zone> zone)
     {
         ClearFXSlot(zone);
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveClearFXSlot(zone);
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToClearFXSlot(zone);
     }
     
-    void ReceiveClearFXSlot(shared_ptr<Zone> zone)
+    void ListenToClearFXSlot(shared_ptr<Zone> zone)
     {
        if(shouldReceiveSelected_)
            ClearFXSlot(zone);
     }
 
-    void BroadcastGoLearnFXParams()
+    void DeclareGoLearnFXParams()
     {
         GoLearnFXParams();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveGoLearnFXParams();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToGoLearnFXParams();
     }
     
-    void ReceiveGoLearnFXParams()
+    void ListenToGoLearnFXParams()
     {
        if(shouldReceiveAutoMapLearn_)
            GoLearnFXParams();
     }
     
-    void BroadcastGoAutoMapFX()
+    void DeclareGoAutoMapFX()
     {
         GoAutoMapFX();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveGoAutoMapFX();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToGoAutoMapFX();
     }
     
-    void ReceiveGoAutoMapFX()
+    void ListenToGoAutoMapFX()
     {
        if(shouldReceiveAutoMapLearn_)
            GoAutoMapFX();
     }
         
-    void BroadcastSaveLearnedFXParams()
+    void DeclareSaveLearnedFXParams()
     {
         SaveLearnedFXParams();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveSaveLearnedFXParams();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToSaveLearnedFXParams();
     }
     
-    void ReceiveSaveLearnedFXParams()
+    void ListenToSaveLearnedFXParams()
     {
        if(shouldReceiveAutoMapLearn_)
            SaveLearnedFXParams();
@@ -1503,29 +1498,29 @@ public:
         lastTouched_ = nullptr;
     }
         
-    void BroadcastClearFocusedFXParam()
+    void DeclareClearFocusedFXParam()
     {
         ClearFocusedFXParam();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveClearFocusedFXParam();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToClearFocusedFXParam();
     }
     
-    void ReceiveClearFocusedFXParam()
+    void ListenToClearFocusedFXParam()
     {
        if(shouldReceiveFocus_)
            ClearFocusedFXParam();
     }
 
-    void BroadcastClearFocusedFX()
+    void DeclareClearFocusedFX()
     {
         ClearFocusedFX();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveClearFocusedFX();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToClearFocusedFX();
     }
     
-    void ReceiveClearFocusedFX()
+    void ListenToClearFocusedFX()
     {
        if(shouldReceiveFocus_)
            ClearFocusedFX();
@@ -1536,15 +1531,15 @@ public:
         return surfaceFXLayout_;
     }
     
-    void BroadcastGoAssociatedZone(string zoneName)
+    void DeclareGoAssociatedZone(string zoneName)
     {
         GoAssociatedZone(zoneName);
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveGoAssociatedZone(zoneName);
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToGoAssociatedZone(zoneName);
     }
     
-    void ReceiveGoAssociatedZone(string zoneName)
+    void ListenToGoAssociatedZone(string zoneName)
     {
         if(shouldReceiveTrack_ && (zoneName == "Track" || zoneName == "TrackFXMenu" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "VCA" || zoneName == "Folder"))
             GoAssociatedZone(zoneName);
@@ -1576,15 +1571,15 @@ public:
         }
     }
     
-    void BroadcastGoHome()
+    void DeclareGoHome()
     {
         GoHome();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveGoHome();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToGoHome();
     }
     
-    void ReceiveGoHome()
+    void ListenToGoHome()
     {
         if(shouldReceiveHome_)
             GoHome();
@@ -1607,31 +1602,31 @@ public:
         }
     }
     
-    void BroadcastToggleEnableFocusedFXParamMapping()
+    void DeclareToggleEnableFocusedFXParamMapping()
     {
         ToggleEnableFocusedFXParamMapping();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveToggleEnableFocusedFXParamMapping();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToToggleEnableFocusedFXParamMapping();
         
     }
 
-    void ReceiveToggleEnableFocusedFXParamMapping()
+    void ListenToToggleEnableFocusedFXParamMapping()
     {
         if(shouldReceiveFocus_)
             ToggleEnableFocusedFXParamMapping();
     }
 
-    void BroadcastToggleEnableFocusedFXMapping()
+    void DeclareToggleEnableFocusedFXMapping()
     {
         ToggleEnableFocusedFXMapping();
         
-        for(auto zoneManager : broadcastZoneManagers_)
-            zoneManager->ReceiveToggleEnableFocusedFXMapping();
+        for(auto zoneManager : listeners_)
+            zoneManager->ListenToToggleEnableFocusedFXMapping();
 
     }
 
-    void ReceiveToggleEnableFocusedFXMapping()
+    void ListenToToggleEnableFocusedFXMapping()
     {
         if(shouldReceiveFocus_)
             ToggleEnableFocusedFXMapping();

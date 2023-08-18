@@ -437,7 +437,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->BroadcastGoHome();
+        context->GetSurface()->GetZoneManager()->DeclareGoHome();
     }
 };
 
@@ -516,7 +516,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->BroadcastGoFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
+            context->GetSurface()->GetZoneManager()->DeclareGoFXSlot(track, context->GetZone()->GetNavigator(), context->GetSlotIndex());
     }
 };
 
@@ -583,7 +583,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->BroadcastToggleEnableFocusedFXMapping();
+        context->GetSurface()->GetZoneManager()->DeclareToggleEnableFocusedFXMapping();
     }
 };
 
@@ -603,97 +603,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->BroadcastToggleEnableFocusedFXParamMapping();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SetBroadcastGroup  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "SetBroadcastGroup"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->SetBroadcastGroup(context->GetParameters());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleShouldReceiveSelected  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleShouldReceiveSelected"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveSelected();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleShouldReceiveTrack  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleShouldReceiveTrack"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveTrack();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleShouldReceiveAutoMapLearn  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleShouldReceiveAutoMapLearn"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveAutoMapLearn();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleShouldReceiveFocus  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleShouldReceiveFocus"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveFocus();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleShouldReceiveHome  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "ToggleShouldReceiveHome"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->ToggleShouldReceiveHome();
+        context->GetSurface()->GetZoneManager()->DeclareToggleEnableFocusedFXParamMapping();
     }
 };
 
@@ -732,7 +642,7 @@ public:
         if(value == 0.0) return; // ignore button releases
         
         if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->BroadcastGoSelectedTrackFX();
+            context->GetSurface()->GetZoneManager()->DeclareGoSelectedTrackFX();
     }
 };
 
@@ -748,7 +658,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->BroadcastGoAutoMapFX();
+        context->GetSurface()->GetZoneManager()->DeclareGoAutoMapFX();
     }
 };
 
@@ -764,7 +674,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->BroadcastGoLearnFXParams();
+        context->GetSurface()->GetZoneManager()->DeclareGoLearnFXParams();
     }
 };
 
@@ -788,7 +698,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->BroadcastGoAssociatedZone(context->GetStringParam());
+        context->GetSurface()->GetZoneManager()->DeclareGoAssociatedZone(context->GetStringParam());
     }
 };
 
@@ -804,7 +714,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->BroadcastClearFocusedFXParam();
+        context->GetSurface()->GetZoneManager()->DeclareClearFocusedFXParam();
     }
 };
 
@@ -820,7 +730,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->BroadcastClearFocusedFX();
+        context->GetSurface()->GetZoneManager()->DeclareClearFocusedFX();
     }
 };
 
@@ -836,7 +746,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->BroadcastClearSelectedTrackFX();
+        context->GetSurface()->GetZoneManager()->DeclareClearSelectedTrackFX();
     }
 };
 
@@ -852,7 +762,7 @@ public:
         if(value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->BroadcastClearFXSlot(context->GetZone());
+        context->GetSurface()->GetZoneManager()->DeclareClearFXSlot(context->GetZone());
     }
 };
 
