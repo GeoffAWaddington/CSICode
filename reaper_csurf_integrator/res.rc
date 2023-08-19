@@ -323,6 +323,7 @@ BEGIN
     CONTROL         "FocusedFX",IDC_CHECK_FocusedFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,258,83,49,10
     CONTROL         "FocusedFXParam",IDC_CHECK_FocusedFXParam,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,258,99,69,10
     CONTROL         "SelectedTrackFX",IDC_CHECK_SelectedTrackFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,334,83,67,10
+    CONTROL         "Custom",IDC_CHECK_Custom,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,334,99,40,10
 END
 
 

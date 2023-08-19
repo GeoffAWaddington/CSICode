@@ -170,6 +170,7 @@
 #define IDC_GroupFXParamValueDisplay3   1263
 #define IDC_CHECK_FocusedFX             1263
 #define IDC_CHECK_FocusedFXParam        1264
+#define IDC_CHECK_Custom                1265
 
 // Next default values for new objects
 // 
