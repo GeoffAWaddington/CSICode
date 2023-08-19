@@ -1463,6 +1463,8 @@ void Manager::Init()
     map<string, shared_ptr<Midi_ControlSurfaceIO>> midiSurfaces;
     map<string, shared_ptr<OSC_ControlSurfaceIO>> oscSurfaces;
 
+    string currentBroadcaster = "";
+    
     shared_ptr<Page> currentPage = nullptr;
     
     string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
@@ -1554,10 +1556,28 @@ void Manager::Init()
                         pages_.push_back(currentPage);
                     }
                 }
-                else if(currentPage && tokens.size() > 0 && (tokens[0] == "Broadcaster" || tokens[0] == "Listener"))
+                else if(currentPage && tokens.size() > 1 && tokens[0] == "Broadcaster")
                 {
-                    // GAW TBD -- read Broadcasters/Listeners
+                    currentBroadcaster = tokens[1];
+                }
+                else if(currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
+                {
+                    shared_ptr<ControlSurface> broadcaster = nullptr;
+                    shared_ptr<ControlSurface> listener = nullptr;
 
+                    for(auto surface : currentPage->GetSurfaces())
+                    {
+                        if(surface->GetName() == currentBroadcaster)
+                            broadcaster = surface;
+                        if(surface->GetName() == tokens[1])
+                            listener = surface;
+                    }
+                    
+                    if(broadcaster != nullptr && listener != nullptr)
+                    {
+                        broadcaster->GetZoneManager()->AddListener(listener);
+                        listener->GetZoneManager()->SetListenerCategories(tokens[2]);
+                    }
                 }
                 else
                 {
@@ -2689,11 +2709,9 @@ void ZoneManager::CheckFocusedFXState()
     }
 }
 
-void ZoneManager::AddListener(string surfaceName)
+void ZoneManager::AddListener(shared_ptr<ControlSurface> surface)
 {
-    for(auto surface : surface_->GetPage()->GetSurfaces())
-        if(surface->GetName() == surfaceName)
-            listeners_.push_back(surface->GetZoneManager());
+    listeners_.push_back(surface->GetZoneManager());
 }
 
 void ZoneManager::GoFocusedFX()
