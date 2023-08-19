@@ -1035,9 +1035,10 @@ private:
     bool listensToGoHome_ = false;
     // GAW TBD
     bool listensToSubZone_ = false;
+    // GAW end TBD    // GAW end TBD
+
     bool listensToSends_ = false;
     bool listensToReceives_ = false;
-    // GAW end TBD
     bool listensToLearn_ = false;
     bool listensToAutoMap_ = false;
     bool listensToFXSlot_ = false;
@@ -1563,12 +1564,78 @@ public:
       
     void GoAssociatedZone(string zoneName)
     {
-        if(homeZone_ != nullptr)
+        if(zoneName == "SelectedTrackSend")
+            DeclareGoSelectedTrackSend(zoneName);
+        else if(zoneName == "SelectedTrackReceive")
+            DeclareGoSelectedTrackReceive(zoneName);
+        else if(homeZone_ != nullptr)
         {
             ClearFXMapping();
             ResetOffsets();
                     
             homeZone_->GoAssociatedZone(zoneName);
+        }
+    }
+
+    void DeclareGoSelectedTrackSend(string zoneName)
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoSelectedTrackSend(zoneName);
+    }
+    
+    void ListenToGoSelectedTrackSend(string zoneName)
+    {
+        if(listensToSends_)
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+    }
+
+    void DeclareGoSelectedTrackReceive(string zoneName)
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoSelectedTrackReceive(zoneName);
+    }
+    
+    void ListenToGoSelectedTrackReceive(string zoneName)
+    {
+        if(listensToReceives_)
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
         }
     }
 
