@@ -1547,9 +1547,12 @@ struct Listener
     bool goHome = false;
     bool sends = false;
     bool receives = false;
+    bool focusedFX = false;
+    bool focusedFXParam = false;
     bool learn = false;
     bool autoMap = false;
     bool fxSlot = false;
+    bool selectedTrackFX = false;
 };
 
 struct Broadcaster
@@ -2092,9 +2095,12 @@ static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, listener->focusedFX ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, listener->focusedFXParam ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, listener->fxSlot ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, listener->selectedTrackFX ? BST_CHECKED : BST_UNCHECKED, 0);
 }
 
 static void ClearCheckBoxes(HWND hwndDlg)
@@ -2104,9 +2110,12 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, BST_UNCHECKED, 0);
 }
 
 static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -2275,6 +2284,38 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                     }
                     break;
                     
+                case IDC_CHECK_FocusedFX:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFX = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFX = false;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_FocusedFXParam:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = false;
+                        }
+                    }
+                    break;
+                    
                 case IDC_CHECK_Learn:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2319,6 +2360,22 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = true;
                             else
                                 pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = false;
+                        }
+                    }
+                    break;
+                 
+                case IDC_CHECK_SelectedTrackFX:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = false;
                         }
                     }
                     break;
@@ -2830,12 +2887,18 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listener->sends = true;
                             if(categoryToken == "Receives")
                                 listener->receives = true;
+                            if(categoryToken == "FocusedFX")
+                                listener->focusedFX = true;
+                            if(categoryToken == "FocusedFXParam")
+                                listener->focusedFXParam = true;
                             if(categoryToken == "Learn")
                                 listener->learn = true;
                             if(categoryToken == "AutoMap")
                                 listener->autoMap = true;
                             if(categoryToken == "FXSlot")
                                 listener->fxSlot = true;
+                            if(categoryToken == "SelectedTrackFX")
+                                listener->selectedTrackFX = true;
                         }
                         
                         pages.back()->broadcasters.back()->listeners.push_back(listener);
@@ -2963,12 +3026,18 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listenerCategories += "Sends ";
                             if(listener->receives)
                                 listenerCategories += "Receives ";
+                            if(listener->focusedFX)
+                                listenerCategories += "FocusedFX ";
+                            if(listener->focusedFXParam)
+                                listenerCategories += "FocusedFXParam ";
                             if(listener->learn)
                                 listenerCategories += "Learn ";
                             if(listener->autoMap)
                                 listenerCategories += "AutoMap ";
                             if(listener->fxSlot)
                                 listenerCategories += "FXSlot ";
+                            if(listener->selectedTrackFX)
+                                listenerCategories += "SelectedTrackFX ";
 
                             iniFile << string("\t\tListener ") + "\"" + listener->name + "\" \"" + listenerCategories + "\"" + GetLineEnding();
                         }

@@ -1035,9 +1035,12 @@ private:
     bool listensToGoHome_ = false;
     bool listensToSends_ = false;
     bool listensToReceives_ = false;
+    bool listensToFocusedFX_ = false;
+    bool listensToFocusedFXParam_ = false;
     bool listensToLearn_ = false;
     bool listensToAutoMap_ = false;
     bool listensToFXSlot_ = false;
+    bool listensToSelectedTrackFX_ = false;
 
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
@@ -1108,7 +1111,7 @@ private:
 
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToLearn_ || listensToAutoMap_ || listensToFXSlot_;
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToLearn_ || listensToAutoMap_ || listensToFXSlot_ || listensToSelectedTrackFX_;
     }
 
     void ListenToGoHome()
@@ -1151,34 +1154,16 @@ private:
             GoFXSlot(track, navigator, fxSlot);
     }
     
-    void ListenToGoSelectedTrackFX()
-    {
-       if(listensToFXSlot_)
-           GoSelectedTrackFX();
-    }
-    
-    void ListenToClearSelectedTrackFX()
-    {
-       if(listensToFXSlot_)
-           ClearSelectedTrackFX();
-    }
-    
     void ListenToClearFXSlot(shared_ptr<Zone> zone)
     {
        if(listensToFXSlot_)
            ClearFXSlot(zone);
     }
-
+        
     void ListenToGoLearnFXParams()
     {
        if(listensToLearn_)
            GoLearnFXParams();
-    }
-    
-    void ListenToGoAutoMapFX()
-    {
-       if(listensToAutoMap_)
-           GoAutoMapFX();
     }
     
     void ListenToSaveLearnedFXParams()
@@ -1187,15 +1172,33 @@ private:
            SaveLearnedFXParams();
     }
     
+    void ListenToGoAutoMapFX()
+    {
+       if(listensToAutoMap_)
+           GoAutoMapFX();
+    }
+    
+    void ListenToGoSelectedTrackFX()
+    {
+       if(listensToSelectedTrackFX_)
+           GoSelectedTrackFX();
+    }
+    
+    void ListenToClearSelectedTrackFX()
+    {
+       if(listensToSelectedTrackFX_)
+           ClearSelectedTrackFX();
+    }
+    
     void ListenToClearFocusedFXParam()
     {
-       if(listensToFXSlot_)
+       if(listensToFocusedFXParam_)
            ClearFocusedFXParam();
     }
     
     void ListenToToggleEnableFocusedFXParamMapping()
     {
-        if(listensToFXSlot_)
+        if(listensToFocusedFXParam_)
             ToggleEnableFocusedFXParamMapping();
     }
 
@@ -1214,13 +1217,13 @@ private:
 
     void ListenToClearFocusedFX()
     {
-       if(listensToFXSlot_)
+       if(listensToFocusedFX_)
            ClearFocusedFX();
     }
 
     void ListenToToggleEnableFocusedFXMapping()
     {
-        if(listensToFXSlot_)
+        if(listensToFocusedFX_)
             ToggleEnableFocusedFXMapping();
     }
 
@@ -1466,12 +1469,18 @@ public:
                 listensToSends_ = true;
             if(categoryToken == "Receives")
                 listensToReceives_ = true;
+            if(categoryToken == "FocusedFX")
+                listensToFocusedFX_ = true;
+            if(categoryToken == "FocusedFXParam")
+                listensToFocusedFXParam_ = true;
             if(categoryToken == "Learn")
                 listensToLearn_ = true;
             if(categoryToken == "AutoMap")
                 listensToAutoMap_ = true;
             if(categoryToken == "FXSlot")
                 listensToFXSlot_ = true;
+            if(categoryToken == "SelectedTrackFX")
+                listensToSelectedTrackFX_ = true;
         }
     }
     

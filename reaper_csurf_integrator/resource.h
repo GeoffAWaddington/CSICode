@@ -159,7 +159,7 @@
 #define IDLearn                         1252
 #define IDC_ListenCheckboxes            1253
 #define IDC_CHECK_GoHome                1254
-#define IDC_CHECK_SelectedTrackFX       1254
+#define IDC_CHECK_SelectedTrackFX       1255
 #define IDC_CHECK_Sends                 1256
 #define IDC_CHECK_Receives              1257
 #define IDC_CHECK_Learn                 1258
