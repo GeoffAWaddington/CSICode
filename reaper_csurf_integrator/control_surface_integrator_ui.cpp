@@ -1545,7 +1545,6 @@ struct Listener
 {
     string name = "";
     bool goHome = false;
-    bool subZone = false;
     bool sends = false;
     bool receives = false;
     bool learn = false;
@@ -2091,7 +2090,6 @@ static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
     SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_SETCHECK, listener->subZone ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -2104,7 +2102,6 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), "Surface Listens to");
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, BST_UNCHECKED, 0);
@@ -2245,23 +2242,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         }
                     }
                     break;
-                    
-                case IDC_CHECK_SubZone:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
-                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
-
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SubZone), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->subZone = true;
-                            else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->subZone = false;
-                        }
-                    }
-                    break;
-                    
+                                        
                 case IDC_CHECK_Sends:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2845,8 +2826,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         {
                             if(categoryToken == "GoHome")
                                 listener->goHome = true;
-                            if(categoryToken == "SubZone")
-                                listener->subZone = true;
                             if(categoryToken == "Sends")
                                 listener->sends = true;
                             if(categoryToken == "Receives")
@@ -2980,8 +2959,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             
                             if(listener->goHome)
                                 listenerCategories += "GoHome ";
-                            if(listener->subZone)
-                                listenerCategories += "SubZone ";
                             if(listener->sends)
                                 listenerCategories += "Sends ";
                             if(listener->receives)

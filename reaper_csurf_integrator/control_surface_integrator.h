@@ -1033,10 +1033,6 @@ private:
     vector<shared_ptr<ZoneManager>> listeners_;
     
     bool listensToGoHome_ = false;
-    // GAW TBD
-    bool listensToSubZone_ = false;
-    // GAW end TBD    // GAW end TBD
-
     bool listensToSends_ = false;
     bool listensToReceives_ = false;
     bool listensToLearn_ = false;
@@ -1112,7 +1108,7 @@ private:
 
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSubZone_ || listensToSends_ || listensToReceives_ || listensToLearn_ || listensToAutoMap_ || listensToFXSlot_;
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToLearn_ || listensToAutoMap_ || listensToFXSlot_;
     }
 
     void ListenToGoHome()
@@ -1466,8 +1462,6 @@ public:
         {
             if(categoryToken == "GoHome")
                 listensToGoHome_ = true;
-            if(categoryToken == "SubZone")
-                listensToSubZone_ = true;
             if(categoryToken == "Sends")
                 listensToSends_ = true;
             if(categoryToken == "Receives")

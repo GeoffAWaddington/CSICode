@@ -149,7 +149,6 @@
 #define IDC_AdvancedGroup3              1240
 #define IDC_GroupFixedTextDisplay3      1243
 #define IDC_FXParamNameEdit3            1244
-#define IDC_LIST1                       1246
 #define IDC_LIST_Listeners              1246
 #define IDC_LIST_Broadcasters           1247
 #define IDC_EDIT_Delta                  1248
@@ -160,7 +159,7 @@
 #define IDLearn                         1252
 #define IDC_ListenCheckboxes            1253
 #define IDC_CHECK_GoHome                1254
-#define IDC_CHECK_SubZone               1255
+#define IDC_CHECK_SelectedTrackFX       1254
 #define IDC_CHECK_Sends                 1256
 #define IDC_CHECK_Receives              1257
 #define IDC_CHECK_Learn                 1258
@@ -169,6 +168,8 @@
 #define IDC_AddBroadcaster              1261
 #define IDC_AddListener                 1262
 #define IDC_GroupFXParamValueDisplay3   1263
+#define IDC_CHECK_FocusedFX             1263
+#define IDC_CHECK_FocusedFXParam        1264
 
 // Next default values for new objects
 // 
