@@ -1553,6 +1553,7 @@ struct Listener
     bool autoMap = false;
     bool fxSlot = false;
     bool selectedTrackFX = false;
+    bool custom = false;
 };
 
 struct Broadcaster
@@ -2101,6 +2102,7 @@ static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, listener->fxSlot ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, listener->selectedTrackFX ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_SETCHECK, listener->custom ? BST_CHECKED : BST_UNCHECKED, 0);
 }
 
 static void ClearCheckBoxes(HWND hwndDlg)
@@ -2116,6 +2118,7 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_SETCHECK, BST_UNCHECKED, 0);
 }
 
 static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -2376,6 +2379,22 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = true;
                             else
                                 pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = false;
+                        }
+                    }
+                    break;
+                 
+                case IDC_CHECK_Custom:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->custom = true;
+                            else
+                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->custom = false;
                         }
                     }
                     break;
@@ -2899,6 +2918,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listener->fxSlot = true;
                             if(categoryToken == "SelectedTrackFX")
                                 listener->selectedTrackFX = true;
+                            if(categoryToken == "Custom")
+                                listener->custom = true;
                         }
                         
                         pages.back()->broadcasters.back()->listeners.push_back(listener);
@@ -3038,6 +3059,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listenerCategories += "FXSlot ";
                             if(listener->selectedTrackFX)
                                 listenerCategories += "SelectedTrackFX ";
+                            if(listener->custom)
+                                listenerCategories += "Custom ";
 
                             iniFile << string("\t\tListener ") + "\"" + listener->name + "\" \"" + listenerCategories + "\"" + GetLineEnding();
                         }

@@ -1041,6 +1041,7 @@ private:
     bool listensToAutoMap_ = false;
     bool listensToFXSlot_ = false;
     bool listensToSelectedTrackFX_ = false;
+    bool listensToCustom_ = false;
 
     shared_ptr<Zone> focusedFXParamZone_ = nullptr;
     bool isFocusedFXParamMappingEnabled_ = false;
@@ -1137,6 +1138,20 @@ private:
     void ListenToGoSelectedTrackReceive(string zoneName)
     {
         if(listensToReceives_)
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+    }
+    
+    void ListenToGoCustom(string zoneName)
+    {
+        if(listensToCustom_)
         {
             if(homeZone_ != nullptr)
             {
@@ -1481,6 +1496,8 @@ public:
                 listensToFXSlot_ = true;
             if(categoryToken == "SelectedTrackFX")
                 listensToSelectedTrackFX_ = true;
+            if(categoryToken == "Custom")
+                listensToCustom_ = true;
         }
     }
     
@@ -1617,6 +1634,8 @@ public:
             DeclareGoSelectedTrackSend(zoneName);
         else if(zoneName == "SelectedTrackReceive")
             DeclareGoSelectedTrackReceive(zoneName);
+        else if(zoneName == "Custom")
+            DeclareGoCustom(zoneName);
         else if(homeZone_ != nullptr)
         {
             ClearFXMapping();
@@ -1658,6 +1677,23 @@ public:
         else
             for(auto zoneManager : listeners_)
                 zoneManager->ListenToGoSelectedTrackReceive(zoneName);
+    }
+    
+    void DeclareGoCustom(string zoneName)
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoCustom(zoneName);
     }
     
     void GoHome()
