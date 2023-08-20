@@ -1342,7 +1342,7 @@ void Manager::InitActionsDictionary()
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
     actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
     actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
-    actions_["GoAutoMapFX"] =                       make_shared<GoAutoMapFX>();
+    actions_["AutoMapFX"] =                         make_shared<AutoMapFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
     actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
     actions_["ClearFocusedFX"] =                    make_shared<ClearFocusedFX>();
@@ -2829,7 +2829,7 @@ static WDL_DLGRET dlgProcChoseAutoMapOrLearn(HWND hwndDlg, UINT uMsg, WPARAM wPa
     return 0;
 }
 
-void ZoneManager::GoAutoMapFX()
+void ZoneManager::AutoMapFX()
 {
     int trackNumber = 0;
     int itemNumber = 0;
@@ -3130,32 +3130,49 @@ int ZoneManager::GetModifierValue(vector<string> modifierTokens)
 
 void ZoneManager::InitializeFXParamsLearnZone()
 {
+    if(surfaceFXLayout_.size() != 3)
+        return;
+    
     if(homeZone_ != nullptr)
     {
         if(shared_ptr<Zone> zone = homeZone_->GetLearnFXParamsZone())
         {
             vector<string> paramWidgets;
-            string nameDisplayWidget = "";
-            string valueDisplayWidget = "";
+            vector<string> widgetParams;
 
             for(auto row : surfaceFXLayoutTemplate_)
-            {
                 if(row.size() > 0 && row[0] == "WidgetTypes")
-                {
                     for(int i = 1; i < row.size(); i++)
                         paramWidgets.push_back(row[i]);
-                }
-                    
-                if(row.size() > 2 && row[0] == "DisplayRows")
-                {
-                    nameDisplayWidget = row[1];
-                    valueDisplayWidget = row[2];
-                }
-            }
+
+            if(surfaceFXLayout_[0].size() > 2)
+                for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
+                    widgetParams.push_back(surfaceFXLayout_[0][i]);
             
+            
+            string nameDisplayWidget = "";
+            vector<string> nameDisplayParams;
+
+            if(surfaceFXLayout_[1].size() > 0)
+                nameDisplayWidget = surfaceFXLayout_[1][0];
+
+            if(surfaceFXLayout_[1].size() > 2)
+                for(int i = 2; i < surfaceFXLayout_[1].size(); i++)
+                    nameDisplayParams.push_back(surfaceFXLayout_[1][i]);
+
+            
+            string valueDisplayWidget = "";
+            vector<string> valueDisplayParams;
+
+            if(surfaceFXLayout_[2].size() > 0)
+                valueDisplayWidget = surfaceFXLayout_[2][0];
+
+            if(surfaceFXLayout_[2].size() > 2)
+                for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
+                    valueDisplayParams.push_back(surfaceFXLayout_[2][i]);
+
             if(paramWidgets.size() > 0 && nameDisplayWidget != "" && valueDisplayWidget != "")
             {
-                vector<string> memberParams;
                 
                 for(auto layout : fxLayouts_)
                 {
@@ -3172,7 +3189,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
-                        shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, memberParams);
+                        shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
                         context->SetProvideFeedback(true);
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
@@ -3182,7 +3199,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             continue;
                         cell.fxParamValueDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
-                        context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, memberParams);
+                        context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, valueDisplayParams);
                         context->SetProvideFeedback(true);
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
@@ -3194,7 +3211,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                                 continue;
                             cell.fxParamWidgets.push_back(widget);
                             zone->AddWidget(widget, widget->GetName());
-                            context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, memberParams);
+                            context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
                             shared_ptr<LearnInfo> info = make_shared<LearnInfo>(widget, cellAdress);

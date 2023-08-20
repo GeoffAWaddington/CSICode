@@ -1097,7 +1097,7 @@ private:
     void GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
     void GoSelectedTrackFX();
     void GoLearnFXParams();
-    void GoAutoMapFX();
+    void AutoMapFX();
     void SaveLearnedFXParams();
     void InitializeFXParamsLearnZone();
     void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
@@ -1187,10 +1187,10 @@ private:
            SaveLearnedFXParams();
     }
     
-    void ListenToGoAutoMapFX()
+    void ListenToAutoMapFX()
     {
        if(listensToAutoMap_)
-           GoAutoMapFX();
+           AutoMapFX();
     }
     
     void ListenToGoSelectedTrackFX()
@@ -1546,13 +1546,13 @@ public:
                 zoneManager->ListenToGoLearnFXParams();
     }
         
-    void DeclareGoAutoMapFX()
+    void DeclareAutoMapFX()
     {
         if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            GoAutoMapFX();
+            AutoMapFX();
         else
             for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoAutoMapFX();
+                zoneManager->ListenToAutoMapFX();
     }
             
     void DeclareSaveLearnedFXParams()

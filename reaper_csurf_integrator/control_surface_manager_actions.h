@@ -647,18 +647,18 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoAutoMapFX : public Action
+class AutoMapFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoAutoMapFX"; }
+    virtual string GetName() override { return "AutoMapFX"; }
     
     void Do(ActionContext* context, double value) override
     {
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->DeclareGoAutoMapFX();
+        context->GetSurface()->GetZoneManager()->DeclareAutoMapFX();
     }
 };
 
