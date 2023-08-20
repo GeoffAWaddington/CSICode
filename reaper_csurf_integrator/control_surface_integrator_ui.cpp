@@ -2478,6 +2478,13 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                     AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
                                     
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
+                                
+#ifdef WIN32
+                                listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+                                
+                                if(listenerIndex >= 0)
+                                    SetCheckBoxes(hwndDlg, broadcasters[broadcasterIndex]->listeners[listenerIndex]);
+#endif
                             }
                         }
                     }
