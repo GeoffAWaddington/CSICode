@@ -2270,7 +2270,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                  broadcasters[broadcasterIndex]->listeners.push_back(listener);
                                 AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
-                                
+                                ClearCheckBoxes(hwndDlg);
+
                                 SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string( broadcasters[broadcasterIndex]->listeners.back()->name + " Listens to").c_str());
                             }
                         }
