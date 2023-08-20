@@ -1115,6 +1115,75 @@ private:
         return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToLearn_ || listensToAutoMap_ || listensToFXSlot_ || listensToSelectedTrackFX_;
     }
 
+    void DeclareGoSelectedTrackSend(string zoneName)
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoSelectedTrackSend(zoneName);
+    }
+    
+    void DeclareGoSelectedTrackReceive(string zoneName)
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoSelectedTrackReceive(zoneName);
+    }
+  
+    void DeclareGoSelectedTrackFX()
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+            GoSelectedTrackFX();
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoSelectedTrackFX();
+    }
+    
+    void DeclareGoLearnFXParams()
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+            GoLearnFXParams();
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoLearnFXParams();
+    }
+    
+    void DeclareGoCustom(string zoneName)
+    {
+        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if(homeZone_ != nullptr)
+            {
+                ClearFXMapping();
+                ResetOffsets();
+                        
+                homeZone_->GoAssociatedZone(zoneName);
+            }
+        }
+        else
+            for(auto zoneManager : listeners_)
+                zoneManager->ListenToGoCustom(zoneName);
+    }
+    
     void ListenToGoHome()
     {
         if(listensToGoHome_)
@@ -1509,15 +1578,6 @@ public:
             for(auto zoneManager : listeners_)
                 zoneManager->ListenToGoFXSlot(track, navigator, fxSlot);
     }
-
-    void DeclareGoSelectedTrackFX()
-    {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            GoSelectedTrackFX();
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackFX();
-    }
     
     void DeclareClearSelectedTrackFX()
     {
@@ -1536,16 +1596,7 @@ public:
             for(auto zoneManager : listeners_)
                 zoneManager->ListenToClearFXSlot(zone);
     }
-        
-    void DeclareGoLearnFXParams()
-    {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            GoLearnFXParams();
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoLearnFXParams();
-    }
-        
+                
     void DeclareAutoMapFX()
     {
         if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1634,6 +1685,10 @@ public:
             DeclareGoSelectedTrackSend(zoneName);
         else if(zoneName == "SelectedTrackReceive")
             DeclareGoSelectedTrackReceive(zoneName);
+        else if(zoneName == "SelectedTrackFX")
+            DeclareGoSelectedTrackFX();
+        else if(zoneName == "LearnFXParams")
+            DeclareGoLearnFXParams();
         else if(zoneName == "Custom")
             DeclareGoCustom(zoneName);
         else if(homeZone_ != nullptr)
@@ -1645,57 +1700,6 @@ public:
         }
     }
 
-    void DeclareGoSelectedTrackSend(string zoneName)
-    {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if(homeZone_ != nullptr)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                homeZone_->GoAssociatedZone(zoneName);
-            }
-        }
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackSend(zoneName);
-    }
-    
-    void DeclareGoSelectedTrackReceive(string zoneName)
-    {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if(homeZone_ != nullptr)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                homeZone_->GoAssociatedZone(zoneName);
-            }
-        }
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackReceive(zoneName);
-    }
-    
-    void DeclareGoCustom(string zoneName)
-    {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if(homeZone_ != nullptr)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                homeZone_->GoAssociatedZone(zoneName);
-            }
-        }
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoCustom(zoneName);
-    }
-    
     void GoHome()
     {
         if(learnFXName_ != "")

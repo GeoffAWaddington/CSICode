@@ -1340,8 +1340,6 @@ void Manager::InitActionsDictionary()
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
-    actions_["GoSelectedTrackFX"] =                 make_shared<GoSelectedTrackFX>();
-    actions_["GoLearnFXParams"] =                   make_shared<GoLearnFXParams>();
     actions_["AutoMapFX"] =                         make_shared<AutoMapFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
     actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
@@ -2759,6 +2757,14 @@ void ZoneManager::GoFocusedFX()
 
 void ZoneManager::GoSelectedTrackFX()
 {
+    if(homeZone_ != nullptr)
+    {
+        ClearFXMapping();
+        ResetOffsets();
+                
+        homeZone_->GoAssociatedZone("SelectedTrackFX");
+    }
+
     selectedTrackFXZones_.clear();
     
     if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
@@ -2854,6 +2860,14 @@ void ZoneManager::AutoMapFX()
 
 void ZoneManager::GoLearnFXParams()
 {
+    if(homeZone_ != nullptr)
+    {
+        ClearFXMapping();
+        ResetOffsets();
+                
+        homeZone_->GoAssociatedZone("LearnFXParams");
+    }
+
     int trackNumber = 0;
     int itemNumber = 0;
     int fxSlot = 0;
@@ -2928,7 +2942,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
         {
             DAW::TrackFX_SetOpen(track, fxSlot, true);
             learnFXName_ = fxName;
-            GoAssociatedZone("LearnFXParams");
+            GoLearnFXParams();
         }
         else if(dlgResult == IDAutoMap)
             AutoMapFX(fxName, track, fxSlot);

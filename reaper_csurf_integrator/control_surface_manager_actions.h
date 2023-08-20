@@ -623,30 +623,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoSelectedTrackFX  : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoSelectedTrackFX"; }
-    
-    virtual void RequestUpdate(ActionContext* context) override
-    {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("SelectedTrackFX"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0) return; // ignore button releases
-        
-        if(MediaTrack* track = context->GetTrack())
-            context->GetSurface()->GetZoneManager()->DeclareGoSelectedTrackFX();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AutoMapFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -659,22 +635,6 @@ public:
             return; // ignore button releases
         
         context->GetSurface()->GetZoneManager()->DeclareAutoMapFX();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoLearnFXParams : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual string GetName() override { return "GoLearnFXParams"; }
-    
-    void Do(ActionContext* context, double value) override
-    {
-        if(value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->DeclareGoLearnFXParams();
     }
 };
 
