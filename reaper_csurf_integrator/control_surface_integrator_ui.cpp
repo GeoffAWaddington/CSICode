@@ -1574,6 +1574,42 @@ struct PageLine
 };
 
 // Scratch pad to get in and out of dialogs easily
+vector<shared_ptr<Broadcaster>> broadcasters;
+
+static void TransferBroadcasters(vector<shared_ptr<Broadcaster>> &source, vector<shared_ptr<Broadcaster>> &destination)
+{
+    destination.clear();
+    
+    for(auto sourceBrodacaster : source)
+    {
+        shared_ptr<Broadcaster> destinationBroadcaster = make_shared<Broadcaster>();
+        
+        destinationBroadcaster->name = sourceBrodacaster->name;
+        
+        for(auto sourceListener : sourceBrodacaster->listeners)
+        {
+            shared_ptr<Listener> destinationListener = make_shared<Listener>();
+            
+            destinationListener->name = sourceListener->name;
+            
+            destinationListener->goHome = sourceListener->goHome;
+            destinationListener->sends = sourceListener->sends;
+            destinationListener->receives = sourceListener->receives;
+            destinationListener->focusedFX = sourceListener->focusedFX;
+            destinationListener->focusedFXParam = sourceListener->focusedFXParam;
+            destinationListener->learn = sourceListener->learn;
+            destinationListener->autoMap = sourceListener->autoMap;
+            destinationListener->fxSlot = sourceListener->fxSlot;
+            destinationListener->selectedTrackFX = sourceListener->selectedTrackFX;
+            destinationListener->custom = sourceListener->custom;
+            
+            destinationBroadcaster->listeners.push_back(destinationListener);
+        }
+        
+        destination.push_back(destinationBroadcaster);
+    }
+}
+
 static bool editMode = false;
 
 static string type = "";
@@ -2135,9 +2171,11 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                 AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddListener);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddListener), CB_SETCURSEL, 0, 0);
             
-            if(pages[pageIndex]->broadcasters.size() > 0)
+            TransferBroadcasters(pages[pageIndex]->broadcasters, broadcasters);
+            
+            if(broadcasters.size() > 0)
             {
-                for(auto broadcaster : pages[pageIndex]->broadcasters)
+                for(auto broadcaster : broadcasters)
                     AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
                     
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
@@ -2156,14 +2194,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         {
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                            
-                            for (auto listener : pages[pageIndex]->broadcasters[broadcasterIndex]->listeners)
+                            for (auto listener : broadcasters[broadcasterIndex]->listeners)
                                 AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
                             
-                            if(pages[pageIndex]->broadcasters.size() > 0)
+                            if(broadcasters.size() > 0)
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, 0, 0);
                             
-                            if(broadcasterIndex >= 0 &&pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() > 0)
-                                SetCheckBoxes(hwndDlg, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[0]);
+                            if(broadcasterIndex >= 0 && broadcasters[broadcasterIndex]->listeners.size() > 0)
+                                SetCheckBoxes(hwndDlg, broadcasters[broadcasterIndex]->listeners[0]);
                             else
                                 ClearCheckBoxes(hwndDlg);
                         }
@@ -2181,7 +2219,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                         
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
-                            SetCheckBoxes(hwndDlg, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]);
+                            SetCheckBoxes(hwndDlg, broadcasters[broadcasterIndex]->listeners[listenerIndex]);
                     }
                     break;
 
@@ -2195,16 +2233,16 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
                             
                             bool foundit = false;
-                            for(auto broadcaster : pages[pageIndex]->broadcasters)
+                            for(auto broadcaster : broadcasters)
                                 if(broadcasterName == broadcaster->name)
                                     foundit = true;
                             if(! foundit)
                             {
                                 shared_ptr<Broadcaster> broadcaster = make_shared<Broadcaster>();
                                 broadcaster->name = broadcasterName;
-                                pages[pageIndex]->broadcasters.push_back(broadcaster);
+                                broadcasters.push_back(broadcaster);
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[pageIndex]->broadcasters.size() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, broadcasters.size() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
                             }
                         }
@@ -2222,18 +2260,18 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
                             
                             bool foundit = false;
-                            for(auto listener :pages[pageIndex]->broadcasters[broadcasterIndex]->listeners)
+                            for(auto listener : broadcasters[broadcasterIndex]->listeners)
                                 if(listenerName == listener->name)
                                 foundit = true;
                             if(! foundit)
                             {
                                 shared_ptr<Listener> listener = make_shared<Listener>();
                                 listener->name = listenerName;
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.push_back(listener);
+                                 broadcasters[broadcasterIndex]->listeners.push_back(listener);
                                 AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
                                 
-                                SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.back()->name + " Listens to").c_str());
+                                SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string( broadcasters[broadcasterIndex]->listeners.back()->name + " Listens to").c_str());
                             }
                         }
                     }
@@ -2248,9 +2286,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = true;
+                                 broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = false;
+                                 broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = false;
                         }
                     }
                     break;
@@ -2264,9 +2302,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = false;
                         }
                     }
                     break;
@@ -2280,9 +2318,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = false;
                         }
                     }
                     break;
@@ -2296,9 +2334,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFX = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFX = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFX = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFX = false;
                         }
                     }
                     break;
@@ -2312,9 +2350,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = false;
                         }
                     }
                     break;
@@ -2328,9 +2366,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = false;
                         }
                     }
                     break;
@@ -2344,9 +2382,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = false;
                         }
                     }
                     break;
@@ -2360,9 +2398,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxSlot = false;
                         }
                     }
                     break;
@@ -2376,9 +2414,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = false;
                         }
                     }
                     break;
@@ -2392,9 +2430,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->custom = true;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->custom = true;
                             else
-                                pages[pageIndex]->broadcasters[broadcasterIndex]->listeners[listenerIndex]->custom = false;
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->custom = false;
                         }
                     }
                     break;
@@ -2406,17 +2444,17 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
                         if(broadcasterIndex >= 0)
                         {
-                            pages[pageIndex]->broadcasters.erase(pages[pageIndex]->broadcasters.begin() + broadcasterIndex);
+                            broadcasters.erase(broadcasters.begin() + broadcasterIndex);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_RESETCONTENT, 0, 0);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
 
-                            if(pages[pageIndex]->broadcasters.size() > 0)
+                            if(broadcasters.size() > 0)
                             {
-                                for(auto broadcaster : pages[pageIndex]->broadcasters)
+                                for(auto broadcaster : broadcasters)
                                     AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
                                     
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, pages[pageIndex]->broadcasters.size() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, broadcasters.size() - 1, 0);
                             }
                         }
                     }
@@ -2430,15 +2468,15 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.erase(pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.begin() + listenerIndex);
+                            broadcasters[broadcasterIndex]->listeners.erase(broadcasters[broadcasterIndex]->listeners.begin() + listenerIndex);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
-                            if(pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() > 0)
+                            if(broadcasters[broadcasterIndex]->listeners.size() > 0)
                             {
-                                for(auto listener : pages[pageIndex]->broadcasters[broadcasterIndex]->listeners)
+                                for(auto listener : broadcasters[broadcasterIndex]->listeners)
                                     AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
                                     
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, pages[pageIndex]->broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
                             }
                         }
                     }
@@ -2448,14 +2486,15 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        pages[pageIndex]->broadcasters.clear();
-                        EndDialog(hwndDlg, 0);
+                         EndDialog(hwndDlg, 0);
                     }
                      break;
                     
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+                        TransferBroadcasters(broadcasters, pages[pageIndex]->broadcasters);
+
                         EndDialog(hwndDlg, 0);
                     }
                     break;
