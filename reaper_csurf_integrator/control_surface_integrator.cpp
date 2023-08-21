@@ -3030,6 +3030,20 @@ void ZoneManager::SaveLearnedFXParams()
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
         }
         
+        string nameDisplayParams = "";
+        string valueDisplayParams = "";
+
+        if(surfaceFXLayout_.size() > 2)
+        {
+            if(surfaceFXLayout_[1].size() > 2)
+                for(int i = 2; i < surfaceFXLayout_[1].size(); i++)
+                    nameDisplayParams += " " + surfaceFXLayout_[1][i];
+
+            if(surfaceFXLayout_[2].size() > 2)
+                for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
+                    valueDisplayParams += " " + surfaceFXLayout_[2][i];
+        }
+        
         ofstream fxZone(path);
 
         if(fxZone.is_open())
@@ -3061,8 +3075,8 @@ void ZoneManager::SaveLearnedFXParams()
                             cellHasDisplayWidgetsDefined = true;
                             
                             fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + GetLineEnding() + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + GetLineEnding();
+                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + GetLineEnding() + GetLineEnding();
                         }
                         else if(i == cell.fxParamWidgets.size() - 1 && ! cellHasDisplayWidgetsDefined)
                         {
