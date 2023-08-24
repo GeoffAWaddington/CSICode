@@ -657,8 +657,13 @@ public:
     {
         if(value == 0.0)
             return; // ignore button releases
+       
+        string name = context->GetStringParam();
         
-        context->GetSurface()->GetZoneManager()->GoAssociatedZone(context->GetStringParam());
+        if(name == "Folder" || name == "VCA" || name == "TrackSend" || name == "TrackReceive" || name == "MasterTrackFXMenu" || name == "TrackFXMenu" || name == "SelectedTrackFXMenu")
+            context->GetPage()->GoAssociatedZone(name);
+        else
+            context->GetSurface()->GetZoneManager()->GoAssociatedZone(name);
     }
 };
 

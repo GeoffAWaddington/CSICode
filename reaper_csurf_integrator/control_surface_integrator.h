@@ -4208,7 +4208,13 @@ public:
         for(auto surface : surfaces_)
             surface->GetZoneManager()->GoHome();
     }
-            
+    
+    void GoAssociatedZone(string name)
+    {
+        for(auto surface : surfaces_)
+            surface->GetZoneManager()->GoAssociatedZone(name);
+    }
+    
     void AdjustBank(string zoneName, int amount)
     {
         if(zoneName == "Track")
