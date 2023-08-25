@@ -164,7 +164,7 @@
 #define IDC_CHECK_Receives              1257
 #define IDC_CHECK_Learn                 1258
 #define IDC_CHECK_AutoMap               1259
-#define IDC_CHECK_FXSlot                1260
+#define IDC_CHECK_FXMenu                1260
 #define IDC_AddBroadcaster              1261
 #define IDC_AddListener                 1262
 #define IDC_GroupFXParamValueDisplay3   1263

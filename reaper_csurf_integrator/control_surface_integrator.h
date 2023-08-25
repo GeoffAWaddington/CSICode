@@ -1039,7 +1039,7 @@ private:
     bool listensToFocusedFXParam_ = false;
     bool listensToLearn_ = false;
     bool listensToAutoMap_ = false;
-    bool listensToFXSlot_ = false;
+    bool listensToFXMenu_ = false;
     bool listensToSelectedTrackFX_ = false;
     bool listensToCustom_ = false;
 
@@ -1112,7 +1112,7 @@ private:
 
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToLearn_ || listensToAutoMap_ || listensToFXSlot_ || listensToSelectedTrackFX_;
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToLearn_ || listensToAutoMap_ || listensToFXMenu_ || listensToSelectedTrackFX_;
     }
 
     void DeclareGoSelectedTrackSend(string zoneName)
@@ -1234,13 +1234,13 @@ private:
     
     void ListenToGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
     {
-        if(listensToFXSlot_)
+        if(listensToFXMenu_)
             GoFXSlot(track, navigator, fxSlot);
     }
     
     void ListenToClearFXSlot(shared_ptr<Zone> zone)
     {
-       if(listensToFXSlot_)
+       if(listensToFXMenu_)
            ClearFXSlot(zone);
     }
         
@@ -1561,8 +1561,8 @@ public:
                 listensToLearn_ = true;
             if(categoryToken == "AutoMap")
                 listensToAutoMap_ = true;
-            if(categoryToken == "FXSlot")
-                listensToFXSlot_ = true;
+            if(categoryToken == "FXMenu")
+                listensToFXMenu_ = true;
             if(categoryToken == "SelectedTrackFX")
                 listensToSelectedTrackFX_ = true;
             if(categoryToken == "Custom")
