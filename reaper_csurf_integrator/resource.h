@@ -172,6 +172,7 @@
 #define IDC_CHECK_FocusedFXParam        1264
 #define IDC_CHECK_Custom                1265
 #define IDC_CHECK_LocalFXSlot           1266
+#define IDC_CHECK_Modifiers             1267
 
 // Next default values for new objects
 // 

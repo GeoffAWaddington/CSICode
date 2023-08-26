@@ -2712,6 +2712,41 @@ void ZoneManager::AddListener(shared_ptr<ControlSurface> surface)
     listeners_.push_back(surface->GetZoneManager());
 }
 
+void ZoneManager::SetListenerCategories(string categoryList)
+{
+    vector<string> categoryTokens = GetTokens(categoryList);
+    
+    for(auto categoryToken : categoryTokens)
+    {
+        if(categoryToken == "GoHome")
+            listensToGoHome_ = true;
+        if(categoryToken == "Sends")
+            listensToSends_ = true;
+        if(categoryToken == "Receives")
+            listensToReceives_ = true;
+        if(categoryToken == "FocusedFX")
+            listensToFocusedFX_ = true;
+        if(categoryToken == "FocusedFXParam")
+            listensToFocusedFXParam_ = true;
+        if(categoryToken == "Learn")
+            listensToLearn_ = true;
+        if(categoryToken == "AutoMap")
+            listensToAutoMap_ = true;
+        if(categoryToken == "FXMenu")
+            listensToFXMenu_ = true;
+        if(categoryToken == "LocalFXSlot")
+            listensToLocalFXSlot_ = true;
+        if(categoryToken == "SelectedTrackFX")
+            listensToSelectedTrackFX_ = true;
+        if(categoryToken == "Custom")
+            listensToCustom_ = true;
+        
+        if(categoryToken == "Modifiers")
+            surface_->SetListensToModifiers();
+    }
+}
+
+
 void ZoneManager::GoFocusedFX()
 {
     focusedFXZones_.clear();
@@ -4130,7 +4165,7 @@ void ControlSurface::RequestUpdate()
 
 bool ControlSurface::GetShift()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetShift();
     else
         return page_->GetModifierManager()->GetShift();
@@ -4138,7 +4173,7 @@ bool ControlSurface::GetShift()
 
 bool ControlSurface::GetOption()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetOption();
     else
         return page_->GetModifierManager()->GetOption();
@@ -4146,7 +4181,7 @@ bool ControlSurface::GetOption()
 
 bool ControlSurface::GetControl()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetControl();
     else
         return page_->GetModifierManager()->GetControl();
@@ -4154,7 +4189,7 @@ bool ControlSurface::GetControl()
 
 bool ControlSurface::GetAlt()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetAlt();
     else
         return page_->GetModifierManager()->GetAlt();
@@ -4162,7 +4197,7 @@ bool ControlSurface::GetAlt()
 
 bool ControlSurface::GetFlip()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetFlip();
     else
         return page_->GetModifierManager()->GetFlip();
@@ -4170,7 +4205,7 @@ bool ControlSurface::GetFlip()
 
 bool ControlSurface::GetGlobal()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetGlobal();
     else
         return page_->GetModifierManager()->GetGlobal();
@@ -4178,7 +4213,7 @@ bool ControlSurface::GetGlobal()
 
 bool ControlSurface::GetMarker()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetMarker();
     else
         return page_->GetModifierManager()->GetMarker();
@@ -4186,7 +4221,7 @@ bool ControlSurface::GetMarker()
 
 bool ControlSurface::GetNudge()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetNudge();
     else
         return page_->GetModifierManager()->GetNudge();
@@ -4194,7 +4229,7 @@ bool ControlSurface::GetNudge()
 
 bool ControlSurface::GetZoom()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetZoom();
     else
         return page_->GetModifierManager()->GetZoom();
@@ -4202,7 +4237,7 @@ bool ControlSurface::GetZoom()
 
 bool ControlSurface::GetScrub()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetScrub();
     else
         return page_->GetModifierManager()->GetScrub();
@@ -4210,7 +4245,15 @@ bool ControlSurface::GetScrub()
 
 void ControlSurface::SetShift(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetShift(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetShift(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetShift(value);
     else
         page_->GetModifierManager()->SetShift(value);
@@ -4218,7 +4261,15 @@ void ControlSurface::SetShift(bool value)
 
 void ControlSurface::SetOption(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetOption(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetOption(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetOption(value);
     else
         page_->GetModifierManager()->SetOption(value);
@@ -4226,7 +4277,15 @@ void ControlSurface::SetOption(bool value)
 
 void ControlSurface::SetControl(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetControl(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetControl(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetControl(value);
     else
         page_->GetModifierManager()->SetControl(value);
@@ -4234,7 +4293,15 @@ void ControlSurface::SetControl(bool value)
 
 void ControlSurface::SetAlt(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetAlt(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetAlt(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetAlt(value);
     else
         page_->GetModifierManager()->SetAlt(value);
@@ -4242,15 +4309,31 @@ void ControlSurface::SetAlt(bool value)
 
 void ControlSurface::SetFlip(bool value)
 {
-    if(usesLocalModifiers_)
-        modifierManager_->SetShift(value);
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetFlip(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetFlip(value);
+    }
+    else if(usesLocalModifiers_)
+        modifierManager_->SetFlip(value);
     else
         page_->GetModifierManager()->SetFlip(value);
 }
 
 void ControlSurface::SetGlobal(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetGlobal(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetGlobal(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetGlobal(value);
     else
         page_->GetModifierManager()->SetGlobal(value);
@@ -4258,7 +4341,15 @@ void ControlSurface::SetGlobal(bool value)
 
 void ControlSurface::SetMarker(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetMarker(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetMarker(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetMarker(value);
     else
         page_->GetModifierManager()->SetMarker(value);
@@ -4266,7 +4357,15 @@ void ControlSurface::SetMarker(bool value)
 
 void ControlSurface::SetNudge(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetNudge(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetNudge(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetNudge(value);
     else
         page_->GetModifierManager()->SetNudge(value);
@@ -4274,7 +4373,15 @@ void ControlSurface::SetNudge(bool value)
 
 void ControlSurface::SetZoom(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetZoom(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetZoom(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetZoom(value);
     else
         page_->GetModifierManager()->SetZoom(value);
@@ -4282,7 +4389,15 @@ void ControlSurface::SetZoom(bool value)
 
 void ControlSurface::SetScrub(bool value)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetScrub(value);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->SetScrub(value);
+    }
+    else if(usesLocalModifiers_)
         modifierManager_->SetScrub(value);
     else
         page_->GetModifierManager()->SetScrub(value);
@@ -4290,7 +4405,7 @@ void ControlSurface::SetScrub(bool value)
 
 vector<int> &ControlSurface::GetModifiers()
 {
-    if(usesLocalModifiers_)
+    if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetModifiers();
     else
         return page_->GetModifierManager()->GetModifiers();
@@ -4298,7 +4413,15 @@ vector<int> &ControlSurface::GetModifiers()
 
 void ControlSurface::ClearModifier(string modifier)
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->ClearModifier(modifier);
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->ClearModifier(modifier);
+    }
+    else if(usesLocalModifiers_ || listensToModifiers_)
         modifierManager_->ClearModifier(modifier);
     else
         page_->GetModifierManager()->ClearModifier(modifier);
@@ -4306,7 +4429,15 @@ void ControlSurface::ClearModifier(string modifier)
 
 void ControlSurface::ClearModifiers()
 {
-    if(usesLocalModifiers_)
+    if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->ClearModifiers();
+        
+        for(auto listener : zoneManager_->GetListeners())
+            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
+                listener->GetSurface()->GetModifierManager()->ClearModifiers();
+    }
+    else if(usesLocalModifiers_ || listensToModifiers_)
         modifierManager_->ClearModifiers();
     else
         page_->GetModifierManager()->ClearModifiers();

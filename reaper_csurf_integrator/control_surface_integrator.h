@@ -1118,7 +1118,7 @@ private:
 
     void DeclareGoSelectedTrackSend(string zoneName)
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
             if(homeZone_ != nullptr)
             {
@@ -1135,7 +1135,7 @@ private:
     
     void DeclareGoSelectedTrackReceive(string zoneName)
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
             if(homeZone_ != nullptr)
             {
@@ -1152,7 +1152,7 @@ private:
   
     void DeclareGoSelectedTrackFX()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoSelectedTrackFX();
         else
             for(auto zoneManager : listeners_)
@@ -1161,7 +1161,7 @@ private:
     
     void DeclareGoLearnFXParams()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoLearnFXParams();
         else
             for(auto zoneManager : listeners_)
@@ -1170,7 +1170,7 @@ private:
     
     void DeclareGoCustom(string zoneName)
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
             if(homeZone_ != nullptr)
             {
@@ -1235,7 +1235,7 @@ private:
         
     void DeclareGoGoSelectedTrackFXMenu(string zoneName)
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
             if(homeZone_ != nullptr)
             {
@@ -1532,7 +1532,11 @@ public:
     shared_ptr<Navigator> GetSelectedTrackNavigator();
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
+    
+    bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(shared_ptr<ControlSurface> surface);
+    void SetListenerCategories(string categoryList);
+    vector<shared_ptr<ZoneManager>> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     void GoFocusedFX();
@@ -1573,40 +1577,10 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
-    void SetListenerCategories(string categoryList)
-    {
-        vector<string> categoryTokens = GetTokens(categoryList);
-        
-        for(auto categoryToken : categoryTokens)
-        {
-            if(categoryToken == "GoHome")
-                listensToGoHome_ = true;
-            if(categoryToken == "Sends")
-                listensToSends_ = true;
-            if(categoryToken == "Receives")
-                listensToReceives_ = true;
-            if(categoryToken == "FocusedFX")
-                listensToFocusedFX_ = true;
-            if(categoryToken == "FocusedFXParam")
-                listensToFocusedFXParam_ = true;
-            if(categoryToken == "Learn")
-                listensToLearn_ = true;
-            if(categoryToken == "AutoMap")
-                listensToAutoMap_ = true;
-            if(categoryToken == "FXMenu")
-                listensToFXMenu_ = true;
-            if(categoryToken == "LocalFXSlot")
-                listensToLocalFXSlot_ = true;
-            if(categoryToken == "SelectedTrackFX")
-                listensToSelectedTrackFX_ = true;
-            if(categoryToken == "Custom")
-                listensToCustom_ = true;
-        }
-    }
     
     void DeclareGoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
     {
-        if(listensToLocalFXSlot_ || (listeners_.size() == 0 && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
+        if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
         else
             for(auto zoneManager : listeners_)
@@ -1615,7 +1589,7 @@ public:
     
     void DeclareClearSelectedTrackFX()
     {
-        if(listensToLocalFXSlot_ || (listeners_.size() == 0 && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
+        if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             ClearSelectedTrackFX();
         else
             for(auto zoneManager : listeners_)
@@ -1624,7 +1598,7 @@ public:
     
     void DeclareClearFXSlot(shared_ptr<Zone> zone)
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFXSlot(zone);
         else
             for(auto zoneManager : listeners_)
@@ -1633,7 +1607,7 @@ public:
                 
     void DeclareAutoMapFX()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             AutoMapFX();
         else
             for(auto zoneManager : listeners_)
@@ -1642,7 +1616,7 @@ public:
             
     void DeclareSaveLearnedFXParams()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             SaveLearnedFXParams();
         else
             for(auto zoneManager : listeners_)
@@ -1692,7 +1666,7 @@ public:
         
     void DeclareClearFocusedFXParam()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFXParam();
         else
             for(auto zoneManager : listeners_)
@@ -1701,7 +1675,7 @@ public:
     
     void DeclareClearFocusedFX()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFX();
         else
             for(auto zoneManager : listeners_)
@@ -1761,7 +1735,7 @@ public:
     
     void DeclareGoHome()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoHome();
         else
             for(auto zoneManager : listeners_)
@@ -1787,7 +1761,7 @@ public:
     
     void DeclareToggleEnableFocusedFXParamMapping()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXParamMapping();
         else
             for(auto zoneManager : listeners_)
@@ -1796,7 +1770,7 @@ public:
 
     void DeclareToggleEnableFocusedFXMapping()
     {
-        if(listeners_.size() == 0 && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXMapping();
         else
             for(auto zoneManager : listeners_)
@@ -2718,6 +2692,7 @@ private:
     int restrictedTextLength_ = 6;
     
     bool usesLocalModifiers_ = false;
+    bool listensToModifiers_ = false;
         
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
@@ -2817,6 +2792,7 @@ public:
     virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
     
+    shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
     shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
     shared_ptr<Page> GetPage() { return page_; }
     string GetName() { return name_; }
@@ -2828,8 +2804,11 @@ public:
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 
+    bool GetUsesLocalModifiers() { return usesLocalModifiers_; }
     void ToggleUseLocalModifiers() { usesLocalModifiers_ = ! usesLocalModifiers_; }
-        
+    bool GetListensToModifiers() { return listensToModifiers_;}
+    void SetListensToModifiers() { listensToModifiers_ = true;}
+
     void TouchChannel(int channelNum, bool isTouched)
     {
         if(channelNum > 0 && channelNum <= numChannels_)
