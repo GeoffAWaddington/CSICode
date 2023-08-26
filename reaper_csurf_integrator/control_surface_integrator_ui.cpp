@@ -1552,6 +1552,7 @@ struct Listener
     bool learn = false;
     bool autoMap = false;
     bool fxMenu = false;
+    bool localFXSlot = false;
     bool selectedTrackFX = false;
     bool custom = false;
 };
@@ -1600,6 +1601,7 @@ static void TransferBroadcasters(vector<shared_ptr<Broadcaster>> &source, vector
             destinationListener->learn = sourceListener->learn;
             destinationListener->autoMap = sourceListener->autoMap;
             destinationListener->fxMenu = sourceListener->fxMenu;
+            destinationListener->localFXSlot = sourceListener->localFXSlot;
             destinationListener->selectedTrackFX = sourceListener->selectedTrackFX;
             destinationListener->custom = sourceListener->custom;
             
@@ -2137,6 +2139,7 @@ static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, listener->fxMenu ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_SETCHECK, listener->localFXSlot ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, listener->selectedTrackFX ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_SETCHECK, listener->custom ? BST_CHECKED : BST_UNCHECKED, 0);
 }
@@ -2153,6 +2156,7 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_SETCHECK, BST_UNCHECKED, 0);
 }
@@ -2402,6 +2406,22 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxMenu = true;
                             else
                                 broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxMenu = false;
+                        }
+                    }
+                    break;
+                 
+                case IDC_CHECK_LocalFXSlot:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->localFXSlot = true;
+                            else
+                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->localFXSlot = false;
                         }
                     }
                     break;
@@ -2963,6 +2983,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listener->autoMap = true;
                             if(categoryToken == "FXMenu")
                                 listener->fxMenu = true;
+                            if(categoryToken == "LocalFXSlot")
+                                listener->localFXSlot = true;
                             if(categoryToken == "SelectedTrackFX")
                                 listener->selectedTrackFX = true;
                             if(categoryToken == "Custom")
@@ -3104,6 +3126,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listenerCategories += "AutoMap ";
                             if(listener->fxMenu)
                                 listenerCategories += "FXMenu ";
+                            if(listener->localFXSlot)
+                                listenerCategories += "LocalFXSlot ";
                             if(listener->selectedTrackFX)
                                 listenerCategories += "SelectedTrackFX ";
                             if(listener->custom)

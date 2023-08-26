@@ -660,7 +660,7 @@ public:
        
         string name = context->GetStringParam();
         
-        if(name == "Folder" || name == "VCA" || name == "TrackSend" || name == "TrackReceive" || name == "MasterTrackFXMenu" || name == "TrackFXMenu" || name == "SelectedTrackFXMenu")
+        if(name == "Folder" || name == "VCA" || name == "TrackSend" || name == "TrackReceive" || name == "MasterTrackFXMenu" || name == "TrackFXMenu")
             context->GetPage()->GoAssociatedZone(name);
         else
             context->GetSurface()->GetZoneManager()->GoAssociatedZone(name);
