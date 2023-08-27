@@ -2893,7 +2893,7 @@ void ZoneManager::AutoMapFX()
     }
 }
 
-void ZoneManager::GoLearnFXParams()
+void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
 {
     if(homeZone_ != nullptr)
     {
@@ -2901,17 +2901,6 @@ void ZoneManager::GoLearnFXParams()
         ResetOffsets();
                 
         homeZone_->GoAssociatedZone("LearnFXParams");
-    }
-
-    int trackNumber = 0;
-    int itemNumber = 0;
-    int fxSlot = 0;
-    MediaTrack* track = nullptr;
-    
-    if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
-    {
-        if(trackNumber > 0)
-            track = DAW::GetTrack(trackNumber);
     }
     
     if(track)
@@ -2951,9 +2940,6 @@ void ZoneManager::GoLearnFXParams()
                 }
             }
         }
-        
-        learnFXName_ = fxName;
-        GoAssociatedZone("LearnFXParams");
     }
 }
 
@@ -2977,7 +2963,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
         {
             DAW::TrackFX_SetOpen(track, fxSlot, true);
             learnFXName_ = fxName;
-            GoLearnFXParams();
+            GoLearnFXParams(track, fxSlot);
         }
         else if(dlgResult == IDAutoMap)
             AutoMapFX(fxName, track, fxSlot);
@@ -3090,44 +3076,47 @@ void ZoneManager::SaveLearnedFXParams()
                    
             fxZone << "\n" + BeginAutoSection + GetLineEnding();
 
-            for(auto [modifier, widgetCells] : homeZone_->GetLearnFXParamsZone()->GetLearnFXCells())
+            if(homeZone_->GetLearnFXParamsZone())
             {
-                string modifierStr = ModifierManager::GetModifierString(modifier);
-                
-                for(auto [address, cell] : widgetCells)
+                for(auto [modifier, widgetCells] : homeZone_->GetLearnFXParamsZone()->GetLearnFXCells())
                 {
-                    bool cellHasDisplayWidgetsDefined = false;
+                    string modifierStr = ModifierManager::GetModifierString(modifier);
                     
-                    for(int i = 0; i < cell.fxParamWidgets.size(); i++)
+                    for(auto [address, cell] : widgetCells)
                     {
-                        shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
+                        bool cellHasDisplayWidgetsDefined = false;
                         
-                        if(info == nullptr)
-                            continue;
-                        
-                        if(info->isLearned)
+                        for(int i = 0; i < cell.fxParamWidgets.size(); i++)
                         {
-                            cellHasDisplayWidgetsDefined = true;
+                            shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
                             
-                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + GetLineEnding() + GetLineEnding();
+                            if(info == nullptr)
+                                continue;
+                            
+                            if(info->isLearned)
+                            {
+                                cellHasDisplayWidgetsDefined = true;
+                                
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + GetLineEnding() + GetLineEnding();
+                            }
+                            else if(i == cell.fxParamWidgets.size() - 1 && ! cellHasDisplayWidgetsDefined)
+                            {
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction" + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                            }
+                            else
+                            {
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
+                                fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
+                                fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                            }
                         }
-                        else if(i == cell.fxParamWidgets.size() - 1 && ! cellHasDisplayWidgetsDefined)
-                        {
-                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction" + GetLineEnding();
-                            fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction" + GetLineEnding() + GetLineEnding();
-                        }
-                        else
-                        {
-                            fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
-                            fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
-                            fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
-                        }
+                        
+                        fxZone << GetLineEnding();
                     }
-                    
-                    fxZone << GetLineEnding();
                 }
             }
             

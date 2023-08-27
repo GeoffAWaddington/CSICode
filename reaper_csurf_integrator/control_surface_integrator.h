@@ -1097,7 +1097,7 @@ private:
       
     void GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
     void GoSelectedTrackFX();
-    void GoLearnFXParams();
+    void GoLearnFXParams(MediaTrack* track, int fxSlot);
     void AutoMapFX();
     void SaveLearnedFXParams();
     void InitializeFXParamsLearnZone();
@@ -1111,6 +1111,29 @@ private:
     shared_ptr<LearnInfo> lastTouched_ = nullptr;
     map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
 
+    void GoLearnFXParams()
+    {
+        int trackNumber = 0;
+        int itemNumber = 0;
+        int fxSlot = 0;
+        MediaTrack* track = nullptr;
+        
+        if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+        {
+            if(trackNumber > 0)
+                track = DAW::GetTrack(trackNumber);
+            
+            if(track)
+            {
+                char fxName[BUFSZ];
+                DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+                learnFXName_ = fxName;
+                
+                GoLearnFXParams(track, fxSlot);
+            }
+        }
+    }
+    
     bool GetIsListener()
     {
         return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToLearn_ || listensToAutoMap_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
