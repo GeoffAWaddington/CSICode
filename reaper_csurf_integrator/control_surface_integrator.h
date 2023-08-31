@@ -2220,6 +2220,8 @@ public:
             
             for(int i = 0; i < zoneDef.paramDefs.size(); i++)
             {
+                bool cellHasDisplayWidgetsDefined = false;
+                
                 for(int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
                 {
                     fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramWidget + layoutTemplates[i].suffix + "\t";
@@ -2288,13 +2290,15 @@ public:
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
                     {
-                        if(j == 0 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
+                        if(! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
                             fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
                         else
                             fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
                     }
                     else
                     {
+                        cellHasDisplayWidgetsDefined = true;
+                        
                         fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget + layoutTemplates[i].suffix + "\t";
                         
                         fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].paramName + "\" ";
@@ -2307,13 +2311,15 @@ public:
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
                     {
-                        if(j == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
+                        if(! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
                             fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
                         else
                             fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
                     }
                     else
                     {
+                        cellHasDisplayWidgetsDefined = true;
+
                         fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget + layoutTemplates[i].suffix + "\t";
                         
                         fxFile << layoutTemplates[i].valueDisplayAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber;
