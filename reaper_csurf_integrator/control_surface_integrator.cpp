@@ -3095,9 +3095,14 @@ void ZoneManager::SaveLearnedFXParams()
                             
                             if(info->isLearned)
                             {
+                                string params = "";
+                                
+                                if(cell.fxParamWidgets[i]->GetName().find("Rotary") != string::npos && cell.fxParamWidgets[i]->GetName().find("Push") == string::npos)
+                                    params = " " + info->params;
+                                
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + params + GetLineEnding();
                                 fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + GetLineEnding();
                                 fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + GetLineEnding() + GetLineEnding();
                             }
