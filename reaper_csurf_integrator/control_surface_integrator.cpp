@@ -1449,9 +1449,9 @@ void Manager::InitActionsDictionary()
     actions_["TrackReceivePanDisplay"] =            make_shared<TrackReceivePanDisplay>();
     actions_["TrackReceivePrePostDisplay"] =        make_shared<TrackReceivePrePostDisplay>();
     
-    learnFXActions_["LearnFXParam"] =                      make_shared<LearnFXParam>();
-    learnFXActions_["LearnFXParamNameDisplay"] =           make_shared<LearnFXParamNameDisplay>();
-    learnFXActions_["LearnFXParamValueDisplay"] =          make_shared<LearnFXParamValueDisplay>();
+    learnFXActions_["LearnFXParam"] =               make_shared<LearnFXParam>();
+    learnFXActions_["LearnFXParamNameDisplay"] =    make_shared<LearnFXParamNameDisplay>();
+    learnFXActions_["LearnFXParamValueDisplay"] =   make_shared<LearnFXParamValueDisplay>();
 }
 
 void Manager::Init()
