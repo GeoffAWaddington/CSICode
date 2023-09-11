@@ -92,6 +92,30 @@ public:
     }
 };
 
+class FaderportClassicFader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    shared_ptr<MIDI_event_ex_t> message1_;
+    shared_ptr<MIDI_event_ex_t> message2_;
+
+public:
+    virtual ~FaderportClassicFader14Bit_Midi_CSIMessageGenerator() {}
+    FaderportClassicFader14Bit_Midi_CSIMessageGenerator(shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> message1, shared_ptr<MIDI_event_ex_t> message2) : Midi_CSIMessageGenerator(widget)
+    {
+        message1_ = message1;
+        message2_ = message2;
+    }
+    
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    {
+        if(message1_->midi_message[1] == midiMessage->midi_message[1])
+            message1_->midi_message[2] = midiMessage->midi_message[2];
+        else if(message2_->midi_message[1] == midiMessage->midi_message[1])
+            widget_->GetZoneManager()->DoAction(widget_, int14ToNormalized(message1_->midi_message[2], midiMessage->midi_message[2]));
+    }
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Fader7Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1203,6 +1227,63 @@ public:
     {
         int volint = value * 16383.0;
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FaderportClassicFader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    bool shouldSetToZero_ = false;
+    int timeZeroValueReceived = 0.0;
+    
+public:
+    virtual ~FaderportClassicFader14Bit_Midi_FeedbackProcessor() {}
+    FaderportClassicFader14Bit_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
+    
+    virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
+    virtual void RunDeferredActions() override
+    {
+        if(shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived > 250)
+        {
+            ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
+            ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], 0x00);
+
+            shouldSetToZero_ = false;
+        }
+    }
+
+    virtual void SetValue(map<string, string> &properties, double value) override
+    {
+        if(value == 0.0)
+        {
+            shouldSetToZero_ = true;
+            timeZeroValueReceived = DAW::GetCurrentNumberOfMilliseconds();
+            return;
+        }
+        else
+            shouldSetToZero_ = false;
+    
+        int volint = value * 16383.0;
+        
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], (volint>>7)&0x7f);
+        SendMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], volint&0x7f);
+    }
+    
+    virtual void ForceValue(map<string, string> &properties, double value) override
+    {
+        int volint = value * 16383.0;
+        
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], (volint>>7)&0x7f);
+        ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], volint&0x7f);
     }
 };
 

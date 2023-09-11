@@ -901,6 +901,8 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         }
         else if(widgetType == "Fader14Bit" && size == 4)
             surface->AddCSIMessageGenerator(make_shared<Fader14Bit_Midi_CSIMessageGenerator>(widget, message1), message1->midi_message[0] * 0x10000);
+        else if(widgetType == "FaderportClassicFader14Bit" && size == 7)
+            surface->AddCSIMessageGenerator(make_shared<FaderportClassicFader14Bit_Midi_CSIMessageGenerator>(widget, message1, message2), message1->midi_message[0] * 0x10000);
         else if(widgetType == "Fader7Bit" && size== 4)
             surface->AddCSIMessageGenerator(make_shared<Fader7Bit_Midi_CSIMessageGenerator>(widget, message1), twoByteKey);
         else if(widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass")
@@ -960,6 +962,10 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         else if(widgetType == "FB_Fader14Bit" && size == 4)
         {
             feedbackProcessor = make_shared<Fader14Bit_Midi_FeedbackProcessor>(surface, widget, message1);
+        }
+        else if(widgetType == "FB_FaderportClassicFader14Bit" && size == 7)
+        {
+            feedbackProcessor = make_shared<FaderportClassicFader14Bit_Midi_FeedbackProcessor>(surface, widget, message1, message2);
         }
         else if(widgetType == "FB_Fader7Bit" && size == 4)
         {
