@@ -1274,8 +1274,14 @@ public:
     
         int volint = value * 16383.0;
         
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], (volint>>7)&0x7f);
-        SendMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], volint&0x7f);
+        if(midiFeedbackMessage1_->midi_message[2] != ((volint>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volint&0x7f))
+        {
+            midiFeedbackMessage1_->midi_message[2] = (volint>>7)&0x7f;
+            midiFeedbackMessage2_->midi_message[2] = volint&0x7f;
+         
+            SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
+            SendMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], midiFeedbackMessage2_->midi_message[2]);
+        }
     }
     
     virtual void ForceValue(map<string, string> &properties, double value) override
