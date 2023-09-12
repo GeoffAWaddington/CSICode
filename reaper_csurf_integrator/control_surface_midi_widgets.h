@@ -1272,7 +1272,7 @@ public:
         else
             shouldSetToZero_ = false;
     
-        int volint = value * 16383.0;
+        int volint = value * 1024.0;
         
         if(midiFeedbackMessage1_->midi_message[2] != ((volint>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volint&0x7f))
         {
