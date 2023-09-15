@@ -2593,7 +2593,7 @@ void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, double v
 void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, string value)
 {
     lastStringValue_ = value;
-    surface_->SendOSCMessage(this, oscAddress_, value);
+    surface_->SendOSCMessage(this, oscAddress_, GetWidget()->GetSurface()->GetRestrictedLengthText(value));
 }
 
 void OSC_FeedbackProcessor::ForceClear()
