@@ -2951,6 +2951,9 @@ void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
 
 void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
 {
+    if(fxSlot > DAW::TrackFX_GetCount(track) - 1)
+        return;
+    
     char fxName[BUFSZ];
     
     DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
