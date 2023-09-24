@@ -1722,7 +1722,7 @@ public:
             DeclareGoGoSelectedTrackFXMenu(zoneName);
         else if(zoneName == "LearnFXParams")
             DeclareGoLearnFXParams();
-        else if(zoneName == "Custom")
+        else if(zoneName.substr(0, 6) == "Custom")
             DeclareGoCustom(zoneName);
         else if(homeZone_ != nullptr)
         {
