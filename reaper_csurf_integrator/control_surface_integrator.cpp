@@ -2653,8 +2653,9 @@ void ZoneManager::Initialize()
     if(zoneFilePaths_.count("FXEpilogue") > 0)
         ProcessFXBoilerplate(zoneFilePaths_["FXEpilogue"].filePath, fxEpilogue_);
     
+    InitializeNoMapZone();
     InitializeFXParamsLearnZone();
-    
+
     GoHome();
 }
 
@@ -2734,10 +2735,6 @@ void ZoneManager::SetListenerCategories(string categoryList)
             listensToFocusedFX_ = true;
         if(categoryToken == "FocusedFXParam")
             listensToFocusedFXParam_ = true;
-        if(categoryToken == "Learn")
-            listensToLearn_ = true;
-        if(categoryToken == "AutoMap")
-            listensToAutoMap_ = true;
         if(categoryToken == "FXMenu")
             listensToFXMenu_ = true;
         if(categoryToken == "LocalFXSlot")
@@ -2829,7 +2826,7 @@ void ZoneManager::GoSelectedTrackFX()
         }
     }
 }
-
+/*
 static int dlgResult = IDCANCEL;
 static string LearnSurfaceName = "";
 
@@ -2875,7 +2872,7 @@ static WDL_DLGRET dlgProcChoseAutoMapOrLearn(HWND hwndDlg, UINT uMsg, WPARAM wPa
     
     return 0;
 }
-
+*/
 void ZoneManager::AutoMapFX()
 {
     int trackNumber = 0;
@@ -2960,7 +2957,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
     
     if( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
         CalculateSteppedValues(fxName, track, fxSlot);
-
+/*
     if(zoneFilePaths_.count(fxName) < 1)
     {
         dlgResult = IDCANCEL;
@@ -2979,7 +2976,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
         else if(dlgResult == IDCANCEL)
             return;
     }
-    
+*/
     if(zoneFilePaths_.count(fxName) > 0)
     {
         vector<shared_ptr<Navigator>> navigators;
@@ -2993,6 +2990,10 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
             fxSlotZones_.back()->SetSlotIndex(fxSlot);
             fxSlotZones_.back()->Activate();
         }
+    }
+    else
+    {
+        // Go Zone NoMap
     }
 }
 
@@ -3187,6 +3188,11 @@ int ZoneManager::GetModifierValue(vector<string> modifierTokens)
     ModifierManager modifierManager;
 
     return modifierManager.GetModifierValue(modifierTokens);
+}
+
+void ZoneManager::InitializeNoMapZone()
+{
+    // use fxLayouts_ and surfaceFXLayout_ to generate a display only Zone
 }
 
 void ZoneManager::InitializeFXParamsLearnZone()

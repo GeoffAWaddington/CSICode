@@ -1549,8 +1549,6 @@ struct Listener
     bool receives = false;
     bool focusedFX = false;
     bool focusedFXParam = false;
-    bool learn = false;
-    bool autoMap = false;
     bool fxMenu = false;
     bool localFXSlot = false;
     bool selectedTrackFX = false;
@@ -1599,8 +1597,6 @@ static void TransferBroadcasters(vector<shared_ptr<Broadcaster>> &source, vector
             destinationListener->receives = sourceListener->receives;
             destinationListener->focusedFX = sourceListener->focusedFX;
             destinationListener->focusedFXParam = sourceListener->focusedFXParam;
-            destinationListener->learn = sourceListener->learn;
-            destinationListener->autoMap = sourceListener->autoMap;
             destinationListener->fxMenu = sourceListener->fxMenu;
             destinationListener->localFXSlot = sourceListener->localFXSlot;
             destinationListener->modifiers = sourceListener->modifiers;
@@ -2138,8 +2134,6 @@ static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, listener->focusedFX ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, listener->focusedFXParam ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, listener->learn ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, listener->autoMap ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, listener->fxMenu ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_SETCHECK, listener->localFXSlot ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_SETCHECK, listener->modifiers ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -2156,8 +2150,6 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_SETCHECK, BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_SETCHECK, BST_UNCHECKED, 0);
@@ -2362,38 +2354,6 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = true;
                             else
                                 broadcasters[broadcasterIndex]->listeners[listenerIndex]->focusedFXParam = false;
-                        }
-                    }
-                    break;
-                    
-                case IDC_CHECK_Learn:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
-                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
-
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Learn), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = true;
-                            else
-                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->learn = false;
-                        }
-                    }
-                    break;
-                    
-                case IDC_CHECK_AutoMap:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int broadcasterIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
-                        int listenerIndex = SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
-
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_AutoMap), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = true;
-                            else
-                                broadcasters[broadcasterIndex]->listeners[listenerIndex]->autoMap = false;
                         }
                     }
                     break;
@@ -2997,10 +2957,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listener->focusedFX = true;
                             if(categoryToken == "FocusedFXParam")
                                 listener->focusedFXParam = true;
-                            if(categoryToken == "Learn")
-                                listener->learn = true;
-                            if(categoryToken == "AutoMap")
-                                listener->autoMap = true;
                             if(categoryToken == "FXMenu")
                                 listener->fxMenu = true;
                             if(categoryToken == "LocalFXSlot")
@@ -3142,10 +3098,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listenerCategories += "FocusedFX ";
                             if(listener->focusedFXParam)
                                 listenerCategories += "FocusedFXParam ";
-                            if(listener->learn)
-                                listenerCategories += "Learn ";
-                            if(listener->autoMap)
-                                listenerCategories += "AutoMap ";
                             if(listener->fxMenu)
                                 listenerCategories += "FXMenu ";
                             if(listener->localFXSlot)

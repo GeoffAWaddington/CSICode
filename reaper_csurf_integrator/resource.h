@@ -3,7 +3,6 @@
 // Used by res.rc
 //
 #define IDEDIT                          3
-#define IDAutoMap                       3
 #define ID_RemoveListener               3
 #define IDC_Delete                      4
 #define ID_RemoveBroadcaster            4
@@ -14,7 +13,6 @@
 #define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_RemapAutoFX          117
 #define IDD_DIALOG_Advanced             119
-#define IDD_AutoOrLearn                 121
 #define IDD_DIALOG_Broadcast            123
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
@@ -156,14 +154,11 @@
 #define IDC_EDIT_RangeMax               1250
 #define IDC_EDIT_DeltaValues            1251
 #define IDC_EDIT_TickValues             1252
-#define IDLearn                         1252
 #define IDC_ListenCheckboxes            1253
 #define IDC_CHECK_GoHome                1254
 #define IDC_CHECK_SelectedTrackFX       1255
 #define IDC_CHECK_Sends                 1256
 #define IDC_CHECK_Receives              1257
-#define IDC_CHECK_Learn                 1258
-#define IDC_CHECK_AutoMap               1259
 #define IDC_CHECK_FXMenu                1260
 #define IDC_AddBroadcaster              1261
 #define IDC_AddListener                 1262

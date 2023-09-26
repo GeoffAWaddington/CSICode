@@ -1037,8 +1037,6 @@ private:
     bool listensToReceives_ = false;
     bool listensToFocusedFX_ = false;
     bool listensToFocusedFXParam_ = false;
-    bool listensToLearn_ = false;
-    bool listensToAutoMap_ = false;
     bool listensToFXMenu_ = false;
     bool listensToLocalFXSlot_ = false;
     bool listensToSelectedTrackFX_ = false;
@@ -1097,10 +1095,8 @@ private:
       
     void GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot);
     void GoSelectedTrackFX();
-    void GoLearnFXParams(MediaTrack* track, int fxSlot);
-    void AutoMapFX();
-    void SaveLearnedFXParams();
     void InitializeFXParamsLearnZone();
+    void InitializeNoMapZone();
     void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(vector<string> modifiers);
@@ -1136,7 +1132,7 @@ private:
     
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToLearn_ || listensToAutoMap_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
     }
 
     void DeclareGoSelectedTrackSend(string zoneName)
@@ -1181,16 +1177,7 @@ private:
             for(auto zoneManager : listeners_)
                 zoneManager->ListenToGoSelectedTrackFX();
     }
-    
-    void DeclareGoLearnFXParams()
-    {
-        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            GoLearnFXParams();
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoLearnFXParams();
-    }
-    
+        
     void DeclareGoCustom(string zoneName)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1298,25 +1285,7 @@ private:
        if(listensToFXMenu_)
            ClearFXSlot(zone);
     }
-        
-    void ListenToGoLearnFXParams()
-    {
-       if(listensToLearn_)
-           GoLearnFXParams();
-    }
-    
-    void ListenToSaveLearnedFXParams()
-    {
-       if(listensToLearn_)
-           SaveLearnedFXParams();
-    }
-    
-    void ListenToAutoMapFX()
-    {
-       if(listensToAutoMap_)
-           AutoMapFX();
-    }
-    
+            
     void ListenToGoSelectedTrackFX()
     {
        if(listensToSelectedTrackFX_)
@@ -1575,6 +1544,9 @@ public:
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
+    void AutoMapFX();
+    void GoLearnFXParams(MediaTrack* track, int fxSlot);
+    void SaveLearnedFXParams();
     void EraseLastTouchedControl();
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
@@ -1628,24 +1600,6 @@ public:
                 zoneManager->ListenToClearFXSlot(zone);
     }
                 
-    void DeclareAutoMapFX()
-    {
-        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            AutoMapFX();
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToAutoMapFX();
-    }
-            
-    void DeclareSaveLearnedFXParams()
-    {
-        if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            SaveLearnedFXParams();
-        else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToSaveLearnedFXParams();
-    }
-               
     void RemoveZone(string zoneName)
     {
         if(zoneFilePaths_.count(zoneName) > 0)
@@ -1721,7 +1675,7 @@ public:
         else if(zoneName == "SelectedTrackFXMenu")
             DeclareGoGoSelectedTrackFXMenu(zoneName);
         else if(zoneName == "LearnFXParams")
-            DeclareGoLearnFXParams();
+            GoLearnFXParams();
         else if(zoneName.substr(0, 6) == "Custom")
             DeclareGoCustom(zoneName);
         else if(homeZone_ != nullptr)
