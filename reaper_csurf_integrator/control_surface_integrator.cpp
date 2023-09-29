@@ -1346,7 +1346,8 @@ void Manager::InitActionsDictionary()
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
-    actions_["AutoMapFX"] =                         make_shared<AutoMapFX>();
+    actions_["AutoMapSlotFX"] =                     make_shared<AutoMapSlotFX>();
+    actions_["AutoMapFocusedFX"] =                  make_shared<AutoMapFocusedFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
     actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
     actions_["ClearFocusedFX"] =                    make_shared<ClearFocusedFX>();
@@ -2826,54 +2827,8 @@ void ZoneManager::GoSelectedTrackFX()
         }
     }
 }
-/*
-static int dlgResult = IDCANCEL;
-static string LearnSurfaceName = "";
 
-static WDL_DLGRET dlgProcChoseAutoMapOrLearn(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-        case WM_INITDIALOG:
-        {
-            SetWindowText(hwndDlg, LearnSurfaceName.c_str());
-            break;
-        }
-        case WM_COMMAND:
-        {
-            switch(LOWORD(wParam))
-            {
-                case IDAutoMap:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        dlgResult = IDAutoMap;
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break ;
-                    
-                case IDLearn:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        dlgResult = IDLearn;
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break ;
-                    
-                case IDCANCEL:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        dlgResult = IDCANCEL;
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break ;
-            }
-        }
-    }
-    
-    return 0;
-}
-*/
-void ZoneManager::AutoMapFX()
+void ZoneManager::AutoMapFocusedFX()
 {
     int trackNumber = 0;
     int itemNumber = 0;
@@ -2957,26 +2912,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
     
     if( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
         CalculateSteppedValues(fxName, track, fxSlot);
-/*
-    if(zoneFilePaths_.count(fxName) < 1)
-    {
-        dlgResult = IDCANCEL;
-        LearnSurfaceName = surface_->GetName();
-        
-        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_AutoOrLearn), g_hwnd, dlgProcChoseAutoMapOrLearn);
 
-        if(dlgResult == IDLearn)
-        {
-            DAW::TrackFX_SetOpen(track, fxSlot, true);
-            learnFXName_ = fxName;
-            GoLearnFXParams(track, fxSlot);
-        }
-        else if(dlgResult == IDAutoMap)
-            AutoMapFX(fxName, track, fxSlot);
-        else if(dlgResult == IDCANCEL)
-            return;
-    }
-*/
     if(zoneFilePaths_.count(fxName) > 0)
     {
         vector<shared_ptr<Navigator>> navigators;
@@ -2991,9 +2927,10 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
             fxSlotZones_.back()->Activate();
         }
     }
-    else
+    else if(noMapZone_ != nullptr)
     {
-        // Go Zone NoMap
+        noMapZone_->SetSlotIndex(fxSlot);
+        noMapZone_->Activate();
     }
 }
 
@@ -3192,7 +3129,83 @@ int ZoneManager::GetModifierValue(vector<string> modifierTokens)
 
 void ZoneManager::InitializeNoMapZone()
 {
-    // use fxLayouts_ and surfaceFXLayout_ to generate a display only Zone
+    if(surfaceFXLayout_.size() != 3)
+        return;
+    
+    if(GetZoneFilePaths().count("NoMap") > 0)
+    {
+        vector<shared_ptr<Navigator>> navigators;
+        navigators.push_back(GetSelectedTrackNavigator());
+        
+        vector<shared_ptr<Zone>> zones;
+        
+        ProcessZoneFile(GetZoneFilePaths()["NoMap"].filePath, sharedThisPtr_, navigators, zones, nullptr);
+        
+        if(zones.size() > 0)
+            noMapZone_ = zones[0];
+        
+        if(noMapZone_ != nullptr)
+        {
+            vector<shared_ptr <Widget>> usedWidgets;
+            
+            for(auto [widget, isUsed] : noMapZone_->GetWidgets())
+                usedWidgets.push_back(widget);
+            
+            vector<string> paramWidgets;
+
+            for(auto row : surfaceFXLayoutTemplate_)
+                if(row.size() > 0 && row[0] == "WidgetTypes")
+                    for(int i = 1; i < row.size(); i++)
+                        paramWidgets.push_back(row[i]);
+            
+            string nameDisplayWidget = "";
+            if(surfaceFXLayout_[1].size() > 0)
+                nameDisplayWidget = surfaceFXLayout_[1][0];
+            
+            string valueDisplayWidget = "";
+            if(surfaceFXLayout_[2].size() > 0)
+                valueDisplayWidget = surfaceFXLayout_[2][0];
+
+            for(auto layout : fxLayouts_)
+            {
+                int modifier = GetModifierValue(layout.GetModifierTokens());
+                
+                if(modifier != 0)
+                    continue;
+                
+                for(int i = 1; i <= layout.channelCount; i++)
+                {
+                    string cellAdress = layout.suffix + to_string(i);
+                    
+                    shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
+                    if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                        continue;
+                    noMapZone_->AddWidget(widget, widget->GetName());
+                    shared_ptr<ActionContext> context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                    context->SetProvideFeedback(true);
+                    noMapZone_->AddActionContext(widget, modifier, context);
+
+                    widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
+                    if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                        continue;
+                    noMapZone_->AddWidget(widget, widget->GetName());
+                    context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                    context->SetProvideFeedback(true);
+                    noMapZone_->AddActionContext(widget, modifier, context);
+                    
+                    for(auto widgetName : paramWidgets)
+                    {
+                        shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + cellAdress);
+                        if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                            continue;
+                        noMapZone_->AddWidget(widget, widget->GetName());
+                        context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                        noMapZone_->AddActionContext(widget, modifier, context);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void ZoneManager::InitializeFXParamsLearnZone()
@@ -3352,6 +3365,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
 
 void ZoneManager::DoLearn(ActionContext* context, double value)
 {
+    noMapZone_->Deactivate();
+    
     if(value == 0.0)
         return;
     
@@ -3868,6 +3883,21 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
             fxZone << to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxIndex, i) + GetLineEnding();
         
         fxZone.close();
+    }
+    
+    if(zoneFilePaths_.count(fxName) > 0)
+    {
+        vector<shared_ptr<Navigator>> navigators;
+        navigators.push_back(GetSelectedTrackNavigator());
+        
+        if(sharedThisPtr_ != nullptr)
+            ProcessZoneFile(zoneFilePaths_[fxName].filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+        
+        if(fxSlotZones_.size() > 0)
+        {
+            fxSlotZones_.back()->SetSlotIndex(fxIndex);
+            fxSlotZones_.back()->Activate();
+        }
     }
 }
 

@@ -623,7 +623,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class AutoMapFX : public Action
+class AutoMapSlotFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
@@ -634,7 +634,34 @@ public:
         if(value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AutoMapFX();
+        if(MediaTrack* track = context->GetTrack())
+        {
+            int slotIndex = context->GetZone()->GetSlotIndex();
+            
+            char fxName[BUFSZ];
+            DAW::TrackFX_GetFXName(track, slotIndex, fxName, sizeof(fxName));
+
+            context->GetZone()->GetSlotIndex();
+            context->GetSurface()->GetZoneManager()->AutoMapFX(fxName, track, slotIndex);
+        }
+        
+        context->GetZone()->Deactivate();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AutoMapFocusedFX : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "AutoMapFocusedFX"; }
+    
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->AutoMapFocusedFX();
     }
 };
 

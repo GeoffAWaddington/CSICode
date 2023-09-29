@@ -636,6 +636,8 @@ public:
     
     virtual string GetType() { return "Zone"; }
     
+    map<shared_ptr<Widget>, bool> &GetWidgets() { return widgets_; }
+
     shared_ptr<Navigator> GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
@@ -661,7 +663,7 @@ public:
         else
             return shared_ptr<Zone>(nullptr);
     }
-    
+        
     bool GetIsMainZoneOnlyActive()
     {
         for(auto [key, zones] : associatedZones_)
@@ -1019,6 +1021,8 @@ private:
     map<string, CSIZoneInfo> zoneFilePaths_;
     
     map<shared_ptr<Widget>, bool> usedWidgets_;
+    
+    shared_ptr<Zone> noMapZone_ = nullptr;
     
     shared_ptr<Zone> homeZone_ = nullptr;
     
@@ -1544,7 +1548,7 @@ public:
 
     void DoTouch(shared_ptr<Widget> widget, double value);
     
-    void AutoMapFX();
+    void AutoMapFocusedFX();
     void GoLearnFXParams(MediaTrack* track, int fxSlot);
     void SaveLearnedFXParams();
     void EraseLastTouchedControl();
@@ -1703,6 +1707,9 @@ public:
         
         ClearFXMapping();
 
+        if(noMapZone_ != nullptr && noMapZone_->GetIsActive())
+            noMapZone_->Deactivate();
+        
         if(homeZone_ != nullptr)
         {
             ResetOffsets();
@@ -1812,6 +1819,9 @@ public:
         for(auto &[key, value] : usedWidgets_)
             value = false;
 
+        if(noMapZone_ != nullptr)
+            noMapZone_->RequestUpdate(usedWidgets_);
+        
         if(homeZone_ != nullptr && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
         {
             homeZone_->RequestUpdate(usedWidgets_);
@@ -1853,6 +1863,9 @@ public:
         widget->LogInput(value);
         
         bool isUsed = false;
+        
+        if(noMapZone_ != nullptr && noMapZone_->GetIsActive())
+            noMapZone_->DoAction(widget, isUsed, value);
         
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoAction(widget, isUsed, value);
