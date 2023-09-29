@@ -2386,6 +2386,8 @@ private:
     shared_ptr<Page> page_ = nullptr;
     shared_ptr<ControlSurface> surface_ = nullptr;
     
+    int latchTime_ = 100;
+    
     struct Modifier
     {
         bool isEngaged = false;
@@ -2457,7 +2459,7 @@ private:
         return combinations;
     }
 
-    void SetLatchModifier(bool value, Modifiers modifier);
+    void SetLatchModifier(bool value, Modifiers modifier, int latchTime);
 
 public:
     ModifierManager()
@@ -2567,26 +2569,26 @@ public:
         for(int i = 0; i < tokens.size() - 1; i++)
         {
             if(tokens[i] == "Shift")
-                SetShift(true);
+                modifiers_[Shift].isEngaged = true;
             else if(tokens[i] == "Option")
-                SetOption(true);
+                modifiers_[Option].isEngaged = true;
             else if(tokens[i] == "Control")
-                SetControl(true);
+                modifiers_[Control].isEngaged = true;
             else if(tokens[i] == "Alt")
-                SetAlt(true);
+                modifiers_[Alt].isEngaged = true;
             else if(tokens[i] == "Flip")
-                SetFlip(true);
+                modifiers_[Flip].isEngaged = true;
             else if(tokens[i] == "Global")
-                SetGlobal(true);
+                modifiers_[Global].isEngaged = true;
 
             else if(tokens[i] == "Marker")
-                SetMarker(true);
+                modifiers_[Marker].isEngaged = true;
             else if(tokens[i] == "Nudge")
-                SetNudge(true);
+                modifiers_[Nudge].isEngaged = true;
             else if(tokens[i] == "Zoom")
-                SetZoom(true);
+                modifiers_[Zoom].isEngaged = true;
             else if(tokens[i] == "Scrub")
-                SetScrub(true);
+                modifiers_[Scrub].isEngaged = true;
         }
 
         int modifierValue = 0;
@@ -2597,71 +2599,71 @@ public:
         
         return modifierValue;
     }
-       
-    void SetShift(bool value)
+
+    void SetShift(bool value, int latchTime)
     {
-        SetLatchModifier(value, Shift);
+        SetLatchModifier(value, Shift, latchTime);
     }
- 
-    void SetOption(bool value)
+
+    void SetOption(bool value, int latchTime)
     {
-        SetLatchModifier(value, Option);
-    }
-    
-    void SetControl(bool value)
-    {
-        SetLatchModifier(value, Control);
+        SetLatchModifier(value, Option, latchTime);
     }
     
-    void SetAlt(bool value)
+    void SetControl(bool value, int latchTime)
     {
-        SetLatchModifier(value, Alt);
+        SetLatchModifier(value, Control, latchTime);
+    }
+    
+    void SetAlt(bool value, int latchTime)
+    {
+        SetLatchModifier(value, Alt, latchTime);
     }
   
-    void SetFlip(bool value)
+    void SetFlip(bool value, int latchTime)
     {
-        SetLatchModifier(value, Flip);
+        SetLatchModifier(value, Flip, latchTime);
     }
   
-    void SetGlobal(bool value)
+    void SetGlobal(bool value, int latchTime)
     {
-        SetLatchModifier(value, Global);
+        SetLatchModifier(value, Global, latchTime);
     }
     
-    void SetMarker(bool value)
+    void SetMarker(bool value, int latchTime)
     {
         modifiers_[Nudge].isEngaged = false;
         modifiers_[Zoom].isEngaged = false;
         modifiers_[Scrub].isEngaged = false;
 
-        SetLatchModifier(value, Marker);
+        SetLatchModifier(value, Marker, latchTime);
     }
     
-    void SetNudge(bool value)
+    void SetNudge(bool value, int latchTime)
     {
         modifiers_[Marker].isEngaged = false;
         modifiers_[Zoom].isEngaged = false;
         modifiers_[Scrub].isEngaged = false;
 
-        SetLatchModifier(value, Nudge);
+        SetLatchModifier(value, Nudge, latchTime);
     }
   
-    void SetZoom(bool value)
+    void SetZoom(bool value, int latchTime)
     {
         modifiers_[Marker].isEngaged = false;
         modifiers_[Nudge].isEngaged = false;
         modifiers_[Scrub].isEngaged = false;
 
-        SetLatchModifier(value, Zoom);
+        SetLatchModifier(value, Zoom, latchTime);
     }
   
-    void SetScrub(bool value)
+    void SetScrub(bool value, int latchTime)
     {
         modifiers_[Marker].isEngaged = false;
         modifiers_[Nudge].isEngaged = false;
         modifiers_[Zoom].isEngaged = false;
 
-        SetLatchModifier(value, Scrub);
+        SetLatchModifier(value, Scrub, latchTime);
     }
     
     void ClearModifiers()
@@ -2689,6 +2691,8 @@ private:
     
     bool usesLocalModifiers_ = false;
     bool listensToModifiers_ = false;
+    
+    int latchTime_ = 100;
         
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
@@ -2802,8 +2806,11 @@ public:
 
     bool GetUsesLocalModifiers() { return usesLocalModifiers_; }
     void ToggleUseLocalModifiers() { usesLocalModifiers_ = ! usesLocalModifiers_; }
-    bool GetListensToModifiers() { return listensToModifiers_;}
-    void SetListensToModifiers() { listensToModifiers_ = true;}
+    bool GetListensToModifiers() { return listensToModifiers_; }
+    void SetListensToModifiers() { listensToModifiers_ = true; }
+
+    void SetLatchTime(int latchTime) { latchTime_ = latchTime; }
+    int GetLatchTime() { return latchTime_; }
 
     void TouchChannel(int channelNum, bool isTouched)
     {

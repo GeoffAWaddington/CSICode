@@ -1343,6 +1343,7 @@ void Manager::InitActionsDictionary()
     actions_["ShowFXSlot"] =                        make_shared<ShowFXSlot>();
     actions_["HideFXSlot"] =                        make_shared<HideFXSlot>();
     actions_["ToggleUseLocalModifiers"] =           make_shared<ToggleUseLocalModifiers>();
+    actions_["SetLatchTime"] =                      make_shared<SetLatchTime>();
     actions_["ToggleEnableFocusedFXMapping"] =      make_shared<ToggleEnableFocusedFXMapping>();
     actions_["ToggleEnableFocusedFXParamMapping"] = make_shared<ToggleEnableFocusedFXParamMapping>();
     actions_["RemapAutoZone"] =                     make_shared<RemapAutoZone>();
@@ -3977,7 +3978,7 @@ void ModifierManager::RecalculateModifiers()
         page_->UpdateCurrentActionContextModifiers();
 }
 
-void ModifierManager::SetLatchModifier(bool value, Modifiers modifier)
+void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latchTime)
 {
     if(value && modifiers_[modifier].isEngaged == false)
     {
@@ -3988,7 +3989,7 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier)
     {
         double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
         
-        if(keyReleasedTime - modifiers_[modifier].pressedTime > 100)
+        if(keyReleasedTime - modifiers_[modifier].pressedTime > latchTime)
         {
             if(value == 0 && modifiers_[modifier].isEngaged)
                 TheManager->Speak(modifierNames_[modifier] + " Unlock");
@@ -4281,160 +4282,160 @@ void ControlSurface::SetShift(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetShift(value);
+        modifierManager_->SetShift(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetShift(value);
+                listener->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetShift(value);
+        modifierManager_->SetShift(value, latchTime_);
     else
-        page_->GetModifierManager()->SetShift(value);
+        page_->GetModifierManager()->SetShift(value, latchTime_);
 }
 
 void ControlSurface::SetOption(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetOption(value);
+        modifierManager_->SetOption(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetOption(value);
+                listener->GetSurface()->GetModifierManager()->SetOption(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetOption(value);
+        modifierManager_->SetOption(value, latchTime_);
     else
-        page_->GetModifierManager()->SetOption(value);
+        page_->GetModifierManager()->SetOption(value, latchTime_);
 }
 
 void ControlSurface::SetControl(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetControl(value);
+        modifierManager_->SetControl(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetControl(value);
+                listener->GetSurface()->GetModifierManager()->SetControl(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetControl(value);
+        modifierManager_->SetControl(value, latchTime_);
     else
-        page_->GetModifierManager()->SetControl(value);
+        page_->GetModifierManager()->SetControl(value, latchTime_);
 }
 
 void ControlSurface::SetAlt(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetAlt(value);
+        modifierManager_->SetAlt(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetAlt(value);
+                listener->GetSurface()->GetModifierManager()->SetAlt(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetAlt(value);
+        modifierManager_->SetAlt(value, latchTime_);
     else
-        page_->GetModifierManager()->SetAlt(value);
+        page_->GetModifierManager()->SetAlt(value, latchTime_);
 }
 
 void ControlSurface::SetFlip(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetFlip(value);
+        modifierManager_->SetFlip(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetFlip(value);
+                listener->GetSurface()->GetModifierManager()->SetFlip(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetFlip(value);
+        modifierManager_->SetFlip(value, latchTime_);
     else
-        page_->GetModifierManager()->SetFlip(value);
+        page_->GetModifierManager()->SetFlip(value, latchTime_);
 }
 
 void ControlSurface::SetGlobal(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetGlobal(value);
+        modifierManager_->SetGlobal(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetGlobal(value);
+                listener->GetSurface()->GetModifierManager()->SetGlobal(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetGlobal(value);
+        modifierManager_->SetGlobal(value, latchTime_);
     else
-        page_->GetModifierManager()->SetGlobal(value);
+        page_->GetModifierManager()->SetGlobal(value, latchTime_);
 }
 
 void ControlSurface::SetMarker(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetMarker(value);
+        modifierManager_->SetMarker(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetMarker(value);
+                listener->GetSurface()->GetModifierManager()->SetMarker(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetMarker(value);
+        modifierManager_->SetMarker(value, latchTime_);
     else
-        page_->GetModifierManager()->SetMarker(value);
+        page_->GetModifierManager()->SetMarker(value, latchTime_);
 }
 
 void ControlSurface::SetNudge(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetNudge(value);
+        modifierManager_->SetNudge(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetNudge(value);
+                listener->GetSurface()->GetModifierManager()->SetNudge(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetNudge(value);
+        modifierManager_->SetNudge(value, latchTime_);
     else
-        page_->GetModifierManager()->SetNudge(value);
+        page_->GetModifierManager()->SetNudge(value, latchTime_);
 }
 
 void ControlSurface::SetZoom(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetZoom(value);
+        modifierManager_->SetZoom(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetZoom(value);
+                listener->GetSurface()->GetModifierManager()->SetZoom(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetZoom(value);
+        modifierManager_->SetZoom(value, latchTime_);
     else
-        page_->GetModifierManager()->SetZoom(value);
+        page_->GetModifierManager()->SetZoom(value, latchTime_);
 }
 
 void ControlSurface::SetScrub(bool value)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
-        modifierManager_->SetScrub(value);
+        modifierManager_->SetScrub(value, latchTime_);
         
         for(auto listener : zoneManager_->GetListeners())
             if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetScrub(value);
+                listener->GetSurface()->GetModifierManager()->SetScrub(value, latchTime_);
     }
     else if(usesLocalModifiers_)
-        modifierManager_->SetScrub(value);
+        modifierManager_->SetScrub(value, latchTime_);
     else
-        page_->GetModifierManager()->SetScrub(value);
+        page_->GetModifierManager()->SetScrub(value, latchTime_);
 }
 
 vector<int> &ControlSurface::GetModifiers()
