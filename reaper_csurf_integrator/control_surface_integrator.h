@@ -2566,36 +2566,32 @@ public:
 
     int GetModifierValue(vector<string> tokens)
     {
+        int modifierValue = 0;
+
         for(int i = 0; i < tokens.size() - 1; i++)
         {
             if(tokens[i] == "Shift")
-                modifiers_[Shift].isEngaged = true;
+                modifierValue += modifiers_[Shift].value;
             else if(tokens[i] == "Option")
-                modifiers_[Option].isEngaged = true;
+                modifierValue += modifiers_[Option].value;
             else if(tokens[i] == "Control")
-                modifiers_[Control].isEngaged = true;
+                modifierValue += modifiers_[Control].value;
             else if(tokens[i] == "Alt")
-                modifiers_[Alt].isEngaged = true;
+                modifierValue += modifiers_[Alt].value;
             else if(tokens[i] == "Flip")
-                modifiers_[Flip].isEngaged = true;
+                modifierValue += modifiers_[Flip].value;
             else if(tokens[i] == "Global")
-                modifiers_[Global].isEngaged = true;
+                modifierValue += modifiers_[Global].value;
 
             else if(tokens[i] == "Marker")
-                modifiers_[Marker].isEngaged = true;
+                modifierValue += modifiers_[Marker].value;
             else if(tokens[i] == "Nudge")
-                modifiers_[Nudge].isEngaged = true;
+                modifierValue += modifiers_[Nudge].value;
             else if(tokens[i] == "Zoom")
-                modifiers_[Zoom].isEngaged = true;
+                modifierValue += modifiers_[Zoom].value;
             else if(tokens[i] == "Scrub")
-                modifiers_[Scrub].isEngaged = true;
+                modifierValue += modifiers_[Scrub].value;
         }
-
-        int modifierValue = 0;
-        
-        for(auto modifier : modifiers_)
-            if(modifier.isEngaged)
-                modifierValue += modifier.value;
         
         return modifierValue;
     }
