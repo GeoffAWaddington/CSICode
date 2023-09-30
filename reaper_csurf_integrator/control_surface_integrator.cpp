@@ -3252,7 +3252,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                 for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
                     valueDisplayParams.push_back(surfaceFXLayout_[2][i]);
 
-            if(paramWidgets.size() > 0 && nameDisplayWidget != "" && valueDisplayWidget != "")
+            if(paramWidgets.size() > 0)
             {
                 
                 for(auto layout : fxLayouts_)
@@ -3365,9 +3365,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
 }
 
 void ZoneManager::DoLearn(ActionContext* context, double value)
-{
-    noMapZone_->Deactivate();
-    
+{    
     if(value == 0.0)
         return;
     
