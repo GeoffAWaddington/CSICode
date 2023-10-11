@@ -1247,7 +1247,7 @@ private:
         }
     }
         
-    void DeclareGoGoSelectedTrackFXMenu(string zoneName)
+    void DeclareGoSelectedTrackFXMenu(string zoneName)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1679,7 +1679,7 @@ public:
         else if(zoneName == "SelectedTrackFX")
             DeclareGoSelectedTrackFX();
         else if(zoneName == "SelectedTrackFXMenu")
-            DeclareGoGoSelectedTrackFXMenu(zoneName);
+            DeclareGoSelectedTrackFXMenu(zoneName);
         else if(zoneName == "LearnFXParams")
             GoLearnFXParams();
         else if(zoneName.substr(0, 6) == "Custom")
