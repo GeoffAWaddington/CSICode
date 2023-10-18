@@ -1670,7 +1670,8 @@ public:
       
     void GoAssociatedZone(string zoneName)
     {
-        noMapZone_->Deactivate();
+        if(noMapZone_ != nullptr)
+            noMapZone_->Deactivate();
         
         if(zoneName == "SelectedTrackSend")
             DeclareGoSelectedTrackSend(zoneName);
