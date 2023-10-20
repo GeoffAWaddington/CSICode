@@ -1481,7 +1481,7 @@ struct IniFileTemplate
     string pageLine = "Page HomePage UseScrollSynch";
 };
 
-bool Manager::AutoConfigure(string iniFilePath)
+bool Manager::AutoConfigure()
 {
     vector<MIDISurfaceTemplate> surfaces;
 
@@ -1497,7 +1497,6 @@ bool Manager::AutoConfigure(string iniFilePath)
                         "\"X-Touch\"",
                         "\"X-TouchFX\"",
     };
-    
     
     char midiInName[BUFSZ];
     
@@ -1524,7 +1523,7 @@ bool Manager::AutoConfigure(string iniFilePath)
         }
     }
     
-    ofstream iniFile(iniFilePath);
+    ofstream iniFile(string(DAW::GetResourcePath()) + "/CSI/CSI.ini");
 
     if(iniFile.is_open())
     {
@@ -1581,7 +1580,7 @@ void Manager::Init()
 
     if (! filesystem::exists(iniFile))
     {
-        if(! AutoConfigure(iniFilePath))
+        if(! AutoConfigure())
             return;
     }
     

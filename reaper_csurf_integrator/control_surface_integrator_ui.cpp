@@ -2851,7 +2851,14 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             surfaces.clear();
             pages.clear();
             
-            ifstream iniFile(string(DAW::GetResourcePath()) + "/CSI/CSI.ini");
+            string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
+            
+            filesystem::path iniFileExists { iniFilePath };
+
+            if (! filesystem::exists(iniFileExists))
+                TheManager->AutoConfigure();
+            
+            ifstream iniFile(iniFilePath);
             
             int lineNumber = 0;
             
