@@ -1910,8 +1910,8 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             char buf[BUFSZ];
             int currentIndex = 0;
             
-            for (int i = 0; i < GetNumMIDIInputs(); i++)
-                if (GetMIDIInputName(i, buf, sizeof(buf)))
+            for (int i = 0; i < DAW::GetNumMIDIInputs(); i++)
+                if (DAW::GetMIDIInputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiIn);
                     if(editMode && inPort == i)
@@ -1921,8 +1921,8 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             currentIndex = 0;
             
-            for (int i = 0; i < GetNumMIDIOutputs(); i++)
-                if (GetMIDIOutputName(i, buf, sizeof(buf)))
+            for (int i = 0; i < DAW::GetNumMIDIOutputs(); i++)
+                if (DAW::GetMIDIOutputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiOut);
                     if(editMode && outPort == i)

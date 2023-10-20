@@ -4478,7 +4478,8 @@ public:
     }
     
     void Init();
-
+    bool AutoConfigure(string iniFilePath);
+    
     void ToggleSurfaceInDisplay() { surfaceInDisplay_ = ! surfaceInDisplay_;  }
     void ToggleSurfaceRawInDisplay() { surfaceRawInDisplay_ = ! surfaceRawInDisplay_;  }
     void ToggleSurfaceOutDisplay() { surfaceOutDisplay_ = ! surfaceOutDisplay_;  }

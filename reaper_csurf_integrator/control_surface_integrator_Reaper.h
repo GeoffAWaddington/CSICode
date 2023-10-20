@@ -151,6 +151,14 @@ public:
     
     static midi_Output* CreateMIDIOutput(int dev, bool streamMode, int* msoffset100) {  return ::CreateMIDIOutput(dev, streamMode, msoffset100); }
    
+    static int GetNumMIDIInputs() { return ::GetNumMIDIInputs(); }
+    
+    static int GetNumMIDIOutputs() { return ::GetNumMIDIOutputs(); }
+    
+    static bool GetMIDIInputName(int dev, char* nameout, int nameout_sz) { return ::GetMIDIInputName(dev, nameout, nameout_sz); }
+    
+    static bool GetMIDIOutputName(int dev, char* nameout, int nameout_sz) { return ::GetMIDIOutputName(dev, nameout, nameout_sz); }
+    
     static bool AnyTrackSolo(ReaProject* proj) { return ::AnyTrackSolo(proj); }
     
     static void SoloAllTracks(int solo) { ::SoloAllTracks(solo); }

@@ -1462,6 +1462,97 @@ void Manager::InitActionsDictionary()
     learnFXActions_["LearnFXParamValueDisplay"] =   make_shared<LearnFXParamValueDisplay>();
 }
 
+struct MIDISurfaceTemplate
+{
+    string id = "MidiSurface";
+    string name = "";
+    int inPort = 0;
+    int outPort = 0;
+    int numChannels = 0;
+    int offset = 0;
+    string mstFilename = "";
+    string zoneFolder = "";
+    string fxZoneFolder = "";
+};
+
+struct IniFileTemplate
+{
+    string version = "Version 3.0";
+    string pageLine = "Page HomePage UseScrollSynch";
+};
+
+bool Manager::AutoConfigure(string iniFilePath)
+{
+    vector<MIDISurfaceTemplate> surfaces;
+
+    map<string, MIDISurfaceTemplate> knownSurfaces;
+    
+    knownSurfaces["BEHRINGER - X-Touch - INT"] = { "MidiSurface",
+                        "\"X-Touch\"",
+                        0,
+                        0,
+                        8,
+                        0,
+                        "\"X-Touch.mst\"",
+                        "\"X-Touch\"",
+                        "\"X-TouchFX\"",
+    };
+    
+    
+    char midiInName[BUFSZ];
+    
+    for (int i = 0; i < DAW::GetNumMIDIInputs(); i++)
+    {
+        if (DAW::GetMIDIInputName(i, midiInName, sizeof(midiInName)) && knownSurfaces.count(midiInName) > 0)
+        {
+            char midiOutName[BUFSZ];
+
+            for (int j = 0; j < DAW::GetNumMIDIOutputs(); j++)
+            {
+                if (DAW::GetMIDIOutputName(j, midiOutName, sizeof(midiOutName)) && string(midiInName) == string(midiOutName))
+                {
+                    MIDISurfaceTemplate surface = knownSurfaces[midiInName];
+
+                    surface.inPort = i;
+                    surface.outPort = j;
+                    
+                    surfaces.push_back(surface);
+                    
+                    break;
+                }
+            }
+        }
+    }
+    
+    ofstream iniFile(iniFilePath);
+
+    if(iniFile.is_open())
+    {
+        iniFile << VersionToken + GetLineEnding();
+        
+        iniFile << GetLineEnding();
+        
+        for(auto surface : surfaces)
+            iniFile << surface.id + " " + surface.name + " " + to_string(surface.inPort) + " " + to_string(surface.outPort) + GetLineEnding();
+        
+        iniFile << GetLineEnding();
+        
+        iniFile << "Page \"HomePage\" UseScrollSynch";
+        
+        iniFile << GetLineEnding();
+        
+        for(auto surface : surfaces)
+            iniFile << "\t" + surface.name + " " + to_string(surface.numChannels) + " " + to_string(surface.offset) + " " + surface.mstFilename + " " + surface.zoneFolder + " " + surface.fxZoneFolder + GetLineEnding();
+
+        iniFile.close();
+        return true;
+    }
+    
+    //MessageBox(g_hwnd, ("Please check your installation, cannot find " + iniFilePath).c_str(), "Missing CSI.ini", MB_OK);
+    
+    return false;
+}
+
 void Manager::Init()
 {
     pages_.clear();
@@ -1490,9 +1581,8 @@ void Manager::Init()
 
     if (! filesystem::exists(iniFile))
     {
-        MessageBox(g_hwnd, ("Please check your installation, cannot find " + iniFilePath).c_str(), "Missing CSI.ini", MB_OK);
-        
-        return;
+        if(! AutoConfigure(iniFilePath))
+            return;
     }
     
     int lineNumber = 0;
