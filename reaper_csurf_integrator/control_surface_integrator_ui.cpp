@@ -2853,11 +2853,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             
             string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
             
-            filesystem::path iniFileExists { iniFilePath };
-
-            if (! filesystem::exists(iniFileExists))
-                TheManager->AutoConfigure();
-            
             ifstream iniFile(iniFilePath);
             
             int lineNumber = 0;
@@ -3134,7 +3129,17 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
 {
-    return CreateDialogParam(g_hInst,MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI),parent,dlgProcMainConfig,(LPARAM)initConfigString);
+    string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
+    
+    filesystem::path iniFileExists { iniFilePath };
+
+    if (! filesystem::exists(iniFileExists))
+    {
+        TheManager->AutoConfigure();
+        return 0;
+    }
+    else
+        return CreateDialogParam(g_hInst,MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI),parent,dlgProcMainConfig,(LPARAM)initConfigString);
 }
 
 reaper_csurf_reg_t csurf_integrator_reg =

@@ -1462,47 +1462,45 @@ void Manager::InitActionsDictionary()
     learnFXActions_["LearnFXParamValueDisplay"] =   make_shared<LearnFXParamValueDisplay>();
 }
 
-struct MIDISurfaceTemplate
-{
-    string id = "MidiSurface";
-    string name = "";
-    int inPort = 0;
-    int outPort = 0;
-    int numChannels = 0;
-    int offset = 0;
-    string mstFilename = "";
-    string zoneFolder = "";
-    string fxZoneFolder = "";
-};
-
-struct IniFileTemplate
-{
-    string version = "Version 3.0";
-    string pageLine = "Page HomePage UseScrollSynch";
-};
-
 bool Manager::AutoConfigure()
 {
-    vector<MIDISurfaceTemplate> surfaces;
-
-    map<string, MIDISurfaceTemplate> knownSurfaces;
-    
-    knownSurfaces["BEHRINGER - X-Touch - INT"] = { "MidiSurface",
-                        "\"X-Touch\"",
-                        0,
-                        0,
-                        8,
-                        0,
-                        "\"X-Touch.mst\"",
-                        "\"X-Touch\"",
-                        "\"X-TouchFX\"",
+    struct SurfaceConfig
+    {
+        string id = "";
+        string name = "";
+        int inPort = 0;
+        int outPort = 0;
+        string IPAddr = "";
+        int numChannels = 0;
+        int offset = 0;
+        string mstFilename = "";
+        string zoneFolder = "";
+        string fxZoneFolder = "";
     };
+
+    map<string, SurfaceConfig> knownSurfaces_;
+
+    knownSurfaces_["BEHRINGER - X-Touch - INT"] = { "MidiSurface",
+        "\"X-Touch\"",
+        0,
+        0,
+        "",
+        8,
+        0,
+        "\"X-Touch.mst\"",
+        "\"X-Touch\"",
+        "\"X-TouchFX\"",
+    };
+        
+    knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"];
+
+    vector<SurfaceConfig> surfaces;
     
     char midiInName[BUFSZ];
     
     for (int i = 0; i < DAW::GetNumMIDIInputs(); i++)
     {
-        if (DAW::GetMIDIInputName(i, midiInName, sizeof(midiInName)) && knownSurfaces.count(midiInName) > 0)
+        if (DAW::GetMIDIInputName(i, midiInName, sizeof(midiInName)) && knownSurfaces_.count(midiInName) > 0)
         {
             char midiOutName[BUFSZ];
 
@@ -1510,7 +1508,7 @@ bool Manager::AutoConfigure()
             {
                 if (DAW::GetMIDIOutputName(j, midiOutName, sizeof(midiOutName)) && string(midiInName) == string(midiOutName))
                 {
-                    MIDISurfaceTemplate surface = knownSurfaces[midiInName];
+                    SurfaceConfig surface = knownSurfaces_[midiInName];
 
                     surface.inPort = i;
                     surface.outPort = j;
