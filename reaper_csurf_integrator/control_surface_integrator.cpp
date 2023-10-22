@@ -1508,7 +1508,7 @@ bool Manager::AutoConfigure()
         "\"X-Touch_One\"",
     };
 
-    knownSurfaces_["X-Touch One"] = knownSurfaces_["BEHRINGER - X-Touch  One"];
+    knownSurfaces_["X-Touch One"] = knownSurfaces_["BEHRINGER - X-Touch One"];
 
     
     
