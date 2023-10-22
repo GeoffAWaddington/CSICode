@@ -3134,12 +3134,10 @@ static HWND configFunc(const char *type_string, HWND parent, const char *initCon
     filesystem::path iniFileExists { iniFilePath };
 
     if (! filesystem::exists(iniFileExists))
-    {
-        TheManager->AutoConfigure();
-        return 0;
-    }
-    else
-        return CreateDialogParam(g_hInst,MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI),parent,dlgProcMainConfig,(LPARAM)initConfigString);
+        if(TheManager->AutoConfigure())
+            return 0;
+    
+    return CreateDialogParam(g_hInst,MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI),parent,dlgProcMainConfig,(LPARAM)initConfigString);
 }
 
 reaper_csurf_reg_t csurf_integrator_reg =

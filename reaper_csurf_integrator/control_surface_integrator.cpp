@@ -1480,7 +1480,7 @@ bool Manager::AutoConfigure()
 
     map<string, SurfaceConfig> knownSurfaces_;
 
-    knownSurfaces_["BEHRINGER - X-Touch - INT"] = { "MidiSurface",
+    knownSurfaces_["BEHRINGER - X-Touch - INT"] = { "MidiSurface", // Mac
         "\"X-Touch\"",
         0,
         0,
@@ -1489,11 +1489,63 @@ bool Manager::AutoConfigure()
         0,
         "\"X-Touch.mst\"",
         "\"X-Touch\"",
-        "\"X-TouchFX\"",
+        "\"X-Touch\"",
     };
-        
-    knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"];
+    
+    knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"]; // Windows
 
+    
+    
+    knownSurfaces_["BEHRINGER - X-Touch One"] = { "MidiSurface",
+        "\"X-Touch One\"",
+        0,
+        0,
+        "",
+        1,
+        0,
+        "\"X-Touch_One.mst\"",
+        "\"X-Touch_One\"",
+        "\"X-Touch_One\"",
+    };
+
+    knownSurfaces_["X-Touch One"] = knownSurfaces_["BEHRINGER - X-Touch  One"];
+
+    
+    
+    knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"] = { "MidiSurface",
+        "\"MFTwister\"",
+        0,
+        0,
+        "",
+        1,
+        0,
+        "\"MIDIFighterTwister.mst\"",
+        "\"MIDIFighterTwister\"",
+        "\"MIDIFighterTwister\"",
+    };
+
+    knownSurfaces_["Midi Fighter Twister"] = knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"];
+
+
+    
+    
+    knownSurfaces_["Teensyduino - SCE24"] = { "MidiSurface",
+        "\"SCE24\"",
+        0,
+        0,
+        "",
+        1,
+        0,
+        "\"SCE24.mst\"",
+        "\"SCE24\"",
+        "\"SCE24\"",
+    };
+
+    knownSurfaces_["Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
+
+    
+    
+    
     vector<SurfaceConfig> surfaces;
     
     char midiInName[BUFSZ];
@@ -1542,10 +1594,12 @@ bool Manager::AutoConfigure()
             iniFile << "\t" + surface.name + " " + to_string(surface.numChannels) + " " + to_string(surface.offset) + " " + surface.mstFilename + " " + surface.zoneFolder + " " + surface.fxZoneFolder + GetLineEnding();
 
         iniFile.close();
-        return true;
+        
+        if(surfaces.size() > 0)
+            return true;
+        else
+            return false;
     }
-    
-    //MessageBox(g_hwnd, ("Please check your installation, cannot find " + iniFilePath).c_str(), "Missing CSI.ini", MB_OK);
     
     return false;
 }
@@ -1577,10 +1631,7 @@ void Manager::Init()
     filesystem::path iniFile { iniFilePath };
 
     if (! filesystem::exists(iniFile))
-    {
-        if(! AutoConfigure())
-            return;
-    }
+        AutoConfigure();
     
     int lineNumber = 0;
     
