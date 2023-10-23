@@ -1488,7 +1488,7 @@ bool Manager::AutoConfigure()
         8,
         0,
         "\"X-Touch.mst\"",
-        "\"X-Touch\"",
+        "\"FactoryDefaults/X-Touch\"",
         "\"X-Touch\"",
     };
     
@@ -1504,7 +1504,7 @@ bool Manager::AutoConfigure()
         1,
         0,
         "\"X-Touch_One.mst\"",
-        "\"X-Touch_One\"",
+        "\"FactoryDefaults/X-Touch_One\"",
         "\"X-Touch_One\"",
     };
 
@@ -1520,7 +1520,7 @@ bool Manager::AutoConfigure()
         1,
         0,
         "\"MIDIFighterTwister.mst\"",
-        "\"MIDIFighterTwister\"",
+        "\"FactoryDefaults/MIDIFighterTwister\"",
         "\"MIDIFighterTwister\"",
     };
 
@@ -1534,10 +1534,10 @@ bool Manager::AutoConfigure()
         0,
         0,
         "",
-        1,
+        8,
         0,
         "\"SCE24.mst\"",
-        "\"SCE24\"",
+        "\"FactoryDefaults/SCE24\"",
         "\"SCE24\"",
     };
 
