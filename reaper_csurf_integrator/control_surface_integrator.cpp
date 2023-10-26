@@ -1487,9 +1487,9 @@ bool Manager::AutoConfigure()
         "",
         8,
         0,
-        "\"X-Touch.mst\"",
-        "\"X-Touch\"",
-        "\"X-Touch\"",
+        "X-Touch.mst",
+        "X-Touch",
+        "X-Touch_FX",
     };
     
     knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"]; // Windows
@@ -1503,9 +1503,9 @@ bool Manager::AutoConfigure()
         "",
         1,
         0,
-        "\"X-Touch_One.mst\"",
-        "\"X-Touch_One\"",
-        "\"X-Touch_One\"",
+        "X-Touch_One.mst",
+        "X-Touch_One",
+        "X-Touch_One_FX",
     };
 
     knownSurfaces_["X-Touch One"] = knownSurfaces_["BEHRINGER - X-Touch One"];
@@ -1519,9 +1519,9 @@ bool Manager::AutoConfigure()
         "",
         1,
         0,
-        "\"MIDIFighterTwister.mst\"",
-        "\"MIDIFighterTwister\"",
-        "\"MIDIFighterTwister\"",
+        "MIDIFighterTwister.mst",
+        "MIDIFighterTwister",
+        "MIDIFighterTwister_FX",
     };
 
     knownSurfaces_["Midi Fighter Twister"] = knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"];
@@ -1536,9 +1536,9 @@ bool Manager::AutoConfigure()
         "",
         8,
         0,
-        "\"SCE24.mst\"",
-        "\"SCE24\"",
-        "\"SCE24\"",
+        "SCE24.mst",
+        "SCE24",
+        "SCE24_FX",
     };
 
     knownSurfaces_["Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
@@ -1552,7 +1552,7 @@ bool Manager::AutoConfigure()
     
     for (int i = 0; i < DAW::GetNumMIDIInputs(); i++)
     {
-        if (DAW::GetMIDIInputName(i, midiInName, sizeof(midiInName)) && knownSurfaces_.count(midiInName) > 0)
+        if (DAW::GetMIDIInputName(i, midiInName, sizeof(midiInName)))
         {
             char midiOutName[BUFSZ];
 
@@ -1560,14 +1560,33 @@ bool Manager::AutoConfigure()
             {
                 if (DAW::GetMIDIOutputName(j, midiOutName, sizeof(midiOutName)) && string(midiInName) == string(midiOutName))
                 {
-                    SurfaceConfig surface = knownSurfaces_[midiInName];
+                    SurfaceConfig surface;
 
-                    surface.inPort = i;
-                    surface.outPort = j;
+                    if(knownSurfaces_.count(midiInName) > 0)
+                        surface = knownSurfaces_[midiInName];
+                    else
+                    {
+                        
+                    }
                     
-                    surfaces.push_back(surface);
-                    
-                    break;
+                    if(surface.mstFilename != "" && surface.zoneFolder != "" && surface.fxZoneFolder != "")
+                    {
+                        string CSIZonePath = string(DAW::GetResourcePath()) + "/CSI/Zones/";
+
+                        //filesystem::path CSIZoneFolder { CSIZonePath + surface.zoneFolder };
+
+                        filesystem::path CSIFXZoneFolder { CSIZonePath  + surface.fxZoneFolder };
+
+                        if(! filesystem::exists(CSIFXZoneFolder))
+                            filesystem::create_directory(CSIFXZoneFolder);
+                        
+                        surface.inPort = i;
+                        surface.outPort = j;
+                        
+                        surfaces.push_back(surface);
+                        
+                        break;
+                    }
                 }
             }
         }
