@@ -1479,8 +1479,8 @@ bool Manager::AutoConfigure()
     };
 
     map<string, SurfaceConfig> knownSurfaces_;
-
-    knownSurfaces_["BEHRINGER - X-Touch - INT"] = { "MidiSurface", // Mac
+                            // Mac
+    knownSurfaces_["BEHRINGER - X-Touch - INT"] = { "MidiSurface",
         "\"X-Touch\"",
         0,
         0,
@@ -1491,10 +1491,9 @@ bool Manager::AutoConfigure()
         "X-Touch",
         "X-Touch_FX",
     };
-    
-    knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"]; // Windows
+                   // Windows
+    knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"];
 
-    
     
     knownSurfaces_["BEHRINGER - X-Touch One"] = { "MidiSurface",
         "\"X-Touch One\"",
@@ -1511,7 +1510,6 @@ bool Manager::AutoConfigure()
     knownSurfaces_["X-Touch One"] = knownSurfaces_["BEHRINGER - X-Touch One"];
 
     
-    
     knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"] = { "MidiSurface",
         "\"MFTwister\"",
         0,
@@ -1527,8 +1525,6 @@ bool Manager::AutoConfigure()
     knownSurfaces_["Midi Fighter Twister"] = knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"];
 
 
-    
-    
     knownSurfaces_["Teensyduino - SCE24"] = { "MidiSurface",
         "\"SCE24\"",
         0,
@@ -1544,7 +1540,17 @@ bool Manager::AutoConfigure()
     knownSurfaces_["Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
 
     
-    
+    knownSurfaces_["MCU"] = { "MidiSurface", // Mac
+        "\"MCU\"",
+        0,
+        0,
+        "",
+        8,
+        0,
+        "MCU.mst",
+        "MCU",
+        "MCU_FX",
+    };
     
     vector<SurfaceConfig> surfaces;
     
@@ -1566,7 +1572,12 @@ bool Manager::AutoConfigure()
                         surface = knownSurfaces_[midiInName];
                     else
                     {
+                        string name = midiInName;
                         
+                        if(name.find("MCU") != string::npos)
+                            surface = knownSurfaces_["MCU"];
+                        else if(name.find("Euphonix") != string::npos)
+                            surface = knownSurfaces_["MCU"];
                     }
                     
                     if(surface.mstFilename != "" && surface.zoneFolder != "" && surface.fxZoneFolder != "")
