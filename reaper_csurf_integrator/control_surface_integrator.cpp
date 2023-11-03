@@ -2309,12 +2309,15 @@ string GetSuffix(string widgetName)
 {
     string suffix = "";
     
-    size_t last_index = widgetName.find_last_not_of("0123456789");
-    
-    if(isupper(widgetName.at(last_index)))
-        suffix += widgetName.at(last_index);
+    if( ! widgetName.empty())
+    {
+        size_t last_index = widgetName.find_last_not_of("0123456789");
         
-    suffix +=  widgetName.substr(last_index + 1);
+        if(isupper(widgetName.at(last_index)))
+            suffix += widgetName.at(last_index);
+            
+        suffix +=  widgetName.substr(last_index + 1);
+    }
     
     return suffix;
 }
