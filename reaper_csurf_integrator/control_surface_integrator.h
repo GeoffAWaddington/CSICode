@@ -633,6 +633,7 @@ public:
     void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     int GetChannelNumber();
     void RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
+    void SetFXParamNum(ActionContext* context, int newIndex);
     
     string GetSourceFilePath() { return sourceFilePath_; }
     
@@ -1554,6 +1555,7 @@ public:
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
+    void WidgetMoved(ActionContext* context);
     void DoLearn(ActionContext* context, double value);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget> widget);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget>, int modifier);
@@ -1695,7 +1697,7 @@ public:
             
             fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
             
-            if(zoneFilePaths_.count(zoneName) > 0)
+            if(zoneFilePaths_.count(zoneName) > 0 && fxLayout_ != nullptr)
             {
                 ifstream file(zoneFilePaths_[zoneName].filePath);
                 
@@ -1704,7 +1706,7 @@ public:
             }
         }
     }
-    
+        
     void GoAssociatedZone(string zoneName)
     {
         if(noMapZone_ != nullptr)

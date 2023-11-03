@@ -2144,6 +2144,8 @@ void ActionContext::DoRangeBoundAction(double value)
     if(isValueInverted_)
         value = 1.0 - value;
     
+    widget_->GetZoneManager()->WidgetMoved(this);
+    
     action_->Do(this, value);
 }
 
@@ -2301,6 +2303,22 @@ int Zone::GetChannelNumber()
             channelNumber = widget->GetChannelNumber();
     
     return channelNumber;
+}
+
+string GetSuffix(string widgetName)
+{
+    size_t last_index = widgetName.find_last_not_of("0123456789");
+    return widgetName.substr(last_index + 1);
+}
+
+void Zone::SetFXParamNum(ActionContext* context, int newIndex)
+{
+    string widgetSuffix =  GetSuffix(context->GetWidget()->GetName());
+    
+    for(auto [widget, isUsed] : widgets_)
+        if(GetSuffix(widget->GetName()) == widgetSuffix)
+            for(auto context : GetActionContexts(widget, currentActionContextModifiers_[widget]))
+                context->SetParamIndex(newIndex);
 }
 
 void Zone::GoAssociatedZone(string zoneName)
@@ -3562,6 +3580,90 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
                     }
                 }
             }
+        }
+    }
+}
+
+void ZoneManager::WidgetMoved(ActionContext* context)
+{
+    if(fxLayoutFileLines_.size() < 1)
+        return;
+    
+    if(context->GetZone() != fxLayout_)
+        return;
+    
+    int trackNum = 0;
+    int fxSlotNum = 0;
+    int fxParamNum = 0;
+
+    MediaTrack* track = nullptr;
+    
+    shared_ptr<LearnInfo> info = GetLearnInfo(context->GetWidget());
+    
+    if(info == nullptr)
+        return;
+    
+    if(! info->isLearned)
+    {
+        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        {
+            track = DAW::GetTrack(trackNum);
+            
+            char fxName[BUFSZ];
+            DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            learnFXName_ = fxName;
+                                                                    
+            string paramStr = "";
+            
+            if(context->GetWidget()->GetName().find("Fader") == string::npos)
+            {
+                if(TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
+                    context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
+                
+                int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
+                
+                if(context->GetWidget()->GetName().find("Push") != string::npos)
+                {
+                    if(numSteps == 0)
+                        numSteps = 2;
+                }
+
+                if(numSteps > 1)
+                    context->SetStepValues(SteppedValueDictionary[numSteps]);
+                
+                if(numSteps > 1)
+                {
+                    ostringstream stepStr;
+                    
+                    stepStr << "";
+
+                    stepStr << "[ ";
+                    
+                    for(auto step : SteppedValueDictionary[numSteps])
+                    {
+                        stepStr << std::setprecision(2) << step;
+                        stepStr <<  "  ";
+                    }
+                    
+                    stepStr << "]";
+                    
+                    paramStr = stepStr.str();
+                }
+            }
+           
+            int currentModifier = 0;
+            
+            if(surface_->GetModifiers().size() > 0)
+                currentModifier = surface_->GetModifiers()[0];
+            
+            fxLayout_->SetFXParamNum(context, fxParamNum);
+
+            info->isLearned = true;
+            info->paramNumber = fxParamNum;
+            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+            info->params = paramStr;
+            info->track = DAW::GetTrack(trackNum);
+            info->fxSlotNum = fxSlotNum;
         }
     }
 }
