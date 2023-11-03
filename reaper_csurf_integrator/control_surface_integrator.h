@@ -431,6 +431,7 @@ public:
     shared_ptr<Page> GetPage();
     shared_ptr<ControlSurface> GetSurface();
     int GetParamIndex() { return paramIndex_; }
+    void SetParamIndex(int paramIndex) { paramIndex_ = paramIndex; }
       
     map<string, string> &GetWidgetProperties() { return widgetProperties_; }
     
@@ -620,6 +621,7 @@ public:
     
     void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
     void GoAssociatedZone(string associatedZoneName);
+    void GoAssociatedZone(string associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
     void SetXTouchDisplayColors(string color);
@@ -1668,6 +1670,17 @@ public:
         return surfaceFXLayout_;
     }
       
+    void GoFXLayoutZone(string zoneName, int slotIndex)
+    {
+        if(homeZone_ != nullptr)
+        {
+            ClearFXMapping();
+            ResetOffsets();
+                    
+            homeZone_->GoAssociatedZone(zoneName, slotIndex);
+        }
+    }
+    
     void GoAssociatedZone(string zoneName)
     {
         if(noMapZone_ != nullptr)

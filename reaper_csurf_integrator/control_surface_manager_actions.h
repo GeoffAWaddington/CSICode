@@ -656,7 +656,6 @@ public:
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, slotIndex, fxName, sizeof(fxName));
 
-            context->GetZone()->GetSlotIndex();
             context->GetSurface()->GetZoneManager()->AutoMapFX(fxName, track, slotIndex);
         }
         
@@ -706,6 +705,30 @@ public:
             context->GetPage()->GoAssociatedZone(name);
         else
             context->GetSurface()->GetZoneManager()->GoAssociatedZone(name);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class GoFXLayoutZone : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual string GetName() override { return "GoFXLayoutZone"; }
+    
+    virtual void RequestUpdate(ActionContext* context) override
+    {
+        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive(context->GetStringParam()))
+            context->UpdateWidgetValue(1.0);
+        else
+            context->UpdateWidgetValue(0.0);
+    }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if(value == 0.0)
+            return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->GoFXLayoutZone(context->GetStringParam(), context->GetZone()->GetSlotIndex());
     }
 };
 

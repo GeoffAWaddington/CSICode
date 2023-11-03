@@ -1350,6 +1350,7 @@ void Manager::InitActionsDictionary()
     actions_["AutoMapSlotFX"] =                     make_shared<AutoMapSlotFX>();
     actions_["AutoMapFocusedFX"] =                  make_shared<AutoMapFocusedFX>();
     actions_["GoAssociatedZone"] =                  make_shared<GoAssociatedZone>();
+    actions_["GoFXLayoutZone"] =                    make_shared<GoFXLayoutZone>();
     actions_["ClearFocusedFXParam"] =               make_shared<ClearFocusedFXParam>();
     actions_["ClearFocusedFX"] =                    make_shared<ClearFocusedFX>();
     actions_["ClearSelectedTrackFX"] =              make_shared<ClearSelectedTrackFX>();
@@ -2330,6 +2331,39 @@ void Zone::GoAssociatedZone(string zoneName)
     if(associatedZones_.count(zoneName) > 0)
         for(auto zone : associatedZones_[zoneName])
             zone->Activate();
+}
+
+void Zone::GoAssociatedZone(string zoneName, int slotIndex)
+{
+    if(zoneName == "Track")
+    {
+        for(auto [key, zones] : associatedZones_)
+            for(auto zone : zones)
+                zone->Deactivate();
+        
+        return;
+    }
+    
+    if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
+    {
+        for(auto zone : associatedZones_[zoneName])
+            zone->Deactivate();
+        
+        zoneManager_->GoHome();
+        
+        return;
+    }
+    
+    for(auto [key, zones] : associatedZones_)
+        for(auto zone : zones)
+            zone->Deactivate();
+        
+    if(associatedZones_.count(zoneName) > 0)
+        for(auto zone : associatedZones_[zoneName])
+        {
+            zone->SetSlotIndex(slotIndex);
+            zone->Activate();
+        }
 }
 
 void Zone::ReactivateFXMenuZone()
