@@ -665,7 +665,15 @@ public:
         else
             return shared_ptr<Zone>(nullptr);
     }
-        
+       
+    shared_ptr<Zone> GetFXLayoutZone(string name)
+    {
+        if(associatedZones_.count(name) && associatedZones_[name].size() == 1)
+            return associatedZones_[name][0];
+        else
+            return shared_ptr<Zone>(nullptr);
+    }
+       
     bool GetIsMainZoneOnlyActive()
     {
         for(auto [key, zones] : associatedZones_)
@@ -1030,6 +1038,8 @@ private:
     
     shared_ptr<ZoneManager> sharedThisPtr_ = nullptr;
        
+    vector<string> fxLayoutFileLines_;
+    shared_ptr<Zone> fxLayout_ = nullptr;
     vector<vector<string>> surfaceFXLayout_;
     vector<vector<string>> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
@@ -1678,9 +1688,20 @@ public:
         if(homeZone_ != nullptr)
         {
             ClearFXMapping();
-            ResetOffsets();
-                    
+
+            fxLayoutFileLines_.clear();
+            
             homeZone_->GoAssociatedZone(zoneName, slotIndex);
+            
+            fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
+            
+            if(zoneFilePaths_.count(zoneName) > 0)
+            {
+                ifstream file(zoneFilePaths_[zoneName].filePath);
+                
+                for (string line; getline(file, line) ; )
+                    fxLayoutFileLines_.push_back(line);
+            }
         }
     }
     
