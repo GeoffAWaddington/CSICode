@@ -2307,8 +2307,16 @@ int Zone::GetChannelNumber()
 
 string GetSuffix(string widgetName)
 {
+    string suffix = "";
+    
     size_t last_index = widgetName.find_last_not_of("0123456789");
-    return widgetName.substr(last_index + 1);
+    
+    if(isupper(widgetName.at(last_index)))
+        suffix += widgetName.at(last_index);
+        
+    suffix +=  widgetName.substr(last_index + 1);
+    
+    return suffix;
 }
 
 void Zone::SetFXParamNum(ActionContext* context, int newIndex)
