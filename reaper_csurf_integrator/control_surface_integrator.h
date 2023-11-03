@@ -1672,6 +1672,9 @@ public:
       
     void GoFXLayoutZone(string zoneName, int slotIndex)
     {
+        if(noMapZone_ != nullptr)
+            noMapZone_->Deactivate();
+
         if(homeZone_ != nullptr)
         {
             ClearFXMapping();
