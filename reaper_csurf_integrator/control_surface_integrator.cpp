@@ -1540,7 +1540,7 @@ bool Manager::AutoConfigure()
     };
 
     knownSurfaces_["Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
-
+    knownSurfaces_["Teensyduino - Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
     
     knownSurfaces_["MCU"] = { "MidiSurface", // Mac
         "\"MCU\"",
