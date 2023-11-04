@@ -3223,10 +3223,12 @@ void ZoneManager::SaveTemplatedFXParams()
             fxLayoutFileLines_[0].replace(pos, fxLayout_->GetName().length(), learnFXName_);
             pos += learnFXName_.length();
         }
+
+        fxLayoutFileLines_[0] += GetLineEnding() + GetLineEnding();
         
         string path = "";
         string alias = "";
-        
+         
         if(zoneFilePaths_.count(learnFXName_) > 0)
         {
             path = zoneFilePaths_[learnFXName_].filePath;
