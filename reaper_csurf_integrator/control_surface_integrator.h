@@ -624,6 +624,7 @@ public:
     void GoAssociatedZone(string associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
+    int GetParamIndex(string widgetName);
     void SetXTouchDisplayColors(string color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
@@ -1117,7 +1118,7 @@ private:
     void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
     void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(vector<string> modifiers);
-    
+
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
     string learnFXName_ = "";
@@ -1565,6 +1566,7 @@ public:
     void AutoMapFocusedFX();
     void GoLearnFXParams(MediaTrack* track, int fxSlot);
     void SaveLearnedFXParams();
+    void SaveTemplatedFXParams();
     void EraseLastTouchedControl();
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }

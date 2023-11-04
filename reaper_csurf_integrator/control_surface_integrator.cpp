@@ -1414,6 +1414,7 @@ void Manager::InitActionsDictionary()
     actions_["FocusedFXParam"] =                    make_shared<FocusedFXParam>();
     actions_["FXParam"] =                           make_shared<FXParam>();
     actions_["SaveLearnedFXParams"] =               make_shared<SaveLearnedFXParams>();
+    actions_["SaveTemplatedFXParams"] =             make_shared<SaveTemplatedFXParams>();
     actions_["EraseLastTouchedControl"] =           make_shared<EraseLastTouchedControl>();
     actions_["JSFXParam"] =                         make_shared<JSFXParam>();
     actions_["TCPFXParam"] =                        make_shared<TCPFXParam>();
@@ -2292,6 +2293,19 @@ int Zone::GetSlotIndex()
     if(name_ == "MasterTrackFXMenu")
         return slotIndex_ + zoneManager_->GetMasterTrackFXMenuOffset();
     else return slotIndex_;
+}
+
+int Zone::GetParamIndex(string widgetName)
+{
+    if(widgetsByName_.count(widgetName) > 0)
+    {
+        vector<shared_ptr<ActionContext>> contexts = GetActionContexts(widgetsByName_[widgetName]);
+        
+        if(contexts.size() > 0)
+            return contexts[0]->GetParamIndex();
+    }
+    
+    return -1;
 }
 
 int Zone::GetChannelNumber()
@@ -3196,6 +3210,87 @@ void ZoneManager::EraseLastTouchedControl()
         lastTouched_->fxSlotNum = 0;
         
         lastTouched_ = nullptr;
+    }
+}
+
+void ZoneManager::SaveTemplatedFXParams()
+{
+    if(learnFXName_ != "" && fxLayout_ != nullptr && fxLayoutFileLines_.size() > 0)
+    {
+        size_t pos = 0;
+        while ((pos = fxLayoutFileLines_[0].find(fxLayout_->GetName(), pos)) != std::string::npos)
+        {
+            fxLayoutFileLines_[0].replace(pos, fxLayout_->GetName().length(), learnFXName_);
+            pos += learnFXName_.length();
+        }
+        
+        string path = "";
+        string alias = "";
+        
+        if(zoneFilePaths_.count(learnFXName_) > 0)
+        {
+            path = zoneFilePaths_[learnFXName_].filePath;
+            alias = zoneFilePaths_[learnFXName_].alias;
+        }
+        else
+        {
+            path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/TemplatedFXZones";
+            
+            if(! filesystem::exists(path) || ! filesystem::is_directory(path))
+                filesystem::create_directory(path);
+
+            alias = GetAlias(learnFXName_);
+            
+            path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
+            
+            CSIZoneInfo info;
+            info.filePath = path;
+            info.alias = alias;
+            
+            AddZoneFilePath(learnFXName_, info);
+            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
+        }
+        
+        for(int i = 1; i < fxLayoutFileLines_.size(); i++)
+        {
+            if(fxLayoutFileLines_[i].find("|") == string::npos)
+                continue;
+            
+            vector<string> tokens = GetTokens(fxLayoutFileLines_[i]);
+            
+            if(tokens.size() < 3)
+                continue;
+            
+            int paramIndex = fxLayout_->GetParamIndex(tokens[0]);
+            
+            if(paramIndex > -1)
+            {
+                istringstream layoutLine(fxLayoutFileLines_[i]);
+                vector<string> tokens;
+                string token;
+                
+                ModifierManager modifierManager;
+                
+                while (getline(layoutLine, token, '|'))
+                    tokens.push_back(token);
+
+                if(tokens.size() == 2)
+                    fxLayoutFileLines_[i] = tokens[0] + " " + to_string(paramIndex) + " " + tokens[1];
+            }
+        }
+        
+        ofstream fxZone(path);
+
+        if(fxZone.is_open())
+        {
+            for(auto line : fxLayoutFileLines_)
+                fxZone << line;
+            
+            fxZone.close();
+        }
+
+        fxLayout_ = nullptr;
+        fxLayoutFileLines_.clear();
     }
 }
 
