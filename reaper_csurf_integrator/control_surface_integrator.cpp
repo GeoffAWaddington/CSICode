@@ -3268,16 +3268,28 @@ void ZoneManager::SaveTemplatedFXParams()
             if(paramIndex > -1)
             {
                 istringstream layoutLine(fxLayoutFileLines_[i]);
-                vector<string> tokens;
+                vector<string> lineTokens;
                 string token;
                 
                 ModifierManager modifierManager;
                 
                 while (getline(layoutLine, token, '|'))
-                    tokens.push_back(token);
+                    lineTokens.push_back(token);
 
-                if(tokens.size() == 2)
-                    fxLayoutFileLines_[i] = tokens[0] + " " + to_string(paramIndex) + " " + tokens[1];
+                string replacementString = " " + to_string(paramIndex) + " ";
+                                
+                shared_ptr<Widget> widget = surface_->GetWidgetByName(tokens[0]);
+                                
+                if(widget && lineTokens.size() > 1)
+                {
+                    shared_ptr<LearnInfo> info = GetLearnInfo(widget);
+
+                    if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
+                       replacementString += " " + info->params + " ";
+                }
+                
+                if(lineTokens.size() == 2)
+                    fxLayoutFileLines_[i] = lineTokens[0] + replacementString + lineTokens[1];
             }
         }
         
