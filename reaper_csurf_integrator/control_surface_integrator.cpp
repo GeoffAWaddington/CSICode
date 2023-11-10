@@ -3160,6 +3160,8 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
     }
     else if(noMapZone_ != nullptr)
     {
+        DAW::TrackFX_SetOpen(track, fxSlot, true);
+        
         noMapZone_->SetSlotIndex(fxSlot);
         noMapZone_->Activate();
     }

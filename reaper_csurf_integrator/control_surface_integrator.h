@@ -1738,7 +1738,15 @@ public:
     }
 
     void GoHome()
-    {        
+    {
+        int commandId = DAW::NamedCommandLookup("_S&M_WNCLS4"); // Close FX chain windows
+        if(commandId)
+            DAW::SendCommandMessage(commandId);
+        
+        commandId = DAW::NamedCommandLookup("_S&M_WNCLS3"); // Close floating FX windows
+        if(commandId)
+            DAW::SendCommandMessage(commandId);
+        
         ClearLearnedFXParams();
 
         ClearFXMapping();
