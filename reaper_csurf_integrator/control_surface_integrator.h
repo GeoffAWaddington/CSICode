@@ -634,8 +634,8 @@ public:
     void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     int GetChannelNumber();
     void RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
-    void SetFXParamNum(ActionContext* context, int newIndex);
-    
+    void SetFXParamNum(vector<shared_ptr<Widget>> &widgets, int paramIndex);
+
     string GetSourceFilePath() { return sourceFilePath_; }
     
     virtual string GetType() { return "Zone"; }

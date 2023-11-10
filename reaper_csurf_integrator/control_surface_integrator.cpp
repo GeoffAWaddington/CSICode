@@ -2319,31 +2319,16 @@ int Zone::GetChannelNumber()
     return channelNumber;
 }
 
-string GetSuffix(string widgetName)
+void Zone::SetFXParamNum(vector<shared_ptr<Widget>> &widgets, int paramIndex)
 {
-    string suffix = "";
-    
-    if( ! widgetName.empty())
-    {
-        size_t last_index = widgetName.find_last_not_of("0123456789");
-        
-        if(isupper(widgetName.at(last_index)))
-            suffix += widgetName.at(last_index);
-            
-        suffix +=  widgetName.substr(last_index + 1);
-    }
-    
-    return suffix;
-}
-
-void Zone::SetFXParamNum(ActionContext* context, int newIndex)
-{
-    string widgetSuffix =  GetSuffix(context->GetWidget()->GetName());
-    
-    for(auto [widget, isUsed] : widgets_)
-        if(GetSuffix(widget->GetName()) == widgetSuffix)
-            for(auto context : GetActionContexts(widget, currentActionContextModifiers_[widget]))
-                context->SetParamIndex(newIndex);
+    for(auto paramWidget : widgets)
+        for(auto [widget, isUsed] : widgets_)
+            if(widget == paramWidget)
+            {
+                for(auto context : GetActionContexts(widget, currentActionContextModifiers_[widget]))
+                    context->SetParamIndex(paramIndex);
+                break;
+            }
 }
 
 void Zone::GoAssociatedZone(string zoneName)
@@ -3776,8 +3761,30 @@ void ZoneManager::WidgetMoved(ActionContext* context)
             if(surface_->GetModifiers().size() > 0)
                 currentModifier = surface_->GetModifiers()[0];
             
-            fxLayout_->SetFXParamNum(context, fxParamNum);
+            vector<shared_ptr<Widget>> widgets;
+            
+            widgets.push_back(context->GetWidget());
+            
+            for(int i = 0; i < fxLayoutFileLines_.size(); i++)
+            {
+                vector<string> tokens = GetTokens(fxLayoutFileLines_[i]);
 
+                if(tokens.size() < 1)
+                    continue;
+                
+                if(context->GetWidget()->GetName() == tokens[0])
+                {
+                    if(i < fxLayoutFileLines_.size() - 1)
+                    {
+                        tokens = GetTokens(fxLayoutFileLines_[i + 1]);
+                        if(shared_ptr<Widget> widget = surface_->GetWidgetByName(tokens[0]))
+                            widgets.push_back(widget);
+                    }
+                }
+            }
+            
+            fxLayout_->SetFXParamNum(widgets, fxParamNum);
+            
             info->isLearned = true;
             info->paramNumber = fxParamNum;
             info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
