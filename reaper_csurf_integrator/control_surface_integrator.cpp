@@ -3777,8 +3777,11 @@ void ZoneManager::WidgetMoved(ActionContext* context)
                     if(i < fxLayoutFileLines_.size() - 1)
                     {
                         tokens = GetTokens(fxLayoutFileLines_[i + 1]);
-                        if(shared_ptr<Widget> widget = surface_->GetWidgetByName(tokens[0]))
-                            widgets.push_back(widget);
+                        if(tokens.size() > 0)
+                        {
+                            if(shared_ptr<Widget> widget = surface_->GetWidgetByName(tokens[0]))
+                                widgets.push_back(widget);
+                        }
                     }
                 }
             }
