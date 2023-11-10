@@ -1642,6 +1642,8 @@ public:
         
     void ClearLearnedFXParams()
     {
+        fxLayout_ = nullptr;
+        fxLayoutFileLines_.clear();
         paramList_.clear();
         learnFXName_ = "";
         
@@ -1736,19 +1738,9 @@ public:
     }
 
     void GoHome()
-    {
-        if(learnFXName_ != "")
-        {
-            if(MessageBox(NULL, (GetAlias(learnFXName_) + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
-            {
-                SaveLearnedFXParams();
-            }
-            else
-            {
-                ClearLearnedFXParams();
-            }
-        }
-        
+    {        
+        ClearLearnedFXParams();
+
         ClearFXMapping();
 
         if(noMapZone_ != nullptr && noMapZone_->GetIsActive())
