@@ -3283,7 +3283,22 @@ void ZoneManager::SaveTemplatedFXParams()
         if(fxZone.is_open())
         {
             for(auto line : fxLayoutFileLines_)
+            {
+                string ending = "";
+                
+                string lineEnding = GetLineEnding();
+
+                if(line.length() >= lineEnding.length())
+                    ending = line.substr(line.length() - lineEnding.length(), lineEnding.length());
+
+                if(ending[ending.length() - 1] == '\r')
+                    line = line.substr(0, line.length() - 1);
+                
+                if(ending != lineEnding)
+                    line += GetLineEnding();
+                
                 fxZone << line;
+            }
             
             fxZone.close();
         }
