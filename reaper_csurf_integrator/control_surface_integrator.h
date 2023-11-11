@@ -634,7 +634,7 @@ public:
     void DoAction(shared_ptr<Widget> widget, bool &isUsed, double value);
     int GetChannelNumber();
     void RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
-    void SetFXParamNum(vector<shared_ptr<Widget>> &widgets, int paramIndex);
+    void SetFXParamNum(shared_ptr<Widget> paramWidget, int paramIndex);
 
     string GetSourceFilePath() { return sourceFilePath_; }
     
@@ -647,6 +647,16 @@ public:
     bool GetIsActive() { return isActive_; }
 
     map<int, map<string, LearnFXCell>> &GetLearnFXCells() { return learnFXCells_; }
+    
+    int GetModifier(shared_ptr<Widget> widget)
+    {
+        int modifier = 0;
+        
+        if(currentActionContextModifiers_.count(widget) > 0 )
+            modifier = currentActionContextModifiers_[widget];
+
+        return modifier;
+    }
     
     void AddLearnFXCell(int modifier, string cellAddress, LearnFXCell cell)
     {
@@ -1039,7 +1049,8 @@ private:
     shared_ptr<Zone> homeZone_ = nullptr;
     
     shared_ptr<ZoneManager> sharedThisPtr_ = nullptr;
-       
+      
+    map<int, map<shared_ptr<Widget>, shared_ptr<Widget>>> controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
     shared_ptr<Zone> fxLayout_ = nullptr;
     vector<vector<string>> surfaceFXLayout_;
@@ -1542,7 +1553,6 @@ public:
     shared_ptr<Navigator> GetSelectedTrackNavigator();
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
-    
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(shared_ptr<ControlSurface> surface);
     void SetListenerCategories(string categoryList);
@@ -1556,6 +1566,7 @@ public:
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
+    void GoFXLayoutZone(string zoneName, int slotIndex);
     void WidgetMoved(ActionContext* context);
     void DoLearn(ActionContext* context, double value);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget> widget);
@@ -1685,32 +1696,7 @@ public:
     {
         return surfaceFXLayout_;
     }
-      
-    void GoFXLayoutZone(string zoneName, int slotIndex)
-    {
-        if(noMapZone_ != nullptr)
-            noMapZone_->Deactivate();
-
-        if(homeZone_ != nullptr)
-        {
-            ClearFXMapping();
-
-            fxLayoutFileLines_.clear();
-            
-            homeZone_->GoAssociatedZone(zoneName, slotIndex);
-            
-            fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
-            
-            if(zoneFilePaths_.count(zoneName) > 0 && fxLayout_ != nullptr)
-            {
-                ifstream file(zoneFilePaths_[zoneName].filePath);
-                
-                for (string line; getline(file, line) ; )
-                    fxLayoutFileLines_.push_back(line);
-            }
-        }
-    }
-        
+              
     void GoAssociatedZone(string zoneName)
     {
         if(noMapZone_ != nullptr)

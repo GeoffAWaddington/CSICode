@@ -2319,16 +2319,17 @@ int Zone::GetChannelNumber()
     return channelNumber;
 }
 
-void Zone::SetFXParamNum(vector<shared_ptr<Widget>> &widgets, int paramIndex)
+void Zone::SetFXParamNum(shared_ptr<Widget> paramWidget, int paramIndex)
 {
-    for(auto paramWidget : widgets)
-        for(auto [widget, isUsed] : widgets_)
-            if(widget == paramWidget)
-            {
-                for(auto context : GetActionContexts(widget, currentActionContextModifiers_[widget]))
-                    context->SetParamIndex(paramIndex);
-                break;
-            }
+    for(auto [widget, isUsed] : widgets_)
+    {
+        if(widget == paramWidget)
+        {
+            for(auto context : GetActionContexts(widget, currentActionContextModifiers_[widget]))
+                context->SetParamIndex(paramIndex);
+            break;
+        }
+    }
 }
 
 void Zone::GoAssociatedZone(string zoneName)
@@ -2669,16 +2670,16 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(shared_ptr<Widget> wi
     
     if(currentActionContextModifiers_.count(widget) > 0 && actionContextDictionary_.count(widget) > 0)
     {
-        int modifer = currentActionContextModifiers_[widget];
+        int modifier = currentActionContextModifiers_[widget];
         
-        if(isTouched && isToggled && actionContextDictionary_[widget].count(modifer + 3) > 0)
-            return actionContextDictionary_[widget][modifer + 3];
-        else if(isTouched && actionContextDictionary_[widget].count(modifer + 1) > 0)
-            return actionContextDictionary_[widget][modifer + 1];
-        else if(isToggled && actionContextDictionary_[widget].count(modifer + 2) > 0)
-            return actionContextDictionary_[widget][modifer + 2];
-        else if(actionContextDictionary_[widget].count(modifer) > 0)
-            return actionContextDictionary_[widget][modifer];
+        if(isTouched && isToggled && actionContextDictionary_[widget].count(modifier + 3) > 0)
+            return actionContextDictionary_[widget][modifier + 3];
+        else if(isTouched && actionContextDictionary_[widget].count(modifier + 1) > 0)
+            return actionContextDictionary_[widget][modifier + 1];
+        else if(isToggled && actionContextDictionary_[widget].count(modifier + 2) > 0)
+            return actionContextDictionary_[widget][modifier + 2];
+        else if(actionContextDictionary_[widget].count(modifier) > 0)
+            return actionContextDictionary_[widget][modifier];
     }
 
     return defaultContexts_;
@@ -3275,8 +3276,8 @@ void ZoneManager::SaveTemplatedFXParams()
                        replacementString += " " + info->params + " ";
                 }
                 
-                if(lineTokens.size() == 2)
-                    fxLayoutFileLines_[i] = lineTokens[0] + replacementString + lineTokens[1];
+                if(lineTokens.size() > 0)
+                    fxLayoutFileLines_[i] = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
             }
         }
         
@@ -3706,6 +3707,74 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
     }
 }
 
+void ZoneManager::GoFXLayoutZone(string zoneName, int slotIndex)
+{
+    if(noMapZone_ != nullptr)
+        noMapZone_->Deactivate();
+
+    if(homeZone_ != nullptr)
+    {
+        ClearFXMapping();
+
+        fxLayoutFileLines_.clear();
+        controlDisplayAssociations_.clear();
+        
+        homeZone_->GoAssociatedZone(zoneName, slotIndex);
+        
+        fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
+        
+        if(zoneFilePaths_.count(zoneName) > 0 && fxLayout_ != nullptr)
+        {
+            ifstream file(zoneFilePaths_[zoneName].filePath);
+            
+            for (string line; getline(file, line) ; )
+            {
+                if(line.find("|") != string::npos && fxLayoutFileLines_.size() > 0)
+                {
+                    vector<string> tokens = GetTokens(line);
+                    
+                    if(tokens.size() > 1 && tokens[1] == "FXParamValueDisplay") // This line is a display definition
+                    {
+                        if(fxLayoutFileLines_.back().find("|") != string::npos)
+                        {
+                            vector<string> previousLineTokens = GetTokens(fxLayoutFileLines_.back());
+
+                            if(previousLineTokens.size() > 1 && previousLineTokens[1] == "FXParam") // The previous line was a control Widget definition
+                            {
+                                istringstream ControlModifiersAndWidgetName(previousLineTokens[0]);
+                                vector<string> modifierTokens;
+                                string modifierToken;
+                                
+                                while (getline(ControlModifiersAndWidgetName, modifierToken, '+'))
+                                    modifierTokens.push_back(modifierToken);
+                                
+                                int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
+
+                                shared_ptr<Widget> controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
+                                
+                                
+                                istringstream displayModifiersAndWidgetName(tokens[0]);
+
+                                modifierTokens.clear();
+                                
+                                while (getline(displayModifiersAndWidgetName, modifierToken, '+'))
+                                    modifierTokens.push_back(modifierToken);
+
+                                shared_ptr<Widget> displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
+
+                                if(controlWidget && displayWidget)
+                                    controlDisplayAssociations_[modifier][controlWidget] = displayWidget;
+                            }
+                        }
+                    }
+                }
+                
+                fxLayoutFileLines_.push_back(line);
+            }
+        }
+    }
+}
+
 void ZoneManager::WidgetMoved(ActionContext* context)
 {
     if(fxLayoutFileLines_.size() < 1)
@@ -3773,38 +3842,15 @@ void ZoneManager::WidgetMoved(ActionContext* context)
                 }
             }
            
-            int currentModifier = 0;
-            
-            if(surface_->GetModifiers().size() > 0)
-                currentModifier = surface_->GetModifiers()[0];
-            
-            vector<shared_ptr<Widget>> widgets;
-            
-            widgets.push_back(context->GetWidget());
-            
-            for(int i = 0; i < fxLayoutFileLines_.size(); i++)
-            {
-                vector<string> tokens = GetTokens(fxLayoutFileLines_[i]);
+            shared_ptr<Widget> widget = context->GetWidget();
 
-                if(tokens.size() < 1)
-                    continue;
+            fxLayout_->SetFXParamNum(widget, fxParamNum);
+            
+            int modifier = fxLayout_->GetModifier(widget);
+           
+            if(controlDisplayAssociations_.count(modifier) > 0 && controlDisplayAssociations_[modifier].count(widget) > 0)
+                fxLayout_->SetFXParamNum(controlDisplayAssociations_[modifier][widget], fxParamNum);
                 
-                if(context->GetWidget()->GetName() == tokens[0])
-                {
-                    if(i < fxLayoutFileLines_.size() - 1)
-                    {
-                        tokens = GetTokens(fxLayoutFileLines_[i + 1]);
-                        if(tokens.size() > 0)
-                        {
-                            if(shared_ptr<Widget> widget = surface_->GetWidgetByName(tokens[0]))
-                                widgets.push_back(widget);
-                        }
-                    }
-                }
-            }
-            
-            fxLayout_->SetFXParamNum(widgets, fxParamNum);
-            
             info->isLearned = true;
             info->paramNumber = fxParamNum;
             info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
