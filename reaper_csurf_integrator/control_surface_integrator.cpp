@@ -3211,8 +3211,8 @@ void ZoneManager::SaveTemplatedFXParams()
             fxLayoutFileLines_[0].replace(pos, fxLayout_->GetName().length(), learnFXName_);
             pos += learnFXName_.length();
         }
-
-        fxLayoutFileLines_[0] += GetLineEnding() + GetLineEnding();
+        
+        fxLayoutFileLines_[0] += " \"" + GetAlias(learnFXName_) + "\" " + GetLineEnding() + GetLineEnding();
         
         string path = "";
         string alias = "";
@@ -3239,46 +3239,6 @@ void ZoneManager::SaveTemplatedFXParams()
             
             AddZoneFilePath(learnFXName_, info);
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
-        }
-        
-        for(int i = 1; i < fxLayoutFileLines_.size(); i++)
-        {
-            if(fxLayoutFileLines_[i].find("|") == string::npos)
-                continue;
-            
-            vector<string> tokens = GetTokens(fxLayoutFileLines_[i]);
-            
-            if(tokens.size() < 3)
-                continue;
-            
-            int paramIndex = fxLayout_->GetParamIndex(tokens[0]);
-            
-            if(paramIndex > -1)
-            {
-                istringstream layoutLine(fxLayoutFileLines_[i]);
-                vector<string> lineTokens;
-                string token;
-                
-                ModifierManager modifierManager;
-                
-                while (getline(layoutLine, token, '|'))
-                    lineTokens.push_back(token);
-
-                string replacementString = " " + to_string(paramIndex) + " ";
-                                
-                shared_ptr<Widget> widget = surface_->GetWidgetByName(tokens[0]);
-                                
-                if(widget && lineTokens.size() > 1)
-                {
-                    shared_ptr<LearnInfo> info = GetLearnInfo(widget);
-
-                    if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
-                       replacementString += " " + info->params + " ";
-                }
-                
-                if(lineTokens.size() > 0)
-                    fxLayoutFileLines_[i] = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
-            }
         }
         
         ofstream fxZone(path);
@@ -3843,20 +3803,79 @@ void ZoneManager::WidgetMoved(ActionContext* context)
             }
            
             shared_ptr<Widget> widget = context->GetWidget();
-
-            fxLayout_->SetFXParamNum(widget, fxParamNum);
+            
+            SetParamNum(widget, fxParamNum);
             
             int modifier = fxLayout_->GetModifier(widget);
-           
+            
             if(controlDisplayAssociations_.count(modifier) > 0 && controlDisplayAssociations_[modifier].count(widget) > 0)
-                fxLayout_->SetFXParamNum(controlDisplayAssociations_[modifier][widget], fxParamNum);
-                
+                SetParamNum(controlDisplayAssociations_[modifier][widget], fxParamNum);
+
             info->isLearned = true;
             info->paramNumber = fxParamNum;
             info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
             info->params = paramStr;
             info->track = DAW::GetTrack(trackNum);
             info->fxSlotNum = fxSlotNum;
+        }
+    }
+}
+
+void ZoneManager::SetParamNum(shared_ptr<Widget> widget, int fxParamNum)
+{
+    fxLayout_->SetFXParamNum(widget, fxParamNum);
+
+    // Now modify the in memory file
+    
+    int modifier = fxLayout_->GetModifier(widget);
+
+    for(string &line : fxLayoutFileLines_)
+    {
+        if(line.find(widget->GetName()) != string::npos)
+        {
+            istringstream fullLine(line);
+            vector<string> tokens;
+            string token;
+            
+            while (getline(fullLine, token, '+'))
+                tokens.push_back(token);
+
+            if(tokens.size() < 1)
+                continue;
+            
+            istringstream modifiersAndWidgetName(tokens[0]);
+            
+            tokens.clear();
+
+            while (getline(modifiersAndWidgetName, token, '+'))
+                tokens.push_back(token);
+
+            int lineModifier = surface_->GetModifierManager()->GetModifierValue(tokens);
+
+            if(modifier == lineModifier)
+            {
+                istringstream layoutLine(line);
+                vector<string> lineTokens;
+                string token;
+                
+                ModifierManager modifierManager;
+                
+                while (getline(layoutLine, token, '|'))
+                    lineTokens.push_back(token);
+
+                string replacementString = " " + to_string(fxParamNum) + " ";
+
+                if(widget && lineTokens.size() > 1)
+                {
+                    shared_ptr<LearnInfo> info = GetLearnInfo(widget);
+
+                    if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
+                       replacementString += " " + info->params + " ";
+                }
+
+                if(lineTokens.size() > 0)
+                    line = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
+            }
         }
     }
 }

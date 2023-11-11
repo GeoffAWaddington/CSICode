@@ -1568,6 +1568,8 @@ public:
 
     void GoFXLayoutZone(string zoneName, int slotIndex);
     void WidgetMoved(ActionContext* context);
+    void SetParamNum(shared_ptr<Widget> widget, int fxParamNum);
+
     void DoLearn(ActionContext* context, double value);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget> widget);
     shared_ptr<LearnInfo> GetLearnInfo(shared_ptr<Widget>, int modifier);
