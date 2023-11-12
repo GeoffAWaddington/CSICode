@@ -188,8 +188,7 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        if(context->GetZone()->GetName() == "LearnFXParams")
-            context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
+        context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
     }
 };
 

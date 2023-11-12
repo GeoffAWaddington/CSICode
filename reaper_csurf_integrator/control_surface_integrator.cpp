@@ -3190,6 +3190,20 @@ void ZoneManager::EraseLastTouchedControl()
 {
     if(lastTouched_ != nullptr)
     {
+        if(fxLayout_ != nullptr && fxLayoutFileLines_.size() > 0)
+        {
+            if(shared_ptr<Widget> widget = lastTouched_->fxParamWidget)
+            {
+                for(auto context : fxLayout_->GetActionContexts(widget))
+                    context->SetParamIndex(1);
+                
+                int modifier = fxLayout_->GetModifier(widget);
+                
+                if(controlDisplayAssociations_.count(modifier) > 0 && controlDisplayAssociations_[modifier].count(widget) > 0)
+                    SetParamNum(controlDisplayAssociations_[modifier][widget], 1);
+            }
+        }
+
         lastTouched_->isLearned = false;
         lastTouched_->paramNumber = 0;
         lastTouched_->paramName = "";
@@ -3819,6 +3833,8 @@ void ZoneManager::WidgetMoved(ActionContext* context)
             info->fxSlotNum = fxSlotNum;
         }
     }
+    
+    lastTouched_ = info;
 }
 
 void ZoneManager::SetParamNum(shared_ptr<Widget> widget, int fxParamNum)
