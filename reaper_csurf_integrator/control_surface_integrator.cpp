@@ -3195,7 +3195,7 @@ void ZoneManager::EraseLastTouchedControl()
             if(shared_ptr<Widget> widget = lastTouched_->fxParamWidget)
             {
                 for(auto context : fxLayout_->GetActionContexts(widget))
-                    context->SetParamIndex(1);
+                    SetParamNum(widget, 1);
                 
                 int modifier = fxLayout_->GetModifier(widget);
                 
@@ -3691,6 +3691,8 @@ void ZoneManager::GoFXLayoutZone(string zoneName, int slotIndex)
         ClearFXMapping();
 
         fxLayoutFileLines_.clear();
+        fxLayoutFileLinesOriginal_.clear();
+
         controlDisplayAssociations_.clear();
         
         homeZone_->GoAssociatedZone(zoneName, slotIndex);
@@ -3744,6 +3746,7 @@ void ZoneManager::GoFXLayoutZone(string zoneName, int slotIndex)
                 }
                 
                 fxLayoutFileLines_.push_back(line);
+                fxLayoutFileLinesOriginal_.push_back(line);
             }
         }
     }
@@ -3845,6 +3848,8 @@ void ZoneManager::SetParamNum(shared_ptr<Widget> widget, int fxParamNum)
     
     int modifier = fxLayout_->GetModifier(widget);
 
+    int index = 0;
+    
     for(string &line : fxLayoutFileLines_)
     {
         if(line.find(widget->GetName()) != string::npos)
@@ -3870,29 +3875,38 @@ void ZoneManager::SetParamNum(shared_ptr<Widget> widget, int fxParamNum)
 
             if(modifier == lineModifier)
             {
-                istringstream layoutLine(line);
-                vector<string> lineTokens;
-                string token;
-                
-                ModifierManager modifierManager;
-                
-                while (getline(layoutLine, token, '|'))
-                    lineTokens.push_back(token);
-
-                string replacementString = " " + to_string(fxParamNum) + " ";
-
-                if(widget && lineTokens.size() > 1)
+                if(line.find("|") == string::npos)
                 {
-                    shared_ptr<LearnInfo> info = GetLearnInfo(widget);
-
-                    if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
-                       replacementString += " " + info->params + " ";
+                    line = fxLayoutFileLinesOriginal_[index];
                 }
-
-                if(lineTokens.size() > 0)
-                    line = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
+                else
+                {
+                    istringstream layoutLine(line);
+                    vector<string> lineTokens;
+                    string token;
+                    
+                    ModifierManager modifierManager;
+                    
+                    while (getline(layoutLine, token, '|'))
+                        lineTokens.push_back(token);
+                    
+                    string replacementString = " " + to_string(fxParamNum) + " ";
+                    
+                    if(widget && lineTokens.size() > 1)
+                    {
+                        shared_ptr<LearnInfo> info = GetLearnInfo(widget);
+                        
+                        if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
+                            replacementString += " " + info->params + " ";
+                    }
+                    
+                    if(lineTokens.size() > 0)
+                        line = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
+                }
             }
         }
+        
+        index++;
     }
 }
 

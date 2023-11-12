@@ -1052,6 +1052,7 @@ private:
       
     map<int, map<shared_ptr<Widget>, shared_ptr<Widget>>> controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
+    vector<string> fxLayoutFileLinesOriginal_;
     shared_ptr<Zone> fxLayout_ = nullptr;
     vector<vector<string>> surfaceFXLayout_;
     vector<vector<string>> surfaceFXLayoutTemplate_;
@@ -1657,6 +1658,7 @@ public:
     {
         fxLayout_ = nullptr;
         fxLayoutFileLines_.clear();
+        fxLayoutFileLinesOriginal_.clear();
         paramList_.clear();
         learnFXName_ = "";
         
