@@ -3266,8 +3266,8 @@ void ZoneManager::SaveTemplatedFXParams()
             fxZone.close();
         }
 
-        fxLayout_ = nullptr;
-        fxLayoutFileLines_.clear();
+        ClearLearnedFXParams();
+        GoHome();
     }
 }
 
