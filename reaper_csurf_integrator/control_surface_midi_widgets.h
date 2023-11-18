@@ -633,6 +633,37 @@ public:
     virtual void ForceClear() override
     {
         map<string, string> properties;
+        
+        properties["Row"] = "1";
+        properties["DisplayText"] = "";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
+        ForceValue(properties, 0.0);
+        
+        properties["Row"] = "2";
+        properties["DisplayText"] = "";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
+        ForceValue(properties, 0.0);
+        
+        properties["Row"] = "3";
+        properties["DisplayText"] = "";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
+        ForceValue(properties, 0.0);
+        
+        properties["Row"] = "4";
+        properties["DisplayText"] = "";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
         ForceValue(properties, 0.0);
     }
     
@@ -775,6 +806,33 @@ public:
     virtual void ForceClear() override
     {
         map<string, string> properties;
+        
+        properties["Row"] = "1";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
+        ForceValue(properties, "");
+        
+        properties["Row"] = "2";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
+        ForceValue(properties, "");
+        
+        properties["Row"] = "3";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
+        ForceValue(properties, "");
+        
+        properties["Row"] = "4";
+        properties["TopMargin"] = "0";
+        properties["BottomMargin"] = "63";
+        properties["Font"] = "9";
+
         ForceValue(properties, "");
     }
 
@@ -952,6 +1010,30 @@ public:
 
     virtual void ForceClear() override
     {
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 120;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 127;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 5;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiSysExMessage(&midiSysExData.evt);
+        
         map<string, string> properties;
         ForceValue(properties, 0.0);
     }
