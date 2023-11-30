@@ -185,13 +185,13 @@ struct ActionTemplate
     bool provideFeedback = false;
 };
 
-static void listZoneFiles(const string &path, vector<string> &results)
+static void listFilesOfType(const string &path, vector<string> &results, string type)
 {
     filesystem::path zonePath { path };
     
     if(filesystem::exists(path) && filesystem::is_directory(path))
         for(auto& file : filesystem::recursive_directory_iterator(path))
-            if(file.path().extension() == ".zon")
+            if(file.path().extension() == type)
                 results.push_back(file.path().string());
 }
 
@@ -1468,11 +1468,10 @@ bool Manager::AutoConfigure()
 {
     struct SurfaceConfig
     {
-        string id = "";
+        string type = "";
         string name = "";
         int inPort = 0;
         int outPort = 0;
-        string IPAddr = "";
         int numChannels = 0;
         int offset = 0;
         string mstFilename = "";
@@ -1481,92 +1480,69 @@ bool Manager::AutoConfigure()
     };
 
     map<string, SurfaceConfig> knownSurfaces_;
-                            // Mac
-    knownSurfaces_["BEHRINGER - X-Touch - INT"] = { "MidiSurface",
-        "\"X-Touch\"",
-        0,
-        0,
-        "",
-        8,
-        0,
-        "X-Touch.mst",
-        "X-Touch",
-        "X-Touch_FX",
-    };
-                   // Windows
-    knownSurfaces_["X-Touch"] = knownSurfaces_["BEHRINGER - X-Touch - INT"];
-
     
-    knownSurfaces_["BEHRINGER - X-Touch One"] = { "MidiSurface",
-        "\"X-Touch One\"",
-        0,
-        0,
-        "",
-        1,
-        0,
-        "X-Touch_One.mst",
-        "X-Touch_One",
-        "X-Touch_One_FX",
-    };
+    vector<string> autoConfigFilesToProcess;
+    listFilesOfType(DAW::GetResourcePath() + string("/CSI/Surfaces/Midi/AutoConfig/"), autoConfigFilesToProcess, ".aut"); // recursively find all ".aut" files, starting at AutoConfig Folder
 
-    knownSurfaces_["X-Touch One"] = knownSurfaces_["BEHRINGER - X-Touch One"];
-
+    for(auto autoConfigFilePath : autoConfigFilesToProcess)
+    {
+        vector<string> lines;
     
-    knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"] = { "MidiSurface",
-        "\"MFTwister\"",
-        0,
-        0,
-        "",
-        1,
-        0,
-        "MIDIFighterTwister.mst",
-        "MIDIFighterTwister",
-        "MIDIFighterTwister_FX",
-    };
-
-    knownSurfaces_["Midi Fighter Twister"] = knownSurfaces_["DJ Tech Tools - Midi Fighter Twister"];
-
-
-    knownSurfaces_["Teensyduino - SCE24"] = { "MidiSurface",
-        "\"SCE24\"",
-        0,
-        0,
-        "",
-        8,
-        0,
-        "SCE24.mst",
-        "SCE24",
-        "SCE24_FX",
-    };
-
-    knownSurfaces_["Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
-    knownSurfaces_["Teensyduino - Teensy MIDI"] = knownSurfaces_["Teensyduino - SCE24"];
-    
-    knownSurfaces_["MCU"] = { "MidiSurface", // Mac
-        "\"MCU\"",
-        0,
-        0,
-        "",
-        8,
-        0,
-        "MCU.mst",
-        "MCU",
-        "MCU_FX",
-    };
+        try
+        {
+            ifstream file(autoConfigFilePath);
+            
+            for (string line; getline(file, line) ; )
+            {
+                line = regex_replace(line, regex(TabChars), " ");
+                line = regex_replace(line, regex(CRLFChars), "");
+                
+                line = line.substr(0, line.find("//")); // remove trailing commewnts
+                
+                // Trim leading and trailing spaces
+                line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+                
+                if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                    continue;
+                
+                lines.push_back(line);
+            }
+        }
+        catch (exception &e)
+        {
+        }
+        
+        if(lines.size() != 7)
+            continue;
+        
+        knownSurfaces_[lines[0]].type = "MidiSurface";
+        knownSurfaces_[lines[0]].name = lines[1];
+        knownSurfaces_[lines[0]].numChannels = stoi(lines[2]);
+        knownSurfaces_[lines[0]].offset = stoi(lines[3]);
+        knownSurfaces_[lines[0]].mstFilename = lines[4];
+        knownSurfaces_[lines[0]].zoneFolder = lines[5];
+        knownSurfaces_[lines[0]].fxZoneFolder = lines[6];
+    }
     
     vector<SurfaceConfig> surfaces;
     
-    char midiInName[BUFSZ];
-    
+    char midiInNameBuf[BUFSZ];
+        
     for (int i = 0; i < DAW::GetNumMIDIInputs(); i++)
     {
-        if (DAW::GetMIDIInputName(i, midiInName, sizeof(midiInName)))
+        if (DAW::GetMIDIInputName(i, midiInNameBuf, sizeof(midiInNameBuf)))
         {
-            char midiOutName[BUFSZ];
+            string midiInName(midiInNameBuf);
+
+            char midiOutNameBuf[BUFSZ];
 
             for (int j = 0; j < DAW::GetNumMIDIOutputs(); j++)
             {
-                if (DAW::GetMIDIOutputName(j, midiOutName, sizeof(midiOutName)) && string(midiInName) == string(midiOutName))
+                DAW::GetMIDIOutputName(j, midiOutNameBuf, sizeof(midiOutNameBuf));
+                
+                string midiOutName(midiOutNameBuf);
+                
+                if (string(midiInName) == string(midiOutName))
                 {
                     SurfaceConfig surface;
 
@@ -1585,8 +1561,6 @@ bool Manager::AutoConfigure()
                     if(surface.mstFilename != "" && surface.zoneFolder != "" && surface.fxZoneFolder != "")
                     {
                         string CSIZonePath = string(DAW::GetResourcePath()) + "/CSI/Zones/";
-
-                        //filesystem::path CSIZoneFolder { CSIZonePath + surface.zoneFolder };
 
                         filesystem::path CSIFXZoneFolder { CSIZonePath  + surface.fxZoneFolder };
 
@@ -1614,7 +1588,7 @@ bool Manager::AutoConfigure()
         iniFile << GetLineEnding();
         
         for(auto surface : surfaces)
-            iniFile << surface.id + " " + surface.name + " " + to_string(surface.inPort) + " " + to_string(surface.outPort) + GetLineEnding();
+            iniFile << surface.type + " " + surface.name + " " + to_string(surface.inPort) + " " + to_string(surface.outPort) + GetLineEnding();
         
         iniFile << GetLineEnding();
         
@@ -3760,10 +3734,6 @@ void ZoneManager::WidgetMoved(ActionContext* context)
     if(context->GetZone() != fxLayout_)
         return;
     
-    int trackNum = 0;
-    int fxSlotNum = 0;
-    int fxParamNum = 0;
-
     MediaTrack* track = nullptr;
     
     shared_ptr<LearnInfo> info = GetLearnInfo(context->GetWidget());
@@ -3773,9 +3743,16 @@ void ZoneManager::WidgetMoved(ActionContext* context)
     
     if(! info->isLearned)
     {
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+
         if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             track = DAW::GetTrack(trackNum);
+            
+            if(track == nullptr)
+                return;
             
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
@@ -4057,7 +4034,7 @@ void ZoneManager::RemapAutoZone()
 void ZoneManager::PreProcessZones()
 {
     vector<string> zoneFilesToProcess;
-    listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess); // recursively find all .zon files, starting at zoneFolder
+    listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
        
     if(zoneFilesToProcess.size() == 0)
     {
@@ -4074,7 +4051,7 @@ void ZoneManager::PreProcessZones()
     {
         zoneFilesToProcess.clear();
         
-        listZoneFiles(DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess); // recursively find all .zon files, starting at fxZoneFolder
+        listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
          
         if(sharedThisPtr_ != nullptr)
             for(auto zoneFilename : zoneFilesToProcess)
