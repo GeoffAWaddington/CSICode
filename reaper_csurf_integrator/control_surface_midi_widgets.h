@@ -1875,6 +1875,86 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AsparionDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int displayUpperLower_ = 0;
+    int displayType_ = 0x10;
+    int displayRow_ = 0x12;
+    int channel_ = 0;
+    string lastStringSent_ = "";
+
+public:
+    virtual ~AsparionDisplay_Midi_FeedbackProcessor() {}
+    AsparionDisplay_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), displayUpperLower_(displayUpperLower), displayType_(displayType), displayRow_(displayRow), channel_(channel) { }
+    
+    virtual string GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, "");
+    }
+
+    virtual void SetValue(map<string, string> &properties, string displayText) override
+    {
+        if(displayText != lastStringSent_) // changes since last send
+            ForceValue(properties, displayText);
+    }
+
+    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    {
+        lastStringSent_ = displayText;
+        
+        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        
+        if(displayText == "" || displayText == "-150.00")
+            displayText = "       ";
+
+        int pad = 12;
+        const char* text = displayText.c_str();
+        
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[512];
+        } midiSysExData;
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 12;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayUpperLower_;
+
+        int l = strlen(text);
+        if (pad < l)
+            l = pad;
+        if (l > 200)
+            l = 200;
+        
+        int cnt = 0;
+        while (cnt < l)
+        {
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
+            cnt++;
+        }
+        
+        while (cnt++ < pad)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+        
+        SendMidiSysExMessage(&midiSysExData.evt);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class XTouchDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
