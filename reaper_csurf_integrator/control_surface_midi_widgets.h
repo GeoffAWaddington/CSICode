@@ -1461,6 +1461,51 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AsparionEncoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int displayMode_ = 0;
+    
+public:
+    virtual ~AsparionEncoder_Midi_FeedbackProcessor() {}
+    AsparionEncoder_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    
+    virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+    
+    virtual void SetValue(map<string, string> &properties, double value) override
+    {
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0] + displayMode_, midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
+    }
+
+    virtual void ForceValue(map<string, string> &properties, double value) override
+    {
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0] + displayMode_, midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
+    }
+    
+    int GetMidiValue(map<string, string> &properties, double value)
+    {
+        displayMode_ = 2;
+        
+        if(properties.count("RingStyle") > 0)
+        {
+            if(properties["RingStyle"] == "Fill")
+                displayMode_ = 1;
+            else if(properties["RingStyle"] == "Dot")
+                displayMode_ = 2;
+        }
+
+        return value * 128;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ConsoleOneVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

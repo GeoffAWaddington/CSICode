@@ -975,6 +975,10 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         {
             feedbackProcessor = make_shared<Encoder_Midi_FeedbackProcessor>(surface, widget, message1);
         }
+        else if(widgetType == "FB_AsparionEncoder" && size == 4)
+        {
+            feedbackProcessor = make_shared<AsparionEncoder_Midi_FeedbackProcessor>(surface, widget, message1);
+        }
         else if(widgetType == "FB_ConsoleOneVUMeter" && size == 4)
         {
             feedbackProcessor = make_shared<ConsoleOneVUMeter_Midi_FeedbackProcessor>(surface, widget, message1);
