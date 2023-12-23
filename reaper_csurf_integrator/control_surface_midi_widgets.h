@@ -1632,6 +1632,50 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AsparionVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int displayType_ = 0x14;
+    int channelNumber_ = 0;
+    int lastMidiValue_ = 0;
+    bool isClipOn_ = false;
+    bool isRight_ = false;
+
+public:
+    virtual ~AsparionVUMeter_Midi_FeedbackProcessor() {}
+    AsparionVUMeter_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, int displayType, int channelNumber, bool isRight) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber),  isRight_(isRight) {}
+    
+    virtual string GetName() override { return "AsparionVUMeter_Midi_FeedbackProcessor"; }
+
+    virtual void ForceClear() override
+    {
+        map<string, string> properties;
+        ForceValue(properties, 0.0);
+    }
+
+    virtual void SetValue(map<string, string> &properties, double value) override
+    {
+        SendMidiMessage(isRight_ ? 0xd1 : 0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
+    }
+
+    virtual void ForceValue(map<string, string> &properties, double value) override
+    {
+        ForceMidiMessage(isRight_ ? 0xd1 : 0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
+    }
+    
+    int GetMidiValue(double value)
+    {
+        //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
+        int midiValue = value * 0x0f;
+        if(midiValue > 0x0d)
+            midiValue = 0x0d;
+
+        return midiValue;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FPVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

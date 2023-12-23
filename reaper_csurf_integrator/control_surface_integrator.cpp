@@ -1003,6 +1003,14 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             
             surface->SetHasMCUMeters(displayType);
         }
+        else if((widgetType == "FB_AsparionVUMeterL" || widgetType == "FB_AsparionVUMeterR") && size == 2)
+        {
+            bool isRight = widgetType == "FB_AsparionVUMeterR" ? true : false;
+            
+            feedbackProcessor = make_shared<AsparionVUMeter_Midi_FeedbackProcessor>(surface, widget, 0x14, stoi(tokenLines[i][1]), isRight);
+            
+            surface->SetHasMCUMeters(0x14);
+        }
         else if(widgetType == "FB_SCE24LEDButton" && size == 4)
         {
             feedbackProcessor = make_shared<SCE24TwoStateLED_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
