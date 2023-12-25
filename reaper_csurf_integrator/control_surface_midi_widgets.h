@@ -1501,7 +1501,7 @@ public:
                 displayMode_ = 2;
         }
 
-        return value * 128;
+        return value * 127;
     }
 };
 
