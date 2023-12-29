@@ -1262,6 +1262,55 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class AsparionRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    int preventUpdateTrackColors_ = false;
+
+public:
+    virtual ~AsparionRGB_Midi_FeedbackProcessor() {}
+    AsparionRGB_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    
+    virtual string GetName() override { return "AsparionRGB_Midi_FeedbackProcessor"; }
+    
+    virtual void ForceClear() override
+    {
+        rgba_color color;
+        ForceColorValue(color);
+    }
+
+    virtual void SetColorValue(rgba_color color) override
+    {
+        if(color != lastColor_)
+            ForceColorValue(color);
+    }
+
+    virtual void ForceColorValue(rgba_color color) override
+    {
+        lastColor_ = color;
+        
+        SendMidiMessage(0x90, midiFeedbackMessage1_->midi_message[1], color.r / 2);  // max 127 allowed in Midi byte 3
+        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], color.g / 2);
+        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], color.b / 2);
+    }
+    
+    virtual void UpdateTrackColors() override
+    {
+        if(surface_->GetTrackColorForChannel(widget_->GetChannelNumber() - 1) != lastColor_)
+            ForceUpdateTrackColors();
+    }
+    
+    virtual void ForceUpdateTrackColors() override
+    {
+        if(preventUpdateTrackColors_)
+            return;
+        
+        ForceColorValue(surface_->GetTrackColorForChannel(widget_->GetChannelNumber() - 1));
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Fader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1972,9 +2021,15 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x66;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 12;
+        if (displayRow_ != 3)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
+        
+        if (displayRow_ != 3)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 12;
+        else
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 8;
+        
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayUpperLower_;
 
         int l = strlen(text);

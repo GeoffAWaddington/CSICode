@@ -943,6 +943,10 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         {
             feedbackProcessor = make_shared<MFT_RGB_Midi_FeedbackProcessor>(surface, widget, message1);
         }
+        else if(widgetType == "FB_AsparionRGB" && size == 4)
+        {
+            feedbackProcessor = make_shared<AsparionRGB_Midi_FeedbackProcessor>(surface, widget, message1);
+        }
         else if(widgetType == "FB_FaderportRGB" && size == 4)
         {
             feedbackProcessor = make_shared<FaderportRGB_Midi_FeedbackProcessor>(surface, widget, message1);
@@ -1042,12 +1046,14 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
             else if(widgetType == "FB_MCUXTDisplayLower")
                 feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
         }
-        else if((widgetType == "FB_AsparionDisplayUpper" || widgetType == "FB_AsparionDisplayLower") && size == 2)
+        else if((widgetType == "FB_AsparionDisplayUpper" || widgetType == "FB_AsparionDisplayLower" || widgetType == "FB_AsparionDisplayEncoder") && size == 2)
         {
             if(widgetType == "FB_AsparionDisplayUpper")
                 feedbackProcessor = make_shared<AsparionDisplay_Midi_FeedbackProcessor>(surface, widget, 0x01, 0x14, 0x1A, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_AsparionDisplayLower")
                 feedbackProcessor = make_shared<AsparionDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, 0x14, 0x1A, stoi(tokenLines[i][1]));
+            else if(widgetType == "FB_AsparionDisplayEncoder")
+                feedbackProcessor = make_shared<AsparionDisplay_Midi_FeedbackProcessor>(surface, widget, 0x03, 0x14, 0x19, stoi(tokenLines[i][1]));
         }
         else if((widgetType == "FB_XTouchDisplayUpper" || widgetType == "FB_XTouchDisplayLower" || widgetType == "FB_XTouchXTDisplayUpper" || widgetType == "FB_XTouchXTDisplayLower") && size == 2)
         {
