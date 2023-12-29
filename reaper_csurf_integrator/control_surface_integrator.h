@@ -2829,8 +2829,8 @@ public:
     
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
-    vector<rgba_color> GetTrackColors();
-    
+    rgba_color GetTrackColorForChannel(int channel);
+
     bool GetIsRewinding() { return isRewinding_; }
     bool GetIsFastForwarding() { return isFastForwarding_; }
 

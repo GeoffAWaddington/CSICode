@@ -2183,7 +2183,10 @@ public:
     {
         bool shouldUpdate = false;
           
-        vector<rgba_color> trackColors = surface_->GetTrackColors();
+        vector<rgba_color> trackColors;
+        
+        for(int i = 0; i < currentTrackColors_.size(); i++)
+            trackColors.push_back(surface_->GetTrackColorForChannel(i));
         
         for(int i = 0; i < trackColors.size(); i++)
         {
@@ -2217,8 +2220,11 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
 
-        vector<rgba_color> trackColors = surface_->GetTrackColors();
+        vector<rgba_color> trackColors;
         
+        for(int i = 0; i < currentTrackColors_.size(); i++)
+            trackColors.push_back(surface_->GetTrackColorForChannel(i));
+
         for(int i = 0; i < trackColors.size(); i++)
         {
             if(lastStringSent_ == "")

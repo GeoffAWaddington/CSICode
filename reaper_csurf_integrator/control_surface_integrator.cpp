@@ -4669,28 +4669,24 @@ void ControlSurface::ForceUpdateTrackColors()
         processor->ForceUpdateTrackColors();
 }
 
-vector<rgba_color> ControlSurface::GetTrackColors()
+rgba_color ControlSurface::GetTrackColorForChannel(int channel)
 {
+    rgba_color white;
+    white.r = 255;
+    white.g = 255;
+    white.b = 255;
+
+    if(channel < 0 || channel >= numChannels_)
+        return white;
+    
     if(fixedTrackColors_.size() == numChannels_)
-        return fixedTrackColors_;
+        return fixedTrackColors_[channel];
     else
     {
-        rgba_color white;
-        white.r = 255;
-        white.g = 255;
-        white.b = 255;
-
-        vector<rgba_color> colors;
-        
-        for(int i = 0; i < numChannels_; i++)
-        {
-            if(MediaTrack* track = page_->GetNavigatorForChannel(i + channelOffset_)->GetTrack())
-                colors.push_back(DAW::GetTrackColor(track));
-            else
-                colors.push_back(white);
-        }
-        
-        return colors;
+        if(MediaTrack* track = page_->GetNavigatorForChannel(channel + channelOffset_)->GetTrack())
+            return DAW::GetTrackColor(track);
+        else
+            return white;
     }
 }
 
