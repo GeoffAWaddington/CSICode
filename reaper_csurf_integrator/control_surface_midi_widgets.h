@@ -1290,9 +1290,9 @@ public:
     {
         lastColor_ = color;
         
-        SendMidiMessage(0x90, midiFeedbackMessage1_->midi_message[1], color.r / 2);  // max 127 allowed in Midi byte 3
-        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], color.g / 2);
-        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], color.b / 2);
+        SendMidiMessage(0x91, midiFeedbackMessage1_->midi_message[1], color.r / 2);  // max 127 allowed in Midi byte 3
+        SendMidiMessage(0x92, midiFeedbackMessage1_->midi_message[1], color.g / 2);
+        SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], color.b / 2);
     }
     
     virtual void UpdateTrackColors() override
@@ -2007,6 +2007,10 @@ public:
             displayText = "       ";
 
         int pad = 12;
+        
+        if(displayRow_ == 3)
+            pad = 8;
+        
         const char* text = displayText.c_str();
         
         struct
