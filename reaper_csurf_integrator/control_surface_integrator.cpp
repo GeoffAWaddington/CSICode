@@ -946,6 +946,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
         else if(widgetType == "FB_AsparionRGB" && size == 4)
         {
             feedbackProcessor = make_shared<AsparionRGB_Midi_FeedbackProcessor>(surface, widget, message1);
+            
+            if(feedbackProcessor)
+                surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
         }
         else if(widgetType == "FB_FaderportRGB" && size == 4)
         {
