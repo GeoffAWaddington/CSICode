@@ -13,8 +13,6 @@
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
 
-WDL_Mutex WDL_mutex;
-
 string GetLineEnding()
 {
 #ifdef WIN32
