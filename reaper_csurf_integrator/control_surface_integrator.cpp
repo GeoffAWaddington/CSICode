@@ -759,7 +759,7 @@ static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> actio
             else if(regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
                 deltaValue = stod(strVal.substr( 1, strVal.length() - 2 ));
             else if(regex_match(strVal, regex("[(]-?[0-9]+[)]")))
-                acceleratedTickValues.push_back(stod(strVal.substr( 1, strVal.length() - 2 )));
+                acceleratedTickValues.push_back(stoi(strVal.substr( 1, strVal.length() - 2 )));
             else if(regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
             {
                 istringstream acceleratedDeltaValueStream(strVal.substr( 1, strVal.length() - 2 ));
@@ -774,7 +774,7 @@ static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> actio
                 string tickValue;
                 
                 while (getline(acceleratedTickValueStream, tickValue, ','))
-                    acceleratedTickValues.push_back(stod(tickValue));
+                    acceleratedTickValues.push_back(stoi(tickValue));
             }
             else if(regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
             {
@@ -818,7 +818,7 @@ static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> actio
         if(stepSize != 0.0)
         {
             stepSize *= 10000.0;
-            int baseTickCount = TheManager->GetBaseTickCount(steppedValues.size());
+            int baseTickCount = TheManager->GetBaseTickCount((int)steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }
@@ -869,7 +869,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     
     for(int i = 0; i < tokenLines.size(); i++)
     {
-        int size = tokenLines[i].size();
+        int size = (int)tokenLines[i].size();
         
         string widgetType = tokenLines[i][0];
 
@@ -2158,8 +2158,8 @@ void ActionContext::DoSteppedValueAction(double delta)
     {
         steppedValuesIndex_++;
         
-        if(steppedValuesIndex_ > steppedValues_.size() - 1)
-            steppedValuesIndex_ = steppedValues_.size() - 1;
+        if(steppedValuesIndex_ > (int)steppedValues_.size() - 1)
+            steppedValuesIndex_ = (int)steppedValues_.size() - 1;
         
         DoRangeBoundAction(steppedValues_[steppedValuesIndex_]);
     }
@@ -2187,7 +2187,7 @@ void ActionContext::DoAcceleratedSteppedValueAction(int accelerationIndex, doubl
         accumulatedIncTicks_ = accumulatedIncTicks_ - 1 < 0 ? 0 : accumulatedIncTicks_ - 1;
     }
     
-    accelerationIndex = accelerationIndex > acceleratedTickValues_.size() - 1 ? acceleratedTickValues_.size() - 1 : accelerationIndex;
+    accelerationIndex = accelerationIndex > (int)acceleratedTickValues_.size() - 1 ? (int)acceleratedTickValues_.size() - 1 : accelerationIndex;
     accelerationIndex = accelerationIndex < 0 ? 0 : accelerationIndex;
     
     if(delta > 0 && accumulatedIncTicks_ >= acceleratedTickValues_[accelerationIndex])
@@ -2197,8 +2197,8 @@ void ActionContext::DoAcceleratedSteppedValueAction(int accelerationIndex, doubl
         
         steppedValuesIndex_++;
         
-        if(steppedValuesIndex_ > steppedValues_.size() - 1)
-            steppedValuesIndex_ = steppedValues_.size() - 1;
+        if(steppedValuesIndex_ > (int)steppedValues_.size() - 1)
+            steppedValuesIndex_ = (int)steppedValues_.size() - 1;
         
         DoRangeBoundAction(steppedValues_[steppedValuesIndex_]);
     }
@@ -2218,7 +2218,7 @@ void ActionContext::DoAcceleratedSteppedValueAction(int accelerationIndex, doubl
 
 void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double delta)
 {
-    accelerationIndex = accelerationIndex > acceleratedDeltaValues_.size() - 1 ? acceleratedDeltaValues_.size() - 1 : accelerationIndex;
+    accelerationIndex = accelerationIndex > (int)acceleratedDeltaValues_.size() - 1 ? (int)acceleratedDeltaValues_.size() - 1 : accelerationIndex;
     accelerationIndex = accelerationIndex < 0 ? 0 : accelerationIndex;
     
     if(delta > 0.0)
@@ -4557,7 +4557,7 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TrackNavigationManager::RebuildTracks()
 {
-    int oldTracksSize = tracks_.size();
+    int oldTracksSize = (int)tracks_.size();
     
     tracks_.clear();
     
@@ -4583,7 +4583,7 @@ void TrackNavigationManager::RebuildSelectedTracks()
     if(currentTrackVCAFolderMode_ != 3)
         return;
 
-    int oldTracksSize = selectedTracks_.size();
+    int oldTracksSize = (int)selectedTracks_.size();
     
     selectedTracks_.clear();
     

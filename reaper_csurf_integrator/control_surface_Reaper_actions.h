@@ -1783,7 +1783,7 @@ public:
         
         if(MediaTrack* track = context->GetTrack())
         {
-            int mode = DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
+            int mode = (int)DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
             
             if(mode == 0)
                 mode = 1; // switch to pre FX
@@ -2106,7 +2106,7 @@ public:
         
         if(MediaTrack* track = context->GetTrack())
         {
-            int mode = DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "I_SENDMODE");
+            int mode = (int)DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "I_SENDMODE");
             
             if(mode == 0)
                 mode = 1; // switch to pre FX
@@ -2871,7 +2871,7 @@ public:
             
             string inputDisplay = "";
             
-            int input = DAW::GetMediaTrackInfo_Value(track, "I_RECINPUT");
+            int input = (int)DAW::GetMediaTrackInfo_Value(track, "I_RECINPUT");
 
             if(input < 0)
                 inputDisplay = "None";
@@ -3363,7 +3363,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName(DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
+            context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName((int)DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
     }
     
     virtual void Do(ActionContext* context, double value) override
@@ -3373,7 +3373,7 @@ public:
         
         if(MediaTrack* track = context->GetTrack())
         {
-            int autoModeIndex_ = DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE");
+            int autoModeIndex_ = (int)DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE");
             
             if(autoModeIndex_ == 2) // skip over write mode when cycling
                 autoModeIndex_ += 2;
@@ -3446,7 +3446,7 @@ public:
     virtual void RequestUpdate(ActionContext* context) override
     {
         if(MediaTrack* track = context->GetTrack())
-            context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName(DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
+            context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName((int)DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
     }
 };
 

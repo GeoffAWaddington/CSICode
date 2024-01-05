@@ -441,7 +441,7 @@ class FPTwoStateRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    double active_ = 0.0;
+    bool active_ = 0.0;
     
 public:
     virtual ~FPTwoStateRGB_Midi_FeedbackProcessor() {}
@@ -459,7 +459,7 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double active) override
     {
-        active_ = active;
+        active_ = (bool)active;
     }
     
     virtual void SetColorValue(rgba_color color) override
@@ -1050,7 +1050,7 @@ public:
     
     int GetMidiValue(map<string, string> &properties, double value)
     {
-        int valueInt = value * 127;
+        int valueInt = int(value * 127);
         
         int displayMode = 0;
         
@@ -1316,7 +1316,7 @@ class Fader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 private:
     bool shouldSetToZero_ = false;
-    int timeZeroValueReceived = 0.0;
+    int timeZeroValueReceived = 0;
     
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
@@ -1344,20 +1344,20 @@ public:
         if(value == 0.0)
         {
             shouldSetToZero_ = true;
-            timeZeroValueReceived = DAW::GetCurrentNumberOfMilliseconds();
+            timeZeroValueReceived = (int)DAW::GetCurrentNumberOfMilliseconds();
             return;
         }
         else
             shouldSetToZero_ = false;
     
-        int volint = value * 16383.0;
+        int volint = int(value * 16383.0);
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
     }
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        int volint = value * 16383.0;
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
+        int volInt = int(value * 16383.0);
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volInt&0x7f, (volInt>>7)&0x7f);
     }
 };
 
@@ -1367,7 +1367,7 @@ class FaderportClassicFader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackPr
 {
 private:
     bool shouldSetToZero_ = false;
-    int timeZeroValueReceived = 0.0;
+    int timeZeroValueReceived = 0;
     
 public:
     virtual ~FaderportClassicFader14Bit_Midi_FeedbackProcessor() {}
@@ -1397,18 +1397,18 @@ public:
         if(value == 0.0)
         {
             shouldSetToZero_ = true;
-            timeZeroValueReceived = DAW::GetCurrentNumberOfMilliseconds();
+            timeZeroValueReceived = (int)DAW::GetCurrentNumberOfMilliseconds();
             return;
         }
         else
             shouldSetToZero_ = false;
     
-        int volint = value * 1024.0;
+        int volInt = int(value * 1024.0);
         
-        if(midiFeedbackMessage1_->midi_message[2] != ((volint>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volint&0x7f))
+        if(midiFeedbackMessage1_->midi_message[2] != ((volInt>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volInt&0x7f))
         {
-            midiFeedbackMessage1_->midi_message[2] = (volint>>7)&0x7f;
-            midiFeedbackMessage2_->midi_message[2] = volint&0x7f;
+            midiFeedbackMessage1_->midi_message[2] = (volInt>>7)&0x7f;
+            midiFeedbackMessage2_->midi_message[2] = volInt&0x7f;
          
             SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
             SendMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], midiFeedbackMessage2_->midi_message[2]);
@@ -1417,10 +1417,10 @@ public:
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        int volint = value * 16383.0;
+        int volInt = int(value * 16383.0);
         
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], (volint>>7)&0x7f);
-        ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], volint&0x7f);
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], (volInt>>7)&0x7f);
+        ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], volInt&0x7f);
     }
 };
 
@@ -1442,12 +1442,12 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], value * 127.0);
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value * 127.0));
     }
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], value * 127.0);
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value * 127.0));
     }
 };
 
@@ -1479,7 +1479,7 @@ public:
     
     int GetMidiValue(map<string, string> &properties, double value)
     {
-        int valueInt = value * 127;
+        int valueInt = int(value * 127);
         
         int displayMode = 0;
         
@@ -1550,7 +1550,7 @@ public:
                 displayMode_ = 2;
         }
 
-        return value * 127;
+        return int(value * 127);
     }
 };
 
@@ -1580,7 +1580,7 @@ public:
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(value));
     }
     
-    double GetMidiValue(double value)
+    int GetMidiValue(double value)
     {
         double dB = VAL2DB(normalizedToVol(value)) + 2.5;
         
@@ -1591,7 +1591,7 @@ public:
         else
             midiVal = pow(10.0, dB / 60) * 96;
 
-        return midiVal;
+        return (int)midiVal;
     }
 };
 
@@ -1617,12 +1617,12 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], fabs(1.0 - value) * 127.0);
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value) * 127.0));
     }
 
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], fabs(1.0 - value) * 127.0);
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value) * 127.0));
     }
 };
 
@@ -1656,7 +1656,7 @@ public:
         //Master Level 2 : 0xd1, 0x1L
         //L = 0x0 – 0xD = Meter level 0% thru 100% (does not affect peak indicator)
         
-        int midiValue = value * 0x0f;
+        int midiValue = int(value * 0x0f);
         
         if(midiValue > 0x0d)
             midiValue = 0x0d;
@@ -1673,7 +1673,7 @@ public:
         //Master Level 2 : 0xd1, 0x1L
         //L = 0x0 – 0xD = Meter level 0% thru 100% (does not affect peak indicator)
         
-        int midiValue = value * 0x0f;
+        int midiValue = int(value * 0x0f);
         
         if(midiValue > 0x0d)
             midiValue = 0x0d;
@@ -1717,7 +1717,7 @@ public:
     int GetMidiValue(double value)
     {
         //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
-        int midiValue = value * 0x0f;
+        int midiValue = int(value * 0x0f);
         if(midiValue > 0x0d)
             midiValue = 0x0d;
 
@@ -1761,7 +1761,7 @@ public:
     int GetMidiValue(double value)
     {
         //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
-        int midiValue = value * 0x0f;
+        int midiValue = int(value * 0x0f);
         if(midiValue > 0x0d)
             midiValue = 0x0d;
 
@@ -1807,7 +1807,7 @@ public:
 
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        lastMidiValue_ = value;
+        lastMidiValue_ = (int)value;
         if(channelNumber_ < 8)
         {
             ForceMidiMessage(0xd0 + channelNumber_, GetMidiValue(value), 0);
@@ -1819,7 +1819,7 @@ public:
     int GetMidiValue(double value)
     {
         //Dn, vv   : n meter address, vv meter value (0...7F)
-        int midiValue = value * 0xa0;
+        int midiValue = int(value * 0xa0);
 
         return midiValue;
     }
@@ -1878,12 +1878,12 @@ public:
         
         if (channel_ < 8)
         {
-            SendMidiMessage(0xb0, channel_ + 0x30, lastValue_ * 127.0);
+            SendMidiMessage(0xb0, channel_ + 0x30, int(lastValue_ * 127.0));
             SendMidiMessage(0xb0, channel_ + 0x38, GetValueBarType(properties));
         }
         else
         {
-            SendMidiMessage(0xb0, channel_ - 8 + 0x40, lastValue_ * 127.0);
+            SendMidiMessage(0xb0, channel_ - 8 + 0x40, int(lastValue_ * 127.0));
             SendMidiMessage(0xb0, channel_ - 8 + 0x48, GetValueBarType(properties));
         }
     }
@@ -1946,7 +1946,7 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
         
-        int l = strlen(text);
+        int l = (int)strlen(text);
         if (pad < l)
             l = pad;
         if (l > 200)
@@ -2035,7 +2035,7 @@ public:
         else
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 8;
 
-        int l = strlen(text);
+        int l = (int)strlen(text);
         if (pad < l)
             l = pad;
         if (l > 200)
@@ -2214,7 +2214,7 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
         
-        int l = strlen(text);
+        int l = (int)strlen(text);
         if (pad < l)
             l = pad;
         if (l > 200)
@@ -2416,7 +2416,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;   // yy line number 0-3
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = align;         // zz alignment flag 0000000=centre, see manual for other setups.
         
-        int length = strlen(text);
+        int length = (int)strlen(text);
         
         if (length > 30)
             length = 30;
@@ -2561,7 +2561,7 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
         
-        int l = strlen(text);
+        int l = (int)strlen(text);
         if (pad < l)
             l = pad;
         if (l > 200)

@@ -462,7 +462,7 @@ public:
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
     double GetStepSize() { return deltaValue_; }
     void   SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
-    int    GetNumberOfSteppedValues() { return steppedValues_.size(); }
+    int    GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
     void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
     
@@ -943,7 +943,7 @@ private:
 public:
     Widget(shared_ptr<ControlSurface> surface, string name) : surface_(surface), name_(name)
     {
-        int index = name.length() - 1;
+        int index = (int)name.length() - 1;
         if(isdigit(name[index]))
         {
             while(isdigit(name[index]))
@@ -1996,7 +1996,7 @@ public:
         {
             if(layout.size() > 0 && layout[0] == "WidgetTypes")
             {
-                numGroups = layout.size() - 1;
+                numGroups = (int)layout.size() - 1;
                 break;
             }
         }
@@ -2157,13 +2157,13 @@ public:
                     
                     params.push_back("]");
                  
-                    propertiesOffset += params.size();
+                    propertiesOffset += (int)params.size();
                     
                     GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
                 }
                                        
                 if(tokens.size() > propertiesOffset)
-                    GetProperties(propertiesOffset,  tokens.size(), tokens, def.paramWidgetProperties);
+                    GetProperties(propertiesOffset, (int)tokens.size(), tokens, def.paramWidgetProperties);
                 
                 if(getline(autoFXFile, line))
                 {
@@ -2178,7 +2178,7 @@ public:
                         def.paramName = tokens[2];
                         
                         if(tokens.size() > 3)
-                            GetProperties(3, tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
+                            GetProperties(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
                     }
                 }
                 else
@@ -2195,7 +2195,7 @@ public:
                         GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         if(tokens.size() > 3)
-                            GetProperties(3, tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
+                            GetProperties(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
                     }
                 }
                 else
@@ -3453,7 +3453,7 @@ private:
             if(trackOffset_ <  0)
                 trackOffset_ =  0;
             
-            int top = GetNumTracks() - trackNavigators_.size();
+            int top = GetNumTracks() - (int)trackNavigators_.size();
             
             if(trackOffset_ >  top)
                 trackOffset_ = top;
@@ -3561,10 +3561,10 @@ public:
     void NextInputMonitorMode(MediaTrack* track)
     {
         // I_RECMON : int * : record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
-        int recMonitorMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
+        int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
 
         // I_RECMONITEMS : int * : monitor items while recording (0=off, 1=on)
-        int recMonitorItemMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
+        int recMonitorItemMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
 
         if(recMonitorMode == 0)
         {
@@ -3599,10 +3599,10 @@ public:
     string GetCurrentInputMonitorMode(MediaTrack* track)
     {
         // I_RECMON : int * : record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
-        int recMonitorMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
+        int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
 
         // I_RECMONITEMS : int * : monitor items while recording (0=off, 1=on)
-        int recMonitorItemMode = DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
+        int recMonitorItemMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
 
         if(recMonitorMode == 0)
             return "Off";
@@ -3639,9 +3639,9 @@ public:
         if(currentTrackVCAFolderMode_ != 0)
             return;
 
-        int numTracks = tracks_.size();
+        int numTracks = (int)tracks_.size();
         
-        if(numTracks <= trackNavigators_.size())
+        if(numTracks <= (int)trackNavigators_.size())
             return;
        
         trackOffset_ += amount;
@@ -3649,7 +3649,7 @@ public:
         if(trackOffset_ <  0)
             trackOffset_ =  0;
         
-        int top = numTracks - trackNavigators_.size();
+        int top = numTracks - (int)trackNavigators_.size();
         
         if(trackOffset_ >  top)
             trackOffset_ = top;
@@ -3670,9 +3670,9 @@ public:
         if(currentTrackVCAFolderMode_ != 1)
             return;
 
-        int numTracks = vcaSpillTracks_.size();
+        int numTracks = (int)vcaSpillTracks_.size();
             
-        if(numTracks <= trackNavigators_.size())
+        if(numTracks <= (int)trackNavigators_.size())
             return;
        
         vcaTrackOffset_ += amount;
@@ -3680,7 +3680,7 @@ public:
         if(vcaTrackOffset_ <  0)
             vcaTrackOffset_ =  0;
         
-        int top = numTracks - trackNavigators_.size();
+        int top = numTracks - (int)trackNavigators_.size();
         
         if(vcaTrackOffset_ >  top)
             vcaTrackOffset_ = top;
@@ -3691,9 +3691,9 @@ public:
         if(currentTrackVCAFolderMode_ != 2)
             return;
 
-        int numTracks = folderSpillTracks_.size();
+        int numTracks = (int)folderSpillTracks_.size();
         
-        if(numTracks <= trackNavigators_.size())
+        if(numTracks <= (int)trackNavigators_.size())
             return;
        
         folderTrackOffset_ += amount;
@@ -3701,7 +3701,7 @@ public:
         if(folderTrackOffset_ <  0)
             folderTrackOffset_ =  0;
         
-        int top = numTracks - trackNavigators_.size();
+        int top = numTracks - (int)trackNavigators_.size();
         
         if(folderTrackOffset_ >  top)
             folderTrackOffset_ = top;
@@ -3712,9 +3712,9 @@ public:
         if(currentTrackVCAFolderMode_ != 3)
             return;
 
-        int numTracks = selectedTracks_.size();
+        int numTracks = (int)selectedTracks_.size();
        
-        if(numTracks <= trackNavigators_.size())
+        if(numTracks <= (int)trackNavigators_.size())
             return;
         
         selectedTracksOffset_ += amount;
@@ -3722,7 +3722,7 @@ public:
         if(selectedTracksOffset_ < 0)
             selectedTracksOffset_ = 0;
         
-        int top = numTracks - trackNavigators_.size();
+        int top = numTracks - (int)trackNavigators_.size();
         
         if(selectedTracksOffset_ > top)
             selectedTracksOffset_ = top;
@@ -4075,7 +4075,7 @@ public:
             {
                 currentDepthTracks.back()->push_back(track);
                 
-                int folderBackTrack = -DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
+                int folderBackTrack = (int)-DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
                 for(int i = 0; i < folderBackTrack && currentDepthTracks.size() > 0; i++)
                     currentDepthTracks.pop_back();
@@ -4540,7 +4540,7 @@ public:
         if(baseTickCounts_.count(stepCount) > 0)
             return baseTickCounts_[stepCount];
         else
-            return baseTickCounts_[baseTickCounts_.size() - 1];
+            return baseTickCounts_[(int)baseTickCounts_.size() - 1];
     }
     
     void Speak(string phrase)
