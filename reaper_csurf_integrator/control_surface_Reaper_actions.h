@@ -2274,7 +2274,7 @@ public:
 
         if (primaryVolume && secondaryVolume)
         {
-            return value = (*secondaryVolume) / (*primaryVolume);
+            value = (*secondaryVolume) / (*primaryVolume);
             return true;
         }
         else
