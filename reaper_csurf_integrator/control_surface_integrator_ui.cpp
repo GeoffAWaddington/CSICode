@@ -191,7 +191,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 for(auto delta : zoneDef.paramDefs[fxListIndex].definitions[groupIndex].deltas)
                     deltas += delta + " ";
                 
-                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues , deltas.c_str());
+                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             }
 
             if(zoneDef.paramDefs[fxListIndex].definitions[groupIndex].ticks.size() > 0)
@@ -201,7 +201,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 for(auto tick : zoneDef.paramDefs[fxListIndex].definitions[groupIndex].ticks)
                     ticks += tick + " ";
                 
-                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues , ticks.c_str());
+                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
         }
             break;
@@ -1747,8 +1747,8 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 AddComboEntry(hwndDlg, 0, (char *)pageSurfaceName.c_str(), IDC_COMBO_PageSurface);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
 
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(numChannels).c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, to_string(channelOffset).c_str());
+                SetDlgItemInt(hwndDlg, IDC_EDIT_NumChannels, numChannels, false);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, channelOffset, false);
                
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
@@ -2047,8 +2047,8 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, name.c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, remoteDeviceIP.c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_OSCInPort, to_string(inPort).c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, to_string(outPort).c_str());
+                SetDlgItemInt(hwndDlg, IDC_EDIT_OSCInPort, inPort, false);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_OSCOutPort, outPort, false);
             }
             else
             {
