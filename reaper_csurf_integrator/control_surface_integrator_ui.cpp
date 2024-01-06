@@ -2863,9 +2863,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             
             for (string line; getline(iniFile, line) ; )
             {
-                line = regex_replace(line, regex(s_TabChars), " ");
-                line = regex_replace(line, regex(s_CRLFChars), "");
-             
+                line = TrimLine(line);
+                
                 lineNumber++;
                 
                 if(lineNumber == 1)

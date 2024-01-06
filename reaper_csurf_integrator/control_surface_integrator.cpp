@@ -22,6 +22,36 @@ string GetLineEnding()
 #endif
 }
 
+string TrimLine(string line)
+{
+    line = regex_replace(line, regex(s_TabChars), " ");
+    line = regex_replace(line, regex(s_CRLFChars), "");
+    
+    line = line.substr(0, line.find("//")); // remove trailing commewnts
+    
+    // Trim leading and trailing spaces
+    line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+
+    return line;
+}
+
+vector<string> GetTokens(string line)
+{
+    vector<string> tokens;
+    
+    istringstream iss(line);
+    string token;
+    while (iss >> quoted(token))
+        tokens.push_back(token);
+    
+    return tokens;
+}
+
+int strToHex(string valueStr)
+{
+    return strtol(valueStr.c_str(), nullptr, 16);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct MidiInputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,13 +305,7 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            line = TrimLine(line);
             
             if(line == "") // ignore blank lines
                 continue;
@@ -346,13 +370,7 @@ static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            line = TrimLine(line);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
@@ -390,13 +408,7 @@ static void ProcessFXBoilerplate(string filePath, vector<string> &fxBoilerplate)
             
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            line = TrimLine(line);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
@@ -426,13 +438,7 @@ static void PreProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneMana
                  
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            line = TrimLine(line);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
@@ -455,20 +461,6 @@ static void PreProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneMana
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
         DAW::ShowConsoleMsg(buffer);
     }
-}
-
-static void ExpandLine(int numChannels, vector<string> &tokens)
-{
-    if(tokens.size() == numChannels)
-        return;
-    else if(tokens.size() != 1)
-        return;
-
-    string templateString = tokens[0];
-    tokens.pop_back();
-    
-    for(int i = 1; i <= numChannels; i++)
-        tokens.push_back(regex_replace(templateString, regex("[|]"), to_string(i)));
 }
 
 static vector<rgba_color> GetColorValues(vector<string> colors)
@@ -526,15 +518,9 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
-            
-            line = line.substr(0, line.find("//")); // remove trailing commewnts
+            line = TrimLine(line);
             
             lineNumber++;
-            
-            // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
@@ -846,9 +832,8 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        line = regex_replace(line, regex(s_TabChars), " ");
-        line = regex_replace(line, regex(s_CRLFChars), "");
-
+        line = TrimLine(line);
+        
         lineNumber++;
         
         if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
@@ -1137,9 +1122,8 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        line = regex_replace(line, regex(s_TabChars), " ");
-        line = regex_replace(line, regex(s_CRLFChars), "");
-
+        line = TrimLine(line);
+        
         lineNumber++;
         
         if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
@@ -1237,8 +1221,7 @@ static void ProcessMIDIWidgetFile(string filePath, shared_ptr<Midi_ControlSurfac
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
+            line = TrimLine(line);
             
             lineNumber++;
             
@@ -1284,8 +1267,7 @@ static void ProcessOSCWidgetFile(string filePath, shared_ptr<OSC_ControlSurface>
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
+            line = TrimLine(line);
             
             lineNumber++;
             
@@ -1520,13 +1502,7 @@ bool Manager::AutoConfigure()
             
             for (string line; getline(file, line) ; )
             {
-                line = regex_replace(line, regex(s_TabChars), " ");
-                line = regex_replace(line, regex(s_CRLFChars), "");
-                
-                line = line.substr(0, line.find("//")); // remove trailing commewnts
-                
-                // Trim leading and trailing spaces
-                line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+                line = TrimLine(line);
                 
                 if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                     continue;
@@ -1673,8 +1649,7 @@ void Manager::Init()
                
         for (string line; getline(iniFile, line) ; )
         {
-            line = regex_replace(line, regex(s_TabChars), " ");
-            line = regex_replace(line, regex(s_CRLFChars), "");
+            line = TrimLine(line);
             
             if(lineNumber == 0)
             {

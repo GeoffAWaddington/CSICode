@@ -44,6 +44,9 @@
 #endif
 
 extern string GetLineEnding();
+extern string TrimLine(string line);
+extern vector<string> GetTokens(string line);
+extern  int strToHex(string valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
@@ -66,23 +69,6 @@ class ZoneManager;
 class Widget;
 extern unique_ptr<Manager> TheManager;
 extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath);
-
-static vector<string> GetTokens(string line)
-{
-    vector<string> tokens;
-    
-    istringstream iss(line);
-    string token;
-    while (iss >> quoted(token))
-        tokens.push_back(token);
-    
-    return tokens;
-}
-
-static int strToHex(string valueStr)
-{
-    return strtol(valueStr.c_str(), nullptr, 16);
-}
 
 struct FXParamLayoutTemplate
 {
