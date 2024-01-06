@@ -596,7 +596,7 @@ protected:
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
     map<shared_ptr<Widget>, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
-    vector<shared_ptr<ActionContext>> empty;
+    vector<shared_ptr<ActionContext>> empty_;
     map<shared_ptr<Widget>, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
@@ -740,7 +740,7 @@ public:
         if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
             return actionContextDictionary_[widget][modifier];
         else
-            return empty;
+            return empty_;
     }
     
     virtual void GoSubZone(string subZoneName)
@@ -1005,7 +1005,9 @@ struct CSILayoutInfo
     }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct LearnInfo
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     shared_ptr<Widget> const fxParamWidget = nullptr;
     string const cellAddress = "";
