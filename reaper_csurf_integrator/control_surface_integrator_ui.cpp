@@ -520,7 +520,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             {
                 SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
-                for(auto [key, value] : SteppedValueDictionary)
+                for(auto [key, value] : s_SteppedValueDictionary)
                     SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
             }
                                       
@@ -917,7 +917,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 {
                                     ostringstream stepStr;
                                     
-                                    for(auto step : SteppedValueDictionary[index + 1])
+                                    for(auto step : s_SteppedValueDictionary[index + 1])
                                     {
                                         stepStr << std::setprecision(2) << step;
                                         stepStr <<  "  ";
@@ -946,7 +946,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 {
                                     ostringstream stepStr;
                                     
-                                    for(auto step : SteppedValueDictionary[index + 1])
+                                    for(auto step : s_SteppedValueDictionary[index + 1])
                                     {
                                         stepStr << std::setprecision(2) << step;
                                         stepStr <<  "  ";
@@ -975,7 +975,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 {
                                     ostringstream stepStr;
                                     
-                                    for(auto step : SteppedValueDictionary[index + 1])
+                                    for(auto step : s_SteppedValueDictionary[index + 1])
                                     {
                                         stepStr << std::setprecision(2) << step;
                                         stepStr <<  "  ";
@@ -1720,11 +1720,11 @@ static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
     {
         if(surface->name == string(buf))
         {
-            if(surface->type == MidiSurfaceToken)
+            if(surface->type == s_MidiSurfaceToken)
                 for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/"))
                     AddComboEntry(hwndDlg, 0, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
 
-            if(surface->type == OSCSurfaceToken)
+            if(surface->type == s_OSCSurfaceToken)
                 for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/"))
                     AddComboEntry(hwndDlg, 0, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
             
@@ -2595,7 +2595,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 if(s_dlgResult == IDOK)
                                 {
                                     shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
-                                    surface->type = MidiSurfaceToken;
+                                    surface->type = s_MidiSurfaceToken;
                                     surface->name = s_surfaceName;
                                     surface->inPort = s_surfaceInPort;
                                     surface->outPort = s_surfaceOutPort;
@@ -2621,7 +2621,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 if(s_dlgResult == IDOK)
                                 {
                                     shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
-                                    surface->type = OSCSurfaceToken;
+                                    surface->type = s_OSCSurfaceToken;
                                     surface->name = s_surfaceName;
                                     surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                     surface->inPort = s_surfaceInPort;
@@ -2699,9 +2699,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
-                                if(s_surfaces[index]->type == MidiSurfaceToken)
+                                if(s_surfaces[index]->type == s_MidiSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                else if(s_surfaces[index]->type == OSCSurfaceToken)
+                                else if(s_surfaces[index]->type == s_OSCSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                                                
                                 if(s_dlgResult == IDOK)
@@ -2871,16 +2871,16 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             
             for (string line; getline(iniFile, line) ; )
             {
-                line = regex_replace(line, regex(TabChars), " ");
-                line = regex_replace(line, regex(CRLFChars), "");
+                line = regex_replace(line, regex(s_TabChars), " ");
+                line = regex_replace(line, regex(s_CRLFChars), "");
              
                 lineNumber++;
                 
                 if(lineNumber == 1)
                 {
-                    if(line != VersionToken)
+                    if(line != s_MajorVersionToken)
                     {
-                        MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + VersionToken).c_str(), ("This is CSI " + VersionToken).c_str(), MB_OK);
+                        MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + s_MajorVersionToken).c_str(), ("This is CSI " + s_MajorVersionToken).c_str(), MB_OK);
                         iniFile.close();
                         break;
                     }
@@ -2897,18 +2897,18 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     while (iss >> quoted(token))
                         tokens.push_back(token);
                     
-                    if(tokens[0] == MidiSurfaceToken || tokens[0] == OSCSurfaceToken)
+                    if(tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
                     {
                         shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
                         
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
-                        if((surface->type == MidiSurfaceToken || surface->type == OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5))
+                        if((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5))
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
-                            if(surface->type == OSCSurfaceToken && tokens.size() == 5)
+                            if(surface->type == s_OSCSurfaceToken && tokens.size() == 5)
                                 surface->remoteDeviceIP = tokens[4];
                         }
                         
@@ -2916,7 +2916,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                     }
-                    else if(tokens[0] == PageToken && tokens.size() > 1)
+                    else if(tokens[0] == s_PageToken && tokens.size() > 1)
                     {
                         bool followMCP = true;
                         bool synchPages = true;
@@ -3034,7 +3034,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
             if(iniFile.is_open())
             {
-                iniFile << VersionToken + GetLineEnding();
+                iniFile << s_MajorVersionToken + GetLineEnding();
                 
                 iniFile << GetLineEnding();
                 
@@ -3047,7 +3047,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     line += to_string(surface->inPort) + " ";
                     line += to_string(surface->outPort) + " ";
 
-                    if(surface->type == OSCSurfaceToken)
+                    if(surface->type == s_OSCSurfaceToken)
                         line += surface->remoteDeviceIP;
                     
                     iniFile << line + GetLineEnding();
@@ -3057,7 +3057,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 for(auto page : s_pages)
                 {
-                    line = PageToken + " ";
+                    line = s_PageToken + " ";
                     line += "\"" + page->name + "\"";
                     
                     if(page->followMCP == false)

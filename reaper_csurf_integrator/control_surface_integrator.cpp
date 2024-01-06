@@ -45,13 +45,13 @@ struct MidiOutputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<int, shared_ptr<MidiInputPort>> midiInputs_;
-static map<int, shared_ptr<MidiOutputPort>> midiOutputs_;
+static map<int, shared_ptr<MidiInputPort>> s_midiInputs;
+static map<int, shared_ptr<MidiOutputPort>> s_midiOutputs;
 
 static midi_Input* GetMidiInputForPort(int inputPort)
 {
-    if(midiInputs_.count(inputPort) > 0)
-        return midiInputs_[inputPort]->midiInput_; // return existing
+    if(s_midiInputs.count(inputPort) > 0)
+        return s_midiInputs[inputPort]->midiInput_; // return existing
     
     // otherwise make new
     midi_Input* newInput = DAW::CreateMIDIInput(inputPort);
@@ -59,7 +59,7 @@ static midi_Input* GetMidiInputForPort(int inputPort)
     if(newInput)
     {
         newInput->start();
-        midiInputs_[inputPort] = make_shared<MidiInputPort>(inputPort, newInput);
+        s_midiInputs[inputPort] = make_shared<MidiInputPort>(inputPort, newInput);
         return newInput;
     }
     
@@ -68,15 +68,15 @@ static midi_Input* GetMidiInputForPort(int inputPort)
 
 static midi_Output* GetMidiOutputForPort(int outputPort)
 {
-    if(midiOutputs_.count(outputPort) > 0)
-        return midiOutputs_[outputPort]->midiOutput_; // return existing
+    if(s_midiOutputs.count(outputPort) > 0)
+        return s_midiOutputs[outputPort]->midiOutput_; // return existing
     
     // otherwise make new
     midi_Output* newOutput = DAW::CreateMIDIOutput(outputPort, false, NULL);
     
     if(newOutput)
     {
-        midiOutputs_[outputPort] = make_shared<MidiOutputPort>(outputPort, newOutput);
+        s_midiOutputs[outputPort] = make_shared<MidiOutputPort>(outputPort, newOutput);
         return newOutput;
     }
     
@@ -85,20 +85,20 @@ static midi_Output* GetMidiOutputForPort(int outputPort)
 
 void ShutdownMidiIO()
 {
-    for(auto [index, input] : midiInputs_)
+    for(auto [index, input] : s_midiInputs)
         input->midiInput_->stop();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<string, shared_ptr<oscpkt::UdpSocket>> inputSockets_;
-static map<string, shared_ptr<oscpkt::UdpSocket>> outputSockets_;
+static map<string, shared_ptr<oscpkt::UdpSocket>> s_inputSockets;
+static map<string, shared_ptr<oscpkt::UdpSocket>> s_outputSockets;
 
 static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, int inputPort)
 {
-    if(inputSockets_.count(surfaceName) > 0)
-        return inputSockets_[surfaceName]; // return existing
+    if(s_inputSockets.count(surfaceName) > 0)
+        return s_inputSockets[surfaceName]; // return existing
     
     // otherwise make new
     shared_ptr<oscpkt::UdpSocket> newInputSocket = make_shared<oscpkt::UdpSocket>();
@@ -113,9 +113,9 @@ static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, i
             return nullptr;
         }
         
-        inputSockets_[surfaceName] = newInputSocket;
+        s_inputSockets[surfaceName] = newInputSocket;
         
-        return inputSockets_[surfaceName];
+        return s_inputSockets[surfaceName];
     }
     
     return nullptr;
@@ -123,8 +123,8 @@ static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, i
 
 static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(string surfaceName, string address, int outputPort)
 {
-    if(outputSockets_.count(surfaceName) > 0)
-        return outputSockets_[surfaceName]; // return existing
+    if(s_outputSockets.count(surfaceName) > 0)
+        return s_outputSockets[surfaceName]; // return existing
     
     // otherwise make new
     shared_ptr<oscpkt::UdpSocket> newOutputSocket = make_shared<oscpkt::UdpSocket>();
@@ -145,9 +145,9 @@ static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(string sur
             return nullptr;
         }
 
-        outputSockets_[surfaceName] = newOutputSocket;
+        s_outputSockets[surfaceName] = newOutputSocket;
         
-        return outputSockets_[surfaceName];
+        return s_outputSockets[surfaceName];
     }
     
     return nullptr;
@@ -275,8 +275,8 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             line = line.substr(0, line.find("//")); // remove trailing commewnts
             
@@ -346,8 +346,8 @@ static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             line = line.substr(0, line.find("//")); // remove trailing commewnts
             
@@ -390,8 +390,8 @@ static void ProcessFXBoilerplate(string filePath, vector<string> &fxBoilerplate)
             
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             line = line.substr(0, line.find("//")); // remove trailing commewnts
             
@@ -426,8 +426,8 @@ static void PreProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneMana
                  
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             line = line.substr(0, line.find("//")); // remove trailing commewnts
             
@@ -526,8 +526,8 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             line = line.substr(0, line.find("//")); // remove trailing commewnts
             
@@ -539,7 +539,7 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
             
-            if(line == BeginAutoSection || line == EndAutoSection)
+            if(line == s_BeginAutoSection || line == s_EndAutoSection)
                 continue;
             
             vector<string> tokens(GetTokens(line));
@@ -846,8 +846,8 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        line = regex_replace(line, regex(TabChars), " ");
-        line = regex_replace(line, regex(CRLFChars), "");
+        line = regex_replace(line, regex(s_TabChars), " ");
+        line = regex_replace(line, regex(s_CRLFChars), "");
 
         lineNumber++;
         
@@ -1137,8 +1137,8 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        line = regex_replace(line, regex(TabChars), " ");
-        line = regex_replace(line, regex(CRLFChars), "");
+        line = regex_replace(line, regex(s_TabChars), " ");
+        line = regex_replace(line, regex(s_CRLFChars), "");
 
         lineNumber++;
         
@@ -1237,8 +1237,8 @@ static void ProcessMIDIWidgetFile(string filePath, shared_ptr<Midi_ControlSurfac
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             lineNumber++;
             
@@ -1284,8 +1284,8 @@ static void ProcessOSCWidgetFile(string filePath, shared_ptr<OSC_ControlSurface>
         
         for (string line; getline(file, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             lineNumber++;
             
@@ -1520,8 +1520,8 @@ bool Manager::AutoConfigure()
             
             for (string line; getline(file, line) ; )
             {
-                line = regex_replace(line, regex(TabChars), " ");
-                line = regex_replace(line, regex(CRLFChars), "");
+                line = regex_replace(line, regex(s_TabChars), " ");
+                line = regex_replace(line, regex(s_CRLFChars), "");
                 
                 line = line.substr(0, line.find("//")); // remove trailing commewnts
                 
@@ -1609,7 +1609,7 @@ bool Manager::AutoConfigure()
 
     if(iniFile.is_open())
     {
-        iniFile << VersionToken + GetLineEnding();
+        iniFile << s_MajorVersionToken + GetLineEnding();
         
         iniFile << GetLineEnding();
         
@@ -1673,14 +1673,14 @@ void Manager::Init()
                
         for (string line; getline(iniFile, line) ; )
         {
-            line = regex_replace(line, regex(TabChars), " ");
-            line = regex_replace(line, regex(CRLFChars), "");
+            line = regex_replace(line, regex(s_TabChars), " ");
+            line = regex_replace(line, regex(s_CRLFChars), "");
             
             if(lineNumber == 0)
             {
-                if(line != VersionToken)
+                if(line != s_MajorVersionToken)
                 {
-                    MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + VersionToken).c_str(), ("This is CSI " + VersionToken).c_str(), MB_OK);
+                    MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + s_MajorVersionToken).c_str(), ("This is CSI " + s_MajorVersionToken).c_str(), MB_OK);
                     iniFile.close();
                     return;
                 }
@@ -1698,11 +1698,11 @@ void Manager::Init()
                        
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if(tokens[0] == MidiSurfaceToken && tokens.size() == 4)
+                if(tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
                     midiSurfaces[tokens[1]] = make_shared<Midi_ControlSurfaceIO>(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
-                else if(tokens[0] == OSCSurfaceToken && tokens.size() == 5)
+                else if(tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
                     oscSurfaces[tokens[1]] = make_shared<OSC_ControlSurfaceIO>(tokens[1], tokens[2], tokens[3], tokens[4]);
-                else if(tokens[0] == PageToken)
+                else if(tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
                     bool synchPages = true;
@@ -3108,7 +3108,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
             {
                 vector<string> tokens = GetTokens(line);
                 
-                if(tokens.size() > 3 && tokens[3] == GeneratedByLearn)
+                if(tokens.size() > 3 && tokens[3] == s_GeneratedByLearn)
                 {
                     learnFXName_ = fxName;
                     GetExistingZoneParamsForLearn(fxName, track, fxSlot);
@@ -3245,7 +3245,7 @@ void ZoneManager::SaveTemplatedFXParams()
 
             alias = GetAlias(learnFXName_);
             
-            path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
+            path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
             
             CSIZoneInfo info;
             info.filePath = path;
@@ -3306,7 +3306,7 @@ void ZoneManager::SaveLearnedFXParams()
 
             alias = GetAlias(learnFXName_);
             
-            path += "/" + regex_replace(learnFXName_, regex(BadFileChars), "_") + ".zon";
+            path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
             
             CSIZoneInfo info;
             info.filePath = path;
@@ -3334,12 +3334,12 @@ void ZoneManager::SaveLearnedFXParams()
 
         if(fxZone.is_open())
         {
-            fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\" \"" + GeneratedByLearn + "\"" + GetLineEnding();
+            fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\" \"" + s_GeneratedByLearn + "\"" + GetLineEnding();
             
             for(auto line : fxPrologue_)
                 fxZone << "\t" + line + GetLineEnding();
                    
-            fxZone << "\n" + BeginAutoSection + GetLineEnding();
+            fxZone << "\n" + s_BeginAutoSection + GetLineEnding();
 
             if(homeZone_->GetLearnFXParamsZone())
             {
@@ -3385,7 +3385,7 @@ void ZoneManager::SaveLearnedFXParams()
                 }
             }
             
-            fxZone << EndAutoSection + GetLineEnding();
+            fxZone << s_EndAutoSection + GetLineEnding();
                     
             for(auto line : fxEpilogue_)
                 fxZone << "\t" + line + GetLineEnding();
@@ -3800,7 +3800,7 @@ void ZoneManager::WidgetMoved(ActionContext* context)
                 }
 
                 if(numSteps > 1)
-                    context->SetStepValues(SteppedValueDictionary[numSteps]);
+                    context->SetStepValues(s_SteppedValueDictionary[numSteps]);
                 
                 if(numSteps > 1)
                 {
@@ -3810,7 +3810,7 @@ void ZoneManager::WidgetMoved(ActionContext* context)
 
                     stepStr << "[ ";
                     
-                    for(auto step : SteppedValueDictionary[numSteps])
+                    for(auto step : s_SteppedValueDictionary[numSteps])
                     {
                         stepStr << std::setprecision(2) << step;
                         stepStr <<  "  ";
@@ -3960,7 +3960,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 }
 
                 if(numSteps > 1)
-                    context->SetStepValues(SteppedValueDictionary[numSteps]);
+                    context->SetStepValues(s_SteppedValueDictionary[numSteps]);
                 
                 if(numSteps > 1)
                 {
@@ -3970,7 +3970,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
 
                     stepStr << "[ ";
                     
-                    for(auto step : SteppedValueDictionary[numSteps])
+                    for(auto step : s_SteppedValueDictionary[numSteps])
                     {
                         stepStr << std::setprecision(2) << step;
                         stepStr <<  "  ";
@@ -4199,7 +4199,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
     if(! filesystem::exists(path) || ! filesystem::is_directory(path))
         filesystem::create_directory(path);
     
-    path += "/" + regex_replace(fxName, regex(BadFileChars), "_") + ".zon";
+    path += "/" + regex_replace(fxName, regex(s_BadFileChars), "_") + ".zon";
 
     string alias = GetAlias(fxName);
 
@@ -4229,7 +4229,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
         for(auto line : fxPrologue_)
             fxZone << "\t" + line + GetLineEnding();
                
-        fxZone << "\n" + BeginAutoSection + GetLineEnding();
+        fxZone << "\n" + s_BeginAutoSection + GetLineEnding();
         
         int layoutIndex = 0;
         int channelIndex = 1;
@@ -4287,11 +4287,11 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             {
                                 int steppedValueCount =  TheManager->GetSteppedValueCount(fxName, paramIdx);
                                 
-                                if(steppedValueCount > 1 && steppedValueCount < SteppedValueDictionary.size())
+                                if(steppedValueCount > 1 && steppedValueCount < s_SteppedValueDictionary.size())
                                 {
                                     fxZone << " [ ";
                                     
-                                    for(auto step : SteppedValueDictionary[steppedValueCount])
+                                    for(auto step : s_SteppedValueDictionary[steppedValueCount])
                                     {
                                         ostringstream stepStr;
                                         stepStr << std::setprecision(2) << step;
@@ -4420,7 +4420,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
             layoutIndex++;
         }
         
-        fxZone << EndAutoSection + GetLineEnding();
+        fxZone << s_EndAutoSection + GetLineEnding();
                 
         for(auto line : fxEpilogue_)
             fxZone << "\t" + line + GetLineEnding();
@@ -5147,7 +5147,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnP
 
         inSocket_  = inSocket;
         outSocket_ = inSocket;
-        outputSockets_[surfaceName] = outSocket_;
+        s_outputSockets[surfaceName] = outSocket_;
     }
  }
 
@@ -5224,7 +5224,7 @@ void OSC_ControlSurface::ProcessOSCMessage(string message, double value)
 void OSC_ControlSurface::SendOSCMessage(string zoneName)
 {
     string oscAddress(zoneName);
-    oscAddress = regex_replace(oscAddress, regex(BadFileChars), "_");
+    oscAddress = regex_replace(oscAddress, regex(s_BadFileChars), "_");
     oscAddress = "/" + oscAddress;
 
     surfaceIO_->SendOSCMessage(oscAddress);

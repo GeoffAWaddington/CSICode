@@ -314,7 +314,7 @@ public:
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(CSIName);
+        context->UpdateWidgetValue(s_CSIName);
     }
 };
 
@@ -327,7 +327,7 @@ public:
     
     void RequestUpdate(ActionContext* context) override
     {
-        context->UpdateWidgetValue(CSIVersion);
+        context->UpdateWidgetValue(s_CSIVersionDisplay);
     }
 };
 

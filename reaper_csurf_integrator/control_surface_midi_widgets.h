@@ -547,7 +547,7 @@ public:
     }
 };
 
-static map<int, int> fontHeights =
+static map<int, int> s_fontHeights =
 {
     { 0, 8 },
     { 1, 13 },
@@ -594,7 +594,7 @@ static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<Actio
     int totalFontHeight = 0;
     
     for(auto [rowNum, row] : rows)
-        totalFontHeight += fontHeights[row->fontSize];
+        totalFontHeight += s_fontHeights[row->fontSize];
     
     double factor = 64.0 / totalFontHeight;
     
@@ -608,7 +608,7 @@ static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<Actio
         if(topMargin > 63)
             topMargin = 63;
         row->topMargin = topMargin;
-        row->bottomMargin = int(factor * fontHeights[row->fontSize]) + topMargin;
+        row->bottomMargin = int(factor * s_fontHeights[row->fontSize]) + topMargin;
         if(row->bottomMargin > 63)
             row->bottomMargin = 63;
         topMargin = row->bottomMargin + 1;
@@ -2815,7 +2815,7 @@ public:
 
 
 // Color maps are stored in Blue Green Red format
-uint8_t colorMap7[128][3] = { {0, 0, 0},    // 0
+static uint8_t s_colorMap7[128][3] = { {0, 0, 0},    // 0
     {255, 0, 0},    // 1 - Blue
     {255, 21, 0},    // 2 - Blue (Green Rising)
     {255, 34, 0},
@@ -2959,37 +2959,37 @@ int GetColorIntFromRGB(int r, int g, int b)
     else if(b == 255 && r == 0)
     {
         for(int i = 1; i < 22; i++)
-            if(g > colorMap7[i - 1][1] && g <= colorMap7[i][1])
+            if(g > s_colorMap7[i - 1][1] && g <= s_colorMap7[i][1])
                 return i;
     }
     else if(g == 255 && r == 0)
     {
         for(int i = 22; i < 44; i++)
-            if(b < colorMap7[i - 1][0] && b >= colorMap7[i][0])
+            if(b < s_colorMap7[i - 1][0] && b >= s_colorMap7[i][0])
                 return i;
     }
     else if(b == 0 && g == 255)
     {
         for(int i = 44; i < 65; i++)
-            if(r > colorMap7[i - 1][2] && r <= colorMap7[i][2])
+            if(r > s_colorMap7[i - 1][2] && r <= s_colorMap7[i][2])
                 return i;
     }
     else if(b == 0 && r == 255)
     {
         for(int i = 65; i < 86; i++)
-            if(g < colorMap7[i - 1][1] && g >= colorMap7[i][1])
+            if(g < s_colorMap7[i - 1][1] && g >= s_colorMap7[i][1])
                 return i;
     }
     else if(g == 0 && r == 255)
     {
         for(int i = 86; i < 108; i++)
-            if(b > colorMap7[i - 1][0] && b <= colorMap7[i][0])
+            if(b > s_colorMap7[i - 1][0] && b <= s_colorMap7[i][0])
                 return i;
     }
     else if(b == 255 && g == 0)
     {
         for(int i = 108; i < 127; i++)
-            if(r < colorMap7[i - 1][2] && r >= colorMap7[i][2])
+            if(r < s_colorMap7[i - 1][2] && r >= s_colorMap7[i][2])
                 return i;
     }
     
