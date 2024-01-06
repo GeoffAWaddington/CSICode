@@ -422,12 +422,8 @@ static void PopulateParamListView(HWND hwndParamList)
 
     for(int i = 0; i < s_zoneDef.rawParams.size(); i++)
     {
-        char buf[BUFSZ];
-        
-        sprintf(buf, s_zoneDef.rawParams[i].c_str());
-        
         lvi.iItem = i;
-        lvi.pszText = buf;
+        lvi.pszText = (char *)s_zoneDef.rawParams[i].c_str();
         
         ListView_InsertItem(hwndParamList, &lvi);
         
@@ -1031,7 +1027,6 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    char buf[BUFSZ];
     vector<string> components = GetLineComponents(index);
     
     string preamble = components[0];
@@ -1039,11 +1034,9 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
 #ifdef _WIN32
     preamble += "                                                       ";
 #endif
-    
-    sprintf(buf, preamble.c_str());
                    
     lvi.iItem = index;
-    lvi.pszText = buf;
+    lvi.pszText = (char *)preamble.c_str();
     
     if(shouldInsert)
         ListView_InsertItem(hwndParamList, &lvi);
@@ -1053,8 +1046,7 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
     for(int i = 1; i < components.size(); i++)
     {
         lvi.iSubItem = i;
-        sprintf(buf, components[i].c_str());
-        lvi.pszText = buf;
+        lvi.pszText = (char *)components[i].c_str();
 
         ListView_SetItem(hwndParamList, &lvi);
     }
