@@ -3132,14 +3132,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
 {
-    string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
-    
-    filesystem::path iniFileExists { iniFilePath };
-
-    if (! filesystem::exists(iniFileExists))
-        if(TheManager->AutoConfigure())
-            return 0;
-    
     return CreateDialogParam(g_hInst,MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI),parent,dlgProcMainConfig,(LPARAM)initConfigString);
 }
 
