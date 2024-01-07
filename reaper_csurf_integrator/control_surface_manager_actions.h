@@ -78,7 +78,8 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        vector<string> tokens = GetTokens(context->GetStringParam());
+        vector<string> tokens;
+        GetTokens(tokens, context->GetStringParam());
         
         if(tokens.size() == 3)
         {
@@ -114,7 +115,8 @@ public:
     {
         if(value == 0.0) return; // ignore button releases
         
-        vector<string> tokens = GetTokens(context->GetStringParam());
+        vector<string> tokens;
+        GetTokens(tokens, context->GetStringParam());
 
         if(tokens.size() != 2)
             return;

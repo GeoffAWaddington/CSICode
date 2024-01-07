@@ -22,7 +22,7 @@ string GetLineEnding()
 #endif
 }
 
-string TrimLine(string line)
+void TrimLine(string &line)
 {
     line = regex_replace(line, regex(s_TabChars), " ");
     line = regex_replace(line, regex(s_CRLFChars), "");
@@ -31,20 +31,14 @@ string TrimLine(string line)
     
     // Trim leading and trailing spaces
     line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
-
-    return line;
 }
 
-vector<string> GetTokens(string line)
+void GetTokens(vector<string> &tokens, string line)
 {
-    vector<string> tokens;
-    
     istringstream iss(line);
     string token;
     while (iss >> quoted(token))
         tokens.push_back(token);
-    
-    return tokens;
 }
 
 int strToHex(string valueStr)
@@ -305,12 +299,13 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
         
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             if(line == "") // ignore blank lines
                 continue;
         
-            vector<string> tokens = GetTokens(line);
+            vector<string> tokens;
+            GetTokens(tokens, line);
             
             if(tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
             {
@@ -370,15 +365,16 @@ static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
         
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
         
             if(line.find("Zone") == string::npos)
             {
-                vector<string> tokens = GetTokens(line);
-                
+                vector<string> tokens;
+                GetTokens(tokens, line);
+
                 CSILayoutInfo info;
 
                 if(tokens.size() == 3)
@@ -408,7 +404,7 @@ static void ProcessFXBoilerplate(string filePath, vector<string> &fxBoilerplate)
             
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
@@ -438,13 +434,14 @@ static void PreProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneMana
                  
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             if(line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
             
-            vector<string> tokens(GetTokens(line));
-                       
+            vector<string> tokens;
+            GetTokens(tokens, line);
+
             if(tokens[0] == "Zone" && tokens.size() > 1)
             {
                 zoneName = tokens[1];
@@ -518,7 +515,7 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
         
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             lineNumber++;
             
@@ -528,8 +525,9 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
             if(line == s_BeginAutoSection || line == s_EndAutoSection)
                 continue;
             
-            vector<string> tokens(GetTokens(line));
-            
+            vector<string> tokens;
+            GetTokens(tokens, line);
+
             if(tokens.size() > 0)
             {
                 if(tokens[0] == "Zone")
@@ -832,15 +830,16 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        line = TrimLine(line);
+        TrimLine(line);
         
         lineNumber++;
         
         if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
             continue;
         
-        vector<string> tokens(GetTokens(line));
-        
+        vector<string> tokens;
+        GetTokens(tokens, line);
+
         if(tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
             break;
         
@@ -1122,15 +1121,16 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        line = TrimLine(line);
+        TrimLine(line);
         
         lineNumber++;
         
         if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
             continue;
         
-        vector<string> tokens(GetTokens(line));
-        
+        vector<string> tokens;
+        GetTokens(tokens, line);
+
         if(tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
             break;
         
@@ -1221,14 +1221,15 @@ static void ProcessMIDIWidgetFile(string filePath, shared_ptr<Midi_ControlSurfac
         
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             lineNumber++;
             
             if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            vector<string> tokens(GetTokens(line));
+            vector<string> tokens;
+            GetTokens(tokens, line);
 
             if(filePath[filePath.length() - 3] == 'm')
             {
@@ -1267,14 +1268,15 @@ static void ProcessOSCWidgetFile(string filePath, shared_ptr<OSC_ControlSurface>
         
         for (string line; getline(file, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             lineNumber++;
             
             if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            vector<string> tokens(GetTokens(line));
+            vector<string> tokens;
+            GetTokens(tokens, line);
 
             if(filePath[filePath.length() - 3] == 'm')
             {
@@ -1504,7 +1506,7 @@ void Manager::Init()
                
         for (string line; getline(iniFile, line) ; )
         {
-            line = TrimLine(line);
+            TrimLine(line);
             
             if(lineNumber == 0)
             {
@@ -1524,8 +1526,9 @@ void Manager::Init()
             if(line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            vector<string> tokens(GetTokens(line));
-                       
+            vector<string> tokens;
+            GetTokens(tokens, line);
+
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if(tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
@@ -2784,7 +2787,8 @@ void ZoneManager::AddListener(shared_ptr<ControlSurface> surface)
 
 void ZoneManager::SetListenerCategories(string categoryList)
 {
-    vector<string> categoryTokens = GetTokens(categoryList);
+    vector<string> categoryTokens;
+    GetTokens(categoryTokens, categoryList);
     
     for(auto categoryToken : categoryTokens)
     {
@@ -2936,8 +2940,9 @@ void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
             
             if(getline(file, line))
             {
-                vector<string> tokens = GetTokens(line);
-                
+                vector<string> tokens;
+                GetTokens(tokens, line);
+
                 if(tokens.size() > 3 && tokens[3] == s_GeneratedByLearn)
                 {
                     learnFXName_ = fxName;
@@ -3537,13 +3542,15 @@ void ZoneManager::GoFXLayoutZone(string zoneName, int slotIndex)
             {
                 if(line.find("|") != string::npos && fxLayoutFileLines_.size() > 0)
                 {
-                    vector<string> tokens = GetTokens(line);
-                    
+                    vector<string> tokens;
+                    GetTokens(tokens, line);
+
                     if(tokens.size() > 1 && tokens[1] == "FXParamValueDisplay") // This line is a display definition
                     {
                         if(fxLayoutFileLines_.back().find("|") != string::npos)
                         {
-                            vector<string> previousLineTokens = GetTokens(fxLayoutFileLines_.back());
+                            vector<string> previousLineTokens;
+                            GetTokens(previousLineTokens, fxLayoutFileLines_.back());
 
                             if(previousLineTokens.size() > 1 && previousLineTokens[1] == "FXParam") // The previous line was a control Widget definition
                             {

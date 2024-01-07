@@ -44,8 +44,7 @@
 #endif
 
 extern string GetLineEnding();
-extern string TrimLine(string line);
-extern vector<string> GetTokens(string line);
+extern void GetTokens(vector<string> &tokens, string line);
 extern  int strToHex(string valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
@@ -2061,8 +2060,9 @@ public:
                     continue;
             }
 
-            vector<string> tokens = GetTokens(line);
-            
+            vector<string> tokens;
+            GetTokens(tokens, line);
+
             if(line.substr(0, 5) == "Zone ")
             {
                 inZone = true;
@@ -2107,7 +2107,8 @@ public:
             }
             else
             {
-                tokens = GetTokens(line);
+                tokens.clear();
+                GetTokens(tokens, line);
                 
                 if(tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
@@ -2144,7 +2145,8 @@ public:
                 
                 if(getline(autoFXFile, line))
                 {
-                    tokens = GetTokens(line);
+                    vector<string> tokens;
+                    GetTokens(tokens, line);
 
                     if(tokens.size() > 2)
                     {
@@ -2163,7 +2165,8 @@ public:
                 
                 if(getline(autoFXFile, line))
                 {
-                    tokens = GetTokens(line);
+                    vector<string> tokens;
+                    GetTokens(tokens, line);
 
                     if(tokens.size() > 2)
                     {

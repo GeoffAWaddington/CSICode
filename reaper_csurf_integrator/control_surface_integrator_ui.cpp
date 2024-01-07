@@ -10,6 +10,7 @@
 
 unique_ptr<Manager> TheManager;
 extern string GetLineEnding();
+extern void TrimLine(string &line);
 
 const string Control_Surface_Integrator = "Control Surface Integrator";
 
@@ -232,7 +233,9 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         if(string(buf) != "")
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.clear();
-                            for(auto delta : GetTokens(buf))
+                            vector<string> deltas;
+                            GetTokens(deltas, buf);
+                            for(auto delta : deltas)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(delta);
                         }
 
@@ -240,7 +243,9 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         if(string(buf) != "")
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.clear();
-                            for(auto tick : GetTokens(buf))
+                            vector<string> ticks;
+                            GetTokens(ticks, buf);
+                            for(auto tick : ticks)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(tick);
                         }
 
@@ -856,7 +861,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             if(string(buf) != "")
                             {
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.clear();
-                                for(auto step : GetTokens(buf))
+                                vector<string> steps;
+                                GetTokens(steps, buf);
+                                for(auto step : steps)
                                     s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(step);
                             }
 
@@ -2863,7 +2870,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             
             for (string line; getline(iniFile, line) ; )
             {
-                line = TrimLine(line);
+                TrimLine(line);
                 
                 lineNumber++;
                 
@@ -2948,7 +2955,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         shared_ptr<Listener> listener = make_shared<Listener>();
                         listener->name = tokens[1];
 
-                        vector<string> categoryTokens = GetTokens(tokens[2]);
+                        vector<string> categoryTokens;
+                        GetTokens(categoryTokens, tokens[2]);
                         
                         for(auto categoryToken : categoryTokens)
                         {

@@ -2134,7 +2134,8 @@ public:
     {
         preventUpdateTrackColors_ = true;
         
-        vector<string> currentColors = GetTokens(colors);
+        vector<string> currentColors;
+        GetTokens(currentColors, colors);
         
         struct
         {
