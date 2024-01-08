@@ -11,9 +11,11 @@
 unique_ptr<Manager> TheManager;
 extern string GetLineEnding();
 extern void TrimLine(string &line);
+extern void GetParamStepsString(string &outputString, int numSteps);
 
+extern int g_minNumParamSteps;
+extern int g_maxNumParamSteps;
 const string Control_Surface_Integrator = "Control Surface Integrator";
-
 extern int g_registered_command_toggle_show_raw_surface_input;
 extern int g_registered_command_toggle_show_surface_input;
 extern int g_registered_command_toggle_show_surface_output;
@@ -521,8 +523,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             {
                 SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
-                for(auto [key, value] : s_SteppedValueDictionary)
-                    SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(key).c_str());
+                for(int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
+                    SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(j).c_str());
             }
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
@@ -918,15 +920,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                     SetDlgItemText(hwndDlg, IDC_EditSteps1, "");
                                 else
                                 {
-                                    ostringstream stepStr;
-                                    
-                                    for(auto step : s_SteppedValueDictionary[index + 1])
-                                    {
-                                        stepStr << std::setprecision(2) << step;
-                                        stepStr <<  "  ";
-                                    }
-                                        
-                                    SetDlgItemText(hwndDlg, IDC_EditSteps1, (stepStr.str()).c_str());
+                                    string steps;
+                                    GetParamStepsString(steps, index + 1);
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps1, steps.c_str());
                                 }
                             }
                         }
@@ -947,15 +943,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                     SetDlgItemText(hwndDlg, IDC_EditSteps2, "");
                                 else
                                 {
-                                    ostringstream stepStr;
-                                    
-                                    for(auto step : s_SteppedValueDictionary[index + 1])
-                                    {
-                                        stepStr << std::setprecision(2) << step;
-                                        stepStr <<  "  ";
-                                    }
-                                        
-                                    SetDlgItemText(hwndDlg, IDC_EditSteps2, (stepStr.str()).c_str());
+                                    string steps;
+                                    GetParamStepsString(steps, index + 1);
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps2, steps.c_str());
                                 }
                             }
                         }
@@ -976,15 +966,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                     SetDlgItemText(hwndDlg, IDC_EditSteps3, "");
                                 else
                                 {
-                                    ostringstream stepStr;
-                                    
-                                    for(auto step : s_SteppedValueDictionary[index + 1])
-                                    {
-                                        stepStr << std::setprecision(2) << step;
-                                        stepStr <<  "  ";
-                                    }
-                                        
-                                    SetDlgItemText(hwndDlg, IDC_EditSteps3, (stepStr.str()).c_str());
+                                    string steps;
+                                    GetParamStepsString(steps, index + 1);
+                                    SetDlgItemText(hwndDlg, IDC_EditSteps3, steps.c_str());
                                 }
                             }
                         }

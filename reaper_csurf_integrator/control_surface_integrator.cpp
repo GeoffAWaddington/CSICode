@@ -9,9 +9,37 @@
 #include "control_surface_action_contexts.h"
 #include "control_surface_Reaper_actions.h"
 #include "control_surface_manager_actions.h"
-#include "control_surface_integrator_ui.h"
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
+
+int g_minNumParamSteps = 2;
+int g_maxNumParamSteps = 30;
+
+static double EnumSteppedValues(int numSteps, int stepNumber)
+{
+    return floor(stepNumber / (double)(numSteps - 1) * 100.0 + 0.5) * 0.01;
+}
+
+void GetParamStepsString(string &outputString, int numSteps)
+{
+    ostringstream stepStr;
+    
+    for(int i = 0; i < numSteps; i++)
+    {
+        stepStr << std::setprecision(2) << EnumSteppedValues(numSteps, i);
+        stepStr <<  "  ";
+    }
+
+    outputString = stepStr.str();
+}
+
+void GetParamStepsValues(vector<double> &outputVector, int numSteps)
+{
+    outputVector.clear();
+
+    for(int i = 0; i < numSteps; i++)
+        outputVector.push_back(EnumSteppedValues(numSteps, i));
+}
 
 string GetLineEnding()
 {
@@ -3635,27 +3663,16 @@ void ZoneManager::WidgetMoved(ActionContext* context)
                     if(numSteps == 0)
                         numSteps = 2;
                 }
-
-                if(numSteps > 1)
-                    context->SetStepValues(s_SteppedValueDictionary[numSteps]);
                 
                 if(numSteps > 1)
                 {
-                    ostringstream stepStr;
-                    
-                    stepStr << "";
+                    vector<double> stepValues;
+                    GetParamStepsValues(stepValues, numSteps);
+                    context->SetStepValues(stepValues);
 
-                    stepStr << "[ ";
-                    
-                    for(auto step : s_SteppedValueDictionary[numSteps])
-                    {
-                        stepStr << std::setprecision(2) << step;
-                        stepStr <<  "  ";
-                    }
-                    
-                    stepStr << "]";
-                    
-                    paramStr = stepStr.str();
+                    string steps;
+                    GetParamStepsString(steps, numSteps);
+                    paramStr = "[ " + steps + "]";
                 }
             }
            
@@ -3797,25 +3814,14 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
                 }
 
                 if(numSteps > 1)
-                    context->SetStepValues(s_SteppedValueDictionary[numSteps]);
-                
-                if(numSteps > 1)
                 {
-                    ostringstream stepStr;
-                    
-                    stepStr << "";
+                    vector<double> stepValues;
+                    GetParamStepsValues(stepValues, numSteps);
+                    context->SetStepValues(stepValues);
 
-                    stepStr << "[ ";
-                    
-                    for(auto step : s_SteppedValueDictionary[numSteps])
-                    {
-                        stepStr << std::setprecision(2) << step;
-                        stepStr <<  "  ";
-                    }
-                    
-                    stepStr << "]";
-                    
-                    paramStr = stepStr.str();
+                    string steps;
+                    GetParamStepsString(steps, numSteps);
+                    paramStr = "[ " + steps + "]";
                 }
                 
                 if(context->GetWidget()->GetName().find("Rotary") != string::npos && context->GetWidget()->GetName().find("Push") == string::npos)
@@ -4124,19 +4130,12 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             {
                                 int steppedValueCount =  TheManager->GetSteppedValueCount(fxName, paramIdx);
                                 
-                                if(steppedValueCount > 1 && steppedValueCount < s_SteppedValueDictionary.size())
+                                if(steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
                                 {
-                                    fxZone << " [ ";
-                                    
-                                    for(auto step : s_SteppedValueDictionary[steppedValueCount])
-                                    {
-                                        ostringstream stepStr;
-                                        stepStr << std::setprecision(2) << step;
-                                        fxZone << stepStr.str();
-                                        fxZone << " ";
-                                    }
-                                    
-                                    fxZone << "]";
+                                    string steps;
+                                    GetParamStepsString(steps, steppedValueCount);
+                                    steps = " [ " + steps + "]";
+                                    fxZone << steps;
                                 }
                             }
                         }
