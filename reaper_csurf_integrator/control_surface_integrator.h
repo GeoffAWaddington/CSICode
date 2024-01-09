@@ -383,7 +383,7 @@ public:
     
     // For Learn
     void SetCellAddress(string cellAddress) { cellAddress_ = cellAddress; }
-    string GetCellAddress() { return cellAddress_; }
+    string &GetCellAddress() { return cellAddress_; }
 
     void DoAction(double value);
     void DoRelativeAction(double value);
@@ -405,7 +405,6 @@ public:
     void   SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
     int    GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
     void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
-    void   SetColorValues(vector<rgba_color> colorValues) { colorValues_ = colorValues; }
     
     double GetRangeMinimum() { return rangeMinimum_; }
     double GetRangeMaximum() { return rangeMaximum_; }
@@ -599,12 +598,12 @@ public:
         return modifier;
     }
     
-    void AddLearnFXCell(int modifier, string cellAddress, LearnFXCell cell)
+    void AddLearnFXCell(int modifier, const string &cellAddress, LearnFXCell cell)
     {
         learnFXCells_[modifier][cellAddress] = cell;
     }
     
-    LearnFXCell GetLearnFXCell(int modifier, string cellAddress)
+    LearnFXCell GetLearnFXCell(int modifier, const string &cellAddress)
     {
         if(learnFXCells_.count(modifier) > 0 && learnFXCells_[modifier].count(cellAddress) > 0)
             return learnFXCells_[modifier][cellAddress];
@@ -619,7 +618,7 @@ public:
             return shared_ptr<Zone>(nullptr);
     }
        
-    shared_ptr<Zone> GetFXLayoutZone(string name)
+    shared_ptr<Zone> GetFXLayoutZone(const string &name)
     {
         if(associatedZones_.count(name) && associatedZones_[name].size() == 1)
             return associatedZones_[name][0];
@@ -637,7 +636,7 @@ public:
         return true;
     }
     
-    bool GetIsAssociatedZoneActive(string zoneName)
+    bool GetIsAssociatedZoneActive(const string &zoneName)
     {
         if(associatedZones_.count(zoneName) > 0)
             for(auto zone : associatedZones_[zoneName])
@@ -668,13 +667,13 @@ public:
             return name_;
     }
     
-    void AddWidget(shared_ptr<Widget> widget, string name)
+    void AddWidget(shared_ptr<Widget> widget, const string &name)
     {
         widgets_[widget] = true;
         widgetsByName_[name] = widget;
     }
     
-    shared_ptr<Widget> GetWidgetByName(string name)
+    shared_ptr<Widget> GetWidgetByName(const string &name)
     {
         if(widgetsByName_.count(name) > 0)
             return widgetsByName_[name];
@@ -695,7 +694,7 @@ public:
             return empty_;
     }
     
-    virtual void GoSubZone(string subZoneName)
+    virtual void GoSubZone(const string &subZoneName)
     {
         if(subZones_.count(subZoneName) > 0)
         {
@@ -714,7 +713,7 @@ public:
         for(auto zone : includedZones_)
             zone->Activate();
        
-        for(auto [key, zones] : associatedZones_)
+        for(auto &[key, zones] : associatedZones_)
             if(key == "SelectedTrack" || key == "SelectedTrackSend" || key == "SelectedTrackReceive" || key == "SelectedTrackFXMenu")
                 for(auto zone : zones)
                     zone->Deactivate();
@@ -722,7 +721,7 @@ public:
 
     void RequestUpdateWidget(shared_ptr<Widget> widget)
     {
-        for(auto context : GetActionContexts(widget))
+        for(const auto &context : GetActionContexts(widget))
         {
             context->RunDeferredActions();
             context->RequestUpdate();
@@ -734,18 +733,18 @@ public:
         if(! isActive_)
             return;
       
-        for(auto [key, zones] : subZones_)
+        for(const auto &[key, zones] : subZones_)
             for(auto zone : zones)
                 zone->RequestUpdate(usedWidgets);
         
-        for(auto [key, zones] : associatedZones_)
+        for(const auto &[key, zones] : associatedZones_)
             for(auto zone : zones)
                 zone->RequestUpdate(usedWidgets);
 
-        for(auto zone : includedZones_)
+        for(const auto &zone : includedZones_)
             zone->RequestUpdate(usedWidgets);
         
-        for(auto [widget, value] : widgets_)
+        for(const auto &[widget, value] : widgets_)
         {
             if(usedWidgets[widget] == false)
             {
@@ -760,11 +759,11 @@ public:
         if(! isActive_ || isUsed)
             return;
         
-        for(auto [key, zones] : subZones_)
+        for(const auto &[key, zones] : subZones_)
             for(auto zone : zones)
                 zone->DoRelativeAction(widget, isUsed, delta);
 
-        for(auto [key, zones] : associatedZones_)
+        for(const auto &[key, zones] : associatedZones_)
             for(auto zone : zones)
                 zone->DoRelativeAction(widget, isUsed, delta);
 
@@ -775,12 +774,12 @@ public:
         {
             isUsed = true;
 
-            for(auto context : GetActionContexts(widget))
+            for(const auto &context : GetActionContexts(widget))
                 context->DoRelativeAction(delta);
         }
         else
         {
-            for(auto zone : includedZones_)
+            for(const auto &zone : includedZones_)
                 zone->DoRelativeAction(widget, isUsed, delta);
         }
     }
@@ -790,11 +789,11 @@ public:
         if(! isActive_ || isUsed)
             return;
 
-        for(auto [key, zones] : subZones_)
+        for(const auto &[key, zones] : subZones_)
             for(auto zone : zones)
                 zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
-        for(auto [key, zones] : associatedZones_)
+        for(const auto &[key, zones] : associatedZones_)
             for(auto zone : zones)
                 zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 
@@ -805,12 +804,12 @@ public:
         {
             isUsed = true;
 
-            for(auto context : GetActionContexts(widget))
+            for(const auto &context : GetActionContexts(widget))
                 context->DoRelativeAction(accelerationIndex, delta);
         }
         else
         {
-            for(auto zone : includedZones_)
+            for(const auto &zone : includedZones_)
                 zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         }
     }
@@ -820,11 +819,11 @@ public:
         if(! isActive_ || isUsed)
             return;
 
-        for(auto [key, zones] : subZones_)
-            for(auto zone : zones)
+        for(const auto &[key, zones] : subZones_)
+            for(const auto &zone : zones)
                 zone->DoTouch(widget, widgetName, isUsed, value);
         
-        for(auto [key, zones] : associatedZones_)
+        for(const auto &[key, zones] : associatedZones_)
             for(auto zone : zones)
                 zone->DoTouch(widget, widgetName, isUsed, value);
 
@@ -835,12 +834,12 @@ public:
         {
             isUsed = true;
 
-            for(auto context : GetActionContexts(widget))
+            for(const auto &context : GetActionContexts(widget))
                 context->DoTouch(value);
         }
         else
         {
-            for(auto zone : includedZones_)
+            for(const auto &zone : includedZones_)
                 zone->DoTouch(widget, widgetName, isUsed, value);
         }
     }
@@ -860,7 +859,7 @@ public:
     
     virtual string GetType() override { return "SubZone"; }
 
-    virtual void GoSubZone(string subZoneName) override
+    virtual void GoSubZone(const string &subZoneName) override
     {
         Deactivate();
         enclosingZone_->GoSubZone(subZoneName);
@@ -882,7 +881,7 @@ private:
     vector<double> accelerationValues_;
     
 public:
-    Widget(shared_ptr<ControlSurface> surface, string name) : surface_(surface), name_(name)
+    Widget(shared_ptr<ControlSurface> surface, const string &name) : surface_(surface), name_(name)
     {
         int index = (int)name.length() - 1;
         if(isdigit(name[index]))
@@ -910,7 +909,7 @@ public:
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
-    void Configure(vector<shared_ptr<ActionContext>> contexts);
+    void Configure(vector<shared_ptr<ActionContext>> &contexts);
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void RunDeferredActions();
@@ -2544,7 +2543,7 @@ public:
         return modifierString;;
     }
 
-    int GetModifierValue(vector<string> tokens)
+    int GetModifierValue(const vector<string> &tokens)
     {
         int modifierValue = 0;
 
@@ -3043,10 +3042,9 @@ public:
     virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
-    virtual void SetXTouchDisplayColors(string zoneName, string color) {}
+    virtual void SetXTouchDisplayColors(string &zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
     virtual void ForceClear() {}
-    
     
     virtual void SetValue(map<string, string> &properties, double value)
     {

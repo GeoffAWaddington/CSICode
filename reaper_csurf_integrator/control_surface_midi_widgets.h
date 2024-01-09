@@ -2130,7 +2130,7 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetXTouchDisplayColors(string zoneName, string colors) override
+    virtual void SetXTouchDisplayColors(string &zoneName, string colors) override
     {
         preventUpdateTrackColors_ = true;
         

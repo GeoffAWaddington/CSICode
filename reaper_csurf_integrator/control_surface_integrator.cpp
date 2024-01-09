@@ -2554,7 +2554,7 @@ shared_ptr<ZoneManager> Widget::GetZoneManager()
     return surface_->GetZoneManager();
 }
 
-void Widget::Configure(vector<shared_ptr<ActionContext>> contexts)
+void Widget::Configure(vector<shared_ptr<ActionContext>> &contexts)
 {
     for(auto processor : feedbackProcessors_)
         processor->Configure(contexts);
@@ -2566,7 +2566,7 @@ void  Widget::UpdateValue(map<string, string> &properties, double value)
         processor->SetValue(properties, value);
 }
 
-void  Widget::UpdateValue(map<string, string> &properties,string value)
+void  Widget::UpdateValue(map<string, string> &properties, string value)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetValue(properties, value);
