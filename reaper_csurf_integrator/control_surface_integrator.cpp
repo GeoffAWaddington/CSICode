@@ -69,7 +69,7 @@ void GetTokens(vector<string> &tokens, string line)
         tokens.push_back(token);
 }
 
-int strToHex(string valueStr)
+int strToHex(const string &valueStr)
 {
     return strtol(valueStr.c_str(), nullptr, 16);
 }
@@ -173,7 +173,7 @@ static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, i
     return nullptr;
 }
 
-static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(string surfaceName, string address, int outputPort)
+static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
     if(s_outputSockets.count(surfaceName) > 0)
         return s_outputSockets[surfaceName]; // return existing
@@ -235,7 +235,7 @@ struct ActionTemplate
     bool provideFeedback = false;
 };
 
-static void listFilesOfType(const string &path, vector<string> &results, string type)
+static void listFilesOfType(const string &path, vector<string> &results, const string &type)
 {
     filesystem::path zonePath { path };
     
@@ -245,7 +245,7 @@ static void listFilesOfType(const string &path, vector<string> &results, string 
                 results.push_back(file.path().string());
 }
 
-static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> actionTemplate)
+static void GetWidgetNameAndModifiers(const string &line, shared_ptr<ActionTemplate> actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> tokens;
@@ -283,7 +283,7 @@ static void GetWidgetNameAndModifiers(string line, shared_ptr<ActionTemplate> ac
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
 {
     string feedbackIndicator = "";
     
@@ -319,7 +319,7 @@ static void BuildActionTemplate(vector<string> tokens, map<string, map<int, vect
     }
 }
 
-static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate)
+static void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate)
 {
     try
     {
@@ -385,7 +385,7 @@ static void ProcessSurfaceFXLayout(string filePath, vector<vector<string>> &surf
     }
 }
 
-static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
+static void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts)
 {
     try
     {
@@ -424,7 +424,7 @@ static void ProcessFXLayouts(string filePath, vector<CSILayoutInfo> &fxLayouts)
     }
 }
 
-static void ProcessFXBoilerplate(string filePath, vector<string> &fxBoilerplate)
+static void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate)
 {
     try
     {
@@ -449,7 +449,7 @@ static void ProcessFXBoilerplate(string filePath, vector<string> &fxBoilerplate)
     }
 }
 
-static void PreProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager)
+static void PreProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zoneManager)
 {
     string zoneName = "";
     
@@ -521,7 +521,7 @@ static vector<rgba_color> GetColorValues(vector<string> colors)
     return colorValues;
 }
 
-static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager, vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+static void ProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zoneManager, const vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -688,7 +688,7 @@ static void ProcessZoneFile(string filePath, shared_ptr<ZoneManager> zoneManager
     }
 }
 
-static void SetColor(vector<string> params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+static void SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
     vector<string> hexColors;
@@ -753,7 +753,7 @@ static void SetColor(vector<string> params, bool &supportsColor, bool &supportsT
     }
 }
 
-static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> params, map<string, string> widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, const vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     auto openSquareBrace = find(params.begin(), params.end(), "[");
     auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -838,7 +838,7 @@ static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> actio
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens, shared_ptr<Midi_ControlSurface> surface, map<string, double> stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens, shared_ptr<Midi_ControlSurface> surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if(tokens.size() < 2)
         return;
@@ -1136,7 +1136,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, ve
     }
 }
 
-static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vector<string> tokens,  shared_ptr<OSC_ControlSurface> surface)
+static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens,  shared_ptr<OSC_ControlSurface> surface)
 {
     if(tokens.size() < 2)
         return;
@@ -1182,7 +1182,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, vec
     }
 }
 
-static void ProcessValues(vector<vector<string>> lines, map<string, double> &stepSizes, map<string, map<int, int>> &accelerationValuesForDecrement, map<string, map<int, int>> &accelerationValuesForIncrement, map<string, vector<double>> &accelerationValues)
+static void ProcessValues(const vector<vector<string>> &lines, map<string, double> &stepSizes, map<string, map<int, int>> &accelerationValuesForDecrement, map<string, map<int, int>> &accelerationValuesForIncrement, map<string, vector<double>> &accelerationValues)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -1233,7 +1233,7 @@ static void ProcessValues(vector<vector<string>> lines, map<string, double> &ste
     }
 }
 
-static void ProcessMIDIWidgetFile(string filePath, shared_ptr<Midi_ControlSurface> surface)
+static void ProcessMIDIWidgetFile(const string &filePath, shared_ptr<Midi_ControlSurface> surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1280,7 +1280,7 @@ static void ProcessMIDIWidgetFile(string filePath, shared_ptr<Midi_ControlSurfac
     }
 }
 
-static void ProcessOSCWidgetFile(string filePath, shared_ptr<OSC_ControlSurface> surface)
+static void ProcessOSCWidgetFile(const string &filePath, shared_ptr<OSC_ControlSurface> surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;

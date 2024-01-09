@@ -47,7 +47,7 @@ struct rgba_color
     }
 };
 
-static rgba_color GetColorValue(string hexColor)
+static rgba_color GetColorValue(const string &hexColor)
 {
     rgba_color colorValue;
     

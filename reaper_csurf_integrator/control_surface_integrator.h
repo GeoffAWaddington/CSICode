@@ -45,7 +45,7 @@
 
 extern string GetLineEnding();
 extern void GetTokens(vector<string> &tokens, string line);
-extern  int strToHex(string valueStr);
+extern int strToHex(const string &valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
