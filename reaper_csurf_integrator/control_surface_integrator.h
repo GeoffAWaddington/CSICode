@@ -1107,7 +1107,7 @@ private:
         return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
     }
 
-    void DeclareGoSelectedTrackSend(string zoneName)
+    void DeclareGoSelectedTrackSend(const string &zoneName)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1124,7 +1124,7 @@ private:
                 zoneManager->ListenToGoSelectedTrackSend(zoneName);
     }
     
-    void DeclareGoSelectedTrackReceive(string zoneName)
+    void DeclareGoSelectedTrackReceive(const string &zoneName)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1150,7 +1150,7 @@ private:
                 zoneManager->ListenToGoSelectedTrackFX();
     }
         
-    void DeclareGoCustom(string zoneName)
+    void DeclareGoCustom(const string &zoneName)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1173,7 +1173,7 @@ private:
             GoHome();
     }
     
-    void ListenToGoSelectedTrackSend(string zoneName)
+    void ListenToGoSelectedTrackSend(const string &zoneName)
     {
         if(listensToSends_)
         {
@@ -1187,7 +1187,7 @@ private:
         }
     }
 
-    void ListenToGoSelectedTrackReceive(string zoneName)
+    void ListenToGoSelectedTrackReceive(const string &zoneName)
     {
         if(listensToReceives_)
         {
@@ -1201,7 +1201,7 @@ private:
         }
     }
     
-    void ListenToGoCustom(string zoneName)
+    void ListenToGoCustom(const string &zoneName)
     {
         if(listensToCustom_)
         {
@@ -1215,7 +1215,7 @@ private:
         }
     }
         
-    void DeclareGoSelectedTrackFXMenu(string zoneName)
+    void DeclareGoSelectedTrackFXMenu(const string &zoneName)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1232,7 +1232,7 @@ private:
                 zoneManager->ListenToGoSelectedTrackFXMenu(zoneName);
     }
     
-    void ListenToGoSelectedTrackFXMenu(string zoneName)
+    void ListenToGoSelectedTrackFXMenu(const string &zoneName)
     {
         if(listensToFXMenu_)
         {
@@ -1372,7 +1372,7 @@ private:
         }
     }
 
-    void GetSteppedValues(vector<string> params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
+    void GetSteppedValues(const vector<string> &params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
     {
         auto openSquareBrace = find(params.begin(), params.end(), "[");
         auto closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1435,7 +1435,7 @@ private:
         }
     }
 
-    string GetAlias(string fxName)
+    string GetAlias(const string &fxName)
     {
         vector<string> prefixes =
         {
@@ -1486,7 +1486,7 @@ private:
     }
 
 public:
-    ZoneManager(shared_ptr<ControlSurface> surface, string zoneFolder, string fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
+    ZoneManager(shared_ptr<ControlSurface> surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
         
     void Initialize();
     
@@ -1642,7 +1642,7 @@ public:
         return surfaceFXLayout_;
     }
               
-    void GoAssociatedZone(string zoneName)
+    void GoAssociatedZone(const string &zoneName)
     {
         if(noMapZone_ != nullptr)
             noMapZone_->Deactivate();
@@ -1744,7 +1744,7 @@ public:
             return false;
     }
     
-    bool GetIsAssociatedZoneActive(string zoneName)
+    bool GetIsAssociatedZoneActive(const string &zoneName)
     {
         if(homeZone_ !=  nullptr)
             return homeZone_->GetIsAssociatedZoneActive(zoneName);
@@ -1759,7 +1759,7 @@ public:
         fxSlotZones_.clear();
     }
            
-    void AdjustBank(string zoneName, int amount)
+    void AdjustBank(const string &zoneName, int amount)
     {
         if(bankOffsets_.count(zoneName) > 0)
         {
@@ -1775,13 +1775,13 @@ public:
         usedWidgets_[widget] = false;
     }
     
-    void AddZoneFilePath(string name, struct CSIZoneInfo info)
+    void AddZoneFilePath(const string &name, const struct CSIZoneInfo &info)
     {
         if(name != "")
             zoneFilePaths_[name] = info;
     }
         
-    void AddZoneFilePath(string fxZoneFolder, string name, struct CSIZoneInfo info)
+    void AddZoneFilePath(const string &fxZoneFolder, const string &name, const struct CSIZoneInfo &info)
     {
         if(fxZoneFolder == fxZoneFolder_)
             AddZoneFilePath(name, info);
@@ -2151,7 +2151,7 @@ public:
         }
     }
 
-    void SaveAutoZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
+    void SaveAutoZone(const AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         ofstream fxFile(zoneDef.fullPath);
         
@@ -2419,7 +2419,7 @@ private:
     vector<Modifier> modifiers_;
     vector<int> modifierCombinations_;
     
-    vector<vector<int>> GetCombinations(vector<int> &indices)
+    vector<vector<int>> GetCombinations(const vector<int> &indices)
     {
         vector<vector<int>> combinations;
         
@@ -2478,7 +2478,7 @@ public:
     bool GetZoom() { return modifiers_[Zoom].isEngaged; }
     bool GetScrub() { return modifiers_[Scrub].isEngaged; }
 
-    void ClearModifier(string modifierString)
+    void ClearModifier(const string &modifierString)
     {
         if(modifierFromString_.count(modifierString) > 0)
         {
@@ -2676,7 +2676,7 @@ private:
     map<int, bool> channelToggles_;
     
 protected:
-    ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
+    ControlSurface(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
@@ -2813,7 +2813,7 @@ public:
         restrictedTextLength_ = length;
     }
     
-    string GetRestrictedLengthText(string text)
+    string GetRestrictedLengthText(const string &text)
     {
         string restrictedText = text;
 
@@ -2857,7 +2857,7 @@ public:
         trackColorFeedbackProcessors_.push_back(feedbackProcessor);
     }
     
-    void SetFixedTrackColors(vector<rgba_color> colors)
+    void SetFixedTrackColors(const vector<rgba_color> &colors)
     {
         fixedTrackColors_.clear();
         
@@ -2948,12 +2948,12 @@ public:
         zoneManager_->AddWidget(widget);
     }
     
-    void AddCSIMessageGenerator(shared_ptr<CSIMessageGenerator> messageGenerator, string message)
+    void AddCSIMessageGenerator(shared_ptr<CSIMessageGenerator> messageGenerator, const string &message)
     {
         CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
 
-    shared_ptr<Widget> GetWidgetByName(string name)
+    shared_ptr<Widget> GetWidgetByName(const string &name)
     {
         if(widgetsByName_.count(name) > 0)
             return widgetsByName_[name];
@@ -3008,7 +3008,7 @@ public:
     
     vector<int> &GetModifiers();
     void ClearModifiers();
-    void ClearModifier(string modifier);
+    void ClearModifier(const string &modifier);
 
     void UpdateCurrentActionContextModifiers()
     {
@@ -4074,9 +4074,9 @@ private:
     struct PrivateTag {}; // to block constructor use by external code
     
 public:
-    Page(string name, PrivateTag) : name_(name) {}
+    Page(const string &name, PrivateTag) : name_(name) {}
 
-    static shared_ptr<Page> GetInstance(string name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled)
+    static shared_ptr<Page> GetInstance(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled)
     {
         shared_ptr<Page> instance = make_shared<Page>(name, PrivateTag{});
 
@@ -4207,7 +4207,7 @@ public:
             surface->GetZoneManager()->GoAssociatedZone(name);
     }
     
-    void AdjustBank(string zoneName, int amount)
+    void AdjustBank(const string &zoneName, int amount)
     {
         if(zoneName == "Track")
             trackNavigationManager_->AdjustTrackBank(amount);
@@ -4224,7 +4224,7 @@ public:
                 surface->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
-    void AddZoneFilePath(shared_ptr<ControlSurface> originatingSurface, string zoneFolder, string name, struct CSIZoneInfo info)
+    void AddZoneFilePath(shared_ptr<ControlSurface> originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
     {
         for(auto surface : surfaces_)
             if(surface != originatingSurface)
@@ -4496,7 +4496,7 @@ public:
             osara_outputMessage(phrase.c_str());
     }
     
-    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params)
+    shared_ptr<ActionContext> GetActionContext(const string &actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &params)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, params);
@@ -4504,7 +4504,7 @@ public:
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
     }
 
-    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex)
+    shared_ptr<ActionContext> GetActionContext(const string &actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, paramIndex);
@@ -4512,7 +4512,7 @@ public:
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, paramIndex);
     }
 
-    shared_ptr<ActionContext> GetActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam)
+    shared_ptr<ActionContext> GetActionContext(const string &actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const string &stringParam)
     {
         if(actions_.count(actionName) > 0)
             return make_shared<ActionContext>(actions_[actionName], widget, zone, stringParam);
@@ -4520,7 +4520,7 @@ public:
             return make_shared<ActionContext>(actions_["NoAction"], widget, zone, stringParam);
     }
 
-    shared_ptr<ActionContext> GetLearnFXActionContext(string actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params)
+    shared_ptr<ActionContext> GetLearnFXActionContext(const string &actionName, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &params)
     {
         if(learnFXActions_.count(actionName) > 0)
             return make_shared<ActionContext>(learnFXActions_[actionName], widget, zone, params);
@@ -4687,7 +4687,7 @@ public:
         return fxParamAliases_[fxName][paramIndex];
     }
     
-    void SetSteppedValueCount(string fxName, int paramIndex, int steppedValuecount)
+    void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValuecount)
     {
         fxParamSteppedValueCounts_[fxName][paramIndex] = steppedValuecount;
     }
@@ -4700,7 +4700,7 @@ public:
             return false;
     }
     
-    int GetSteppedValueCount(string fxName, int paramIndex)
+    int GetSteppedValueCount(const string &fxName, int paramIndex)
     {
         if(fxParamSteppedValueCounts_.count(fxName) > 0 && fxParamSteppedValueCounts_[fxName].count(paramIndex) > 0)
             return fxParamSteppedValueCounts_[fxName][paramIndex];

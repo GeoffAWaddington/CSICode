@@ -4825,7 +4825,7 @@ vector<int> &ControlSurface::GetModifiers()
         return page_->GetModifierManager()->GetModifiers();
 }
 
-void ControlSurface::ClearModifier(string modifier)
+void ControlSurface::ClearModifier(const string &modifier)
 {
     if(zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
