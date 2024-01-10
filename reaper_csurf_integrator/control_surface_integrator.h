@@ -43,7 +43,6 @@
 #include "udp.hh"
 #endif
 
-extern string GetLineEnding();
 extern void GetTokens(vector<string> &tokens, string line);
 extern int strToHex(const string &valueStr);
 
@@ -2157,12 +2156,12 @@ public:
         
         if(fxFile.is_open())
         {
-            fxFile << "Zone \"" + zoneDef.fxName + "\" \"" + zoneDef.fxAlias + "\"" + GetLineEnding();
+            fxFile << "Zone \"" + zoneDef.fxName + "\" \"" + zoneDef.fxAlias + "\"\n";
             
             for(auto line : zoneDef.prologue)
-                fxFile << line + GetLineEnding();
+                fxFile << line + "\n";
             
-            fxFile << s_BeginAutoSection + GetLineEnding() + GetLineEnding();
+            fxFile << s_BeginAutoSection + "\n\n";
             
             for(int i = 0; i < zoneDef.paramDefs.size(); i++)
             {
@@ -2174,7 +2173,7 @@ public:
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "")
                     {
-                        fxFile << "NoAction" + GetLineEnding();
+                        fxFile << "NoAction\n";
                     }
                     else
                     {
@@ -2231,15 +2230,15 @@ public:
                         for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramWidgetProperties)
                             fxFile << " " + key + "=" + value ;
                         
-                        fxFile << GetLineEnding();
+                        fxFile << "\n";
                     }
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
                     {
                         if(! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
+                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction\n";
                         else
-                            fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
+                            fxFile << "\tNullDisplay\tNoAction\n";
                     }
                     else
                     {
@@ -2252,15 +2251,15 @@ public:
                         for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
-                        fxFile << GetLineEnding();
+                        fxFile << "\n";
                     }
                     
                     if(zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
                     {
                         if(! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction" + GetLineEnding();
+                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction\n";
                         else
-                            fxFile << "\tNullDisplay\tNoAction" + GetLineEnding();
+                            fxFile << "\tNullDisplay\tNoAction\n";
                     }
                     else
                     {
@@ -2273,24 +2272,24 @@ public:
                         for(auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties)
                             fxFile << " " + key + "=" + value;
                         
-                        fxFile << GetLineEnding();
+                        fxFile << "\n";
                     }
                     
-                    fxFile << GetLineEnding();
+                    fxFile << "\n";
                 }
                 
-                fxFile << GetLineEnding();
+                fxFile << "\n";
             }
             
-            fxFile <<  s_EndAutoSection + GetLineEnding();
+            fxFile <<  s_EndAutoSection + "\n";
             
             for(auto line : zoneDef.epilogue)
-                fxFile << line + GetLineEnding();
+                fxFile << line + "\n";
             
-            fxFile << "ZoneEnd" + GetLineEnding();
+            fxFile << "ZoneEnd\n";
             
             for(auto line : zoneDef.rawParams)
-                fxFile << line + GetLineEnding();
+                fxFile << line + "\n";
             
             fxFile.close();
         }
@@ -4639,7 +4638,7 @@ public:
                     fxFile.open(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt");
                     
                     if(fxFile.is_open())
-                        fxFile << "Zone \"" + string(fxName) + "\"" + GetLineEnding();
+                        fxFile << "Zone \"" + string(fxName) + "\"\n";
                 }
 
                 for(int j = 0; j < DAW::TrackFX_GetNumParams(track, i); j++)
@@ -4650,7 +4649,7 @@ public:
                         DAW::ShowConsoleMsg(("\n\tFXParam " + to_string(j) + " \"" + string(fxParamName) + "\"").c_str());
   
                     if(fxParamsWrite_ && fxFile.is_open())
-                        fxFile <<  "\tFXParam " + to_string(j) + " \"" + string(fxParamName)+ "\"" + GetLineEnding();
+                        fxFile <<  "\tFXParam " + to_string(j) + " \"" + string(fxParamName)+ "\"\n";
                         
                     /* step sizes
                     double stepOut = 0;
@@ -4733,6 +4732,7 @@ public:
         */
     }
     
+    /*
     void GenerateX32SurfaceFile()
     {
         vector<vector<string>> generalWidgets = {   {"MasterFader", "/main/st/mix/fader"},
@@ -4749,13 +4749,13 @@ public:
         {
             for(int i = 0; i < generalWidgets.size(); i++)
             {
-                X32File << "Widget " + generalWidgets[i][0]  + GetLineEnding();
+                X32File << "Widget " + generalWidgets[i][0]  + "\n";
                 
-                X32File << "\tControl " + generalWidgets[i][1] + GetLineEnding();
+                X32File << "\tControl " + generalWidgets[i][1] + "\n";
                 
-                X32File << "\tFB_Processor " + generalWidgets[i][1] + GetLineEnding();
+                X32File << "\tFB_Processor " + generalWidgets[i][1] + "\n";
 
-                X32File << "WidgetEnd" + GetLineEnding() + GetLineEnding();
+                X32File << "WidgetEnd\n\n";
             }
 
             for(int i = 0; i < channelWidgets.size(); i++)
@@ -4764,22 +4764,24 @@ public:
                 {
                     string numStr = to_string(j + 1);
              
-                    X32File << "Widget " + channelWidgets[i][0] + numStr + GetLineEnding();
+                    X32File << "Widget " + channelWidgets[i][0] + numStr + "\n";
                     
                     if(numStr.length() < 2)
                        numStr = "0" + numStr;
                     
                     string OSCMessage = regex_replace(channelWidgets[i][1], regex("[|]"), numStr);
 
-                    X32File << "\tControl " + OSCMessage + GetLineEnding();
+                    X32File << "\tControl " + OSCMessage + "\n";
 
-                    X32File << "\tFB_Processor " + OSCMessage + GetLineEnding();
+                    X32File << "\tFB_Processor " + OSCMessage + "\n";
 
-                    X32File << "WidgetEnd" + GetLineEnding() + GetLineEnding();
+                    X32File << "WidgetEnd\n\n";
                 }
             }
         }
     }
+    */
+    
 };
 
 /*

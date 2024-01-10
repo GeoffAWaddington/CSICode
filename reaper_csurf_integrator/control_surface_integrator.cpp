@@ -41,15 +41,6 @@ void GetParamStepsValues(vector<double> &outputVector, int numSteps)
         outputVector.push_back(EnumSteppedValues(numSteps, i));
 }
 
-string GetLineEnding()
-{
-#ifdef WIN32
-    return "\n";
-#else
-    return "\r\n" ;
-#endif
-}
-
 void TrimLine(string &line)
 {
     line = regex_replace(line, regex(s_TabChars), " ");
@@ -1332,7 +1323,7 @@ static void ProcessOSCWidgetFile(const string &filePath, shared_ptr<OSC_ControlS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Manager::InitActionsDictionary()
 {
-    actions_["DumpHex"] =                           make_shared<DumpHex>();
+    //actions_["DumpHex"] =                           make_shared<DumpHex>();
     actions_["MetronomePrimaryVolumeDisplay"] =     make_shared<MetronomePrimaryVolumeDisplay>();
     actions_["MetronomeSecondaryVolumeDisplay"] =   make_shared<MetronomeSecondaryVolumeDisplay>();
     actions_["MetronomePrimaryVolume"] =            make_shared<MetronomePrimaryVolume>();
@@ -3089,7 +3080,7 @@ void ZoneManager::SaveTemplatedFXParams()
             pos += learnFXName_.length();
         }
         
-        fxLayoutFileLines_[0] += " \"" + GetAlias(learnFXName_) + "\" " + GetLineEnding() + GetLineEnding();
+        fxLayoutFileLines_[0] += " \"" + GetAlias(learnFXName_) + "\" \n\n";
         
         string path = "";
         string alias = "";
@@ -3126,7 +3117,7 @@ void ZoneManager::SaveTemplatedFXParams()
             {
                 string ending = "";
                 
-                string lineEnding = GetLineEnding();
+                string lineEnding = "\n";
 
                 if(line.length() >= lineEnding.length())
                     ending = line.substr(line.length() - lineEnding.length(), lineEnding.length());
@@ -3135,7 +3126,7 @@ void ZoneManager::SaveTemplatedFXParams()
                     line = line.substr(0, line.length() - 1);
                 
                 if(ending != lineEnding)
-                    line += GetLineEnding();
+                    line += "\n";
                 
                 fxZone << line;
             }
@@ -3197,12 +3188,12 @@ void ZoneManager::SaveLearnedFXParams()
 
         if(fxZone.is_open())
         {
-            fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\" \"" + s_GeneratedByLearn + "\"" + GetLineEnding();
+            fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\" \"" + s_GeneratedByLearn + "\"\n";
             
             for(auto line : fxPrologue_)
-                fxZone << "\t" + line + GetLineEnding();
+                fxZone << "\t" + line + "\n";
                    
-            fxZone << "\n" + s_BeginAutoSection + GetLineEnding();
+            fxZone << "\n" + s_BeginAutoSection + "\n";
 
             if(homeZone_->GetLearnFXParamsZone())
             {
@@ -3225,38 +3216,38 @@ void ZoneManager::SaveLearnedFXParams()
                             {
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + GetLineEnding();
-                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + GetLineEnding();
-                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + GetLineEnding() + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + "\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + "\n\n";
                             }
                             else if(i == cell.fxParamWidgets.size() - 1 && ! cellHasDisplayWidgetsDefined)
                             {
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
-                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction" + GetLineEnding();
-                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction" + GetLineEnding() + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction\n\n";
                             }
                             else
                             {
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction" + GetLineEnding();
-                                fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
-                                fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction\n";
+                                fxZone << "\tNullDisplay\tNoAction\n";
+                                fxZone << "\tNullDisplay\tNoAction\n\n";
                             }
                         }
                         
-                        fxZone << GetLineEnding();
+                        fxZone << "\n";
                     }
                 }
             }
             
-            fxZone << s_EndAutoSection + GetLineEnding();
+            fxZone << s_EndAutoSection + "\n";
                     
             for(auto line : fxEpilogue_)
-                fxZone << "\t" + line + GetLineEnding();
+                fxZone << "\t" + line + "\n";
 
-            fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
+            fxZone << "ZoneEnd\n\n";
             
             for(auto paramStr : paramList_)
-                fxZone << paramStr + GetLineEnding();
+                fxZone << paramStr + "\n";
             
             fxZone.close();
         }
@@ -4067,12 +4058,12 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
 
     if(fxZone.is_open())
     {
-        fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"" + GetLineEnding();
+        fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"\n";
         
         for(auto line : fxPrologue_)
-            fxZone << "\t" + line + GetLineEnding();
+            fxZone << "\t" + line + "\n";
                
-        fxZone << "\n" + s_BeginAutoSection + GetLineEnding();
+        fxZone << "\n" + s_BeginAutoSection + "\n";
         
         int layoutIndex = 0;
         int channelIndex = 1;
@@ -4143,15 +4134,15 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             fxZone << " " + surfaceFXLayout_[lineIdx][tokenIdx];
                     }
                     
-                    fxZone << GetLineEnding();
+                    fxZone << "\n";
                 }
                 
-                fxZone << GetLineEnding();
+                fxZone << "\n";
             }
             
             channelIndex++;
             
-            fxZone << GetLineEnding();
+            fxZone << "\n";
             
             if(channelIndex > fxLayouts_[layoutIndex].channelCount)
             {
@@ -4176,7 +4167,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                     if(fxLayouts_[layoutIndex].modifiers != "")
                         modifiers = fxLayouts_[layoutIndex].modifiers + "+";
                     
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction" + GetLineEnding();
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction\n";
                     
                     if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
@@ -4186,7 +4177,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             for(int i = 2; i < surfaceFXLayout_[1].size(); i++)
                                 fxZone << " " + surfaceFXLayout_[1][i];
                         
-                        fxZone << GetLineEnding();
+                        fxZone << "\n";
                         
                         fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(channelIndex) + "\tNoAction";
                         
@@ -4194,16 +4185,16 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
                                 fxZone << " " + surfaceFXLayout_[2][i];
                         
-                        fxZone << GetLineEnding() + GetLineEnding();
+                        fxZone << "\n\n";
                     }
                     else
                     {
-                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
-                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                        fxZone << "\tNullDisplay\tNoAction\n";
+                        fxZone << "\tNullDisplay\tNoAction\n\n";
                     }
                 }
                 
-                fxZone << GetLineEnding();
+                fxZone << "\n";
                 
                 channelIndex++;
             }
@@ -4223,7 +4214,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                     if(fxLayouts_[layoutIndex].modifiers != "")
                         modifiers = fxLayouts_[layoutIndex].modifiers + "+";
                     
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction" + GetLineEnding();
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction\n";
                     
                     if(widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
@@ -4233,7 +4224,7 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             for(int i = 2; i < surfaceFXLayout_[1].size(); i++)
                                 fxZone << " " + surfaceFXLayout_[1][i];
                         
-                        fxZone << GetLineEnding();
+                        fxZone << "\n";
                         
                         fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix + to_string(index) + "\tNoAction";
                         
@@ -4241,30 +4232,30 @@ void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
                             for(int i = 2; i < surfaceFXLayout_[2].size(); i++)
                                 fxZone << " " + surfaceFXLayout_[2][i];
                         
-                        fxZone << GetLineEnding() + GetLineEnding();
+                        fxZone << "\n\n";
                     }
                     else
                     {
-                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding();
-                        fxZone << "\tNullDisplay\tNoAction" + GetLineEnding() + GetLineEnding();
+                        fxZone << "\tNullDisplay\tNoAction\n";
+                        fxZone << "\tNullDisplay\tNoAction\n\n";
                     }
                 }
                 
-                fxZone << GetLineEnding();
+                fxZone << "\n";
             }
             
             layoutIndex++;
         }
         
-        fxZone << s_EndAutoSection + GetLineEnding();
+        fxZone << s_EndAutoSection + "\n";
                 
         for(auto line : fxEpilogue_)
-            fxZone << "\t" + line + GetLineEnding();
+            fxZone << "\t" + line + "\n";
 
-        fxZone << "ZoneEnd" + GetLineEnding() + GetLineEnding();
+        fxZone << "ZoneEnd\n\n";
         
         for(int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
-            fxZone << to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxIndex, i) + GetLineEnding();
+            fxZone << to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxIndex, i) + "\n";
         
         fxZone.close();
     }

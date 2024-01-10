@@ -9,7 +9,6 @@
 #include <memory>
 
 unique_ptr<Manager> TheManager;
-extern string GetLineEnding();
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
@@ -3017,9 +3016,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
             if(iniFile.is_open())
             {
-                iniFile << s_MajorVersionToken + GetLineEnding();
+                iniFile << s_MajorVersionToken + "\n";
                 
-                iniFile << GetLineEnding();
+                iniFile << "\n";
                 
                 string line = "";
                 
@@ -3033,10 +3032,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     if(surface->type == s_OSCSurfaceToken)
                         line += surface->remoteDeviceIP;
                     
-                    iniFile << line + GetLineEnding();
+                    iniFile << line + "\n";
                 }
                 
-                iniFile << GetLineEnding();
+                iniFile << "\n";
                 
                 for(auto page : s_pages)
                 {
@@ -3055,7 +3054,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     if(page->scrollSynch == true)
                         line += " UseScrollSynch";
 
-                    line += GetLineEnding();
+                    line += "\n";
                     
                     iniFile << line;
 
@@ -3069,17 +3068,17 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         line += "\"" + surface->zoneTemplateFolder + "\" ";
                         line += "\"" + surface->fxZoneTemplateFolder + "\" ";
 
-                        iniFile << line + GetLineEnding();
+                        iniFile << line + "\n";
                     }
                     
-                    iniFile << GetLineEnding();
+                    iniFile << "\n";
                     
                     for(auto broadcaster : page->broadcasters)
                     {
                         if(broadcaster->listeners.size() == 0)
                             continue;
                         
-                        iniFile << string("\tBroadcaster ") + "\"" + broadcaster->name + "\"" + GetLineEnding();
+                        iniFile << string("\tBroadcaster ") + "\"" + broadcaster->name + "\"\n";
                         
                         for(auto listener : broadcaster->listeners)
                         {
@@ -3106,10 +3105,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             if(listener->custom)
                                 listenerCategories += "Custom ";
 
-                            iniFile << string("\t\tListener ") + "\"" + listener->name + "\" \"" + listenerCategories + "\"" + GetLineEnding();
+                            iniFile << string("\t\tListener ") + "\"" + listener->name + "\" \"" + listenerCategories + "\"\n";
                         }
                         
-                        iniFile << GetLineEnding();
+                        iniFile << "\n";
                     }
                 }
 
