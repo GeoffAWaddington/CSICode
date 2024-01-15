@@ -4799,7 +4799,7 @@ void ControlSurface::SetScrub(bool value)
         page_->GetModifierManager()->SetScrub(value, latchTime_);
 }
 
-vector<int> &ControlSurface::GetModifiers()
+const vector<int> &ControlSurface::GetModifiers()
 {
     if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetModifiers();

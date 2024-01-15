@@ -356,10 +356,10 @@ public:
     vector<string> &GetParameters() { return parameters_; }
     
     int GetIntParam() { return intParam_; }
-    string GetStringParam() { return stringParam_; }
+    const string &GetStringParam() { return stringParam_; }
     int GetCommandId() { return commandId_; }
     
-    string GetFXParamDisplayName() { return fxParamDisplayName_; }
+    const string &GetFXParamDisplayName() { return fxParamDisplayName_; }
     
     MediaTrack* GetTrack();
     
@@ -382,7 +382,7 @@ public:
     
     // For Learn
     void SetCellAddress(string cellAddress) { cellAddress_ = cellAddress; }
-    string &GetCellAddress() { return cellAddress_; }
+    const string &GetCellAddress() { return cellAddress_; }
 
     void DoAction(double value);
     void DoRelativeAction(double value);
@@ -437,7 +437,7 @@ public:
         steppedValuesIndex_ = index;
     }
 
-    string GetPanValueString(double panVal, string dualPan)
+    const string GetPanValueString(double panVal, const string &dualPan)
     {
         bool left = false;
         
@@ -575,17 +575,17 @@ public:
     void RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets);
     void SetFXParamNum(shared_ptr<Widget> paramWidget, int paramIndex);
 
-    string GetSourceFilePath() { return sourceFilePath_; }
+    const string &GetSourceFilePath() { return sourceFilePath_; }
     
     virtual string GetType() { return "Zone"; }
     
-    map<shared_ptr<Widget>, bool> &GetWidgets() { return widgets_; }
+    const map<shared_ptr<Widget>, bool> &GetWidgets() { return widgets_; }
 
     shared_ptr<Navigator> GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
-    map<int, map<string, LearnFXCell>> &GetLearnFXCells() { return learnFXCells_; }
+    const map<int, map<string, LearnFXCell>> &GetLearnFXCells() { return learnFXCells_; }
     
     int GetModifier(shared_ptr<Widget> widget)
     {
@@ -653,7 +653,7 @@ public:
             Activate();
     }
 
-    string GetName()
+    const string &GetName()
     {
         return name_;
     }
@@ -894,7 +894,7 @@ public:
         }
     }
     
-    string GetName() { return name_; }
+    const string &GetName() { return name_; }
     shared_ptr<ControlSurface> GetSurface() { return surface_; }
     shared_ptr<ZoneManager> GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
@@ -1498,7 +1498,7 @@ public:
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(shared_ptr<ControlSurface> surface);
     void SetListenerCategories(const string &categoryList);
-    vector<shared_ptr<ZoneManager>> &GetListeners() { return listeners_; }
+    const vector<shared_ptr<ZoneManager>> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     void GoFocusedFX();
@@ -1526,7 +1526,7 @@ public:
     
     void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
 
-    string GetZoneFolder() { return zoneFolder_; }
+    const string &GetZoneFolder() { return zoneFolder_; }
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
     vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
@@ -1636,7 +1636,7 @@ public:
                 zoneManager->ListenToClearFocusedFX();
     }
     
-    vector<vector<string>> &GetSurfaceFXLayout()
+    const vector<vector<string>> &GetSurfaceFXLayout()
     {
         return surfaceFXLayout_;
     }
@@ -2464,7 +2464,7 @@ public:
     }
     
     void RecalculateModifiers();
-    vector<int> &GetModifiers() { return modifierCombinations_; }
+    const vector<int> &GetModifiers() { return modifierCombinations_; }
     
     bool GetShift() { return modifiers_[Shift].isEngaged; }
     bool GetOption() { return modifiers_[Option].isEngaged; }
@@ -2485,35 +2485,7 @@ public:
             RecalculateModifiers();
         }
     }
-    
-    string GetModifierString()
-    {
-        string str = "";
-        
-        if(modifiers_[Shift].isEngaged)
-            str += modifierNames_[Shift] + "+";
-        if(modifiers_[Option].isEngaged)
-            str += modifierNames_[Option] + "+";
-        if(modifiers_[Control].isEngaged)
-            str += modifierNames_[Control] + "+";
-        if(modifiers_[Alt].isEngaged)
-            str += modifierNames_[Alt] + "+";
-        if(modifiers_[Flip].isEngaged)
-            str += modifierNames_[Flip] + "+";
-        if(modifiers_[Global].isEngaged)
-            str += modifierNames_[Global] + "+";
-        if(modifiers_[Marker].isEngaged)
-            str += modifierNames_[Marker] + "+";
-        if(modifiers_[Nudge].isEngaged)
-            str += modifierNames_[Nudge] + "+";
-        if(modifiers_[Zoom].isEngaged)
-            str += modifierNames_[Zoom] + "+";
-        if(modifiers_[Scrub].isEngaged)
-            str += modifierNames_[Scrub] + "+";
-        
-        return str;
-    }
-       
+
     static string GetModifierString(int modifierValue)
     {
         string modifierString = "";
@@ -3005,7 +2977,7 @@ public:
     void SetZoom(bool value);
     void SetScrub(bool value);
     
-    vector<int> &GetModifiers();
+    const vector<int> &GetModifiers();
     void ClearModifiers();
     void ClearModifier(const string &modifier);
 
@@ -3235,7 +3207,7 @@ public:
 
     void HandleExternalInput(OSC_ControlSurface* surface);
     
-    void SendOSCMessage(string oscAddress, double value)
+    void SendOSCMessage(const string &oscAddress, double value)
     {
         if(outSocket_ != nullptr && outSocket_->isOk())
         {
@@ -3246,7 +3218,7 @@ public:
         }
     }
     
-    void SendOSCMessage(string oscAddress, int value)
+    void SendOSCMessage(const string &oscAddress, int value)
     {
         if(outSocket_ != nullptr && outSocket_->isOk())
         {
@@ -3257,7 +3229,7 @@ public:
         }
     }
     
-    void SendOSCMessage( string oscAddress, string value)
+    void SendOSCMessage(const string &oscAddress, string value)
     {
         if(outSocket_ != nullptr && outSocket_->isOk())
         {
@@ -3268,7 +3240,7 @@ public:
         }
     }
     
-    void SendOSCMessage(string value)
+    void SendOSCMessage(const string &value)
     {
         if(outSocket_ != nullptr && outSocket_->isOk())
         {
@@ -3479,7 +3451,7 @@ public:
             return "";
     }
 
-    string GetAutoModeDisplayName(int modeIndex)
+    const string &GetAutoModeDisplayName(int modeIndex)
     {
         int globalOverride = DAW::GetGlobalAutomationOverride();
 
@@ -4258,10 +4230,10 @@ public:
     void SetTrackOffset(int offset) { trackNavigationManager_->SetTrackOffset(offset); }
     MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
     void NextInputMonitorMode(MediaTrack* track) { trackNavigationManager_->NextInputMonitorMode(track); }
-    string GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
+    const string &GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
     string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     string GetCurrentInputMonitorMode(MediaTrack* track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
-    vector<MediaTrack*> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
+    const vector<MediaTrack*> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
     
     
     /*
@@ -4676,7 +4648,7 @@ public:
         }
     }
     
-    string GetTCPFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
+    const string &GetTCPFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
     {
         char fxName[BUFSZ];
         DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
