@@ -2566,10 +2566,10 @@ void  Widget::UpdateColorValue(rgba_color color)
         processor->SetColorValue(color);
 }
 
-void Widget::SetXTouchDisplayColors(const string &zoneName, string color)
+void Widget::SetXTouchDisplayColors(const string &zoneName, const string &colors)
 {
     for(auto processor : feedbackProcessors_)
-        processor->SetXTouchDisplayColors(zoneName, color);
+        processor->SetXTouchDisplayColors(zoneName, colors);
 }
 
 void Widget::RestoreXTouchDisplayColors()
@@ -2666,7 +2666,7 @@ void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, double v
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
 
-void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, string value)
+void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, const string &value)
 {
     lastStringValue_ = value;
     surface_->SendOSCMessage(this, oscAddress_, GetWidget()->GetSurface()->GetRestrictedLengthText(value));

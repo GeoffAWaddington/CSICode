@@ -913,7 +913,7 @@ public:
     void UpdateValue(map<string, string> &properties, string value);
     void RunDeferredActions();
     void UpdateColorValue(rgba_color);
-    void SetXTouchDisplayColors(const string &zoneName, string color);
+    void SetXTouchDisplayColors(const string &zoneName, const string &colors);
     void RestoreXTouchDisplayColors();
     void ForceClear();
     void LogInput(double value);
@@ -3036,12 +3036,12 @@ public:
     virtual void Configure(vector<shared_ptr<ActionContext>> contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(rgba_color color) {}
-    virtual void ForceValue(map<string, string> &properties, string value) {}
+    virtual void ForceValue(map<string, string> &properties, const string &value) {}
     virtual void RunDeferredActions() {}
     virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
-    virtual void SetXTouchDisplayColors(const string &zoneName, string color) {}
+    virtual void SetXTouchDisplayColors(const string &zoneName, const string &colors) {}
     virtual void RestoreXTouchDisplayColors() {}
     virtual void ForceClear() {}
     
@@ -3199,7 +3199,7 @@ public:
     virtual void SetColorValue(rgba_color color) override;
     virtual void X32SetColorValue(rgba_color color);
     virtual void ForceValue(map<string, string> &properties, double value) override;
-    virtual void ForceValue(map<string, string> &properties, string value) override;
+    virtual void ForceValue(map<string, string> &properties, const string &value) override;
     virtual void ForceClear() override;
 };
 

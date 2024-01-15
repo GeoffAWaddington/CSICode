@@ -872,17 +872,17 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
     }
 
-    virtual void SetValue(map<string, string> &properties, string value) override
+    virtual void SetValue(map<string, string> &properties, string inputText) override
     {
-        ForceValue(properties, value);
+        ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
         if(rows_.count(properties["Row"]) < 1)
             return;
             
-        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
                        
         shared_ptr<RowInfo> row = rows_[properties["Row"]];
         
@@ -1912,18 +1912,18 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(map<string, string> &properties, string displayText) override
+    virtual void SetValue(map<string, string> &properties, string inputText) override
     {
-        if(displayText != lastStringSent_) // changes since last send
-            ForceValue(properties, displayText);
+        if(inputText != lastStringSent_) // changes since last send
+            ForceValue(properties, inputText);
     }
-
-    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    
+    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
-        lastStringSent_ = displayText;
+        lastStringSent_ = inputText;
         
-        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
-        
+        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+
         if(displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
@@ -1991,18 +1991,18 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(map<string, string> &properties, string displayText) override
+    virtual void SetValue(map<string, string> &properties, string inputText) override
     {
-        if(displayText != lastStringSent_) // changes since last send
-            ForceValue(properties, displayText);
+        if(inputText != lastStringSent_) // changes since last send
+            ForceValue(properties, inputText);
     }
-
-    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    
+    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
-        lastStringSent_ = displayText;
+        lastStringSent_ = inputText;
         
-        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
-        
+        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+
         if(displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
@@ -2130,7 +2130,7 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetXTouchDisplayColors(const string &zoneName, string colors) override
+    virtual void SetXTouchDisplayColors(const string &zoneName, const string &colors) override
     {
         preventUpdateTrackColors_ = true;
         
@@ -2181,18 +2181,18 @@ public:
         preventUpdateTrackColors_ = false;
     }
     
-    virtual void SetValue(map<string, string> &properties, string displayText) override
+    virtual void SetValue(map<string, string> &properties, string inputText) override
     {
-        if(displayText != lastStringSent_) // changes since last send
-            ForceValue(properties, displayText);
+        if(inputText != lastStringSent_) // changes since last send
+            ForceValue(properties, inputText);
     }
-
-    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    
+    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
-        lastStringSent_ = displayText;
-                
-        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        lastStringSent_ = inputText;
         
+        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+
         if(displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
@@ -2373,19 +2373,17 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(map<string, string> &properties, string displayText) override
+    virtual void SetValue(map<string, string> &properties, string inputText) override
     {
-        if(displayText == lastStringSent_) // changes since last send
-            return;
-
-        ForceValue(properties, displayText);
+        if(inputText != lastStringSent_) // changes since last send
+            ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
-        lastStringSent_ = displayText;
+        lastStringSent_ = inputText;
         
-        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
         if(displayText == "")
             displayText = "                            ";
@@ -2528,17 +2526,17 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(map<string, string> &properties, string displayText) override
+    virtual void SetValue(map<string, string> &properties, string inputText) override
     {
-        if(displayText != lastStringSent_) // changes since last send
-            ForceValue(properties, displayText);
+        if(inputText != lastStringSent_) // changes since last send
+            ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, string displayText) override
+    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
-        lastStringSent_ = displayText;
+        lastStringSent_ = inputText;
         
-        displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(displayText);
+        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
         if(displayText == "")
             displayText = "       ";
