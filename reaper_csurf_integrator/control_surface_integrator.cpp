@@ -479,10 +479,8 @@ static void PreProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> z
     }
 }
 
-static vector<rgba_color> GetColorValues(vector<string> colors)
+static void GetColorValues(vector<rgba_color> colorValues, vector<string> colors)
 {
-    vector<rgba_color> colorValues;
-    
     for(auto color : colors)
     {
         rgba_color colorValue;
@@ -508,8 +506,6 @@ static vector<rgba_color> GetColorValues(vector<string> colors)
             }
         }
     }
-    
-    return colorValues;
 }
 
 static void ProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zoneManager, const vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
@@ -721,10 +717,7 @@ static void SetColor(const vector<string> &params, bool &supportsColor, bool &su
         {
             supportsColor = true;
 
-            vector<rgba_color> colors = GetColorValues(hexColors);
-            
-            for(auto color : colors)
-                colorValues.push_back(color);
+            GetColorValues(colorValues, hexColors);
         }
         else if(rawValues.size() % 3 == 0 && rawValues.size() > 2)
         {
@@ -1624,7 +1617,7 @@ void Manager::Init()
             
             lineNumber++;
         }
-        
+        /*
         // Restore the PageIndex
         currentPageIndex_ = 0;
         
@@ -1641,7 +1634,8 @@ void Manager::Init()
         }
         
         if(pages_.size() > 0)
-            pages_[currentPageIndex_]->ForceClear();               
+            pages_[currentPageIndex_]->ForceClear();
+        */
     }
     catch (exception &e)
     {
@@ -1707,12 +1701,11 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params): action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
 {
-    // GAW -- Hack to get rid of the widgetProperties, so we don't break existing logic
-    vector<string> nonWidgetPropertyParams;
+    vector<string> params;
     
-    for(auto param : params)
+    for(auto param : paramsAndProperties)
     {
         if(param.find("=") != string::npos)
         {
@@ -1727,10 +1720,8 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
                 widgetProperties_[kvp[0]] = kvp[1];
         }
         else
-            nonWidgetPropertyParams.push_back(param);
+            params.push_back(param);
     }
-    
-    params = nonWidgetPropertyParams;
     
     for(int i = 1; i < params.size(); i++)
         parameters_.push_back(params[i]);
@@ -1836,7 +1827,7 @@ int ActionContext::GetSlotIndex()
     return zone_->GetSlotIndex();
 }
 
-string ActionContext::GetName()
+const string &ActionContext::GetName()
 {
     return zone_->GetNameOrAlias();
 }
@@ -2110,7 +2101,7 @@ Zone::Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navi
     }
 }
 
-void Zone::InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone)
+void Zone::InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosingZone)
 {
     for(auto zoneName : subZones)
     {
@@ -2147,7 +2138,7 @@ int Zone::GetSlotIndex()
     else return slotIndex_;
 }
 
-int Zone::GetParamIndex(string widgetName)
+int Zone::GetParamIndex(const string &widgetName)
 {
     if(widgetsByName_.count(widgetName) > 0)
     {
@@ -2184,7 +2175,7 @@ void Zone::SetFXParamNum(shared_ptr<Widget> paramWidget, int paramIndex)
     }
 }
 
-void Zone::GoAssociatedZone(string zoneName)
+void Zone::GoAssociatedZone(const string &zoneName)
 {
     if(zoneName == "Track")
     {
@@ -2214,7 +2205,7 @@ void Zone::GoAssociatedZone(string zoneName)
             zone->Activate();
 }
 
-void Zone::GoAssociatedZone(string zoneName, int slotIndex)
+void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
 {
     if(zoneName == "Track")
     {
@@ -2402,7 +2393,7 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
     }
 }
 
-void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators)
+void Zone::AddNavigatorsForZone(const string &zoneName, vector<shared_ptr<Navigator>> &navigators)
 {
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
@@ -2425,7 +2416,7 @@ void Zone::AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &
         navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
 }
 
-void Zone::SetXTouchDisplayColors(string color)
+void Zone::SetXTouchDisplayColors(const string &color)
 {
     for(auto [widget, isUsed] : widgets_)
         widget->SetXTouchDisplayColors(name_, color);
@@ -2575,7 +2566,7 @@ void  Widget::UpdateColorValue(rgba_color color)
         processor->SetColorValue(color);
 }
 
-void Widget::SetXTouchDisplayColors(string zoneName, string color)
+void Widget::SetXTouchDisplayColors(const string &zoneName, string color)
 {
     for(auto processor : feedbackProcessors_)
         processor->SetXTouchDisplayColors(zoneName, color);
@@ -2804,7 +2795,7 @@ void ZoneManager::AddListener(shared_ptr<ControlSurface> surface)
     listeners_.push_back(surface->GetZoneManager());
 }
 
-void ZoneManager::SetListenerCategories(string categoryList)
+void ZoneManager::SetListenerCategories(const string &categoryList)
 {
     vector<string> categoryTokens;
     GetTokens(categoryTokens, categoryList);
@@ -3275,7 +3266,7 @@ shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget, int m
         return shared_ptr<LearnInfo>(nullptr);
 }
 
-void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
 {
     istringstream modifiersAndWidgetName(line);
     string modifiersAndWidgetNameToken;
@@ -3292,7 +3283,7 @@ void ZoneManager::GetWidgetNameAndModifiers(string line, int listSlotIndex, stri
     cell = layoutTemplates[listSlotIndex].suffix;
 }
 
-int ZoneManager::GetModifierValue(vector<string> modifierTokens)
+int ZoneManager::GetModifierValue(const vector<string> &modifierTokens)
 {
     ModifierManager modifierManager;
 
@@ -3478,7 +3469,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
     }
 }
 
-void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum)
+void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack* track, int fxSlotNum)
 {
     zoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
     vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
@@ -3535,7 +3526,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(string fxName, MediaTrack* track
     }
 }
 
-void ZoneManager::GoFXLayoutZone(string zoneName, int slotIndex)
+void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
 {
     if(noMapZone_ != nullptr)
         noMapZone_->Deactivate();
@@ -3919,7 +3910,7 @@ void ZoneManager::PreProcessZones()
     }
 }
 
-void ZoneManager::CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex)
+void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack* track, int fxIndex, int paramIndex)
 {
     // Check for UAD / Plugin Alliance and bail if neither
     if(fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
@@ -3963,7 +3954,7 @@ void ZoneManager::CalculateSteppedValue(string fxName, MediaTrack* track, int fx
         DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
-void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex)
+void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex)
 {
     TheManager->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
 
@@ -4020,7 +4011,7 @@ void ZoneManager::CalculateSteppedValues(string fxName, MediaTrack* track, int f
         DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
-void ZoneManager::AutoMapFX(string fxName, MediaTrack* track, int fxIndex)
+void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex)
 {    
     if(fxLayouts_.size() == 0)
         return;
@@ -4867,7 +4858,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
+shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
 {
     shared_ptr<Midi_ControlSurface> surface = make_shared<Midi_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
     
@@ -4952,7 +4943,7 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnPort, string transmitToPort, string transmitToIpAddress) : name_(surfaceName)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress) : name_(surfaceName)
 {
     if (receiveOnPort != transmitToPort)
     {
@@ -5019,7 +5010,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(string surfaceName, string receiveOnP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
+shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
 {
     shared_ptr<OSC_ControlSurface> surface = make_shared<OSC_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
     
@@ -5035,7 +5026,7 @@ shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(shared_ptr<Page> 
     return surface;
 }
 
-void OSC_ControlSurface::ProcessOSCMessage(string message, double value)
+void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
 {
     if(CSIMessageGeneratorsByMessage_.count(message) > 0)
         CSIMessageGeneratorsByMessage_[message]->ProcessMessage(value);
@@ -5048,7 +5039,7 @@ void OSC_ControlSurface::ProcessOSCMessage(string message, double value)
     }
 }
 
-void OSC_ControlSurface::SendOSCMessage(string zoneName)
+void OSC_ControlSurface::SendOSCMessage(const string &zoneName)
 {
     string oscAddress(zoneName);
     oscAddress = regex_replace(oscAddress, regex(s_BadFileChars), "_");
@@ -5060,7 +5051,7 @@ void OSC_ControlSurface::SendOSCMessage(string zoneName)
         DAW::ShowConsoleMsg((zoneName + "->" + "LoadingZone---->" + name_ + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(string oscAddress, int value)
+void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
@@ -5068,7 +5059,7 @@ void OSC_ControlSurface::SendOSCMessage(string oscAddress, int value)
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(string oscAddress, double value)
+void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
@@ -5076,7 +5067,7 @@ void OSC_ControlSurface::SendOSCMessage(string oscAddress, double value)
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(string oscAddress, string value)
+void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, const string &value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
@@ -5084,7 +5075,7 @@ void OSC_ControlSurface::SendOSCMessage(string oscAddress, string value)
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + value + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
@@ -5092,7 +5083,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, int value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
@@ -5100,7 +5091,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, string value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, const string &value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 

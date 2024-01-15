@@ -333,7 +333,7 @@ private:
     void UpdateTrackColor();
 
 public:
-    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, vector<string> params);
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &params);
     ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
     {
         if(acceleratedTickValues_.size() < 1)
@@ -351,7 +351,7 @@ public:
     shared_ptr<Widget> GetWidget() { return widget_; }
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
-    string GetName();
+    const string &GetName();
 
     vector<string> &GetParameters() { return parameters_; }
     
@@ -550,7 +550,7 @@ protected:
     map<shared_ptr<Widget>, int> currentActionContextModifiers_;
     vector<shared_ptr<ActionContext>> defaultContexts_;
     
-    void AddNavigatorsForZone(string zoneName, vector<shared_ptr<Navigator>> &navigators);
+    void AddNavigatorsForZone(const string &zoneName, vector<shared_ptr<Navigator>> &navigators);
     void UpdateCurrentActionContextModifier(shared_ptr<Widget> widget);
         
 public:
@@ -558,13 +558,13 @@ public:
     
     virtual ~Zone() {}
     
-    void InitSubZones(vector<string> subZones, shared_ptr<Zone> enclosingZone);
-    void GoAssociatedZone(string associatedZoneName);
-    void GoAssociatedZone(string associatedZoneName, int slotIndex);
+    void InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosingZone);
+    void GoAssociatedZone(const string &associatedZoneName);
+    void GoAssociatedZone(const string &associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
-    int GetParamIndex(string widgetName);
-    void SetXTouchDisplayColors(string color);
+    int GetParamIndex(const string &widgetName);
+    void SetXTouchDisplayColors(const string &color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
     vector<shared_ptr<ActionContext>> &GetActionContexts(shared_ptr<Widget> widget);
@@ -658,7 +658,7 @@ public:
         return name_;
     }
     
-    string GetNameOrAlias()
+    const string &GetNameOrAlias()
     {
         if(alias_ != "")
             return alias_;
@@ -913,7 +913,7 @@ public:
     void UpdateValue(map<string, string> &properties, string value);
     void RunDeferredActions();
     void UpdateColorValue(rgba_color);
-    void SetXTouchDisplayColors(string zoneName, string color);
+    void SetXTouchDisplayColors(const string &zoneName, string color);
     void RestoreXTouchDisplayColors();
     void ForceClear();
     void LogInput(double value);
@@ -1044,7 +1044,7 @@ private:
         { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
     };
     
-    void CalculateSteppedValues(string fxName, MediaTrack* track, int fxIndex);
+    void CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex);
 
     void ResetOffsets()
     {
@@ -1068,9 +1068,9 @@ private:
     void GoSelectedTrackFX();
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
-    void GetExistingZoneParamsForLearn(string fxName, MediaTrack* track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(string line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
-    int GetModifierValue(vector<string> modifiers);
+    void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack* track, int fxSlotNum);
+    void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
+    int GetModifierValue(const vector<string> &modifiers);
 
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
@@ -1497,18 +1497,18 @@ public:
     
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(shared_ptr<ControlSurface> surface);
-    void SetListenerCategories(string categoryList);
+    void SetListenerCategories(const string &categoryList);
     vector<shared_ptr<ZoneManager>> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     void GoFocusedFX();
-    void CalculateSteppedValue(string fxName, MediaTrack* track, int fxIndex, int paramIndex);
-    void AutoMapFX(string fxName, MediaTrack* track, int fxIndex);
+    void CalculateSteppedValue(const string &fxName, MediaTrack* track, int fxIndex, int paramIndex);
+    void AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
-    void GoFXLayoutZone(string zoneName, int slotIndex);
+    void GoFXLayoutZone(const string &zoneName, int slotIndex);
     void WidgetMoved(ActionContext* context);
     void SetParamNum(shared_ptr<Widget> widget, int fxParamNum);
 
@@ -2755,10 +2755,10 @@ public:
     void ForceUpdateTrackColors();
     void OnTrackSelection(MediaTrack* track);
     virtual void SetHasMCUMeters(int displayType) {}
-    virtual void SendOSCMessage(string zoneName) {}
-    virtual void SendOSCMessage(string zoneName, int value) {}
-    virtual void SendOSCMessage(string zoneName, double value) {}
-    virtual void SendOSCMessage(string zoneName, string value) {}
+    virtual void SendOSCMessage(const string &zoneName) {}
+    virtual void SendOSCMessage(const string &zoneName, int value) {}
+    virtual void SendOSCMessage(const string &zoneName, double value) {}
+    virtual void SendOSCMessage(const string &zoneName, const string &value) {}
 
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
@@ -3041,7 +3041,7 @@ public:
     virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
-    virtual void SetXTouchDisplayColors(string &zoneName, string color) {}
+    virtual void SetXTouchDisplayColors(const string &zoneName, string color) {}
     virtual void RestoreXTouchDisplayColors() {}
     virtual void ForceClear() {}
     
@@ -3157,7 +3157,7 @@ public:
     Midi_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<Midi_ControlSurfaceIO> surfaceIO, ProtectedTag)
     : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
     
-    static shared_ptr<Midi_ControlSurface> GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
+    static shared_ptr<Midi_ControlSurface> GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3231,7 +3231,7 @@ private:
     double X32HeartBeatLastRefreshTime_ = 0.0;
     
 public:
-    OSC_ControlSurfaceIO(string name, string receiveOnPort, string transmitToPort, string transmitToIpAddress);
+    OSC_ControlSurfaceIO(const string &name, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress);
 
     void HandleExternalInput(OSC_ControlSurface* surface);
     
@@ -3303,18 +3303,18 @@ public:
     OSC_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<OSC_ControlSurfaceIO> surfaceIO, ProtectedTag)
     : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
     
-    static shared_ptr<OSC_ControlSurface> GetInstance(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);
+    static shared_ptr<OSC_ControlSurface> GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     
-    void ProcessOSCMessage(string message, double value);
-    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, double value);
-    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, int value);
-    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, string oscAddress, string value);
-    virtual void SendOSCMessage(string zoneName) override;
-    virtual void SendOSCMessage(string zoneName, int value) override;
-    virtual void SendOSCMessage(string zoneName, double value) override;
-    virtual void SendOSCMessage(string zoneName, string value) override;
+    void ProcessOSCMessage(const string &message, double value);
+    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, double value);
+    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, int value);
+    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, const string &value);
+    virtual void SendOSCMessage(const string &zoneName) override;
+    virtual void SendOSCMessage(const string &zoneName, int value) override;
+    virtual void SendOSCMessage(const string &zoneName, double value) override;
+    virtual void SendOSCMessage(const string &zoneName, const string &value) override;
 
     bool IsX32()
     {
@@ -4444,9 +4444,11 @@ public:
         surfaceOutDisplay_ = false;
        
         // GAW -- IMPORTANT
-        // We want to stop polling, save state, and and zero out all Widgets before shutting down
+        
+        // We want to stop polling
         shouldRun_ = false;
         
+        // Zero out all Widgets before shutting down
         if(pages_.size() > 0)
             pages_[currentPageIndex_]->ForceClear();
     }
