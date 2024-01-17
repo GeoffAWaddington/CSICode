@@ -150,7 +150,7 @@ public:
             if(context->GetSurface()->GetModifiers().size() > 0)
                 modifier = context->GetSurface()->GetModifiers()[0];
 
-            LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
+            const LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
 
             bool isLearned = false;
             

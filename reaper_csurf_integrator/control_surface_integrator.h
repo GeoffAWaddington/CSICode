@@ -540,6 +540,7 @@ protected:
     map<string, shared_ptr<Widget>> widgetsByName_;
     
     map<int, map<string, LearnFXCell>> learnFXCells_;
+    LearnFXCell emptyLearnFXCell_ = LearnFXCell();
     
     vector<shared_ptr<Zone>> includedZones_;
     map<string, vector<shared_ptr<Zone>>> subZones_;
@@ -602,11 +603,11 @@ public:
         learnFXCells_[modifier][cellAddress] = cell;
     }
     
-    LearnFXCell GetLearnFXCell(int modifier, const string &cellAddress)
+    const LearnFXCell &GetLearnFXCell(int modifier, const string &cellAddress)
     {
         if(learnFXCells_.count(modifier) > 0 && learnFXCells_[modifier].count(cellAddress) > 0)
             return learnFXCells_[modifier][cellAddress];
-        else return LearnFXCell();
+        else return emptyLearnFXCell_;
     }
     
     shared_ptr<Zone> GetLearnFXParamsZone()
@@ -3004,13 +3005,12 @@ public:
     virtual ~FeedbackProcessor() {}
     virtual string GetName()  { return "FeedbackProcessor"; }
     shared_ptr<Widget> GetWidget() { return widget_; }
-    virtual void SetColorValue(rgba_color color) {}
-    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) {}
+    virtual void SetColorValue(rgba_color &color) {}
+    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
-    virtual void ForceColorValue(rgba_color color) {}
+    virtual void ForceColorValue(const rgba_color &color) {}
     virtual void ForceValue(map<string, string> &properties, const string &value) {}
     virtual void RunDeferredActions() {}
-    virtual void SetColorValues(rgba_color color1, rgba_color color2) {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(const string &zoneName, const string &colors) {}
@@ -3026,7 +3026,7 @@ public:
         }
     }
     
-    virtual void SetValue(map<string, string> &properties, string value)
+    virtual void SetValue(map<string, string> &properties, const string &value)
     {
         if(lastStringValue_ != value)
         {
@@ -3168,8 +3168,8 @@ public:
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
 
-    virtual void SetColorValue(rgba_color color) override;
-    virtual void X32SetColorValue(rgba_color color);
+    virtual void SetColorValue(rgba_color &color) override;
+    virtual void X32SetColorValue(rgba_color &color);
     virtual void ForceValue(map<string, string> &properties, double value) override;
     virtual void ForceValue(map<string, string> &properties, const string &value) override;
     virtual void ForceClear() override;

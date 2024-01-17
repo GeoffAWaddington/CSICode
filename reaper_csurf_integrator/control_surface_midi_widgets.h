@@ -462,7 +462,7 @@ public:
         active_ = (bool)active;
     }
     
-    virtual void SetColorValue(rgba_color color) override
+    virtual void SetColorValue(rgba_color &color) override
     {
         int RGBIndexDivider = 1 * 2;
         
@@ -477,7 +477,7 @@ public:
             ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(rgba_color color) override
+    virtual void ForceColorValue(const rgba_color &color) override
     {
         lastColor_ = color;
         
@@ -571,9 +571,11 @@ struct RowInfo
     rgba_color lastBackgroundColorSent;
 };
 
-static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<ActionContext>> contexts)
+map<string, shared_ptr<RowInfo>> s_rows;
+
+static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_ptr<ActionContext>> &contexts)
 {
-    map<string, shared_ptr<RowInfo>> rows;
+    s_rows.clear();
     
     for(auto context : contexts)
     {
@@ -581,11 +583,11 @@ static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<Actio
         
         if(properties.count("Row") > 0)
         {
-            if(rows.count(properties["Row"]) < 1)
-                rows[properties["Row"]] = make_shared<RowInfo>();
+            if(s_rows.count(properties["Row"]) < 1)
+                s_rows[properties["Row"]] = make_shared<RowInfo>();
           
             if(properties.count("Font") > 0)
-                rows[properties["Row"]]->fontSize = stoi(properties["Font"]);
+                s_rows[properties["Row"]]->fontSize = stoi(properties["Font"]);
            
             context->SetProvideFeedback(true);
         }
@@ -593,7 +595,7 @@ static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<Actio
 
     int totalFontHeight = 0;
     
-    for(auto [rowNum, row] : rows)
+    for(auto [rowNum, row] : s_rows)
         totalFontHeight += s_fontHeights[row->fontSize];
     
     double factor = 64.0 / totalFontHeight;
@@ -603,7 +605,7 @@ static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<Actio
     
     int topMargin = 0;
     
-    for(auto [rowNum, row] : rows)
+    for(auto [rowNum, row] : s_rows)
     {
         if(topMargin > 63)
             topMargin = 63;
@@ -614,7 +616,7 @@ static map<string, shared_ptr<RowInfo>> CalculateRowInfo(vector<shared_ptr<Actio
         topMargin = row->bottomMargin + 1;
     }
     
-    return rows;
+    return s_rows;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -667,7 +669,7 @@ public:
         ForceValue(properties, 0.0);
     }
     
-    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
+    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
         
@@ -836,7 +838,7 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
+    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
     {
         rows_ = CalculateRowInfo(contexts);
 
@@ -872,7 +874,7 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
     }
 
-    virtual void SetValue(map<string, string> &properties, string inputText) override
+    virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
         ForceValue(properties, inputText);
     }
@@ -935,7 +937,7 @@ public:
     }
 };
 
-struct LEDColor
+struct LEDRingRangeColor
 {
     rgba_color ringColor;
     int ringRangeHigh = 0;
@@ -943,11 +945,13 @@ struct LEDColor
     int ringRangeLow = 0;
 };
 
-static vector<LEDColor> GetColorValues(string property)
+vector<LEDRingRangeColor> s_encoderRingColors;
+
+static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProperty)
 {
-    vector<LEDColor> colors;
+    s_encoderRingColors.clear();
     
-    property = regex_replace(property, regex("\""), "");
+    string property = regex_replace(inputProperty, regex("\""), "");
     
     istringstream iss(property);
     string colorDef = "";
@@ -966,7 +970,7 @@ static vector<LEDColor> GetColorValues(string property)
         
         if(rangeDefs.size() > 2)
         {
-            LEDColor color;
+            LEDRingRangeColor color;
             
             color.ringColor = GetColorValue(rangeDefs[2]);
 
@@ -980,11 +984,11 @@ static vector<LEDColor> GetColorValues(string property)
                     color.ringRangeHigh += 1 << (i - 14);
             }
   
-            colors.push_back(color);
+            s_encoderRingColors.push_back(color);
         }
     }
     
-    LEDColor color;
+    LEDRingRangeColor color;
 
     color.ringColor.r = 0;
     color.ringColor.g = 0;
@@ -993,9 +997,9 @@ static vector<LEDColor> GetColorValues(string property)
     color.ringRangeMedium = 0;
     color.ringRangeHigh = 0;
     
-    colors.push_back(color);
+    s_encoderRingColors.push_back(color);
     
-    return colors;
+    return s_encoderRingColors;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1079,18 +1083,18 @@ public:
         return val + 64;
     }
         
-    virtual void Configure(vector<shared_ptr<ActionContext>> contexts) override
+    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
     {
         if(contexts.size() == 0)
             return;
         
         map<string, string> properties = contexts[0]->GetWidgetProperties();
         
-        vector<LEDColor> colors;
+        vector<LEDRingRangeColor> colors;
         
         if(properties.count("Push") > 0 && properties.count("PushColor") > 0 )
         {
-            LEDColor color;
+            LEDRingRangeColor color;
             
             color.ringColor = GetColorValue(properties["PushColor"]);
             color.ringRangeLow = 7;
@@ -1110,7 +1114,7 @@ public:
         }
         else if(properties.count("LEDRingColor") > 0)
         {
-            LEDColor color;
+            LEDRingRangeColor color;
             
             color.ringColor = GetColorValue(properties["LEDRingColor"]);
 
@@ -1136,7 +1140,7 @@ public:
 
         if(colors.size() == 0)
         {
-            LEDColor color;
+            LEDRingRangeColor color;
             
             color.ringRangeLow = 127;
             color.ringRangeMedium = 127;
@@ -1190,13 +1194,13 @@ public:
         ForceColorValue(color);
     }
 
-    virtual void SetColorValue(rgba_color color) override
+    virtual void SetColorValue(rgba_color &color) override
     {
         if(color != lastColor_)
             ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(rgba_color color) override
+    virtual void ForceColorValue(const rgba_color &color) override
     {
         lastColor_ = color;
         
@@ -1244,13 +1248,13 @@ public:
         ForceColorValue(color);
     }
 
-    virtual void SetColorValue(rgba_color color) override
+    virtual void SetColorValue(rgba_color &color) override
     {
         if(color != lastColor_)
             ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(rgba_color color) override
+    virtual void ForceColorValue(const rgba_color &color) override
     {
         lastColor_ = color;
         
@@ -1280,13 +1284,13 @@ public:
         ForceColorValue(color);
     }
 
-    virtual void SetColorValue(rgba_color color) override
+    virtual void SetColorValue(rgba_color &color) override
     {
         if(color != lastColor_)
             ForceColorValue(color);
     }
 
-    virtual void ForceColorValue(rgba_color color) override
+    virtual void ForceColorValue(const rgba_color &color) override
     {
         lastColor_ = color;
         
@@ -1912,7 +1916,7 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(map<string, string> &properties, string inputText) override
+    virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
         if(inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
@@ -1991,7 +1995,7 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(map<string, string> &properties, string inputText) override
+    virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
         if(inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
@@ -2181,7 +2185,7 @@ public:
         preventUpdateTrackColors_ = false;
     }
     
-    virtual void SetValue(map<string, string> &properties, string inputText) override
+    virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
         if(inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
@@ -2373,7 +2377,7 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(map<string, string> &properties, string inputText) override
+    virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
         if(inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
@@ -2526,7 +2530,7 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(map<string, string> &properties, string inputText) override
+    virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
         if(inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
@@ -3010,8 +3014,14 @@ public:
         rgba_color color;
         ForceColorValue(color);
     }
+    
+    virtual void SetColorValue(rgba_color &color) override
+    {
+        if(color != lastColor_)
+            ForceColorValue(color);
+    }
 
-    virtual void ForceColorValue(rgba_color color) override
+    virtual void ForceColorValue(const rgba_color &color) override
     {
         lastColor_ = color;
         
@@ -3028,12 +3038,6 @@ public:
                 SendMidiMessage(midiFeedbackMessage1_->midi_message[0] + 1, midiFeedbackMessage1_->midi_message[1], 47);  // turn on led max brightness
             }
         }
-    }
-
-    virtual void SetColorValue(rgba_color color) override
-    {
-        if(color != lastColor_)
-            ForceColorValue(color);
     }
 };
 

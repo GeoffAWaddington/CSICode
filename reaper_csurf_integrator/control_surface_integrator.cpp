@@ -2619,7 +2619,7 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_FeedbackProcessor
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
+void OSC_FeedbackProcessor::SetColorValue(rgba_color &color)
 {
     if(lastColor_ != color)
     {
@@ -2635,7 +2635,7 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color color)
     }
 }
 
-void OSC_FeedbackProcessor::X32SetColorValue(rgba_color color)
+void OSC_FeedbackProcessor::X32SetColorValue(rgba_color &color)
 {
     int surfaceColor = 0;
     int r = color.r;
