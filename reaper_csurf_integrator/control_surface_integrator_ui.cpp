@@ -7,6 +7,8 @@
 #include "control_surface_integrator.h"
 #include "control_surface_integrator_ui.h"
 #include <memory>
+#include "WDL/dirscan.h"
+#include "WDL/wdlcstring.h"
 
 unique_ptr<Manager> TheManager;
 extern void TrimLine(string &line);
@@ -1474,12 +1476,15 @@ public:
     static vector<string> GetDirectoryFilenames(const string& path)
     {
         vector<string> filenames;
-        filesystem::path files {path};
+
+        WDL_DirScan scan;
         
-        if (std::filesystem::exists(files) && std::filesystem::is_directory(files))
-            for (auto& file : std::filesystem::directory_iterator(files))
-                if(file.path().extension() == ".mst" || file.path().extension() == ".ost")
-                    filenames.push_back(file.path().filename().string());
+        if (!scan.First(path.c_str()))
+            do {
+              const char *ext = WDL_get_fileext(scan.GetCurrentFN());
+              if (scan.GetCurrentFN()[0] != '.' && !scan.GetCurrentIsDirectory() && (!stricmp(ext,".mst") || !stricmp(ext,".ost")))
+                filenames.push_back(std::string(scan.GetCurrentFN()));
+            } while (!scan.Next());
         
         return filenames;
     }
@@ -1487,12 +1492,16 @@ public:
     static vector<string> GetDirectoryFolderNames(const string& path)
     {
         vector<string> folderNames;
-        filesystem::path folders {path};
+
+        WDL_DirScan scan;
         
-        if (std::filesystem::exists(folders) && std::filesystem::is_directory(folders))
-            for (auto& folder : std::filesystem::directory_iterator(folders))
-                if(folder.is_directory())
-                    folderNames.push_back(folder.path().filename().string());
+        if (!scan.First(path.c_str()))
+        {
+            do {
+              if (scan.GetCurrentFN()[0] != '.' && scan.GetCurrentIsDirectory())
+                folderNames.push_back(std::string(scan.GetCurrentFN()));
+            } while (!scan.Next());
+        }
         
         return folderNames;
     }
