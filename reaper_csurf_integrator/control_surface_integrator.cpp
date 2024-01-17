@@ -244,7 +244,11 @@ static void listFilesOfType(const string &path, vector<string> &results, const c
         {
             do
             {
-                if (ds.GetCurrentIsDirectory())
+                if (ds.GetCurrentFN()[0] == '.')
+                {
+                  // ignore dotfiles and ./..
+                }
+                else if (ds.GetCurrentIsDirectory())
                 {
                     ds.GetCurrentFullFN(&tmp);
                     stack.Add(strdup(tmp.Get()));
