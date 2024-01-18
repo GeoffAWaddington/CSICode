@@ -2308,8 +2308,8 @@ void Zone::Activate()
         for(int i = 0; i < (int)zones.size(); ++i)
             zones[i]->Deactivate();
 
-    for(auto zone : includedZones_)
-        zone->Activate();
+    for(int i = 0; i < (int)includedZones_.size(); ++i)
+        includedZones_[i]->Activate();
 }
 
 void Zone::Deactivate()
@@ -2371,21 +2371,21 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                     foundIt = true;
 
                     if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
-                        for(auto context : actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier])
-                            context->RequestUpdate(info->paramNumber);
+                        for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].size(); ++i)
+                            actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][i]->RequestUpdate(info->paramNumber);
 
                     if(actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
-                        for(auto context : actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier])
-                            context->RequestUpdate(info->paramNumber);
+                        for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].size(); ++i)
+                            actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][i]->RequestUpdate(info->paramNumber);
                 }
                 else
                 {
                     if(actionContextDictionary_.count(cell.fxParamWidgets[i]) > 0 && actionContextDictionary_[cell.fxParamWidgets[i]].count(modifier) > 0)
                     {
-                        for(auto context : actionContextDictionary_[cell.fxParamWidgets[i]][modifier])
+                        for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamWidgets[i]][modifier].size(); ++i)
                         {
-                            context->UpdateWidgetValue(0.0);
-                            context->UpdateWidgetValue("");
+                            actionContextDictionary_[cell.fxParamWidgets[i]][modifier][i]->UpdateWidgetValue(0.0);
+                            actionContextDictionary_[cell.fxParamWidgets[i]][modifier][i]->UpdateWidgetValue("");
                         }
                     }
                 }
@@ -2515,11 +2515,11 @@ void Zone::UpdateCurrentActionContextModifiers()
 
 void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
 {
-    for(auto modifier : widget->GetSurface()->GetModifiers())
+    for(int i = 0; i < (int)widget->GetSurface()->GetModifiers().size(); ++i)
     {
-        if(actionContextDictionary_[widget].count(modifier) > 0)
+        if(actionContextDictionary_[widget].count(widget->GetSurface()->GetModifiers()[i]) > 0)
         {
-            currentActionContextModifiers_[widget] = modifier;
+            currentActionContextModifiers_[widget] = widget->GetSurface()->GetModifiers()[i];
             break;
         }
     }
@@ -2828,28 +2828,28 @@ void ZoneManager::SetListenerCategories(const string &categoryList)
     vector<string> categoryTokens;
     GetTokens(categoryTokens, categoryList);
     
-    for(auto categoryToken : categoryTokens)
+    for(int i = 0; i < (int)categoryTokens.size(); ++i)
     {
-        if(categoryToken == "GoHome")
+        if(categoryTokens[i] == "GoHome")
             listensToGoHome_ = true;
-        if(categoryToken == "Sends")
+        if(categoryTokens[i] == "Sends")
             listensToSends_ = true;
-        if(categoryToken == "Receives")
+        if(categoryTokens[i] == "Receives")
             listensToReceives_ = true;
-        if(categoryToken == "FocusedFX")
+        if(categoryTokens[i] == "FocusedFX")
             listensToFocusedFX_ = true;
-        if(categoryToken == "FocusedFXParam")
+        if(categoryTokens[i] == "FocusedFXParam")
             listensToFocusedFXParam_ = true;
-        if(categoryToken == "FXMenu")
+        if(categoryTokens[i] == "FXMenu")
             listensToFXMenu_ = true;
-        if(categoryToken == "LocalFXSlot")
+        if(categoryTokens[i] == "LocalFXSlot")
             listensToLocalFXSlot_ = true;
-        if(categoryToken == "SelectedTrackFX")
+        if(categoryTokens[i] == "SelectedTrackFX")
             listensToSelectedTrackFX_ = true;
-        if(categoryToken == "Custom")
+        if(categoryTokens[i] == "Custom")
             listensToCustom_ = true;
         
-        if(categoryToken == "Modifiers")
+        if(categoryTokens[i] == "Modifiers")
             surface_->SetListensToModifiers();
     }
 }
@@ -2885,17 +2885,17 @@ void ZoneManager::GoFocusedFX()
             if(sharedThisPtr_ != nullptr)
                 ProcessZoneFile(zoneFilePaths_[FXName].filePath, sharedThisPtr_, navigators, focusedFXZones_, nullptr);
             
-            for(auto zone :focusedFXZones_)
+            for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
             {
-                zone->SetXTouchDisplayColors("White");
-                zone->SetSlotIndex(fxSlot);
-                zone->Activate();
+                focusedFXZones_[i]->SetXTouchDisplayColors("White");
+                focusedFXZones_[i]->SetSlotIndex(fxSlot);
+                focusedFXZones_[i]->Activate();
             }
         }
     }
     else
-        for(auto zone :focusedFXZones_)
-            zone->RestoreXTouchDisplayColors();
+        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            focusedFXZones_[i]->RestoreXTouchDisplayColors();
 }
 
 void ZoneManager::GoSelectedTrackFX()
@@ -3046,14 +3046,14 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     if(focusedFXParamZone_ != nullptr)
         focusedFXParamZone_->UpdateCurrentActionContextModifiers();
     
-    for(auto zone : focusedFXZones_)
-        zone->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+        focusedFXZones_[i]->UpdateCurrentActionContextModifiers();
     
-    for(auto zone : selectedTrackFXZones_)
-        zone->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+        selectedTrackFXZones_[i]->UpdateCurrentActionContextModifiers();
     
-    for(auto zone : fxSlotZones_)
-        zone->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < (int)fxSlotZones_.size(); ++i)
+        fxSlotZones_[i]->UpdateCurrentActionContextModifiers();
     
     if(homeZone_ != nullptr)
         homeZone_->UpdateCurrentActionContextModifiers();
@@ -3067,7 +3067,7 @@ void ZoneManager::EraseLastTouchedControl()
         {
             if(shared_ptr<Widget> widget = lastTouched_->fxParamWidget)
             {
-                for(auto context : fxLayout_->GetActionContexts(widget))
+                for(int i = 0; i < (int)fxLayout_->GetActionContexts(widget).size(); ++i)
                     SetParamNum(widget, 1);
                 
                 int modifier = fxLayout_->GetModifier(widget);
@@ -3131,22 +3131,22 @@ void ZoneManager::SaveTemplatedFXParams()
 
         if(fxZone.is_open())
         {
-            for(auto line : fxLayoutFileLines_)
+            for(int i = 0; i < (int)fxLayoutFileLines_.size(); ++i)
             {
                 string ending = "";
                 
                 string lineEnding = "\n";
 
-                if(line.length() >= lineEnding.length())
-                    ending = line.substr(line.length() - lineEnding.length(), lineEnding.length());
+                if(fxLayoutFileLines_[i].length() >= lineEnding.length())
+                    ending = fxLayoutFileLines_[i].substr(fxLayoutFileLines_[i].length() - lineEnding.length(), lineEnding.length());
 
                 if(ending[ending.length() - 1] == '\r')
-                    line = line.substr(0, line.length() - 1);
+                    fxLayoutFileLines_[i] = fxLayoutFileLines_[i].substr(0, fxLayoutFileLines_[i].length() - 1);
                 
                 if(ending != lineEnding)
-                    line += "\n";
+                    fxLayoutFileLines_[i] += "\n";
                 
-                fxZone << line;
+                fxZone << fxLayoutFileLines_[i];
             }
             
             fxZone.close();
@@ -3207,8 +3207,8 @@ void ZoneManager::SaveLearnedFXParams()
         {
             fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\" \"" + s_GeneratedByLearn + "\"\n";
             
-            for(auto line : fxPrologue_)
-                fxZone << "\t" + line + "\n";
+            for(int i = 0; i < (int)fxPrologue_.size(); ++i)
+                fxZone << "\t" + fxPrologue_[i] + "\n";
                    
             fxZone << "\n" + s_BeginAutoSection + "\n";
 
@@ -3258,13 +3258,13 @@ void ZoneManager::SaveLearnedFXParams()
             
             fxZone << s_EndAutoSection + "\n";
                     
-            for(auto line : fxEpilogue_)
-                fxZone << "\t" + line + "\n";
+            for(int i = 0; i < (int)fxEpilogue_.size(); ++i)
+                fxZone << "\t" + fxEpilogue_[i] + "\n";
 
             fxZone << "ZoneEnd\n\n";
             
-            for(auto paramStr : paramList_)
-                fxZone << paramStr + "\n";
+            for(int i = 0; i < (int)paramList_.size(); ++i)
+                fxZone << paramList_[i] + "\n";
             
             fxZone.close();
         }
@@ -3342,10 +3342,10 @@ void ZoneManager::InitializeNoMapZone()
             
             vector<string> paramWidgets;
 
-            for(auto row : surfaceFXLayoutTemplate_)
-                if(row.size() > 0 && row[0] == "WidgetTypes")
-                    for(int i = 1; i < row.size(); i++)
-                        paramWidgets.push_back(row[i]);
+            for(int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
+                if(surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
+                    for(int i = 1; i < surfaceFXLayoutTemplate_[i].size(); i++)
+                        paramWidgets.push_back(surfaceFXLayoutTemplate_[i][i]);
             
             string nameDisplayWidget = "";
             if(surfaceFXLayout_[1].size() > 0)
@@ -3355,16 +3355,16 @@ void ZoneManager::InitializeNoMapZone()
             if(surfaceFXLayout_[2].size() > 0)
                 valueDisplayWidget = surfaceFXLayout_[2][0];
 
-            for(auto layout : fxLayouts_)
+            for(int i = 0; i < (int)fxLayouts_.size(); ++i)
             {
-                int modifier = GetModifierValue(layout.GetModifierTokens());
+                int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens());
                 
                 if(modifier != 0)
                     continue;
                 
-                for(int i = 1; i <= layout.channelCount; i++)
+                for(int j = 1; j <= fxLayouts_[i].channelCount; j++)
                 {
-                    string cellAdress = layout.suffix + to_string(i);
+                    string cellAdress = fxLayouts_[i].suffix + to_string(j);
                     
                     shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
                     if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
@@ -3382,9 +3382,9 @@ void ZoneManager::InitializeNoMapZone()
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
                     
-                    for(auto widgetName : paramWidgets)
+                    for(int k = 0; i < (int)paramWidgets.size(); ++k)
                     {
-                        shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + cellAdress);
+                        shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                         if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
@@ -3409,10 +3409,10 @@ void ZoneManager::InitializeFXParamsLearnZone()
             vector<string> paramWidgets;
             vector<string> widgetParams;
 
-            for(auto row : surfaceFXLayoutTemplate_)
-                if(row.size() > 0 && row[0] == "WidgetTypes")
-                    for(int i = 1; i < row.size(); i++)
-                        paramWidgets.push_back(row[i]);
+            for(int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
+                if(surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
+                    for(int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
+                        paramWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
 
             if(surfaceFXLayout_[0].size() > 2)
                 for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
@@ -3442,16 +3442,15 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
             if(paramWidgets.size() > 0)
             {
-                
-                for(auto layout : fxLayouts_)
+                for(int i = 0; i < (int)fxLayouts_.size(); ++i)
                 {
-                    int modifier = GetModifierValue(layout.GetModifierTokens());
+                    int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens());
                     
-                    for(int i = 1; i <= layout.channelCount; i++)
+                    for(int j = 1; j <= fxLayouts_[i].channelCount; j++)
                     {
                         LearnFXCell cell;
                         
-                        string cellAdress = layout.suffix + to_string(i);
+                        string cellAdress = fxLayouts_[i].suffix + to_string(j);
                         
                         shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
                         if(widget == nullptr)
@@ -3473,9 +3472,9 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
                         
-                        for(auto widgetName : paramWidgets)
+                        for(int k = 0; i < (int)paramWidgets.size(); ++k)
                         {
-                            shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(widgetName + cellAdress);
+                            shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                             if(widget == nullptr)
                                 continue;
                             cell.fxParamWidgets.push_back(widget);
@@ -3502,28 +3501,28 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
         
     UnpackZone(zoneDef_, layoutTemplates);
     
-    for(auto paramDefs : zoneDef_.paramDefs)
+    for(int i = 0; i < (int)zoneDef_.paramDefs.size(); ++i)
     {
-        for(auto def : paramDefs.definitions)
+        for(int j = 0; j < (int)zoneDef_.paramDefs[i].definitions.size(); ++j)
         {
-            if(shared_ptr<Widget> widget = surface_->GetWidgetByName(def.paramWidgetFullName))
+            if(shared_ptr<Widget> widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName))
             {
-                if(shared_ptr<LearnInfo> info = GetLearnInfo(widget, def.modifier))
+                if(shared_ptr<LearnInfo> info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
                 {
-                    if(def.paramNumber != "" && def.paramNameDisplayWidget != "NullDisplay")
+                    if(zoneDef_.paramDefs[i].definitions[j].paramNumber != "" && zoneDef_.paramDefs[i].definitions[j].paramNameDisplayWidget != "NullDisplay")
                     {
                         info->isLearned = true;
-                        info->paramName = def.paramName;
+                        info->paramName = zoneDef_.paramDefs[i].definitions[j].paramName;
                         info->track = track;
                         info->fxSlotNum =fxSlotNum;
-                        info->paramNumber = stoi(def.paramNumber);
+                        info->paramNumber = stoi(zoneDef_.paramDefs[i].definitions[j].paramNumber);
 
-                        if(def.steps.size() > 0)
+                        if(zoneDef_.paramDefs[i].definitions[j].steps.size() > 0)
                         {
                             info->params = "[ ";
                             
-                            for(auto step : def.steps)
-                                info->params += step + "  ";
+                            for(int k = 0; k < (int)zoneDef_.paramDefs[i].definitions[j].steps.size(); ++k)
+                                info->params += zoneDef_.paramDefs[i].definitions[j].steps[k] + "  ";
                             
                             info->params += "]";
                             
@@ -3531,15 +3530,15 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
                             {
                                 vector<double> steps;
                                 
-                                for(auto step : def.steps)
-                                    steps.push_back(stod(step));
+                                for(int k = 0; k < (int)zoneDef_.paramDefs[i].definitions[j].steps.size(); ++k)
+                                    steps.push_back(stod(zoneDef_.paramDefs[i].definitions[j].steps[k]));
                                 
-                                for(auto context : learnZone->GetActionContexts(widget, def.modifier))
-                                    context->SetStepValues(steps);
+                                for(int k = 0; k < (int)learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).size(); ++k)
+                                    learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier)[k]->SetStepValues(steps);
                             }
                         }
                         
-                        if(def.paramWidget.find("Rotary") != string::npos && def.paramWidget.find("Push") == string::npos)
+                        if(zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Rotary") != string::npos && zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Push") == string::npos)
                         {
                             if(surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
                                 for(int i = 2; i < surfaceFXLayout_[0].size(); i++)
@@ -3921,8 +3920,8 @@ void ZoneManager::PreProcessZones()
     }
       
     if(sharedThisPtr_ != nullptr)
-        for(auto zoneFilename : zoneFilesToProcess)
-            PreProcessZoneFile(zoneFilename, sharedThisPtr_);
+        for(int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
+            PreProcessZoneFile(zoneFilesToProcess[i], sharedThisPtr_);
     
     if(zoneFolder_ != fxZoneFolder_)
     {
@@ -3931,8 +3930,8 @@ void ZoneManager::PreProcessZones()
         listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
          
         if(sharedThisPtr_ != nullptr)
-            for(auto zoneFilename : zoneFilesToProcess)
-                PreProcessZoneFile(zoneFilename, sharedThisPtr_);
+            for(int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
+                PreProcessZoneFile(zoneFilesToProcess[i], sharedThisPtr_);
     }
 }
 
@@ -3990,8 +3989,8 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack* track
     
     int totalLayoutCount = 0;
     
-    for(auto layout : fxLayouts_)
-        totalLayoutCount += layout.channelCount;
+    for(int i = 0; i < (int)fxLayouts_.size(); ++i)
+        totalLayoutCount += fxLayouts_[i].channelCount;
     bool wasMuted = false;
     DAW::GetTrackUIMute(track, &wasMuted);
     
@@ -4064,8 +4063,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
 
     int totalAvailableChannels = 0;
     
-    for(auto info : fxLayouts_)
-        totalAvailableChannels += info.channelCount;
+    for(int i = 0; i < (int)fxLayouts_.size(); ++i)
+        totalAvailableChannels += fxLayouts_[i].channelCount;
         
     AddZoneFilePath(fxName, info);
     surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, fxName, info);
@@ -4076,8 +4075,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
     {
         fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"\n";
         
-        for(auto line : fxPrologue_)
-            fxZone << "\t" + line + "\n";
+        for(int i = 0; i < (int)fxPrologue_.size(); ++i)
+            fxZone << "\t" + fxPrologue_[i] + "\n";
                
         fxZone << "\n" + s_BeginAutoSection + "\n";
         
@@ -4090,11 +4089,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
      
         actionWidgets.push_back(actionWidget);
         
-        for(auto tag : surfaceFXLayoutTemplate_)
-            if(tag[0] == "WidgetTypes")
-                for(int i = 1; i < tag.size(); i++)
-                    if(tag[i] != actionWidget)
-                        actionWidgets.push_back(tag[i]);
+        for(int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
+            if(surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
+                for(int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
+                    if(surfaceFXLayoutTemplate_[i][j] != actionWidget)
+                        actionWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
 
         for(int paramIdx = 0; paramIdx < DAW::TrackFX_GetNumParams(track, fxIndex) && paramIdx < totalAvailableChannels; paramIdx++)
         {
@@ -4265,8 +4264,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
         
         fxZone << s_EndAutoSection + "\n";
                 
-        for(auto line : fxEpilogue_)
-            fxZone << "\t" + line + "\n";
+        for(int i = 0; i < (int)fxEpilogue_.size(); ++i)
+            fxZone << "\t" + fxEpilogue_[i] + "\n";
 
         fxZone << "ZoneEnd\n\n";
         
@@ -4303,20 +4302,20 @@ void ZoneManager::DoTouch(shared_ptr<Widget> widget, double value)
     if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
         focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
-    for(auto zone : focusedFXZones_)
-        zone->DoTouch(widget, widget->GetName(), isUsed, value);
+    for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+        focusedFXZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if(isUsed)
         return;
 
-    for(auto zone : selectedTrackFXZones_)
-        zone->DoTouch(widget, widget->GetName(), isUsed, value);
+    for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+        selectedTrackFXZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if(isUsed)
         return;
 
-    for(auto zone : fxSlotZones_)
-        zone->DoTouch(widget, widget->GetName(), isUsed, value);
+    for(int i = 0; i < (int) fxSlotZones_.size(); ++i)
+        fxSlotZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if(isUsed)
         return;
@@ -4349,12 +4348,12 @@ void ModifierManager::RecalculateModifiers()
     
     if(activeModifierIndices.size() > 0)
     {
-        for(auto combination : GetCombinations(activeModifierIndices))
+        for(int i = 0; i < (int)GetCombinations(activeModifierIndices).size(); ++i)
         {
             int modifier = 0;
             
-            for(int i = 0; i < combination.size(); i++)
-                modifier += modifiers_[combination[i]].value;
+            for(int j = 0; j < GetCombinations(activeModifierIndices)[i].size(); j++)
+                modifier += modifiers_[GetCombinations(activeModifierIndices)[i][j]].value;
 
             modifierCombinations_.push_back(modifier);
         }
@@ -4508,9 +4507,9 @@ void ControlSurface::OnTrackSelection(MediaTrack* track)
 
 void ControlSurface::ForceClearTrack(int trackNum)
 {
-    for(auto widget : widgets_)
-        if(widget->GetChannelNumber() + channelOffset_ == trackNum)
-            widget->ForceClear();
+    for(int i = 0; i < (int)widgets_.size(); ++i)
+        if(widgets_[i]->GetChannelNumber() + channelOffset_ == trackNum)
+            widgets_[i]->ForceClear();
 }
 
 void ControlSurface::ForceUpdateTrackColors()
@@ -4670,9 +4669,9 @@ void ControlSurface::SetShift(bool value)
     {
         modifierManager_->SetShift(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetShift(value, latchTime_);
@@ -4686,9 +4685,9 @@ void ControlSurface::SetOption(bool value)
     {
         modifierManager_->SetOption(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetOption(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetOption(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetOption(value, latchTime_);
@@ -4702,9 +4701,9 @@ void ControlSurface::SetControl(bool value)
     {
         modifierManager_->SetControl(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetControl(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetControl(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetControl(value, latchTime_);
@@ -4718,9 +4717,9 @@ void ControlSurface::SetAlt(bool value)
     {
         modifierManager_->SetAlt(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetAlt(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetAlt(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetAlt(value, latchTime_);
@@ -4734,9 +4733,9 @@ void ControlSurface::SetFlip(bool value)
     {
         modifierManager_->SetFlip(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetFlip(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetFlip(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetFlip(value, latchTime_);
@@ -4750,9 +4749,9 @@ void ControlSurface::SetGlobal(bool value)
     {
         modifierManager_->SetGlobal(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetGlobal(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetGlobal(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetGlobal(value, latchTime_);
@@ -4766,9 +4765,9 @@ void ControlSurface::SetMarker(bool value)
     {
         modifierManager_->SetMarker(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetMarker(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetMarker(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetMarker(value, latchTime_);
@@ -4782,9 +4781,9 @@ void ControlSurface::SetNudge(bool value)
     {
         modifierManager_->SetNudge(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetNudge(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetNudge(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetNudge(value, latchTime_);
@@ -4798,9 +4797,9 @@ void ControlSurface::SetZoom(bool value)
     {
         modifierManager_->SetZoom(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetZoom(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetZoom(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetZoom(value, latchTime_);
@@ -4814,9 +4813,9 @@ void ControlSurface::SetScrub(bool value)
     {
         modifierManager_->SetScrub(value, latchTime_);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->SetScrub(value, latchTime_);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetScrub(value, latchTime_);
     }
     else if(usesLocalModifiers_)
         modifierManager_->SetScrub(value, latchTime_);
@@ -4838,9 +4837,9 @@ void ControlSurface::ClearModifier(const string &modifier)
     {
         modifierManager_->ClearModifier(modifier);
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->ClearModifier(modifier);
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->ClearModifier(modifier);
     }
     else if(usesLocalModifiers_ || listensToModifiers_)
         modifierManager_->ClearModifier(modifier);
@@ -4854,9 +4853,9 @@ void ControlSurface::ClearModifiers()
     {
         modifierManager_->ClearModifiers();
         
-        for(auto listener : zoneManager_->GetListeners())
-            if(listener->GetSurface()->GetListensToModifiers() && ! listener->GetSurface()->GetUsesLocalModifiers() && listener->GetSurface()->GetName() != name_)
-                listener->GetSurface()->GetModifierManager()->ClearModifiers();
+        for(int i = 0; i < (int)zoneManager_->GetListeners().size(); ++i)
+            if(zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->ClearModifiers();
     }
     else if(usesLocalModifiers_ || listensToModifiers_)
         modifierManager_->ClearModifiers();
@@ -5146,15 +5145,15 @@ void Midi_ControlSurface::InitializeMCU()
         char data[BUFSZ];
     } midiSysExData;
     
-    for(auto line : sysExLines)
+    for(int i = 0; i < (int)sysExLines.size(); ++i)
     {
         memset(midiSysExData.data, 0, sizeof(midiSysExData.data));
         
         midiSysExData.evt.frame_offset=0;
         midiSysExData.evt.size=0;
 
-        for(auto value : line)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = value;
+        for(int j = 0; j < (int)sysExLines[i].size(); ++j)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = sysExLines[i][j];
         
         SendMidiSysExMessage(&midiSysExData.evt);
     }
@@ -5182,13 +5181,13 @@ void Midi_ControlSurface::InitializeMCUXT()
         char data[BUFSZ];
     } midiSysExData;
     
-    for(auto line : sysExLines)
+    for(int i = 0; i < (int)sysExLines.size(); ++i)
     {
         midiSysExData.evt.frame_offset=0;
         midiSysExData.evt.size=0;
         
-        for(auto value : line)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = value;
+        for(int j = 0; i < (int)sysExLines[i].size(); ++j)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = sysExLines[i][j];
         
         SendMidiSysExMessage(&midiSysExData.evt);
     }
