@@ -331,8 +331,8 @@ static void BuildActionTemplate(const vector<string> &tokens, map<string, map<in
     }
     else if(feedbackIndicator == "Feedback=Yes")
     {
-        for(auto actionTemplate : actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier])
-            actionTemplate->provideFeedback = false;
+        for(int i = 0; i < (int)actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size(); ++i)
+            actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier][i]->provideFeedback = false;
         
         actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].back()->provideFeedback = true;
     }
@@ -507,27 +507,27 @@ static void PreProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> z
     }
 }
 
-static void GetColorValues(vector<rgba_color> colorValues, vector<string> colors)
+static void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
 {
-    for(auto color : colors)
+    for(int i = 0; i < (int)colors.size(); ++i)
     {
         rgba_color colorValue;
         
-        if(color.length() == 7)
+        if(colors[i].length() == 7)
         {
             regex pattern("#([0-9a-fA-F]{6})");
             smatch match;
-            if (regex_match(color, match, pattern))
+            if (regex_match(colors[i], match, pattern))
             {
                 sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
                 colorValues.push_back(colorValue);
             }
         }
-        else if(color.length() == 9)
+        else if(colors[i].length() == 9)
         {
             regex pattern("#([0-9a-fA-F]{8})");
             smatch match;
-            if (regex_match(color, match, pattern))
+            if (regex_match(colors[i], match, pattern))
             {
                 sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
                 colorValues.push_back(colorValue);
@@ -703,17 +703,17 @@ static void ProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zone
     }
 }
 
-static void SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+static void SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
     vector<string> hexColors;
     
-    auto openCurlyBrace = find(params.begin(), params.end(), "{");
-    auto closeCurlyBrace = find(params.begin(), params.end(), "}");
+    vector<string>::iterator openCurlyBrace = find(params.begin(), params.end(), "{");
+    vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "}");
     
     if(openCurlyBrace != params.end() && closeCurlyBrace != params.end())
     {
-        for(auto it = openCurlyBrace + 1; it != closeCurlyBrace; ++it)
+        for(vector<string>::iterator it = openCurlyBrace + 1; it != closeCurlyBrace; ++it)
         {
             string strVal = *(it);
             
@@ -765,14 +765,14 @@ static void SetColor(const vector<string> &params, bool &supportsColor, bool &su
     }
 }
 
-static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, const vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
-    auto openSquareBrace = find(params.begin(), params.end(), "[");
-    auto closeSquareBrace = find(params.begin(), params.end(), "]");
+    vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
+    vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
     
     if(openSquareBrace != params.end() && closeSquareBrace != params.end())
     {
-        for(auto it = openSquareBrace + 1; it != closeSquareBrace; ++it)
+        for(vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
         {
             string strVal = *(it);
             
@@ -1177,20 +1177,20 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, con
         tokenLines.push_back(tokens);
     }
 
-    for(auto tokenLine : tokenLines)
+    for(int i = 0; i < (int)tokenLines.size(); ++i)
     {
-        if(tokenLine.size() > 1 && tokenLine[0] == "Control")
-            surface->AddCSIMessageGenerator(make_shared<CSIMessageGenerator>(widget), tokenLine[1]);
-        else if(tokenLine.size() > 1 && tokenLine[0] == "AnyPress")
-            surface->AddCSIMessageGenerator(make_shared<AnyPress_CSIMessageGenerator>(widget), tokenLine[1]);
-        else if (tokenLine.size() > 1 && tokenLine[0] == "MotorizedFaderWithoutTouch")
-            surface->AddCSIMessageGenerator(make_shared<MotorizedFaderWithoutTouch_CSIMessageGenerator>(widget), tokenLine[1]);
-        else if(tokenLine.size() > 1 && tokenLine[0] == "Touch")
-            surface->AddCSIMessageGenerator(make_shared<Touch_CSIMessageGenerator>(widget), tokenLine[1]);
-        else if(tokenLine.size() > 1 && tokenLine[0] == "FB_Processor")
-            widget->AddFeedbackProcessor(make_shared<OSC_FeedbackProcessor>(surface, widget, tokenLine[1]));
-        else if(tokenLine.size() > 1 && tokenLine[0] == "FB_IntProcessor")
-            widget->AddFeedbackProcessor(make_shared<OSC_IntFeedbackProcessor>(surface, widget, tokenLine[1]));
+        if(tokenLines[i].size() > 1 && tokenLines[i][0] == "Control")
+            surface->AddCSIMessageGenerator(make_shared<CSIMessageGenerator>(widget), tokenLines[i][1]);
+        else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "AnyPress")
+            surface->AddCSIMessageGenerator(make_shared<AnyPress_CSIMessageGenerator>(widget), tokenLines[i][1]);
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "MotorizedFaderWithoutTouch")
+            surface->AddCSIMessageGenerator(make_shared<MotorizedFaderWithoutTouch_CSIMessageGenerator>(widget), tokenLines[i][1]);
+        else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
+            surface->AddCSIMessageGenerator(make_shared<Touch_CSIMessageGenerator>(widget), tokenLines[i][1]);
+        else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
+            widget->AddFeedbackProcessor(make_shared<OSC_FeedbackProcessor>(surface, widget, tokenLines[i][1]));
+        else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
+            widget->AddFeedbackProcessor(make_shared<OSC_IntFeedbackProcessor>(surface, widget, tokenLines[i][1]));
     }
 }
 
@@ -1199,46 +1199,46 @@ static void ProcessValues(const vector<vector<string>> &lines, map<string, doubl
     bool inStepSizes = false;
     bool inAccelerationValues = false;
         
-    for(auto tokens : lines)
+    for(int i = 0; i < (int)lines.size(); ++i)
     {
-        if(tokens.size() > 0)
+        if(lines[i].size() > 0)
         {
-            if(tokens[0] == "StepSize")
+            if(lines[i][0] == "StepSize")
             {
                 inStepSizes = true;
                 continue;
             }
-            else if(tokens[0] == "StepSizeEnd")
+            else if(lines[i][0] == "StepSizeEnd")
             {
                 inStepSizes = false;
                 continue;
             }
-            else if(tokens[0] == "AccelerationValues")
+            else if(lines[i][0] == "AccelerationValues")
             {
                 inAccelerationValues = true;
                 continue;
             }
-            else if(tokens[0] == "AccelerationValuesEnd")
+            else if(lines[i][0] == "AccelerationValuesEnd")
             {
                 inAccelerationValues = false;
                 continue;
             }
 
-            if(tokens.size() > 1)
+            if(lines[i].size() > 1)
             {
                 if(inStepSizes)
-                    stepSizes[tokens[0]] = stod(tokens[1]);
-                else if(tokens.size() > 2 && inAccelerationValues)
+                    stepSizes[lines[i][0]] = stod(lines[i][1]);
+                else if(lines[i].size() > 2 && inAccelerationValues)
                 {
-                    if(tokens[1] == "Dec")
-                        for(int i = 2; i < tokens.size(); i++)
-                            accelerationValuesForDecrement[tokens[0]][strtol(tokens[i].c_str(), nullptr, 16)] = i - 2;
-                    else if(tokens[1] == "Inc")
-                        for(int i = 2; i < tokens.size(); i++)
-                            accelerationValuesForIncrement[tokens[0]][strtol(tokens[i].c_str(), nullptr, 16)] = i - 2;
-                    else if(tokens[1] == "Val")
-                        for(int i = 2; i < tokens.size(); i++)
-                            accelerationValues[tokens[0]].push_back(stod(tokens[i]));
+                    if(lines[i][1] == "Dec")
+                        for(int j = 2; j < lines[i].size(); j++)
+                            accelerationValuesForDecrement[lines[i][0]][strtol(lines[i][j].c_str(), nullptr, 16)] = j - 2;
+                    else if(lines[i][1] == "Inc")
+                        for(int j = 2; j < lines[i].size(); j++)
+                            accelerationValuesForIncrement[lines[i][0]][strtol(lines[i][j].c_str(), nullptr, 16)] = j - 2;
+                    else if(lines[i][1] == "Val")
+                        for(int j = 2; j < lines[i].size(); j++)
+                            accelerationValues[lines[i][0]].push_back(stod(lines[i][j]));
                 }
             }
         }
@@ -1612,12 +1612,12 @@ void Manager::Init()
                     shared_ptr<ControlSurface> broadcaster = nullptr;
                     shared_ptr<ControlSurface> listener = nullptr;
 
-                    for(auto surface : currentPage->GetSurfaces())
+                    for(int i = 0; i < (int)currentPage->GetSurfaces().size(); ++i)
                     {
-                        if(surface->GetName() == currentBroadcaster)
-                            broadcaster = surface;
-                        if(surface->GetName() == tokens[1])
-                            listener = surface;
+                        if(currentPage->GetSurfaces()[i]->GetName() == currentBroadcaster)
+                            broadcaster = currentPage->GetSurfaces()[i];
+                        if(currentPage->GetSurfaces()[i]->GetName() == tokens[1])
+                            listener = currentPage->GetSurfaces()[i];
                     }
                     
                     if(broadcaster != nullptr && listener != nullptr)
@@ -1670,8 +1670,8 @@ void Manager::Init()
         DAW::ShowConsoleMsg(buffer);
     }
     
-    for(auto page : pages_)
-        page->OnInitialization();
+    for(int i = 0; i < (int)pages_.size(); ++i)
+        pages_[i]->OnInitialization();
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Parsing end
@@ -1731,11 +1731,11 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
 {
     vector<string> params;
     
-    for(auto param : paramsAndProperties)
+    for(int i = 0; i < (int)paramsAndProperties.size(); ++i)
     {
-        if(param.find("=") != string::npos)
+        if(paramsAndProperties[i].find("=") != string::npos)
         {
-            istringstream widgetProperty(param);
+            istringstream widgetProperty(paramsAndProperties[i]);
             vector<string> kvp;
             string token;
             
@@ -1746,7 +1746,7 @@ ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widge
                 widgetProperties_[kvp[0]] = kvp[1];
         }
         else
-            params.push_back(param);
+            params.push_back(paramsAndProperties[i]);
     }
     
     for(int i = 1; i < params.size(); i++)
@@ -2101,44 +2101,44 @@ Zone::Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navi
 {
     if(name == "Home")
     {
-        for(auto zoneName : associatedZones)
+        for(int i = 0; i < (int)associatedZones.size(); ++i)
         {
-            if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
+            if(zoneManager_->GetZoneFilePaths().count(associatedZones[i]) > 0)
             {
                 vector<shared_ptr<Navigator>> navigators;
-                AddNavigatorsForZone(zoneName, navigators);
+                AddNavigatorsForZone(associatedZones[i], navigators);
 
-                associatedZones_[zoneName] = vector<shared_ptr<Zone>>();
+                associatedZones_[associatedZones[i]] = vector<shared_ptr<Zone>>();
                 
-                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, associatedZones_[zoneName], nullptr);
+                ProcessZoneFile(zoneManager_->GetZoneFilePaths()[associatedZones[i]].filePath, zoneManager_, navigators, associatedZones_[associatedZones[i]], nullptr);
             }
         }
     }
     
-    for(auto zoneName : includedZones)
+    for(int i = 0; i < (int)includedZones.size(); ++i)
     {
-        if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
+        if(zoneManager_->GetZoneFilePaths().count(includedZones[i]) > 0)
         {
             vector<shared_ptr<Navigator>> navigators;
-            AddNavigatorsForZone(zoneName, navigators);
+            AddNavigatorsForZone(includedZones[i], navigators);
             
-            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, includedZones_, nullptr);
+            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[includedZones[i]].filePath, zoneManager_, navigators, includedZones_, nullptr);
         }
     }
 }
 
 void Zone::InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosingZone)
 {
-    for(auto zoneName : subZones)
+    for(int i = 0; i < (int)subZones.size(); ++i)
     {
-        if(zoneManager_->GetZoneFilePaths().count(zoneName) > 0)
+        if(zoneManager_->GetZoneFilePaths().count(subZones[i]) > 0)
         {
             vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(GetNavigator());
 
-            subZones_[zoneName] = vector<shared_ptr<Zone>>();
+            subZones_[subZones[i]] = vector<shared_ptr<Zone>>();
         
-            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[zoneName].filePath, zoneManager_, navigators, subZones_[zoneName], enclosingZone);
+            ProcessZoneFile(zoneManager_->GetZoneFilePaths()[subZones[i]].filePath, zoneManager_, navigators, subZones_[subZones[i]], enclosingZone);
         }
     }
 }
@@ -2194,8 +2194,8 @@ void Zone::SetFXParamNum(shared_ptr<Widget> paramWidget, int paramIndex)
     {
         if(widget == paramWidget)
         {
-            for(auto context : GetActionContexts(widget, currentActionContextModifiers_[widget]))
-                context->SetParamIndex(paramIndex);
+            for(int i = 0; i < (int)GetActionContexts(widget, currentActionContextModifiers_[widget]).size(); ++i)
+                GetActionContexts(widget, currentActionContextModifiers_[widget])[i]->SetParamIndex(paramIndex);
             break;
         }
     }
@@ -2206,16 +2206,16 @@ void Zone::GoAssociatedZone(const string &zoneName)
     if(zoneName == "Track")
     {
         for(auto [key, zones] : associatedZones_)
-            for(auto zone : zones)
-                zone->Deactivate();
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->Deactivate();
         
         return;
     }
     
     if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
     {
-        for(auto zone : associatedZones_[zoneName])
-            zone->Deactivate();
+        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
+            associatedZones_[zoneName][i]->Deactivate();
         
         zoneManager_->GoHome();
         
@@ -2223,12 +2223,12 @@ void Zone::GoAssociatedZone(const string &zoneName)
     }
     
     for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-        
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->Deactivate();
+
     if(associatedZones_.count(zoneName) > 0)
-        for(auto zone : associatedZones_[zoneName])
-            zone->Activate();
+        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
+            associatedZones_[zoneName][i]->Activate();
 }
 
 void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
@@ -2236,16 +2236,16 @@ void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
     if(zoneName == "Track")
     {
         for(auto [key, zones] : associatedZones_)
-            for(auto zone : zones)
-                zone->Deactivate();
-        
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->Deactivate();
+
         return;
     }
     
     if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
     {
-        for(auto zone : associatedZones_[zoneName])
-            zone->Deactivate();
+        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
+            associatedZones_[zoneName][i]->Deactivate();
         
         zoneManager_->GoHome();
         
@@ -2253,25 +2253,27 @@ void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
     }
     
     for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-        
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->Deactivate();
+
     if(associatedZones_.count(zoneName) > 0)
-        for(auto zone : associatedZones_[zoneName])
+    {
+        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
         {
-            zone->SetSlotIndex(slotIndex);
-            zone->Activate();
+            associatedZones_[zoneName][i]->SetSlotIndex(slotIndex);
+            associatedZones_[zoneName][i]->Activate();
         }
+    }
 }
 
 void Zone::ReactivateFXMenuZone()
 {
     if(associatedZones_.count("TrackFXMenu") > 0 && associatedZones_["TrackFXMenu"][0]->GetIsActive())
-        for(auto zone : associatedZones_["TrackFXMenu"])
-            zone->Activate();
+        for(int i = 0; i < (int)associatedZones_["TrackFXMenu"].size(); ++i)
+            associatedZones_["TrackFXMenu"][i]->Activate();
     else if(associatedZones_.count("SelectedTrackFXMenu") > 0 && associatedZones_["SelectedTrackFXMenu"][0]->GetIsActive())
-        for(auto zone : associatedZones_["SelectedTrackFXMenu"])
-            zone->Activate();
+        for(int i = 0; i < (int)associatedZones_["SelectedTrackFXMenu"].size(); ++i)
+            associatedZones_["SelectedTrackFXMenu"][i]->Activate();
 }
 
 void Zone::Activate()
@@ -2281,8 +2283,8 @@ void Zone::Activate()
     for(auto [widget, isUsed] : widgets_)
     {
         if(widget->GetName() == "OnZoneActivation")
-            for(auto context : GetActionContexts(widget))
-                context->DoAction(1.0);
+            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+                GetActionContexts(widget)[i]->DoAction(1.0);
             
         widget->Configure(GetActionContexts(widget));
     }
@@ -2299,13 +2301,13 @@ void Zone::Activate()
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
        
     for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->Deactivate();
     
     for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
-    
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->Deactivate();
+
     for(auto zone : includedZones_)
         zone->Activate();
 }
@@ -2314,13 +2316,13 @@ void Zone::Deactivate()
 {    
     for(auto [widget, isUsed] : widgets_)
     {
-        for(auto context : GetActionContexts(widget))
+        for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
         {
-            context->UpdateWidgetValue(0.0);
-            context->UpdateWidgetValue("");
+            GetActionContexts(widget)[i]->UpdateWidgetValue(0.0);
+            GetActionContexts(widget)[i]->UpdateWidgetValue("");
 
             if(widget->GetName() == "OnZoneDeactivation")
-                context->DoAction(1.0);
+                GetActionContexts(widget)[i]->DoAction(1.0);
         }
     }
 
@@ -2333,16 +2335,16 @@ void Zone::Deactivate()
     else if(GetName() == "SelectedTracks")
         zoneManager_->GetSurface()->GetPage()->SelectedTracksModeDeactivated();
     
-    for(auto zone : includedZones_)
-        zone->Deactivate();
+    for(int i = 0; i < (int)includedZones_.size(); ++i)
+        includedZones_[i]->Deactivate();
 
     for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->Deactivate();
 
     for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->Deactivate();
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->Deactivate();
 }
 
 void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
@@ -2360,9 +2362,9 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
         {
             bool foundIt = false;
             
-            for(auto widget : cell.fxParamWidgets)
+            for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
             {
-                shared_ptr<LearnInfo> info = zoneManager_->GetLearnInfo(widget, modifier);
+                shared_ptr<LearnInfo> info = zoneManager_->GetLearnInfo(cell.fxParamWidgets[i], modifier);
                                 
                 if(info->isLearned)
                 {
@@ -2378,9 +2380,9 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                 }
                 else
                 {
-                    if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
+                    if(actionContextDictionary_.count(cell.fxParamWidgets[i]) > 0 && actionContextDictionary_[cell.fxParamWidgets[i]].count(modifier) > 0)
                     {
-                        for(auto context : actionContextDictionary_[widget][modifier])
+                        for(auto context : actionContextDictionary_[cell.fxParamWidgets[i]][modifier])
                         {
                             context->UpdateWidgetValue(0.0);
                             context->UpdateWidgetValue("");
@@ -2388,17 +2390,17 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
                     }
                 }
                 
-                usedWidgets[widget] = true;
+                usedWidgets[cell.fxParamWidgets[i]] = true;
             }
             
             if(! foundIt)
             {
                 if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
                 {
-                    for(auto context : actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier])
+                    for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].size(); ++i)
                     {
-                        context->UpdateWidgetValue(0.0);
-                        context->UpdateWidgetValue("");
+                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][i]->UpdateWidgetValue(0.0);
+                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][i]->UpdateWidgetValue("");
                     }
                     
                     usedWidgets[cell.fxParamNameDisplayWidget] = true;
@@ -2406,10 +2408,10 @@ void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
 
                 if(actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
                 {
-                    for(auto context : actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier])
+                    for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].size(); ++i)
                     {
-                        context->UpdateWidgetValue(0.0);
-                        context->UpdateWidgetValue("");
+                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][i]->UpdateWidgetValue(0.0);
+                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][i]->UpdateWidgetValue("");
                     }
                     
                     usedWidgets[cell.fxParamValueDisplayWidget] = true;
@@ -2460,13 +2462,13 @@ void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
         return;
     
     for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->DoAction(widget, isUsed, value);
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->DoAction(widget, isUsed, value);
 
     for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->DoAction(widget, isUsed, value);
-    
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->DoAction(widget, isUsed, value);
+
     if(isUsed)
         return;
 
@@ -2481,13 +2483,13 @@ void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
 
         isUsed = true;
         
-        for(auto context : GetActionContexts(widget))
-            context->DoAction(value);
+        for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+            GetActionContexts(widget)[i]->DoAction(value);
     }
     else
     {
-        for(auto zone : includedZones_)
-            zone->DoAction(widget, isUsed, value);
+        for(int i = 0; i < (int)includedZones_.size(); ++i)
+            includedZones_[i]->DoAction(widget, isUsed, value);
     }
 }
 
@@ -2499,16 +2501,16 @@ void Zone::UpdateCurrentActionContextModifiers()
         widget->Configure(GetActionContexts(widget, currentActionContextModifiers_[widget]));
     }
     
-    for(auto zone : includedZones_)
-        zone->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < (int)includedZones_.size(); ++i)
+        includedZones_[i]->UpdateCurrentActionContextModifiers();
 
     for(auto [key, zones] : subZones_)
-        for(auto zone : zones)
-            zone->UpdateCurrentActionContextModifiers();
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->UpdateCurrentActionContextModifiers();
     
     for(auto [key, zones] : associatedZones_)
-        for(auto zone : zones)
-            zone->UpdateCurrentActionContextModifiers();
+        for(int i = 0; i < (int)zones.size(); ++i)
+            zones[i]->UpdateCurrentActionContextModifiers();
 }
 
 void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
@@ -2564,50 +2566,50 @@ shared_ptr<ZoneManager> Widget::GetZoneManager()
 
 void Widget::Configure(vector<shared_ptr<ActionContext>> &contexts)
 {
-    for(auto processor : feedbackProcessors_)
-        processor->Configure(contexts);
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->Configure(contexts);
 }
 
 void  Widget::UpdateValue(map<string, string> &properties, double value)
 {
-    for(auto processor : feedbackProcessors_)
-        processor->SetValue(properties, value);
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->SetValue(properties, value);
 }
 
 void  Widget::UpdateValue(map<string, string> &properties, string value)
 {
-    for(auto processor : feedbackProcessors_)
-        processor->SetValue(properties, value);
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->SetValue(properties, value);
 }
 
 void Widget::RunDeferredActions()
 {
-    for(auto processor : feedbackProcessors_)
-        processor->RunDeferredActions();
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->RunDeferredActions();
 }
 
 void  Widget::UpdateColorValue(rgba_color color)
 {
-    for(auto processor : feedbackProcessors_)
-        processor->SetColorValue(color);
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->SetColorValue(color);
 }
 
 void Widget::SetXTouchDisplayColors(const string &zoneName, const string &colors)
 {
-    for(auto processor : feedbackProcessors_)
-        processor->SetXTouchDisplayColors(zoneName, colors);
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->SetXTouchDisplayColors(zoneName, colors);
 }
 
 void Widget::RestoreXTouchDisplayColors()
 {
-    for(auto processor : feedbackProcessors_)
-        processor->RestoreXTouchDisplayColors();
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->RestoreXTouchDisplayColors();
 }
 
 void  Widget::ForceClear()
 {
-    for(auto processor : feedbackProcessors_)
-        processor->ForceClear();
+    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
+        feedbackProcessors_[i]->ForceClear();
 }
 
 void Widget::LogInput(double value)
