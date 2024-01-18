@@ -111,9 +111,9 @@ public:
 
             bool isLearned = false;
             
-            for(auto widget : cell.fxParamWidgets)
+            for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
             {
-                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(widget, modifier)->isLearned)
+                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets[i], modifier)->isLearned)
                 {
                     isLearned = true;
                     break;
@@ -154,9 +154,9 @@ public:
 
             bool isLearned = false;
             
-            for(auto widget : cell.fxParamWidgets)
+            for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
             {
-                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(widget, modifier)->isLearned)
+                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets[i], modifier)->isLearned)
                 {
                     isLearned = true;
                     break;
@@ -2148,10 +2148,10 @@ public:
 
         if (primaryVolume && secondaryVolume)
         {
-            const auto oldPrimaryVolume = *primaryVolume;
-            const auto oldSecondaryVolume = *secondaryVolume;
+            const double oldPrimaryVolume = *primaryVolume;
+            const double oldSecondaryVolume = *secondaryVolume;
 
-            const auto normalizedValue = normalizedToVol(value);
+            const double normalizedValue = normalizedToVol(value);
 
             *primaryVolume = normalizedValue;
             *secondaryVolume = normalizedValue * (oldPrimaryVolume / oldSecondaryVolume);
@@ -2210,26 +2210,20 @@ public:
         if (GetVolume(volume))
         {
             // The min value Reaper (as of v6.68) shows for the metronome volume before displaying "-inf".
-            constexpr double reaperMinMetronomeVolumeInDb = -135.0;
+            double reaperMinMetronomeVolumeInDb = -135.0;
 
-            // String formatters for one or two decimal digits.
-            // If there is a prefix, we reduce the number of decimal digits when the volume is smaller
-            // or equal to -10.0. This is to accomodate the prefix and the volume better on the display.
-            constexpr auto oneDecDigitFormatter = "%7.1lf";
-            constexpr auto twoDecDigitsFormatter = "%7.2lf";
+            const string stringArgument = context->GetStringParam();
+            const bool hasPrefix = !stringArgument.empty();
+            const char prefix = hasPrefix ? stringArgument.front() : ' ';
 
-            const auto stringArgument = context->GetStringParam();
-            const auto hasPrefix = !stringArgument.empty();
-            const auto prefix = hasPrefix ? stringArgument.front() : ' ';
-
-            const auto volumeInDb = VAL2DB(volume);
+            const double volumeInDb = VAL2DB(volume);
 
             char str[128];
 
             if (volumeInDb < reaperMinMetronomeVolumeInDb)
                   snprintf(str, sizeof(str), "   -inf");
             else
-                snprintf(str, sizeof(str), hasPrefix && volumeInDb <= -10.0 ? oneDecDigitFormatter : twoDecDigitsFormatter, volumeInDb);
+                snprintf(str, sizeof(str), hasPrefix && volumeInDb <= -10.0 ? "%7.1lf" : "%7.2lf", volumeInDb);
 
             if (hasPrefix)
                 str[0] = prefix;
@@ -3324,9 +3318,9 @@ public:
     {
         double retVal = 0.0;
         
-        for(auto selectedTrack : context->GetPage()->GetSelectedTracks())
+        for(int i = 0; i < (int)context->GetPage()->GetSelectedTracks().size(); ++i)
         {
-            if(context->GetIntParam() == DAW::GetMediaTrackInfo_Value(selectedTrack, "I_AUTOMODE"))
+            if(context->GetIntParam() == DAW::GetMediaTrackInfo_Value(context->GetPage()->GetSelectedTracks()[i], "I_AUTOMODE"))
             {
                 retVal = 1.0;
                 break;
@@ -3348,8 +3342,8 @@ public:
         
         int mode = context->GetIntParam();
         
-        for(auto selectedTrack : context->GetPage()->GetSelectedTracks())
-            DAW::GetSetMediaTrackInfo(selectedTrack, "I_AUTOMODE", &mode);
+        for(int i = 0; i < (int)context->GetPage()->GetSelectedTracks().size(); ++i)
+            DAW::GetSetMediaTrackInfo(context->GetPage()->GetSelectedTracks()[i], "I_AUTOMODE", &mode);
     }
 };
 
