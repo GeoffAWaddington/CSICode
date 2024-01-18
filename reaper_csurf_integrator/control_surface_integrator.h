@@ -628,8 +628,8 @@ public:
     bool GetIsMainZoneOnlyActive()
     {
         for(auto [key, zones] : associatedZones_)
-            for(auto zone : zones)
-                if(zone->GetIsActive())
+            for(int i = 0; i < (int)zones.size(); ++i)
+                if(zones[i]->GetIsActive())
                     return false;
         
         return true;
@@ -638,8 +638,8 @@ public:
     bool GetIsAssociatedZoneActive(const string &zoneName)
     {
         if(associatedZones_.count(zoneName) > 0)
-            for(auto zone : associatedZones_[zoneName])
-                if(zone->GetIsActive())
+            for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
+                if(associatedZones_[zoneName][i]->GetIsActive())
                     return true;
         
         return false;
@@ -697,10 +697,10 @@ public:
     {
         if(subZones_.count(subZoneName) > 0)
         {
-            for(auto zone : subZones_[subZoneName])
+            for(int i = 0; i < (int)subZones_[subZoneName].size(); ++i)
             {
-                zone->SetSlotIndex(GetSlotIndex());
-                zone->Activate();
+                subZones_[subZoneName][i]->SetSlotIndex(GetSlotIndex());
+                subZones_[subZoneName][i]->Activate();
             }
         }
     }
@@ -709,21 +709,21 @@ public:
     {
         isActive_ = true;
         
-        for(auto zone : includedZones_)
-            zone->Activate();
+        for(int i = 0; i < (int)includedZones_.size(); ++i)
+            includedZones_[i]->Activate();
        
         for(auto &[key, zones] : associatedZones_)
             if(key == "SelectedTrack" || key == "SelectedTrackSend" || key == "SelectedTrackReceive" || key == "SelectedTrackFXMenu")
-                for(auto zone : zones)
-                    zone->Deactivate();
+                for(int i = 0; i < (int)zones.size(); ++i)
+                    zones[i]->Deactivate();
     }
 
     void RequestUpdateWidget(shared_ptr<Widget> widget)
     {
-        for(const auto &context : GetActionContexts(widget))
+        for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
         {
-            context->RunDeferredActions();
-            context->RequestUpdate();
+            GetActionContexts(widget)[i]->RunDeferredActions();
+            GetActionContexts(widget)[i]->RequestUpdate();
         }
     }
 
@@ -733,15 +733,15 @@ public:
             return;
       
         for(const auto &[key, zones] : subZones_)
-            for(auto zone : zones)
-                zone->RequestUpdate(usedWidgets);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->RequestUpdate(usedWidgets);
         
         for(const auto &[key, zones] : associatedZones_)
-            for(auto zone : zones)
-                zone->RequestUpdate(usedWidgets);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->RequestUpdate(usedWidgets);
 
-        for(const auto &zone : includedZones_)
-            zone->RequestUpdate(usedWidgets);
+        for(int i =  0; i < (int) includedZones_.size(); ++i)
+            includedZones_[i]->RequestUpdate(usedWidgets);
         
         for(const auto &[widget, value] : widgets_)
         {
@@ -759,12 +759,12 @@ public:
             return;
         
         for(const auto &[key, zones] : subZones_)
-            for(auto zone : zones)
-                zone->DoRelativeAction(widget, isUsed, delta);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->DoRelativeAction(widget, isUsed, delta);
 
         for(const auto &[key, zones] : associatedZones_)
-            for(auto zone : zones)
-                zone->DoRelativeAction(widget, isUsed, delta);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->DoRelativeAction(widget, isUsed, delta);
 
         if(isUsed)
             return;
@@ -773,13 +773,13 @@ public:
         {
             isUsed = true;
 
-            for(const auto &context : GetActionContexts(widget))
-                context->DoRelativeAction(delta);
+            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+                GetActionContexts(widget)[i]->DoRelativeAction(delta);
         }
         else
         {
-            for(const auto &zone : includedZones_)
-                zone->DoRelativeAction(widget, isUsed, delta);
+            for(int i = 0; i < (int)includedZones_.size(); ++i)
+                includedZones_[i]->DoRelativeAction(widget, isUsed, delta);
         }
     }
 
@@ -789,12 +789,12 @@ public:
             return;
 
         for(const auto &[key, zones] : subZones_)
-            for(auto zone : zones)
-                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
         for(const auto &[key, zones] : associatedZones_)
-            for(auto zone : zones)
-                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 
         if(isUsed)
             return;
@@ -803,13 +803,13 @@ public:
         {
             isUsed = true;
 
-            for(const auto &context : GetActionContexts(widget))
-                context->DoRelativeAction(accelerationIndex, delta);
+            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+                GetActionContexts(widget)[i]->DoRelativeAction(accelerationIndex, delta);
         }
         else
         {
-            for(const auto &zone : includedZones_)
-                zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+            for(int i = 0; i < (int)includedZones_.size(); ++i)
+                includedZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         }
     }
 
@@ -819,12 +819,12 @@ public:
             return;
 
         for(const auto &[key, zones] : subZones_)
-            for(const auto &zone : zones)
-                zone->DoTouch(widget, widgetName, isUsed, value);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->DoTouch(widget, widgetName, isUsed, value);
         
         for(const auto &[key, zones] : associatedZones_)
-            for(auto zone : zones)
-                zone->DoTouch(widget, widgetName, isUsed, value);
+            for(int i = 0; i < (int)zones.size(); ++i)
+                zones[i]->DoTouch(widget, widgetName, isUsed, value);
 
         if(isUsed)
             return;
@@ -833,13 +833,13 @@ public:
         {
             isUsed = true;
 
-            for(const auto &context : GetActionContexts(widget))
-                context->DoTouch(value);
+            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+                GetActionContexts(widget)[i]->DoTouch(value);
         }
         else
         {
-            for(const auto &zone : includedZones_)
-                zone->DoTouch(widget, widgetName, isUsed, value);
+            for(int i = 0; i < (int)includedZones_.size(); ++i)
+                includedZones_[i]->DoTouch(widget, widgetName, isUsed, value);
         }
     }
 };
@@ -1119,8 +1119,8 @@ private:
             }
         }
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackSend(zoneName);
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoSelectedTrackSend(zoneName);
     }
     
     void DeclareGoSelectedTrackReceive(const string &zoneName)
@@ -1136,8 +1136,8 @@ private:
             }
         }
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackReceive(zoneName);
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoSelectedTrackReceive(zoneName);
     }
   
     void DeclareGoSelectedTrackFX()
@@ -1145,8 +1145,8 @@ private:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoSelectedTrackFX();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackFX();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoSelectedTrackFX();
     }
         
     void DeclareGoCustom(const string &zoneName)
@@ -1162,8 +1162,8 @@ private:
             }
         }
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoCustom(zoneName);
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoCustom(zoneName);
     }
     
     void ListenToGoHome()
@@ -1227,8 +1227,8 @@ private:
             }
         }
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoSelectedTrackFXMenu(zoneName);
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoSelectedTrackFXMenu(zoneName);
     }
     
     void ListenToGoSelectedTrackFXMenu(const string &zoneName)
@@ -1322,8 +1322,8 @@ private:
     
     void ClearFocusedFX()
     {
-        for(auto zone : focusedFXZones_)
-            zone->Deactivate();
+        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            focusedFXZones_[i]->Deactivate();
         
         focusedFXZones_.clear();
         focusedFXDictionary_.clear();
@@ -1331,8 +1331,8 @@ private:
         
     void ClearSelectedTrackFX()
     {
-        for(auto zone : selectedTrackFXZones_)
-            zone->Deactivate();
+        for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+            selectedTrackFXZones_[i]->Deactivate();
         
         selectedTrackFXZones_.clear();
     }
@@ -1371,14 +1371,14 @@ private:
         }
     }
 
-    void GetSteppedValues(const vector<string> &params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
+    void GetSteppedValues(vector<string> &params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
     {
-        auto openSquareBrace = find(params.begin(), params.end(), "[");
-        auto closeSquareBrace = find(params.begin(), params.end(), "]");
+        vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
+        vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
         
         if(openSquareBrace != params.end() && closeSquareBrace != params.end())
         {
-            for(auto it = openSquareBrace + 1; it != closeSquareBrace; ++it)
+            for(vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
             {
                 string strVal = *(it);
                 
@@ -1470,11 +1470,11 @@ private:
         
         string alias = fxName;
         
-        for(auto prefix : prefixes)
+        for(int i = 0; i < (int)prefixes.size(); ++i)
         {
-            if(fxName.find(prefix) == 0)
+            if(fxName.find(prefixes[i]) == 0)
             {
-                alias = fxName.substr(prefix.length(), fxName.length());
+                alias = fxName.substr(prefixes[i].length(), fxName.length());
                 break;
             }
         }
@@ -1552,8 +1552,8 @@ public:
         if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoFXSlot(track, navigator, fxSlot);
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
     }
     
     void DeclareClearSelectedTrackFX()
@@ -1561,8 +1561,8 @@ public:
         if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             ClearSelectedTrackFX();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToClearSelectedTrackFX();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToClearSelectedTrackFX();
     }
     
     void DeclareClearFXSlot(shared_ptr<Zone> zone)
@@ -1570,8 +1570,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFXSlot(zone);
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToClearFXSlot(zone);
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToClearFXSlot(zone);
     }
                 
     void RemoveZone(string zoneName)
@@ -1623,8 +1623,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFXParam();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToClearFocusedFXParam();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToClearFocusedFXParam();
     }
     
     void DeclareClearFocusedFX()
@@ -1632,8 +1632,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFX();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToClearFocusedFX();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToClearFocusedFX();
     }
     
     const vector<vector<string>> &GetSurfaceFXLayout()
@@ -1696,8 +1696,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoHome();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToGoHome();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToGoHome();
     }
         
     void OnTrackSelection()
@@ -1722,8 +1722,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXParamMapping();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToToggleEnableFocusedFXParamMapping();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToToggleEnableFocusedFXParamMapping();
     }
 
     void DeclareToggleEnableFocusedFXMapping()
@@ -1731,8 +1731,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXMapping();
         else
-            for(auto zoneManager : listeners_)
-                zoneManager->ListenToToggleEnableFocusedFXMapping();
+            for(int i = 0; i < (int)listeners_.size(); ++i)
+                listeners_[i]->ListenToToggleEnableFocusedFXMapping();
     }
 
     bool GetIsHomeZoneOnlyActive()
@@ -1805,14 +1805,14 @@ public:
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate(usedWidgets_);
 
-        for(auto zone : focusedFXZones_)
-            zone->RequestUpdate(usedWidgets_);
+        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            focusedFXZones_[i]->RequestUpdate(usedWidgets_);
         
-        for(auto zone : selectedTrackFXZones_)
-            zone->RequestUpdate(usedWidgets_);
+        for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+            selectedTrackFXZones_[i]->RequestUpdate(usedWidgets_);
         
-        for(auto zone : fxSlotZones_)
-            zone->RequestUpdate(usedWidgets_);
+        for(int i = 0; i < (int)fxSlotZones_.size(); ++i)
+            fxSlotZones_[i]->RequestUpdate(usedWidgets_);
         
         if(homeZone_ != nullptr)
             homeZone_->RequestUpdate(usedWidgets_);
@@ -1844,20 +1844,20 @@ public:
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoAction(widget, isUsed, value);
 
-        for(auto zone : focusedFXZones_)
-            zone->DoAction(widget, isUsed, value);
+        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            focusedFXZones_[i]->DoAction(widget, isUsed, value);
         
         if(isUsed)
             return;
         
-        for(auto zone : selectedTrackFXZones_)
-            zone->DoAction(widget, isUsed, value);
+        for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+            selectedTrackFXZones_[i]->DoAction(widget, isUsed, value);
         
         if(isUsed)
             return;
    
-        for(auto zone : fxSlotZones_)
-            zone->DoAction(widget, isUsed, value);
+        for(int i = 0; i < (int)fxSlotZones_.size(); ++i)
+            fxSlotZones_[i]->DoAction(widget, isUsed, value);
         
         if(isUsed)
             return;
@@ -1875,20 +1875,20 @@ public:
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
 
-        for(auto zone : focusedFXZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
+        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            focusedFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
         
         if(isUsed)
             return;
         
-        for(auto zone : selectedTrackFXZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
+        for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+            selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
         
         if(isUsed)
             return;
 
-        for(auto zone : fxSlotZones_)
-            zone->DoRelativeAction(widget, isUsed, delta);
+        for(int i = 0; i < (int)fxSlotZones_.size(); ++i)
+            fxSlotZones_[i]->DoRelativeAction(widget, isUsed, delta);
         
         if(isUsed)
             return;
@@ -1906,20 +1906,20 @@ public:
         if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
-        for(auto zone : focusedFXZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            focusedFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
         if(isUsed)
             return;
         
-        for(auto zone : selectedTrackFXZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+            selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
         if(isUsed)
             return;
 
-        for(auto zone : fxSlotZones_)
-            zone->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        for(int i = 0; i < (int)fxSlotZones_.size(); ++i)
+            fxSlotZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
         if(isUsed)
             return;
@@ -1932,11 +1932,11 @@ public:
     {
         int numGroups = 0;
         
-        for(auto layout : surfaceFXLayoutTemplate_)
+        for(int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
         {
-            if(layout.size() > 0 && layout[0] == "WidgetTypes")
+            if(surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
             {
-                numGroups = (int)layout.size() - 1;
+                numGroups = (int)surfaceFXLayoutTemplate_[i].size() - 1;
                 break;
             }
         }
@@ -1952,31 +1952,31 @@ public:
         string aliasDisplayAction = "";
         string valueDisplayAction = "";
 
-        for(auto row : surfaceFXLayoutTemplate_)
+        for(int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
         {
-            if(row.size() > 1)
+            if(surfaceFXLayoutTemplate_[i].size() > 1)
             {
-                if(row[0] == "WidgetAction")
-                    widgetAction = row[1];
-                else if(row[0] == "AliasDisplayAction")
-                    aliasDisplayAction = row[1];
-                else if(row[0] == "ValueDisplayAction")
-                    valueDisplayAction = row[1];
+                if(surfaceFXLayoutTemplate_[i][0] == "WidgetAction")
+                    widgetAction = surfaceFXLayoutTemplate_[i][1];
+                else if(surfaceFXLayoutTemplate_[i][0] == "AliasDisplayAction")
+                    aliasDisplayAction = surfaceFXLayoutTemplate_[i][1];
+                else if(surfaceFXLayoutTemplate_[i][0] == "ValueDisplayAction")
+                    valueDisplayAction = surfaceFXLayoutTemplate_[i][1];
             }
         }
         
-        for(auto layout : GetFXLayouts())
+        for(int i = 0; i < (int)GetFXLayouts().size(); ++i)
         {
-            for(int i = 0; i < layout.channelCount; i++)
+            for(int i = 0; i < GetFXLayouts()[i].channelCount; i++)
             {
                 string modifiers = "";
-                if(layout.modifiers != "")
-                    modifiers = layout.modifiers + "+";
+                if(GetFXLayouts()[i].modifiers != "")
+                    modifiers = GetFXLayouts()[i].modifiers + "+";
                 
                 FXParamLayoutTemplate layoutTemplate;
                 
                 layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = layout.suffix + to_string(i + 1);
+                layoutTemplate.suffix = GetFXLayouts()[i].suffix + to_string(i + 1);
                 
                 layoutTemplate.widgetAction = widgetAction;
                 layoutTemplate.aliasDisplayAction = aliasDisplayAction;
@@ -2158,8 +2158,8 @@ public:
         {
             fxFile << "Zone \"" + zoneDef.fxName + "\" \"" + zoneDef.fxAlias + "\"\n";
             
-            for(auto line : zoneDef.prologue)
-                fxFile << line + "\n";
+            for(int i = 0; i < (int)zoneDef.prologue.size(); ++i)
+                fxFile << zoneDef.prologue[i] + "\n";
             
             fxFile << s_BeginAutoSection + "\n\n";
             
@@ -2197,8 +2197,8 @@ public:
                             {
                                 string deltaStr = " (";
                                 
-                                for(auto delta : zoneDef.paramDefs[i].definitions[j].deltas)
-                                    deltaStr += delta + ",";
+                                for(int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].deltas.size(); ++k)
+                                    deltaStr += zoneDef.paramDefs[i].definitions[j].deltas[k] + ",";
                                 
                                 deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
                                 
@@ -2211,8 +2211,8 @@ public:
                             {
                                 string tickStr = " (";
                                 
-                                for(auto tick : zoneDef.paramDefs[i].definitions[j].ticks)
-                                    tickStr += tick + ",";
+                                for(int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].ticks.size(); ++k)
+                                    tickStr += zoneDef.paramDefs[i].definitions[j].ticks[k] + ",";
                                 
                                 tickStr = tickStr.substr(0, tickStr.length() - 1);
                                 
@@ -2221,8 +2221,8 @@ public:
                                 fxFile << tickStr;
                             }
                             
-                            for(auto step : zoneDef.paramDefs[i].definitions[j].steps)
-                                fxFile << step + " " ;
+                            for(int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].steps.size(); ++k)
+                                fxFile << zoneDef.paramDefs[i].definitions[j].steps[k] + " " ;
                             
                             fxFile << "]";
                         }
@@ -2283,13 +2283,13 @@ public:
             
             fxFile <<  s_EndAutoSection + "\n";
             
-            for(auto line : zoneDef.epilogue)
-                fxFile << line + "\n";
+            for(int i = 0; i < (int)zoneDef.epilogue.size(); ++i)
+                fxFile << zoneDef.epilogue[i] + "\n";
             
             fxFile << "ZoneEnd\n";
             
-            for(auto line : zoneDef.rawParams)
-                fxFile << line + "\n";
+            for(int i = 0; i < (int)zoneDef.rawParams.size(); ++i)
+                fxFile << zoneDef.rawParams[i] + "\n";
             
             fxFile.close();
         }
@@ -2449,8 +2449,8 @@ public:
         
         int value = 2;
         
-        for(auto &modifier : modifiers_)
-            modifier.value = value *= 2;
+        for(int i = 0; i < (int)modifiers_.size(); ++i)
+            modifiers_[i].value = value *= 2;
     }
     
     ModifierManager(shared_ptr<Page> page) : ModifierManager()
@@ -2614,8 +2614,8 @@ public:
     
     void ClearModifiers()
     {
-        for(auto &modifier : modifiers_)
-            modifier.isEngaged = false;
+        for(int i = 0; i < (int)modifiers_.size(); ++i)
+            modifiers_[i].isEngaged = false;
         
         RecalculateModifiers();
     }
@@ -2832,14 +2832,14 @@ public:
     {
         fixedTrackColors_.clear();
         
-        for(auto color : colors)
-            fixedTrackColors_.push_back(color);
+        for(int i = 0; i < (int)colors.size(); ++i)
+            fixedTrackColors_.push_back(colors[i]);
     }
         
     void ForceClear()
     {
-        for(auto widget : widgets_)
-            widget->ForceClear();
+        for(int i = 0; i < (int)widgets_.size(); ++i)
+            widgets_[i]->ForceClear();
     }
            
     void TrackFXListChanged(MediaTrack* track)
@@ -3356,11 +3356,13 @@ private:
                     return;
             
             for(int i = 1; i <= GetNumTracks(); i++)
+            {
                 if(selectedTrack == GetTrackFromId(i))
                 {
                     trackOffset_ = i - 1;
                     break;
                 }
+            }
             
             trackOffset_ -= targetScrollLinkChannel_;
             
@@ -3997,8 +3999,8 @@ public:
         }
         
         if(folderParentTrack_ != nullptr)
-            for(auto track : folderDictionary_[folderParentTrack_])
-                folderSpillTracks_.push_back(track);
+            for(int i = 0; i < (int)folderDictionary_[folderParentTrack_].size(); ++i)
+                folderSpillTracks_.push_back(folderDictionary_[folderParentTrack_][i]);
     }
     
     void EnterPage()
@@ -4071,26 +4073,26 @@ public:
     
     void UpdateCurrentActionContextModifiers()
     {
-        for(auto surface : surfaces_)
-            surface->UpdateCurrentActionContextModifiers();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->UpdateCurrentActionContextModifiers();
     }
     
     void ForceClear()
     {
-        for(auto surface : surfaces_)
-            surface->ForceClear();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->ForceClear();
     }
     
     void ForceClearTrack(int trackNum)
     {
-        for(auto surface : surfaces_)
-            surface->ForceClearTrack(trackNum);
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->ForceClearTrack(trackNum);
     }
     
     void ForceUpdateTrackColors()
     {
-        for(auto surface : surfaces_)
-            surface->ForceUpdateTrackColors();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->ForceUpdateTrackColors();
     }
       
     bool GetTouchState(MediaTrack* track, int touchedControl)
@@ -4102,8 +4104,8 @@ public:
     {
         trackNavigationManager_->OnTrackSelection();
         
-        for(auto surface : surfaces_)
-            surface->OnTrackSelection(track);
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->OnTrackSelection(track);
     }
     
     void OnTrackListChange()
@@ -4115,66 +4117,66 @@ public:
     {
         trackNavigationManager_->OnTrackSelectionBySurface(track);
         
-        for(auto surface : surfaces_)
-            surface->OnTrackSelection(track);
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->OnTrackSelection(track);
     }
     
     void TrackFXListChanged(MediaTrack* track)
     {
-        for(auto surface : surfaces_)
-            surface->TrackFXListChanged(track);
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->TrackFXListChanged(track);
     }
     
     void EnterPage()
     {
         trackNavigationManager_->EnterPage();
         
-        for(auto surface : surfaces_)
-            surface->OnPageEnter();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->OnPageEnter();
     }
     
     void LeavePage()
     {
         trackNavigationManager_->LeavePage();
         
-        for(auto surface : surfaces_)
-            surface->OnPageLeave();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->OnPageLeave();
     }
     
     void OnInitialization()
     {
-        for(auto surface : surfaces_)
-            surface->OnInitialization();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->OnInitialization();
     }
     
     void SignalStop()
     {
-        for(auto surface : surfaces_)
-            surface->HandleStop();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->HandleStop();
     }
     
     void SignalPlay()
     {
-        for(auto surface : surfaces_)
-            surface->HandlePlay();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->HandlePlay();
     }
     
     void SignalRecord()
     {
-        for(auto surface : surfaces_)
-            surface->HandleRecord();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->HandleRecord();
     }
             
     void GoHome()
     {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoHome();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->GetZoneManager()->GoHome();
     }
     
     void GoAssociatedZone(string name)
     {
-        for(auto surface : surfaces_)
-            surface->GetZoneManager()->GoAssociatedZone(name);
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->GetZoneManager()->GoAssociatedZone(name);
     }
     
     void AdjustBank(const string &zoneName, int amount)
@@ -4190,15 +4192,15 @@ public:
         else if(zoneName == "SelectedTrack")
             trackNavigationManager_->AdjustSelectedTrackBank(amount);
         else
-            for(auto surface : surfaces_)
-                surface->GetZoneManager()->AdjustBank(zoneName, amount);
+            for(int i = 0; i < (int)surfaces_.size(); ++i)
+                surfaces_[i]->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
     void AddZoneFilePath(shared_ptr<ControlSurface> originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
     {
-        for(auto surface : surfaces_)
-            if(surface != originatingSurface)
-                surface->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            if(surfaces_[i] != originatingSurface)
+                surfaces_[i]->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4319,11 +4321,11 @@ public:
         trackNavigationManager_->RebuildFolderTracks();
         trackNavigationManager_->RebuildSelectedTracks();
         
-        for(auto surface : surfaces_)
-            surface->HandleExternalInput();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->HandleExternalInput();
         
-        for(auto surface : surfaces_)
-            surface->RequestUpdate();
+        for(int i = 0; i < (int)surfaces_.size(); ++i)
+            surfaces_[i]->RequestUpdate();
     }
 //*/
 };
@@ -4545,9 +4547,9 @@ public:
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustBank(zoneName, amount);
         else
-            for(auto page: pages_)
-                if(page->GetSynchPages())
-                    page->AdjustBank(zoneName, amount);
+            for(int i = 0; i < (int)pages_.size(); ++i)
+                if(pages_[i]->GetSynchPages())
+                    pages_[i]->AdjustBank(zoneName, amount);
     }
        
     void NextPage()
@@ -4586,8 +4588,8 @@ public:
     
     void TrackFXListChanged(MediaTrack* track)
     {
-        for(auto & page : pages_)
-            page->TrackFXListChanged(track);
+        for(int i = 0; i < (int)pages_.size(); ++i)
+            pages_[i]->TrackFXListChanged(track);
         
         if(fxParamsDisplay_ || fxParamsWrite_)
         {

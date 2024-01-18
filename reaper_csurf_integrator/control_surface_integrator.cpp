@@ -620,30 +620,30 @@ static void ProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zone
                                                         
                             for(auto [modifier, actionTemplates] : modifiedActionTemplates)
                             {
-                                for(auto actionTemplate : actionTemplates)
+                                for(int j = 0; j < (int)actionTemplates.size(); ++j)
                                 {
-                                    string actionName = regex_replace(actionTemplate->actionName, regex("[|]"), numStr);
+                                    string actionName = regex_replace(actionTemplates[j]->actionName, regex("[|]"), numStr);
 
                                     vector<string> memberParams;
-                                    for(int j = 0; j < actionTemplate->params.size(); j++)
-                                        memberParams.push_back(regex_replace(actionTemplate->params[j], regex("[|]"), numStr));
+                                    for(int k = 0; k < actionTemplates[j]->params.size(); k++)
+                                        memberParams.push_back(regex_replace(actionTemplates[j]->params[k], regex("[|]"), numStr));
                                     
                                     shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
                                         
-                                    context->SetProvideFeedback(actionTemplate->provideFeedback);
+                                    context->SetProvideFeedback(actionTemplates[j]->provideFeedback);
                                     
-                                    if(actionTemplate->isValueInverted)
+                                    if(actionTemplates[j]->isValueInverted)
                                         context->SetIsValueInverted();
                                     
-                                    if(actionTemplate->isFeedbackInverted)
+                                    if(actionTemplates[j]->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
                                     
-                                    if(actionTemplate->holdDelayAmount != 0.0)
-                                        context->SetHoldDelayAmount(actionTemplate->holdDelayAmount);
+                                    if(actionTemplates[j]->holdDelayAmount != 0.0)
+                                        context->SetHoldDelayAmount(actionTemplates[j]->holdDelayAmount);
                                     
-                                    if(actionTemplate->isDecrease)
+                                    if(actionTemplates[j]->isDecrease)
                                         context->SetRange({ -2.0, 1.0 });
-                                    else if(actionTemplate->isIncrease)
+                                    else if(actionTemplates[j]->isIncrease)
                                         context->SetRange({ 0.0, 2.0 });
                                    
                                     zone->AddActionContext(widget, modifier, context);
@@ -3382,7 +3382,7 @@ void ZoneManager::InitializeNoMapZone()
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
                     
-                    for(int k = 0; i < (int)paramWidgets.size(); ++k)
+                    for(int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
                         shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                         if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
@@ -3472,7 +3472,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
                         
-                        for(int k = 0; i < (int)paramWidgets.size(); ++k)
+                        for(int k = 0; k < (int)paramWidgets.size(); ++k)
                         {
                             shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                             if(widget == nullptr)
@@ -4514,8 +4514,8 @@ void ControlSurface::ForceClearTrack(int trackNum)
 
 void ControlSurface::ForceUpdateTrackColors()
 {
-    for( auto processor : trackColorFeedbackProcessors_)
-        processor->ForceUpdateTrackColors();
+    for(int i = 0; i < (int)trackColorFeedbackProcessors_.size(); ++i)
+        trackColorFeedbackProcessors_[i]->ForceUpdateTrackColors();
 }
 
 rgba_color ControlSurface::GetTrackColorForChannel(int channel)
@@ -4541,8 +4541,8 @@ rgba_color ControlSurface::GetTrackColorForChannel(int channel)
 
 void ControlSurface::RequestUpdate()
 {
-    for( auto processor : trackColorFeedbackProcessors_)
-        processor->UpdateTrackColors();
+    for(int i = 0; i < (int)trackColorFeedbackProcessors_.size(); ++i)
+        trackColorFeedbackProcessors_[i]->UpdateTrackColors();
     
     zoneManager_->RequestUpdate();
     
@@ -4907,20 +4907,20 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
     if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]) > 0)
     {
         isMapped = true;
-        for( auto generator : Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]])
-            generator->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]].size(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]][i]->ProcessMidiMessage(evt);
     }
     else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100) > 0)
     {
         isMapped = true;
-        for( auto generator : Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100])
-            generator->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100].size(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100][i]->ProcessMidiMessage(evt);
     }
     else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000) > 0)
     {
         isMapped = true;
-        for( auto generator : Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000])
-            generator->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000].size(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000][i]->ProcessMidiMessage(evt);
     }
     
     if(TheManager->GetSurfaceRawInDisplay() || (! isMapped && TheManager->GetSurfaceInDisplay()))
