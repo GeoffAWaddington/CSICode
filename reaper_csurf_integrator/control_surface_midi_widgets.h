@@ -172,8 +172,8 @@ public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
     AcceleratedEncoder_Midi_CSIMessageGenerator(shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {       
-        auto openSquareBrace = find(params.begin(), params.end(), "[");
-        auto closeCurlyBrace = find(params.begin(), params.end(), "]");
+        vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
+        vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "]");
         
         if(openSquareBrace != params.end() && closeCurlyBrace != params.end())
         {
@@ -182,7 +182,7 @@ public:
 
             bool inDec = false;
             
-            for(auto it = openSquareBrace + 1; it != closeCurlyBrace; ++it)
+            for(vector<string>::iterator it = openSquareBrace + 1; it != closeCurlyBrace; ++it)
             {
                 string strVal = *(it);
                 
@@ -577,9 +577,9 @@ static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_pt
 {
     s_rows.clear();
     
-    for(auto context : contexts)
+    for(int i = 0; i < (int)contexts.size(); ++i)
     {
-        map<string, string> properties = context->GetWidgetProperties();
+        map<string, string> properties = contexts[i]->GetWidgetProperties();
         
         if(properties.count("Row") > 0)
         {
@@ -589,7 +589,7 @@ static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_pt
             if(properties.count("Font") > 0)
                 s_rows[properties["Row"]]->fontSize = stoi(properties["Font"]);
            
-            context->SetProvideFeedback(true);
+            contexts[i]->SetProvideFeedback(true);
         }
     }
 
@@ -959,11 +959,11 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
     while (getline(iss, colorDef, '+'))
         colorDefs.push_back(colorDef);
 
-    for(auto colorDef : colorDefs)
+    for(int i = 0; i < (int)colorDefs.size(); ++i)
     {
         vector<string> rangeDefs;
         
-        istringstream iss(colorDef);
+        istringstream iss(colorDefs[i]);
         string rangeDef;
         while (getline(iss, rangeDef, '-'))
             rangeDefs.push_back(rangeDef);
@@ -1155,7 +1155,7 @@ public:
             char data[512];
         } midiSysExData;
          
-        for(auto color : colors)
+        for(int i = 0; i < (int)colors.size(); ++i)
         {
             midiSysExData.evt.frame_offset=0;
             midiSysExData.evt.size=0;
@@ -1165,12 +1165,12 @@ public:
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeLow;
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeMedium;
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringRangeHigh;
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.r / 2;
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.g / 2;
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = color.ringColor.b / 2;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = colors[i].ringRangeLow;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = colors[i].ringRangeMedium;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = colors[i].ringRangeHigh;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = colors[i].ringColor.r / 2;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = colors[i].ringColor.g / 2;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = colors[i].ringColor.b / 2;
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
             
             SendMidiSysExMessage(&midiSysExData.evt);

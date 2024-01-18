@@ -192,8 +192,8 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             {
                 string deltas = "";
                 
-                for(auto delta : s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas)
-                    deltas += delta + " ";
+                for(int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size(); ++i)
+                    deltas += s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas[i] + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             }
@@ -202,8 +202,8 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             {
                 string ticks = "";
                 
-                for(auto tick : s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks)
-                    ticks += tick + " ";
+                for(int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size(); ++i)
+                    ticks += s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i] + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
@@ -238,8 +238,8 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.clear();
                             vector<string> deltas;
                             GetTokens(deltas, buf);
-                            for(auto delta : deltas)
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(delta);
+                            for(int i = 0; i < (int)deltas.size(); ++i)
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(deltas[i]);
                         }
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
@@ -248,8 +248,8 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.clear();
                             vector<string> ticks;
                             GetTokens(ticks, buf);
-                            for(auto tick : ticks)
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(tick);
+                            for(int i = 0; i < (int)ticks.size(); ++i)
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(ticks[i]);
                         }
 
                         s_dlgResult = IDOK;
@@ -355,23 +355,23 @@ static vector<vector<int>> s_colorControls =
 
 static void ShowBaseControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(auto controls : s_baseControls)
-        for(int i = startIndex; i < endIndex; i++)
-            ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
+    for(int i = 0; i < (int)s_baseControls.size(); ++i)
+        for(int j = startIndex; j < endIndex; j++)
+            ShowWindow(GetDlgItem(hwndDlg, s_baseControls[i][j]), show);
 }
 
 static void ShowFontControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(auto controls : s_fontControls)
-        for(int i = startIndex; i < endIndex; i++)
-            ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
+    for(int i = 0; i < (int)s_fontControls.size(); ++i)
+        for(int j = startIndex; j < endIndex; j++)
+            ShowWindow(GetDlgItem(hwndDlg, s_fontControls[i][j]), show);
 }
 
 static void ShowColorControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(auto controls : s_colorControls)
-        for(int i = startIndex; i < endIndex; i++)
-            ShowWindow(GetDlgItem(hwndDlg, controls[i]), show);
+    for(int i = 0; i < (int)s_colorControls.size(); ++i)
+        for(int j = startIndex; j < endIndex; j++)
+            ShowWindow(GetDlgItem(hwndDlg, s_colorControls[i][j]), show);
 }
 
 static map<int, int> s_buttonColors =
@@ -530,51 +530,51 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
             
-            for(auto layout : s_surfaceLayoutTemplate)
+            for(int i = 0; i < (int)s_surfaceLayoutTemplate.size(); ++i)
             {
-                if(layout.size() > 0 )
+                if(s_surfaceLayoutTemplate[i].size() > 0 )
                 {
-                    if(layout[0] == "WidgetTypes")
+                    if(s_surfaceLayoutTemplate[i][0] == "WidgetTypes")
                     {
-                        for(int i = 0; i < s_widgetTypePickers.size(); i++)
-                            for(int j = 1; j < layout.size(); j++)
-                                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        for(int j = 0; j < s_widgetTypePickers.size(); j++)
+                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
-                    else if(layout[0] == "RingStyles")
+                    else if(s_surfaceLayoutTemplate[i][0] == "RingStyles")
                     {
-                        for(int i = 0; i < s_ringStylePickers.size(); i++)
-                            for(int j = 1; j < layout.size(); j++)
-                                SendDlgItemMessage(hwndDlg, s_ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        for(int j = 0; j < s_ringStylePickers.size(); j++)
+                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_ringStylePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
-                    else if(layout[0] == "DisplayRows")
+                    else if(s_surfaceLayoutTemplate[i][0] == "DisplayRows")
                     {
-                        for(int i = 0; i < s_fixedTextDisplayRowPickers.size(); i++)
+                        for(int j = 0; j < s_fixedTextDisplayRowPickers.size(); j++)
                         {
-                            SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"");
+                            SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
-                            for(int j = 1; j < layout.size(); j++)
-                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         }
                         
-                        for(int i = 0; i < s_paramValueDisplayRowPickers.size(); i++)
+                        for(int j = 0; j < s_paramValueDisplayRowPickers.size(); j++)
                         {
-                            SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"");
+                            SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
-                            for(int j = 1; j < layout.size(); j++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         }
                     }
-                    else if(layout[0] == "DisplayFonts")
+                    else if(s_surfaceLayoutTemplate[i][0] == "DisplayFonts")
                     {
                         s_hasFonts = true;
                         
-                        for(int i = 0; i < s_fixedTextDisplayFontPickers.size(); i++)
-                            for(int j = 1; j < layout.size(); j++)
-                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        for(int j = 0; j < s_fixedTextDisplayFontPickers.size(); j++)
+                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         
-                        for(int i = 0; i < s_paramValueDisplayFontPickers.size(); i++)
-                            for(int j = 1; j < layout.size(); j++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)layout[j].c_str());
+                        for(int j = 0; j < s_paramValueDisplayFontPickers.size(); j++)
+                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
                 }
             }
@@ -641,8 +641,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
                 string steps = "";
                 
-                for(auto step : s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps)
-                    steps += step + "  ";
+                for(int j = 0; j < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.size(); ++i)
+                    steps += s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps[j] + "  ";
                 
                 SetDlgItemText(hwndDlg, s_stepEditControls[i], steps.c_str());
                 
@@ -866,8 +866,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.clear();
                                 vector<string> steps;
                                 GetTokens(steps, buf);
-                                for(auto step : steps)
-                                    s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(step);
+                                for(int j = 0; j< (int)steps.size(); ++j)
+                                    s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(steps[j]);
                             }
 
                             if(s_hasFonts)
@@ -989,20 +989,20 @@ vector<string> GetLineComponents(int index)
     
     components.push_back(s_layoutTemplates[index].modifiers + s_layoutTemplates[index].suffix);
     
-    for(auto paramDef :  s_zoneDef.paramDefs[index].definitions)
+    for(int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
     {
-        string widgetName = paramDef.paramWidget;
+        string widgetName = s_zoneDef.paramDefs[index].definitions[i].paramWidget;
         
         if(widgetName == "RotaryPush")
             widgetName = "Push";
         
         components.push_back(widgetName);
         
-        string alias = paramDef.paramName;
+        string alias = s_zoneDef.paramDefs[index].definitions[i].paramName;
 
-        if(paramDef.paramName == "" && paramDef.paramNumber != "" && s_zoneDef.rawParamsDictionary.count(paramDef.paramNumber) > 0)
-            alias = s_zoneDef.rawParamsDictionary[paramDef.paramNumber];
-        else if(paramDef.paramNumber == "")
+        if(s_zoneDef.paramDefs[index].definitions[i].paramName == "" && s_zoneDef.paramDefs[index].definitions[i].paramNumber != "" && s_zoneDef.rawParamsDictionary.count(s_zoneDef.paramDefs[index].definitions[i].paramNumber) > 0)
+            alias = s_zoneDef.rawParamsDictionary[s_zoneDef.paramDefs[index].definitions[i].paramNumber];
+        else if(s_zoneDef.paramDefs[index].definitions[i].paramNumber == "")
             alias = "NoAction";
         
         components.push_back(alias);
@@ -1059,8 +1059,8 @@ static void MoveUp(HWND hwndParamList)
     {
         FXParamDefinitions itemToMove;
         
-        for(auto def : s_zoneDef.paramDefs[index].definitions)
-            itemToMove.definitions.push_back(def);
+        for(int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
+            itemToMove.definitions.push_back(s_zoneDef.paramDefs[index].definitions[i]);
         
         s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + index);
         s_zoneDef.paramDefs.insert(s_zoneDef.paramDefs.begin() + index - 1, itemToMove);
@@ -1079,9 +1079,9 @@ static void MoveDown(HWND hwndParamList)
     {
         FXParamDefinitions itemToMove;
         
-        for(auto def : s_zoneDef.paramDefs[index].definitions)
-            itemToMove.definitions.push_back(def);
-        
+        for(int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
+            itemToMove.definitions.push_back(s_zoneDef.paramDefs[index].definitions[i]);
+
         s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + index);
         s_zoneDef.paramDefs.insert(s_zoneDef.paramDefs.begin() + index + 1, itemToMove);
 
@@ -1230,8 +1230,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 
                 FXParamDefinitions itemToMove;
                 
-                for(auto def : s_zoneDef.paramDefs[s_oldPosition].definitions)
-                    itemToMove.definitions.push_back(def);
+                for(int i = 0; i < (int)s_zoneDef.paramDefs[s_oldPosition].definitions.size(); ++i)
+                    itemToMove.definitions.push_back(s_zoneDef.paramDefs[s_oldPosition].definitions[i]);
                 
                 s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + s_oldPosition);
                 s_zoneDef.paramDefs.insert(s_zoneDef.paramDefs.begin() + lvhti.iItem, itemToMove);
@@ -1571,28 +1571,28 @@ static void TransferBroadcasters(vector<shared_ptr<Broadcaster>> &source, vector
 {
     destination.clear();
     
-    for(auto sourceBrodacaster : source)
+    for(int i = 0; i < (int)source.size(); ++i)
     {
         shared_ptr<Broadcaster> destinationBroadcaster = make_shared<Broadcaster>();
         
-        destinationBroadcaster->name = sourceBrodacaster->name;
+        destinationBroadcaster->name = source[i]->name;
         
-        for(auto sourceListener : sourceBrodacaster->listeners)
+        for(int j = 0; j < (int)source[i]->listeners.size(); ++j)
         {
             shared_ptr<Listener> destinationListener = make_shared<Listener>();
             
-            destinationListener->name = sourceListener->name;
+            destinationListener->name = source[i]->listeners[j]->name;
             
-            destinationListener->goHome = sourceListener->goHome;
-            destinationListener->sends = sourceListener->sends;
-            destinationListener->receives = sourceListener->receives;
-            destinationListener->focusedFX = sourceListener->focusedFX;
-            destinationListener->focusedFXParam = sourceListener->focusedFXParam;
-            destinationListener->fxMenu = sourceListener->fxMenu;
-            destinationListener->localFXSlot = sourceListener->localFXSlot;
-            destinationListener->modifiers = sourceListener->modifiers;
-            destinationListener->selectedTrackFX = sourceListener->selectedTrackFX;
-            destinationListener->custom = sourceListener->custom;
+            destinationListener->goHome = source[i]->listeners[j]->goHome;
+            destinationListener->sends = source[i]->listeners[j]->sends;
+            destinationListener->receives = source[i]->listeners[j]->receives;
+            destinationListener->focusedFX = source[i]->listeners[j]->focusedFX;
+            destinationListener->focusedFXParam = source[i]->listeners[j]->focusedFXParam;
+            destinationListener->fxMenu = source[i]->listeners[j]->fxMenu;
+            destinationListener->localFXSlot = source[i]->listeners[j]->localFXSlot;
+            destinationListener->modifiers = source[i]->listeners[j]->modifiers;
+            destinationListener->selectedTrackFX = source[i]->listeners[j]->selectedTrackFX;
+            destinationListener->custom = source[i]->listeners[j]->custom;
             
             destinationBroadcaster->listeners.push_back(destinationListener);
         }
@@ -1707,17 +1707,17 @@ static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
     
     GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
     
-    for(auto surface : s_surfaces)
+    for(int i = 0; i < (int)s_surfaces.size(); ++i)
     {
-        if(surface->name == string(buf))
+        if(s_surfaces[i]->name == string(buf))
         {
-            if(surface->type == s_MidiSurfaceToken)
-                for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/"))
-                    AddComboEntry(hwndDlg, 0, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
+            if(s_surfaces[i]->type == s_MidiSurfaceToken)
+                for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/").size(); ++j)
+                    AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
 
-            if(surface->type == s_OSCSurfaceToken)
-                for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/"))
-                    AddComboEntry(hwndDlg, 0, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
+            if(s_surfaces[i]->type == s_OSCSurfaceToken)
+                for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
+                    AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
             
             break;
         }
@@ -1742,11 +1742,11 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
-                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
 
-                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_FXZoneTemplates);
+                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
 
                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)s_templateFilename.c_str());
                 if(index >= 0)
@@ -1762,8 +1762,8 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             }
             else
             {
-                for(auto surface : s_surfaces)
-                    AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_COMBO_PageSurface);
+                for(int i = 0; i < (int)s_surfaces.size(); ++i)
+                    AddComboEntry(hwndDlg, 0, (char *)s_surfaces[i]->name.c_str(), IDC_COMBO_PageSurface);
                 
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
                 
@@ -1772,11 +1772,11 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                             
-                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
                 
-                for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                    AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_FXZoneTemplates);
+                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
             }
         }
             break;
@@ -2027,11 +2027,11 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             string resourcePath(DAW::GetResourcePath());
             
             int i = 0;
-            for(auto filename : FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/"))
-                AddComboEntry(hwndDlg, i++, (char*)filename.c_str(), IDC_COMBO_SurfaceTemplate);
+            for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
+                AddComboEntry(hwndDlg, i++, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
             
-            for(auto foldername : FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/"))
-                AddComboEntry(hwndDlg, 0, (char *)foldername.c_str(), IDC_COMBO_ZoneTemplates);
+            for(int j = 0; j < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++j)
+                AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[j].c_str(), IDC_COMBO_ZoneTemplates);
             
             if(s_editMode)
             {
@@ -2166,20 +2166,20 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     {
         case WM_INITDIALOG:
         {
-            for(auto surface : s_surfaces)
-                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddBroadcaster);
+            for(int i = 0; i < (int)s_surfaces.size(); ++i)
+                AddComboEntry(hwndDlg, 0, (char *)s_surfaces[i]->name.c_str(), IDC_AddBroadcaster);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddBroadcaster), CB_SETCURSEL, 0, 0);
 
-            for(auto surface : s_surfaces)
-                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddListener);
+            for(int i = 0; i < (int)s_surfaces.size(); ++i)
+                AddComboEntry(hwndDlg, 0, (char *)s_surfaces[i]->name.c_str(), IDC_AddListener);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddListener), CB_SETCURSEL, 0, 0);
             
             TransferBroadcasters(s_pages[s_pageIndex]->broadcasters, s_broadcasters);
             
             if(s_broadcasters.size() > 0)
             {
-                for(auto broadcaster : s_broadcasters)
-                    AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
+                for(int i = 0; i < (int)s_broadcasters.size(); ++i)
+                    AddListEntry(hwndDlg, s_broadcasters[i]->name, IDC_LIST_Broadcasters);
                     
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
             }
@@ -2197,8 +2197,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         {
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                            
-                            for (auto listener : s_broadcasters[broadcasterIndex]->listeners)
-                                AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
+                            for (int i = 0; i < (int)s_broadcasters[broadcasterIndex]->listeners.size(); ++i)
+                                AddListEntry(hwndDlg, s_broadcasters[broadcasterIndex]->listeners[i]->name, IDC_LIST_Listeners);
                             
                             if(s_broadcasters.size() > 0)
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, 0, 0);
@@ -2236,8 +2236,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
                             
                             bool foundit = false;
-                            for(auto broadcaster : s_broadcasters)
-                                if(broadcasterName == broadcaster->name)
+                            for(int i = 0; i < (int)s_broadcasters.size(); ++i)
+                                if(broadcasterName == s_broadcasters[i]->name)
                                     foundit = true;
                             if(! foundit)
                             {
@@ -2263,8 +2263,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
                             
                             bool foundit = false;
-                            for(auto listener : s_broadcasters[broadcasterIndex]->listeners)
-                                if(listenerName == listener->name)
+                            for(int i = 0; i < (int)s_broadcasters[broadcasterIndex]->listeners.size(); ++i)
+                                if(listenerName == s_broadcasters[broadcasterIndex]->listeners[i]->name)
                                 foundit = true;
                             if(! foundit)
                             {
@@ -2455,8 +2455,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
                             if(s_broadcasters.size() > 0)
                             {
-                                for(auto broadcaster : s_broadcasters)
-                                    AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
+                                for(int i = 0; i < (int)s_broadcasters.size(); ++i)
+                                    AddListEntry(hwndDlg, s_broadcasters[i]->name, IDC_LIST_Broadcasters);
                                     
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.size() - 1, 0);
                             }
@@ -2477,8 +2477,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             ClearCheckBoxes(hwndDlg);
                             if(s_broadcasters[broadcasterIndex]->listeners.size() > 0)
                             {
-                                for(auto listener : s_broadcasters[broadcasterIndex]->listeners)
-                                    AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
+                                for(int i = 0; i < (int)s_broadcasters[broadcasterIndex]->listeners.size(); ++i)
+                                    AddListEntry(hwndDlg, s_broadcasters[broadcasterIndex]->listeners[i]->name, IDC_LIST_Listeners);
                                     
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, s_broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
                                 
@@ -2541,8 +2541,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                                 s_pageIndex = index;
 
-                                for (auto surface : s_pages[index]->surfaces)
-                                    AddListEntry(hwndDlg, surface->pageSurfaceName, IDC_LIST_PageSurfaces);
+                                for (int i = 0; i < (int)s_pages[index]->surfaces.size(); ++i)
+                                    AddListEntry(hwndDlg, s_pages[index]->surfaces[i]->pageSurfaceName, IDC_LIST_PageSurfaces);
                                 
                                 if(s_pages[index]->surfaces.size() > 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
@@ -2734,8 +2734,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     s_pages[index]->scrollSynch = s_scrollSynch;
 
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
-                                    for(auto page :  s_pages)
-                                        AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
+                                    for(int i = 0; i < (int)s_pages.size(); ++i)
+                                        AddListEntry(hwndDlg, s_pages[i]->name, IDC_LIST_Pages);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                                 }
                                 
@@ -2799,8 +2799,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_surfaces.erase(s_surfaces.begin() + index);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
-                                for(auto surface: s_surfaces)
-                                    AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
+                                for(int i = 0; i < (int)s_surfaces.size(); ++i)
+                                    AddListEntry(hwndDlg, s_surfaces[i]->name, IDC_LIST_Surfaces);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
                             }
                         }
@@ -2818,8 +2818,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 #ifdef WIN32
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 #endif
-                                for(auto page: s_pages)
-                                    AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
+                                for(int i = 0; i < (int)s_pages.size(); ++i)
+                                    AddListEntry(hwndDlg, s_pages[i]->name, IDC_LIST_Pages);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                             }
                         }
@@ -2838,8 +2838,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
-                                    for(auto surface : s_pages[pageIndex]->surfaces)
-                                        AddListEntry(hwndDlg, surface->pageSurfaceName, IDC_LIST_PageSurfaces);
+                                    for(int i = 0; i < (int)s_pages[pageIndex]->surfaces.size(); ++i)
+                                        AddListEntry(hwndDlg, s_pages[pageIndex]->surfaces[i]->pageSurfaceName, IDC_LIST_PageSurfaces);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                 }
                             }
@@ -2950,27 +2950,27 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         vector<string> categoryTokens;
                         GetTokens(categoryTokens, tokens[2]);
                         
-                        for(auto categoryToken : categoryTokens)
+                        for(int i = 0; i < (int)categoryTokens.size(); ++i)
                         {
-                            if(categoryToken == "GoHome")
+                            if(categoryTokens[i] == "GoHome")
                                 listener->goHome = true;
-                            if(categoryToken == "Sends")
+                            if(categoryTokens[i] == "Sends")
                                 listener->sends = true;
-                            if(categoryToken == "Receives")
+                            if(categoryTokens[i] == "Receives")
                                 listener->receives = true;
-                            if(categoryToken == "FocusedFX")
+                            if(categoryTokens[i] == "FocusedFX")
                                 listener->focusedFX = true;
-                            if(categoryToken == "FocusedFXParam")
+                            if(categoryTokens[i] == "FocusedFXParam")
                                 listener->focusedFXParam = true;
-                            if(categoryToken == "FXMenu")
+                            if(categoryTokens[i] == "FXMenu")
                                 listener->fxMenu = true;
-                            if(categoryToken == "LocalFXSlot")
+                            if(categoryTokens[i] == "LocalFXSlot")
                                 listener->localFXSlot = true;
-                            if(categoryToken == "Modifiers")
+                            if(categoryTokens[i] == "Modifiers")
                                 listener->modifiers = true;
-                            if(categoryToken == "SelectedTrackFX")
+                            if(categoryTokens[i] == "SelectedTrackFX")
                                 listener->selectedTrackFX = true;
-                            if(categoryToken == "Custom")
+                            if(categoryTokens[i] == "Custom")
                                 listener->custom = true;
                         }
                         
@@ -3031,90 +3031,90 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 string line = "";
                 
-                for(auto surface : s_surfaces)
+                for(int i = 0; i < (int)s_surfaces.size(); ++i)
                 {
-                    line = surface->type + " ";
-                    line += "\"" + surface->name + "\" ";
-                    line += to_string(surface->inPort) + " ";
-                    line += to_string(surface->outPort) + " ";
+                    line = s_surfaces[i]->type + " ";
+                    line += "\"" + s_surfaces[i]->name + "\" ";
+                    line += to_string(s_surfaces[i]->inPort) + " ";
+                    line += to_string(s_surfaces[i]->outPort) + " ";
 
-                    if(surface->type == s_OSCSurfaceToken)
-                        line += surface->remoteDeviceIP;
+                    if(s_surfaces[i]->type == s_OSCSurfaceToken)
+                        line += s_surfaces[i]->remoteDeviceIP;
                     
                     iniFile << line + "\n";
                 }
                 
                 iniFile << "\n";
                 
-                for(auto page : s_pages)
+                for(int i = 0; i < (int)s_pages.size(); ++i)
                 {
                     line = s_PageToken + " ";
-                    line += "\"" + page->name + "\"";
+                    line += "\"" + s_pages[i]->name + "\"";
                     
-                    if(page->followMCP == false)
+                    if(s_pages[i]->followMCP == false)
                         line += " FollowTCP";
                                         
-                    if(page->synchPages == false)
+                    if(s_pages[i]->synchPages == false)
                         line += " NoSynchPages";
                     
-                    if(page->isScrollLinkEnabled == true)
+                    if(s_pages[i]->isScrollLinkEnabled == true)
                         line += " UseScrollLink";
                     
-                    if(page->scrollSynch == true)
+                    if(s_pages[i]->scrollSynch == true)
                         line += " UseScrollSynch";
 
                     line += "\n";
                     
                     iniFile << line;
 
-                    for(auto surface : page->surfaces)
+                    for(int j = 0; j < (int)s_pages[i]->surfaces.size(); ++j)
                     {
                         line = "\t";
-                        line += "\"" + surface->pageSurfaceName + "\" ";
-                        line += to_string(surface->numChannels) + " " ;
-                        line += to_string(surface->channelOffset) + " " ;
-                        line += "\"" + surface->templateFilename + "\" ";
-                        line += "\"" + surface->zoneTemplateFolder + "\" ";
-                        line += "\"" + surface->fxZoneTemplateFolder + "\" ";
+                        line += "\"" + s_pages[i]->surfaces[j]->pageSurfaceName + "\" ";
+                        line += to_string(s_pages[i]->surfaces[j]->numChannels) + " " ;
+                        line += to_string(s_pages[i]->surfaces[j]->channelOffset) + " " ;
+                        line += "\"" + s_pages[i]->surfaces[j]->templateFilename + "\" ";
+                        line += "\"" + s_pages[i]->surfaces[j]->zoneTemplateFolder + "\" ";
+                        line += "\"" + s_pages[i]->surfaces[j]->fxZoneTemplateFolder + "\" ";
 
                         iniFile << line + "\n";
                     }
                     
                     iniFile << "\n";
                     
-                    for(auto broadcaster : page->broadcasters)
+                    for(int j = 0; j < (int)s_pages[i]->broadcasters.size(); ++j)
                     {
-                        if(broadcaster->listeners.size() == 0)
+                        if(s_pages[i]->broadcasters[j]->listeners.size() == 0)
                             continue;
                         
-                        iniFile << string("\tBroadcaster ") + "\"" + broadcaster->name + "\"\n";
+                        iniFile << string("\tBroadcaster ") + "\"" + s_pages[i]->broadcasters[j]->name + "\"\n";
                         
-                        for(auto listener : broadcaster->listeners)
+                        for(int k = 0; k < (int)s_pages[i]->broadcasters[j]->listeners.size(); ++k)
                         {
                             string listenerCategories = "";
                             
-                            if(listener->goHome)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->goHome)
                                 listenerCategories += "GoHome ";
-                            if(listener->sends)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->sends)
                                 listenerCategories += "Sends ";
-                            if(listener->receives)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->receives)
                                 listenerCategories += "Receives ";
-                            if(listener->focusedFX)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->focusedFX)
                                 listenerCategories += "FocusedFX ";
-                            if(listener->focusedFXParam)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->focusedFXParam)
                                 listenerCategories += "FocusedFXParam ";
-                            if(listener->fxMenu)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->fxMenu)
                                 listenerCategories += "FXMenu ";
-                            if(listener->localFXSlot)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->localFXSlot)
                                 listenerCategories += "LocalFXSlot ";
-                            if(listener->modifiers)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->modifiers)
                                 listenerCategories += "Modifiers ";
-                            if(listener->selectedTrackFX)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->selectedTrackFX)
                                 listenerCategories += "SelectedTrackFX ";
-                            if(listener->custom)
+                            if(s_pages[i]->broadcasters[j]->listeners[k]->custom)
                                 listenerCategories += "Custom ";
 
-                            iniFile << string("\t\tListener ") + "\"" + listener->name + "\" \"" + listenerCategories + "\"\n";
+                            iniFile << string("\t\tListener ") + "\"" + s_pages[i]->broadcasters[j]->listeners[k]->name + "\" \"" + listenerCategories + "\"\n";
                         }
                         
                         iniFile << "\n";
