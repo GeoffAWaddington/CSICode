@@ -385,11 +385,18 @@ class FocusedFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    int trackNum_ = 0;
-    int fxSlotNum_ = 0;
-    int fxParamNum_ = 0;
+    int trackNum_;
+    int fxSlotNum_;
+    int fxParamNum_;
     
 public:
+    FocusedFXParam()
+    {
+        trackNum_ = 0;
+        fxSlotNum_ = 0;
+        fxParamNum_ = 0;
+    }
+    
     virtual string GetName() override { return "FocusedFXParam"; }
    
     virtual double GetCurrentNormalizedValue(ActionContext* context) override

@@ -1512,56 +1512,104 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct SurfaceLine
 {
-    string type = "";
-    string name = "";
-    int inPort = 0;
-    int outPort = 0;
-    string remoteDeviceIP = "";
+    string type ;
+    string name;
+    int inPort;
+    int outPort;
+    string remoteDeviceIP;
+    
+    SurfaceLine()
+    {
+        type = "";
+        name = "";
+        inPort = 0;
+        outPort = 0;
+        remoteDeviceIP = "";
+    }
 };
 
 static vector<shared_ptr<SurfaceLine>> s_surfaces;
 
 struct PageSurfaceLine
 {
-    string pageSurfaceName = "";
-    int numChannels = 0;
-    int channelOffset = 0;
-    string templateFilename = "";
-    string zoneTemplateFolder = "";
-    string fxZoneTemplateFolder = "";
+    string pageSurfaceName;
+    int numChannels;
+    int channelOffset;
+    string templateFilename;
+    string zoneTemplateFolder;
+    string fxZoneTemplateFolder;
+    
+    PageSurfaceLine()
+    {
+        pageSurfaceName = "";
+        numChannels = 0;
+        channelOffset = 0;
+        templateFilename = "";
+        zoneTemplateFolder = "";
+        fxZoneTemplateFolder = "";
+    }
 };
 
 // Broadcast/Listen
 struct Listener
 {
-    string name = "";
-    bool goHome = false;
-    bool sends = false;
-    bool receives = false;
-    bool focusedFX = false;
-    bool focusedFXParam = false;
-    bool fxMenu = false;
-    bool localFXSlot = false;
-    bool selectedTrackFX = false;
-    bool custom = false;
-    bool modifiers = false;
+    string name;
+    bool goHome;
+    bool sends;
+    bool receives;
+    bool focusedFX;
+    bool focusedFXParam;
+    bool fxMenu;
+    bool localFXSlot;
+    bool selectedTrackFX;
+    bool custom;
+    bool modifiers;
+    
+    Listener()
+    {
+        name = "";
+        goHome = false;
+        sends = false;
+        receives = false;
+        focusedFX = false;
+        focusedFXParam = false;
+        fxMenu = false;
+        localFXSlot = false;
+        selectedTrackFX = false;
+        custom = false;
+        modifiers = false;
+    }
 };
 
 struct Broadcaster
 {
-    string name = "";
+    string name;
     vector<shared_ptr<Listener>> listeners;
+    
+    Broadcaster()
+    {
+        name = "";
+    }
 };
 
 struct PageLine
 {
-    string name = "";
-    bool followMCP = true;
-    bool synchPages = true;
-    bool isScrollLinkEnabled = false;
-    bool scrollSynch = false;
+    string name;
+    bool followMCP;
+    bool synchPages;
+    bool isScrollLinkEnabled;
+    bool scrollSynch;
     vector<shared_ptr<PageSurfaceLine>> surfaces;
     vector<shared_ptr<Broadcaster>> broadcasters;
+    
+    PageLine()
+    {
+        name = "";
+        followMCP = true;
+        synchPages = true;
+        isScrollLinkEnabled = false;
+        scrollSynch = false;
+    }
 };
 
 // Scratch pad to get in and out of dialogs easily

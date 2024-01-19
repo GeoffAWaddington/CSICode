@@ -69,40 +69,70 @@ extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string full
 
 struct FXParamLayoutTemplate
 {
-    string modifiers = "";
-    string suffix = "";
-    string widgetAction = "";
-    string aliasDisplayAction = "";
-    string valueDisplayAction = "";
+    string modifiers;
+    string suffix;
+    string widgetAction;
+    string aliasDisplayAction;
+    string valueDisplayAction ;
+    
+    FXParamLayoutTemplate()
+    {
+        modifiers = "";
+        suffix = "";
+        widgetAction = "";
+        aliasDisplayAction = "";
+        valueDisplayAction = "";
+    }
 };
 
 struct FXParamDefinition
 {
     vector<string> modifiers;
-    int modifier = 0;
+    int modifier;
     
-    string cell = "";
+    string cell;
     
-    string paramWidget = "";
-    string paramWidgetFullName = "";
-    string paramNumber = "";
+    string paramWidget;
+    string paramWidgetFullName;
+    string paramNumber;
     map<string, string> paramWidgetProperties;
 
-    string paramNameDisplayWidget = "";
-    string paramNameDisplayWidgetFullName = "";
-    string paramName = "";
+    string paramNameDisplayWidget;
+    string paramNameDisplayWidgetFullName;
+    string paramName;
     map<string, string> paramNameDisplayWidgetProperties;
     
-    string paramValueDisplayWidget = "";
-    string paramValueDisplayWidgetFullName = "";
+    string paramValueDisplayWidget;
+    string paramValueDisplayWidgetFullName;
     map<string, string> paramValueDisplayWidgetProperties;
 
-    string delta = "";
+    string delta;
     vector<string> deltas;
-    string rangeMinimum = "";
-    string rangeMaximum = "";
+    string rangeMinimum;
+    string rangeMaximum;
     vector<string> steps;
     vector<string> ticks;
+    
+    FXParamDefinition()
+    {
+        modifier = 0;
+        cell = "";
+        
+        paramWidget = "";
+        paramWidgetFullName = "";
+        paramNumber = "";
+
+        paramNameDisplayWidget = "";
+        paramNameDisplayWidgetFullName = "";
+        paramName = "";
+        
+        paramValueDisplayWidget = "";
+        paramValueDisplayWidgetFullName = "";
+ 
+        delta = "";
+        rangeMinimum = "";
+        rangeMaximum = "";
+    }
 };
 
 struct FXParamDefinitions
@@ -119,9 +149,16 @@ struct AutoZoneDefinition
     vector<string> rawParams;
     map<string, string> rawParamsDictionary;
 
-    string fxName = "";
-    string fxAlias = "";
-    string fullPath = "";
+    string fxName;
+    string fxAlias;
+    string fullPath;
+    
+    AutoZoneDefinition()
+    {
+        fxName = "";
+        fxAlias = "";
+        fullPath = "";
+    }
     
     void Clear()
     {
@@ -141,8 +178,14 @@ struct AutoZoneDefinition
 struct LearnFXCell
 {
     vector<shared_ptr<Widget>> fxParamWidgets;
-    shared_ptr<Widget> fxParamNameDisplayWidget = nullptr;
-    shared_ptr<Widget> fxParamValueDisplayWidget = nullptr;
+    shared_ptr<Widget> fxParamNameDisplayWidget;
+    shared_ptr<Widget> fxParamValueDisplayWidget;
+    
+    LearnFXCell()
+    {
+        fxParamNameDisplayWidget = nullptr;
+        fxParamValueDisplayWidget = nullptr;
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,15 +229,24 @@ class Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<Page> const page_ = nullptr;
-    bool isVolumeTouched_ = false;
-    bool isPanTouched_ = false;
-    bool isPanWidthTouched_ = false;
-    bool isPanLeftTouched_ = false;
-    bool isPanRightTouched_ = false;
-    bool isMCUTrackPanWidth_ = false;
+    shared_ptr<Page> const page_;
+    bool isVolumeTouched_;
+    bool isPanTouched_;
+    bool isPanWidthTouched_;
+    bool isPanLeftTouched_;
+    bool isPanRightTouched_;
+    bool isMCUTrackPanWidth_;
 
-    Navigator(shared_ptr<Page>  page) : page_(page) {}
+    Navigator(shared_ptr<Page>  page) : page_(page)
+    {
+        // protected:
+        isVolumeTouched_ = false;
+        isPanTouched_ = false;
+        isPanWidthTouched_ = false;
+        isPanLeftTouched_ = false;
+        isPanRightTouched_ = false;
+        isMCUTrackPanWidth_ = false;
+    }
 
 public:
     virtual ~Navigator() {}
@@ -225,7 +277,7 @@ class TrackNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    int const channelNum_ = 0;
+    int const channelNum_;
     
 protected:
     shared_ptr<TrackNavigationManager> const trackNavigationManager_;
@@ -283,42 +335,44 @@ class ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Action> const action_ = nullptr;
-    shared_ptr<Widget> const widget_ = nullptr;
-    shared_ptr<Zone> const zone_ = nullptr;
+    shared_ptr<Action> const action_;
+    shared_ptr<Widget> const widget_;
+    shared_ptr<Zone> const zone_;
 
     vector<string> parameters_;
     
-    int intParam_ = 0;
+    const vector<string> emptyParameters_;
     
-    string stringParam_ = "";
+    int intParam_;
     
-    int paramIndex_ = 0;
-    string fxParamDisplayName_ = "";
+    string stringParam_;
     
-    int commandId_ = 0;
+    int paramIndex_;
+    string fxParamDisplayName_;
     
-    double rangeMinimum_ = 0.0;
-    double rangeMaximum_ = 1.0;
+    int commandId_;
+    
+    double rangeMinimum_;
+    double rangeMaximum_;
     
     vector<double> steppedValues_;
-    int steppedValuesIndex_ = 0;
+    int steppedValuesIndex_;
     
-    double deltaValue_ = 0.0;
+    double deltaValue_;
     vector<double> acceleratedDeltaValues_;
     vector<int> acceleratedTickValues_;
-    int accumulatedIncTicks_ = 0;
-    int accumulatedDecTicks_ = 0;
+    int accumulatedIncTicks_;
+    int accumulatedDecTicks_;
     
-    bool isValueInverted_ = false;
-    bool isFeedbackInverted_ = false;
-    double holdDelayAmount_ = 0.0;
-    double delayStartTime_ = 0.0;
-    double deferredValue_ = 0.0;
+    bool isValueInverted_;
+    bool isFeedbackInverted_;
+    double holdDelayAmount_;
+    double delayStartTime_;
+    double deferredValue_;
     
     bool supportsColor_ = false;
     vector<rgba_color> colorValues_;
-    int currentColorIndex_ = 0;
+    int currentColorIndex_;
     
     bool supportsTrackColor_ = false;
         
@@ -327,19 +381,23 @@ private:
     map<string, string> widgetProperties_;
     
     // For Learn
-    string cellAddress_ = "";
+    string cellAddress_;
     
     void UpdateTrackColor();
 
 public:
     ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &params);
-    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex) : action_(action), widget_(widget), zone_(zone), paramIndex_(paramIndex)
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
     {
+        paramIndex_ = paramIndex;
+        
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
-    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam) : action_(action), widget_(widget), zone_(zone), stringParam_(stringParam)
+    ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
     {
+        stringParam_ = stringParam;
+        
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
@@ -526,14 +584,14 @@ class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<ZoneManager> const zoneManager_ = nullptr;
-    shared_ptr<Navigator> const navigator_= nullptr;
-    int slotIndex_ = 0;
-    string const name_ = "";
-    string const alias_ = "";
-    string const sourceFilePath_ = "";
+    shared_ptr<ZoneManager> const zoneManager_;
+    shared_ptr<Navigator> const navigator_;
+    int slotIndex_;
+    string const name_;
+    string const alias_;
+    string const sourceFilePath_;
     
-    bool isActive_ = false;
+    bool isActive_;
     
     map<shared_ptr<Widget>, bool> widgets_;
     map<string, shared_ptr<Widget>> widgetsByName_;
@@ -849,7 +907,7 @@ class SubZone : public Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Zone> const enclosingZone_ = nullptr;
+    shared_ptr<Zone> const enclosingZone_;
     
 public:
     SubZone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
@@ -873,15 +931,20 @@ private:
     shared_ptr<ControlSurface> const surface_;
     string const name_;
     vector<shared_ptr<FeedbackProcessor>> feedbackProcessors_;
-    int channelNumber_ = 0;
-    double lastIncomingMessageTime_ = 0.0;
+    int channelNumber_;
+    double lastIncomingMessageTime_;
        
-    double stepSize_ = 0.0;
+    double stepSize_;
     vector<double> accelerationValues_;
     
 public:
     Widget(shared_ptr<ControlSurface> surface, const string &name) : surface_(surface), name_(name)
     {
+        // private:
+        channelNumber_ = 0;
+        lastIncomingMessageTime_ = 0.0;
+        stepSize_ = 0.0;
+
         int index = (int)name.length() - 1;
         if(isdigit(name[index]))
         {
@@ -985,16 +1048,16 @@ private:
     
     map<shared_ptr<Widget>, bool> usedWidgets_;
     
-    shared_ptr<Zone> noMapZone_ = nullptr;
+    shared_ptr<Zone> noMapZone_;
     
-    shared_ptr<Zone> homeZone_ = nullptr;
+    shared_ptr<Zone> homeZone_;
     
-    shared_ptr<ZoneManager> sharedThisPtr_ = nullptr;
+    shared_ptr<ZoneManager> sharedThisPtr_;
       
     map<int, map<shared_ptr<Widget>, shared_ptr<Widget>>> controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
     vector<string> fxLayoutFileLinesOriginal_;
-    shared_ptr<Zone> fxLayout_ = nullptr;
+    shared_ptr<Zone> fxLayout_;
     vector<vector<string>> surfaceFXLayout_;
     vector<vector<string>> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
@@ -1003,47 +1066,45 @@ private:
     
     vector<shared_ptr<ZoneManager>> listeners_;
     
-    bool listensToGoHome_ = false;
-    bool listensToSends_ = false;
-    bool listensToReceives_ = false;
-    bool listensToFocusedFX_ = false;
-    bool listensToFocusedFXParam_ = false;
-    bool listensToFXMenu_ = false;
-    bool listensToLocalFXSlot_ = false;
-    bool listensToSelectedTrackFX_ = false;
-    bool listensToCustom_ = false;
+    bool listensToGoHome_;
+    bool listensToSends_;
+    bool listensToReceives_;
+    bool listensToFocusedFX_;
+    bool listensToFocusedFXParam_;
+    bool listensToFXMenu_;
+    bool listensToLocalFXSlot_;
+    bool listensToSelectedTrackFX_;
+    bool listensToCustom_;
 
-    shared_ptr<Zone> focusedFXParamZone_ = nullptr;
-    bool isFocusedFXParamMappingEnabled_ = false;
+    shared_ptr<Zone> focusedFXParamZone_;
+    bool isFocusedFXParamMappingEnabled_;
     
     map<int, map<int, int>> focusedFXDictionary_;
     vector<shared_ptr<Zone>> focusedFXZones_;
-    bool isFocusedFXMappingEnabled_ = true;
+    bool isFocusedFXMappingEnabled_;
     
     vector<shared_ptr<Zone>> selectedTrackFXZones_;
     vector<shared_ptr<Zone>> fxSlotZones_;
     
     map <string, map<int, vector<double>>> steppedValues_;
     
-    int trackSendOffset_ = 0;
-    int trackReceiveOffset_ = 0;
-    int trackFXMenuOffset_ = 0;
-    int selectedTrackSendOffset_ = 0;
-    int selectedTrackReceiveOffset_ = 0;
-    int selectedTrackFXMenuOffset_ = 0;
-    int masterTrackFXMenuOffset_ = 0;
+    int trackSendOffset_;
+    int trackReceiveOffset_;
+    int trackFXMenuOffset_;
+    int selectedTrackSendOffset_;
+    int selectedTrackReceiveOffset_;
+    int selectedTrackFXMenuOffset_;
+    int masterTrackFXMenuOffset_;
 
-    map<string, int*> bankOffsets_ =
-    {
-        { "TrackSend",               &trackSendOffset_ },
-        { "TrackReceive",            &trackReceiveOffset_ },
-        { "TrackFXMenu",             &trackFXMenuOffset_ },
-        { "SelectedTrackSend",       &selectedTrackSendOffset_ },
-        { "SelectedTrackReceive",    &selectedTrackReceiveOffset_ },
-        { "SelectedTrackFXMenu",     &selectedTrackFXMenuOffset_ },
-        { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
-    };
+    map<string, int*> bankOffsets_;
     
+    string learnFXName_;
+    shared_ptr<LearnInfo> lastTouched_;
+
+    AutoZoneDefinition zoneDef_;
+    vector<string> paramList_;
+    map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
+
     void CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex);
 
     void ResetOffsets()
@@ -1071,12 +1132,6 @@ private:
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack* track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const vector<string> &modifiers);
-
-    AutoZoneDefinition zoneDef_;
-    vector<string> paramList_;
-    string learnFXName_ = "";
-    shared_ptr<LearnInfo> lastTouched_ = nullptr;
-    map<shared_ptr<Widget>, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
 
     void GoLearnFXParams()
     {
@@ -1485,7 +1540,54 @@ private:
     }
 
 public:
-    ZoneManager(shared_ptr<ControlSurface> surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder) {}
+    ZoneManager(shared_ptr<ControlSurface> surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
+    {
+        //private:
+        noMapZone_ = nullptr;
+
+        homeZone_ = nullptr;
+        
+        sharedThisPtr_ = nullptr;
+          
+        fxLayout_ = nullptr;
+        
+        listensToGoHome_ = false;
+        listensToSends_ = false;
+        listensToReceives_ = false;
+        listensToFocusedFX_ = false;
+        listensToFocusedFXParam_ = false;
+        listensToFXMenu_ = false;
+        listensToLocalFXSlot_ = false;
+        listensToSelectedTrackFX_ = false;
+        listensToCustom_ = false;
+
+        focusedFXParamZone_ = nullptr;
+        isFocusedFXParamMappingEnabled_ = false;
+        
+        isFocusedFXMappingEnabled_ = true;
+        
+        trackSendOffset_ = 0;
+        trackReceiveOffset_ = 0;
+        trackFXMenuOffset_ = 0;
+        selectedTrackSendOffset_ = 0;
+        selectedTrackReceiveOffset_ = 0;
+        selectedTrackFXMenuOffset_ = 0;
+        masterTrackFXMenuOffset_ = 0;
+
+        bankOffsets_ =
+        {
+            { "TrackSend",               &trackSendOffset_ },
+            { "TrackReceive",            &trackReceiveOffset_ },
+            { "TrackFXMenu",             &trackFXMenuOffset_ },
+            { "SelectedTrackSend",       &selectedTrackSendOffset_ },
+            { "SelectedTrackReceive",    &selectedTrackReceiveOffset_ },
+            { "SelectedTrackFXMenu",     &selectedTrackFXMenuOffset_ },
+            { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
+        };
+        
+        learnFXName_ = "";
+        lastTouched_ = nullptr;
+    }
         
     void Initialize();
     
@@ -2361,16 +2463,23 @@ class ModifierManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Page> page_ = nullptr;
-    shared_ptr<ControlSurface> surface_ = nullptr;
+    shared_ptr<Page> page_;
+    shared_ptr<ControlSurface> surface_;
     
-    int latchTime_ = 100;
+    int latchTime_;
     
     struct Modifier
     {
-        bool isEngaged = false;
-        double pressedTime = 0.0;
-        int value = 0;
+        bool isEngaged;
+        double pressedTime;
+        int value;
+        
+        Modifier()
+        {
+            isEngaged = false;
+            pressedTime = 0.0;
+            value = 0;
+        }
     };
     
     enum Modifiers
@@ -2442,6 +2551,12 @@ private:
 public:
     ModifierManager()
     {
+        // private:
+        page_ = nullptr;
+        surface_ = nullptr;
+        latchTime_ = 100;
+
+        
         modifierCombinations_.push_back(0);
         
         for(int i = 0; i < modifierNames_.size(); i++)
@@ -2626,19 +2741,19 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
-    int* scrubModePtr_ = nullptr;
-    int configScrubMode_ = 0;
+    int* scrubModePtr_;
+    int configScrubMode_;
 
-    bool isRewinding_ = false;
-    bool isFastForwarding_ = false;
+    bool isRewinding_;
+    bool isFastForwarding_;
     
-    bool isTextLengthRestricted_ = false;
-    int restrictedTextLength_ = 6;
+    bool isTextLengthRestricted_;
+    int restrictedTextLength_;
     
-    bool usesLocalModifiers_ = false;
-    bool listensToModifiers_ = false;
+    bool usesLocalModifiers_;
+    bool listensToModifiers_;
     
-    int latchTime_ = 100;
+    int latchTime_;
         
     vector<shared_ptr<FeedbackProcessor>> trackColorFeedbackProcessors_;
     vector<rgba_color> fixedTrackColors_;
@@ -2649,6 +2764,21 @@ private:
 protected:
     ControlSurface(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
+        //private:
+        scrubModePtr_ = nullptr;
+        configScrubMode_ = 0;
+
+        isRewinding_ = false;
+        isFastForwarding_ = false;
+        
+        isTextLengthRestricted_ = false;
+        restrictedTextLength_ = 6;
+        
+        usesLocalModifiers_ = false;
+        listensToModifiers_ = false;
+        
+        latchTime_ = 100;
+        
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
         
@@ -2993,14 +3123,19 @@ class FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    double lastDoubleValue_ = 0.0;
-    string lastStringValue_ = "";
+    double lastDoubleValue_;
+    string lastStringValue_;
     rgba_color lastColor_;
     
     shared_ptr<Widget> const widget_ = nullptr;
     
 public:
-    FeedbackProcessor(shared_ptr<Widget> widget) : widget_(widget) {}
+    FeedbackProcessor(shared_ptr<Widget> widget) : widget_(widget)
+    {
+        // protected:
+        lastDoubleValue_ = 0.0;
+        lastStringValue_ = "";
+    }
     virtual ~FeedbackProcessor() {}
     virtual string GetName()  { return "FeedbackProcessor"; }
     shared_ptr<Widget> GetWidget() { return widget_; }
@@ -3054,13 +3189,27 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 protected:
     shared_ptr<Midi_ControlSurface> const surface_ = nullptr;
     
-    shared_ptr<MIDI_event_ex_t> lastMessageSent_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
-    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage1_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
-    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage2_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+    shared_ptr<MIDI_event_ex_t> lastMessageSent_;
+    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage1_;
+    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage2_;
     
-    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface) {}
-    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1) {}
-    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) : FeedbackProcessor(widget), surface_(surface), midiFeedbackMessage1_(feedback1), midiFeedbackMessage2_(feedback2) {}
+    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget) : FeedbackProcessor(widget), surface_(surface)
+    {
+        lastMessageSent_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+        midiFeedbackMessage1_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+        midiFeedbackMessage2_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+    }
+    
+    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget)
+    {
+        midiFeedbackMessage1_ = feedback1;
+    }
+    
+    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) :  Midi_FeedbackProcessor(surface, widget)
+    {
+        midiFeedbackMessage1_ = feedback1;
+        midiFeedbackMessage2_ = feedback2;
+    }
     
     void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage);
     void SendMidiMessage(int first, int second, int third);
@@ -3075,9 +3224,9 @@ class Midi_ControlSurfaceIO
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const name_ = "";
-    midi_Input* const midiInput_ = nullptr;
-    midi_Output* const midiOutput_ = nullptr;
+    string const name_;
+    midi_Input* const midiInput_;
+    midi_Output* const midiOutput_;
     
 public:
     Midi_ControlSurfaceIO(string name, midi_Input* midiInput, midi_Output* midiOutput) : name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
@@ -3102,13 +3251,13 @@ class Midi_ControlSurface : public ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const templateFilename_ = "";
-    shared_ptr<Midi_ControlSurfaceIO> surfaceIO_ = nullptr;
+    string const templateFilename_;
+    shared_ptr<Midi_ControlSurfaceIO> const surfaceIO_;
     map<int, vector<shared_ptr<Midi_CSIMessageGenerator>>> Midi_CSIMessageGeneratorsByMessage_;
 
     // special processing for MCU meters
-    bool hasMCUMeters_ = false;
-    int displayType_ = 0x14;
+    bool hasMCUMeters_;
+    int displayType_;
 
     void InitializeMCU();
     void InitializeMCUXT();
@@ -3126,7 +3275,14 @@ private:
 
 public:
     Midi_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<Midi_ControlSurfaceIO> surfaceIO, ProtectedTag)
-    : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
+    : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+    {
+        // private:
+        // special processing for MCU meters
+        hasMCUMeters_ = false;
+        displayType_ = 0x14;
+
+    }
     
     static shared_ptr<Midi_ControlSurface> GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
 
@@ -3158,8 +3314,8 @@ class OSC_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<OSC_ControlSurface> const surface_ = nullptr;
-    string oscAddress_ = "";
+    shared_ptr<OSC_ControlSurface> const surface_;
+    string const oscAddress_;
     
 public:
     OSC_FeedbackProcessor(shared_ptr<OSC_ControlSurface> surface, shared_ptr<Widget> widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
@@ -3193,13 +3349,13 @@ class OSC_ControlSurfaceIO
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const name_ = "";
-    shared_ptr<oscpkt::UdpSocket> inSocket_ = nullptr;
-    shared_ptr<oscpkt::UdpSocket> outSocket_ = nullptr;
+    string const name_;
+    shared_ptr<oscpkt::UdpSocket> inSocket_;
+    shared_ptr<oscpkt::UdpSocket> outSocket_;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
-    const double X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
-    double X32HeartBeatLastRefreshTime_ = 0.0;
+    double X32HeartBeatRefreshInterval_;
+    double X32HeartBeatLastRefreshTime_;
     
 public:
     OSC_ControlSurfaceIO(const string &name, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress);
@@ -3267,8 +3423,8 @@ class OSC_ControlSurface : public ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const templateFilename_ = "";
-    shared_ptr<OSC_ControlSurfaceIO> const surfaceIO_ = nullptr;
+    string const templateFilename_;
+    shared_ptr<OSC_ControlSurfaceIO> const surfaceIO_;
 
 public:
     OSC_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<OSC_ControlSurfaceIO> surfaceIO, ProtectedTag)
@@ -3311,38 +3467,38 @@ class TrackNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Page> const page_ = nullptr;
-    shared_ptr<TrackNavigationManager> sharedThisPtr_ = nullptr;
-    bool followMCP_ = true;
-    bool synchPages_ = true;
-    bool isScrollLinkEnabled_ = false;
-    bool isScrollSynchEnabled_ = false;
-    int currentTrackVCAFolderMode_ = 0;
-    int targetScrollLinkChannel_ = 0;
-    int trackOffset_ = 0;
-    int vcaTrackOffset_ = 0;
-    int folderTrackOffset_ = 0;
-    int selectedTracksOffset_ = 0;
+    shared_ptr<Page> const page_;
+    shared_ptr<TrackNavigationManager> sharedThisPtr_;
+    bool followMCP_;
+    bool synchPages_;
+    bool isScrollLinkEnabled_;
+    bool isScrollSynchEnabled_;
+    int currentTrackVCAFolderMode_;
+    int targetScrollLinkChannel_;
+    int trackOffset_;
+    int vcaTrackOffset_;
+    int folderTrackOffset_;
+    int selectedTracksOffset_;
     vector<MediaTrack*> tracks_;
     vector<MediaTrack*> selectedTracks_;
     
     vector<MediaTrack*> vcaTopLeadTracks_;
-    MediaTrack*         vcaLeadTrack_ = nullptr;
+    MediaTrack*         vcaLeadTrack_;
     vector<MediaTrack*> vcaLeadTracks_;
     vector<MediaTrack*> vcaSpillTracks_;
     
     vector<MediaTrack*> folderTopParentTracks_;
-    MediaTrack*         folderParentTrack_ = nullptr;
+    MediaTrack*         folderParentTrack_;
     vector<MediaTrack*> folderParentTracks_;
     vector<MediaTrack*> folderSpillTracks_;
     map<MediaTrack*,    vector<MediaTrack*>> folderDictionary_;
 
     map<int, shared_ptr<Navigator> > trackNavigators_;
-    shared_ptr<Navigator> const masterTrackNavigator_ = nullptr;
-    shared_ptr<Navigator> selectedTrackNavigator_ = nullptr;
-    shared_ptr<Navigator> focusedFXNavigator_ = nullptr;
+    shared_ptr<Navigator> const masterTrackNavigator_;
+    shared_ptr<Navigator> selectedTrackNavigator_;
+    shared_ptr<Navigator> focusedFXNavigator_;
     
-    vector<string> autoModeDisplayNames__ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
+    vector<string> autoModeDisplayNames_;
     
     void ForceScrollLink()
     {
@@ -3386,7 +3542,19 @@ public:
     masterTrackNavigator_(make_shared<MasterTrackNavigator>(page_)),
     selectedTrackNavigator_(make_shared<SelectedTrackNavigator>(page_)),
     focusedFXNavigator_(make_shared<FocusedFXNavigator>(page_))
-    {}
+    {
+        //private:
+        shared_ptr<TrackNavigationManager> sharedThisPtr_ = nullptr;
+        currentTrackVCAFolderMode_ = 0;
+        targetScrollLinkChannel_ = 0;
+        trackOffset_ = 0;
+        vcaTrackOffset_ = 0;
+        folderTrackOffset_ = 0;
+        selectedTracksOffset_ = 0;
+        vcaLeadTrack_ = nullptr;
+        folderParentTrack_ = nullptr;
+        autoModeDisplayNames_ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
+    }
        
     void SetSharedThisPtr(shared_ptr<TrackNavigationManager> thisPtr) { sharedThisPtr_ = thisPtr; }
     
@@ -3457,9 +3625,9 @@ public:
         int globalOverride = DAW::GetGlobalAutomationOverride();
 
         if(globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
-            return autoModeDisplayNames__[globalOverride];
+            return autoModeDisplayNames_[globalOverride];
         else
-            return autoModeDisplayNames__[modeIndex];
+            return autoModeDisplayNames_[modeIndex];
     }
 
     string GetGlobalAutoModeDisplayName()
@@ -3469,7 +3637,7 @@ public:
         if(globalOverride == -1)
             return "NoOverride";
         else if(globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
-            return autoModeDisplayNames__[globalOverride];
+            return autoModeDisplayNames_[globalOverride];
         else
             return "";
     }
@@ -4039,14 +4207,19 @@ class Page
 {
 private:
     string const name_ = "";
-    shared_ptr<TrackNavigationManager> trackNavigationManager_ = nullptr;
-    shared_ptr<ModifierManager> modifierManager_ = nullptr;
+    shared_ptr<TrackNavigationManager> trackNavigationManager_;
+    shared_ptr<ModifierManager> modifierManager_;
     vector<shared_ptr<ControlSurface>> surfaces_;
     
     struct PrivateTag {}; // to block constructor use by external code
     
 public:
-    Page(const string &name, PrivateTag) : name_(name) {}
+    Page(const string &name, PrivateTag) : name_(name)
+    {
+        // private:
+        trackNavigationManager_ = nullptr;
+        modifierManager_ = nullptr;
+    }
 
     static shared_ptr<Page> GetInstance(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled)
     {
@@ -4340,23 +4513,23 @@ private:
 
     vector <shared_ptr<Page>> pages_;
     
-    int currentPageIndex_ = 0;
-    bool surfaceInDisplay_ = false;
-    bool surfaceRawInDisplay_ = false;
-    bool surfaceOutDisplay_ = false;
-    bool fxParamsDisplay_ = false;
-    bool fxParamsWrite_ = false;
+    int currentPageIndex_;
+    bool surfaceInDisplay_;
+    bool surfaceRawInDisplay_;
+    bool surfaceOutDisplay_;
+    bool fxParamsDisplay_;
+    bool fxParamsWrite_;
 
-    bool shouldRun_ = true;
+    bool shouldRun_;
     
-    int *timeModePtr_ = nullptr;
-    int *timeMode2Ptr_ = nullptr;
-    int *measOffsPtr_ = nullptr;
-    double *timeOffsPtr_ = nullptr;
-    int *projectPanModePtr_ = nullptr;
+    int *timeModePtr_;
+    int *timeMode2Ptr_;
+    int *measOffsPtr_;
+    double *timeOffsPtr_;
+    int *projectPanModePtr_;
     
-    double *projectMetronomePrimaryVolumePtr_ = nullptr;
-    double *projectMetronomeSecondaryVolumePtr_ = nullptr;
+    double *projectMetronomePrimaryVolumePtr_;
+    double *projectMetronomeSecondaryVolumePtr_;
     
     map<string, map<int, string>> fxParamAliases_;
     map<string, map<int, int>> fxParamSteppedValueCounts_;
@@ -4380,6 +4553,25 @@ private:
 public:
     Manager()
     {
+        // private:
+        currentPageIndex_ = 0;
+        surfaceInDisplay_ = false;
+        surfaceRawInDisplay_ = false;
+        surfaceOutDisplay_ = false;
+        fxParamsDisplay_ = false;
+        fxParamsWrite_ = false;
+
+        shouldRun_ = true;
+        
+        timeModePtr_ = nullptr;
+        timeMode2Ptr_ = nullptr;
+        measOffsPtr_ = nullptr;
+        timeOffsPtr_ = nullptr;
+        projectPanModePtr_ = nullptr;
+        
+        projectMetronomePrimaryVolumePtr_ = nullptr;
+        projectMetronomeSecondaryVolumePtr_ = nullptr;
+        
         InitActionsDictionary();
 
         int size = 0;

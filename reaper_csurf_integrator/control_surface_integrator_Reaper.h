@@ -19,10 +19,10 @@ const int BUFSZ = 512;
 
 struct rgba_color
 {
-    int r = 0;
-    int g = 0;
-    int b = 0;
-    int a = 255;
+    int r;
+    int g;
+    int b;
+    int a;
         
     bool operator == (rgba_color& other)
     {
@@ -44,6 +44,14 @@ struct rgba_color
         hexStream << setw(2) << setfill('0') << b;
         hexStream << setw(2) << setfill('0') << a;
         return hexStream.str();
+    }
+    
+    rgba_color()
+    {
+        r = 0;
+        g = 0;
+        b = 0;
+        a = 255;
     }
 };
 

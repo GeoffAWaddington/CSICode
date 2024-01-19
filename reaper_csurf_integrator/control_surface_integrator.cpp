@@ -1729,6 +1729,41 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
 {
+    // private:
+    intParam_ = 0;
+    
+    stringParam_ = "";
+    
+    paramIndex_ = 0;
+    fxParamDisplayName_ = "";
+    
+    commandId_ = 0;
+    
+    rangeMinimum_ = 0.0;
+    rangeMaximum_ = 1.0;
+    
+    steppedValuesIndex_ = 0;
+    
+    deltaValue_ = 0.0;
+    accumulatedIncTicks_ = 0;
+    accumulatedDecTicks_ = 0;
+    
+    isValueInverted_ = false;
+    isFeedbackInverted_ = false;
+    holdDelayAmount_ = 0.0;
+    delayStartTime_ = 0.0;
+    deferredValue_ = 0.0;
+    
+    supportsColor_ = false;
+    currentColorIndex_ = 0;
+    
+    supportsTrackColor_ = false;
+        
+    provideFeedback_ = false;
+    
+    // For Learn
+    cellAddress_ = "";
+    
     vector<string> params;
     
     for(int i = 0; i < (int)paramsAndProperties.size(); ++i)
@@ -2099,6 +2134,9 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 Zone::Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
+    //protected:
+    isActive_ = false;
+
     if(name == "Home")
     {
         for(int i = 0; i < (int)associatedZones.size(); ++i)
@@ -4969,6 +5007,12 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress) : name_(surfaceName)
 {
+    // private:
+    inSocket_ = nullptr;
+    outSocket_ = nullptr;
+    X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
+    X32HeartBeatLastRefreshTime_ = 0.0;
+
     if (receiveOnPort != transmitToPort)
     {
         inSocket_  = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
