@@ -1499,7 +1499,7 @@ private:
 
     string GetAlias(const string &fxName)
     {
-        vector<string> prefixes =
+        string prefixes[] =
         {
             "AU: Tube-Tech ",
             "AU: AU ",
@@ -1533,7 +1533,7 @@ private:
         
         string alias = fxName;
         
-        for(int i = 0; i < (int)prefixes.size(); ++i)
+        for(int i = 0; i < NUM_ELEM(prefixes); ++i)
         {
             if(fxName.find(prefixes[i]) == 0)
             {
@@ -2567,7 +2567,6 @@ public:
         surface_ = nullptr;
         latchTime_ = 100;
 
-        
         modifierCombinations_.push_back(0);
         
         for(int i = 0; i < modifierNames_.size(); i++)
@@ -4608,10 +4607,10 @@ public:
         projectMetronomePrimaryVolumePtr_ = (double *)get_config_var("projmetrov1", &size);
         projectMetronomeSecondaryVolumePtr_ = (double *)get_config_var("projmetrov2", &size);
         
-        vector<int> stepSizes  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
-        vector<int> tickCounts = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
+        int stepSizes[]  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
+        int tickCounts[] = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
         
-        for(int i = 0; i < stepSizes.size(); i++)
+        for(int i = 0; i < NUM_ELEM(stepSizes); i++)
             baseTickCounts_[stepSizes[i]] = tickCounts[i];
         
         //GenerateX32SurfaceFile();
