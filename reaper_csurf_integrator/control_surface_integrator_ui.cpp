@@ -374,49 +374,35 @@ static void ShowColorControls(HWND hwndDlg, int startIndex, int endIndex, bool s
             ShowWindow(GetDlgItem(hwndDlg, s_colorControls[i][j]), show);
 }
 
-static map<int, int> s_buttonColors =
+static unsigned int s_buttonColors[][3] =
 {
-    { IDC_FXParamRingColor1, 0xffffffff },
-    { IDC_FXParamRingColor2, 0xffffffff },
-    { IDC_FXParamRingColor3, 0xffffffff },
-    { IDC_FXParamIndicatorColor1, 0xffffffff },
-    { IDC_FXParamIndicatorColor2, 0xffffffff },
-    { IDC_FXParamIndicatorColor3, 0xffffffff },
-    { IDC_FixedTextDisplayForegroundColor1, 0xffffffff },
-    { IDC_FixedTextDisplayForegroundColor2, 0xffffffff },
-    { IDC_FixedTextDisplayForegroundColor3, 0xffffffff },
-    { IDC_FixedTextDisplayBackgroundColor1, 0xffffffff },
-    { IDC_FixedTextDisplayBackgroundColor2, 0xffffffff },
-    { IDC_FixedTextDisplayBackgroundColor3, 0xffffffff },
-    { IDC_FXParamDisplayForegroundColor1, 0xffffffff },
-    { IDC_FXParamDisplayForegroundColor2, 0xffffffff },
-    { IDC_FXParamDisplayForegroundColor3, 0xffffffff },
-    { IDC_FXParamDisplayBackgroundColor1, 0xffffffff },
-    { IDC_FXParamDisplayBackgroundColor2, 0xffffffff },
-    { IDC_FXParamDisplayBackgroundColor3, 0xffffffff }
+    { IDC_FXParamRingColor1, IDC_FXParamRingColorBox1, 0xffffffff },
+    { IDC_FXParamRingColor2, IDC_FXParamRingColorBox2, 0xffffffff },
+    { IDC_FXParamRingColor3, IDC_FXParamRingColorBox3, 0xffffffff },
+    { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColorBox1, 0xffffffff },
+    { IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColorBox2, 0xffffffff },
+    { IDC_FXParamIndicatorColor3, IDC_FXParamIndicatorColorBox3, 0xffffffff },
+    { IDC_FixedTextDisplayForegroundColor1, IDC_FXFixedTextDisplayForegroundColorBox1, 0xffffffff },
+    { IDC_FixedTextDisplayForegroundColor2, IDC_FXFixedTextDisplayForegroundColorBox2, 0xffffffff },
+    { IDC_FixedTextDisplayForegroundColor3, IDC_FXFixedTextDisplayForegroundColorBox3, 0xffffffff },
+    { IDC_FixedTextDisplayBackgroundColor1, IDC_FXFixedTextDisplayBackgroundColorBox1, 0xffffffff },
+    { IDC_FixedTextDisplayBackgroundColor2, IDC_FXFixedTextDisplayBackgroundColorBox2, 0xffffffff },
+    { IDC_FixedTextDisplayBackgroundColor3, IDC_FXFixedTextDisplayBackgroundColorBox3, 0xffffffff },
+    { IDC_FXParamDisplayForegroundColor1, IDC_FXParamValueDisplayForegroundColorBox1, 0xffffffff },
+    { IDC_FXParamDisplayForegroundColor2, IDC_FXParamValueDisplayForegroundColorBox2, 0xffffffff },
+    { IDC_FXParamDisplayForegroundColor3, IDC_FXParamValueDisplayForegroundColorBox3, 0xffffffff },
+    { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamValueDisplayBackgroundColorBox1, 0xffffffff },
+    { IDC_FXParamDisplayBackgroundColor2, IDC_FXParamValueDisplayBackgroundColorBox2, 0xffffffff },
+    { IDC_FXParamDisplayBackgroundColor3, IDC_FXParamValueDisplayBackgroundColorBox3, 0xffffffff }
 };
 
-static map<int, int> s_buttonColorBoxes =
+static unsigned int &GetButtonColorForID(unsigned int id)
 {
-    { IDC_FXParamRingColor1, IDC_FXParamRingColorBox1 },
-    { IDC_FXParamRingColor2, IDC_FXParamRingColorBox2 },
-    { IDC_FXParamRingColor3, IDC_FXParamRingColorBox3 },
-    { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColorBox1 },
-    { IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColorBox2 },
-    { IDC_FXParamIndicatorColor3, IDC_FXParamIndicatorColorBox3 },
-    { IDC_FixedTextDisplayForegroundColor1, IDC_FXFixedTextDisplayForegroundColorBox1 },
-    { IDC_FixedTextDisplayForegroundColor2, IDC_FXFixedTextDisplayForegroundColorBox2 },
-    { IDC_FixedTextDisplayForegroundColor3, IDC_FXFixedTextDisplayForegroundColorBox3 },
-    { IDC_FixedTextDisplayBackgroundColor1, IDC_FXFixedTextDisplayBackgroundColorBox1 },
-    { IDC_FixedTextDisplayBackgroundColor2, IDC_FXFixedTextDisplayBackgroundColorBox2 },
-    { IDC_FixedTextDisplayBackgroundColor3, IDC_FXFixedTextDisplayBackgroundColorBox3 },
-    { IDC_FXParamDisplayForegroundColor1, IDC_FXParamValueDisplayForegroundColorBox1 },
-    { IDC_FXParamDisplayForegroundColor2, IDC_FXParamValueDisplayForegroundColorBox2 },
-    { IDC_FXParamDisplayForegroundColor3, IDC_FXParamValueDisplayForegroundColorBox3 },
-    { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamValueDisplayBackgroundColorBox1 },
-    { IDC_FXParamDisplayBackgroundColor2, IDC_FXParamValueDisplayBackgroundColorBox2 },
-    { IDC_FXParamDisplayBackgroundColor3, IDC_FXParamValueDisplayBackgroundColorBox3 }
-};
+    for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
+        if (s_buttonColors[x][0] == id) return s_buttonColors[x][2];
+    WDL_ASSERT(false);
+    return s_buttonColors[0][2];
+}
 
 static void PopulateParamListView(HWND hwndParamList)
 {
@@ -463,8 +449,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 PAINTSTRUCT ps;
                 HDC hdc = BeginPaint(hwndDlg, &ps);
                 
-                for(auto [ colorPicker, colorValue ] :  s_buttonColors)
+                for(int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
                 {
+                    const int colorPicker = s_buttonColors[x][0];
                     // GAW TBD -- think of a more elegant way to do this :)
                     if(s_numGroups < 3 && ( colorPicker == s_widgetRingColors[2] ||
                                             colorPicker == s_widgetRingIndicators[2] ||
@@ -482,13 +469,15 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                             colorPicker == s_fxParamDisplayBackgroundColors[1] ))
                             continue;
 
+                    const int colorPicker2 = s_buttonColors[x][1];
+                    const int colorValue = s_buttonColors[x][2];
 
                     HBRUSH brush = CreateSolidBrush(colorValue);
                     
                     RECT clientRect, windowRect;
                     POINT p;
-                    GetClientRect(GetDlgItem(hwndDlg, s_buttonColorBoxes[colorPicker]), &clientRect);
-                    GetWindowRect(GetDlgItem(hwndDlg, s_buttonColorBoxes[colorPicker]), &windowRect);
+                    GetClientRect(GetDlgItem(hwndDlg, colorPicker2), &clientRect);
+                    GetWindowRect(GetDlgItem(hwndDlg, colorPicker2), &windowRect);
                     p.x = windowRect.left;
                     p.y = windowRect.top;
                     ScreenToClient(hwndDlg, &p);
@@ -601,42 +590,42 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["LEDRingColor"]);
-                    s_buttonColors[s_widgetRingColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_widgetRingColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("PushColor") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["PushColor"]);
-                    s_buttonColors[s_widgetRingIndicators[i]] = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_widgetRingIndicators[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Foreground"]);
-                    s_buttonColors[s_fixedTextDisplayForegroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Background") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Background"]);
-                    s_buttonColors[s_fixedTextDisplayBackgroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Foreground"]);
-                    s_buttonColors[s_fxParamDisplayForegroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Background") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Background"]);
-                    s_buttonColors[s_fxParamDisplayBackgroundColors[i]] = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
                 string steps = "";
@@ -677,127 +666,25 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             switch(LOWORD(wParam))
             {
                 case IDC_FXParamRingColor1:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamRingColor1]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamRingColor2:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamRingColor2]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamRingColor3:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamRingColor3]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamIndicatorColor1:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamIndicatorColor1]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamIndicatorColor2:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamIndicatorColor2]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamIndicatorColor3:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamIndicatorColor3]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FixedTextDisplayForegroundColor1:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FixedTextDisplayForegroundColor1]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FixedTextDisplayForegroundColor2:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FixedTextDisplayForegroundColor2]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FixedTextDisplayForegroundColor3:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FixedTextDisplayForegroundColor3]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FixedTextDisplayBackgroundColor1:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FixedTextDisplayBackgroundColor1]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FixedTextDisplayBackgroundColor2:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FixedTextDisplayBackgroundColor2]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FixedTextDisplayBackgroundColor3:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FixedTextDisplayBackgroundColor3]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamDisplayForegroundColor1:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamDisplayForegroundColor1]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamDisplayForegroundColor2:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamDisplayForegroundColor2]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamDisplayForegroundColor3:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamDisplayForegroundColor3]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamDisplayBackgroundColor1:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamDisplayBackgroundColor1]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamDisplayBackgroundColor2:
-                    {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamDisplayBackgroundColor2]);
-                        InvalidateRect(hwndDlg, NULL, true);
-                    }
-                        break;
-                    
                 case IDC_FXParamDisplayBackgroundColor3:
                     {
-                        DAW::GR_SelectColor(hwndDlg, &s_buttonColors[IDC_FXParamDisplayBackgroundColor3]);
+                        DAW::GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -883,22 +770,22 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             {
                                 rgba_color color;
                                 
-                                DAW::ColorFromNative(s_buttonColors[s_widgetRingColors[i]], &color.r, &color.g, &color.b);
+                                DAW::ColorFromNative(GetButtonColorForID(s_widgetRingColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["LEDRingColor"] = color.to_string();
                                 
-                                DAW::ColorFromNative(s_buttonColors[s_widgetRingIndicators[i]], &color.r, &color.g, &color.b);
+                                DAW::ColorFromNative(GetButtonColorForID(s_widgetRingIndicators[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["PushColor"] = color.to_string();
 
-                                DAW::ColorFromNative(s_buttonColors[s_fixedTextDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
+                                DAW::ColorFromNative(GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Foreground"] = color.to_string();
 
-                                DAW::ColorFromNative(s_buttonColors[s_fixedTextDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
+                                DAW::ColorFromNative(GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Background"] = color.to_string();
 
-                                DAW::ColorFromNative(s_buttonColors[s_fxParamDisplayForegroundColors[i]], &color.r, &color.g, &color.b);
+                                DAW::ColorFromNative(GetButtonColorForID(s_fxParamDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Foreground"] = color.to_string();
 
-                                DAW::ColorFromNative(s_buttonColors[s_fxParamDisplayBackgroundColors[i]], &color.r, &color.g, &color.b);
+                                DAW::ColorFromNative(GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Background"] = color.to_string();
                             }
                         }
