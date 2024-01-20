@@ -2818,7 +2818,10 @@ void ZoneManager::CheckFocusedFXState()
 
         if(learnFXName_ != "" && learnFXName_ != fxName)
         {
-            if(MessageBox(NULL, (string("You have now shifted focus to ") + GetAlias(fxName) + "\n\n" + GetAlias(learnFXName_) + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            string alias, learnalias;
+            GetAlias(fxName,alias);
+            GetAlias(learnFXName_.c_str(),learnalias);
+            if(MessageBox(NULL, (string("You have now shifted focus to ") + alias + "\n\n" + learnalias + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
             {
                 SaveLearnedFXParams();
             }
@@ -3138,10 +3141,12 @@ void ZoneManager::SaveTemplatedFXParams()
             pos += learnFXName_.length();
         }
         
-        fxLayoutFileLines_[0] += " \"" + GetAlias(learnFXName_) + "\" \n\n";
+        string alias;
+        GetAlias(learnFXName_.c_str(), alias);
+
+        fxLayoutFileLines_[0] += " \"" + alias + "\" \n\n";
         
         string path = "";
-        string alias = "";
          
         if(zoneFilePaths_.count(learnFXName_) > 0)
         {
@@ -3154,7 +3159,7 @@ void ZoneManager::SaveTemplatedFXParams()
             
             RecursiveCreateDirectory(path.c_str(),0);
 
-            alias = GetAlias(learnFXName_);
+            GetAlias(learnFXName_.c_str(),alias);
             
             path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
             
@@ -3214,7 +3219,7 @@ void ZoneManager::SaveLearnedFXParams()
             
             RecursiveCreateDirectory(path.c_str(),0);
 
-            alias = GetAlias(learnFXName_);
+            GetAlias(learnFXName_.c_str(),alias);
             
             path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
             
@@ -4089,7 +4094,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
     
     path += "/" + regex_replace(fxName, regex(s_BadFileChars), "_") + ".zon";
 
-    string alias = GetAlias(fxName);
+    string alias;
+    GetAlias(fxName.c_str(),alias);
 
     string paramAction = " FXParam ";
     

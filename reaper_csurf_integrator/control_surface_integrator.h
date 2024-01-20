@@ -1497,9 +1497,9 @@ private:
         }
     }
 
-    string GetAlias(const string &fxName)
+    void GetAlias(const char *fxName, string &alias)
     {
-        string prefixes[] =
+        static const char * const prefixes[] =
         {
             "AU: Tube-Tech ",
             "AU: AU ",
@@ -1531,20 +1531,20 @@ private:
             "CLAPi: ",
         };
         
-        string alias = fxName;
-        
+        // skip over known prefixes
         for(int i = 0; i < NUM_ELEM(prefixes); ++i)
         {
-            if(fxName.find(prefixes[i]) == 0)
+            const int l = (int) strlen(prefixes[i]);
+            if (!strncmp(fxName, prefixes[i], l))
             {
-                alias = fxName.substr(prefixes[i].length(), fxName.length());
+                fxName += l;
                 break;
             }
         }
-               
-        alias = alias.substr(0, alias.find(" ("));
-        
-        return alias;
+
+        alias = fxName;
+        const int ml = alias.find(" (");
+        if (ml > 0) alias.resize(ml);
     }
 
 public:
@@ -1693,15 +1693,15 @@ public:
         }
     }
       
-    string GetName(MediaTrack* track, int fxIndex)
+    void GetName(MediaTrack* track, int fxIndex, string &name)
     {
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
         if(zoneFilePaths_.count(fxName) > 0)
-            return zoneFilePaths_[fxName].alias;
+            name = zoneFilePaths_[fxName].alias;
         else
-            return GetAlias(fxName);
+            GetAlias(fxName,name);
     }
         
     void ClearLearnedFXParams()
