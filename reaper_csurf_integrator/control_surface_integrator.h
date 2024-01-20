@@ -4536,14 +4536,15 @@ private:
 
     bool shouldRun_;
     
-    int *timeModePtr_;
-    int *timeMode2Ptr_;
-    int *measOffsPtr_;
-    double *timeOffsPtr_;
-    int *projectPanModePtr_;
+    // these are offsets to be passed to projectconfig_var_addr() when needed in order to get the actual pointers
+    int timeModeOffs_;
+    int timeMode2Offs_;
+    int measOffsOffs_;
+    int timeOffsOffs_; // for a double
+    int projectPanModeOffs_;
     
-    double *projectMetronomePrimaryVolumePtr_;
-    double *projectMetronomeSecondaryVolumePtr_;
+    int projectMetronomePrimaryVolumeOffs_; // for double -- if invalid, use fallbacks
+    int projectMetronomeSecondaryVolumeOffs_; // for double -- if invalid, use fallbacks
     
     map<string, map<int, string>> fxParamAliases_;
     map<string, map<int, int>> fxParamSteppedValueCounts_;
@@ -4577,35 +4578,30 @@ public:
 
         shouldRun_ = true;
         
-        timeModePtr_ = nullptr;
-        timeMode2Ptr_ = nullptr;
-        measOffsPtr_ = nullptr;
-        timeOffsPtr_ = nullptr;
-        projectPanModePtr_ = nullptr;
-        
-        projectMetronomePrimaryVolumePtr_ = nullptr;
-        projectMetronomeSecondaryVolumePtr_ = nullptr;
-        
         InitActionsDictionary();
 
         int size = 0;
         int index = projectconfig_var_getoffs("projtimemode", &size);
-        timeModePtr_ = (int *)projectconfig_var_addr(nullptr, index);
+        timeModeOffs_ = size==4 ? index : -1;
         
         index = projectconfig_var_getoffs("projtimemode2", &size);
-        timeMode2Ptr_ = (int *)projectconfig_var_addr(nullptr, index);
+        timeMode2Offs_ = size==4 ? index : -1;
         
         index = projectconfig_var_getoffs("projmeasoffs", &size);
-        measOffsPtr_ = (int *)projectconfig_var_addr(nullptr, index);
+        measOffsOffs_ = size==4 ? index : - 1;
         
         index = projectconfig_var_getoffs("projtimeoffs", &size);
-        timeOffsPtr_ = (double *)projectconfig_var_addr(nullptr, index);
+        timeOffsOffs_ = size==8 ? index : -1;
         
         index = projectconfig_var_getoffs("panmode", &size);
-        projectPanModePtr_ = (int*)projectconfig_var_addr(nullptr, index);
-        
-        projectMetronomePrimaryVolumePtr_ = (double *)get_config_var("projmetrov1", &size);
-        projectMetronomeSecondaryVolumePtr_ = (double *)get_config_var("projmetrov2", &size);
+        projectPanModeOffs_ = size==4 ? index : -1;
+
+        // these are supported by ~7.10+, previous versions we fallback to get_config_var() on-demand
+        index = projectconfig_var_getoffs("projmetrov1", &size);
+        projectMetronomePrimaryVolumeOffs_ = size==8 ? index : -1;
+
+        index = projectconfig_var_getoffs("projmetrov2", &size);
+        projectMetronomeSecondaryVolumeOffs_ = size==8 ? index : -1;
         
         int stepSizes[]  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
         int tickCounts[] = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
@@ -4649,14 +4645,32 @@ public:
     double GetVUMaxDB() { return GetPrivateProfileDouble("vumaxvol"); }
     double GetVUMinDB() { return GetPrivateProfileDouble("vuminvol"); }
     
-    int *GetTimeModePtr() { return timeModePtr_; }
-    int *GetTimeMode2Ptr() { return timeMode2Ptr_; }
-    int *GetMeasOffsPtr() { return measOffsPtr_; }
-    double *GetTimeOffsPtr() { return timeOffsPtr_; }
-    int GetProjectPanMode() { return *projectPanModePtr_; }
+    int *GetTimeModePtr() { return (int *) projectconfig_var_addr(NULL,timeModeOffs_); }
+    int *GetTimeMode2Ptr() { return (int *) projectconfig_var_addr(NULL,timeMode2Offs_); }
+    int *GetMeasOffsPtr() { return (int *) projectconfig_var_addr(NULL,measOffsOffs_); }
+    double *GetTimeOffsPtr() { return (double *) projectconfig_var_addr(NULL,timeOffsOffs_); }
+    int GetProjectPanMode() { int *p = (int *) projectconfig_var_addr(NULL,projectPanModeOffs_); return p ? *p : 0; }
    
-    double *GetMetronomePrimaryVolumePtr() { return projectMetronomePrimaryVolumePtr_; }
-    double *GetMetronomeSecondaryVolumePtr() { return projectMetronomeSecondaryVolumePtr_; }
+    double *GetMetronomePrimaryVolumePtr()
+    {
+      void *ret = projectconfig_var_addr(NULL,projectMetronomePrimaryVolumeOffs_);
+      if (ret) return (double *)ret;
+      // REAPER 7.09 and earlier require this:
+      int size=0;
+      ret = get_config_var("projmetrov1", &size);
+      if (size==8) return (double *)ret;
+      return NULL;
+    }
+    double *GetMetronomeSecondaryVolumePtr() 
+    { 
+      void *ret = projectconfig_var_addr(NULL,projectMetronomeSecondaryVolumeOffs_);
+      if (ret) return (double *)ret;
+      // REAPER 7.09 and earlier require this:
+      int size=0;
+      ret = get_config_var("projmetrov2", &size);
+      if (size==8) return (double *)ret;
+      return NULL;
+    }
     
     int GetBaseTickCount(int stepCount)
     {
