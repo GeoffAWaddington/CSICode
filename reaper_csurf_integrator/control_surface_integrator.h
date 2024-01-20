@@ -42,6 +42,8 @@
 #include "udp.hh"
 #endif
 
+#define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
+
 extern void GetTokens(vector<string> &tokens, string line);
 extern int strToHex(const string &valueStr);
 

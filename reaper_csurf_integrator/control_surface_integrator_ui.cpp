@@ -271,43 +271,43 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     return 0;
 }
 
-static vector<int> s_paramNumEditControls = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
-static vector<int> s_widgetTypePickers = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
-static vector<int> s_ringStylePickers = { IDC_PickRingStyle1, IDC_PickRingStyle2, IDC_PickRingStyle3 };
-static vector<int> s_fixedTextEditControls = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
-static vector<int> s_fixedTextDisplayRowPickers = { IDC_FixedTextDisplayPickRow1 , IDC_FixedTextDisplayPickRow2, IDC_FixedTextDisplayPickRow3 };
-static vector<int> s_fixedTextDisplayFontLabels = { IDC_FixedTextDisplayFontLabel1, IDC_FixedTextDisplayFontLabel2, IDC_FixedTextDisplayFontLabel3 };
-static vector<int> s_fixedTextDisplayFontPickers = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
-static vector<int> s_paramValueDisplayRowPickers = { IDC_FXParamValueDisplayPickRow1 , IDC_FXParamValueDisplayPickRow2, IDC_FXParamValueDisplayPickRow3 };
-static vector<int> s_paramValueDisplayFontLabels = { IDC_FXParamValueDisplayFontLabel1, IDC_FXParamValueDisplayFontLabel2, IDC_FXParamValueDisplayFontLabel3 };
-static vector<int> s_paramValueDisplayFontPickers = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
+static int s_paramNumEditControls[] = { IDC_FXParamNumEdit1, IDC_FXParamNumEdit2, IDC_FXParamNumEdit3 };
+static int s_widgetTypePickers[] = { IDC_PickWidgetType1, IDC_PickWidgetType2, IDC_PickWidgetType3 };
+static int s_ringStylePickers[] = { IDC_PickRingStyle1, IDC_PickRingStyle2, IDC_PickRingStyle3 };
+static int s_fixedTextEditControls[] = { IDC_FXParamNameEdit1, IDC_FXParamNameEdit2, IDC_FXParamNameEdit3 };
+static int s_fixedTextDisplayRowPickers[] = { IDC_FixedTextDisplayPickRow1 , IDC_FixedTextDisplayPickRow2, IDC_FixedTextDisplayPickRow3 };
+static int s_fixedTextDisplayFontLabels[] = { IDC_FixedTextDisplayFontLabel1, IDC_FixedTextDisplayFontLabel2, IDC_FixedTextDisplayFontLabel3 };
+static int s_fixedTextDisplayFontPickers[] = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
+static int s_paramValueDisplayRowPickers[] = { IDC_FXParamValueDisplayPickRow1 , IDC_FXParamValueDisplayPickRow2, IDC_FXParamValueDisplayPickRow3 };
+static int s_paramValueDisplayFontLabels[] = { IDC_FXParamValueDisplayFontLabel1, IDC_FXParamValueDisplayFontLabel2, IDC_FXParamValueDisplayFontLabel3 };
+static int s_paramValueDisplayFontPickers[] = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
 
-static vector<int> s_stepPickers = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
-static vector<int> s_stepEditControls = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
-static vector<int> s_stepPrompts = { IDC_StepsPromptGroup1, IDC_StepsPromptGroup2, IDC_StepsPromptGroup3 };
+static int s_stepPickers[] = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
+static int s_stepEditControls[] = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
+static int s_stepPrompts[] = { IDC_StepsPromptGroup1, IDC_StepsPromptGroup2, IDC_StepsPromptGroup3 };
 
-static vector<int> s_widgetRingColorBoxes = { IDC_FXParamRingColorBox1, IDC_FXParamRingColorBox2, IDC_FXParamRingColorBox3 };
-static vector<int> s_widgetRingColors = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
-static vector<int> s_widgetRingIndicatorColorBoxes = { IDC_FXParamIndicatorColorBox1, IDC_FXParamIndicatorColorBox2, IDC_FXParamIndicatorColorBox3 };
-static vector<int> s_widgetRingIndicators = { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
-static vector<int> s_fixedTextDisplayForegroundColors = { IDC_FixedTextDisplayForegroundColor1, IDC_FixedTextDisplayForegroundColor2, IDC_FixedTextDisplayForegroundColor3 };
-static vector<int> s_fixedTextDisplayForegroundColorBoxes = { IDC_FXFixedTextDisplayForegroundColorBox1, IDC_FXFixedTextDisplayForegroundColorBox2, IDC_FXFixedTextDisplayForegroundColorBox3 };
-static vector<int> s_fixedTextDisplayBackgroundColors = { IDC_FixedTextDisplayBackgroundColor1, IDC_FixedTextDisplayBackgroundColor2, IDC_FixedTextDisplayBackgroundColor3 };
-static vector<int> s_fixedTextDisplayBackgroundColorBoxes = { IDC_FXFixedTextDisplayBackgroundColorBox1, IDC_FXFixedTextDisplayBackgroundColorBox2, IDC_FXFixedTextDisplayBackgroundColorBox3 };
-static vector<int> s_fxParamDisplayForegroundColors = { IDC_FXParamDisplayForegroundColor1, IDC_FXParamDisplayForegroundColor2, IDC_FXParamDisplayForegroundColor3 };
-static vector<int> s_fxParamDisplayForegroundColorBoxes = { IDC_FXParamValueDisplayForegroundColorBox1, IDC_FXParamValueDisplayForegroundColorBox2, IDC_FXParamValueDisplayForegroundColorBox3 };
-static vector<int> s_fxParamDisplayBackgroundColors = { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamDisplayBackgroundColor2, IDC_FXParamDisplayBackgroundColor3 };
-static vector<int> s_fxParamDisplayBackgroundColorBoxes = { IDC_FXParamValueDisplayBackgroundColorBox1, IDC_FXParamValueDisplayBackgroundColorBox2, IDC_FXParamValueDisplayBackgroundColorBox3 };
+static int s_widgetRingColorBoxes[] = { IDC_FXParamRingColorBox1, IDC_FXParamRingColorBox2, IDC_FXParamRingColorBox3 };
+static int s_widgetRingColors[] = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
+static int s_widgetRingIndicatorColorBoxes[] = { IDC_FXParamIndicatorColorBox1, IDC_FXParamIndicatorColorBox2, IDC_FXParamIndicatorColorBox3 };
+static int s_widgetRingIndicators[] = { IDC_FXParamIndicatorColor1, IDC_FXParamIndicatorColor2, IDC_FXParamIndicatorColor3 };
+static int s_fixedTextDisplayForegroundColors[] = { IDC_FixedTextDisplayForegroundColor1, IDC_FixedTextDisplayForegroundColor2, IDC_FixedTextDisplayForegroundColor3 };
+static int s_fixedTextDisplayForegroundColorBoxes[] = { IDC_FXFixedTextDisplayForegroundColorBox1, IDC_FXFixedTextDisplayForegroundColorBox2, IDC_FXFixedTextDisplayForegroundColorBox3 };
+static int s_fixedTextDisplayBackgroundColors[] = { IDC_FixedTextDisplayBackgroundColor1, IDC_FixedTextDisplayBackgroundColor2, IDC_FixedTextDisplayBackgroundColor3 };
+static int s_fixedTextDisplayBackgroundColorBoxes[] = { IDC_FXFixedTextDisplayBackgroundColorBox1, IDC_FXFixedTextDisplayBackgroundColorBox2, IDC_FXFixedTextDisplayBackgroundColorBox3 };
+static int s_fxParamDisplayForegroundColors[] = { IDC_FXParamDisplayForegroundColor1, IDC_FXParamDisplayForegroundColor2, IDC_FXParamDisplayForegroundColor3 };
+static int s_fxParamDisplayForegroundColorBoxes[] = { IDC_FXParamValueDisplayForegroundColorBox1, IDC_FXParamValueDisplayForegroundColorBox2, IDC_FXParamValueDisplayForegroundColorBox3 };
+static int s_fxParamDisplayBackgroundColors[] = { IDC_FXParamDisplayBackgroundColor1, IDC_FXParamDisplayBackgroundColor2, IDC_FXParamDisplayBackgroundColor3 };
+static int s_fxParamDisplayBackgroundColorBoxes[] = { IDC_FXParamValueDisplayBackgroundColorBox1, IDC_FXParamValueDisplayBackgroundColorBox2, IDC_FXParamValueDisplayBackgroundColorBox3 };
 
 
-// for show / hide
-static vector<int> s_groupBoxes = { IDC_Group1, IDC_Group2, IDC_Group3 };
-static vector<int> s_fxParamGroupBoxes = { IDC_GroupFXParam1, IDC_GroupFXParam2, IDC_GroupFXParam3 };
-static vector<int> s_fixedTextDisplayGroupBoxes = { IDC_GroupFixedTextDisplay1 , IDC_GroupFixedTextDisplay2, IDC_GroupFixedTextDisplay3 };
-static vector<int> s_fxParamDisplayGroupBoxes = { IDC_GroupFXParamValueDisplay1 , IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
-static vector<int> s_advancedButtons = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
+// for hide
+static int s_groupBoxes[] = { IDC_Group1, IDC_Group2, IDC_Group3 };
+static int s_fxParamGroupBoxes[] = { IDC_GroupFXParam1, IDC_GroupFXParam2, IDC_GroupFXParam3 };
+static int s_fixedTextDisplayGroupBoxes[] = { IDC_GroupFixedTextDisplay1 , IDC_GroupFixedTextDisplay2, IDC_GroupFixedTextDisplay3 };
+static int s_fxParamDisplayGroupBoxes[] = { IDC_GroupFXParamValueDisplay1 , IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
+static int s_advancedButtons[] = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
 
-static vector<vector<int>> s_baseControls =
+static int *s_baseControls[] =
 {
     s_paramNumEditControls,
     s_widgetTypePickers,
@@ -329,7 +329,7 @@ static vector<vector<int>> s_baseControls =
     s_advancedButtons
 };
 
-static vector<vector<int>> s_fontControls =
+static int *s_fontControls[] =
 {
     s_fixedTextDisplayFontLabels,
     s_fixedTextDisplayFontPickers,
@@ -337,7 +337,7 @@ static vector<vector<int>> s_fontControls =
     s_paramValueDisplayFontPickers
 };
 
-static vector<vector<int>> s_colorControls =
+static int *s_colorControls[] =
 {
     s_widgetRingColorBoxes,
     s_widgetRingColors,
@@ -355,21 +355,21 @@ static vector<vector<int>> s_colorControls =
 
 static void ShowBaseControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(int i = 0; i < (int)s_baseControls.size(); ++i)
+    for(int i = 0; i < NUM_ELEM(s_baseControls); ++i)
         for(int j = startIndex; j < endIndex; j++)
             ShowWindow(GetDlgItem(hwndDlg, s_baseControls[i][j]), show);
 }
 
 static void ShowFontControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(int i = 0; i < (int)s_fontControls.size(); ++i)
+    for(int i = 0; i < NUM_ELEM(s_fontControls); ++i)
         for(int j = startIndex; j < endIndex; j++)
             ShowWindow(GetDlgItem(hwndDlg, s_fontControls[i][j]), show);
 }
 
 static void ShowColorControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(int i = 0; i < (int)s_colorControls.size(); ++i)
+    for(int i = 0; i < NUM_ELEM(s_colorControls); ++i)
         for(int j = startIndex; j < endIndex; j++)
             ShowWindow(GetDlgItem(hwndDlg, s_colorControls[i][j]), show);
 }
@@ -514,13 +514,13 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             s_hasFonts = false;
             s_hasColors = false;
             
-            ShowBaseControls(hwndDlg, 0, (int)s_groupBoxes.size(), false );
-            ShowFontControls(hwndDlg, 0, (int)s_groupBoxes.size(), false);
-            ShowColorControls(hwndDlg, 0, (int)s_groupBoxes.size(), false);
+            ShowBaseControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false );
+            ShowFontControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
+            ShowColorControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
 
             SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + s_layoutTemplates[s_fxListIndex].modifiers + s_layoutTemplates[s_fxListIndex].suffix).c_str());
 
-            for(int i = 0; i < s_stepPickers.size(); i++)
+            for(int i = 0; i <NUM_ELEM( s_stepPickers); i++)
             {
                 SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
@@ -536,19 +536,19 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 {
                     if(s_surfaceLayoutTemplate[i][0] == "WidgetTypes")
                     {
-                        for(int j = 0; j < s_widgetTypePickers.size(); j++)
+                        for(int j = 0; j < NUM_ELEM(s_widgetTypePickers); j++)
                             for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_widgetTypePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
                     else if(s_surfaceLayoutTemplate[i][0] == "RingStyles")
                     {
-                        for(int j = 0; j < s_ringStylePickers.size(); j++)
+                        for(int j = 0; j < NUM_ELEM(s_ringStylePickers); j++)
                             for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_ringStylePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
                     else if(s_surfaceLayoutTemplate[i][0] == "DisplayRows")
                     {
-                        for(int j = 0; j < s_fixedTextDisplayRowPickers.size(); j++)
+                        for(int j = 0; j < NUM_ELEM(s_fixedTextDisplayRowPickers); j++)
                         {
                             SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
@@ -556,7 +556,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         }
                         
-                        for(int j = 0; j < s_paramValueDisplayRowPickers.size(); j++)
+                        for(int j = 0; j < NUM_ELEM(s_paramValueDisplayRowPickers); j++)
                         {
                             SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
@@ -568,18 +568,18 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     {
                         s_hasFonts = true;
                         
-                        for(int j = 0; j < s_fixedTextDisplayFontPickers.size(); j++)
+                        for(int j = 0; j < NUM_ELEM(s_fixedTextDisplayFontPickers); j++)
                             for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         
-                        for(int j = 0; j < s_paramValueDisplayFontPickers.size(); j++)
+                        for(int j = 0; j < NUM_ELEM(s_paramValueDisplayFontPickers); j++)
                             for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
                 }
             }
 
-            for(int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < s_paramNumEditControls.size(); i++)
+            for(int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
                 SetDlgItemText(hwndDlg, s_paramNumEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNumber.c_str());
                 SetDlgItemText(hwndDlg, s_fixedTextEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramName.c_str());
