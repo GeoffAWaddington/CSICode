@@ -158,7 +158,7 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static shared_ptr<ZoneManager> s_zoneManager;
+static ZoneManager *s_zoneManager;
 static vector<vector<string>> s_surfaceLayoutTemplate;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
@@ -1333,7 +1333,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(shared_ptr<ZoneManager> aZoneManager, string fullFilePath)
+bool RemapAutoZoneDialog(ZoneManager *aZoneManager, string fullFilePath)
 {
     s_zoneDef.Clear();
     s_zoneManager = aZoneManager;

@@ -483,7 +483,7 @@ static void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoile
     }
 }
 
-static void PreProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zoneManager)
+static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
 {
     string zoneName = "";
     
@@ -551,7 +551,7 @@ static void GetColorValues(vector<rgba_color> &colorValues, const vector<string>
     }
 }
 
-static void ProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zoneManager, const vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, const vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -2147,7 +2147,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     //protected:
     isActive_ = false;
@@ -2612,7 +2612,7 @@ vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget *widget)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<ZoneManager> Widget::GetZoneManager()
+ZoneManager *Widget::GetZoneManager()
 {
     return surface_->GetZoneManager();
 }
@@ -2797,10 +2797,9 @@ void ZoneManager::Initialize()
     vector<shared_ptr<Navigator>> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
     vector<shared_ptr<Zone>> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
-    if(sharedThisPtr_ != nullptr)
-        ProcessZoneFile(zoneFilePaths_["Home"].filePath, sharedThisPtr_, navigators, dummy, nullptr);
-    if(zoneFilePaths_.count("FocusedFXParam") > 0 && sharedThisPtr_ != nullptr)
-        ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, sharedThisPtr_, navigators, dummy, nullptr);
+      ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
+    if(zoneFilePaths_.count("FocusedFXParam") > 0)
+        ProcessZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("SurfaceFXLayout") > 0)
         ProcessSurfaceFXLayout(zoneFilePaths_["SurfaceFXLayout"].filePath, surfaceFXLayout_, surfaceFXLayoutTemplate_);
     if(zoneFilePaths_.count("FXLayouts") > 0)
@@ -2938,8 +2937,7 @@ void ZoneManager::GoFocusedFX()
             vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
-            if(sharedThisPtr_ != nullptr)
-                ProcessZoneFile(zoneFilePaths_[FXName].filePath, sharedThisPtr_, navigators, focusedFXZones_, nullptr);
+            ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, nullptr);
             
             for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
             {
@@ -2978,8 +2976,7 @@ void ZoneManager::GoSelectedTrackFX()
             {
                 vector<shared_ptr<Navigator>> navigators;
                 navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
-                if(sharedThisPtr_ != nullptr)
-                    ProcessZoneFile(zoneFilePaths_[FXName].filePath, sharedThisPtr_, navigators, selectedTrackFXZones_, nullptr);
+                ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, nullptr);
                 
                 selectedTrackFXZones_.back()->SetSlotIndex(i);
                 selectedTrackFXZones_.back()->Activate();
@@ -3079,8 +3076,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
         vector<shared_ptr<Navigator>> navigators;
         navigators.push_back(navigator);
         
-        if(sharedThisPtr_ != nullptr)
-            ProcessZoneFile(zoneFilePaths_[fxName].filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+        ProcessZoneFile(zoneFilePaths_[fxName].filePath, this, navigators, fxSlotZones_, nullptr);
         
         if(fxSlotZones_.size() > 0)
         {
@@ -3387,7 +3383,7 @@ void ZoneManager::InitializeNoMapZone()
         
         vector<shared_ptr<Zone>> zones;
         
-        ProcessZoneFile(GetZoneFilePaths()["NoMap"].filePath, sharedThisPtr_, navigators, zones, nullptr);
+        ProcessZoneFile(GetZoneFilePaths()["NoMap"].filePath, this, navigators, zones, nullptr);
         
         if(zones.size() > 0)
             noMapZone_ = zones[0];
@@ -3939,15 +3935,15 @@ void ZoneManager::RemapAutoZone()
 {
     if(focusedFXZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(sharedThisPtr_, focusedFXZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(this, focusedFXZones_[0]->GetSourceFilePath()))
         {
-            PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), sharedThisPtr_);
+            PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), this);
             GoFocusedFX();
         }
     }
     else if(fxSlotZones_.size() == 1)
     {
-        if(::RemapAutoZoneDialog(sharedThisPtr_, fxSlotZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(this, fxSlotZones_[0]->GetSourceFilePath()))
         {
             vector<shared_ptr<Navigator>> navigators;
             navigators.push_back(fxSlotZones_[0]->GetNavigator());
@@ -3957,8 +3953,8 @@ void ZoneManager::RemapAutoZone()
 
             fxSlotZones_.clear();
             
-            PreProcessZoneFile(filePath, sharedThisPtr_);
-            ProcessZoneFile(filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+            PreProcessZoneFile(filePath, this);
+            ProcessZoneFile(filePath, this, navigators, fxSlotZones_, nullptr);
             
             fxSlotZones_.back()->SetSlotIndex(slotNumber);
             fxSlotZones_.back()->Activate();
@@ -3978,9 +3974,8 @@ void ZoneManager::PreProcessZones()
         return;
     }
       
-    if(sharedThisPtr_ != nullptr)
-        for(int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-            PreProcessZoneFile(zoneFilesToProcess[i], sharedThisPtr_);
+    for(int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
+        PreProcessZoneFile(zoneFilesToProcess[i], this);
     
     if(zoneFolder_ != fxZoneFolder_)
     {
@@ -3988,9 +3983,8 @@ void ZoneManager::PreProcessZones()
         
         listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
          
-        if(sharedThisPtr_ != nullptr)
-            for(int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-                PreProcessZoneFile(zoneFilesToProcess[i], sharedThisPtr_);
+        for(int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
+            PreProcessZoneFile(zoneFilesToProcess[i], this);
     }
 }
 
@@ -4340,8 +4334,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
         vector<shared_ptr<Navigator>> navigators;
         navigators.push_back(GetSelectedTrackNavigator());
         
-        if(sharedThisPtr_ != nullptr)
-            ProcessZoneFile(zoneFilePaths_[fxName].filePath, sharedThisPtr_, navigators, fxSlotZones_, nullptr);
+        ProcessZoneFile(zoneFilePaths_[fxName].filePath, this, navigators, fxSlotZones_, nullptr);
         
         if(fxSlotZones_.size() > 0)
         {
@@ -4950,8 +4943,7 @@ Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int num
     hasMCUMeters_ = false;
     displayType_ = 0x14;
     
-    zoneManager_ = make_shared<ZoneManager>(this, zoneFolder, fxZoneFolder);
-    zoneManager_->SetSharedThisPtr(zoneManager_);
+    zoneManager_ = new ZoneManager(this, zoneFolder, fxZoneFolder);
     
     ProcessMIDIWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
     InitHardwiredWidgets(this);
@@ -5105,8 +5097,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
 OSC_ControlSurface::OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
 {
-    zoneManager_ = make_shared<ZoneManager>(this, zoneFolder, fxZoneFolder);
-    zoneManager_->SetSharedThisPtr(zoneManager_);
+    zoneManager_ = new ZoneManager(this, zoneFolder, fxZoneFolder);
 
     ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, this);
     InitHardwiredWidgets(this);

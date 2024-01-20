@@ -68,7 +68,7 @@ class Manager;
 class ZoneManager;
 class Widget;
 extern unique_ptr<Manager> TheManager;
-extern bool RemapAutoZoneDialog(shared_ptr<ZoneManager> zoneManager, string fullPath);
+extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
 struct FXParamLayoutTemplate
 {
@@ -587,7 +587,7 @@ class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<ZoneManager> const zoneManager_;
+    ZoneManager * const zoneManager_;
     shared_ptr<Navigator> const navigator_;
     int slotIndex_;
     string const name_;
@@ -615,7 +615,7 @@ protected:
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
-    Zone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
+    Zone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
     virtual ~Zone() {}
     
@@ -913,7 +913,7 @@ private:
     shared_ptr<Zone> const enclosingZone_;
     
 public:
-    SubZone(shared_ptr<ZoneManager> const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -967,7 +967,7 @@ public:
     
     const string &GetName() { return name_; }
     ControlSurface* GetSurface() { return surface_; }
-    shared_ptr<ZoneManager> GetZoneManager();
+    ZoneManager *GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
@@ -1060,8 +1060,6 @@ private:
     
     shared_ptr<Zone> homeZone_;
     
-    shared_ptr<ZoneManager> sharedThisPtr_;
-      
     map<int, map<Widget *, Widget *>> controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
     vector<string> fxLayoutFileLinesOriginal_;
@@ -1072,7 +1070,7 @@ private:
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     
-    vector<shared_ptr<ZoneManager>> listeners_;
+    vector<ZoneManager *> listeners_;
     
     bool listensToGoHome_;
     bool listensToSends_;
@@ -1555,8 +1553,6 @@ public:
 
         homeZone_ = nullptr;
         
-        sharedThisPtr_ = nullptr;
-          
         fxLayout_ = nullptr;
         
         listensToGoHome_ = false;
@@ -1608,7 +1604,7 @@ public:
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(ControlSurface* surface);
     void SetListenerCategories(const string &categoryList);
-    const vector<shared_ptr<ZoneManager>> &GetListeners() { return listeners_; }
+    const vector<ZoneManager *> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     void GoFocusedFX();
@@ -1634,8 +1630,6 @@ public:
     void SaveTemplatedFXParams();
     void EraseLastTouchedControl();
     
-    void SetSharedThisPtr(shared_ptr<ZoneManager> thisPtr) { sharedThisPtr_ = thisPtr; }
-
     const string &GetZoneFolder() { return zoneFolder_; }
     map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
@@ -2774,6 +2768,7 @@ private:
 protected:
     ControlSurface(Page* page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
+        zoneManager_ = NULL;
         //private:
         scrubModePtr_ = nullptr;
         configScrubMode_ = 0;
@@ -2801,7 +2796,7 @@ protected:
 
     Page* const page_;
     string const name_;
-    shared_ptr<ZoneManager> zoneManager_ = nullptr;
+    ZoneManager *zoneManager_;
     shared_ptr<ModifierManager> modifierManager_ = nullptr;
 
     struct ProtectedTag {}; // to block constructor use by external code
@@ -2859,6 +2854,7 @@ public:
     virtual ~ControlSurface()
     {
         widgets_.Empty(true);
+        delete zoneManager_;
     }
     
     void Stop();
@@ -2882,7 +2878,7 @@ public:
     virtual void SendMidiMessage(int first, int second, int third) {}
     
     shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
-    shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
+    ZoneManager *GetZoneManager() { return zoneManager_; }
     Page* GetPage() { return page_; }
     string GetName() { return name_; }
     
