@@ -3266,7 +3266,7 @@ class Midi_ControlSurface : public ControlSurface
 {
 private:
     string const templateFilename_;
-    shared_ptr<Midi_ControlSurfaceIO> const surfaceIO_;
+    Midi_ControlSurfaceIO* const surfaceIO_;
     map<int, vector<shared_ptr<Midi_CSIMessageGenerator>>> Midi_CSIMessageGeneratorsByMessage_;
 
     // special processing for MCU meters
@@ -3288,7 +3288,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
+    Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3354,8 +3354,8 @@ class OSC_ControlSurfaceIO
 {
 private:
     string const name_;
-    shared_ptr<oscpkt::UdpSocket> inSocket_;
-    shared_ptr<oscpkt::UdpSocket> outSocket_;
+    oscpkt::UdpSocket* inSocket_;
+    oscpkt::UdpSocket* outSocket_;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
     double X32HeartBeatRefreshInterval_;
@@ -3428,10 +3428,10 @@ class OSC_ControlSurface : public ControlSurface
 {
 private:
     string const templateFilename_;
-    shared_ptr<OSC_ControlSurfaceIO> const surfaceIO_;
+    OSC_ControlSurfaceIO* const surfaceIO_;
 
 public:
-    OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);    
+    OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO);    
 
     virtual ~OSC_ControlSurface() {}
     

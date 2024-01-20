@@ -92,8 +92,8 @@ struct MidiOutputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<int, shared_ptr<MidiInputPort>> s_midiInputs;
-static map<int, shared_ptr<MidiOutputPort>> s_midiOutputs;
+static map<int, MidiInputPort*> s_midiInputs;
+static map<int, MidiOutputPort*> s_midiOutputs;
 
 static midi_Input* GetMidiInputForPort(int inputPort)
 {
@@ -106,7 +106,7 @@ static midi_Input* GetMidiInputForPort(int inputPort)
     if(newInput)
     {
         newInput->start();
-        s_midiInputs[inputPort] = make_shared<MidiInputPort>(inputPort, newInput);
+        s_midiInputs[inputPort] = new MidiInputPort(inputPort, newInput);
         return newInput;
     }
     
@@ -123,7 +123,7 @@ static midi_Output* GetMidiOutputForPort(int outputPort)
     
     if(newOutput)
     {
-        s_midiOutputs[outputPort] = make_shared<MidiOutputPort>(outputPort, newOutput);
+        s_midiOutputs[outputPort] = new MidiOutputPort(outputPort, newOutput);
         return newOutput;
     }
     
@@ -134,21 +134,27 @@ void ShutdownMidiIO()
 {
     for(auto [index, input] : s_midiInputs)
         input->midiInput_->stop();
+    
+    for(auto [index, input] : s_midiInputs)
+        delete input;
+    
+    for(auto [index, output] : s_midiOutputs)
+        delete output;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<string, shared_ptr<oscpkt::UdpSocket>> s_inputSockets;
-static map<string, shared_ptr<oscpkt::UdpSocket>> s_outputSockets;
+static map<string, oscpkt::UdpSocket*> s_inputSockets;
+static map<string, oscpkt::UdpSocket*> s_outputSockets;
 
-static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, int inputPort)
+static oscpkt::UdpSocket* GetInputSocketForPort(string surfaceName, int inputPort)
 {
     if(s_inputSockets.count(surfaceName) > 0)
         return s_inputSockets[surfaceName]; // return existing
     
     // otherwise make new
-    shared_ptr<oscpkt::UdpSocket> newInputSocket = make_shared<oscpkt::UdpSocket>();
+    oscpkt::UdpSocket* newInputSocket = new oscpkt::UdpSocket();
     
     if(newInputSocket)
     {
@@ -168,13 +174,13 @@ static shared_ptr<oscpkt::UdpSocket> GetInputSocketForPort(string surfaceName, i
     return nullptr;
 }
 
-static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
+static oscpkt::UdpSocket* GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
     if(s_outputSockets.count(surfaceName) > 0)
         return s_outputSockets[surfaceName]; // return existing
     
     // otherwise make new
-    shared_ptr<oscpkt::UdpSocket> newOutputSocket = make_shared<oscpkt::UdpSocket>();
+    oscpkt::UdpSocket* newOutputSocket = new oscpkt::UdpSocket();
     
     if(newOutputSocket)
     {
@@ -198,6 +204,15 @@ static shared_ptr<oscpkt::UdpSocket> GetOutputSocketForAddressAndPort(const stri
     }
     
     return nullptr;
+}
+
+void ShutdownOSCIO()
+{
+    for(auto [index, input] : s_inputSockets)
+        delete input;
+    
+    for(auto [index, output] : s_outputSockets)
+        delete output;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1518,8 +1533,8 @@ void Manager::Init()
 {
     pages_.clear();
     
-    map<string, shared_ptr<Midi_ControlSurfaceIO>> midiSurfaces;
-    map<string, shared_ptr<OSC_ControlSurfaceIO>> oscSurfaces;
+    map<string, Midi_ControlSurfaceIO*> midiSurfaces;
+    map<string, OSC_ControlSurfaceIO*> oscSurfaces;
 
     string currentBroadcaster = "";
     
@@ -1570,9 +1585,9 @@ void Manager::Init()
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if(tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
-                    midiSurfaces[tokens[1]] = make_shared<Midi_ControlSurfaceIO>(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
+                    midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                 else if(tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = make_shared<OSC_ControlSurfaceIO>(tokens[1], tokens[2], tokens[3], tokens[4]);
+                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
                 else if(tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
@@ -4927,7 +4942,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
+Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO)
 : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 {
     // private:
@@ -5029,7 +5044,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
     }
     else // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
     {
-        shared_ptr<oscpkt::UdpSocket> inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
+        oscpkt::UdpSocket* inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
 
         struct addrinfo hints;
         struct addrinfo* addressInfo;
@@ -5087,7 +5102,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
 {
     zoneManager_ = make_shared<ZoneManager>(this, zoneFolder, fxZoneFolder);
