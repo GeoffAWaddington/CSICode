@@ -2313,7 +2313,7 @@ public:
             string name = "";
             
             if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
-                name = context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex());
+                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
             
             context->UpdateWidgetValue(name);
         }
@@ -2338,7 +2338,7 @@ public:
             string name = "";
             
             if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
-                name = context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex());
+                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
 
             TheManager->Speak(name);
         }
