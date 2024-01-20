@@ -232,7 +232,7 @@ class Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<Page> const page_;
+    Page* const page_;
     bool isVolumeTouched_;
     bool isPanTouched_;
     bool isPanWidthTouched_;
@@ -240,7 +240,7 @@ protected:
     bool isPanRightTouched_;
     bool isMCUTrackPanWidth_;
 
-    Navigator(shared_ptr<Page>  page) : page_(page)
+    Navigator(Page*  page) : page_(page)
     {
         // protected:
         isVolumeTouched_ = false;
@@ -283,10 +283,10 @@ private:
     int const channelNum_;
     
 protected:
-    shared_ptr<TrackNavigationManager> const trackNavigationManager_;
+    TrackNavigationManager* const trackNavigationManager_;
 
 public:
-    TrackNavigator(shared_ptr<Page> page, shared_ptr<TrackNavigationManager> trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
+    TrackNavigator(Page* page, TrackNavigationManager* trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
     virtual ~TrackNavigator() {}
     
     virtual string GetName() override { return "TrackNavigator"; }
@@ -299,7 +299,7 @@ class MasterTrackNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    MasterTrackNavigator(shared_ptr<Page>  page) : Navigator(page) {}
+    MasterTrackNavigator(Page*  page) : Navigator(page) {}
     virtual ~MasterTrackNavigator() {}
     
     virtual string GetName() override { return "MasterTrackNavigator"; }
@@ -312,7 +312,7 @@ class SelectedTrackNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackNavigator(shared_ptr<Page>  page) : Navigator(page) {}
+    SelectedTrackNavigator(Page*  page) : Navigator(page) {}
     virtual ~SelectedTrackNavigator() {}
     
     virtual string GetName() override { return "SelectedTrackNavigator"; }
@@ -325,7 +325,7 @@ class FocusedFXNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    FocusedFXNavigator(shared_ptr<Page>  page) : Navigator(page) {}
+    FocusedFXNavigator(Page*  page) : Navigator(page) {}
     virtual ~FocusedFXNavigator() {}
     
     virtual string GetName() override { return "FocusedFXNavigator"; }
@@ -428,8 +428,8 @@ public:
     void DoAcceleratedSteppedValueAction(int accelerationIndex, double value);
     void DoAcceleratedDeltaValueAction(int accelerationIndex, double value);
     
-    shared_ptr<Page> GetPage();
-    shared_ptr<ControlSurface> GetSurface();
+    Page* GetPage();
+    ControlSurface* GetSurface();
     int GetParamIndex() { return paramIndex_; }
     void SetParamIndex(int paramIndex) { paramIndex_ = paramIndex; }
       
@@ -931,7 +931,7 @@ class Widget
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<ControlSurface> const surface_;
+    ControlSurface* const surface_;
     string const name_;
     WDL_PtrList<FeedbackProcessor> feedbackProcessors_; // owns the objects
     int channelNumber_;
@@ -942,7 +942,7 @@ private:
     
 public:
     // all Widges are owned by their ControlSurface!
-    Widget(shared_ptr<ControlSurface> surface, const string &name) : surface_(surface), name_(name)
+    Widget(ControlSurface* surface, const string &name) : surface_(surface), name_(name)
     {
         // private:
         channelNumber_ = 0;
@@ -966,7 +966,7 @@ public:
     }
     
     const string &GetName() { return name_; }
-    shared_ptr<ControlSurface> GetSurface() { return surface_; }
+    ControlSurface* GetSurface() { return surface_; }
     shared_ptr<ZoneManager> GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
@@ -1048,7 +1048,7 @@ class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<ControlSurface> const surface_;
+    ControlSurface* const surface_;
     string const zoneFolder_ = "";
     string const fxZoneFolder_ = "";
 
@@ -1548,7 +1548,7 @@ private:
     }
 
 public:
-    ZoneManager(shared_ptr<ControlSurface> surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
+    ZoneManager(ControlSurface* surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
     {
         //private:
         noMapZone_ = nullptr;
@@ -1606,7 +1606,7 @@ public:
     shared_ptr<Navigator> GetFocusedFXNavigator();
     
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
-    void AddListener(shared_ptr<ControlSurface> surface);
+    void AddListener(ControlSurface* surface);
     void SetListenerCategories(const string &categoryList);
     const vector<shared_ptr<ZoneManager>> &GetListeners() { return listeners_; }
     
@@ -1641,7 +1641,7 @@ public:
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
     vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
-    shared_ptr<ControlSurface> GetSurface() { return surface_; }
+    ControlSurface* GetSurface() { return surface_; }
     
     void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
     void SetFocusedFXParamZone(shared_ptr<Zone> zone) { focusedFXParamZone_ = zone; }
@@ -2474,8 +2474,8 @@ class ModifierManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Page> page_;
-    shared_ptr<ControlSurface> surface_;
+    Page* page_;
+    ControlSurface* surface_;
     
     int latchTime_;
     
@@ -2578,12 +2578,12 @@ public:
             modifiers_[i].value = value *= 2;
     }
     
-    ModifierManager(shared_ptr<Page> page) : ModifierManager()
+    ModifierManager(Page* page) : ModifierManager()
     {
         page_ = page;
     }
     
-    ModifierManager(shared_ptr<ControlSurface> surface) : ModifierManager()
+    ModifierManager(ControlSurface* surface) : ModifierManager()
     {
         surface_ = surface;
     }
@@ -2772,7 +2772,7 @@ private:
     map<int, bool> channelToggles_;
     
 protected:
-    ControlSurface(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
+    ControlSurface(Page* page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
         //private:
         scrubModePtr_ = nullptr;
@@ -2799,7 +2799,7 @@ protected:
         }
     }
 
-    shared_ptr<Page> const page_;
+    Page* const page_;
     string const name_;
     shared_ptr<ZoneManager> zoneManager_ = nullptr;
     shared_ptr<ModifierManager> modifierManager_ = nullptr;
@@ -2840,7 +2840,7 @@ protected:
             StopFastForwarding();
     }
     
-    virtual void InitHardwiredWidgets(shared_ptr<ControlSurface> surface)
+    virtual void InitHardwiredWidgets(ControlSurface* surface)
     {
         // Add the "hardwired" widgets
         AddWidget(new Widget(surface, "OnTrackSelection"));
@@ -2883,7 +2883,7 @@ public:
     
     shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
     shared_ptr<ZoneManager> GetZoneManager() { return zoneManager_; }
-    shared_ptr<Page> GetPage() { return page_; }
+    Page* GetPage() { return page_; }
     string GetName() { return name_; }
     
     int GetNumChannels() { return numChannels_; }
@@ -3207,19 +3207,19 @@ protected:
     shared_ptr<MIDI_event_ex_t> midiFeedbackMessage1_;
     shared_ptr<MIDI_event_ex_t> midiFeedbackMessage2_;
     
-    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, Widget *widget) : FeedbackProcessor(widget), surface_(surface)
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget) : FeedbackProcessor(widget), surface_(surface)
     {
         lastMessageSent_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
         midiFeedbackMessage1_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
         midiFeedbackMessage2_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
     }
     
-    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, Widget *widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget)
     {
         midiFeedbackMessage1_ = feedback1;
     }
     
-    Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, Widget *widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) :  Midi_FeedbackProcessor(surface, widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) :  Midi_FeedbackProcessor(surface, widget)
     {
         midiFeedbackMessage1_ = feedback1;
         midiFeedbackMessage2_ = feedback2;
@@ -3288,17 +3288,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<Midi_ControlSurfaceIO> surfaceIO, ProtectedTag)
-    : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
-    {
-        // private:
-        // special processing for MCU meters
-        hasMCUMeters_ = false;
-        displayType_ = 0x14;
-
-    }
-    
-    static shared_ptr<Midi_ControlSurface> GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
+    Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3328,11 +3318,11 @@ class OSC_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<OSC_ControlSurface> const surface_;
+    OSC_ControlSurface* const surface_;
     string const oscAddress_;
     
 public:
-    OSC_FeedbackProcessor(shared_ptr<OSC_ControlSurface> surface, Widget *widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(OSC_ControlSurface* surface, Widget *widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
@@ -3349,7 +3339,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(shared_ptr<OSC_ControlSurface> surface, Widget *widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, Widget *widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
@@ -3441,10 +3431,7 @@ private:
     shared_ptr<OSC_ControlSurfaceIO> const surfaceIO_;
 
 public:
-    OSC_ControlSurface(shared_ptr<Page> page, const string name, int numChannels, int channelOffset, string templateFilename, shared_ptr<OSC_ControlSurfaceIO> surfaceIO, ProtectedTag)
-    : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO) {}
-    
-    static shared_ptr<OSC_ControlSurface> GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);
+    OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO);    
 
     virtual ~OSC_ControlSurface() {}
     
@@ -3481,8 +3468,7 @@ class TrackNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Page> const page_;
-    shared_ptr<TrackNavigationManager> sharedThisPtr_;
+    Page* const page_;
     bool followMCP_;
     bool synchPages_;
     bool isScrollLinkEnabled_;
@@ -3547,7 +3533,7 @@ private:
     }
     
 public:
-    TrackNavigationManager(shared_ptr<Page> page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) :
+    TrackNavigationManager(Page* page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) :
     page_(page),
     followMCP_(followMCP),
     synchPages_(synchPages),
@@ -3558,7 +3544,6 @@ public:
     focusedFXNavigator_(make_shared<FocusedFXNavigator>(page_))
     {
         //private:
-        shared_ptr<TrackNavigationManager> sharedThisPtr_ = nullptr;
         currentTrackVCAFolderMode_ = 0;
         targetScrollLinkChannel_ = 0;
         trackOffset_ = 0;
@@ -3569,8 +3554,6 @@ public:
         folderParentTrack_ = nullptr;
         autoModeDisplayNames_ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     }
-       
-    void SetSharedThisPtr(shared_ptr<TrackNavigationManager> thisPtr) { sharedThisPtr_ = thisPtr; }
     
     void RebuildTracks();
     void RebuildSelectedTracks();
@@ -3828,15 +3811,10 @@ public:
     
     shared_ptr<Navigator> GetNavigatorForChannel(int channelNum)
     {
-        if(sharedThisPtr_ != nullptr)
-        {
-            if(trackNavigators_.count(channelNum) < 1)
-                trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, sharedThisPtr_, channelNum);
+        if(trackNavigators_.count(channelNum) < 1)
+            trackNavigators_[channelNum] = make_shared<TrackNavigator>(page_, this, channelNum);
             
-            return trackNavigators_[channelNum];
-        }
-        else
-            return nullptr;
+        return trackNavigators_[channelNum];
     }
     
     MediaTrack* GetTrackFromChannel(int channelNumber)
@@ -4220,40 +4198,35 @@ class Page
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const name_ = "";
-    shared_ptr<TrackNavigationManager> trackNavigationManager_;
-    shared_ptr<ModifierManager> modifierManager_;
-    vector<shared_ptr<ControlSurface>> surfaces_;
+    string const name_;
+    TrackNavigationManager* trackNavigationManager_;
+    ModifierManager* modifierManager_;
+    vector<ControlSurface*> surfaces_;
     
     struct PrivateTag {}; // to block constructor use by external code
     
 public:
-    Page(const string &name, PrivateTag) : name_(name)
+    Page(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name)
     {
-        // private:
-        trackNavigationManager_ = nullptr;
-        modifierManager_ = nullptr;
+        trackNavigationManager_ = new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+        modifierManager_ = new ModifierManager(this);
     }
 
-    static shared_ptr<Page> GetInstance(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled)
+    ~Page()
     {
-        shared_ptr<Page> instance = make_shared<Page>(name, PrivateTag{});
-
-        instance->trackNavigationManager_ = make_shared<TrackNavigationManager>(instance, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
-        instance->trackNavigationManager_->SetSharedThisPtr(instance->trackNavigationManager_);
-        
-        instance->modifierManager_ = make_shared<ModifierManager>(instance);
-        
-        return instance;
+        delete trackNavigationManager_;
+        delete modifierManager_;
+        for(int i = 0; i < surfaces_.size(); ++i)
+            delete surfaces_[i];
     }
-    
+        
     string GetName() { return name_; }
     
-    shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
+    ModifierManager* GetModifierManager() { return modifierManager_; }
     
-    vector<shared_ptr<ControlSurface>> &GetSurfaces() { return surfaces_; }
+    vector<ControlSurface*> &GetSurfaces() { return surfaces_; }
     
-    void AddSurface(shared_ptr<ControlSurface> surface)
+    void AddSurface(ControlSurface* surface)
     {
         return surfaces_.push_back(surface);
     }
@@ -4383,7 +4356,7 @@ public:
                 surfaces_[i]->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
-    void AddZoneFilePath(shared_ptr<ControlSurface> originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
+    void AddZoneFilePath(ControlSurface* originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
     {
         for(int i = 0; i < (int)surfaces_.size(); ++i)
             if(surfaces_[i] != originatingSurface)
@@ -4525,7 +4498,7 @@ private:
     map<string, shared_ptr<Action>> actions_;
     map<string, shared_ptr<Action>> learnFXActions_;
 
-    vector <shared_ptr<Page>> pages_;
+    vector <Page*> pages_;
     
     int currentPageIndex_;
     bool surfaceInDisplay_;
@@ -4748,7 +4721,7 @@ public:
             pages_[currentPageIndex_]->SetTrackOffset(offset);
     }
     
-    void AdjustBank(shared_ptr<Page> sendingPage, string zoneName, int amount)
+    void AdjustBank(Page* sendingPage, string zoneName, int amount)
     {
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustBank(zoneName, amount);

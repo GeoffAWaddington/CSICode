@@ -850,7 +850,7 @@ static void GetSteppedValues(Widget *widget, shared_ptr<Action> action,  shared_
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens, shared_ptr<Midi_ControlSurface> surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens, Midi_ControlSurface* surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if(tokens.size() < 2)
         return;
@@ -1148,7 +1148,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
     }
 }
 
-static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens,  shared_ptr<OSC_ControlSurface> surface)
+static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens,  OSC_ControlSurface* surface)
 {
     if(tokens.size() < 2)
         return;
@@ -1245,7 +1245,7 @@ static void ProcessValues(const vector<vector<string>> &lines, map<string, doubl
     }
 }
 
-static void ProcessMIDIWidgetFile(const string &filePath, shared_ptr<Midi_ControlSurface> surface)
+static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface* surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1292,7 +1292,7 @@ static void ProcessMIDIWidgetFile(const string &filePath, shared_ptr<Midi_Contro
     }
 }
 
-static void ProcessOSCWidgetFile(const string &filePath, shared_ptr<OSC_ControlSurface> surface)
+static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface* surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1523,7 +1523,7 @@ void Manager::Init()
 
     string currentBroadcaster = "";
     
-    shared_ptr<Page> currentPage = nullptr;
+    Page* currentPage = nullptr;
     
     string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
     
@@ -1599,7 +1599,7 @@ void Manager::Init()
                             }
                         }
                             
-                        currentPage = Page::GetInstance(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+                        currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.push_back(currentPage);
                     }
                 }
@@ -1609,8 +1609,8 @@ void Manager::Init()
                 }
                 else if(currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
                 {
-                    shared_ptr<ControlSurface> broadcaster = nullptr;
-                    shared_ptr<ControlSurface> listener = nullptr;
+                    ControlSurface* broadcaster = nullptr;
+                    ControlSurface* listener = nullptr;
 
                     for(int i = 0; i < (int)currentPage->GetSurfaces().size(); ++i)
                     {
@@ -1634,9 +1634,9 @@ void Manager::Init()
                         string fxZoneFolder = tokens[5];
                         
                         if(midiSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(Midi_ControlSurface::GetInstance(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
+                            currentPage->AddSurface(new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
                         else if(oscSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(OSC_ControlSurface::GetInstance(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
+                            currentPage->AddSurface(new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
                     }
                 }
             }
@@ -1868,12 +1868,12 @@ ActionContext::ActionContext(shared_ptr<Action> action, Widget *widget, shared_p
         acceleratedTickValues_.push_back(10);
 }
 
-shared_ptr<Page> ActionContext::GetPage()
+Page* ActionContext::GetPage()
 {
     return widget_->GetSurface()->GetPage();
 }
 
-shared_ptr<ControlSurface> ActionContext::GetSurface()
+ControlSurface* ActionContext::GetSurface()
 {
     return widget_->GetSurface();
 }
@@ -2856,7 +2856,7 @@ void ZoneManager::CheckFocusedFXState()
     }
 }
 
-void ZoneManager::AddListener(shared_ptr<ControlSurface> surface)
+void ZoneManager::AddListener(ControlSurface* surface)
 {
     listeners_.push_back(surface->GetZoneManager());
 }
@@ -4921,21 +4921,23 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<Midi_ControlSurface> Midi_ControlSurface::GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
+Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<Midi_ControlSurfaceIO> surfaceIO)
+: ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 {
-    shared_ptr<Midi_ControlSurface> surface = make_shared<Midi_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
+    // private:
+    // special processing for MCU meters
+    hasMCUMeters_ = false;
+    displayType_ = 0x14;
     
-    surface->zoneManager_ = make_shared<ZoneManager>(surface, zoneFolder, fxZoneFolder);
-    surface->zoneManager_->SetSharedThisPtr(surface->zoneManager_);
+    zoneManager_ = make_shared<ZoneManager>(this, zoneFolder, fxZoneFolder);
+    zoneManager_->SetSharedThisPtr(zoneManager_);
     
-    ProcessMIDIWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, surface);
-    surface->InitHardwiredWidgets(surface);
-    surface->InitializeMeters();
-    surface->zoneManager_->Initialize();
+    ProcessMIDIWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
+    InitHardwiredWidgets(this);
+    InitializeMeters();
+    zoneManager_->Initialize();
 
-    surface->modifierManager_ = make_shared<ModifierManager>(surface);
-            
-    return surface;
+    modifierManager_ = make_shared<ModifierManager>(this);
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
@@ -5079,20 +5081,17 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-shared_ptr<OSC_ControlSurface> OSC_ControlSurface::GetInstance(shared_ptr<Page> page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO)
-{
-    shared_ptr<OSC_ControlSurface> surface = make_shared<OSC_ControlSurface>(page, name, numChannels, channelOffset, templateFilename, surfaceIO, ProtectedTag{});
-    
-    surface->zoneManager_ = make_shared<ZoneManager>(surface, zoneFolder, fxZoneFolder);
-    surface->zoneManager_->SetSharedThisPtr(surface->zoneManager_);
+OSC_ControlSurface::OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, shared_ptr<OSC_ControlSurfaceIO> surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
-    ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, surface);
-    surface->InitHardwiredWidgets(surface);
-    surface->zoneManager_->Initialize();
+{
+    zoneManager_ = make_shared<ZoneManager>(this, zoneFolder, fxZoneFolder);
+    zoneManager_->SetSharedThisPtr(zoneManager_);
+
+    ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, this);
+    InitHardwiredWidgets(this);
+    zoneManager_->Initialize();
     
-    surface->modifierManager_ = make_shared<ModifierManager>(surface);
-            
-    return surface;
+    modifierManager_ = make_shared<ModifierManager>(this);
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
