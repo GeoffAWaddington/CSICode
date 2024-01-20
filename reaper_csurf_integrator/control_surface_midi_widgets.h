@@ -9,6 +9,7 @@
 
 #include "control_surface_integrator.h"
 #include "handy_functions.h"
+#include "WDL/assocarray.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSIMessageGenerators
@@ -592,13 +593,13 @@ struct RowInfo
         fontSize = 0;
         lastStringSent = "";
     }
+    
+    static void dispose(RowInfo *r) { delete r; }
 };
 
-map<string, shared_ptr<RowInfo>> s_rows;
-
-static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_ptr<ActionContext>> &contexts)
+static void CalculateRowInfo(const vector<shared_ptr<ActionContext>> &contexts, WDL_StringKeyedArray<RowInfo*> &rows)
 {
-    s_rows.clear();
+    rows.DeleteAll();
     
     for(int i = 0; i < (int)contexts.size(); ++i)
     {
@@ -606,20 +607,26 @@ static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_pt
         
         if(properties.count("Row") > 0)
         {
-            if(s_rows.count(properties["Row"]) < 1)
-                s_rows[properties["Row"]] = make_shared<RowInfo>();
-          
+            const char *rowname = properties["Row"].c_str();
+            RowInfo *row = rows.Get(rowname);
+            if (!row)
+                rows.Insert(rowname, row = new RowInfo);
+
             if(properties.count("Font") > 0)
-                s_rows[properties["Row"]]->fontSize = stoi(properties["Font"]);
-           
+                row->fontSize = stoi(properties["Font"]);
+
             contexts[i]->SetProvideFeedback(true);
         }
     }
 
     int totalFontHeight = 0;
     
-    for(auto [rowNum, row] : s_rows)
+    for (int i = 0; ; i ++)
+    {
+        RowInfo *row = rows.Enumerate(i);
+        if (!row) break;
         totalFontHeight += s_fontHeights[row->fontSize];
+    }
     
     double factor = 64.0 / totalFontHeight;
     
@@ -628,8 +635,11 @@ static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_pt
     
     int topMargin = 0;
     
-    for(auto [rowNum, row] : s_rows)
+    for (int i = 0; ; i ++)
     {
+        RowInfo *row = rows.Enumerate(i);
+        if (!row) break;
+        
         if(topMargin > 63)
             topMargin = 63;
         row->topMargin = topMargin;
@@ -638,8 +648,6 @@ static map<string, shared_ptr<RowInfo>> &CalculateRowInfo(const vector<shared_pt
             row->bottomMargin = 63;
         topMargin = row->bottomMargin + 1;
     }
-    
-    return s_rows;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -647,12 +655,13 @@ class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, shared_ptr<RowInfo>> rows_;
+    WDL_StringKeyedArray<RowInfo *> rows_;
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
-    SCE24OLED_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
-    
+    SCE24OLED_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1),
+        rows_(true, RowInfo::dispose) { }
+
     virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
@@ -694,8 +703,8 @@ public:
     
     virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
     {
-        rows_ = CalculateRowInfo(contexts);
-        
+        CalculateRowInfo(contexts,rows_);
+
         struct
         {
             MIDI_event_ex_t evt;
@@ -735,10 +744,8 @@ public:
         
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        if(rows_.count(properties["Row"]) < 1)
-            return;
-        
-        shared_ptr<RowInfo> row = rows_[properties["Row"]];
+        RowInfo *row = rows_.Get(properties["Row"].c_str());
+        if (!row) return;
 
         rgba_color backgroundColor;
         rgba_color textColor;
@@ -820,12 +827,13 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, shared_ptr<RowInfo>> rows_;
-    
+    WDL_StringKeyedArray<RowInfo *> rows_;
+
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
-    SCE24Text_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
-    
+    SCE24Text_Midi_FeedbackProcessor(shared_ptr<Midi_ControlSurface> surface, shared_ptr<Widget> widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1),
+        rows_(true, RowInfo::dispose) { }
+
     virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
@@ -863,7 +871,7 @@ public:
 
     virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
     {
-        rows_ = CalculateRowInfo(contexts);
+        CalculateRowInfo(contexts,rows_);
 
         struct
         {
@@ -904,12 +912,10 @@ public:
     
     virtual void ForceValue(map<string, string> &properties, const string &inputText) override
     {
-        if(rows_.count(properties["Row"]) < 1)
-            return;
-            
+        RowInfo *row = rows_.Get(properties["Row"].c_str());
+        if (!row) return;
+
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
-                       
-        shared_ptr<RowInfo> row = rows_[properties["Row"]];
         
         if(row->lastStringSent == displayText)
             return;
