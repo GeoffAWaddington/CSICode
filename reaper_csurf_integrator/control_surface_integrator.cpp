@@ -611,9 +611,9 @@ static void ProcessZoneFile(const string &filePath, shared_ptr<ZoneManager> zone
                             if(enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
                                 surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(enclosingZone->GetChannelNumber()));
                             
-                            shared_ptr<Widget> widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
+                            Widget *widget = zoneManager->GetSurface()->GetWidgetByName(surfaceWidgetName);
                                                         
-                            if(widget == nullptr)
+                            if(widget == NULL)
                                 continue;
  
                             zone->AddWidget(widget, widget->GetName());
@@ -765,7 +765,7 @@ static void SetColor(vector<string> &params, bool &supportsColor, bool &supports
     }
 }
 
-static void GetSteppedValues(shared_ptr<Widget> widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(Widget *widget, shared_ptr<Action> action,  shared_ptr<Zone> zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
     vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -862,7 +862,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
     if(tokens.size() > 2)
         widgetClass = tokens[2];
 
-    shared_ptr<Widget> widget = make_shared<Widget>(surface, widgetName);
+    Widget *widget = new Widget(surface, widgetName);
        
     surface->AddWidget(widget);
 
@@ -951,88 +951,88 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         }
         
         // Feedback Processors
-        shared_ptr<FeedbackProcessor> feedbackProcessor = nullptr;
+        FeedbackProcessor *feedbackProcessor = NULL;
 
         if(widgetType == "FB_TwoState" && size == 7)
         {
-            feedbackProcessor = make_shared<TwoState_Midi_FeedbackProcessor>(surface, widget, message1, message2);
+            feedbackProcessor = new TwoState_Midi_FeedbackProcessor(surface, widget, message1, message2);
         }
         else if(widgetType == "FB_NovationLaunchpadMiniRGB7Bit" && size == 4)
         {
-            feedbackProcessor = make_shared<NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_MFT_RGB" && size == 4)
         {
-            feedbackProcessor = make_shared<MFT_RGB_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new MFT_RGB_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_AsparionRGB" && size == 4)
         {
-            feedbackProcessor = make_shared<AsparionRGB_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new AsparionRGB_Midi_FeedbackProcessor(surface, widget, message1);
             
             if(feedbackProcessor)
                 surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
         }
         else if(widgetType == "FB_FaderportRGB" && size == 4)
         {
-            feedbackProcessor = make_shared<FaderportRGB_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new FaderportRGB_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_FaderportTwoStateRGB" && size == 4)
         {
-            feedbackProcessor = make_shared<FPTwoStateRGB_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new FPTwoStateRGB_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_FaderportValueBar"  && size == 2)
         {
-            feedbackProcessor = make_shared<FPValueBar_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new FPValueBar_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
         }
         else if((widgetType == "FB_FPVUMeter") && size == 2)
         {
-            feedbackProcessor = make_shared<FPVUMeter_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new FPVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
         }
         else if(widgetType == "FB_Fader14Bit" && size == 4)
         {
-            feedbackProcessor = make_shared<Fader14Bit_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new Fader14Bit_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_FaderportClassicFader14Bit" && size == 7)
         {
-            feedbackProcessor = make_shared<FaderportClassicFader14Bit_Midi_FeedbackProcessor>(surface, widget, message1, message2);
+            feedbackProcessor = new FaderportClassicFader14Bit_Midi_FeedbackProcessor(surface, widget, message1, message2);
         }
         else if(widgetType == "FB_Fader7Bit" && size == 4)
         {
-            feedbackProcessor = make_shared<Fader7Bit_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new Fader7Bit_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_Encoder" && size == 4)
         {
-            feedbackProcessor = make_shared<Encoder_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new Encoder_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_AsparionEncoder" && size == 4)
         {
-            feedbackProcessor = make_shared<AsparionEncoder_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new AsparionEncoder_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_ConsoleOneVUMeter" && size == 4)
         {
-            feedbackProcessor = make_shared<ConsoleOneVUMeter_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new ConsoleOneVUMeter_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_ConsoleOneGainReductionMeter" && size == 4)
         {
-            feedbackProcessor = make_shared<ConsoleOneGainReductionMeter_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_MCUTimeDisplay" && size == 1)
         {
-            feedbackProcessor = make_shared<MCU_TimeDisplay_Midi_FeedbackProcessor>(surface, widget);
+            feedbackProcessor = new MCU_TimeDisplay_Midi_FeedbackProcessor(surface, widget);
         }
         else if(widgetType == "FB_MCUAssignmentDisplay" && size == 1)
         {
-            feedbackProcessor = make_shared<FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor>(surface, widget);
+            feedbackProcessor = new FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(surface, widget);
         }
         else if(widgetType == "FB_QConProXMasterVUMeter" && size == 2)
         {
-            feedbackProcessor = make_shared<QConProXMasterVUMeter_Midi_FeedbackProcessor>(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new QConProXMasterVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
         }
         else if((widgetType == "FB_MCUVUMeter" || widgetType == "FB_MCUXTVUMeter") && size == 2)
         {
             int displayType = widgetType == "FB_MCUVUMeter" ? 0x14 : 0x15;
             
-            feedbackProcessor = make_shared<MCUVUMeter_Midi_FeedbackProcessor>(surface, widget, displayType, stoi(tokenLines[i][1]));
+            feedbackProcessor = new MCUVUMeter_Midi_FeedbackProcessor(surface, widget, displayType, stoi(tokenLines[i][1]));
             
             surface->SetHasMCUMeters(displayType);
         }
@@ -1040,56 +1040,56 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         {
             bool isRight = widgetType == "FB_AsparionVUMeterR" ? true : false;
             
-            feedbackProcessor = make_shared<AsparionVUMeter_Midi_FeedbackProcessor>(surface, widget, 0x14, stoi(tokenLines[i][1]), isRight);
+            feedbackProcessor = new AsparionVUMeter_Midi_FeedbackProcessor(surface, widget, 0x14, stoi(tokenLines[i][1]), isRight);
             
             surface->SetHasMCUMeters(0x14);
         }
         else if(widgetType == "FB_SCE24LEDButton" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24TwoStateLED_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if(widgetType == "FB_SCE24OLEDButton" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24OLED_Midi_FeedbackProcessor>(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if(widgetType == "FB_SCE24Encoder" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24Encoder_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new SCE24Encoder_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if(widgetType == "FB_SCE24EncoderText" && size == 4)
         {
-            feedbackProcessor = make_shared<SCE24Text_Midi_FeedbackProcessor>(surface, widget, message1);
+            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(surface, widget, message1);
         }
         else if((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
         {
             if(widgetType == "FB_MCUDisplayUpper")
-                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_MCUDisplayLower")
-                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_MCUXTDisplayUpper")
-                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_MCUXTDisplayLower")
-                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
         }
         else if((widgetType == "FB_AsparionDisplayUpper" || widgetType == "FB_AsparionDisplayLower" || widgetType == "FB_AsparionDisplayEncoder") && size == 2)
         {
             if(widgetType == "FB_AsparionDisplayUpper")
-                feedbackProcessor = make_shared<AsparionDisplay_Midi_FeedbackProcessor>(surface, widget, 0x01, 0x14, 0x1A, stoi(tokenLines[i][1]));
+                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(surface, widget, 0x01, 0x14, 0x1A, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_AsparionDisplayLower")
-                feedbackProcessor = make_shared<AsparionDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, 0x14, 0x1A, stoi(tokenLines[i][1]));
+                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, 0x14, 0x1A, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_AsparionDisplayEncoder")
-                feedbackProcessor = make_shared<AsparionDisplay_Midi_FeedbackProcessor>(surface, widget, 0x03, 0x14, 0x19, stoi(tokenLines[i][1]));
+                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(surface, widget, 0x03, 0x14, 0x19, stoi(tokenLines[i][1]));
         }
         else if((widgetType == "FB_XTouchDisplayUpper" || widgetType == "FB_XTouchDisplayLower" || widgetType == "FB_XTouchXTDisplayUpper" || widgetType == "FB_XTouchXTDisplayLower") && size == 2)
         {
             if(widgetType == "FB_XTouchDisplayUpper")
-                feedbackProcessor = make_shared<XTouchDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_XTouchDisplayLower")
-                feedbackProcessor = make_shared<XTouchDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_XTouchXTDisplayUpper")
-                feedbackProcessor = make_shared<XTouchDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_XTouchXTDisplayLower")
-                feedbackProcessor = make_shared<XTouchDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
             
             if(feedbackProcessor)
                 surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
@@ -1097,9 +1097,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         else if((widgetType == "FB_C4DisplayUpper" || widgetType == "FB_C4DisplayLower") && size == 3)
         {
             if(widgetType == "FB_C4DisplayUpper")
-                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
             else if(widgetType == "FB_C4DisplayLower")
-                feedbackProcessor = make_shared<MCUDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
         }
         else if((widgetType == "FB_FP8ScribbleLine1" || widgetType == "FB_FP16ScribbleLine1"
                  || widgetType == "FB_FP8ScribbleLine2" || widgetType == "FB_FP16ScribbleLine2"
@@ -1107,43 +1107,43 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
                  || widgetType == "FB_FP8ScribbleLine4" || widgetType == "FB_FP16ScribbleLine4") && size == 2)
         {
             if(widgetType == "FB_FP8ScribbleLine1")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
             else if(widgetType == "FB_FP8ScribbleLine2")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
             else if(widgetType == "FB_FP8ScribbleLine3")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
             else if(widgetType == "FB_FP8ScribbleLine4")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
 
             else if(widgetType == "FB_FP16ScribbleLine1")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
             else if(widgetType == "FB_FP16ScribbleLine2")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
             else if(widgetType == "FB_FP16ScribbleLine3")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
             else if(widgetType == "FB_FP16ScribbleLine4")
-                feedbackProcessor = make_shared<FPDisplay_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
         }
         else if((widgetType == "FB_FP8ScribbleStripMode" || widgetType == "FB_FP16ScribbleStripMode") && size == 2)
         {
             if(widgetType == "FB_FP8ScribbleStripMode")
-                feedbackProcessor = make_shared<FPScribbleStripMode_Midi_FeedbackProcessor>(surface, widget, 0x02, stoi(tokenLines[i][1]));
+                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_FP16ScribbleStripMode")
-                feedbackProcessor = make_shared<FPScribbleStripMode_Midi_FeedbackProcessor>(surface, widget, 0x16, stoi(tokenLines[i][1]));
+                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]));
         }
         else if((widgetType == "FB_QConLiteDisplayUpper" || widgetType == "FB_QConLiteDisplayUpperMid" || widgetType == "FB_QConLiteDisplayLowerMid" || widgetType == "FB_QConLiteDisplayLower") && size == 2)
         {
             if(widgetType == "FB_QConLiteDisplayUpper")
-                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_QConLiteDisplayUpperMid")
-                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_QConLiteDisplayLowerMid")
-                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 2, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 2, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if(widgetType == "FB_QConLiteDisplayLower")
-                feedbackProcessor = make_shared<QConLiteDisplay_Midi_FeedbackProcessor>(surface, widget, 3, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 3, 0x14, 0x12, stoi(tokenLines[i][1]));
         }
 
-        if(feedbackProcessor != nullptr)
+        if(feedbackProcessor != NULL)
             widget->AddFeedbackProcessor(feedbackProcessor);
     }
 }
@@ -1153,7 +1153,7 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, con
     if(tokens.size() < 2)
         return;
     
-    shared_ptr<Widget> widget = make_shared<Widget>(surface, tokens[1]);
+    Widget *widget = new Widget(surface, tokens[1]);
     
     surface->AddWidget(widget);
 
@@ -1188,9 +1188,9 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, con
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
             surface->AddCSIMessageGenerator(make_shared<Touch_CSIMessageGenerator>(widget), tokenLines[i][1]);
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
-            widget->AddFeedbackProcessor(make_shared<OSC_FeedbackProcessor>(surface, widget, tokenLines[i][1]));
+            widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(surface, widget, tokenLines[i][1]));
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
-            widget->AddFeedbackProcessor(make_shared<OSC_IntFeedbackProcessor>(surface, widget, tokenLines[i][1]));
+            widget->AddFeedbackProcessor(new OSC_IntFeedbackProcessor(surface, widget, tokenLines[i][1]));
     }
 }
 
@@ -1727,7 +1727,7 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(shared_ptr<Action> action, shared_ptr<Widget> widget, shared_ptr<Zone> zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(shared_ptr<Action> action, Widget *widget, shared_ptr<Zone> zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
 {
     // private:
     intParam_ = 0;
@@ -2226,7 +2226,7 @@ int Zone::GetChannelNumber()
     return channelNumber;
 }
 
-void Zone::SetFXParamNum(shared_ptr<Widget> paramWidget, int paramIndex)
+void Zone::SetFXParamNum(Widget *paramWidget, int paramIndex)
 {
     for(auto [widget, isUsed] : widgets_)
     {
@@ -2385,7 +2385,7 @@ void Zone::Deactivate()
             zones[i]->Deactivate();
 }
 
-void Zone::RequestLearnFXUpdate(map<shared_ptr<Widget>, bool> &usedWidgets)
+void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
 {
     vector<int> modifiers = zoneManager_->GetSurface()->GetModifiers();
     
@@ -2494,7 +2494,7 @@ void Zone::RestoreXTouchDisplayColors()
         widget->RestoreXTouchDisplayColors();
 }
 
-void Zone::DoAction(shared_ptr<Widget> widget, bool &isUsed, double value)
+void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 {
     if(! isActive_ || isUsed)
         return;
@@ -2551,7 +2551,7 @@ void Zone::UpdateCurrentActionContextModifiers()
             zones[i]->UpdateCurrentActionContextModifiers();
 }
 
-void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
+void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 {
     for(int i = 0; i < (int)widget->GetSurface()->GetModifiers().size(); ++i)
     {
@@ -2563,7 +2563,7 @@ void Zone::UpdateCurrentActionContextModifier(shared_ptr<Widget> widget)
     }
 }
 
-vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(shared_ptr<Widget> widget)
+vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget *widget)
 {
     if(currentActionContextModifiers_.count(widget) == 0)
         UpdateCurrentActionContextModifier(widget);
@@ -2604,50 +2604,50 @@ shared_ptr<ZoneManager> Widget::GetZoneManager()
 
 void Widget::Configure(vector<shared_ptr<ActionContext>> &contexts)
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->Configure(contexts);
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->Configure(contexts);
 }
 
 void  Widget::UpdateValue(map<string, string> &properties, double value)
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->SetValue(properties, value);
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->SetValue(properties, value);
 }
 
 void  Widget::UpdateValue(map<string, string> &properties, string value)
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->SetValue(properties, value);
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->SetValue(properties, value);
 }
 
 void Widget::RunDeferredActions()
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->RunDeferredActions();
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->RunDeferredActions();
 }
 
 void  Widget::UpdateColorValue(rgba_color color)
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->SetColorValue(color);
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->SetColorValue(color);
 }
 
 void Widget::SetXTouchDisplayColors(const string &zoneName, const string &colors)
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->SetXTouchDisplayColors(zoneName, colors);
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->SetXTouchDisplayColors(zoneName, colors);
 }
 
 void Widget::RestoreXTouchDisplayColors()
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->RestoreXTouchDisplayColors();
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->RestoreXTouchDisplayColors();
 }
 
 void  Widget::ForceClear()
 {
-    for(int i = 0; i < (int)feedbackProcessors_.size(); ++i)
-        feedbackProcessors_[i]->ForceClear();
+    for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->ForceClear();
 }
 
 void Widget::LogInput(double value)
@@ -3103,7 +3103,8 @@ void ZoneManager::EraseLastTouchedControl()
     {
         if(fxLayout_ != nullptr && fxLayoutFileLines_.size() > 0)
         {
-            if(shared_ptr<Widget> widget = lastTouched_->fxParamWidget)
+            Widget *widget = lastTouched_->fxParamWidget;
+            if(widget)
             {
                 for(int i = 0; i < (int)fxLayout_->GetActionContexts(widget).size(); ++i)
                     SetParamNum(widget, 1);
@@ -3312,7 +3313,7 @@ void ZoneManager::SaveLearnedFXParams()
     }
 }
 
-shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget)
+shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(Widget *widget)
 {
     vector<int> modifiers = surface_->GetModifiers();
 
@@ -3322,7 +3323,7 @@ shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget)
         return  shared_ptr<LearnInfo>(nullptr);
 }
 
-shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(shared_ptr<Widget> widget, int modifier)
+shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(Widget *widget, int modifier)
 {
     if(learnedFXParams_.count(widget) > 0 && learnedFXParams_[widget].count(modifier) > 0)
         return learnedFXParams_[widget][modifier];
@@ -3373,7 +3374,7 @@ void ZoneManager::InitializeNoMapZone()
         
         if(noMapZone_ != nullptr)
         {
-            vector<shared_ptr <Widget>> usedWidgets;
+            vector<Widget *> usedWidgets;
             
             for(auto [widget, isUsed] : noMapZone_->GetWidgets())
                 usedWidgets.push_back(widget);
@@ -3404,8 +3405,8 @@ void ZoneManager::InitializeNoMapZone()
                 {
                     string cellAdress = fxLayouts_[i].suffix + to_string(j);
                     
-                    shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
-                    if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                    Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
+                    if(widget == NULL || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
                     shared_ptr<ActionContext> context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3422,8 +3423,8 @@ void ZoneManager::InitializeNoMapZone()
                     
                     for(int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
-                        shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
-                        if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                        Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
+                        if(widget == NULL || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
                         context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3490,8 +3491,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         
                         string cellAdress = fxLayouts_[i].suffix + to_string(j);
                         
-                        shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
-                        if(widget == nullptr)
+                        Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
+                        if(widget == NULL)
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
@@ -3501,7 +3502,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         zone->AddActionContext(widget, modifier, context);
 
                         widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
-                        if(widget == nullptr)
+                        if(widget == NULL)
                             continue;
                         cell.fxParamValueDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
@@ -3512,8 +3513,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         
                         for(int k = 0; k < (int)paramWidgets.size(); ++k)
                         {
-                            shared_ptr<Widget> widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
-                            if(widget == nullptr)
+                            Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
+                            if(widget == NULL)
                                 continue;
                             cell.fxParamWidgets.push_back(widget);
                             zone->AddWidget(widget, widget->GetName());
@@ -3543,7 +3544,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
     {
         for(int j = 0; j < (int)zoneDef_.paramDefs[i].definitions.size(); ++j)
         {
-            if(shared_ptr<Widget> widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName))
+            Widget *widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName);
+            if (widget)
             {
                 if(shared_ptr<LearnInfo> info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
                 {
@@ -3636,8 +3638,7 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
                                 
                                 int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
 
-                                shared_ptr<Widget> controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
-                                
+                                Widget *controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
                                 
                                 istringstream displayModifiersAndWidgetName(tokens[0]);
 
@@ -3646,7 +3647,7 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
                                 while (getline(displayModifiersAndWidgetName, modifierToken, '+'))
                                     modifierTokens.push_back(modifierToken);
 
-                                shared_ptr<Widget> displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
+                                Widget *displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
 
                                 if(controlWidget && displayWidget)
                                     controlDisplayAssociations_[modifier][controlWidget] = displayWidget;
@@ -3721,7 +3722,7 @@ void ZoneManager::WidgetMoved(ActionContext* context)
                 }
             }
            
-            shared_ptr<Widget> widget = context->GetWidget();
+            Widget *widget = context->GetWidget();
             
             SetParamNum(widget, fxParamNum);
             
@@ -3742,7 +3743,7 @@ void ZoneManager::WidgetMoved(ActionContext* context)
     lastTouched_ = info;
 }
 
-void ZoneManager::SetParamNum(shared_ptr<Widget> widget, int fxParamNum)
+void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
 {
     fxLayout_->SetFXParamNum(widget, fxParamNum);
 
@@ -4329,7 +4330,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
     }
 }
 
-void ZoneManager::DoTouch(shared_ptr<Widget> widget, double value)
+void ZoneManager::DoTouch(Widget *widget, double value)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value);
     
@@ -4545,15 +4546,15 @@ void ControlSurface::OnTrackSelection(MediaTrack* track)
 
 void ControlSurface::ForceClearTrack(int trackNum)
 {
-    for(int i = 0; i < (int)widgets_.size(); ++i)
-        if(widgets_[i]->GetChannelNumber() + channelOffset_ == trackNum)
-            widgets_[i]->ForceClear();
+    for(int i = 0; i < widgets_.GetSize(); ++i)
+        if(widgets_.Get(i)->GetChannelNumber() + channelOffset_ == trackNum)
+            widgets_.Get(i)->ForceClear();
 }
 
 void ControlSurface::ForceUpdateTrackColors()
 {
-    for(int i = 0; i < (int)trackColorFeedbackProcessors_.size(); ++i)
-        trackColorFeedbackProcessors_[i]->ForceUpdateTrackColors();
+    for(int i = 0; i < trackColorFeedbackProcessors_.GetSize(); ++i)
+        trackColorFeedbackProcessors_.Get(i)->ForceUpdateTrackColors();
 }
 
 rgba_color ControlSurface::GetTrackColorForChannel(int channel)
@@ -4579,8 +4580,8 @@ rgba_color ControlSurface::GetTrackColorForChannel(int channel)
 
 void ControlSurface::RequestUpdate()
 {
-    for(int i = 0; i < (int)trackColorFeedbackProcessors_.size(); ++i)
-        trackColorFeedbackProcessors_[i]->UpdateTrackColors();
+    for(int i = 0; i < trackColorFeedbackProcessors_.GetSize(); ++i)
+        trackColorFeedbackProcessors_.Get(i)->UpdateTrackColors();
     
     zoneManager_->RequestUpdate();
     
