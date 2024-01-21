@@ -2798,8 +2798,6 @@ protected:
     string const name_;
     ZoneManager *zoneManager_;
     shared_ptr<ModifierManager> modifierManager_ = nullptr;
-
-    struct ProtectedTag {}; // to block constructor use by external code
     
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
@@ -4491,6 +4489,9 @@ class Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
+    map<string, Midi_ControlSurfaceIO*> midiSurfaces_;
+    map<string, OSC_ControlSurfaceIO*> oscSurfaces_;
+
     map<string, shared_ptr<Action>> actions_;
     map<string, shared_ptr<Action>> learnFXActions_;
 
@@ -4581,6 +4582,15 @@ public:
         //GenerateX32SurfaceFile();
     }
 
+    ~Manager()
+    {
+        for(auto [key, surface] : midiSurfaces_)
+            delete surface;
+        
+        for(auto [key, surface] : oscSurfaces_)
+            delete surface;
+    }
+    
     void Shutdown()
     {
         fxParamsDisplay_ = false;

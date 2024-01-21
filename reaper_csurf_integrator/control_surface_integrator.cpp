@@ -1533,9 +1533,6 @@ void Manager::Init()
 {
     pages_.clear();
     
-    map<string, Midi_ControlSurfaceIO*> midiSurfaces;
-    map<string, OSC_ControlSurfaceIO*> oscSurfaces;
-
     string currentBroadcaster = "";
     
     Page* currentPage = nullptr;
@@ -1585,9 +1582,9 @@ void Manager::Init()
             if(tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if(tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
-                    midiSurfaces[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
+                    midiSurfaces_[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
                 else if(tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
+                    oscSurfaces_[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
                 else if(tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
@@ -1648,10 +1645,10 @@ void Manager::Init()
                         string zoneFolder = tokens[4];
                         string fxZoneFolder = tokens[5];
                         
-                        if(midiSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces[tokens[0]]));
-                        else if(oscSurfaces.count(tokens[0]) > 0)
-                            currentPage->AddSurface(new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces[tokens[0]]));
+                        if(midiSurfaces_.count(tokens[0]) > 0)
+                            currentPage->AddSurface(new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces_[tokens[0]]));
+                        else if(oscSurfaces_.count(tokens[0]) > 0)
+                            currentPage->AddSurface(new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces_[tokens[0]]));
                     }
                 }
             }
