@@ -3320,8 +3320,7 @@ public:
     {
         for(auto [key, generators] : Midi_CSIMessageGeneratorsByMessage_)
             for(auto generator : generators)
-                if(generator != nullptr)
-                    delete generator;
+                delete generator;
     }
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
@@ -4236,8 +4235,6 @@ private:
     ModifierManager* modifierManager_;
     vector<ControlSurface*> surfaces_;
     
-    struct PrivateTag {}; // to block constructor use by external code
-    
 public:
     Page(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name)
     {
@@ -4634,6 +4631,9 @@ public:
 
         for(auto [key, action] : learnFXActions_)
             delete action;
+        
+        for(int i = 0; i < pages_.size(); ++i)
+            delete pages_[i];
     }
     
     void Shutdown()

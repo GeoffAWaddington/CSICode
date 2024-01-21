@@ -931,10 +931,8 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
             surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
         else if(widgetType == "Press" && size == 7)
         {
-            PressRelease_Midi_CSIMessageGenerator* generator = new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2);
-            
-            surface->AddCSIMessageGenerator(generator, message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
-            surface->AddCSIMessageGenerator(generator, message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
+            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
         }
         else if(widgetType == "Fader14Bit" && size == 4)
             surface->AddCSIMessageGenerator(new Fader14Bit_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0] * 0x10000);
@@ -959,10 +957,8 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
             surface->AddCSIMessageGenerator(new Encoder7Bit_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
         else if(widgetType == "Touch" && size == 7)
         {
-            Touch_Midi_CSIMessageGenerator* generator = new Touch_Midi_CSIMessageGenerator(widget, message1, message2);
-            
-            surface->AddCSIMessageGenerator(generator, message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
-            surface->AddCSIMessageGenerator(generator, message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
+            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
         }
         
         // Feedback Processors
