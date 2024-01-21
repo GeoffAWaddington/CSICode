@@ -279,7 +279,7 @@ static void listFilesOfType(const string &path, vector<string> &results, const c
     }
 }
 
-static void GetWidgetNameAndModifiers(const string &line, shared_ptr<ActionTemplate> actionTemplate)
+static void GetWidgetNameAndModifiers(const string &line, ActionTemplate* actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> tokens;
@@ -317,7 +317,7 @@ static void GetWidgetNameAndModifiers(const string &line, shared_ptr<ActionTempl
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-static void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, vector<shared_ptr<ActionTemplate>>>> &actionTemplatesDictionary)
+static void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, vector<ActionTemplate*>>> &actionTemplatesDictionary)
 {
     string feedbackIndicator = "";
     
@@ -330,7 +330,7 @@ static void BuildActionTemplate(const vector<string> &tokens, map<string, map<in
             params.push_back(tokens[i]);
     }
 
-    shared_ptr<ActionTemplate> currentActionTemplate = make_shared<ActionTemplate>();
+    ActionTemplate* currentActionTemplate = new ActionTemplate();
     
     currentActionTemplate->actionName = tokens[1];
     currentActionTemplate->params = params;
@@ -560,7 +560,7 @@ static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, co
     bool isInAssociatedZonesSection = false;
     vector<string> associatedZones;
     
-    map<string, map<int, vector<shared_ptr<ActionTemplate>>>> actionTemplatesDictionary;
+    map<string, map<int, vector<ActionTemplate*>>> actionTemplatesDictionary;
     
     string zoneName = "";
     string zoneAlias = "";
@@ -716,6 +716,11 @@ static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, co
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
         DAW::ShowConsoleMsg(buffer);
     }
+    
+    for(auto [key, actionTemplatesForModifer] : actionTemplatesDictionary)
+        for(auto [key, templates] : actionTemplatesForModifer)
+            for(auto actionTemplate : templates)
+                delete actionTemplate;
 }
 
 static void SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
