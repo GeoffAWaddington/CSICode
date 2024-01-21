@@ -2770,9 +2770,23 @@ private:
     map<int, bool> channelToggles_;
     
 protected:
+    Page* const page_;
+    string const name_;
+    ZoneManager *zoneManager_;
+    ModifierManager* modifierManager_;
+    
+    int const numChannels_ = 0;
+    int const channelOffset_ = 0;
+    
+    WDL_PtrList<Widget> widgets_; // owns list
+    map<string, Widget *> widgetsByName_;
+    
+    map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
+    
+    bool speedX5_;
+
     ControlSurface(Page* page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
-        zoneManager_ = NULL;
         //private:
         scrubModePtr_ = nullptr;
         configScrubMode_ = 0;
@@ -2788,6 +2802,11 @@ protected:
         
         latchTime_ = 100;
         
+        // protected
+        zoneManager_ = NULL;
+        modifierManager_ = new ModifierManager(this);
+        speedX5_ = false;
+        
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
         
@@ -2797,21 +2816,6 @@ protected:
             channelToggles_[i] = false;
         }
     }
-
-    Page* const page_;
-    string const name_;
-    ZoneManager *zoneManager_;
-    shared_ptr<ModifierManager> modifierManager_ = nullptr;
-    
-    int const numChannels_ = 0;
-    int const channelOffset_ = 0;
-    
-    WDL_PtrList<Widget> widgets_; // owns list
-    map<string, Widget *> widgetsByName_;
-    
-    map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
-    
-    bool speedX5_ = false;
     
     void StopRewinding()
     {
@@ -2857,6 +2861,7 @@ public:
     {
         widgets_.Empty(true);
         delete zoneManager_;
+        delete modifierManager_;
         
         for( auto [key, generator] : CSIMessageGeneratorsByMessage_)
             if(generator != nullptr)
@@ -2883,7 +2888,7 @@ public:
     virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
     
-    shared_ptr<ModifierManager> GetModifierManager() { return modifierManager_; }
+    ModifierManager* GetModifierManager() { return modifierManager_; }
     ZoneManager *GetZoneManager() { return zoneManager_; }
     Page* GetPage() { return page_; }
     string GetName() { return name_; }
@@ -3204,7 +3209,7 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    shared_ptr<Midi_ControlSurface> const surface_ = nullptr;
+    Midi_ControlSurface* const surface_ = nullptr;
     
     MIDI_event_ex_t* lastMessageSent_;
     MIDI_event_ex_t* midiFeedbackMessage1_;

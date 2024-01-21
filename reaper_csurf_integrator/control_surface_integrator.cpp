@@ -4946,8 +4946,6 @@ Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int num
     InitHardwiredWidgets(this);
     InitializeMeters();
     zoneManager_->Initialize();
-
-    modifierManager_ = make_shared<ModifierManager>(this);
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
@@ -5099,8 +5097,6 @@ OSC_ControlSurface::OSC_ControlSurface(Page* page, const string &name, int numCh
     ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, this);
     InitHardwiredWidgets(this);
     zoneManager_->Initialize();
-    
-    modifierManager_ = make_shared<ModifierManager>(this);
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
