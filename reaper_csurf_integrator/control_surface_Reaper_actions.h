@@ -47,7 +47,7 @@ public:
     {
         double min, max = 0.0;
     
-        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         if(info == nullptr)
             return 0.0;
@@ -63,7 +63,7 @@ public:
 
     virtual void RequestUpdate(ActionContext* context) override
     {
-        shared_ptr<LearnInfo> info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
+        LearnInfo* info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         if(info == nullptr)
         {

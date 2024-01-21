@@ -2415,7 +2415,7 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
             
             for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
             {
-                shared_ptr<LearnInfo> info = zoneManager_->GetLearnInfo(cell.fxParamWidgets[i], modifier);
+                LearnInfo* info = zoneManager_->GetLearnInfo(cell.fxParamWidgets[i], modifier);
                                 
                 if(info->isLearned)
                 {
@@ -3277,7 +3277,7 @@ void ZoneManager::SaveLearnedFXParams()
                         
                         for(int i = 0; i < cell.fxParamWidgets.size(); i++)
                         {
-                            shared_ptr<LearnInfo> info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
+                            LearnInfo* info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
                             
                             if(info == nullptr)
                                 continue;
@@ -3327,22 +3327,22 @@ void ZoneManager::SaveLearnedFXParams()
     }
 }
 
-shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(Widget *widget)
+LearnInfo* ZoneManager::GetLearnInfo(Widget *widget)
 {
     vector<int> modifiers = surface_->GetModifiers();
 
     if(modifiers.size() > 0)
         return GetLearnInfo(widget, modifiers[0]);
     else
-        return  shared_ptr<LearnInfo>(nullptr);
+        return nullptr;
 }
 
-shared_ptr<LearnInfo> ZoneManager::GetLearnInfo(Widget *widget, int modifier)
+LearnInfo* ZoneManager::GetLearnInfo(Widget *widget, int modifier)
 {
     if(learnedFXParams_.count(widget) > 0 && learnedFXParams_[widget].count(modifier) > 0)
         return learnedFXParams_[widget][modifier];
     else
-        return shared_ptr<LearnInfo>(nullptr);
+        return nullptr;
 }
 
 void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
@@ -3535,7 +3535,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
-                            shared_ptr<LearnInfo> info = make_shared<LearnInfo>(widget, cellAdress);
+                            LearnInfo* info = new LearnInfo(widget, cellAdress);
                             learnedFXParams_[widget][modifier] = info;
                         }
                         
@@ -3561,7 +3561,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
             Widget *widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName);
             if (widget)
             {
-                if(shared_ptr<LearnInfo> info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
+                if(LearnInfo* info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
                 {
                     if(zoneDef_.paramDefs[i].definitions[j].paramNumber != "" && zoneDef_.paramDefs[i].definitions[j].paramNameDisplayWidget != "NullDisplay")
                     {
@@ -3687,7 +3687,7 @@ void ZoneManager::WidgetMoved(ActionContext* context)
     
     MediaTrack* track = nullptr;
     
-    shared_ptr<LearnInfo> info = GetLearnInfo(context->GetWidget());
+    LearnInfo* info = GetLearnInfo(context->GetWidget());
     
     if(info == nullptr)
         return;
@@ -3811,7 +3811,7 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                     
                     if(widget && lineTokens.size() > 1)
                     {
-                        shared_ptr<LearnInfo> info = GetLearnInfo(widget);
+                        LearnInfo* info = GetLearnInfo(widget);
                         
                         if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
                             replacementString += " " + info->params + " ";
@@ -3838,7 +3838,7 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
 
     MediaTrack* track = nullptr;
     
-    shared_ptr<LearnInfo> info = GetLearnInfo(context->GetWidget());
+    LearnInfo* info = GetLearnInfo(context->GetWidget());
     
     if(info == nullptr)
         return;

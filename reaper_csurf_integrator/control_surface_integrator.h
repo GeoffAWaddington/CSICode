@@ -1109,11 +1109,11 @@ private:
     map<string, int*> bankOffsets_;
     
     string learnFXName_;
-    shared_ptr<LearnInfo> lastTouched_;
+    LearnInfo* lastTouched_;
 
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
-    map<Widget *, map<int, shared_ptr<LearnInfo>>> learnedFXParams_;
+    map<Widget *, map<int, LearnInfo*>> learnedFXParams_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex);
 
@@ -1596,6 +1596,13 @@ public:
         learnFXName_ = "";
         lastTouched_ = nullptr;
     }
+
+    ~ZoneManager()
+    {
+        for(auto [key, learnedFXParamsForModifier] : learnedFXParams_)
+            for(auto [key, learnedFXParam] : learnedFXParamsForModifier)
+                delete learnedFXParam;
+    }
         
     void Initialize();
     
@@ -1623,8 +1630,8 @@ public:
     void SetParamNum(Widget *widget, int fxParamNum);
 
     void DoLearn(ActionContext* context, double value);
-    shared_ptr<LearnInfo> GetLearnInfo(Widget *widget);
-    shared_ptr<LearnInfo> GetLearnInfo(Widget *, int modifier);
+    LearnInfo* GetLearnInfo(Widget *widget);
+    LearnInfo* GetLearnInfo(Widget *, int modifier);
 
     void DoTouch(Widget *widget, double value);
     
