@@ -551,7 +551,7 @@ static void GetColorValues(vector<rgba_color> &colorValues, const vector<string>
     }
 }
 
-static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, const vector<shared_ptr<Navigator>> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, const vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -2140,7 +2140,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     //protected:
     isActive_ = false;
@@ -2151,7 +2151,7 @@ Zone::Zone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int
         {
             if(zoneManager_->GetZoneFilePaths().count(associatedZones[i]) > 0)
             {
-                vector<shared_ptr<Navigator>> navigators;
+                vector<Navigator*> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
                 associatedZones_[associatedZones[i]] = vector<shared_ptr<Zone>>();
@@ -2165,7 +2165,7 @@ Zone::Zone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int
     {
         if(zoneManager_->GetZoneFilePaths().count(includedZones[i]) > 0)
         {
-            vector<shared_ptr<Navigator>> navigators;
+            vector<Navigator*> navigators;
             AddNavigatorsForZone(includedZones[i], navigators);
             
             ProcessZoneFile(zoneManager_->GetZoneFilePaths()[includedZones[i]].filePath, zoneManager_, navigators, includedZones_, nullptr);
@@ -2179,7 +2179,7 @@ void Zone::InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosi
     {
         if(zoneManager_->GetZoneFilePaths().count(subZones[i]) > 0)
         {
-            vector<shared_ptr<Navigator>> navigators;
+            vector<Navigator*> navigators;
             navigators.push_back(GetNavigator());
 
             subZones_[subZones[i]] = vector<shared_ptr<Zone>>();
@@ -2467,7 +2467,7 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
     }
 }
 
-void Zone::AddNavigatorsForZone(const string &zoneName, vector<shared_ptr<Navigator>> &navigators)
+void Zone::AddNavigatorsForZone(const string &zoneName, vector<Navigator*> &navigators)
 {
     if(zoneName == "MasterTrack")
         navigators.push_back(zoneManager_->GetMasterTrackNavigator());
@@ -2475,7 +2475,7 @@ void Zone::AddNavigatorsForZone(const string &zoneName, vector<shared_ptr<Naviga
     {
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
         {
-            shared_ptr<Navigator> channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
+            Navigator* channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
             if(channelNavigator)
                 navigators.push_back(channelNavigator);
         }
@@ -2787,7 +2787,7 @@ void ZoneManager::Initialize()
         return;
     }
         
-    vector<shared_ptr<Navigator>> navigators;
+    vector<Navigator*> navigators;
     navigators.push_back(GetSelectedTrackNavigator());
     vector<shared_ptr<Zone>> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
       ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
@@ -2927,7 +2927,7 @@ void ZoneManager::GoFocusedFX()
         
         if(zoneFilePaths_.count(FXName) > 0)
         {
-            vector<shared_ptr<Navigator>> navigators;
+            vector<Navigator*> navigators;
             navigators.push_back(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
             ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, nullptr);
@@ -2967,7 +2967,7 @@ void ZoneManager::GoSelectedTrackFX()
             
             if(zoneFilePaths_.count(FXName) > 0)
             {
-                vector<shared_ptr<Navigator>> navigators;
+                vector<Navigator*> navigators;
                 navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
                 ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, nullptr);
                 
@@ -3052,7 +3052,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
     }
 }
 
-void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, int fxSlot)
+void ZoneManager::GoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
 {
     if(fxSlot > DAW::TrackFX_GetCount(track) - 1)
         return;
@@ -3066,7 +3066,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, shared_ptr<Navigator> navigator, i
 
     if(zoneFilePaths_.count(fxName) > 0)
     {
-        vector<shared_ptr<Navigator>> navigators;
+        vector<Navigator*> navigators;
         navigators.push_back(navigator);
         
         ProcessZoneFile(zoneFilePaths_[fxName].filePath, this, navigators, fxSlotZones_, nullptr);
@@ -3371,7 +3371,7 @@ void ZoneManager::InitializeNoMapZone()
     
     if(GetZoneFilePaths().count("NoMap") > 0)
     {
-        vector<shared_ptr<Navigator>> navigators;
+        vector<Navigator*> navigators;
         navigators.push_back(GetSelectedTrackNavigator());
         
         vector<shared_ptr<Zone>> zones;
@@ -3938,7 +3938,7 @@ void ZoneManager::RemapAutoZone()
     {
         if(::RemapAutoZoneDialog(this, fxSlotZones_[0]->GetSourceFilePath()))
         {
-            vector<shared_ptr<Navigator>> navigators;
+            vector<Navigator*> navigators;
             navigators.push_back(fxSlotZones_[0]->GetNavigator());
             
             string filePath = fxSlotZones_[0]->GetSourceFilePath();
@@ -4324,7 +4324,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
     
     if(zoneFilePaths_.count(fxName) > 0)
     {
-        vector<shared_ptr<Navigator>> navigators;
+        vector<Navigator*> navigators;
         navigators.push_back(GetSelectedTrackNavigator());
         
         ProcessZoneFile(zoneFilePaths_[fxName].filePath, this, navigators, fxSlotZones_, nullptr);
@@ -4370,9 +4370,9 @@ void ZoneManager::DoTouch(Widget *widget, double value)
         homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 }
 
-shared_ptr<Navigator> ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
-shared_ptr<Navigator> ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
-shared_ptr<Navigator> ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
+Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
+Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
+Navigator* ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
