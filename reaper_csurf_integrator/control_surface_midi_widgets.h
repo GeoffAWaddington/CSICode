@@ -597,7 +597,7 @@ struct RowInfo
     static void dispose(RowInfo *r) { delete r; }
 };
 
-static void CalculateRowInfo(const vector<shared_ptr<ActionContext>> &contexts, WDL_StringKeyedArray<RowInfo*> &rows)
+static void CalculateRowInfo(const vector<ActionContext *> &contexts, WDL_StringKeyedArray<RowInfo*> &rows)
 {
     rows.DeleteAll();
     
@@ -704,7 +704,7 @@ public:
         ForceValue(properties, 0.0);
     }
     
-    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
+    virtual void Configure(const vector<ActionContext *> &contexts) override
     {
         CalculateRowInfo(contexts,rows_);
 
@@ -874,7 +874,7 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
+    virtual void Configure(const vector<ActionContext *> &contexts) override
     {
         CalculateRowInfo(contexts,rows_);
 
@@ -1124,7 +1124,7 @@ public:
         return val + 64;
     }
         
-    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) override
+    virtual void Configure(const vector<ActionContext *> &contexts) override
     {
         if(contexts.size() == 0)
             return;

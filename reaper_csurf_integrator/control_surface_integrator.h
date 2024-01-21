@@ -606,10 +606,11 @@ protected:
     map<string, vector<shared_ptr<Zone>>> subZones_;
     map<string, vector<shared_ptr<Zone>>> associatedZones_;
     
-    map<Widget *, map<int, vector<shared_ptr<ActionContext>>>> actionContextDictionary_;
-    vector<shared_ptr<ActionContext>> empty_;
+    WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
+    map<Widget *, map<int, vector<ActionContext*> > > actionContextDictionary_;
+    vector<ActionContext *> empty_;
     map<Widget *, int> currentActionContextModifiers_;
-    vector<shared_ptr<ActionContext>> defaultContexts_;
+    vector<ActionContext *> defaultContexts_;
     
     void AddNavigatorsForZone(const string &zoneName, vector<shared_ptr<Navigator>> &navigators);
     void UpdateCurrentActionContextModifier(Widget *widget);
@@ -617,7 +618,9 @@ protected:
 public:
     Zone(ZoneManager * const zoneManager, shared_ptr<Navigator> navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
-    virtual ~Zone() {}
+    virtual ~Zone() {
+        actionContextNeedFree_.Empty(true);
+    }
     
     void InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosingZone);
     void GoAssociatedZone(const string &associatedZoneName);
@@ -628,7 +631,7 @@ public:
     void SetXTouchDisplayColors(const string &color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
-    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget *widget);
+    const vector<ActionContext *> &GetActionContexts(Widget *widget);
     void Activate();
     void Deactivate();
     void DoAction(Widget *widget, bool &isUsed, double value);
@@ -741,12 +744,13 @@ public:
             return nullptr;
     }
     
-    void AddActionContext(Widget *widget, int modifier, shared_ptr<ActionContext> actionContext)
+    void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
+        actionContextNeedFree_.Add(actionContext);
     }
     
-    vector<shared_ptr<ActionContext>> &GetActionContexts(Widget *widget, int modifier)
+    const vector<ActionContext *> &GetActionContexts(Widget *widget, int modifier)
     {
         if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
             return actionContextDictionary_[widget][modifier];
@@ -979,7 +983,7 @@ public:
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
-    void Configure(vector<shared_ptr<ActionContext>> &contexts);
+    void Configure(const vector<ActionContext *> &contexts);
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void RunDeferredActions();
@@ -3148,7 +3152,7 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color &color) {}
-    virtual void Configure(const vector<shared_ptr<ActionContext>> &contexts) {}
+    virtual void Configure(const vector<ActionContext *> &contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(const rgba_color &color) {}
     virtual void ForceValue(map<string, string> &properties, const string &value) {}
@@ -4669,36 +4673,36 @@ public:
             osara_outputMessage(phrase.c_str());
     }
     
-    shared_ptr<ActionContext> GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params)
     {
         if(actions_.count(actionName) > 0)
-            return make_shared<ActionContext>(actions_[actionName], widget, zone, params);
+            return new ActionContext(actions_[actionName], widget, zone, params);
         else
-            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
+            return new ActionContext(actions_["NoAction"], widget, zone, params);
     }
 
-    shared_ptr<ActionContext> GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, int paramIndex)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, int paramIndex)
     {
         if(actions_.count(actionName) > 0)
-            return make_shared<ActionContext>(actions_[actionName], widget, zone, paramIndex);
+            return new ActionContext(actions_[actionName], widget, zone, paramIndex);
         else
-            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, paramIndex);
+            return new ActionContext(actions_["NoAction"], widget, zone, paramIndex);
     }
 
-    shared_ptr<ActionContext> GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const string &stringParam)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const string &stringParam)
     {
         if(actions_.count(actionName) > 0)
-            return make_shared<ActionContext>(actions_[actionName], widget, zone, stringParam);
+            return new ActionContext(actions_[actionName], widget, zone, stringParam);
         else
-            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, stringParam);
+            return new ActionContext(actions_["NoAction"], widget, zone, stringParam);
     }
 
-    shared_ptr<ActionContext> GetLearnFXActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params)
+    ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params)
     {
         if(learnFXActions_.count(actionName) > 0)
-            return make_shared<ActionContext>(learnFXActions_[actionName], widget, zone, params);
+            return new ActionContext(learnFXActions_[actionName], widget, zone, params);
         else
-            return make_shared<ActionContext>(actions_["NoAction"], widget, zone, params);
+            return new ActionContext(actions_["NoAction"], widget, zone, params);
     }
 
     void OnTrackSelection(MediaTrack *track)

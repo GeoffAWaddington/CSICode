@@ -643,7 +643,7 @@ static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, co
                                     for(int k = 0; k < actionTemplates[j]->params.size(); k++)
                                         memberParams.push_back(regex_replace(actionTemplates[j]->params[k], regex("[|]"), numStr));
                                     
-                                    shared_ptr<ActionContext> context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
+                                    ActionContext *context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
                                         
                                     context->SetProvideFeedback(actionTemplates[j]->provideFeedback);
                                     
@@ -2218,7 +2218,7 @@ int Zone::GetParamIndex(const string &widgetName)
 {
     if(widgetsByName_.count(widgetName) > 0)
     {
-        vector<shared_ptr<ActionContext>> contexts = GetActionContexts(widgetsByName_[widgetName]);
+        const vector<ActionContext *> &contexts = GetActionContexts(widgetsByName_[widgetName]);
         
         if(contexts.size() > 0)
             return contexts[0]->GetParamIndex();
@@ -2575,7 +2575,7 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
     }
 }
 
-vector<shared_ptr<ActionContext>> &Zone::GetActionContexts(Widget *widget)
+const vector<ActionContext *> &Zone::GetActionContexts(Widget *widget)
 {
     if(currentActionContextModifiers_.count(widget) == 0)
         UpdateCurrentActionContextModifier(widget);
@@ -2614,7 +2614,7 @@ ZoneManager *Widget::GetZoneManager()
     return surface_->GetZoneManager();
 }
 
-void Widget::Configure(vector<shared_ptr<ActionContext>> &contexts)
+void Widget::Configure(const vector<ActionContext*> &contexts)
 {
     for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->Configure(contexts);
@@ -3422,7 +3422,7 @@ void ZoneManager::InitializeNoMapZone()
                     if(widget == NULL || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
-                    shared_ptr<ActionContext> context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                    ActionContext *context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
 
@@ -3509,7 +3509,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
-                        shared_ptr<ActionContext> context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
+                        ActionContext *context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
                         context->SetProvideFeedback(true);
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
