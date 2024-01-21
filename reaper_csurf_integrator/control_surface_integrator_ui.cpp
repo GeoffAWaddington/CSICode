@@ -1415,7 +1415,7 @@ struct SurfaceLine
     }
 };
 
-static vector<shared_ptr<SurfaceLine>> s_surfaces;
+static vector<SurfaceLine*> s_surfaces;
 
 struct PageSurfaceLine
 {
@@ -1471,7 +1471,7 @@ struct Listener
 struct Broadcaster
 {
     string name;
-    vector<shared_ptr<Listener>> listeners;
+    vector<Listener*> listeners;
     
     Broadcaster()
     {
@@ -1486,8 +1486,8 @@ struct PageLine
     bool synchPages;
     bool isScrollLinkEnabled;
     bool scrollSynch;
-    vector<shared_ptr<PageSurfaceLine>> surfaces;
-    vector<shared_ptr<Broadcaster>> broadcasters;
+    vector<PageSurfaceLine*> surfaces;
+    vector<Broadcaster*> broadcasters;
     
     PageLine()
     {
@@ -1500,21 +1500,21 @@ struct PageLine
 };
 
 // Scratch pad to get in and out of dialogs easily
-static vector<shared_ptr<Broadcaster>> s_broadcasters;
+static vector<Broadcaster*> s_broadcasters;
 
-static void TransferBroadcasters(vector<shared_ptr<Broadcaster>> &source, vector<shared_ptr<Broadcaster>> &destination)
+static void TransferBroadcasters(vector<Broadcaster*> &source, vector<Broadcaster*> &destination)
 {
     destination.clear();
     
     for(int i = 0; i < (int)source.size(); ++i)
     {
-        shared_ptr<Broadcaster> destinationBroadcaster = make_shared<Broadcaster>();
+        Broadcaster* destinationBroadcaster = new Broadcaster();
         
         destinationBroadcaster->name = source[i]->name;
         
         for(int j = 0; j < (int)source[i]->listeners.size(); ++j)
         {
-            shared_ptr<Listener> destinationListener = make_shared<Listener>();
+            Listener* destinationListener = new Listener();
             
             destinationListener->name = source[i]->listeners[j]->name;
             
@@ -1556,7 +1556,7 @@ static string s_templateFilename = "";
 static string s_zoneTemplateFolder = "";
 static string s_fxZoneTemplateFolder = "";
 
-static vector<shared_ptr<PageLine>> s_pages;
+static vector<PageLine*> s_pages;
 
 void AddComboEntry(HWND hwndDlg, int x, char * buf, int comboId)
 {
@@ -2063,7 +2063,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     return 0;
 }
 
-static void SetCheckBoxes(HWND hwndDlg, shared_ptr<Listener> listener)
+static void SetCheckBoxes(HWND hwndDlg, Listener* listener)
 {
     SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
 
@@ -2176,7 +2176,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                     foundit = true;
                             if(! foundit)
                             {
-                                shared_ptr<Broadcaster> broadcaster = make_shared<Broadcaster>();
+                                Broadcaster* broadcaster = new Broadcaster();
                                 broadcaster->name = broadcasterName;
                                 s_broadcasters.push_back(broadcaster);
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
@@ -2203,7 +2203,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 foundit = true;
                             if(! foundit)
                             {
-                                shared_ptr<Listener> listener = make_shared<Listener>();
+                                Listener* listener = new Listener();
                                 listener->name = listenerName;
                                  s_broadcasters[broadcasterIndex]->listeners.push_back(listener);
                                 AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
@@ -2520,7 +2520,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
                                 if(s_dlgResult == IDOK)
                                 {
-                                    shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
+                                    SurfaceLine* surface = new SurfaceLine();
                                     surface->type = s_MidiSurfaceToken;
                                     surface->name = s_surfaceName;
                                     surface->inPort = s_surfaceInPort;
@@ -2546,7 +2546,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                 if(s_dlgResult == IDOK)
                                 {
-                                    shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
+                                    SurfaceLine* surface = new SurfaceLine();
                                     surface->type = s_OSCSurfaceToken;
                                     surface->name = s_surfaceName;
                                     surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
@@ -2570,7 +2570,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                             if(s_dlgResult == IDOK)
                             {
-                                shared_ptr<PageLine> page = make_shared<PageLine>();
+                                PageLine* page = new PageLine();
                                 page->name = s_surfaceName;
                                 page->followMCP = s_followMCP;
                                 page->synchPages = s_synchPages;
@@ -2592,7 +2592,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                             if(s_dlgResult == IDOK)
                             {
-                                shared_ptr<PageSurfaceLine> pageSurface = make_shared<PageSurfaceLine>();
+                                PageSurfaceLine* pageSurface = new PageSurfaceLine();
                                 pageSurface->pageSurfaceName = s_pageSurfaceName;
                                 pageSurface->numChannels = s_numChannels;
                                 pageSurface->channelOffset = s_channelOffset;
@@ -2786,9 +2786,6 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             
         case WM_INITDIALOG:
         {
-            s_surfaces.clear();
-            s_pages.clear();
-            
             string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
             
             ifstream iniFile(iniFilePath);
@@ -2824,7 +2821,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     
                     if(tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
                     {
-                        shared_ptr<SurfaceLine> surface = make_shared<SurfaceLine>();
+                        SurfaceLine* surface = new SurfaceLine();
                         
                         surface->type = tokens[0];
                         surface->name = tokens[1];
@@ -2860,7 +2857,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 scrollSynch = true;
                         }
 
-                        shared_ptr<PageLine> page = make_shared<PageLine>();
+                        PageLine* page = new PageLine();
                         page->name = tokens[1];
                         page->followMCP = followMCP;
                         page->synchPages = synchPages;
@@ -2873,13 +2870,13 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     }
                     else if(tokens[0] == "Broadcaster" && tokens.size() == 2 && s_pages.size() > 0)
                     {
-                        shared_ptr<Broadcaster> broadcaster = make_shared<Broadcaster>();
+                        Broadcaster* broadcaster = new Broadcaster();
                         broadcaster->name = tokens[1];
                         s_pages.back()->broadcasters.push_back(broadcaster);
                     }
                     else if(tokens[0] == "Listener" && tokens.size() == 3 && s_pages.size() > 0 && s_pages.back()->broadcasters.size() > 0)
                     {
-                        shared_ptr<Listener> listener = make_shared<Listener>();
+                        Listener* listener = new Listener();
                         listener->name = tokens[1];
 
                         vector<string> categoryTokens;
@@ -2921,7 +2918,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             tokens.erase(tokens.begin()); // pop front
                         }
 
-                        shared_ptr<PageSurfaceLine> surface = make_shared<PageSurfaceLine>();
+                        PageSurfaceLine* surface = new PageSurfaceLine();
                         
                         if (! s_pages.empty())
                         {
@@ -2954,6 +2951,33 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         }
         break;
         
+        case WM_DESTROY:
+        {
+            for(auto surface : s_surfaces)
+                delete surface;
+        
+            s_surfaces.clear();
+        
+            for(auto pageLine : s_pages)
+            {
+                for(auto surfaceLine : pageLine->surfaces)
+                    delete surfaceLine;
+                
+                for(auto broadcaster : pageLine->broadcasters)
+                {
+                    for(auto listener : broadcaster->listeners)
+                        delete listener;
+                    
+                    delete broadcaster;
+                }
+                
+                delete pageLine;
+            }
+            
+            s_pages.clear();
+        }
+        break;
+
         case WM_USER+1024:
         {
             ofstream iniFile(string(DAW::GetResourcePath()) + "/CSI/CSI.ini");
