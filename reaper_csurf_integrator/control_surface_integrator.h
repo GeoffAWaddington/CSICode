@@ -3201,24 +3201,27 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 protected:
     shared_ptr<Midi_ControlSurface> const surface_ = nullptr;
     
-    shared_ptr<MIDI_event_ex_t> lastMessageSent_;
-    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage1_;
-    shared_ptr<MIDI_event_ex_t> midiFeedbackMessage2_;
+    MIDI_event_ex_t* lastMessageSent_;
+    MIDI_event_ex_t* midiFeedbackMessage1_;
+    MIDI_event_ex_t* midiFeedbackMessage2_;
     
     Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget) : FeedbackProcessor(widget), surface_(surface)
     {
-        lastMessageSent_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
-        midiFeedbackMessage1_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
-        midiFeedbackMessage2_ = make_shared<MIDI_event_ex_t>(0, 0, 0);
+        lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
+        midiFeedbackMessage1_ = new MIDI_event_ex_t(0, 0, 0);
+        midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     }
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, shared_ptr<MIDI_event_ex_t> feedback1) : Midi_FeedbackProcessor(surface, widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget)
     {
+        lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
         midiFeedbackMessage1_ = feedback1;
+        midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     }
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, shared_ptr<MIDI_event_ex_t> feedback1, shared_ptr<MIDI_event_ex_t> feedback2) :  Midi_FeedbackProcessor(surface, widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) :  Midi_FeedbackProcessor(surface, widget)
     {
+        lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
         midiFeedbackMessage1_ = feedback1;
         midiFeedbackMessage2_ = feedback2;
     }
@@ -3228,6 +3231,18 @@ protected:
     void ForceMidiMessage(int first, int second, int third);
 
 public:
+    ~Midi_FeedbackProcessor()
+    {
+        if(lastMessageSent_ != nullptr)
+            delete lastMessageSent_;
+        
+        if(midiFeedbackMessage1_ != nullptr)
+            delete midiFeedbackMessage1_;
+        
+        if(midiFeedbackMessage2_ != nullptr)
+            delete midiFeedbackMessage2_;
+    }
+    
     virtual string GetName() override { return "Midi_FeedbackProcessor"; }
 };
 

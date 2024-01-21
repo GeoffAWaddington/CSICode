@@ -910,18 +910,18 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         
         string widgetType = tokenLines[i][0];
 
-        shared_ptr<MIDI_event_ex_t> message1 = nullptr;
-        shared_ptr<MIDI_event_ex_t> message2 = nullptr;
+        MIDI_event_ex_t* message1 = nullptr;
+        MIDI_event_ex_t* message2 = nullptr;
 
         int twoByteKey = 0;
         
         if(size > 3)
         {
-            message1 = make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
+            message1 = new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
             twoByteKey = message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100;
         }
         if(size > 6)
-            message2 = make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
+            message2 = new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
         
         // Control Signal Generators
         
@@ -1061,11 +1061,11 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         }
         else if(widgetType == "FB_SCE24LEDButton" && size == 4)
         {
-            feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if(widgetType == "FB_SCE24OLEDButton" && size == 4)
         {
-            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(surface, widget, make_shared<MIDI_event_ex_t>(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if(widgetType == "FB_SCE24Encoder" && size == 4)
         {

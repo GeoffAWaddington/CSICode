@@ -90,7 +90,7 @@ struct MIDI_event_ex_t : MIDI_event_t
         midi_message[3] = 0x00;
     };
     
-    bool IsEqualTo(const shared_ptr<MIDI_event_ex_t> other) const
+    bool IsEqualTo(const MIDI_event_ex_t* other) const
     {
         if(this->size != other->size)
             return false;
