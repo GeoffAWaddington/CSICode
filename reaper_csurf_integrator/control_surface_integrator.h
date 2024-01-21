@@ -2809,7 +2809,7 @@ protected:
     WDL_PtrList<Widget> widgets_; // owns list
     map<string, Widget *> widgetsByName_;
     
-    map<string, shared_ptr<CSIMessageGenerator>> CSIMessageGeneratorsByMessage_;
+    map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     
     bool speedX5_ = false;
     
@@ -2857,6 +2857,10 @@ public:
     {
         widgets_.Empty(true);
         delete zoneManager_;
+        
+        for( auto [key, generator] : CSIMessageGeneratorsByMessage_)
+            if(generator != nullptr)
+                delete generator;
     }
     
     void Stop();
@@ -3061,8 +3065,9 @@ public:
         zoneManager_->AddWidget(widget);
     }
     
-    void AddCSIMessageGenerator(shared_ptr<CSIMessageGenerator> messageGenerator, const string &message)
+    void AddCSIMessageGenerator(CSIMessageGenerator* messageGenerator, const string &message)
     {
+        if(WDL_NOT_NORMALLY(!messageGenerator)) { return; }
         CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
 

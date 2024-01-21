@@ -1195,13 +1195,13 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, con
     for(int i = 0; i < (int)tokenLines.size(); ++i)
     {
         if(tokenLines[i].size() > 1 && tokenLines[i][0] == "Control")
-            surface->AddCSIMessageGenerator(make_shared<CSIMessageGenerator>(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(new CSIMessageGenerator(widget), tokenLines[i][1]);
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "AnyPress")
-            surface->AddCSIMessageGenerator(make_shared<AnyPress_CSIMessageGenerator>(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(new AnyPress_CSIMessageGenerator(widget), tokenLines[i][1]);
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "MotorizedFaderWithoutTouch")
-            surface->AddCSIMessageGenerator(make_shared<MotorizedFaderWithoutTouch_CSIMessageGenerator>(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(new MotorizedFaderWithoutTouch_CSIMessageGenerator(widget), tokenLines[i][1]);
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
-            surface->AddCSIMessageGenerator(make_shared<Touch_CSIMessageGenerator>(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(new Touch_CSIMessageGenerator(widget), tokenLines[i][1]);
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
             widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(surface, widget, tokenLines[i][1]));
         else if(tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
