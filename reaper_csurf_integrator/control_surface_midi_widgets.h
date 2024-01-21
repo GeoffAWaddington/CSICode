@@ -21,30 +21,16 @@ private:
     MIDI_event_ex_t* press_;
     MIDI_event_ex_t* release_;
     
-    int lastReceived;
-    
 public:
     virtual ~PressRelease_Midi_CSIMessageGenerator() {}
-    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press)
-    {
-        lastReceived = 0;
-    }
+
+    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press) {}
     
-    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release)
-    {
-        lastReceived = 0;
-    }
+    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
     {
-        int received = midiMessage->IsEqualTo(press_) ? 1 : 0;
-        
-        if(lastReceived == received)
-            return;
-        
-        lastReceived = received;
-        
-        widget_->GetZoneManager()->DoAction(widget_, received);
+        widget_->GetZoneManager()->DoAction(widget_, midiMessage->IsEqualTo(press_) ? 1 : 0);
     }
 };
 
