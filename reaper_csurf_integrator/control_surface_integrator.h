@@ -338,7 +338,7 @@ class ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Action> const action_;
+    Action* const action_;
     Widget * const widget_;
     shared_ptr<Zone> const zone_;
 
@@ -389,15 +389,15 @@ private:
     void UpdateTrackColor();
 
 public:
-    ActionContext(shared_ptr<Action> action, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params);
-    ActionContext(shared_ptr<Action> action, Widget *widget, shared_ptr<Zone> zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
+    ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params);
+    ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
     {
         paramIndex_ = paramIndex;
         
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
-    ActionContext(shared_ptr<Action> action, Widget *widget, shared_ptr<Zone> zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
+    ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
     {
         stringParam_ = stringParam;
         
@@ -407,7 +407,7 @@ public:
 
     virtual ~ActionContext() {}
     
-    shared_ptr<Action> GetAction() { return action_; }
+    Action* GetAction() { return action_; }
     Widget *GetWidget() { return widget_; }
     shared_ptr<Zone> GetZone() { return zone_; }
     int GetSlotIndex();
@@ -4496,8 +4496,8 @@ private:
     map<string, Midi_ControlSurfaceIO*> midiSurfaces_;
     map<string, OSC_ControlSurfaceIO*> oscSurfaces_;
 
-    map<string, shared_ptr<Action>> actions_;
-    map<string, shared_ptr<Action>> learnFXActions_;
+    map<string, Action*> actions_;
+    map<string, Action*> learnFXActions_;
 
     vector <Page*> pages_;
     
@@ -4593,6 +4593,12 @@ public:
         
         for(auto [key, surface] : oscSurfaces_)
             delete surface;
+        
+        for(auto [key, action] : actions_)
+            delete action;
+
+        for(auto [key, action] : learnFXActions_)
+            delete action;
     }
     
     void Shutdown()
