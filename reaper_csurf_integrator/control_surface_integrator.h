@@ -3215,6 +3215,7 @@ protected:
     Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
+        if (WDL_NOT_NORMALLY(!feedback1)) return;
         midiFeedbackMessage1_ = feedback1;
         midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     }
@@ -3222,7 +3223,9 @@ protected:
     Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) :  Midi_FeedbackProcessor(surface, widget)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
+        if (WDL_NOT_NORMALLY(!feedback1)) return;
         midiFeedbackMessage1_ = feedback1;
+        if (WDL_NOT_NORMALLY(!feedback2)) return;
         midiFeedbackMessage2_ = feedback2;
     }
     
@@ -3280,7 +3283,7 @@ class Midi_ControlSurface : public ControlSurface
 private:
     string const templateFilename_;
     Midi_ControlSurfaceIO* const surfaceIO_;
-    map<int, vector<shared_ptr<Midi_CSIMessageGenerator>>> Midi_CSIMessageGeneratorsByMessage_;
+    map<int, vector<Midi_CSIMessageGenerator*>> Midi_CSIMessageGeneratorsByMessage_;
 
     // special processing for MCU meters
     bool hasMCUMeters_;
@@ -3303,7 +3306,13 @@ private:
 public:
     Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO);
 
-    virtual ~Midi_ControlSurface() {}
+    virtual ~Midi_ControlSurface()
+    {
+        for(auto [key, generators] : Midi_CSIMessageGeneratorsByMessage_)
+            for(auto generator : generators)
+                if(generator != nullptr)
+                    delete generator;
+    }
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
     virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) override;
@@ -3320,8 +3329,9 @@ public:
         surfaceIO_->HandleExternalInput(this);
     }
         
-    void AddCSIMessageGenerator(shared_ptr<Midi_CSIMessageGenerator> messageGenerator, int message)
+    void AddCSIMessageGenerator(Midi_CSIMessageGenerator* messageGenerator, int message)
     {
+        if (WDL_NOT_NORMALLY(!messageGenerator)) return;
         Midi_CSIMessageGeneratorsByMessage_[message].push_back(messageGenerator);
     }
 };
