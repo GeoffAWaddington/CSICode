@@ -1532,7 +1532,7 @@ void Manager::InitActionsDictionary()
 
 void Manager::Init()
 {
-    pages_.clear();
+    pages_.Empty(true);
     
     string currentBroadcaster = "";
     
@@ -1613,7 +1613,7 @@ void Manager::Init()
                         }
                             
                         currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
-                        pages_.push_back(currentPage);
+                        pages_.Add(currentPage);
                     }
                 }
                 else if(currentPage && tokens.size() > 1 && tokens[0] == "Broadcaster")
@@ -1683,8 +1683,8 @@ void Manager::Init()
         DAW::ShowConsoleMsg(buffer);
     }
     
-    for(int i = 0; i < (int)pages_.size(); ++i)
-        pages_[i]->OnInitialization();
+    for(int i = 0; i < pages_.GetSize(); ++i)
+        pages_.Get(i)->OnInitialization();
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Parsing end
@@ -4957,20 +4957,20 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
     if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]) > 0)
     {
         isMapped = true;
-        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]].size(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]][i]->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]].Get(i)->ProcessMidiMessage(evt);
     }
     else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100) > 0)
     {
         isMapped = true;
-        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100].size(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100][i]->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100].Get(i)->ProcessMidiMessage(evt);
     }
     else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000) > 0)
     {
         isMapped = true;
-        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000].size(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000][i]->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000].Get(i)->ProcessMidiMessage(evt);
     }
     
     if(TheManager->GetSurfaceRawInDisplay() || (! isMapped && TheManager->GetSurfaceInDisplay()))

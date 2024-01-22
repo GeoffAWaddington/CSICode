@@ -3301,7 +3301,7 @@ class Midi_ControlSurface : public ControlSurface
 private:
     string const templateFilename_;
     Midi_ControlSurfaceIO* const surfaceIO_;
-    map<int, vector<Midi_CSIMessageGenerator*>> Midi_CSIMessageGeneratorsByMessage_;
+    map<int, WDL_PtrList<Midi_CSIMessageGenerator>> Midi_CSIMessageGeneratorsByMessage_;
 
     // special processing for MCU meters
     bool hasMCUMeters_;
@@ -3327,8 +3327,7 @@ public:
     virtual ~Midi_ControlSurface()
     {
         for(auto [key, generators] : Midi_CSIMessageGeneratorsByMessage_)
-            for(auto generator : generators)
-                delete generator;
+            generators.Empty(true);
     }
     
     void ProcessMidiMessage(const MIDI_event_ex_t* evt);
@@ -3349,7 +3348,7 @@ public:
     void AddCSIMessageGenerator(Midi_CSIMessageGenerator* messageGenerator, int message)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) return;
-        Midi_CSIMessageGeneratorsByMessage_[message].push_back(messageGenerator);
+        Midi_CSIMessageGeneratorsByMessage_[message].Add(messageGenerator);
     }
 };
 
@@ -4548,7 +4547,7 @@ private:
     map<string, Action*> actions_;
     map<string, Action*> learnFXActions_;
 
-    vector <Page*> pages_;
+    WDL_PtrList<Page> pages_;
     
     int currentPageIndex_;
     bool surfaceInDisplay_;
@@ -4649,8 +4648,7 @@ public:
         for(auto [key, action] : learnFXActions_)
             delete action;
         
-        for(int i = 0; i < pages_.size(); ++i)
-            delete pages_[i];
+        pages_.Empty(true);
     }
     
     void Shutdown()
@@ -4665,8 +4663,8 @@ public:
         shouldRun_ = false;
         
         // Zero out all Widgets before shutting down
-        if(pages_.size() > 0)
-            pages_[currentPageIndex_]->ForceClear();
+        if(pages_.GetSize() > 0)
+            pages_.Get(currentPageIndex_)->ForceClear();
     }
     
     void Init();
@@ -4765,14 +4763,14 @@ public:
 
     void OnTrackSelection(MediaTrack *track)
     {
-        if(pages_.size() > 0)
-            pages_[currentPageIndex_]->OnTrackSelection(track);
+        if(pages_.GetSize() > 0)
+            pages_.Get(currentPageIndex_)->OnTrackSelection(track);
     }
     
     void OnTrackListChange()
     {
-        if(pages_.size() > 0)
-            pages_[currentPageIndex_]->OnTrackListChange();
+        if(pages_.GetSize() > 0)
+            pages_.Get(currentPageIndex_)->OnTrackListChange();
     }
     
     void NextTimeDisplayMode()
@@ -4799,8 +4797,8 @@ public:
     
     void SetTrackOffset(int offset)
     {
-        if(pages_.size() > 0)
-            pages_[currentPageIndex_]->SetTrackOffset(offset);
+        if(pages_.GetSize() > 0)
+            pages_.Get(currentPageIndex_)->SetTrackOffset(offset);
     }
     
     void AdjustBank(Page* sendingPage, string zoneName, int amount)
@@ -4808,32 +4806,32 @@ public:
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustBank(zoneName, amount);
         else
-            for(int i = 0; i < (int)pages_.size(); ++i)
-                if(pages_[i]->GetSynchPages())
-                    pages_[i]->AdjustBank(zoneName, amount);
+            for(int i = 0; i < pages_.GetSize(); ++i)
+                if(pages_.Get(i)->GetSynchPages())
+                    pages_.Get(i)->AdjustBank(zoneName, amount);
     }
        
     void NextPage()
     {
-        if(pages_.size() > 0)
+        if(pages_.GetSize() > 0)
         {
-            pages_[currentPageIndex_]->LeavePage();
-            currentPageIndex_ = currentPageIndex_ == pages_.size() - 1 ? 0 : ++currentPageIndex_;
+            pages_.Get(currentPageIndex_)->LeavePage();
+            currentPageIndex_ = currentPageIndex_ == pages_.GetSize() - 1 ? 0 : ++currentPageIndex_;
             DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
-            pages_[currentPageIndex_]->EnterPage();
+            pages_.Get(currentPageIndex_)->EnterPage();
         }
     }
     
     void GoToPage(string pageName)
     {
-        for(int i = 0; i < pages_.size(); i++)
+        for(int i = 0; i < pages_.GetSize(); i++)
         {
-            if(pages_[i]->GetName() == pageName)
+            if(pages_.Get(i)->GetName() == pageName)
             {
-                pages_[currentPageIndex_]->LeavePage();
+                pages_.Get(currentPageIndex_)->LeavePage();
                 currentPageIndex_ = i;
                 DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
-                pages_[currentPageIndex_]->EnterPage();
+                pages_.Get(currentPageIndex_)->EnterPage();
                 break;
             }
         }
@@ -4841,16 +4839,16 @@ public:
     
     bool GetTouchState(MediaTrack* track, int touchedControl)
     {
-        if(pages_.size() > 0)
-            return pages_[currentPageIndex_]->GetTouchState(track, touchedControl);
+        if(pages_.GetSize() > 0)
+            return pages_.Get(currentPageIndex_)->GetTouchState(track, touchedControl);
         else
             return false;
     }
     
     void TrackFXListChanged(MediaTrack* track)
     {
-        for(int i = 0; i < (int)pages_.size(); ++i)
-            pages_[i]->TrackFXListChanged(track);
+        for(int i = 0; i < pages_.GetSize(); ++i)
+            pages_.Get(i)->TrackFXListChanged(track);
         
         if(fxParamsDisplay_ || fxParamsWrite_)
         {
@@ -4949,8 +4947,8 @@ public:
     {
         //int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
-        if(shouldRun_ && pages_.size() > 0)
-            pages_[currentPageIndex_]->Run();
+        if(shouldRun_ && pages_.GetSize() > 0)
+            pages_.Get(currentPageIndex_)->Run();
         /*
          repeats++;
          
