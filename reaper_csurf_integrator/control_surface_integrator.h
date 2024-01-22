@@ -2982,6 +2982,7 @@ public:
        
     void AddTrackColorFeedbackProcessor(FeedbackProcessor *feedbackProcessor) // does not own this pointer
     {
+        if(WDL_NOT_NORMALLY(!feedbackProcessor)) { return; }
         trackColorFeedbackProcessors_.Add(feedbackProcessor);
     }
     
@@ -4249,7 +4250,7 @@ private:
     string const name_;
     TrackNavigationManager* trackNavigationManager_;
     ModifierManager* modifierManager_;
-    vector<ControlSurface*> surfaces_;
+    WDL_PtrList<ControlSurface> surfaces_;
     
 public:
     Page(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name)
@@ -4262,43 +4263,43 @@ public:
     {
         delete trackNavigationManager_;
         delete modifierManager_;
-        for(int i = 0; i < surfaces_.size(); ++i)
-            delete surfaces_[i];
+        surfaces_.Empty(true);
     }
         
     string GetName() { return name_; }
     
     ModifierManager* GetModifierManager() { return modifierManager_; }
     
-    vector<ControlSurface*> &GetSurfaces() { return surfaces_; }
+    WDL_PtrList<ControlSurface> &GetSurfaces() { return surfaces_; }
     
     void AddSurface(ControlSurface* surface)
     {
-        return surfaces_.push_back(surface);
+        if(WDL_NOT_NORMALLY(!surface)) { return; }
+        surfaces_.Add(surface);
     }
     
     void UpdateCurrentActionContextModifiers()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->UpdateCurrentActionContextModifiers();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->UpdateCurrentActionContextModifiers();
     }
     
     void ForceClear()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->ForceClear();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->ForceClear();
     }
     
     void ForceClearTrack(int trackNum)
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->ForceClearTrack(trackNum);
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->ForceClearTrack(trackNum);
     }
     
     void ForceUpdateTrackColors()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->ForceUpdateTrackColors();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->ForceUpdateTrackColors();
     }
       
     bool GetTouchState(MediaTrack* track, int touchedControl)
@@ -4310,8 +4311,8 @@ public:
     {
         trackNavigationManager_->OnTrackSelection();
         
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->OnTrackSelection(track);
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->OnTrackSelection(track);
     }
     
     void OnTrackListChange()
@@ -4323,66 +4324,66 @@ public:
     {
         trackNavigationManager_->OnTrackSelectionBySurface(track);
         
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->OnTrackSelection(track);
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->OnTrackSelection(track);
     }
     
     void TrackFXListChanged(MediaTrack* track)
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->TrackFXListChanged(track);
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->TrackFXListChanged(track);
     }
     
     void EnterPage()
     {
         trackNavigationManager_->EnterPage();
         
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->OnPageEnter();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->OnPageEnter();
     }
     
     void LeavePage()
     {
         trackNavigationManager_->LeavePage();
         
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->OnPageLeave();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->OnPageLeave();
     }
     
     void OnInitialization()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->OnInitialization();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->OnInitialization();
     }
     
     void SignalStop()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->HandleStop();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->HandleStop();
     }
     
     void SignalPlay()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->HandlePlay();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->HandlePlay();
     }
     
     void SignalRecord()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->HandleRecord();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->HandleRecord();
     }
             
     void GoHome()
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->GetZoneManager()->GoHome();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->GetZoneManager()->GoHome();
     }
     
     void GoAssociatedZone(string name)
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->GetZoneManager()->GoAssociatedZone(name);
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->GetZoneManager()->GoAssociatedZone(name);
     }
     
     void AdjustBank(const string &zoneName, int amount)
@@ -4398,15 +4399,15 @@ public:
         else if(zoneName == "SelectedTrack")
             trackNavigationManager_->AdjustSelectedTrackBank(amount);
         else
-            for(int i = 0; i < (int)surfaces_.size(); ++i)
-                surfaces_[i]->GetZoneManager()->AdjustBank(zoneName, amount);
+            for(int i = 0; i < (int)surfaces_.GetSize(); ++i)
+                surfaces_.Get(i)->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
     void AddZoneFilePath(ControlSurface* originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
     {
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            if(surfaces_[i] != originatingSurface)
-                surfaces_[i]->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            if(surfaces_.Get(i) != originatingSurface)
+                surfaces_.Get(i)->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4527,11 +4528,11 @@ public:
         trackNavigationManager_->RebuildFolderTracks();
         trackNavigationManager_->RebuildSelectedTracks();
         
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->HandleExternalInput();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->HandleExternalInput();
         
-        for(int i = 0; i < (int)surfaces_.size(); ++i)
-            surfaces_[i]->RequestUpdate();
+        for(int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->RequestUpdate();
     }
 //*/
 };

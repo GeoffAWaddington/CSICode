@@ -1625,12 +1625,12 @@ void Manager::Init()
                     ControlSurface* broadcaster = nullptr;
                     ControlSurface* listener = nullptr;
 
-                    for(int i = 0; i < (int)currentPage->GetSurfaces().size(); ++i)
+                    for(int i = 0; i < currentPage->GetSurfaces().GetSize(); ++i)
                     {
-                        if(currentPage->GetSurfaces()[i]->GetName() == currentBroadcaster)
-                            broadcaster = currentPage->GetSurfaces()[i];
-                        if(currentPage->GetSurfaces()[i]->GetName() == tokens[1])
-                            listener = currentPage->GetSurfaces()[i];
+                        if(currentPage->GetSurfaces().Get(i)->GetName() == currentBroadcaster)
+                            broadcaster = currentPage->GetSurfaces().Get(i);
+                        if(currentPage->GetSurfaces().Get(i)->GetName() == tokens[1])
+                            listener = currentPage->GetSurfaces().Get(i);
                     }
                     
                     if(broadcaster != nullptr && listener != nullptr)
