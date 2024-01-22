@@ -612,7 +612,7 @@ protected:
     map<Widget *, int> currentActionContextModifiers_;
     vector<ActionContext *> defaultContexts_;
     
-    void AddNavigatorsForZone(const string &zoneName, vector<Navigator*> &navigators);
+    void AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators);
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
@@ -3532,7 +3532,7 @@ private:
     WDL_PtrList<MediaTrack> folderSpillTracks_;
     map<MediaTrack*,    vector<MediaTrack*>> folderDictionary_;
 
-    map<int, Navigator* > trackNavigators_;
+    map<int, Navigator*> trackNavigators_;
     Navigator* const masterTrackNavigator_;
     Navigator* selectedTrackNavigator_;
     Navigator* focusedFXNavigator_;

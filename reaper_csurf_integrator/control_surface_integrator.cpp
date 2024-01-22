@@ -551,7 +551,7 @@ static void GetColorValues(vector<rgba_color> &colorValues, const vector<string>
     }
 }
 
-static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, const vector<Navigator*> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, const WDL_PtrList<Navigator> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -595,7 +595,7 @@ static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, co
                 }
                 else if(tokens[0] == "ZoneEnd" && zoneName != "")
                 {
-                    for(int i = 0; i < navigators.size(); i++)
+                    for(int i = 0; i < navigators.GetSize(); i++)
                     {
                         string numStr = to_string(i + 1);
                         
@@ -604,9 +604,9 @@ static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, co
                         shared_ptr<Zone> zone;
                         
                         if(enclosingZone == nullptr)
-                            zone = make_shared<Zone>(zoneManager, navigators[i], i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                            zone = make_shared<Zone>(zoneManager, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
-                            zone = make_shared<SubZone>(zoneManager, navigators[i], i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+                            zone = make_shared<SubZone>(zoneManager, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
                                                 
                         if(zoneName == "Home")
                             zoneManager->SetHomeZone(zone);
@@ -620,7 +620,7 @@ static void ProcessZoneFile(const string &filePath, ZoneManager *zoneManager, co
                         {
                             string surfaceWidgetName = widgetName;
                             
-                            if(navigators.size() > 1)
+                            if(navigators.GetSize() > 1)
                                 surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(i + 1));
                             
                             if(enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
@@ -2156,7 +2156,7 @@ Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex,
         {
             if(zoneManager_->GetZoneFilePaths().count(associatedZones[i]) > 0)
             {
-                vector<Navigator*> navigators;
+                WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
                 associatedZones_[associatedZones[i]] = vector<shared_ptr<Zone>>();
@@ -2170,7 +2170,7 @@ Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex,
     {
         if(zoneManager_->GetZoneFilePaths().count(includedZones[i]) > 0)
         {
-            vector<Navigator*> navigators;
+            WDL_PtrList<Navigator> navigators;
             AddNavigatorsForZone(includedZones[i], navigators);
             
             ProcessZoneFile(zoneManager_->GetZoneFilePaths()[includedZones[i]].filePath, zoneManager_, navigators, includedZones_, nullptr);
@@ -2184,8 +2184,8 @@ void Zone::InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosi
     {
         if(zoneManager_->GetZoneFilePaths().count(subZones[i]) > 0)
         {
-            vector<Navigator*> navigators;
-            navigators.push_back(GetNavigator());
+            WDL_PtrList<Navigator> navigators;
+            navigators.Add(GetNavigator());
 
             subZones_[subZones[i]] = vector<shared_ptr<Zone>>();
         
@@ -2472,27 +2472,27 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
     }
 }
 
-void Zone::AddNavigatorsForZone(const string &zoneName, vector<Navigator*> &navigators)
+void Zone::AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators)
 {
     if(zoneName == "MasterTrack")
-        navigators.push_back(zoneManager_->GetMasterTrackNavigator());
+        navigators.Add(zoneManager_->GetMasterTrackNavigator());
     else if(zoneName == "Track" || zoneName == "VCA" || zoneName == "Folder" || zoneName == "SelectedTracks" || zoneName == "TrackSend" || zoneName == "TrackReceive" || zoneName == "TrackFXMenu")
     {
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
         {
             Navigator* channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
             if(channelNavigator)
-                navigators.push_back(channelNavigator);
+                navigators.Add(channelNavigator);
         }
     }
     else if(zoneName == "SelectedTrack" || zoneName == "SelectedTrackSend" || zoneName == "SelectedTrackReceive" || zoneName == "SelectedTrackFXMenu")
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
-            navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
+            navigators.Add(zoneManager_->GetSelectedTrackNavigator());
     else if(zoneName == "MasterTrackFXMenu")
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
-            navigators.push_back(zoneManager_->GetMasterTrackNavigator());
+            navigators.Add(zoneManager_->GetMasterTrackNavigator());
     else
-        navigators.push_back(zoneManager_->GetSelectedTrackNavigator());
+        navigators.Add(zoneManager_->GetSelectedTrackNavigator());
 }
 
 void Zone::SetXTouchDisplayColors(const string &color)
@@ -2792,8 +2792,8 @@ void ZoneManager::Initialize()
         return;
     }
         
-    vector<Navigator*> navigators;
-    navigators.push_back(GetSelectedTrackNavigator());
+    WDL_PtrList<Navigator> navigators;
+    navigators.Add(GetSelectedTrackNavigator());
     vector<shared_ptr<Zone>> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
       ProcessZoneFile(zoneFilePaths_["Home"].filePath, this, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
@@ -2932,8 +2932,8 @@ void ZoneManager::GoFocusedFX()
         
         if(zoneFilePaths_.count(FXName) > 0)
         {
-            vector<Navigator*> navigators;
-            navigators.push_back(GetSurface()->GetPage()->GetFocusedFXNavigator());
+            WDL_PtrList<Navigator> navigators;
+            navigators.Add(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
             ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, focusedFXZones_, nullptr);
             
@@ -2972,8 +2972,8 @@ void ZoneManager::GoSelectedTrackFX()
             
             if(zoneFilePaths_.count(FXName) > 0)
             {
-                vector<Navigator*> navigators;
-                navigators.push_back(GetSurface()->GetPage()->GetSelectedTrackNavigator());
+                WDL_PtrList<Navigator> navigators;
+                navigators.Add(GetSurface()->GetPage()->GetSelectedTrackNavigator());
                 ProcessZoneFile(zoneFilePaths_[FXName].filePath, this, navigators, selectedTrackFXZones_, nullptr);
                 
                 selectedTrackFXZones_.back()->SetSlotIndex(i);
@@ -3071,8 +3071,8 @@ void ZoneManager::GoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
 
     if(zoneFilePaths_.count(fxName) > 0)
     {
-        vector<Navigator*> navigators;
-        navigators.push_back(navigator);
+        WDL_PtrList<Navigator> navigators;
+        navigators.Add(navigator);
         
         ProcessZoneFile(zoneFilePaths_[fxName].filePath, this, navigators, fxSlotZones_, nullptr);
         
@@ -3376,8 +3376,8 @@ void ZoneManager::InitializeNoMapZone()
     
     if(GetZoneFilePaths().count("NoMap") > 0)
     {
-        vector<Navigator*> navigators;
-        navigators.push_back(GetSelectedTrackNavigator());
+        WDL_PtrList<Navigator> navigators;
+        navigators.Add(GetSelectedTrackNavigator());
         
         vector<shared_ptr<Zone>> zones;
         
@@ -3943,8 +3943,8 @@ void ZoneManager::RemapAutoZone()
     {
         if(::RemapAutoZoneDialog(this, fxSlotZones_[0]->GetSourceFilePath()))
         {
-            vector<Navigator*> navigators;
-            navigators.push_back(fxSlotZones_[0]->GetNavigator());
+            WDL_PtrList<Navigator> navigators;
+            navigators.Add(fxSlotZones_[0]->GetNavigator());
             
             string filePath = fxSlotZones_[0]->GetSourceFilePath();
             int slotNumber = fxSlotZones_[0]->GetSlotIndex();
@@ -4329,8 +4329,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
     
     if(zoneFilePaths_.count(fxName) > 0)
     {
-        vector<Navigator*> navigators;
-        navigators.push_back(GetSelectedTrackNavigator());
+        WDL_PtrList<Navigator> navigators;
+        navigators.Add(GetSelectedTrackNavigator());
         
         ProcessZoneFile(zoneFilePaths_[fxName].filePath, this, navigators, fxSlotZones_, nullptr);
         
