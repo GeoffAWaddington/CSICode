@@ -4663,7 +4663,7 @@ public:
         shouldRun_ = false;
         
         // Zero out all Widgets before shutting down
-        if(pages_.GetSize() > 0)
+        if(pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->ForceClear();
     }
     
@@ -4763,13 +4763,13 @@ public:
 
     void OnTrackSelection(MediaTrack *track)
     {
-        if(pages_.GetSize() > 0)
+        if(pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->OnTrackSelection(track);
     }
     
     void OnTrackListChange()
     {
-        if(pages_.GetSize() > 0)
+        if(pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->OnTrackListChange();
     }
     
@@ -4797,7 +4797,7 @@ public:
     
     void SetTrackOffset(int offset)
     {
-        if(pages_.GetSize() > 0)
+        if(pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->SetTrackOffset(offset);
     }
     
@@ -4813,12 +4813,13 @@ public:
        
     void NextPage()
     {
-        if(pages_.GetSize() > 0)
+        if(pages_.Get(currentPageIndex_))
         {
             pages_.Get(currentPageIndex_)->LeavePage();
-            currentPageIndex_ = currentPageIndex_ == pages_.GetSize() - 1 ? 0 : ++currentPageIndex_;
+            currentPageIndex_ = currentPageIndex_ == pages_.GetSize() - 1 ? 0 : (currentPageIndex_+1);
             DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
-            pages_.Get(currentPageIndex_)->EnterPage();
+            if(WDL_NORMALLY(pages_.Get(currentPageIndex_)))
+                pages_.Get(currentPageIndex_)->EnterPage();
         }
     }
     
@@ -4828,10 +4829,14 @@ public:
         {
             if(pages_.Get(i)->GetName() == pageName)
             {
-                pages_.Get(currentPageIndex_)->LeavePage();
+                if (WDL_NORMALLY(pages_.Get(currentPageIndex_)))
+                    pages_.Get(currentPageIndex_)->LeavePage();
                 currentPageIndex_ = i;
-                DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
-                pages_.Get(currentPageIndex_)->EnterPage();
+                if (WDL_NORMALLY(pages_.Get(currentPageIndex_)))
+                {
+                    DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
+                    pages_.Get(currentPageIndex_)->EnterPage();
+                }
                 break;
             }
         }
@@ -4839,7 +4844,7 @@ public:
     
     bool GetTouchState(MediaTrack* track, int touchedControl)
     {
-        if(pages_.GetSize() > 0)
+        if(pages_.Get(currentPageIndex_))
             return pages_.Get(currentPageIndex_)->GetTouchState(track, touchedControl);
         else
             return false;
@@ -4947,7 +4952,7 @@ public:
     {
         //int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         
-        if(shouldRun_ && pages_.GetSize() > 0)
+        if(shouldRun_ && pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->Run();
         /*
          repeats++;
