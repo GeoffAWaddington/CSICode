@@ -180,7 +180,7 @@ struct AutoZoneDefinition
 
 struct LearnFXCell
 {
-    vector<Widget*> fxParamWidgets;
+    WDL_PtrList<Widget> fxParamWidgets;
     Widget *fxParamNameDisplayWidget;
     Widget *fxParamValueDisplayWidget;
     

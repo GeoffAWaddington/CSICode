@@ -2413,35 +2413,35 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
         {
             bool foundIt = false;
             
-            for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
+            for(int i = 0; i < cell.fxParamWidgets.GetSize(); ++i)
             {
-                LearnInfo* info = zoneManager_->GetLearnInfo(cell.fxParamWidgets[i], modifier);
+                LearnInfo* info = zoneManager_->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
                                 
                 if(info->isLearned)
                 {
                     foundIt = true;
 
                     if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
-                        for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].size(); ++i)
-                            actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][i]->RequestUpdate(info->paramNumber);
+                        for(int j = 0; j < actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].size(); ++j)
+                            actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][j]->RequestUpdate(info->paramNumber);
 
                     if(actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
-                        for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].size(); ++i)
-                            actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][i]->RequestUpdate(info->paramNumber);
+                        for(int j = 0; j < actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].size(); ++j)
+                            actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][j]->RequestUpdate(info->paramNumber);
                 }
                 else
                 {
-                    if(actionContextDictionary_.count(cell.fxParamWidgets[i]) > 0 && actionContextDictionary_[cell.fxParamWidgets[i]].count(modifier) > 0)
+                    if(actionContextDictionary_.count(cell.fxParamWidgets.Get(i)) > 0 && actionContextDictionary_[cell.fxParamWidgets.Get(i)].count(modifier) > 0)
                     {
-                        for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamWidgets[i]][modifier].size(); ++i)
+                        for(int j = 0; j < actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].size(); ++j)
                         {
-                            actionContextDictionary_[cell.fxParamWidgets[i]][modifier][i]->UpdateWidgetValue(0.0);
-                            actionContextDictionary_[cell.fxParamWidgets[i]][modifier][i]->UpdateWidgetValue("");
+                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier][j]->UpdateWidgetValue(0.0);
+                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier][j]->UpdateWidgetValue("");
                         }
                     }
                 }
                 
-                usedWidgets[cell.fxParamWidgets[i]] = true;
+                usedWidgets[cell.fxParamWidgets.Get(i)] = true;
             }
             
             if(! foundIt)
@@ -3275,9 +3275,9 @@ void ZoneManager::SaveLearnedFXParams()
                     {
                         bool cellHasDisplayWidgetsDefined = false;
                         
-                        for(int i = 0; i < cell.fxParamWidgets.size(); i++)
+                        for(int i = 0; i < cell.fxParamWidgets.GetSize(); i++)
                         {
-                            LearnInfo* info = GetLearnInfo(cell.fxParamWidgets[i], modifier);
+                            LearnInfo* info = GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
                             
                             if(info == nullptr)
                                 continue;
@@ -3286,19 +3286,19 @@ void ZoneManager::SaveLearnedFXParams()
                             {
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + "\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets.Get(i)->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + "\n";
                                 fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
                                 fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + "\n\n";
                             }
-                            else if(i == cell.fxParamWidgets.size() - 1 && ! cellHasDisplayWidgetsDefined)
+                            else if(i == cell.fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
                             {
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
                                 fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction\n";
                                 fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction\n\n";
                             }
                             else
                             {
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets[i]->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell.fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
                                 fxZone << "\tNullDisplay\tNoAction\n";
                                 fxZone << "\tNullDisplay\tNoAction\n\n";
                             }
@@ -3530,7 +3530,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                             if(widget == NULL)
                                 continue;
-                            cell.fxParamWidgets.push_back(widget);
+                            cell.fxParamWidgets.Add(widget);
                             zone->AddWidget(widget, widget->GetName());
                             context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
                             context->SetProvideFeedback(true);

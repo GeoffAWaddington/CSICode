@@ -111,9 +111,9 @@ public:
 
             bool isLearned = false;
             
-            for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
+            for(int i = 0; i < cell.fxParamWidgets.GetSize(); ++i)
             {
-                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets[i], modifier)->isLearned)
+                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier)->isLearned)
                 {
                     isLearned = true;
                     break;
@@ -154,9 +154,9 @@ public:
 
             bool isLearned = false;
             
-            for(int i = 0; i < (int)cell.fxParamWidgets.size(); ++i)
+            for(int i = 0; i < (int)cell.fxParamWidgets.GetSize(); ++i)
             {
-                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets[i], modifier)->isLearned)
+                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier)->isLearned)
                 {
                     isLearned = true;
                     break;
