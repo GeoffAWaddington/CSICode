@@ -1487,7 +1487,7 @@ struct PageLine
     bool isScrollLinkEnabled;
     bool scrollSynch;
     WDL_PtrList<PageSurfaceLine> surfaces;
-    vector<Broadcaster*> broadcasters;
+    WDL_PtrList<Broadcaster> broadcasters;
     
     PageLine()
     {
@@ -1500,39 +1500,39 @@ struct PageLine
 };
 
 // Scratch pad to get in and out of dialogs easily
-static vector<Broadcaster*> s_broadcasters;
+static WDL_PtrList<Broadcaster> s_broadcasters;
 
-static void TransferBroadcasters(vector<Broadcaster*> &source, vector<Broadcaster*> &destination)
+static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<Broadcaster> &destination)
 {
-    destination.clear();
+    destination.Empty(true);
     
-    for(int i = 0; i < (int)source.size(); ++i)
+    for(int i = 0; i < source.GetSize(); ++i)
     {
         Broadcaster* destinationBroadcaster = new Broadcaster();
         
-        destinationBroadcaster->name = source[i]->name;
+        destinationBroadcaster->name = source.Get(i)->name;
         
-        for(int j = 0; j < source[i]->listeners.GetSize(); ++j)
+        for(int j = 0; j < source.Get(i)->listeners.GetSize(); ++j)
         {
             Listener* destinationListener = new Listener();
             
-            destinationListener->name = source[i]->listeners.Get(j)->name;
+            destinationListener->name = source.Get(i)->listeners.Get(j)->name;
             
-            destinationListener->goHome = source[i]->listeners.Get(j)->goHome;
-            destinationListener->sends = source[i]->listeners.Get(j)->sends;
-            destinationListener->receives = source[i]->listeners.Get(j)->receives;
-            destinationListener->focusedFX = source[i]->listeners.Get(j)->focusedFX;
-            destinationListener->focusedFXParam = source[i]->listeners.Get(j)->focusedFXParam;
-            destinationListener->fxMenu = source[i]->listeners.Get(j)->fxMenu;
-            destinationListener->localFXSlot = source[i]->listeners.Get(j)->localFXSlot;
-            destinationListener->modifiers = source[i]->listeners.Get(j)->modifiers;
-            destinationListener->selectedTrackFX = source[i]->listeners.Get(j)->selectedTrackFX;
-            destinationListener->custom = source[i]->listeners.Get(j)->custom;
+            destinationListener->goHome = source.Get(i)->listeners.Get(j)->goHome;
+            destinationListener->sends = source.Get(i)->listeners.Get(j)->sends;
+            destinationListener->receives = source.Get(i)->listeners.Get(j)->receives;
+            destinationListener->focusedFX = source.Get(i)->listeners.Get(j)->focusedFX;
+            destinationListener->focusedFXParam = source.Get(i)->listeners.Get(j)->focusedFXParam;
+            destinationListener->fxMenu = source.Get(i)->listeners.Get(j)->fxMenu;
+            destinationListener->localFXSlot = source.Get(i)->listeners.Get(j)->localFXSlot;
+            destinationListener->modifiers = source.Get(i)->listeners.Get(j)->modifiers;
+            destinationListener->selectedTrackFX = source.Get(i)->listeners.Get(j)->selectedTrackFX;
+            destinationListener->custom = source.Get(i)->listeners.Get(j)->custom;
             
             destinationBroadcaster->listeners.Add(destinationListener);
         }
         
-        destination.push_back(destinationBroadcaster);
+        destination.Add(destinationBroadcaster);
     }
 }
 
@@ -2111,10 +2111,10 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
             
             TransferBroadcasters(s_pages[s_pageIndex]->broadcasters, s_broadcasters);
             
-            if(s_broadcasters.size() > 0)
+            if(s_broadcasters.GetSize() > 0)
             {
-                for(int i = 0; i < (int)s_broadcasters.size(); ++i)
-                    AddListEntry(hwndDlg, s_broadcasters[i]->name, IDC_LIST_Broadcasters);
+                for(int i = 0; i < s_broadcasters.GetSize(); ++i)
+                    AddListEntry(hwndDlg, s_broadcasters.Get(i)->name, IDC_LIST_Broadcasters);
                     
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
             }
@@ -2132,14 +2132,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         {
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                            
-                            for (int i = 0; i < s_broadcasters[broadcasterIndex]->listeners.GetSize(); ++i)
-                                AddListEntry(hwndDlg, s_broadcasters[broadcasterIndex]->listeners.Get(i)->name, IDC_LIST_Listeners);
+                            for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
+                                AddListEntry(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name, IDC_LIST_Listeners);
                             
-                            if(s_broadcasters.size() > 0)
+                            if(s_broadcasters.GetSize() > 0)
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, 0, 0);
                             
-                            if(broadcasterIndex >= 0 && s_broadcasters[broadcasterIndex]->listeners.GetSize() > 0)
-                                SetCheckBoxes(hwndDlg, s_broadcasters[broadcasterIndex]->listeners.Get(0));
+                            if(broadcasterIndex >= 0 && s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
+                                SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(0));
                             else
                                 ClearCheckBoxes(hwndDlg);
                         }
@@ -2157,7 +2157,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                         
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
-                            SetCheckBoxes(hwndDlg, s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex));
+                            SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex));
                     }
                     break;
 
@@ -2171,16 +2171,16 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
                             
                             bool foundit = false;
-                            for(int i = 0; i < (int)s_broadcasters.size(); ++i)
-                                if(broadcasterName == s_broadcasters[i]->name)
+                            for(int i = 0; i < s_broadcasters.GetSize(); ++i)
+                                if(broadcasterName == s_broadcasters.Get(i)->name)
                                     foundit = true;
                             if(! foundit)
                             {
                                 Broadcaster* broadcaster = new Broadcaster();
                                 broadcaster->name = broadcasterName;
-                                s_broadcasters.push_back(broadcaster);
+                                s_broadcasters.Add(broadcaster);
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.size() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.GetSize() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
                             }
                         }
@@ -2198,19 +2198,19 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
                             
                             bool foundit = false;
-                            for(int i = 0; i < s_broadcasters[broadcasterIndex]->listeners.GetSize(); ++i)
-                                if(listenerName == s_broadcasters[broadcasterIndex]->listeners.Get(i)->name)
+                            for(int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
+                                if(listenerName == s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name)
                                 foundit = true;
                             if(! foundit)
                             {
                                 Listener* listener = new Listener();
                                 listener->name = listenerName;
-                                 s_broadcasters[broadcasterIndex]->listeners.Add(listener);
+                                 s_broadcasters.Get(broadcasterIndex)->listeners.Add(listener);
                                 AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters[broadcasterIndex]->listeners.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
 
-                                SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string( s_broadcasters[broadcasterIndex]->listeners.Get(s_broadcasters[broadcasterIndex]->listeners.GetSize() - 1)->name + " Listens to").c_str());
+                                SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string( s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name + " Listens to").c_str());
                             }
                         }
                     }
@@ -2225,9 +2225,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                 s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->goHome = true;
+                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->goHome = true;
                             else
-                                 s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->goHome = false;
+                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->goHome = false;
                         }
                     }
                     break;
@@ -2241,9 +2241,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->sends = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->sends = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->sends = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->sends = false;
                         }
                     }
                     break;
@@ -2257,9 +2257,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->receives = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->receives = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = false;
                         }
                     }
                     break;
@@ -2273,9 +2273,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->focusedFX = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFX = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->focusedFX = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFX = false;
                         }
                     }
                     break;
@@ -2289,9 +2289,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->focusedFXParam = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFXParam = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->focusedFXParam = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFXParam = false;
                         }
                     }
                     break;
@@ -2305,9 +2305,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->fxMenu = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->fxMenu = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->fxMenu = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->fxMenu = false;
                         }
                     }
                     break;
@@ -2321,9 +2321,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->localFXSlot = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->localFXSlot = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->localFXSlot = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->localFXSlot = false;
                         }
                     }
                     break;
@@ -2337,9 +2337,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->modifiers = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->modifiers = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->modifiers = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->modifiers = false;
                         }
                     }
                     break;
@@ -2353,9 +2353,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->selectedTrackFX = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->selectedTrackFX = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->selectedTrackFX = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->selectedTrackFX = false;
                         }
                     }
                     break;
@@ -2369,9 +2369,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->custom = true;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->custom = true;
                             else
-                                s_broadcasters[broadcasterIndex]->listeners.Get(listenerIndex)->custom = false;
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->custom = false;
                         }
                     }
                     break;
@@ -2383,17 +2383,17 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
                         if(broadcasterIndex >= 0)
                         {
-                            s_broadcasters.erase(s_broadcasters.begin() + broadcasterIndex);
+                            s_broadcasters.Delete(broadcasterIndex);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_RESETCONTENT, 0, 0);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
 
-                            if(s_broadcasters.size() > 0)
+                            if(s_broadcasters.GetSize() > 0)
                             {
-                                for(int i = 0; i < (int)s_broadcasters.size(); ++i)
-                                    AddListEntry(hwndDlg, s_broadcasters[i]->name, IDC_LIST_Broadcasters);
+                                for(int i = 0; i < s_broadcasters.GetSize(); ++i)
+                                    AddListEntry(hwndDlg, s_broadcasters.Get(i)->name, IDC_LIST_Broadcasters);
                                     
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.size() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.GetSize() - 1, 0);
                             }
                         }
                     }
@@ -2407,15 +2407,15 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 
                         if(broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            s_broadcasters[broadcasterIndex]->listeners.Delete(listenerIndex, true);
+                            s_broadcasters.Get(broadcasterIndex)->listeners.Delete(listenerIndex, true);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
-                            if(s_broadcasters[broadcasterIndex]->listeners.GetSize() > 0)
+                            if(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
                             {
-                                for(int i = 0; i < (int)s_broadcasters[broadcasterIndex]->listeners.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_broadcasters[broadcasterIndex]->listeners.Get(i)->name, IDC_LIST_Listeners);
+                                for(int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
+                                    AddListEntry(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name, IDC_LIST_Listeners);
                                     
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, s_broadcasters[broadcasterIndex]->listeners.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
                                 
 #ifdef WIN32
                                 listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
@@ -2872,9 +2872,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     {
                         Broadcaster* broadcaster = new Broadcaster();
                         broadcaster->name = tokens[1];
-                        s_pages.back()->broadcasters.push_back(broadcaster);
+                        s_pages.back()->broadcasters.Add(broadcaster);
                     }
-                    else if(tokens[0] == "Listener" && tokens.size() == 3 && s_pages.size() > 0 && s_pages.back()->broadcasters.size() > 0)
+                    else if(tokens[0] == "Listener" && tokens.size() == 3 && s_pages.size() > 0 && s_pages.back()->broadcasters.GetSize() > 0)
                     {
                         Listener* listener = new Listener();
                         listener->name = tokens[1];
@@ -2906,7 +2906,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 listener->custom = true;
                         }
                         
-                        s_pages.back()->broadcasters.back()->listeners.Add(listener);
+                        s_pages.back()->broadcasters.Get(s_pages.back()->broadcasters.GetSize() - 1)->listeners.Add(listener);
                     }
                     else if(tokens.size() == 6 || tokens.size() == 7)
                     {
@@ -2959,12 +2959,11 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             {
                 pageLine->surfaces.Empty(true);
                 
-                for(auto broadcaster : pageLine->broadcasters)
-                {
-                    broadcaster->listeners.Empty(true);
+                for(int i = 0; i < pageLine->broadcasters.GetSize(); ++i)
+                    pageLine->broadcasters.Get(i)->listeners.Empty();
                     
-                    delete broadcaster;
-                }
+                pageLine->broadcasters.Empty(true);
+
                 
                 delete pageLine;
             }
@@ -3036,39 +3035,39 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     
                     iniFile << "\n";
                     
-                    for(int j = 0; j < s_pages[i]->broadcasters.size(); ++j)
+                    for(int j = 0; j < s_pages[i]->broadcasters.GetSize(); ++j)
                     {
-                        if(s_pages[i]->broadcasters[j]->listeners.GetSize() == 0)
+                        if(s_pages[i]->broadcasters.Get(j)->listeners.GetSize() == 0)
                             continue;
                         
-                        iniFile << string("\tBroadcaster ") + "\"" + s_pages[i]->broadcasters[j]->name + "\"\n";
+                        iniFile << string("\tBroadcaster ") + "\"" + s_pages[i]->broadcasters.Get(j)->name + "\"\n";
                         
-                        for(int k = 0; k < s_pages[i]->broadcasters[j]->listeners.GetSize(); ++k)
+                        for(int k = 0; k < s_pages[i]->broadcasters.Get(j)->listeners.GetSize(); ++k)
                         {
                             string listenerCategories = "";
                             
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->goHome)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->goHome)
                                 listenerCategories += "GoHome ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->sends)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->sends)
                                 listenerCategories += "Sends ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->receives)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->receives)
                                 listenerCategories += "Receives ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->focusedFX)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->focusedFX)
                                 listenerCategories += "FocusedFX ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->focusedFXParam)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->focusedFXParam)
                                 listenerCategories += "FocusedFXParam ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->fxMenu)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->fxMenu)
                                 listenerCategories += "FXMenu ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->localFXSlot)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->localFXSlot)
                                 listenerCategories += "LocalFXSlot ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->modifiers)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->modifiers)
                                 listenerCategories += "Modifiers ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->selectedTrackFX)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->selectedTrackFX)
                                 listenerCategories += "SelectedTrackFX ";
-                            if(s_pages[i]->broadcasters[j]->listeners.Get(k)->custom)
+                            if(s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->custom)
                                 listenerCategories += "Custom ";
 
-                            iniFile << string("\t\tListener ") + "\"" + s_pages[i]->broadcasters[j]->listeners.Get(k)->name + "\" \"" + listenerCategories + "\"\n";
+                            iniFile << string("\t\tListener ") + "\"" + s_pages[i]->broadcasters.Get(j)->listeners.Get(k)->name + "\" \"" + listenerCategories + "\"\n";
                         }
                         
                         iniFile << "\n";
