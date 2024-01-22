@@ -1415,7 +1415,7 @@ struct SurfaceLine
     }
 };
 
-static vector<SurfaceLine*> s_surfaces;
+static WDL_PtrList<SurfaceLine> s_surfaces;
 
 struct PageSurfaceLine
 {
@@ -1642,15 +1642,15 @@ static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
     
     GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
     
-    for(int i = 0; i < (int)s_surfaces.size(); ++i)
+    for(int i = 0; i < s_surfaces.GetSize(); ++i)
     {
-        if(s_surfaces[i]->name == string(buf))
+        if(s_surfaces.Get(i)->name == string(buf))
         {
-            if(s_surfaces[i]->type == s_MidiSurfaceToken)
+            if(s_surfaces.Get(i)->type == s_MidiSurfaceToken)
                 for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/").size(); ++j)
                     AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
 
-            if(s_surfaces[i]->type == s_OSCSurfaceToken)
+            if(s_surfaces.Get(i)->type == s_OSCSurfaceToken)
                 for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
                     AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
             
@@ -1697,8 +1697,8 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             }
             else
             {
-                for(int i = 0; i < (int)s_surfaces.size(); ++i)
-                    AddComboEntry(hwndDlg, 0, (char *)s_surfaces[i]->name.c_str(), IDC_COMBO_PageSurface);
+                for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                    AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_COMBO_PageSurface);
                 
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
                 
@@ -2101,12 +2101,12 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     {
         case WM_INITDIALOG:
         {
-            for(int i = 0; i < (int)s_surfaces.size(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)s_surfaces[i]->name.c_str(), IDC_AddBroadcaster);
+            for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddBroadcaster);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddBroadcaster), CB_SETCURSEL, 0, 0);
 
-            for(int i = 0; i < (int)s_surfaces.size(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)s_surfaces[i]->name.c_str(), IDC_AddListener);
+            for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddListener);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddListener), CB_SETCURSEL, 0, 0);
             
             TransferBroadcasters(s_pages[s_pageIndex]->broadcasters, s_broadcasters);
@@ -2526,10 +2526,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     surface->inPort = s_surfaceInPort;
                                     surface->outPort = s_surfaceOutPort;
 
-                                    s_surfaces.push_back(surface);
+                                    s_surfaces.Add(surface);
                                     
                                     AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.size() - 1, 0);
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
                                 }
                             }
                         }
@@ -2553,10 +2553,10 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     surface->inPort = s_surfaceInPort;
                                     surface->outPort = s_surfaceOutPort;
 
-                                    s_surfaces.push_back(surface);
+                                    s_surfaces.Add(surface);
                                     
                                     AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.size() - 1, 0);
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
                                 }
                             }
                         }
@@ -2618,24 +2618,24 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             if(index >= 0)
                             {
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(s_surfaceName.c_str()));
-                                s_surfaceInPort = s_surfaces[index]->inPort;
-                                s_surfaceOutPort = s_surfaces[index]->outPort;
-                                s_surfaceRemoteDeviceIP = s_surfaces[index]->remoteDeviceIP;
+                                s_surfaceInPort = s_surfaces.Get(index)->inPort;
+                                s_surfaceOutPort = s_surfaces.Get(index)->outPort;
+                                s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
 
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
-                                if(s_surfaces[index]->type == s_MidiSurfaceToken)
+                                if(s_surfaces.Get(index)->type == s_MidiSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                else if(s_surfaces[index]->type == s_OSCSurfaceToken)
+                                else if(s_surfaces.Get(index)->type == s_OSCSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                                                
                                 if(s_dlgResult == IDOK)
                                 {
-                                    s_surfaces[index]->name = s_surfaceName;
-                                    s_surfaces[index]->remoteDeviceIP = s_surfaceRemoteDeviceIP;
-                                    s_surfaces[index]->inPort = s_surfaceInPort;
-                                    s_surfaces[index]->outPort = s_surfaceOutPort;
+                                    s_surfaces.Get(index)->name = s_surfaceName;
+                                    s_surfaces.Get(index)->remoteDeviceIP = s_surfaceRemoteDeviceIP;
+                                    s_surfaces.Get(index)->inPort = s_surfaceInPort;
+                                    s_surfaces.Get(index)->outPort = s_surfaceOutPort;
                                 }
                                 
                                 s_editMode = false;
@@ -2731,11 +2731,11 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
                             if(index >= 0)
                             {
-                                s_surfaces.erase(s_surfaces.begin() + index);
+                                s_surfaces.Delete(index, true);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
-                                for(int i = 0; i < (int)s_surfaces.size(); ++i)
-                                    AddListEntry(hwndDlg, s_surfaces[i]->name, IDC_LIST_Surfaces);
+                                for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                                    AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_Surfaces);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
                             }
                         }
@@ -2834,7 +2834,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 surface->remoteDeviceIP = tokens[4];
                         }
                         
-                        s_surfaces.push_back(surface);
+                        s_surfaces.Add(surface);
                         
                         AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                     }
@@ -2935,7 +2935,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 }
             }
           
-            if(s_surfaces.size() > 0)
+            if(s_surfaces.GetSize() > 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, 0, 0);
             
             if(s_pages.size() > 0)
@@ -2953,10 +2953,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         
         case WM_DESTROY:
         {
-            for(auto surface : s_surfaces)
-                delete surface;
-        
-            s_surfaces.clear();
+            s_surfaces.Empty(true);
         
             for(auto pageLine : s_pages)
             {
@@ -2990,15 +2987,15 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 string line = "";
                 
-                for(int i = 0; i < (int)s_surfaces.size(); ++i)
+                for(int i = 0; i < s_surfaces.GetSize(); ++i)
                 {
-                    line = s_surfaces[i]->type + " ";
-                    line += "\"" + s_surfaces[i]->name + "\" ";
-                    line += to_string(s_surfaces[i]->inPort) + " ";
-                    line += to_string(s_surfaces[i]->outPort) + " ";
+                    line = s_surfaces.Get(i)->type + " ";
+                    line += "\"" + s_surfaces.Get(i)->name + "\" ";
+                    line += to_string(s_surfaces.Get(i)->inPort) + " ";
+                    line += to_string(s_surfaces.Get(i)->outPort) + " ";
 
-                    if(s_surfaces[i]->type == s_OSCSurfaceToken)
-                        line += s_surfaces[i]->remoteDeviceIP;
+                    if(s_surfaces.Get(i)->type == s_OSCSurfaceToken)
+                        line += s_surfaces.Get(i)->remoteDeviceIP;
                     
                     iniFile << line + "\n";
                 }
