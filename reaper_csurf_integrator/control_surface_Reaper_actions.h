@@ -3325,9 +3325,9 @@ public:
     {
         double retVal = 0.0;
         
-        for(int i = 0; i < (int)context->GetPage()->GetSelectedTracks().size(); ++i)
+        for(int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
         {
-            if(context->GetIntParam() == DAW::GetMediaTrackInfo_Value(context->GetPage()->GetSelectedTracks()[i], "I_AUTOMODE"))
+            if(context->GetIntParam() == DAW::GetMediaTrackInfo_Value(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE"))
             {
                 retVal = 1.0;
                 break;
@@ -3349,8 +3349,8 @@ public:
         
         int mode = context->GetIntParam();
         
-        for(int i = 0; i < (int)context->GetPage()->GetSelectedTracks().size(); ++i)
-            DAW::GetSetMediaTrackInfo(context->GetPage()->GetSelectedTracks()[i], "I_AUTOMODE", &mode);
+        for(int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
+            DAW::GetSetMediaTrackInfo(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE", &mode);
     }
 };
 

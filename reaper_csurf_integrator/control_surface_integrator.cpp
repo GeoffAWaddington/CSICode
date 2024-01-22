@@ -4448,24 +4448,24 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TrackNavigationManager::RebuildTracks()
 {
-    int oldTracksSize = (int)tracks_.size();
+    int oldTracksSize = tracks_.GetSize();
     
-    tracks_.clear();
+    tracks_.Empty();
     
     for (int i = 1; i <= GetNumTracks(); i++)
     {
         if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
             if(DAW::IsTrackVisible(track, followMCP_))
-                tracks_.push_back(track);
+                tracks_.Add(track);
     }
     
-    if(tracks_.size() < oldTracksSize)
+    if(tracks_.GetSize() < oldTracksSize)
     {
-        for(int i = oldTracksSize; i > tracks_.size(); i--)
+        for(int i = oldTracksSize; i > tracks_.GetSize(); i--)
             page_->ForceClearTrack(i - trackOffset_);
     }
     
-    if(tracks_.size() != oldTracksSize)
+    if(tracks_.GetSize() != oldTracksSize)
         page_->ForceUpdateTrackColors();
 }
 
@@ -4474,20 +4474,20 @@ void TrackNavigationManager::RebuildSelectedTracks()
     if(currentTrackVCAFolderMode_ != 3)
         return;
 
-    int oldTracksSize = (int)selectedTracks_.size();
+    int oldTracksSize = selectedTracks_.GetSize();
     
-    selectedTracks_.clear();
+    selectedTracks_.Empty();
     
     for(int i = 0; i < DAW::CountSelectedTracks(); i++)
-        selectedTracks_.push_back(DAW::GetSelectedTrack(i));
+        selectedTracks_.Add(DAW::GetSelectedTrack(i));
 
-    if(selectedTracks_.size() < oldTracksSize)
+    if(selectedTracks_.GetSize() < oldTracksSize)
     {
-        for(int i = oldTracksSize; i > selectedTracks_.size(); i--)
+        for(int i = oldTracksSize; i > selectedTracks_.GetSize(); i--)
             page_->ForceClearTrack(i - selectedTracksOffset_);
     }
     
-    if(selectedTracks_.size() != oldTracksSize)
+    if(selectedTracks_.GetSize() != oldTracksSize)
         page_->ForceUpdateTrackColors();
 }
 
