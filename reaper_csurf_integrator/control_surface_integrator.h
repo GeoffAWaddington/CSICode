@@ -2412,6 +2412,8 @@ public:
             fxFile.close();
         }
     }
+
+    void LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
