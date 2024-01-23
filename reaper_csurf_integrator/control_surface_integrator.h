@@ -1074,7 +1074,7 @@ private:
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
     
-    vector<ZoneManager *> listeners_;
+    WDL_PtrList<ZoneManager> listeners_;
     
     bool listensToGoHome_;
     bool listensToSends_;
@@ -1184,8 +1184,8 @@ private:
             }
         }
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackSend(zoneName);
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoSelectedTrackSend(zoneName);
     }
     
     void DeclareGoSelectedTrackReceive(const string &zoneName)
@@ -1201,8 +1201,8 @@ private:
             }
         }
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackReceive(zoneName);
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoSelectedTrackReceive(zoneName);
     }
   
     void DeclareGoSelectedTrackFX()
@@ -1210,8 +1210,8 @@ private:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoSelectedTrackFX();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackFX();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoSelectedTrackFX();
     }
         
     void DeclareGoCustom(const string &zoneName)
@@ -1227,8 +1227,8 @@ private:
             }
         }
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoCustom(zoneName);
+            for(int i = 0; i < (int)listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoCustom(zoneName);
     }
     
     void ListenToGoHome()
@@ -1292,8 +1292,8 @@ private:
             }
         }
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackFXMenu(zoneName);
+            for(int i = 0; i < (int)listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoSelectedTrackFXMenu(zoneName);
     }
     
     void ListenToGoSelectedTrackFXMenu(const string &zoneName)
@@ -1612,10 +1612,10 @@ public:
     Navigator* GetSelectedTrackNavigator();
     Navigator* GetFocusedFXNavigator();
     
-    bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
+    bool GetIsBroadcaster() { return  ! (listeners_.GetSize() == 0); }
     void AddListener(ControlSurface* surface);
     void SetListenerCategories(const string &categoryList);
-    const vector<ZoneManager *> &GetListeners() { return listeners_; }
+    const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     void GoFocusedFX();
@@ -1667,8 +1667,8 @@ public:
         if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoFXSlot(track, navigator, fxSlot);
     }
     
     void DeclareClearSelectedTrackFX()
@@ -1676,8 +1676,8 @@ public:
         if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             ClearSelectedTrackFX();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToClearSelectedTrackFX();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToClearSelectedTrackFX();
     }
     
     void DeclareClearFXSlot(shared_ptr<Zone> zone)
@@ -1685,8 +1685,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFXSlot(zone);
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFXSlot(zone);
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToClearFXSlot(zone);
     }
                 
     void RemoveZone(string zoneName)
@@ -1738,8 +1738,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFXParam();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFocusedFXParam();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToClearFocusedFXParam();
     }
     
     void DeclareClearFocusedFX()
@@ -1747,8 +1747,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFX();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFocusedFX();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToClearFocusedFX();
     }
     
     const vector<vector<string>> &GetSurfaceFXLayout()
@@ -1811,8 +1811,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoHome();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoHome();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoHome();
     }
         
     void OnTrackSelection()
@@ -1837,8 +1837,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXParamMapping();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToToggleEnableFocusedFXParamMapping();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToToggleEnableFocusedFXParamMapping();
     }
 
     void DeclareToggleEnableFocusedFXMapping()
@@ -1846,8 +1846,8 @@ public:
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXMapping();
         else
-            for(int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToToggleEnableFocusedFXMapping();
+            for(int i = 0; i < listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToToggleEnableFocusedFXMapping();
     }
 
     bool GetIsHomeZoneOnlyActive()
