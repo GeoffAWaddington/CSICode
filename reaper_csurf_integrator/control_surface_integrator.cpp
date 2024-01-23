@@ -585,10 +585,10 @@ void ZoneManager::GarbageCollectZones()
 {
     for (int x = 0; x < allZonesNeedFree_.GetSize(); x ++)
     {
-        if (WDL_NOT_NORMALLY(allZonesNeedFree_.Get(x)->zoneManager_ != this))
+        if (allZonesNeedFree_.Get(x)->zoneManager_ != this)
         {
+            WDL_ASSERT(false); // better leak than to crash
             allZonesNeedFree_.Delete(x--);
-            // better leak than to crash
         }
         else
         {
@@ -610,10 +610,10 @@ void ZoneManager::GarbageCollectZones()
 
     for (int x = allZonesNeedFree_.GetSize()-1; x>=0; x --)
     {
-        if (WDL_NOT_NORMALLY(allZonesNeedFree_.Get(x)->zoneManager_ != this))
+        if (allZonesNeedFree_.Get(x)->zoneManager_ != this)
         {
+            WDL_ASSERT(false); // better leak than to crash
             allZonesNeedFree_.Delete(x);
-            // better leak than to crash
         }
         else if (allZonesNeedFree_.Get(x)->gcState_ == false)
         {
