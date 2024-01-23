@@ -233,16 +233,29 @@ void ShutdownOSCIO()
 struct ActionTemplate
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string widgetName = "";
-    int modifier = 0;
-    string actionName = "";
+    string widgetName;
+    int modifier;
+    string actionName;
     vector<string> params;
-    bool isValueInverted = false;
-    bool isFeedbackInverted = false;
-    double holdDelayAmount = 0.0;
-    bool isDecrease = false;
-    bool isIncrease = false;
-    bool provideFeedback = false;
+    bool isValueInverted;
+    bool isFeedbackInverted;
+    double holdDelayAmount;
+    bool isDecrease;
+    bool isIncrease;
+    bool provideFeedback;
+    
+    ActionTemplate()
+    {
+        widgetName = "";
+        modifier = 0;
+        actionName = "";
+        isValueInverted = false;
+        isFeedbackInverted = false;
+        holdDelayAmount = 0.0;
+        isDecrease = false;
+        isIncrease = false;
+        provideFeedback = false;
+    }
 };
 
 static void listFilesOfType(const string &path, vector<string> &results, const char *type)
@@ -317,7 +330,7 @@ static void GetWidgetNameAndModifiers(const string &line, ActionTemplate* action
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-static void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, vector<ActionTemplate*>>> &actionTemplatesDictionary)
+static void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, WDL_PtrList<ActionTemplate>>> &actionTemplatesDictionary)
 {
     string feedbackIndicator = "";
     
@@ -337,19 +350,19 @@ static void BuildActionTemplate(const vector<string> &tokens, map<string, map<in
     
     GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
-    actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].push_back(currentActionTemplate);
+    actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].Add(currentActionTemplate);
     
-    if(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size() == 1)
+    if(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize() == 1)
     {
         if(feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
             currentActionTemplate->provideFeedback = true;
     }
     else if(feedbackIndicator == "Feedback=Yes")
     {
-        for(int i = 0; i < (int)actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].size(); ++i)
-            actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier][i]->provideFeedback = false;
+        for(int i = 0; i < actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize(); ++i)
+            actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].Get(i)->provideFeedback = false;
         
-        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].back()->provideFeedback = true;
+        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].Get(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize() - 1)->provideFeedback = true;
     }
 }
 
@@ -618,7 +631,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     bool isInAssociatedZonesSection = false;
     vector<string> associatedZones;
     
-    map<string, map<int, vector<ActionTemplate*>>> actionTemplatesDictionary;
+    map<string, map<int, WDL_PtrList<ActionTemplate>>> actionTemplatesDictionary;
     
     string zoneName = "";
     string zoneAlias = "";
@@ -694,30 +707,30 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                                         
                             for(auto [modifier, actionTemplates] : modifiedActionTemplates)
                             {
-                                for(int j = 0; j < (int)actionTemplates.size(); ++j)
+                                for(int j = 0; j < actionTemplates.GetSize(); ++j)
                                 {
-                                    string actionName = regex_replace(actionTemplates[j]->actionName, regex("[|]"), numStr);
+                                    string actionName = regex_replace(actionTemplates.Get(j)->actionName, regex("[|]"), numStr);
 
                                     vector<string> memberParams;
-                                    for(int k = 0; k < actionTemplates[j]->params.size(); k++)
-                                        memberParams.push_back(regex_replace(actionTemplates[j]->params[k], regex("[|]"), numStr));
+                                    for(int k = 0; k < actionTemplates.Get(j)->params.size(); k++)
+                                        memberParams.push_back(regex_replace(actionTemplates.Get(j)->params[k], regex("[|]"), numStr));
                                     
                                     ActionContext *context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
                                         
-                                    context->SetProvideFeedback(actionTemplates[j]->provideFeedback);
+                                    context->SetProvideFeedback(actionTemplates.Get(j)->provideFeedback);
                                     
-                                    if(actionTemplates[j]->isValueInverted)
+                                    if(actionTemplates.Get(j)->isValueInverted)
                                         context->SetIsValueInverted();
                                     
-                                    if(actionTemplates[j]->isFeedbackInverted)
+                                    if(actionTemplates.Get(j)->isFeedbackInverted)
                                         context->SetIsFeedbackInverted();
                                     
-                                    if(actionTemplates[j]->holdDelayAmount != 0.0)
-                                        context->SetHoldDelayAmount(actionTemplates[j]->holdDelayAmount);
+                                    if(actionTemplates.Get(j)->holdDelayAmount != 0.0)
+                                        context->SetHoldDelayAmount(actionTemplates.Get(j)->holdDelayAmount);
                                     
-                                    if(actionTemplates[j]->isDecrease)
+                                    if(actionTemplates.Get(j)->isDecrease)
                                         context->SetRange({ -2.0, 1.0 });
-                                    else if(actionTemplates[j]->isIncrease)
+                                    else if(actionTemplates.Get(j)->isIncrease)
                                         context->SetRange({ 0.0, 2.0 });
                                    
                                     zone->AddActionContext(widget, modifier, context);
@@ -778,8 +791,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     
     for(auto [key, actionTemplatesForModifer] : actionTemplatesDictionary)
         for(auto [key, templates] : actionTemplatesForModifer)
-            for(auto actionTemplate : templates)
-                delete actionTemplate;
+            templates.Empty(true);
 }
 
 static void SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
