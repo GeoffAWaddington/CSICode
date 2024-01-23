@@ -583,13 +583,13 @@ struct RowInfo
     static void dispose(RowInfo *r) { delete r; }
 };
 
-static void CalculateRowInfo(const vector<ActionContext *> &contexts, WDL_StringKeyedArray<RowInfo*> &rows)
+static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_StringKeyedArray<RowInfo*> &rows)
 {
     rows.DeleteAll();
     
-    for(int i = 0; i < (int)contexts.size(); ++i)
+    for(int i = 0; i < contexts.GetSize(); ++i)
     {
-        map<string, string> properties = contexts[i]->GetWidgetProperties();
+        map<string, string> properties = contexts.Get(i)->GetWidgetProperties();
         
         if(properties.count("Row") > 0)
         {
@@ -601,7 +601,7 @@ static void CalculateRowInfo(const vector<ActionContext *> &contexts, WDL_String
             if(properties.count("Font") > 0)
                 row->fontSize = stoi(properties["Font"]);
 
-            contexts[i]->SetProvideFeedback(true);
+            contexts.Get(i)->SetProvideFeedback(true);
         }
     }
 
@@ -690,7 +690,7 @@ public:
         ForceValue(properties, 0.0);
     }
     
-    virtual void Configure(const vector<ActionContext *> &contexts) override
+    virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
     {
         CalculateRowInfo(contexts,rows_);
 
@@ -860,7 +860,7 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void Configure(const vector<ActionContext *> &contexts) override
+    virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
     {
         CalculateRowInfo(contexts,rows_);
 
@@ -1110,12 +1110,12 @@ public:
         return val + 64;
     }
         
-    virtual void Configure(const vector<ActionContext *> &contexts) override
+    virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
     {
-        if(contexts.size() == 0)
+        if(contexts.GetSize() == 0)
             return;
         
-        map<string, string> properties = contexts[0]->GetWidgetProperties();
+        map<string, string> properties = contexts.Get(0)->GetWidgetProperties();
         
         vector<LEDRingRangeColor> colors;
         

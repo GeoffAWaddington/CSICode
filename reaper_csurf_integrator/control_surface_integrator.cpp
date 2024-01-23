@@ -2230,7 +2230,7 @@ Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex,
                 WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
-                associatedZones_[associatedZones[i]] = vector<Zone *>();
+                associatedZones_[associatedZones[i]] = vector<Zone*>();
                 
                 zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[associatedZones[i]].filePath, navigators, associatedZones_[associatedZones[i]], nullptr);
             }
@@ -2290,10 +2290,10 @@ int Zone::GetParamIndex(const string &widgetName)
 {
     if(widgetsByName_.count(widgetName) > 0)
     {
-        const vector<ActionContext *> &contexts = GetActionContexts(widgetsByName_[widgetName]);
+        const WDL_PtrList<ActionContext> &contexts = GetActionContexts(widgetsByName_[widgetName]);
         
-        if(contexts.size() > 0)
-            return contexts[0]->GetParamIndex();
+        if(contexts.GetSize() > 0)
+            return contexts.Get(0)->GetParamIndex();
     }
     
     return -1;
@@ -2316,8 +2316,8 @@ void Zone::SetFXParamNum(Widget *paramWidget, int paramIndex)
     {
         if(widget == paramWidget)
         {
-            for(int i = 0; i < (int)GetActionContexts(widget, currentActionContextModifiers_[widget]).size(); ++i)
-                GetActionContexts(widget, currentActionContextModifiers_[widget])[i]->SetParamIndex(paramIndex);
+            for(int i = 0; i < GetActionContexts(widget, currentActionContextModifiers_[widget]).GetSize(); ++i)
+                GetActionContexts(widget, currentActionContextModifiers_[widget]).Get(i)->SetParamIndex(paramIndex);
             break;
         }
     }
@@ -2405,8 +2405,8 @@ void Zone::Activate()
     for(auto [widget, isUsed] : widgets_)
     {
         if(widget->GetName() == "OnZoneActivation")
-            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
-                GetActionContexts(widget)[i]->DoAction(1.0);
+            for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+                GetActionContexts(widget).Get(i)->DoAction(1.0);
             
         widget->Configure(GetActionContexts(widget));
     }
@@ -2438,13 +2438,13 @@ void Zone::Deactivate()
 {    
     for(auto [widget, isUsed] : widgets_)
     {
-        for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+        for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
         {
-            GetActionContexts(widget)[i]->UpdateWidgetValue(0.0);
-            GetActionContexts(widget)[i]->UpdateWidgetValue("");
+            GetActionContexts(widget).Get(i)->UpdateWidgetValue(0.0);
+            GetActionContexts(widget).Get(i)->UpdateWidgetValue("");
 
             if(widget->GetName() == "OnZoneDeactivation")
-                GetActionContexts(widget)[i]->DoAction(1.0);
+                GetActionContexts(widget).Get(i)->DoAction(1.0);
         }
     }
 
@@ -2493,21 +2493,21 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
                     foundIt = true;
 
                     if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
-                        for(int j = 0; j < actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].size(); ++j)
-                            actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][j]->RequestUpdate(info->paramNumber);
+                        for(int j = 0; j < actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].GetSize(); ++j)
+                            actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
 
                     if(actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
-                        for(int j = 0; j < actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].size(); ++j)
-                            actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][j]->RequestUpdate(info->paramNumber);
+                        for(int j = 0; j < actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].GetSize(); ++j)
+                            actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
                 }
                 else
                 {
                     if(actionContextDictionary_.count(cell.fxParamWidgets.Get(i)) > 0 && actionContextDictionary_[cell.fxParamWidgets.Get(i)].count(modifier) > 0)
                     {
-                        for(int j = 0; j < actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].size(); ++j)
+                        for(int j = 0; j < actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].GetSize(); ++j)
                         {
-                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier][j]->UpdateWidgetValue(0.0);
-                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier][j]->UpdateWidgetValue("");
+                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue(0.0);
+                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue("");
                         }
                     }
                 }
@@ -2519,10 +2519,10 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
             {
                 if(actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
                 {
-                    for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].size(); ++i)
+                    for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].GetSize(); ++i)
                     {
-                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][i]->UpdateWidgetValue(0.0);
-                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier][i]->UpdateWidgetValue("");
+                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
+                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
                     }
                     
                     usedWidgets[cell.fxParamNameDisplayWidget] = true;
@@ -2530,10 +2530,10 @@ void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
 
                 if(actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
                 {
-                    for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].size(); ++i)
+                    for(int i = 0; i < (int)actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].GetSize(); ++i)
                     {
-                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][i]->UpdateWidgetValue(0.0);
-                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier][i]->UpdateWidgetValue("");
+                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
+                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
                     }
                     
                     usedWidgets[cell.fxParamValueDisplayWidget] = true;
@@ -2605,8 +2605,8 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 
         isUsed = true;
         
-        for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
-            GetActionContexts(widget)[i]->DoAction(value);
+        for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+            GetActionContexts(widget).Get(i)->DoAction(value);
     }
     else
     {
@@ -2647,7 +2647,7 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
     }
 }
 
-const vector<ActionContext *> &Zone::GetActionContexts(Widget *widget)
+const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
 {
     if(currentActionContextModifiers_.count(widget) == 0)
         UpdateCurrentActionContextModifier(widget);
@@ -2686,7 +2686,7 @@ ZoneManager *Widget::GetZoneManager()
     return surface_->GetZoneManager();
 }
 
-void Widget::Configure(const vector<ActionContext*> &contexts)
+void Widget::Configure(const WDL_PtrList<ActionContext> &contexts)
 {
     for(int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->Configure(contexts);
@@ -3194,7 +3194,7 @@ void ZoneManager::EraseLastTouchedControl()
             Widget *widget = lastTouched_->fxParamWidget;
             if(widget)
             {
-                for(int i = 0; i < (int)fxLayout_->GetActionContexts(widget).size(); ++i)
+                for(int i = 0; i < fxLayout_->GetActionContexts(widget).GetSize(); ++i)
                     SetParamNum(widget, 1);
                 
                 int modifier = fxLayout_->GetModifier(widget);
@@ -3665,8 +3665,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
                                 for(int k = 0; k < (int)zoneDef_.paramDefs[i].definitions[j].steps.size(); ++k)
                                     steps.push_back(stod(zoneDef_.paramDefs[i].definitions[j].steps[k]));
                                 
-                                for(int k = 0; k < (int)learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).size(); ++k)
-                                    learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier)[k]->SetStepValues(steps);
+                                for(int k = 0; k < learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).GetSize(); ++k)
+                                    learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).Get(k)->SetStepValues(steps);
                             }
                         }
                         

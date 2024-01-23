@@ -606,15 +606,15 @@ protected:
     map<int, map<string, LearnFXCell>> learnFXCells_;
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
     
-    vector<Zone *> includedZones_;
-    map<string, vector<Zone *> > subZones_;
-    map<string, vector<Zone *> > associatedZones_;
+    vector<Zone*> includedZones_;
+    map<string, vector<Zone*> > subZones_;
+    map<string, vector<Zone*> > associatedZones_;
     
     WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
-    map<Widget *, map<int, vector<ActionContext*> > > actionContextDictionary_;
-    vector<ActionContext *> empty_;
-    map<Widget *, int> currentActionContextModifiers_;
-    vector<ActionContext *> defaultContexts_;
+    map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
+    WDL_PtrList<ActionContext> empty_;
+    map<Widget*, int> currentActionContextModifiers_;
+    WDL_PtrList<ActionContext> defaultContexts_;
     
     void AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators);
     void UpdateCurrentActionContextModifier(Widget *widget);
@@ -635,7 +635,7 @@ public:
     void SetXTouchDisplayColors(const string &color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
-    const vector<ActionContext *> &GetActionContexts(Widget *widget);
+    const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget);
     void Activate();
     void Deactivate();
     void DoAction(Widget *widget, bool &isUsed, double value);
@@ -750,11 +750,11 @@ public:
     
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
-        actionContextDictionary_[widget][modifier].push_back(actionContext);
+        actionContextDictionary_[widget][modifier].Add(actionContext);
         actionContextNeedFree_.Add(actionContext);
     }
     
-    const vector<ActionContext *> &GetActionContexts(Widget *widget, int modifier)
+    const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget, int modifier)
     {
         if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
             return actionContextDictionary_[widget][modifier];
@@ -789,10 +789,10 @@ public:
 
     void RequestUpdateWidget(Widget *widget)
     {
-        for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
+        for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
         {
-            GetActionContexts(widget)[i]->RunDeferredActions();
-            GetActionContexts(widget)[i]->RequestUpdate();
+            GetActionContexts(widget).Get(i)->RunDeferredActions();
+            GetActionContexts(widget).Get(i)->RequestUpdate();
         }
     }
 
@@ -842,8 +842,8 @@ public:
         {
             isUsed = true;
 
-            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
-                GetActionContexts(widget)[i]->DoRelativeAction(delta);
+            for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+                GetActionContexts(widget).Get(i)->DoRelativeAction(delta);
         }
         else
         {
@@ -872,8 +872,8 @@ public:
         {
             isUsed = true;
 
-            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
-                GetActionContexts(widget)[i]->DoRelativeAction(accelerationIndex, delta);
+            for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+                GetActionContexts(widget).Get(i)->DoRelativeAction(accelerationIndex, delta);
         }
         else
         {
@@ -902,8 +902,8 @@ public:
         {
             isUsed = true;
 
-            for(int i = 0; i < (int)GetActionContexts(widget).size(); ++i)
-                GetActionContexts(widget)[i]->DoTouch(value);
+            for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+                GetActionContexts(widget).Get(i)->DoTouch(value);
         }
         else
         {
@@ -988,7 +988,7 @@ public:
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
-    void Configure(const vector<ActionContext *> &contexts);
+    void Configure(const WDL_PtrList<ActionContext> &contexts);
     void UpdateValue(map<string, string> &properties, double value);
     void UpdateValue(map<string, string> &properties, string value);
     void RunDeferredActions();
@@ -3179,7 +3179,7 @@ public:
     virtual string GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color &color) {}
-    virtual void Configure(const vector<ActionContext *> &contexts) {}
+    virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
     virtual void ForceValue(map<string, string> &properties, double value) {}
     virtual void ForceColorValue(const rgba_color &color) {}
     virtual void ForceValue(map<string, string> &properties, const string &value) {}
