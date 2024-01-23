@@ -3522,15 +3522,15 @@ private:
     WDL_PtrList<MediaTrack> selectedTracks_;
     
     WDL_PtrList<MediaTrack> vcaTopLeadTracks_;
-    MediaTrack*         vcaLeadTrack_;
+    MediaTrack*             vcaLeadTrack_;
     WDL_PtrList<MediaTrack> vcaLeadTracks_;
     WDL_PtrList<MediaTrack> vcaSpillTracks_;
     
     WDL_PtrList<MediaTrack> folderTopParentTracks_;
-    MediaTrack*         folderParentTrack_;
+    MediaTrack*             folderParentTrack_;
     WDL_PtrList<MediaTrack> folderParentTracks_;
     WDL_PtrList<MediaTrack> folderSpillTracks_;
-    map<MediaTrack*,    vector<MediaTrack*>> folderDictionary_;
+    map<MediaTrack*, WDL_PtrList<MediaTrack>> folderDictionary_;
 
     map<int, Navigator*> trackNavigators_;
     Navigator* const masterTrackNavigator_;
@@ -4174,7 +4174,7 @@ public:
         folderDictionary_.clear();
         folderSpillTracks_.Empty();
        
-        vector<vector<MediaTrack*>*> currentDepthTracks;
+        vector<WDL_PtrList<MediaTrack>*> currentDepthTracks;
         
         for (int i = 1; i <= GetNumTracks(); i++)
         {
@@ -4185,19 +4185,19 @@ public:
                 if(currentDepthTracks.size() == 0)
                     folderTopParentTracks_.Add(track);
                 else
-                    currentDepthTracks.back()->push_back(track);
+                    currentDepthTracks.back()->Add(track);
                 
-                folderDictionary_[track].push_back(track);
+                folderDictionary_[track].Add(track);
                 
                 currentDepthTracks.push_back(&folderDictionary_[track]);
             }
             else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
             {
-                currentDepthTracks.back()->push_back(track);
+                currentDepthTracks.back()->Add(track);
             }
             else if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0 && currentDepthTracks.size() > 0)
             {
-                currentDepthTracks.back()->push_back(track);
+                currentDepthTracks.back()->Add(track);
                 
                 int folderBackTrack = (int)-DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
@@ -4207,8 +4207,8 @@ public:
         }
         
         if(folderParentTrack_ != nullptr)
-            for(int i = 0; i < (int)folderDictionary_[folderParentTrack_].size(); ++i)
-                folderSpillTracks_.Add(folderDictionary_[folderParentTrack_][i]);
+            for(int i = 0; i < folderDictionary_[folderParentTrack_].GetSize(); ++i)
+                folderSpillTracks_.Add(folderDictionary_[folderParentTrack_].Get(i));
     }
     
     void EnterPage()
