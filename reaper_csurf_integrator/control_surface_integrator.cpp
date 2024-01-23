@@ -551,7 +551,7 @@ static void GetColorValues(vector<rgba_color> &colorValues, const vector<string>
     }
 }
 
-void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone)
+void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<Zone*> &zones, Zone *enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -601,13 +601,13 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                         
                         map<string, string> expandedTouchIds;
                                                 
-                        shared_ptr<Zone> zone;
+                        Zone *zone;
                         
                         if(enclosingZone == nullptr)
-                            zone = make_shared<Zone>(this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                            zone = new Zone(this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
-                            zone = make_shared<SubZone>(this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
-                                                
+                            zone = new SubZone(this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+
                         if(zoneName == "Home")
                             SetHomeZone(zone);
                                                
@@ -615,6 +615,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             SetFocusedFXParamZone(zone);
                         
                         zones.push_back(zone);
+                        allZonesNeedFree_.Add(zone);
                         
                         for(auto [widgetName, modifiedActionTemplates] : actionTemplatesDictionary)
                         {
@@ -785,7 +786,7 @@ static void SetColor(vector<string> &params, bool &supportsColor, bool &supports
     }
 }
 
-static void GetSteppedValues(Widget *widget, Action* action,  shared_ptr<Zone> zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(Widget *widget, Action* action,  Zone *zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
     vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1740,7 +1741,7 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(Action* action, Widget *widget, Zone *zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
 {
     // private:
     intParam_ = 0;
@@ -2159,7 +2160,7 @@ Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex,
                 WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
-                associatedZones_[associatedZones[i]] = vector<shared_ptr<Zone>>();
+                associatedZones_[associatedZones[i]] = vector<Zone *>();
                 
                 zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[associatedZones[i]].filePath, navigators, associatedZones_[associatedZones[i]], nullptr);
             }
@@ -2178,7 +2179,7 @@ Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex,
     }
 }
 
-void Zone::InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosingZone)
+void Zone::InitSubZones(const vector<string> &subZones, Zone *enclosingZone)
 {
     for(int i = 0; i < (int)subZones.size(); ++i)
     {
@@ -2187,7 +2188,7 @@ void Zone::InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosi
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetNavigator());
 
-            subZones_[subZones[i]] = vector<shared_ptr<Zone>>();
+            subZones_[subZones[i]] = vector<Zone*>();
         
             zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[subZones[i]].filePath, navigators, subZones_[subZones[i]], enclosingZone);
         }
@@ -2794,8 +2795,8 @@ void ZoneManager::Initialize()
         
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
-    vector<shared_ptr<Zone>> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
-      LoadZoneFile(zoneFilePaths_["Home"].filePath, navigators, dummy, nullptr);
+    vector<Zone*> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
+    LoadZoneFile(zoneFilePaths_["Home"].filePath, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
         LoadZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("SurfaceFXLayout") > 0)
@@ -3380,7 +3381,7 @@ void ZoneManager::InitializeNoMapZone()
         WDL_PtrList<Navigator> navigators;
         navigators.Add(GetSelectedTrackNavigator());
         
-        vector<shared_ptr<Zone>> zones;
+        vector<Zone*> zones;
         
         LoadZoneFile(GetZoneFilePaths()["NoMap"].filePath, navigators, zones, nullptr);
         
@@ -3458,7 +3459,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
     
     if(homeZone_ != nullptr)
     {
-        if(shared_ptr<Zone> zone = homeZone_->GetLearnFXParamsZone())
+        Zone *zone = homeZone_->GetLearnFXParamsZone();
+        if (zone)
         {
             vector<string> paramWidgets;
             vector<string> widgetParams;
@@ -3581,7 +3583,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
                             
                             info->params += "]";
                             
-                            if(shared_ptr<Zone> learnZone = homeZone_->GetLearnFXParamsZone())
+                            Zone *learnZone = homeZone_->GetLearnFXParamsZone();
+                            if (learnZone)
                             {
                                 vector<double> steps;
                                 

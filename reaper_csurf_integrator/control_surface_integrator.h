@@ -340,7 +340,7 @@ class ActionContext
 private:
     Action* const action_;
     Widget * const widget_;
-    shared_ptr<Zone> const zone_;
+    Zone * const zone_;
 
     vector<string> parameters_;
     
@@ -389,15 +389,15 @@ private:
     void UpdateTrackColor();
 
 public:
-    ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params);
-    ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
+    ActionContext(Action* action, Widget *widget, Zone *zone, const vector<string> &params);
+    ActionContext(Action* action, Widget *widget, Zone *zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
     {
         paramIndex_ = paramIndex;
         
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
-    ActionContext(Action* action, Widget *widget, shared_ptr<Zone> zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
+    ActionContext(Action* action, Widget *widget, Zone *zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
     {
         stringParam_ = stringParam;
         
@@ -409,7 +409,7 @@ public:
     
     Action* GetAction() { return action_; }
     Widget *GetWidget() { return widget_; }
-    shared_ptr<Zone> GetZone() { return zone_; }
+    Zone *GetZone() { return zone_; }
     int GetSlotIndex();
     const string &GetName();
 
@@ -602,9 +602,9 @@ protected:
     map<int, map<string, LearnFXCell>> learnFXCells_;
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
     
-    vector<shared_ptr<Zone>> includedZones_;
-    map<string, vector<shared_ptr<Zone>>> subZones_;
-    map<string, vector<shared_ptr<Zone>>> associatedZones_;
+    vector<Zone *> includedZones_;
+    map<string, vector<Zone *> > subZones_;
+    map<string, vector<Zone *> > associatedZones_;
     
     WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
     map<Widget *, map<int, vector<ActionContext*> > > actionContextDictionary_;
@@ -622,7 +622,7 @@ public:
         actionContextNeedFree_.Empty(true);
     }
     
-    void InitSubZones(const vector<string> &subZones, shared_ptr<Zone> enclosingZone);
+    void InitSubZones(const vector<string> &subZones, Zone *enclosingZone);
     void GoAssociatedZone(const string &associatedZoneName);
     void GoAssociatedZone(const string &associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
@@ -673,20 +673,20 @@ public:
         else return emptyLearnFXCell_;
     }
     
-    shared_ptr<Zone> GetLearnFXParamsZone()
+    Zone *GetLearnFXParamsZone()
     {
         if(associatedZones_.count("LearnFXParams") && associatedZones_["LearnFXParams"].size() == 1)
             return associatedZones_["LearnFXParams"][0];
         else
-            return shared_ptr<Zone>(nullptr);
+            return NULL;
     }
        
-    shared_ptr<Zone> GetFXLayoutZone(const string &name)
+    Zone *GetFXLayoutZone(const string &name)
     {
         if(associatedZones_.count(name) && associatedZones_[name].size() == 1)
             return associatedZones_[name][0];
         else
-            return shared_ptr<Zone>(nullptr);
+            return NULL;
     }
        
     bool GetIsMainZoneOnlyActive()
@@ -914,10 +914,10 @@ class SubZone : public Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    shared_ptr<Zone> const enclosingZone_;
+    Zone * const enclosingZone_;
     
 public:
-    SubZone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, shared_ptr<Zone> enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, Zone *enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -1053,21 +1053,21 @@ class ZoneManager
 {
 private:
     ControlSurface* const surface_;
-    string const zoneFolder_ = "";
-    string const fxZoneFolder_ = "";
+    string const zoneFolder_;
+    string const fxZoneFolder_;
 
     map<string, CSIZoneInfo> zoneFilePaths_;
     
     map<Widget *, bool> usedWidgets_;
     
-    shared_ptr<Zone> noMapZone_;
+    Zone *noMapZone_;
     
-    shared_ptr<Zone> homeZone_;
+    Zone *homeZone_;
     
     map<int, map<Widget *, Widget *>> controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
     vector<string> fxLayoutFileLinesOriginal_;
-    shared_ptr<Zone> fxLayout_;
+    Zone *fxLayout_;
     vector<vector<string>> surfaceFXLayout_;
     vector<vector<string>> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
@@ -1086,15 +1086,15 @@ private:
     bool listensToSelectedTrackFX_;
     bool listensToCustom_;
 
-    shared_ptr<Zone> focusedFXParamZone_;
+    Zone *focusedFXParamZone_;
     bool isFocusedFXParamMappingEnabled_;
     
     map<int, map<int, int>> focusedFXDictionary_;
-    vector<shared_ptr<Zone>> focusedFXZones_;
+    vector<Zone *> focusedFXZones_;
     bool isFocusedFXMappingEnabled_;
     
-    vector<shared_ptr<Zone>> selectedTrackFXZones_;
-    vector<shared_ptr<Zone>> fxSlotZones_;
+    vector<Zone *> selectedTrackFXZones_;
+    vector<Zone *> fxSlotZones_;
     
     map <string, map<int, vector<double>>> steppedValues_;
     
@@ -1316,7 +1316,7 @@ private:
             GoFXSlot(track, navigator, fxSlot);
     }
     
-    void ListenToClearFXSlot(shared_ptr<Zone> zone)
+    void ListenToClearFXSlot(Zone *zone)
     {
        if(listensToFXMenu_)
            ClearFXSlot(zone);
@@ -1402,7 +1402,7 @@ private:
         selectedTrackFXZones_.clear();
     }
     
-    void ClearFXSlot(shared_ptr<Zone> zone)
+    void ClearFXSlot(Zone *zone)
     {
         for(int i = 0; i < fxSlotZones_.size(); i++)
         {
@@ -1553,11 +1553,10 @@ public:
     ZoneManager(ControlSurface* surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
     {
         //private:
-        noMapZone_ = nullptr;
-
-        homeZone_ = nullptr;
-        
-        fxLayout_ = nullptr;
+        noMapZone_ = NULL;
+        homeZone_ = NULL;
+        fxLayout_ = NULL;
+        focusedFXParamZone_ = NULL;
         
         listensToGoHome_ = false;
         listensToSends_ = false;
@@ -1569,7 +1568,6 @@ public:
         listensToSelectedTrackFX_ = false;
         listensToCustom_ = false;
 
-        focusedFXParamZone_ = nullptr;
         isFocusedFXParamMappingEnabled_ = false;
         
         isFocusedFXMappingEnabled_ = true;
@@ -1602,6 +1600,8 @@ public:
         for(auto [key, learnedFXParamsForModifier] : learnedFXParams_)
             for(auto [key, learnedFXParam] : learnedFXParamsForModifier)
                 delete learnedFXParam;
+
+        allZonesNeedFree_.Empty(true);
     }
         
     void Initialize();
@@ -1648,8 +1648,8 @@ public:
 
     ControlSurface* GetSurface() { return surface_; }
     
-    void SetHomeZone(shared_ptr<Zone> zone) { homeZone_ = zone; }
-    void SetFocusedFXParamZone(shared_ptr<Zone> zone) { focusedFXParamZone_ = zone; }
+    void SetHomeZone(Zone *zone) { homeZone_ = zone; }
+    void SetFocusedFXParamZone(Zone *zone) { focusedFXParamZone_ = zone; }
     
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
@@ -1680,7 +1680,7 @@ public:
                 listeners_.Get(i)->ListenToClearSelectedTrackFX();
     }
     
-    void DeclareClearFXSlot(shared_ptr<Zone> zone)
+    void DeclareClearFXSlot(Zone *zone)
     {
         if(! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFXSlot(zone);
@@ -2413,7 +2413,8 @@ public:
         }
     }
 
-    void LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<shared_ptr<Zone>> &zones, shared_ptr<Zone> enclosingZone);
+    WDL_PtrList<Zone> allZonesNeedFree_; // todo: garbage collect this list occasionally
+    void LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<Zone *> &zones, Zone *enclosingZone);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4731,7 +4732,7 @@ public:
             osara_outputMessage(phrase.c_str());
     }
     
-    ActionContext *GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
         if(actions_.count(actionName) > 0)
             return new ActionContext(actions_[actionName], widget, zone, params);
@@ -4739,7 +4740,7 @@ public:
             return new ActionContext(actions_["NoAction"], widget, zone, params);
     }
 
-    ActionContext *GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, int paramIndex)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, int paramIndex)
     {
         if(actions_.count(actionName) > 0)
             return new ActionContext(actions_[actionName], widget, zone, paramIndex);
@@ -4747,7 +4748,7 @@ public:
             return new ActionContext(actions_["NoAction"], widget, zone, paramIndex);
     }
 
-    ActionContext *GetActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const string &stringParam)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const string &stringParam)
     {
         if(actions_.count(actionName) > 0)
             return new ActionContext(actions_[actionName], widget, zone, stringParam);
@@ -4755,7 +4756,7 @@ public:
             return new ActionContext(actions_["NoAction"], widget, zone, stringParam);
     }
 
-    ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, shared_ptr<Zone> zone, const vector<string> &params)
+    ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
         if(learnFXActions_.count(actionName) > 0)
             return new ActionContext(learnFXActions_[actionName], widget, zone, params);
