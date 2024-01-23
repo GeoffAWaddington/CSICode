@@ -3389,10 +3389,10 @@ void ZoneManager::InitializeNoMapZone()
         
         if(noMapZone_ != nullptr)
         {
-            vector<Widget *> usedWidgets;
+            WDL_PtrList<Widget> usedWidgets;
             
             for(auto [widget, isUsed] : noMapZone_->GetWidgets())
-                usedWidgets.push_back(widget);
+                usedWidgets.Add(widget);
             
             vector<string> paramWidgets;
 
@@ -3421,7 +3421,7 @@ void ZoneManager::InitializeNoMapZone()
                     string cellAdress = fxLayouts_[i].suffix + to_string(j);
                     
                     Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
-                    if(widget == NULL || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                    if(widget == NULL || usedWidgets.Find(widget) >= 0)
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
                     ActionContext *context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3429,7 +3429,7 @@ void ZoneManager::InitializeNoMapZone()
                     noMapZone_->AddActionContext(widget, modifier, context);
 
                     widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
-                    if(widget == nullptr || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                    if(widget == nullptr || usedWidgets.Find(widget) >= 0)
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
                     context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3439,7 +3439,7 @@ void ZoneManager::InitializeNoMapZone()
                     for(int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
                         Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
-                        if(widget == NULL || find(usedWidgets.begin(), usedWidgets.end(), widget) != usedWidgets.end())
+                        if(widget == NULL || usedWidgets.Find(widget) >= 0)
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
                         context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
