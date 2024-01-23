@@ -1008,17 +1008,30 @@ public:
 struct CSIZoneInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string filePath = "";
-    string alias = "";
+    string filePath;
+    string alias;
+    
+    CSIZoneInfo()
+    {
+        filePath = "";
+        alias = "";
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct CSILayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string modifiers = "";
-    string suffix = "";
-    int channelCount = 0;
+    string modifiers;
+    string suffix;
+    int channelCount;
+    
+    CSILayoutInfo()
+    {
+        modifiers = "";
+        suffix = "";
+        channelCount = 0;
+    }
     
     vector<string> GetModifierTokens()
     {
@@ -1042,14 +1055,23 @@ struct LearnInfo
     Widget * const fxParamWidget;
     string const cellAddress = "";
     
-    bool isLearned = false;
-    int paramNumber = 0;
-    string paramName = "";
-    string params = "";
-    MediaTrack* track = nullptr;
-    int fxSlotNum = 0;
+    bool isLearned;
+    int paramNumber;
+    string paramName;
+    string params;
+    MediaTrack* track;
+    int fxSlotNum;
     
-    LearnInfo(Widget *paramWidget, string cellAddress) : fxParamWidget(paramWidget), cellAddress(cellAddress) {}
+    LearnInfo(Widget *paramWidget, string cellAddress) : fxParamWidget(paramWidget), cellAddress(cellAddress)
+    {
+        isLearned = false;
+        paramNumber = 0;
+        paramName = "";
+        params = "";
+        track = nullptr;
+        fxSlotNum = 0;
+
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
