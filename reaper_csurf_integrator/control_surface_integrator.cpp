@@ -570,15 +570,15 @@ void Zone::GCTagZone(Zone *zone)
     zone->gcState_ = true;
 
     for(auto [key, zones] : zone->associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            GCTagZone(zones[i]);
+        for(int i = 0; i < zones.GetSize(); ++i)
+            GCTagZone(zones.Get(i));
 
     for(auto [key, zones] : zone->subZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            GCTagZone(zones[i]);
+        for(int i = 0; i < zones.GetSize(); ++i)
+            GCTagZone(zones.Get(i));
 
-    for(int i = 0; i < (int)zone->includedZones_.size(); ++i)
-        GCTagZone(zone->includedZones_[i]);
+    for(int i = 0; i < zone->includedZones_.GetSize(); ++i)
+        GCTagZone(zone->includedZones_.Get(i));
 }
 
 void ZoneManager::GarbageCollectZones()
@@ -601,12 +601,12 @@ void ZoneManager::GarbageCollectZones()
     Zone::GCTagZone(fxLayout_);
     Zone::GCTagZone(focusedFXParamZone_);
 
-    for (int x = 0; x < (int)focusedFXZones_.size(); x ++)
-        Zone::GCTagZone(focusedFXZones_[x]);
-    for (int x = 0; x < (int)selectedTrackFXZones_.size(); x ++)
-        Zone::GCTagZone(selectedTrackFXZones_[x]);
-    for (int x = 0; x < (int)fxSlotZones_.size(); x ++)
-        Zone::GCTagZone(fxSlotZones_[x]);
+    for (int x = 0; x < focusedFXZones_.GetSize(); x ++)
+        Zone::GCTagZone(focusedFXZones_.Get(x));
+    for (int x = 0; x < selectedTrackFXZones_.GetSize(); x ++)
+        Zone::GCTagZone(selectedTrackFXZones_.Get(x));
+    for (int x = 0; x < fxSlotZones_.GetSize(); x ++)
+        Zone::GCTagZone(fxSlotZones_.Get(x));
 
     for (int x = allZonesNeedFree_.GetSize()-1; x>=0; x --)
     {
@@ -622,7 +622,7 @@ void ZoneManager::GarbageCollectZones()
     }
 }
 
-void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<Zone*> &zones, Zone *enclosingZone)
+void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone)
 {
     bool isInIncludedZonesSection = false;
     vector<string> includedZones;
@@ -685,7 +685,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                         if(zoneName == "FocusedFXParam")
                             SetFocusedFXParamZone(zone);
                         
-                        zones.push_back(zone);
+                        zones.Add(zone);
                         allZonesNeedFree_.Add(zone);
                         
                         for(auto [widgetName, modifiedActionTemplates] : actionTemplatesDictionary)
@@ -2230,7 +2230,7 @@ Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex,
                 WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
-                associatedZones_[associatedZones[i]] = vector<Zone*>();
+                associatedZones_[associatedZones[i]] = WDL_PtrList<Zone>();
                 
                 zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[associatedZones[i]].filePath, navigators, associatedZones_[associatedZones[i]], nullptr);
             }
@@ -2258,7 +2258,7 @@ void Zone::InitSubZones(const vector<string> &subZones, Zone *enclosingZone)
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetNavigator());
 
-            subZones_[subZones[i]] = vector<Zone*>();
+            subZones_[subZones[i]] = WDL_PtrList<Zone>();
         
             zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[subZones[i]].filePath, navigators, subZones_[subZones[i]], enclosingZone);
         }
@@ -2328,16 +2328,16 @@ void Zone::GoAssociatedZone(const string &zoneName)
     if(zoneName == "Track")
     {
         for(auto [key, zones] : associatedZones_)
-            for(int i = 0; i < (int)zones.size(); ++i)
-                zones[i]->Deactivate();
+            for(int i = 0; i < zones.GetSize(); ++i)
+                zones.Get(i)->Deactivate();
         
         return;
     }
     
-    if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
+    if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].GetSize() > 0 && associatedZones_[zoneName].Get(0)->GetIsActive())
     {
-        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
-            associatedZones_[zoneName][i]->Deactivate();
+        for(int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
+            associatedZones_[zoneName].Get(i)->Deactivate();
         
         zoneManager_->GoHome();
         
@@ -2345,12 +2345,12 @@ void Zone::GoAssociatedZone(const string &zoneName)
     }
     
     for(auto [key, zones] : associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->Deactivate();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->Deactivate();
 
     if(associatedZones_.count(zoneName) > 0)
-        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
-            associatedZones_[zoneName][i]->Activate();
+        for(int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
+            associatedZones_[zoneName].Get(i)->Activate();
 }
 
 void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
@@ -2358,16 +2358,16 @@ void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
     if(zoneName == "Track")
     {
         for(auto [key, zones] : associatedZones_)
-            for(int i = 0; i < (int)zones.size(); ++i)
-                zones[i]->Deactivate();
+            for(int i = 0; i < zones.GetSize(); ++i)
+                zones.Get(i)->Deactivate();
 
         return;
     }
     
-    if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].size() > 0 && associatedZones_[zoneName][0]->GetIsActive())
+    if(associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].GetSize() > 0 && associatedZones_[zoneName].Get(0)->GetIsActive())
     {
-        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
-            associatedZones_[zoneName][i]->Deactivate();
+        for(int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
+            associatedZones_[zoneName].Get(i)->Deactivate();
         
         zoneManager_->GoHome();
         
@@ -2375,27 +2375,27 @@ void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
     }
     
     for(auto [key, zones] : associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->Deactivate();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->Deactivate();
 
     if(associatedZones_.count(zoneName) > 0)
     {
-        for(int i = 0; i < (int)associatedZones_[zoneName].size(); ++i)
+        for(int i = 0; i < (int)associatedZones_[zoneName].GetSize(); ++i)
         {
-            associatedZones_[zoneName][i]->SetSlotIndex(slotIndex);
-            associatedZones_[zoneName][i]->Activate();
+            associatedZones_[zoneName].Get(i)->SetSlotIndex(slotIndex);
+            associatedZones_[zoneName].Get(i)->Activate();
         }
     }
 }
 
 void Zone::ReactivateFXMenuZone()
 {
-    if(associatedZones_.count("TrackFXMenu") > 0 && associatedZones_["TrackFXMenu"][0]->GetIsActive())
-        for(int i = 0; i < (int)associatedZones_["TrackFXMenu"].size(); ++i)
-            associatedZones_["TrackFXMenu"][i]->Activate();
-    else if(associatedZones_.count("SelectedTrackFXMenu") > 0 && associatedZones_["SelectedTrackFXMenu"][0]->GetIsActive())
-        for(int i = 0; i < (int)associatedZones_["SelectedTrackFXMenu"].size(); ++i)
-            associatedZones_["SelectedTrackFXMenu"][i]->Activate();
+    if(associatedZones_.count("TrackFXMenu") > 0 && associatedZones_["TrackFXMenu"].Get(0)->GetIsActive())
+        for(int i = 0; i < associatedZones_["TrackFXMenu"].GetSize(); ++i)
+            associatedZones_["TrackFXMenu"].Get(i)->Activate();
+    else if(associatedZones_.count("SelectedTrackFXMenu") > 0 && associatedZones_["SelectedTrackFXMenu"].Get(0)->GetIsActive())
+        for(int i = 0; i < associatedZones_["SelectedTrackFXMenu"].GetSize(); ++i)
+            associatedZones_["SelectedTrackFXMenu"].Get(i)->Activate();
 }
 
 void Zone::Activate()
@@ -2423,15 +2423,15 @@ void Zone::Activate()
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
        
     for(auto [key, zones] : associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->Deactivate();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->Deactivate();
     
     for(auto [key, zones] : subZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->Deactivate();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->Deactivate();
 
-    for(int i = 0; i < (int)includedZones_.size(); ++i)
-        includedZones_[i]->Activate();
+    for(int i = 0; i < includedZones_.GetSize(); ++i)
+        includedZones_.Get(i)->Activate();
 }
 
 void Zone::Deactivate()
@@ -2457,16 +2457,16 @@ void Zone::Deactivate()
     else if(GetName() == "SelectedTracks")
         zoneManager_->GetSurface()->GetPage()->SelectedTracksModeDeactivated();
     
-    for(int i = 0; i < (int)includedZones_.size(); ++i)
-        includedZones_[i]->Deactivate();
+    for(int i = 0; i < includedZones_.GetSize(); ++i)
+        includedZones_.Get(i)->Deactivate();
 
     for(auto [key, zones] : associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->Deactivate();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->Deactivate();
 
     for(auto [key, zones] : subZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->Deactivate();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->Deactivate();
 }
 
 void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
@@ -2584,12 +2584,12 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
         return;
     
     for(auto [key, zones] : subZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->DoAction(widget, isUsed, value);
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->DoAction(widget, isUsed, value);
 
     for(auto [key, zones] : associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->DoAction(widget, isUsed, value);
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->DoAction(widget, isUsed, value);
 
     if(isUsed)
         return;
@@ -2610,8 +2610,8 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     }
     else
     {
-        for(int i = 0; i < (int)includedZones_.size(); ++i)
-            includedZones_[i]->DoAction(widget, isUsed, value);
+        for(int i = 0; i < includedZones_.GetSize(); ++i)
+            includedZones_.Get(i)->DoAction(widget, isUsed, value);
     }
 }
 
@@ -2623,16 +2623,16 @@ void Zone::UpdateCurrentActionContextModifiers()
         widget->Configure(GetActionContexts(widget, currentActionContextModifiers_[widget]));
     }
     
-    for(int i = 0; i < (int)includedZones_.size(); ++i)
-        includedZones_[i]->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < includedZones_.GetSize(); ++i)
+        includedZones_.Get(i)->UpdateCurrentActionContextModifiers();
 
     for(auto [key, zones] : subZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->UpdateCurrentActionContextModifiers();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->UpdateCurrentActionContextModifiers();
     
     for(auto [key, zones] : associatedZones_)
-        for(int i = 0; i < (int)zones.size(); ++i)
-            zones[i]->UpdateCurrentActionContextModifiers();
+        for(int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->UpdateCurrentActionContextModifiers();
 }
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
@@ -2865,7 +2865,7 @@ void ZoneManager::Initialize()
         
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
-    vector<Zone*> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
+    WDL_PtrList<Zone> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
     LoadZoneFile(zoneFilePaths_["Home"].filePath, navigators, dummy, nullptr);
     if(zoneFilePaths_.count("FocusedFXParam") > 0)
         LoadZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, navigators, dummy, nullptr);
@@ -2932,7 +2932,7 @@ void ZoneManager::CheckFocusedFXState()
                 GoFocusedFX();
             
             else if(retval & 4)
-                focusedFXZones_.clear();
+                focusedFXZones_.Empty(); // GAW GC -- Here we might do cleanup
             
             if(focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
                 focusedFXDictionary_[trackNumber] = map<int, int>();
@@ -2982,7 +2982,7 @@ void ZoneManager::SetListenerCategories(const string &categoryList)
 
 void ZoneManager::GoFocusedFX()
 {
-    focusedFXZones_.clear();
+    focusedFXZones_.Empty(); // GAW GC -- Here we might do cleanup
     
     int trackNumber = 0;
     int itemNumber = 0;
@@ -3009,17 +3009,17 @@ void ZoneManager::GoFocusedFX()
             
             LoadZoneFile(zoneFilePaths_[FXName].filePath, navigators, focusedFXZones_, nullptr);
             
-            for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
+            for(int i = 0; i < focusedFXZones_.GetSize(); ++i)
             {
-                focusedFXZones_[i]->SetXTouchDisplayColors("White");
-                focusedFXZones_[i]->SetSlotIndex(fxSlot);
-                focusedFXZones_[i]->Activate();
+                focusedFXZones_.Get(i)->SetXTouchDisplayColors("White");
+                focusedFXZones_.Get(i)->SetSlotIndex(fxSlot);
+                focusedFXZones_.Get(i)->Activate();
             }
         }
     }
     else
-        for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
-            focusedFXZones_[i]->RestoreXTouchDisplayColors();
+        for(int i = 0; i < focusedFXZones_.GetSize(); ++i)
+            focusedFXZones_.Get(i)->RestoreXTouchDisplayColors();
 
     GarbageCollectZones();
 }
@@ -3034,7 +3034,7 @@ void ZoneManager::GoSelectedTrackFX()
         homeZone_->GoAssociatedZone("SelectedTrackFX");
     }
 
-    selectedTrackFXZones_.clear();
+    selectedTrackFXZones_.Empty(); // GAW GC -- Here we might do cleanup
     
     if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
     {
@@ -3050,8 +3050,8 @@ void ZoneManager::GoSelectedTrackFX()
                 navigators.Add(GetSurface()->GetPage()->GetSelectedTrackNavigator());
                 LoadZoneFile(zoneFilePaths_[FXName].filePath, navigators, selectedTrackFXZones_, nullptr);
                 
-                selectedTrackFXZones_.back()->SetSlotIndex(i);
-                selectedTrackFXZones_.back()->Activate();
+                selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->SetSlotIndex(i);
+                selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->Activate();
             }
         }
     }
@@ -3151,10 +3151,10 @@ void ZoneManager::GoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
         
         LoadZoneFile(zoneFilePaths_[fxName].filePath, navigators, fxSlotZones_, nullptr);
         
-        if(fxSlotZones_.size() > 0)
+        if(fxSlotZones_.GetSize() > 0)
         {
-            fxSlotZones_.back()->SetSlotIndex(fxSlot);
-            fxSlotZones_.back()->Activate();
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(fxSlot);
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
         }
     }
     else if(noMapZone_ != nullptr)
@@ -3172,14 +3172,14 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     if(focusedFXParamZone_ != nullptr)
         focusedFXParamZone_->UpdateCurrentActionContextModifiers();
     
-    for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
-        focusedFXZones_[i]->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < focusedFXZones_.GetSize(); ++i)
+        focusedFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
     
-    for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
-        selectedTrackFXZones_[i]->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        selectedTrackFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
     
-    for(int i = 0; i < (int)fxSlotZones_.size(); ++i)
-        fxSlotZones_[i]->UpdateCurrentActionContextModifiers();
+    for(int i = 0; i < fxSlotZones_.GetSize(); ++i)
+        fxSlotZones_.Get(i)->UpdateCurrentActionContextModifiers();
     
     if(homeZone_ != nullptr)
         homeZone_->UpdateCurrentActionContextModifiers();
@@ -3455,12 +3455,12 @@ void ZoneManager::InitializeNoMapZone()
         WDL_PtrList<Navigator> navigators;
         navigators.Add(GetSelectedTrackNavigator());
         
-        vector<Zone*> zones;
+        WDL_PtrList<Zone> zones;
         
         LoadZoneFile(GetZoneFilePaths()["NoMap"].filePath, navigators, zones, nullptr);
         
-        if(zones.size() > 0)
-            noMapZone_ = zones[0];
+        if(zones.GetSize() > 0)
+            noMapZone_ = zones.Get(0);
         
         if(noMapZone_ != nullptr)
         {
@@ -4009,31 +4009,31 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
 
 void ZoneManager::RemapAutoZone()
 {
-    if(focusedFXZones_.size() == 1)
+    if(focusedFXZones_.GetSize() == 1)
     {
-        if(::RemapAutoZoneDialog(this, focusedFXZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(this, focusedFXZones_.Get(0)->GetSourceFilePath()))
         {
-            PreProcessZoneFile(focusedFXZones_[0]->GetSourceFilePath(), this);
+            PreProcessZoneFile(focusedFXZones_.Get(0)->GetSourceFilePath(), this);
             GoFocusedFX();
         }
     }
-    else if(fxSlotZones_.size() == 1)
+    else if(fxSlotZones_.GetSize() == 1)
     {
-        if(::RemapAutoZoneDialog(this, fxSlotZones_[0]->GetSourceFilePath()))
+        if(::RemapAutoZoneDialog(this, fxSlotZones_.Get(0)->GetSourceFilePath()))
         {
             WDL_PtrList<Navigator> navigators;
-            navigators.Add(fxSlotZones_[0]->GetNavigator());
+            navigators.Add(fxSlotZones_.Get(0)->GetNavigator());
             
-            string filePath = fxSlotZones_[0]->GetSourceFilePath();
-            int slotNumber = fxSlotZones_[0]->GetSlotIndex();
+            string filePath = fxSlotZones_.Get(0)->GetSourceFilePath();
+            int slotNumber = fxSlotZones_.Get(0)->GetSlotIndex();
 
-            fxSlotZones_.clear();
+            fxSlotZones_.Empty(); // GAW GC -- Here we might do cleanup
             
             PreProcessZoneFile(filePath, this);
             LoadZoneFile(filePath, navigators, fxSlotZones_, nullptr);
             
-            fxSlotZones_.back()->SetSlotIndex(slotNumber);
-            fxSlotZones_.back()->Activate();
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(slotNumber);
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
             GarbageCollectZones();
         }
     }
@@ -4413,10 +4413,10 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
         
         LoadZoneFile(zoneFilePaths_[fxName].filePath, navigators, fxSlotZones_, nullptr);
         
-        if(fxSlotZones_.size() > 0)
+        if(fxSlotZones_.GetSize() > 0)
         {
-            fxSlotZones_.back()->SetSlotIndex(fxIndex);
-            fxSlotZones_.back()->Activate();
+            fxSlotZones_.Get(fxSlotZones_.GetSize() -1)->SetSlotIndex(fxIndex);
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
         }
         GarbageCollectZones();
     }
@@ -4433,20 +4433,20 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     if(focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
         focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
-    for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
-        focusedFXZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
+    for(int i = 0; i < focusedFXZones_.GetSize(); ++i)
+        focusedFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if(isUsed)
         return;
 
-    for(int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
-        selectedTrackFXZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
+    for(int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        selectedTrackFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if(isUsed)
         return;
 
-    for(int i = 0; i < (int) fxSlotZones_.size(); ++i)
-        fxSlotZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
+    for(int i = 0; i < fxSlotZones_.GetSize(); ++i)
+        fxSlotZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if(isUsed)
         return;
