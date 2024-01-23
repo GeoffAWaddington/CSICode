@@ -2932,7 +2932,10 @@ void ZoneManager::CheckFocusedFXState()
                 GoFocusedFX();
             
             else if(retval & 4)
-                focusedFXZones_.Empty(); // GAW GC -- Here we might do cleanup
+            {
+                focusedFXZones_.Empty();
+                GarbageCollectZones();
+            }
             
             if(focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
                 focusedFXDictionary_[trackNumber] = map<int, int>();
@@ -2982,7 +2985,7 @@ void ZoneManager::SetListenerCategories(const string &categoryList)
 
 void ZoneManager::GoFocusedFX()
 {
-    focusedFXZones_.Empty(); // GAW GC -- Here we might do cleanup
+    focusedFXZones_.Empty();
     
     int trackNumber = 0;
     int itemNumber = 0;
@@ -3034,7 +3037,7 @@ void ZoneManager::GoSelectedTrackFX()
         homeZone_->GoAssociatedZone("SelectedTrackFX");
     }
 
-    selectedTrackFXZones_.Empty(); // GAW GC -- Here we might do cleanup
+    selectedTrackFXZones_.Empty();
     
     if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
     {
@@ -4027,7 +4030,7 @@ void ZoneManager::RemapAutoZone()
             string filePath = fxSlotZones_.Get(0)->GetSourceFilePath();
             int slotNumber = fxSlotZones_.Get(0)->GetSlotIndex();
 
-            fxSlotZones_.Empty(); // GAW GC -- Here we might do cleanup
+            fxSlotZones_.Empty();
             
             PreProcessZoneFile(filePath, this);
             LoadZoneFile(filePath, navigators, fxSlotZones_, nullptr);

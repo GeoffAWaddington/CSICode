@@ -1417,8 +1417,10 @@ private:
         for(int i = 0; i < focusedFXZones_.GetSize(); ++i)
             focusedFXZones_.Get(i)->Deactivate();
         
-        focusedFXZones_.Empty(); // GAW GC -- Here we might do cleanup
+        focusedFXZones_.Empty();
         focusedFXDictionary_.clear();
+
+        GarbageCollectZones();
     }
         
     void ClearSelectedTrackFX()
@@ -1426,7 +1428,9 @@ private:
         for(int i = 0; i < (int)selectedTrackFXZones_.GetSize(); ++i)
             selectedTrackFXZones_.Get(i)->Deactivate();
         
-        selectedTrackFXZones_.Empty(); // GAW GC -- Here we might do cleanup
+        selectedTrackFXZones_.Empty();
+
+        GarbageCollectZones();
     }
     
     void ClearFXSlot(Zone *zone)
@@ -1436,9 +1440,10 @@ private:
             if(fxSlotZones_.Get(i)->GetName() == zone->GetName() && fxSlotZones_.Get(i)->GetSlotIndex() == zone->GetSlotIndex())
             {
                 fxSlotZones_.Get(i)->Deactivate();
-                fxSlotZones_.Delete(i); // GAW GC -- Here we might do cleanup
+                fxSlotZones_.Delete(i);
                 if(homeZone_ != nullptr)
                     homeZone_->ReactivateFXMenuZone();
+                GarbageCollectZones();
                 break;
             }
         }
@@ -1844,7 +1849,8 @@ public:
         
     void OnTrackSelection()
     {
-        fxSlotZones_.Empty(); // GAW GC -- Here we might do cleanup
+        fxSlotZones_.Empty();
+        GarbageCollectZones();
     }
 
     void OnTrackDeselection()
@@ -1853,9 +1859,11 @@ public:
         {
             ResetSelectedTrackOffsets();
             
-            selectedTrackFXZones_.Empty(); // GAW GC -- Here we might do cleanup
+            selectedTrackFXZones_.Empty();
             
             homeZone_->OnTrackDeselection();
+
+            GarbageCollectZones();
         }
     }
     
@@ -1895,10 +1903,11 @@ public:
     
     void ClearFXMapping()
     {
-        // GAW GC -- Here we might do cleanup
         focusedFXZones_.Empty();
         selectedTrackFXZones_.Empty();
         fxSlotZones_.Empty();
+
+        GarbageCollectZones();
     }
            
     void AdjustBank(const string &zoneName, int amount)
