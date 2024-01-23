@@ -2525,22 +2525,9 @@ private:
     
     int latchTime_;
     
-    struct Modifier
-    {
-        bool isEngaged;
-        double pressedTime;
-        int value;
-        
-        Modifier()
-        {
-            isEngaged = false;
-            pressedTime = 0.0;
-            value = 0;
-        }
-    };
-    
     enum Modifiers
     {
+        ErrorModifier = -1,
         Shift = 0,
         Option,
         Control,
@@ -2550,44 +2537,62 @@ private:
         Marker,
         Nudge,
         Zoom,
-        Scrub
+        Scrub,
+        MaxModifiers
     };
     
-    map<string, Modifiers> modifierFromString_ =
+    static int maskFromModifier(Modifiers m)
     {
-        { "Shift", Shift},
-        { "Option", Option},
-        { "Control", Control},
-        { "Alt", Alt},
-        { "Flip", Flip},
-        { "Global", Global},
-        { "Marker", Marker},
-        { "Nudge", Nudge},
-        { "Zoom", Zoom},
-        { "Scrub", Scrub}
-    };
-    
-    vector<string> modifierNames_ =
+      if (WDL_NOT_NORMALLY(m == ErrorModifier)) return 0;
+      return 4 << (int) m;
+    }
+    static Modifiers modifierFromString(const char *s)
     {
-        "Shift",
-        "Option",
-        "Control",
-        "Alt",
-        "Flip",
-        "Global",
-        "Marker",
-        "Nudge",
-        "Zoom",
-        "Scrub"
-    };
+         if (!strcmp(s,"Shift")) return Shift;
+         if (!strcmp(s,"Option")) return Option;
+         if (!strcmp(s,"Control")) return Control;
+         if (!strcmp(s,"Alt")) return Alt;
+         if (!strcmp(s,"Flip")) return Flip;
+         if (!strcmp(s,"Global")) return Global;
+         if (!strcmp(s,"Marker")) return Marker;
+         if (!strcmp(s,"Nudge")) return Nudge;
+         if (!strcmp(s,"Zoom")) return Zoom;
+         if (!strcmp(s,"Scrub")) return Scrub;
+         return ErrorModifier;
+    }
 
-    vector<Modifier> modifiers_;
+    static const char *stringFromModifier(Modifiers mod)
+    {
+      switch (mod)
+      {
+        case Shift: return "Shift";
+        case Option: return "Option";
+        case Control: return "Control";
+        case Alt: return "Alt";
+        case Flip: return "Flip";
+        case Global: return "Global";
+        case Marker: return "Marker";
+        case Nudge: return "Nudge";
+        case Zoom: return "Zoom";
+        case Scrub: return "Scrub";
+        default:
+          WDL_ASSERT(false);
+        return "";
+      }
+    }
+
+    struct ModifierState
+    {
+        bool isEngaged;
+        double pressedTime;
+    };
+    ModifierState modifiers_[MaxModifiers];
     vector<int> modifierCombinations_;
     
     vector<vector<int>> GetCombinations(const vector<int> &indices)
     {
         vector<vector<int>> combinations;
-        
+
         for (int mask = 0; mask < (1 << indices.size()); mask++)
         {
             vector<int> combination; // Stores a combination
@@ -2599,7 +2604,7 @@ private:
             if(combination.size() > 0)
                 combinations.push_back(combination);
         }
-        
+
         return combinations;
     }
 
@@ -2614,14 +2619,8 @@ public:
         latchTime_ = 100;
 
         modifierCombinations_.push_back(0);
-        
-        for(int i = 0; i < modifierNames_.size(); i++)
-            modifiers_.push_back(Modifier());
-        
-        int value = 2;
-        
-        for(int i = 0; i < (int)modifiers_.size(); ++i)
-            modifiers_[i].value = value *= 2;
+
+        memset(modifiers_,0,sizeof(modifiers_));
     }
     
     ModifierManager(Page* page) : ModifierManager()
@@ -2650,9 +2649,10 @@ public:
 
     void ClearModifier(const string &modifierString)
     {
-        if(modifierFromString_.count(modifierString) > 0)
+        Modifiers m = modifierFromString(modifierString.c_str());
+        if(m != ErrorModifier)
         {
-            modifiers_[modifierFromString_[modifierString]].isEngaged = false;
+            modifiers_[m].isEngaged = false;
             RecalculateModifiers();
         }
     }
@@ -2660,58 +2660,24 @@ public:
     static string GetModifierString(int modifierValue)
     {
         string modifierString = "";
-        
-        if(modifierValue & 0x04)
-            modifierString += "Shift+";
-        if(modifierValue & 0x08)
-            modifierString += "Option+";
-        if(modifierValue & 0x10)
-            modifierString += "Control+";
-        if(modifierValue & 0x20)
-            modifierString += "Alt+";
-        if(modifierValue & 0x40)
-            modifierString += "Flip+";
-        if(modifierValue & 0x80)
-            modifierString += "Global+";
-        if(modifierValue & 0x0100)
-            modifierString += "Marker+";
-        if(modifierValue & 0x0200)
-            modifierString += "Nudge+";
-        if(modifierValue & 0x0400)
-            modifierString += "Zoom+";
-        if(modifierValue & 0x0800)
-            modifierString += "Scrub+";
+        for (int x = 0; x < MaxModifiers; x++)
+            if (modifierValue & maskFromModifier((Modifiers)x))
+            {
+                modifierString += stringFromModifier((Modifiers)x);
+                modifierString += "+";
+            }
 
-        return modifierString;;
+        return modifierString;
     }
 
     int GetModifierValue(const vector<string> &tokens)
     {
         int modifierValue = 0;
-
         for(int i = 0; i < tokens.size() - 1; i++)
         {
-            if(tokens[i] == "Shift")
-                modifierValue += modifiers_[Shift].value;
-            else if(tokens[i] == "Option")
-                modifierValue += modifiers_[Option].value;
-            else if(tokens[i] == "Control")
-                modifierValue += modifiers_[Control].value;
-            else if(tokens[i] == "Alt")
-                modifierValue += modifiers_[Alt].value;
-            else if(tokens[i] == "Flip")
-                modifierValue += modifiers_[Flip].value;
-            else if(tokens[i] == "Global")
-                modifierValue += modifiers_[Global].value;
-
-            else if(tokens[i] == "Marker")
-                modifierValue += modifiers_[Marker].value;
-            else if(tokens[i] == "Nudge")
-                modifierValue += modifiers_[Nudge].value;
-            else if(tokens[i] == "Zoom")
-                modifierValue += modifiers_[Zoom].value;
-            else if(tokens[i] == "Scrub")
-                modifierValue += modifiers_[Scrub].value;
+            Modifiers m = modifierFromString(tokens[i].c_str());
+            if (m != ErrorModifier)
+                modifierValue |= maskFromModifier(m);
         }
         
         return modifierValue;
@@ -2785,7 +2751,7 @@ public:
     
     void ClearModifiers()
     {
-        for(int i = 0; i < (int)modifiers_.size(); ++i)
+        for(int i = 0; i < MaxModifiers; ++i)
             modifiers_[i].isEngaged = false;
         
         RecalculateModifiers();

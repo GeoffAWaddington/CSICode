@@ -4476,7 +4476,7 @@ void ModifierManager::RecalculateModifiers()
            
     vector<int> activeModifierIndices;
     
-    for(int i = 0; i < modifiers_.size(); i++)
+    for(int i = 0; i < MaxModifiers; i++)
         if(modifiers_[i].isEngaged)
             activeModifierIndices.push_back(i);
     
@@ -4487,7 +4487,7 @@ void ModifierManager::RecalculateModifiers()
             int modifier = 0;
             
             for(int j = 0; j < GetCombinations(activeModifierIndices)[i].size(); j++)
-                modifier += modifiers_[GetCombinations(activeModifierIndices)[i][j]].value;
+                modifier |= maskFromModifier((Modifiers)GetCombinations(activeModifierIndices)[i][j]);
 
             modifierCombinations_.push_back(modifier);
         }
@@ -4515,12 +4515,20 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
         if(keyReleasedTime - modifiers_[modifier].pressedTime > latchTime)
         {
             if(value == 0 && modifiers_[modifier].isEngaged)
-                TheManager->Speak(modifierNames_[modifier] + " Unlock");
+            {
+                char tmp[256];
+                snprintf(tmp,sizeof(tmp), "%s Unlock", stringFromModifier(modifier));
+                TheManager->Speak(tmp);
+            }
 
             modifiers_[modifier].isEngaged = value;
         }
         else
-            TheManager->Speak(modifierNames_[modifier] + " Lock");
+        {
+            char tmp[256];
+            snprintf(tmp,sizeof(tmp), "%s Lock", stringFromModifier(modifier));
+            TheManager->Speak(tmp);
+        }
     }
     
     RecalculateModifiers();
