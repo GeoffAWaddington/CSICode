@@ -551,6 +551,64 @@ static void GetColorValues(vector<rgba_color> &colorValues, const vector<string>
     }
 }
 
+void Zone::GCTagZone(Zone *zone)
+{
+    if (!zone || zone->gcState_) return;
+    zone->gcState_ = true;
+
+    for(auto [key, zones] : zone->associatedZones_)
+        for(int i = 0; i < (int)zones.size(); ++i)
+            GCTagZone(zones[i]);
+
+    for(auto [key, zones] : zone->subZones_)
+        for(int i = 0; i < (int)zones.size(); ++i)
+            GCTagZone(zones[i]);
+
+    for(int i = 0; i < (int)zone->includedZones_.size(); ++i)
+        GCTagZone(zone->includedZones_[i]);
+}
+
+void ZoneManager::GarbageCollectZones()
+{
+    for (int x = 0; x < allZonesNeedFree_.GetSize(); x ++)
+    {
+        if (WDL_NOT_NORMALLY(allZonesNeedFree_.Get(x)->zoneManager_ != this))
+        {
+            allZonesNeedFree_.Delete(x--);
+            // better leak than to crash
+        }
+        else
+        {
+            allZonesNeedFree_.Get(x)->gcState_ = false;
+        }
+    }
+
+    Zone::GCTagZone(noMapZone_);
+    Zone::GCTagZone(homeZone_);
+    Zone::GCTagZone(fxLayout_);
+    Zone::GCTagZone(focusedFXParamZone_);
+
+    for (int x = 0; x < (int)focusedFXZones_.size(); x ++)
+        Zone::GCTagZone(focusedFXZones_[x]);
+    for (int x = 0; x < (int)selectedTrackFXZones_.size(); x ++)
+        Zone::GCTagZone(selectedTrackFXZones_[x]);
+    for (int x = 0; x < (int)fxSlotZones_.size(); x ++)
+        Zone::GCTagZone(fxSlotZones_[x]);
+
+    for (int x = allZonesNeedFree_.GetSize()-1; x>=0; x --)
+    {
+        if (WDL_NOT_NORMALLY(allZonesNeedFree_.Get(x)->zoneManager_ != this))
+        {
+            allZonesNeedFree_.Delete(x);
+            // better leak than to crash
+        }
+        else if (allZonesNeedFree_.Get(x)->gcState_ == false)
+        {
+            allZonesNeedFree_.Delete(x,true);
+        }
+    }
+}
+
 void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<Zone*> &zones, Zone *enclosingZone)
 {
     bool isInIncludedZonesSection = false;
@@ -2950,6 +3008,8 @@ void ZoneManager::GoFocusedFX()
     else
         for(int i = 0; i < (int)focusedFXZones_.size(); ++i)
             focusedFXZones_[i]->RestoreXTouchDisplayColors();
+
+    GarbageCollectZones();
 }
 
 void ZoneManager::GoSelectedTrackFX()
@@ -2983,6 +3043,7 @@ void ZoneManager::GoSelectedTrackFX()
             }
         }
     }
+    GarbageCollectZones();
 }
 
 void ZoneManager::AutoMapFocusedFX()
@@ -3091,6 +3152,7 @@ void ZoneManager::GoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
         noMapZone_->SetSlotIndex(fxSlot);
         noMapZone_->Activate();
     }
+    GarbageCollectZones();
 }
 
 void ZoneManager::UpdateCurrentActionContextModifiers()
@@ -3960,6 +4022,7 @@ void ZoneManager::RemapAutoZone()
             
             fxSlotZones_.back()->SetSlotIndex(slotNumber);
             fxSlotZones_.back()->Activate();
+            GarbageCollectZones();
         }
     }
 }
@@ -4343,6 +4406,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex
             fxSlotZones_.back()->SetSlotIndex(fxIndex);
             fxSlotZones_.back()->Activate();
         }
+        GarbageCollectZones();
     }
 }
 

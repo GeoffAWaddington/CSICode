@@ -586,8 +586,9 @@ public:
 class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-protected:
+public:
     ZoneManager * const zoneManager_;
+protected:
     Navigator* const navigator_;
     int slotIndex_;
     string const name_;
@@ -595,6 +596,9 @@ protected:
     string const sourceFilePath_;
     
     bool isActive_;
+public:
+    bool gcState_; // used by ZoneManager::GarbageCollectZones and Zone::GCTagZone
+protected:
     
     map<Widget *, bool> widgets_;
     map<string, Widget *> widgetsByName_;
@@ -907,6 +911,7 @@ public:
                 includedZones_[i]->DoTouch(widget, widgetName, isUsed, value);
         }
     }
+    static void GCTagZone(Zone *zone);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2413,7 +2418,8 @@ public:
         }
     }
 
-    WDL_PtrList<Zone> allZonesNeedFree_; // todo: garbage collect this list occasionally
+    WDL_PtrList<Zone> allZonesNeedFree_;
+    void GarbageCollectZones();
     void LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, vector<Zone *> &zones, Zone *enclosingZone);
 };
 
