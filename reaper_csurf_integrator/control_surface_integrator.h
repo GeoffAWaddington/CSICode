@@ -2589,23 +2589,19 @@ private:
     ModifierState modifiers_[MaxModifiers];
     vector<int> modifierCombinations_;
     
-    vector<vector<int>> GetCombinations(const vector<int> &indices)
+    void GetCombinations(const vector<int> &indices, vector<int> &combinations)
     {
-        vector<vector<int>> combinations;
-
         for (int mask = 0; mask < (1 << indices.size()); mask++)
         {
-            vector<int> combination; // Stores a combination
+            int combination = 0;
             
             for (int position = 0; position < indices.size(); position++)
                 if (mask & (1 << position))
-                    combination.push_back(indices[position]);
+                    combination |= maskFromModifier((Modifiers)indices[position]);
             
-            if(combination.size() > 0)
+            if(combination != 0)
                 combinations.push_back(combination);
         }
-
-        return combinations;
     }
 
     void SetLatchModifier(bool value, Modifiers modifier, int latchTime);

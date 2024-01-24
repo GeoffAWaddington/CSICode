@@ -4482,16 +4482,7 @@ void ModifierManager::RecalculateModifiers()
     
     if(activeModifierIndices.size() > 0)
     {
-        for(int i = 0; i < (int)GetCombinations(activeModifierIndices).size(); ++i)
-        {
-            int modifier = 0;
-            
-            for(int j = 0; j < GetCombinations(activeModifierIndices)[i].size(); j++)
-                modifier |= maskFromModifier((Modifiers)GetCombinations(activeModifierIndices)[i][j]);
-
-            modifierCombinations_.push_back(modifier);
-        }
-        
+        GetCombinations(activeModifierIndices,modifierCombinations_);
         sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
     }
     
