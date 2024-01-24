@@ -2304,23 +2304,22 @@ int Zone::GetChannelNumber()
 {
     int channelNumber = 0;
     
-    for(auto [widget, isUsed] : widgets_)
-        if(channelNumber < widget->GetChannelNumber())
+    for(int i = 0; i < widgets_.GetSize(); i++)
+    {
+        Widget *widget = NULL;
+        if(WDL_NORMALLY(widgets_.EnumeratePtr(i,&widget) && widget) && channelNumber < widget->GetChannelNumber())
             channelNumber = widget->GetChannelNumber();
+    }
     
     return channelNumber;
 }
 
-void Zone::SetFXParamNum(Widget *paramWidget, int paramIndex)
+void Zone::SetFXParamNum(Widget *widget, int paramIndex)
 {
-    for(auto [widget, isUsed] : widgets_)
+    if (widgets_.Exists(widget))
     {
-        if(widget == paramWidget)
-        {
-            for(int i = 0; i < GetActionContexts(widget, currentActionContextModifiers_[widget]).GetSize(); ++i)
-                GetActionContexts(widget, currentActionContextModifiers_[widget]).Get(i)->SetParamIndex(paramIndex);
-            break;
-        }
+        for(int i = 0; i < GetActionContexts(widget, currentActionContextModifiers_[widget]).GetSize(); ++i)
+            GetActionContexts(widget, currentActionContextModifiers_[widget]).Get(i)->SetParamIndex(paramIndex);
     }
 }
 
@@ -2403,8 +2402,10 @@ void Zone::Activate()
 {
     UpdateCurrentActionContextModifiers();
     
-    for(auto [widget, isUsed] : widgets_)
+    for(int wi = 0; wi < widgets_.GetSize(); wi ++)
     {
+        Widget *widget = NULL;
+        if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
         if(widget->GetName() == "OnZoneActivation")
             for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
                 GetActionContexts(widget).Get(i)->DoAction(1.0);
@@ -2437,8 +2438,10 @@ void Zone::Activate()
 
 void Zone::Deactivate()
 {    
-    for(auto [widget, isUsed] : widgets_)
+    for(int wi = 0; wi < widgets_.GetSize(); wi ++)
     {
+        Widget *widget = NULL;
+        if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
         for(int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
         {
             GetActionContexts(widget).Get(i)->UpdateWidgetValue(0.0);
@@ -2569,14 +2572,22 @@ void Zone::AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &
 
 void Zone::SetXTouchDisplayColors(const string &color)
 {
-    for(auto [widget, isUsed] : widgets_)
+    for(int wi = 0; wi < widgets_.GetSize(); wi ++)
+    {
+        Widget *widget = NULL;
+        if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
         widget->SetXTouchDisplayColors(name_, color);
+    }
 }
 
 void Zone::RestoreXTouchDisplayColors()
 {
-    for(auto [widget, isUsed] : widgets_)
+    for(int wi = 0; wi < widgets_.GetSize(); wi ++)
+    {
+        Widget *widget = NULL;
+        if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
         widget->RestoreXTouchDisplayColors();
+    }
 }
 
 void Zone::DoAction(Widget *widget, bool &isUsed, double value)
@@ -2595,7 +2606,7 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     if(isUsed)
         return;
 
-    if(widgets_.count(widget) > 0)
+    if(widgets_.Exists(widget))
     {
         if(TheManager->GetSurfaceInDisplay())
         {
@@ -2618,8 +2629,10 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 
 void Zone::UpdateCurrentActionContextModifiers()
 {
-    for(auto [widget, isUsed] : widgets_)
+    for(int wi = 0; wi < widgets_.GetSize(); wi ++)
     {
+        Widget *widget = NULL;
+        if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
         UpdateCurrentActionContextModifier(widget);
         widget->Configure(GetActionContexts(widget, currentActionContextModifiers_[widget]));
     }
@@ -3469,11 +3482,10 @@ void ZoneManager::InitializeNoMapZone()
         
         if(noMapZone_ != nullptr)
         {
-            WDL_PtrList<Widget> usedWidgets;
-            
-            for(auto [widget, isUsed] : noMapZone_->GetWidgets())
-                usedWidgets.Add(widget);
-            
+            const WDL_PointerKeyedArray<Widget *, bool> &wl = noMapZone_->GetWidgets();
+            WDL_PointerKeyedArray<Widget *, bool> usedWidgets;
+            usedWidgets.CopyContents(wl); // since noMapZone_->GetWidgets() may change during this initialization, make a copy. making the copy might be unnecessary though
+
             vector<string> paramWidgets;
 
             for(int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
@@ -3501,7 +3513,7 @@ void ZoneManager::InitializeNoMapZone()
                     string cellAdress = fxLayouts_[i].suffix + to_string(j);
                     
                     Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
-                    if(widget == NULL || usedWidgets.Find(widget) >= 0)
+                    if(widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
                     ActionContext *context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3509,7 +3521,7 @@ void ZoneManager::InitializeNoMapZone()
                     noMapZone_->AddActionContext(widget, modifier, context);
 
                     widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
-                    if(widget == nullptr || usedWidgets.Find(widget) >= 0)
+                    if(widget == nullptr || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
                     context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3519,7 +3531,7 @@ void ZoneManager::InitializeNoMapZone()
                     for(int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
                         Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
-                        if(widget == NULL || usedWidgets.Find(widget) >= 0)
+                        if(widget == NULL || usedWidgets.Exists(widget))
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
                         context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);

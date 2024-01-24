@@ -601,7 +601,8 @@ public:
     bool gcState_; // used by ZoneManager::GarbageCollectZones and Zone::GCTagZone
 protected:
     
-    map<Widget *, bool> widgets_;
+    // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
+    WDL_PointerKeyedArray<Widget *, bool> widgets_; 
     WDL_StringKeyedArray<Widget *> widgetsByName_;
     
     map<int, map<string, LearnFXCell>> learnFXCells_;
@@ -648,7 +649,7 @@ public:
     
     virtual string GetType() { return "Zone"; }
     
-    const map<Widget *, bool> &GetWidgets() { return widgets_; }
+    const WDL_PointerKeyedArray<Widget *, bool> &GetWidgets() { return widgets_; }
 
     Navigator* GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
@@ -737,7 +738,7 @@ public:
     
     void AddWidget(Widget *widget, const string &name)
     {
-        widgets_[widget] = true;
+        widgets_.Insert(widget, true);
         widgetsByName_.Insert(name.c_str(), widget);
     }
     
@@ -810,11 +811,13 @@ public:
         for(int i =  0; i < includedZones_.GetSize(); ++i)
             includedZones_.Get(i)->RequestUpdate(usedWidgets);
         
-        for(const auto &[widget, value] : widgets_)
+        for(int i = 0; i < widgets_.GetSize(); i ++)
         {
-            if(usedWidgets[widget] == false)
+            Widget *widget = NULL;
+            bool *p = widgets_.EnumeratePtr(i,&widget);
+            if(WDL_NORMALLY(p && widget) && !*p)
             {
-                usedWidgets[widget] = true;
+                *p = true;
                 RequestUpdateWidget(widget);
             }
         }
@@ -836,7 +839,7 @@ public:
         if(isUsed)
             return;
 
-        if(widgets_.count(widget) > 0)
+        if(widgets_.Exists(widget))
         {
             isUsed = true;
 
@@ -866,7 +869,7 @@ public:
         if(isUsed)
             return;
 
-        if(widgets_.count(widget) > 0)
+        if(widgets_.Exists(widget))
         {
             isUsed = true;
 
@@ -896,7 +899,7 @@ public:
         if(isUsed)
             return;
 
-        if(widgets_.count(widget) > 0)
+        if(widgets_.Exists(widget))
         {
             isUsed = true;
 
