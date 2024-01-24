@@ -16,7 +16,7 @@ class NoAction : public Action
 public:
     virtual string GetName() override { return "NoAction"; }
     
-    virtual void RequestUpdate(ActionContext* context) override
+    virtual void RequestUpdate(ActionContext *context) override
     {
         context->UpdateColorValue(0.0);
         context->ClearWidget();
@@ -30,7 +30,7 @@ class ReaperAction : public Action
 public:
     virtual string GetName() override { return "ReaperAction"; }
    
-    virtual void RequestUpdate(ActionContext* context) override
+    virtual void RequestUpdate(ActionContext *context) override
     {
         int state = DAW::GetToggleCommandState(context->GetCommandId());
         
@@ -41,7 +41,7 @@ public:
             context->UpdateWidgetValue(state);
     }
     
-    virtual void Do(ActionContext* context, double value) override
+    virtual void Do(ActionContext *context, double value) override
     {
         // used for Increase/Decrease
         if(value < 0 && context->GetRangeMinimum() < 0)
@@ -58,9 +58,9 @@ class FXAction : public Action
 public:
     virtual string GetName() override { return "FXAction"; }
     
-    virtual double GetCurrentNormalizedValue(ActionContext* context) override
+    virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack* track = context->GetTrack())
+        if(MediaTrack *track = context->GetTrack())
         {
             double min, max = 0.0;
             
@@ -70,9 +70,9 @@ public:
             return 0.0;
     }
 
-    virtual void RequestUpdate(ActionContext* context) override
+    virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack* track = context->GetTrack())
+        if(MediaTrack *track = context->GetTrack())
         {
             double currentValue = GetCurrentNormalizedValue(context);
             
