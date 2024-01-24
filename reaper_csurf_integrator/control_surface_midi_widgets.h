@@ -18,17 +18,17 @@ class PressRelease_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    MIDI_event_ex_t* press_;
-    MIDI_event_ex_t* release_;
+    MIDI_event_ex_t *press_;
+    MIDI_event_ex_t *release_;
     
 public:
     virtual ~PressRelease_Midi_CSIMessageGenerator() {}
 
-    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press) {}
+    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(widget), press_(press) {}
     
-    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
+    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         widget_->GetZoneManager()->DoAction(widget_, midiMessage->IsEqualTo(press_) ? 1 : 0);
     }
@@ -39,15 +39,15 @@ class Touch_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    MIDI_event_ex_t* press_;
-    MIDI_event_ex_t* release_;
+    MIDI_event_ex_t *press_;
+    MIDI_event_ex_t *release_;
 
 public:
     virtual ~Touch_Midi_CSIMessageGenerator() {}
     
-    Touch_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press, MIDI_event_ex_t* release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
+    Touch_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         widget_->GetZoneManager()->DoTouch(widget_, midiMessage->IsEqualTo(press_) ? 1 : 0);
     }
@@ -58,13 +58,13 @@ class AnyPress_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    MIDI_event_ex_t* press_;
+    MIDI_event_ex_t *press_;
 
 public:
     virtual ~AnyPress_Midi_CSIMessageGenerator() {}
-    AnyPress_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* press) : Midi_CSIMessageGenerator(widget), press_(press) {}
+    AnyPress_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(widget), press_(press) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         // Doesn't matter what value was sent, just do it
         widget_->GetZoneManager()->DoAction(widget_, 1);
@@ -77,9 +77,9 @@ class Fader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader14Bit_Midi_CSIMessageGenerator() {}
-    Fader14Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget) {}
+    Fader14Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         widget_->GetZoneManager()->DoAction(widget_, int14ToNormalized(midiMessage->midi_message[2], midiMessage->midi_message[1]));
     }
@@ -89,18 +89,18 @@ class FaderportClassicFader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessa
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    MIDI_event_ex_t* message1_;
-    MIDI_event_ex_t* message2_;
+    MIDI_event_ex_t *message1_;
+    MIDI_event_ex_t *message2_;
 
 public:
     virtual ~FaderportClassicFader14Bit_Midi_CSIMessageGenerator() {}
-    FaderportClassicFader14Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message1, MIDI_event_ex_t* message2) : Midi_CSIMessageGenerator(widget)
+    FaderportClassicFader14Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message1, MIDI_event_ex_t *message2) : Midi_CSIMessageGenerator(widget)
     {
         message1_ = message1;
         message2_ = message2;
     }
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         if(message1_->midi_message[1] == midiMessage->midi_message[1])
             message1_->midi_message[2] = midiMessage->midi_message[2];
@@ -115,9 +115,9 @@ class Fader7Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader7Bit_Midi_CSIMessageGenerator() {}
-    Fader7Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget) {}
+    Fader7Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         widget_->GetZoneManager()->DoAction(widget_, midiMessage->midi_message[2] / 127.0);
     }
@@ -133,7 +133,7 @@ private:
     
 public:
     virtual ~AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message, double stepSize, map<int, int> accelerationValuesForDecrement, map<int, int> accelerationValuesForIncrement, vector<double> accelerationValues) :  Midi_CSIMessageGenerator(widget)
+    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message, double stepSize, map<int, int> accelerationValuesForDecrement, map<int, int> accelerationValuesForIncrement, vector<double> accelerationValues) :  Midi_CSIMessageGenerator(widget)
     {
         accelerationValuesForDecrement_ = accelerationValuesForDecrement;
         accelerationValuesForIncrement_ = accelerationValuesForIncrement;
@@ -142,7 +142,7 @@ public:
         widget->SetAccelerationValues(accelerationValues);
     }
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int val = midiMessage->midi_message[2];
         
@@ -163,7 +163,7 @@ private:
 
 public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
+    AcceleratedEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {       
         vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
         vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "]");
@@ -251,7 +251,7 @@ public:
         }
     }
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int val = midiMessage->midi_message[2];
 
@@ -279,7 +279,7 @@ private:
     
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message, vector<string> params) : Midi_CSIMessageGenerator(widget)
+    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(widget)
     {
         accelerationIndicesForDecrement_[0x3f] = 0;
         accelerationIndicesForDecrement_[0x3e] = 1;
@@ -306,7 +306,7 @@ public:
         accelerationIndicesForIncrement_[0x51] = 10;
     }
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int val = midiMessage->midi_message[2];
         
@@ -323,9 +323,9 @@ class Encoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Encoder_Midi_CSIMessageGenerator() {}
-    Encoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget) {}
+    Encoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         double delta = (midiMessage->midi_message[2] & 0x3f) / 63.0;
         
@@ -344,9 +344,9 @@ class EncoderPlain_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~EncoderPlain_Midi_CSIMessageGenerator() {}
-    EncoderPlain_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget) {}
+    EncoderPlain_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         double delta = 1.0 / 64.0;
         
@@ -366,12 +366,12 @@ private:
     
 public:
     virtual ~Encoder7Bit_Midi_CSIMessageGenerator() {}
-    Encoder7Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t* message) : Midi_CSIMessageGenerator(widget)
+    Encoder7Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget)
     {
         lastMessage = -1;
     }
     
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) override
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int currentMessage = midiMessage->midi_message[2];
         double delta = 1.0 / 64.0;
@@ -395,7 +395,7 @@ class TwoState_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~TwoState_Midi_FeedbackProcessor() {}
-    TwoState_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
+    TwoState_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
     
     virtual string GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
     
@@ -441,7 +441,7 @@ private:
     
 public:
     virtual ~FPTwoStateRGB_Midi_FeedbackProcessor() {}
-    FPTwoStateRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    FPTwoStateRGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
     {
         active_ = false;
     }
@@ -463,10 +463,10 @@ public:
     
     virtual void SetColorValue(rgba_color &color) override
     {
-        int RGBIndexDivider = 1 * 2;
+        int RGBIndexDivider = 1  *2;
         
         if (active_ == false)
-            RGBIndexDivider = 9 * 2;
+            RGBIndexDivider = 9  *2;
         
         color.r = color.r / RGBIndexDivider;
         color.g = color.g / RGBIndexDivider;
@@ -496,7 +496,7 @@ private:
 
 public:
     virtual ~SCE24TwoStateLED_Midi_FeedbackProcessor() {}
-    SCE24TwoStateLED_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    SCE24TwoStateLED_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
     {
         lastValue_ = 0.0;
     }
@@ -629,7 +629,7 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
         if(topMargin > 63)
             topMargin = 63;
         row->topMargin = topMargin;
-        row->bottomMargin = int(factor * s_fontHeights[row->fontSize]) + topMargin;
+        row->bottomMargin = int(factor  *s_fontHeights[row->fontSize]) + topMargin;
         if(row->bottomMargin > 63)
             row->bottomMargin = 63;
         topMargin = row->bottomMargin + 1;
@@ -645,7 +645,7 @@ private:
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
-    SCE24OLED_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) :
+    SCE24OLED_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
       Midi_FeedbackProcessor(surface, widget, feedback1),
       rows_(true, RowInfo::dispose)
     {
@@ -820,7 +820,7 @@ private:
 
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
-    SCE24Text_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) :
+    SCE24Text_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
       Midi_FeedbackProcessor(surface, widget, feedback1),
       rows_(true, RowInfo::dispose)
     {
@@ -1035,7 +1035,7 @@ class SCE24Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~SCE24Encoder_Midi_FeedbackProcessor() {}
-    SCE24Encoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    SCE24Encoder_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24Encoder_Midi_FeedbackProcessor"; }
 
@@ -1081,7 +1081,7 @@ public:
     
     int GetMidiValue(map<string, string> &properties, double value)
     {
-        int valueInt = int(value * 127);
+        int valueInt = int(value  *127);
         
         int displayMode = 0;
         
@@ -1211,7 +1211,7 @@ class NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor : public Midi_Feedback
 {
 public:
     virtual ~NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor() {}
-    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
@@ -1265,7 +1265,7 @@ class FaderportRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~FaderportRGB_Midi_FeedbackProcessor() {}
-    FaderportRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    FaderportRGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
@@ -1301,7 +1301,7 @@ private:
 
 public:
     virtual ~AsparionRGB_Midi_FeedbackProcessor() {}
-    AsparionRGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    AsparionRGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
     {
         preventUpdateTrackColors_ = false;
     }
@@ -1354,7 +1354,7 @@ private:
     
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
-    Fader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    Fader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
     {
         shouldSetToZero_ = false;
         timeZeroValueReceived_ = 0;
@@ -1388,13 +1388,13 @@ public:
         else
             shouldSetToZero_ = false;
     
-        int volint = int(value * 16383.0);
+        int volint = int(value  *16383.0);
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
     }
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        int volInt = int(value * 16383.0);
+        int volInt = int(value  *16383.0);
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volInt&0x7f, (volInt>>7)&0x7f);
     }
 };
@@ -1409,7 +1409,7 @@ private:
     
 public:
     virtual ~FaderportClassicFader14Bit_Midi_FeedbackProcessor() {}
-    FaderportClassicFader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2)
+    FaderportClassicFader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2)
     {
         shouldSetToZero_ = false;
         timeZeroValueReceived_ = 0;
@@ -1445,7 +1445,7 @@ public:
         else
             shouldSetToZero_ = false;
     
-        int volInt = int(value * 1024.0);
+        int volInt = int(value  *1024.0);
         
         if(midiFeedbackMessage1_->midi_message[2] != ((volInt>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volInt&0x7f))
         {
@@ -1459,7 +1459,7 @@ public:
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        int volInt = int(value * 16383.0);
+        int volInt = int(value  *16383.0);
         
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], (volInt>>7)&0x7f);
         ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], volInt&0x7f);
@@ -1472,7 +1472,7 @@ class Fader7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Fader7Bit_Midi_FeedbackProcessor() {}
-    Fader7Bit_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Fader7Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
 
@@ -1484,12 +1484,12 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value * 127.0));
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value  *127.0));
     }
     
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value * 127.0));
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value  *127.0));
     }
 };
 
@@ -1499,7 +1499,7 @@ class Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Encoder_Midi_FeedbackProcessor() {}
-    Encoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Encoder_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
@@ -1521,7 +1521,7 @@ public:
     
     int GetMidiValue(map<string, string> &properties, double value)
     {
-        int valueInt = int(value * 127);
+        int valueInt = int(value  *127);
         
         int displayMode = 0;
         
@@ -1560,7 +1560,7 @@ private:
     
 public:
     virtual ~AsparionEncoder_Midi_FeedbackProcessor() {}
-    AsparionEncoder_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    AsparionEncoder_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
     {
         displayMode_ = 0;
     }
@@ -1595,7 +1595,7 @@ public:
                 displayMode_ = 2;
         }
 
-        return int(value * 127);
+        return int(value  *127);
     }
 };
 
@@ -1605,7 +1605,7 @@ class ConsoleOneVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~ConsoleOneVUMeter_Midi_FeedbackProcessor() {}
-    ConsoleOneVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    ConsoleOneVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
     
     virtual string GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
 
@@ -1632,9 +1632,9 @@ public:
         double midiVal = 0;
         
         if(dB < 0)
-            midiVal = pow(10.0, dB / 48) * 96;
+            midiVal = pow(10.0, dB / 48)  *96;
         else
-            midiVal = pow(10.0, dB / 60) * 96;
+            midiVal = pow(10.0, dB / 60)  *96;
 
         return (int)midiVal;
     }
@@ -1650,7 +1650,7 @@ private:
     
 public:
     virtual ~ConsoleOneGainReductionMeter_Midi_FeedbackProcessor() {}
-    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
     {
         minDB_ = 0.0;
         maxDB_ = 24.0;
@@ -1666,12 +1666,12 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value) * 127.0));
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value)  *127.0));
     }
 
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value) * 127.0));
+        ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value)  *127.0));
     }
 };
 
@@ -1686,7 +1686,7 @@ private:
     
 public:
     virtual ~QConProXMasterVUMeter_Midi_FeedbackProcessor() {}
-    QConProXMasterVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param)
+    QConProXMasterVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param)
     {
         minDB_ = 0.0;
         maxDB_ = 24.0;
@@ -1710,7 +1710,7 @@ public:
         //Master Level 2 : 0xd1, 0x1L
         //L = 0x0 – 0xD = Meter level 0% thru 100% (does not affect peak indicator)
         
-        int midiValue = int(value * 0x0f);
+        int midiValue = int(value  *0x0f);
         
         if(midiValue > 0x0d)
             midiValue = 0x0d;
@@ -1727,7 +1727,7 @@ public:
         //Master Level 2 : 0xd1, 0x1L
         //L = 0x0 – 0xD = Meter level 0% thru 100% (does not affect peak indicator)
         
-        int midiValue = int(value * 0x0f);
+        int midiValue = int(value  *0x0f);
         
         if(midiValue > 0x0d)
             midiValue = 0x0d;
@@ -1748,7 +1748,7 @@ private:
 
 public:
     virtual ~MCUVUMeter_Midi_FeedbackProcessor() {}
-    MCUVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber)
+    MCUVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber)
     {
         lastMidiValue_ = 0;
         isClipOn_ = false;
@@ -1775,7 +1775,7 @@ public:
     int GetMidiValue(double value)
     {
         //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
-        int midiValue = int(value * 0x0f);
+        int midiValue = int(value  *0x0f);
         if(midiValue > 0x0d)
             midiValue = 0x0d;
 
@@ -1796,7 +1796,7 @@ private:
 
 public:
     virtual ~AsparionVUMeter_Midi_FeedbackProcessor() {}
-    AsparionVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayType, int channelNumber, bool isRight) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber),  isRight_(isRight)
+    AsparionVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channelNumber, bool isRight) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber),  isRight_(isRight)
     {
         lastMidiValue_ = 0;
         isClipOn_ = false;
@@ -1823,7 +1823,7 @@ public:
     int GetMidiValue(double value)
     {
         //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
-        int midiValue = int(value * 0x0f);
+        int midiValue = int(value  *0x0f);
         if(midiValue > 0x0d)
             midiValue = 0x0d;
 
@@ -1842,7 +1842,7 @@ private:
 
 public:
     virtual ~FPVUMeter_Midi_FeedbackProcessor() {}
-    FPVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber)
+    FPVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber)
     {
         lastMidiValue_ = 0;
         isClipOn_ = false;
@@ -1885,7 +1885,7 @@ public:
     int GetMidiValue(double value)
     {
         //Dn, vv   : n meter address, vv meter value (0...7F)
-        int midiValue = int(value * 0xa0);
+        int midiValue = int(value  *0xa0);
 
         return midiValue;
     }
@@ -1920,7 +1920,7 @@ private:
     
 public:
     virtual ~FPValueBar_Midi_FeedbackProcessor() {}
-    FPValueBar_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int channel) : Midi_FeedbackProcessor(surface, widget), channel_(channel)
+    FPValueBar_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int channel) : Midi_FeedbackProcessor(surface, widget), channel_(channel)
     {
         lastValue_ = 0;
     }
@@ -1947,12 +1947,12 @@ public:
         
         if (channel_ < 8)
         {
-            SendMidiMessage(0xb0, channel_ + 0x30, int(lastValue_ * 127.0));
+            SendMidiMessage(0xb0, channel_ + 0x30, int(lastValue_  *127.0));
             SendMidiMessage(0xb0, channel_ + 0x38, GetValueBarType(properties));
         }
         else
         {
-            SendMidiMessage(0xb0, channel_ - 8 + 0x40, int(lastValue_ * 127.0));
+            SendMidiMessage(0xb0, channel_ - 8 + 0x40, int(lastValue_  *127.0));
             SendMidiMessage(0xb0, channel_ - 8 + 0x48, GetValueBarType(properties));
         }
     }
@@ -1971,7 +1971,7 @@ private:
 
 public:
     virtual ~MCUDisplay_Midi_FeedbackProcessor() {}
-    MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         lastStringSent_ = "";
     }
@@ -2000,7 +2000,7 @@ public:
             displayText = "       ";
 
         int pad = 7;
-        const char* text = displayText.c_str();
+        const char *text = displayText.c_str();
         
         struct
         {
@@ -2016,7 +2016,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
         if (pad < l)
@@ -2053,7 +2053,7 @@ private:
 
 public:
     virtual ~AsparionDisplay_Midi_FeedbackProcessor() {}
-    AsparionDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayRow, int displayType, int displayTextType, int channel) : Midi_FeedbackProcessor(surface, widget), displayRow_(displayRow), displayType_(displayType), displayTextType_(displayTextType), channel_(channel)
+    AsparionDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayRow, int displayType, int displayTextType, int channel) : Midi_FeedbackProcessor(surface, widget), displayRow_(displayRow), displayType_(displayType), displayTextType_(displayTextType), channel_(channel)
     {
         lastStringSent_ = "";
     }
@@ -2086,7 +2086,7 @@ public:
         if(displayRow_ == 3)
             pad = 8;
         
-        const char* text = displayText.c_str();
+        const char *text = displayText.c_str();
         
         struct
         {
@@ -2104,11 +2104,11 @@ public:
         
         if (displayRow_ != 3)
         {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 12;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *12;
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
         }
         else
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 8;
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *8;
 
         int l = (int)strlen(text);
         if (pad < l)
@@ -2150,7 +2150,7 @@ private:
     
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
-    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         preventUpdateTrackColors_ = false;
         lastStringSent_ = "";
@@ -2275,7 +2275,7 @@ public:
             displayText = "       ";
 
         int pad = 7;
-        const char* text = displayText.c_str();
+        const char *text = displayText.c_str();
         
         struct
         {
@@ -2291,7 +2291,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
         if (pad < l)
@@ -2441,7 +2441,7 @@ private:
     
 public:
     virtual ~FPDisplay_Midi_FeedbackProcessor() {}
-    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow)
+    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow)
     {
         lastStringSent_ = " ";
     }
@@ -2469,7 +2469,7 @@ public:
         if(displayText == "")
             displayText = "                            ";
         
-        const char* text = displayText.c_str();
+        const char *text = displayText.c_str();
     
         int invert = lastStringSent_ == "" ? 0 : GetTextInvert(properties); // prevent empty inverted lines
         int align = 0x0000000 + invert + GetTextAlign(properties);
@@ -2539,7 +2539,7 @@ private:
     
 public:
     virtual ~FPScribbleStripMode_Midi_FeedbackProcessor() {}
-    FPScribbleStripMode_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayType, int channel) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel)
+    FPScribbleStripMode_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channel) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel)
     {
         lastMode_ = 0;
     }
@@ -2600,7 +2600,7 @@ private:
     
 public:
     virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
-    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower * 28), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower  *28), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         lastStringSent_ = "";
     }
@@ -2629,7 +2629,7 @@ public:
             displayText = "       ";
         
         int pad = 7;
-        const char* text = displayText.c_str();
+        const char *text = displayText.c_str();
         
         struct
         {
@@ -2645,7 +2645,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_ * 7 + offset_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
         if (pad < l)
@@ -2677,7 +2677,7 @@ private:
     int lastFirstLetter_;
 
 public:
-    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget) : Midi_FeedbackProcessor(surface, widget)
+    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(surface, widget)
     {
         lastFirstLetter_ = 0x00;
     }
@@ -2725,7 +2725,7 @@ private:
     DWORD m_mcu_timedisp_lastforce, m_mcu_meter_lastrun;
     
 public:
-    MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget) : Midi_FeedbackProcessor(surface, widget) {}
+    MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(surface, widget) {}
     
     virtual string GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
 
@@ -2841,7 +2841,7 @@ public:
             if (nb >= 10) bla[3]='0'+(nb/10)%10;    //beats tens
             bla[4]='0'+(nb)%10;                     //beats
             
-            const int fracbeats = (int) (1000.0 * beats);
+            const int fracbeats = (int) (1000.0  *beats);
             bla[7]='0' + (fracbeats/100)%10;
             bla[8]='0' + (fracbeats/10)%10;
             bla[9]='0' + (fracbeats%10);            // frames
@@ -3091,7 +3091,7 @@ class MFT_RGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
-    MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
   
     virtual string GetName() override { return "MFT_RGB_Midi_FeedbackProcessor"; }
 
