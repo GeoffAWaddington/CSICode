@@ -212,14 +212,14 @@ public:
     
     virtual string GetName() { return "Action"; }
 
-    virtual void Touch(ActionContext* context, double value) {}
-    virtual void RequestUpdate(ActionContext* context) {}
-    virtual void RequestUpdate(ActionContext* context, int paramNum) {}
-    virtual void Do(ActionContext* context, double value) {}
-    virtual double GetCurrentNormalizedValue(ActionContext* context) { return 0.0; }
-    virtual double GetCurrentDBValue(ActionContext* context) { return 0.0; }
+    virtual void Touch(ActionContext *context, double value) {}
+    virtual void RequestUpdate(ActionContext *context) {}
+    virtual void RequestUpdate(ActionContext *context, int paramNum) {}
+    virtual void Do(ActionContext *context, double value) {}
+    virtual double GetCurrentNormalizedValue(ActionContext *context) { return 0.0; }
+    virtual double GetCurrentDBValue(ActionContext *context) { return 0.0; }
 
-    int GetPanMode(MediaTrack* track)
+    int GetPanMode(MediaTrack *track)
     {
         double pan1, pan2 = 0.0;
         int panMode = 0;
@@ -233,7 +233,7 @@ class Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Page* const page_;
+    Page *const page_;
     bool isVolumeTouched_;
     bool isPanTouched_;
     bool isPanWidthTouched_;
@@ -241,7 +241,7 @@ protected:
     bool isPanRightTouched_;
     bool isMCUTrackPanWidth_;
 
-    Navigator(Page*  page) : page_(page)
+    Navigator(Page * page) : page_(page)
     {
         // protected:
         isVolumeTouched_ = false;
@@ -256,7 +256,7 @@ public:
     virtual ~Navigator() {}
     
     virtual string GetName() { return "Navigator"; }
-    virtual MediaTrack* GetTrack() { return nullptr; }
+    virtual MediaTrack *GetTrack() { return nullptr; }
 
     bool GetIsNavigatorTouched() { return isVolumeTouched_ || isPanTouched_ || isPanWidthTouched_ || isPanLeftTouched_ || isPanRightTouched_; }
     
@@ -284,15 +284,15 @@ private:
     int const channelNum_;
     
 protected:
-    TrackNavigationManager* const trackNavigationManager_;
+    TrackNavigationManager *const trackNavigationManager_;
 
 public:
-    TrackNavigator(Page* page, TrackNavigationManager* trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
+    TrackNavigator(Page *page, TrackNavigationManager *trackNavigationManager, int channelNum) : Navigator(page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
     virtual ~TrackNavigator() {}
     
     virtual string GetName() override { return "TrackNavigator"; }
    
-    virtual MediaTrack* GetTrack() override;
+    virtual MediaTrack *GetTrack() override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,12 +300,12 @@ class MasterTrackNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    MasterTrackNavigator(Page*  page) : Navigator(page) {}
+    MasterTrackNavigator(Page * page) : Navigator(page) {}
     virtual ~MasterTrackNavigator() {}
     
     virtual string GetName() override { return "MasterTrackNavigator"; }
     
-    virtual MediaTrack* GetTrack() override;
+    virtual MediaTrack *GetTrack() override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,12 +313,12 @@ class SelectedTrackNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    SelectedTrackNavigator(Page*  page) : Navigator(page) {}
+    SelectedTrackNavigator(Page * page) : Navigator(page) {}
     virtual ~SelectedTrackNavigator() {}
     
     virtual string GetName() override { return "SelectedTrackNavigator"; }
     
-    virtual MediaTrack* GetTrack() override;
+    virtual MediaTrack *GetTrack() override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -326,12 +326,12 @@ class FocusedFXNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    FocusedFXNavigator(Page*  page) : Navigator(page) {}
+    FocusedFXNavigator(Page * page) : Navigator(page) {}
     virtual ~FocusedFXNavigator() {}
     
     virtual string GetName() override { return "FocusedFXNavigator"; }
     
-    virtual MediaTrack* GetTrack() override;
+    virtual MediaTrack *GetTrack() override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -339,9 +339,9 @@ class ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Action* const action_;
-    Widget * const widget_;
-    Zone * const zone_;
+    Action *const action_;
+    Widget  *const widget_;
+    Zone  *const zone_;
 
     vector<string> parameters_;
     
@@ -390,15 +390,15 @@ private:
     void UpdateTrackColor();
 
 public:
-    ActionContext(Action* action, Widget *widget, Zone *zone, const vector<string> &params);
-    ActionContext(Action* action, Widget *widget, Zone *zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
+    ActionContext(Action *action, Widget *widget, Zone *zone, const vector<string> &params);
+    ActionContext(Action *action, Widget *widget, Zone *zone, int paramIndex) : ActionContext(action, widget, zone, emptyParameters_)
     {
         paramIndex_ = paramIndex;
         
         if(acceleratedTickValues_.size() < 1)
             acceleratedTickValues_.push_back(10);
     }
-    ActionContext(Action* action, Widget *widget, Zone *zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
+    ActionContext(Action *action, Widget *widget, Zone *zone, string stringParam) : ActionContext(action, widget, zone, emptyParameters_)
     {
         stringParam_ = stringParam;
         
@@ -408,7 +408,7 @@ public:
 
     virtual ~ActionContext() {}
     
-    Action* GetAction() { return action_; }
+    Action *GetAction() { return action_; }
     Widget *GetWidget() { return widget_; }
     Zone *GetZone() { return zone_; }
     int GetSlotIndex();
@@ -422,15 +422,15 @@ public:
     
     const string &GetFXParamDisplayName() { return fxParamDisplayName_; }
     
-    MediaTrack* GetTrack();
+    MediaTrack *GetTrack();
     
     void DoRangeBoundAction(double value);
     void DoSteppedValueAction(double value);
     void DoAcceleratedSteppedValueAction(int accelerationIndex, double value);
     void DoAcceleratedDeltaValueAction(int accelerationIndex, double value);
     
-    Page* GetPage();
-    ControlSurface* GetSurface();
+    Page *GetPage();
+    ControlSurface *GetSurface();
     int GetParamIndex() { return paramIndex_; }
     void SetParamIndex(int paramIndex) { paramIndex_ = paramIndex; }
       
@@ -438,7 +438,7 @@ public:
     
     void SetIsValueInverted() { isValueInverted_ = true; }
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
-    void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount * 1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
+    void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount  *1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
     
     // For Learn
@@ -508,7 +508,7 @@ public:
             panVal = -panVal;
         }
         
-        int panIntVal = int(panVal * 100.0);
+        int panIntVal = int(panVal  *100.0);
         string trackPanValueString = "";
         
         if(left)
@@ -566,7 +566,7 @@ public:
             widthVal = -widthVal;
         }
         
-        int widthIntVal = int(widthVal * 100.0);
+        int widthIntVal = int(widthVal  *100.0);
         string trackPanWidthString = "";
         
         if(! reversed)
@@ -588,9 +588,9 @@ class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    ZoneManager * const zoneManager_;
+    ZoneManager  *const zoneManager_;
 protected:
-    Navigator* const navigator_;
+    Navigator *const navigator_;
     int slotIndex_;
     string const name_;
     string const alias_;
@@ -622,7 +622,7 @@ protected:
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
-    Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
+    Zone(ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
     virtual ~Zone() {
         actionContextNeedFree_.Empty(true);
@@ -651,7 +651,7 @@ public:
     
     const WDL_PointerKeyedArray<Widget*, bool> &GetWidgets() { return widgets_; }
 
-    Navigator* GetNavigator() { return navigator_; }
+    Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
@@ -920,10 +920,10 @@ class SubZone : public Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Zone * const enclosingZone_;
+    Zone  *const enclosingZone_;
     
 public:
-    SubZone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, Zone *enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, Zone *enclosingZone) : Zone(zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -941,7 +941,7 @@ class Widget
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    ControlSurface* const surface_;
+    ControlSurface *const surface_;
     string const name_;
     WDL_PtrList<FeedbackProcessor> feedbackProcessors_; // owns the objects
     int channelNumber_;
@@ -952,7 +952,7 @@ private:
     
 public:
     // all Widges are owned by their ControlSurface!
-    Widget(ControlSurface* surface, const string &name) : surface_(surface), name_(name)
+    Widget(ControlSurface *surface, const string &name) : surface_(surface), name_(name)
     {
         // private:
         channelNumber_ = 0;
@@ -976,7 +976,7 @@ public:
     }
     
     const string &GetName() { return name_; }
-    ControlSurface* GetSurface() { return surface_; }
+    ControlSurface *GetSurface() { return surface_; }
     ZoneManager *GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
     
@@ -1053,14 +1053,14 @@ struct CSILayoutInfo
 struct LearnInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    Widget * const fxParamWidget;
+    Widget  *const fxParamWidget;
     string const cellAddress = "";
     
     bool isLearned;
     int paramNumber;
     string paramName;
     string params;
-    MediaTrack* track;
+    MediaTrack *track;
     int fxSlotNum;
     
     LearnInfo(Widget *paramWidget, string cellAddress) : fxParamWidget(paramWidget), cellAddress(cellAddress)
@@ -1080,7 +1080,7 @@ class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    ControlSurface* const surface_;
+    ControlSurface *const surface_;
     string const zoneFolder_;
     string const fxZoneFolder_;
 
@@ -1137,13 +1137,13 @@ private:
     map<string, int*> bankOffsets_;
     
     string learnFXName_;
-    LearnInfo* lastTouched_;
+    LearnInfo *lastTouched_;
 
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
     map<Widget*, map<int, LearnInfo*>> learnedFXParams_;
 
-    void CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex);
+    void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
 
     void ResetOffsets()
     {
@@ -1163,11 +1163,11 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
       
-    void GoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot);
+    void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
-    void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack* track, int fxSlotNum);
+    void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const vector<string> &modifiers);
 
@@ -1176,7 +1176,7 @@ private:
         int trackNumber = 0;
         int itemNumber = 0;
         int fxSlot = 0;
-        MediaTrack* track = nullptr;
+        MediaTrack *track = nullptr;
         
         if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
         {
@@ -1338,7 +1338,7 @@ private:
         }
     }
     
-    void ListenToGoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+    void ListenToGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         if(listensToFXMenu_)
             GoFXSlot(track, navigator, fxSlot);
@@ -1534,7 +1534,7 @@ private:
 
     void GetAlias(const char *fxName, string &alias)
     {
-        static const char * const prefixes[] =
+        static const char  *const prefixes[] =
         {
             "AU: Tube-Tech ",
             "AU: AU ",
@@ -1583,7 +1583,7 @@ private:
     }
 
 public:
-    ZoneManager(ControlSurface* surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
+    ZoneManager(ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
     {
         //private:
         noMapZone_ = NULL;
@@ -1641,35 +1641,35 @@ public:
     
     void PreProcessZones();
         
-    Navigator* GetMasterTrackNavigator();
-    Navigator* GetSelectedTrackNavigator();
-    Navigator* GetFocusedFXNavigator();
+    Navigator *GetMasterTrackNavigator();
+    Navigator *GetSelectedTrackNavigator();
+    Navigator *GetFocusedFXNavigator();
     
     bool GetIsBroadcaster() { return  ! (listeners_.GetSize() == 0); }
-    void AddListener(ControlSurface* surface);
+    void AddListener(ControlSurface *surface);
     void SetListenerCategories(const string &categoryList);
     const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     void GoFocusedFX();
-    void CalculateSteppedValue(const string &fxName, MediaTrack* track, int fxIndex, int paramIndex);
-    void AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex);
+    void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
+    void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
     void GoFXLayoutZone(const string &zoneName, int slotIndex);
-    void WidgetMoved(ActionContext* context);
+    void WidgetMoved(ActionContext *context);
     void SetParamNum(Widget *widget, int fxParamNum);
 
-    void DoLearn(ActionContext* context, double value);
-    LearnInfo* GetLearnInfo(Widget *widget);
-    LearnInfo* GetLearnInfo(Widget*, int modifier);
+    void DoLearn(ActionContext *context, double value);
+    LearnInfo *GetLearnInfo(Widget *widget);
+    LearnInfo *GetLearnInfo(Widget*, int modifier);
 
     void DoTouch(Widget *widget, double value);
     
     void AutoMapFocusedFX();
-    void GoLearnFXParams(MediaTrack* track, int fxSlot);
+    void GoLearnFXParams(MediaTrack *track, int fxSlot);
     void SaveLearnedFXParams();
     void SaveTemplatedFXParams();
     void EraseLastTouchedControl();
@@ -1679,7 +1679,7 @@ public:
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
     vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
-    ControlSurface* GetSurface() { return surface_; }
+    ControlSurface *GetSurface() { return surface_; }
     
     void SetHomeZone(Zone *zone) { homeZone_ = zone; }
     void SetFocusedFXParamZone(Zone *zone) { focusedFXParamZone_ = zone; }
@@ -1695,7 +1695,7 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
-    void DeclareGoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+    void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         if(listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
@@ -1731,7 +1731,7 @@ public:
         }
     }
       
-    void GetName(MediaTrack* track, int fxIndex, string &name)
+    void GetName(MediaTrack *track, int fxIndex, string &name)
     {
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
@@ -2461,7 +2461,7 @@ class CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Widget * const widget_;
+    Widget  *const widget_;
     
 public:
     CSIMessageGenerator(Widget *widget) : widget_(widget) {}
@@ -2521,8 +2521,8 @@ class ModifierManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Page* page_;
-    ControlSurface* surface_;
+    Page *page_;
+    ControlSurface *surface_;
     
     int latchTime_;
     
@@ -2622,12 +2622,12 @@ public:
         memset(modifiers_,0,sizeof(modifiers_));
     }
     
-    ModifierManager(Page* page) : ModifierManager()
+    ModifierManager(Page *page) : ModifierManager()
     {
         page_ = page;
     }
     
-    ModifierManager(ControlSurface* surface) : ModifierManager()
+    ModifierManager(ControlSurface *surface) : ModifierManager()
     {
         surface_ = surface;
     }
@@ -2762,7 +2762,7 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
-    int* scrubModePtr_;
+    int *scrubModePtr_;
     int configScrubMode_;
 
     bool isRewinding_;
@@ -2783,10 +2783,10 @@ private:
     map<int, bool> channelToggles_;
     
 protected:
-    Page* const page_;
+    Page *const page_;
     string const name_;
     ZoneManager *zoneManager_;
-    ModifierManager* modifierManager_;
+    ModifierManager *modifierManager_;
     
     int const numChannels_ = 0;
     int const channelOffset_ = 0;
@@ -2798,7 +2798,7 @@ protected:
     
     bool speedX5_;
 
-    ControlSurface(Page* page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
+    ControlSurface(Page *page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
     {
         //private:
         scrubModePtr_ = nullptr;
@@ -2854,7 +2854,7 @@ protected:
             StopFastForwarding();
     }
     
-    virtual void InitHardwiredWidgets(ControlSurface* surface)
+    virtual void InitHardwiredWidgets(ControlSurface *surface)
     {
         // Add the "hardwired" widgets
         AddWidget(new Widget(surface, "OnTrackSelection"));
@@ -2888,7 +2888,7 @@ public:
     virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
     void ForceUpdateTrackColors();
-    void OnTrackSelection(MediaTrack* track);
+    void OnTrackSelection(MediaTrack *track);
     virtual void SetHasMCUMeters(int displayType) {}
     virtual void SendOSCMessage(const string &zoneName) {}
     virtual void SendOSCMessage(const string &zoneName, int value) {}
@@ -2898,12 +2898,12 @@ public:
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
     
-    virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) {}
+    virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
     
-    ModifierManager* GetModifierManager() { return modifierManager_; }
+    ModifierManager *GetModifierManager() { return modifierManager_; }
     ZoneManager *GetZoneManager() { return zoneManager_; }
-    Page* GetPage() { return page_; }
+    Page *GetPage() { return page_; }
     string GetName() { return name_; }
     
     int GetNumChannels() { return numChannels_; }
@@ -3006,7 +3006,7 @@ public:
             widgets_.Get(i)->ForceClear();
     }
            
-    void TrackFXListChanged(MediaTrack* track)
+    void TrackFXListChanged(MediaTrack *track)
     {
         OnTrackSelection(track);
     }
@@ -3085,7 +3085,7 @@ public:
         zoneManager_->AddWidget(widget);
     }
     
-    void AddCSIMessageGenerator(CSIMessageGenerator* messageGenerator, const string &message)
+    void AddCSIMessageGenerator(CSIMessageGenerator *messageGenerator, const string &message)
     {
         if(WDL_NOT_NORMALLY(!messageGenerator)) { return; }
         CSIMessageGeneratorsByMessage_[message] = messageGenerator;
@@ -3158,7 +3158,7 @@ protected:
     string lastStringValue_;
     rgba_color lastColor_;
     
-    Widget * const widget_;
+    Widget  *const widget_;
     
 public:
     FeedbackProcessor(Widget *widget) : widget_(widget)
@@ -3210,7 +3210,7 @@ protected:
     
 public:
     virtual ~Midi_CSIMessageGenerator() {}
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t* midiMessage) {}
+    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3218,20 +3218,20 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Midi_ControlSurface* const surface_ = nullptr;
+    Midi_ControlSurface *const surface_ = nullptr;
     
-    MIDI_event_ex_t* lastMessageSent_;
-    MIDI_event_ex_t* midiFeedbackMessage1_;
-    MIDI_event_ex_t* midiFeedbackMessage2_;
+    MIDI_event_ex_t *lastMessageSent_;
+    MIDI_event_ex_t *midiFeedbackMessage1_;
+    MIDI_event_ex_t *midiFeedbackMessage2_;
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget) : FeedbackProcessor(widget), surface_(surface)
+    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget) : FeedbackProcessor(widget), surface_(surface)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
         midiFeedbackMessage1_ = new MIDI_event_ex_t(0, 0, 0);
         midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     }
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1) : Midi_FeedbackProcessor(surface, widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
         if (WDL_NOT_NORMALLY(!feedback1)) return;
@@ -3239,7 +3239,7 @@ protected:
         midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
     }
     
-    Midi_FeedbackProcessor(Midi_ControlSurface* surface, Widget *widget, MIDI_event_ex_t* feedback1, MIDI_event_ex_t* feedback2) :  Midi_FeedbackProcessor(surface, widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) :  Midi_FeedbackProcessor(surface, widget)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
         if (WDL_NOT_NORMALLY(!feedback1)) return;
@@ -3248,7 +3248,7 @@ protected:
         midiFeedbackMessage2_ = feedback2;
     }
     
-    void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage);
+    void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage);
     void SendMidiMessage(int first, int second, int third);
     void ForceMidiMessage(int first, int second, int third);
 
@@ -3274,15 +3274,15 @@ class Midi_ControlSurfaceIO
 {
 private:
     string const name_;
-    midi_Input* const midiInput_;
-    midi_Output* const midiOutput_;
+    midi_Input *const midiInput_;
+    midi_Output *const midiOutput_;
     
 public:
-    Midi_ControlSurfaceIO(string name, midi_Input* midiInput, midi_Output* midiOutput) : name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
+    Midi_ControlSurfaceIO(string name, midi_Input *midiInput, midi_Output *midiOutput) : name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
     
-    void HandleExternalInput(Midi_ControlSurface* surface);
+    void HandleExternalInput(Midi_ControlSurface *surface);
     
-    void SendMidiMessage(MIDI_event_ex_t* midiMessage)
+    void SendMidiMessage(MIDI_event_ex_t *midiMessage)
     {
         if(midiOutput_)
             midiOutput_->SendMsg(midiMessage, -1);
@@ -3301,7 +3301,7 @@ class Midi_ControlSurface : public ControlSurface
 {
 private:
     string const templateFilename_;
-    Midi_ControlSurfaceIO* const surfaceIO_;
+    Midi_ControlSurfaceIO *const surfaceIO_;
     map<int, WDL_PtrList<Midi_CSIMessageGenerator>> Midi_CSIMessageGeneratorsByMessage_;
 
     // special processing for MCU meters
@@ -3323,7 +3323,7 @@ private:
     }
 
 public:
-    Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO);
+    Midi_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
     virtual ~Midi_ControlSurface()
     {
@@ -3331,8 +3331,8 @@ public:
             generators.Empty(true);
     }
     
-    void ProcessMidiMessage(const MIDI_event_ex_t* evt);
-    virtual void SendMidiSysExMessage(MIDI_event_ex_t* midiMessage) override;
+    void ProcessMidiMessage(const MIDI_event_ex_t *evt);
+    virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) override;
     virtual void SendMidiMessage(int first, int second, int third) override;
 
     virtual void SetHasMCUMeters(int displayType) override
@@ -3346,7 +3346,7 @@ public:
         surfaceIO_->HandleExternalInput(this);
     }
         
-    void AddCSIMessageGenerator(Midi_CSIMessageGenerator* messageGenerator, int message)
+    void AddCSIMessageGenerator(Midi_CSIMessageGenerator *messageGenerator, int message)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) return;
         Midi_CSIMessageGeneratorsByMessage_[message].Add(messageGenerator);
@@ -3358,11 +3358,11 @@ class OSC_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    OSC_ControlSurface* const surface_;
+    OSC_ControlSurface *const surface_;
     string const oscAddress_;
     
 public:
-    OSC_FeedbackProcessor(OSC_ControlSurface* surface, Widget *widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(OSC_ControlSurface *surface, Widget *widget, string oscAddress) : FeedbackProcessor(widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
@@ -3379,7 +3379,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(OSC_ControlSurface* surface, Widget *widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(OSC_ControlSurface *surface, Widget *widget, string oscAddress) : OSC_FeedbackProcessor(surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
@@ -3394,8 +3394,8 @@ class OSC_ControlSurfaceIO
 {
 private:
     string const name_;
-    oscpkt::UdpSocket* inSocket_;
-    oscpkt::UdpSocket* outSocket_;
+    oscpkt::UdpSocket *inSocket_;
+    oscpkt::UdpSocket *outSocket_;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
     double X32HeartBeatRefreshInterval_;
@@ -3404,7 +3404,7 @@ private:
 public:
     OSC_ControlSurfaceIO(const string &name, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress);
 
-    void HandleExternalInput(OSC_ControlSurface* surface);
+    void HandleExternalInput(OSC_ControlSurface *surface);
     
     void SendOSCMessage(const string &oscAddress, double value)
     {
@@ -3468,17 +3468,17 @@ class OSC_ControlSurface : public ControlSurface
 {
 private:
     string const templateFilename_;
-    OSC_ControlSurfaceIO* const surfaceIO_;
+    OSC_ControlSurfaceIO *const surfaceIO_;
 
 public:
-    OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO);    
+    OSC_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     
     void ProcessOSCMessage(const string &message, double value);
-    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, double value);
-    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, int value);
-    void SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, const string &value);
+    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, double value);
+    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, int value);
+    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, const string &value);
     virtual void SendOSCMessage(const string &zoneName) override;
     virtual void SendOSCMessage(const string &zoneName, int value) override;
     virtual void SendOSCMessage(const string &zoneName, double value) override;
@@ -3508,7 +3508,7 @@ class TrackNavigationManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    Page* const page_;
+    Page *const page_;
     bool followMCP_;
     bool synchPages_;
     bool isScrollLinkEnabled_;
@@ -3523,27 +3523,27 @@ private:
     WDL_PtrList<MediaTrack> selectedTracks_;
     
     WDL_PtrList<MediaTrack> vcaTopLeadTracks_;
-    MediaTrack*             vcaLeadTrack_;
+    MediaTrack *            vcaLeadTrack_;
     WDL_PtrList<MediaTrack> vcaLeadTracks_;
     WDL_PtrList<MediaTrack> vcaSpillTracks_;
     
     WDL_PtrList<MediaTrack> folderTopParentTracks_;
-    MediaTrack*             folderParentTrack_;
+    MediaTrack *            folderParentTrack_;
     WDL_PtrList<MediaTrack> folderParentTracks_;
     WDL_PtrList<MediaTrack> folderSpillTracks_;
     map<MediaTrack*, WDL_PtrList<MediaTrack>> folderDictionary_;
 
     map<int, Navigator*> trackNavigators_;
-    Navigator* const masterTrackNavigator_;
-    Navigator* selectedTrackNavigator_;
-    Navigator* focusedFXNavigator_;
+    Navigator *const masterTrackNavigator_;
+    Navigator *selectedTrackNavigator_;
+    Navigator *focusedFXNavigator_;
     
     vector<string> autoModeDisplayNames_;
     
     void ForceScrollLink()
     {
         // Make sure selected track is visble on the control surface
-        MediaTrack* selectedTrack = GetSelectedTrack();
+        MediaTrack *selectedTrack = GetSelectedTrack();
         
         if(selectedTrack != nullptr)
         {
@@ -3573,7 +3573,7 @@ private:
     }
     
 public:
-    TrackNavigationManager(Page* page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) :
+    TrackNavigationManager(Page *page, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) :
     page_(page),
     followMCP_(followMCP),
     synchPages_(synchPages),
@@ -3610,11 +3610,11 @@ public:
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
     int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
-    Navigator* GetMasterTrackNavigator() { return masterTrackNavigator_; }
-    Navigator* GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
-    Navigator* GetFocusedFXNavigator() { return focusedFXNavigator_; }
+    Navigator *GetMasterTrackNavigator() { return masterTrackNavigator_; }
+    Navigator *GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
+    Navigator *GetFocusedFXNavigator() { return focusedFXNavigator_; }
     
-    bool GetIsTrackVisible(MediaTrack* track)
+    bool GetIsTrackVisible(MediaTrack *track)
     {
         return DAW::IsTrackVisible(track, followMCP_);
     }
@@ -3688,12 +3688,12 @@ public:
             return "";
     }
 
-    void NextInputMonitorMode(MediaTrack* track)
+    void NextInputMonitorMode(MediaTrack *track)
     {
-        // I_RECMON : int * : record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
+        // I_RECMON : int  *: record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
         int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
 
-        // I_RECMONITEMS : int * : monitor items while recording (0=off, 1=on)
+        // I_RECMONITEMS : int  *: monitor items while recording (0=off, 1=on)
         int recMonitorItemMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
 
         if(recMonitorMode == 0)
@@ -3726,12 +3726,12 @@ public:
         DAW::GetSetMediaTrackInfo(track, "I_RECMONITEMS", &recMonitorItemMode);
     }
     
-    string GetCurrentInputMonitorMode(MediaTrack* track)
+    string GetCurrentInputMonitorMode(MediaTrack *track)
     {
-        // I_RECMON : int * : record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
+        // I_RECMON : int  *: record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
         int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
 
-        // I_RECMONITEMS : int * : monitor items while recording (0=off, 1=on)
+        // I_RECMONITEMS : int  *: monitor items while recording (0=off, 1=on)
         int recMonitorItemMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
 
         if(recMonitorMode == 0)
@@ -3790,7 +3790,7 @@ public:
             
             offset++;
             
-            if(MediaTrack* leftmostTrack = DAW::GetTrack(offset))
+            if(MediaTrack *leftmostTrack = DAW::GetTrack(offset))
                 DAW::SetMixerScroll(leftmostTrack);
         }
     }
@@ -3858,7 +3858,7 @@ public:
             selectedTracksOffset_ = top;
     }
     
-    Navigator* GetNavigatorForChannel(int channelNum)
+    Navigator *GetNavigatorForChannel(int channelNum)
     {
         if(trackNavigators_.count(channelNum) < 1)
             trackNavigators_[channelNum] = new TrackNavigator(page_, this, channelNum);
@@ -3866,7 +3866,7 @@ public:
         return trackNavigators_[channelNum];
     }
     
-    MediaTrack* GetTrackFromChannel(int channelNumber)
+    MediaTrack *GetTrackFromChannel(int channelNumber)
     {       
         if(currentTrackVCAFolderMode_ == 0)
         {
@@ -3934,7 +3934,7 @@ public:
         return nullptr;
     }
     
-    MediaTrack* GetTrackFromId(int trackNumber)
+    MediaTrack *GetTrackFromId(int trackNumber)
     {
         if(trackNumber <= GetNumTracks())
             return DAW::CSurf_TrackFromID(trackNumber, followMCP_);
@@ -3942,12 +3942,12 @@ public:
             return nullptr;
     }
     
-    int GetIdFromTrack(MediaTrack* track)
+    int GetIdFromTrack(MediaTrack *track)
     {
         return DAW::CSurf_TrackToID(track, followMCP_);
     }
     
-    bool GetIsVCASpilled(MediaTrack* track)
+    bool GetIsVCASpilled(MediaTrack *track)
     {
         if(vcaLeadTrack_ == nullptr && (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0))
             return true;
@@ -3957,7 +3957,7 @@ public:
             return false;
     }
     
-    void ToggleVCASpill(MediaTrack* track)
+    void ToggleVCASpill(MediaTrack *track)
     {
         if(currentTrackVCAFolderMode_ != 1)
             return;
@@ -3986,7 +3986,7 @@ public:
         vcaTrackOffset_ = 0;
     }
 
-    bool GetIsFolderSpilled(MediaTrack* track)
+    bool GetIsFolderSpilled(MediaTrack *track)
     {
         if(folderTopParentTracks_.Find(track) >= 0)
             return true;
@@ -3996,7 +3996,7 @@ public:
             return false;
     }
 
-    void ToggleFolderSpill(MediaTrack* track)
+    void ToggleFolderSpill(MediaTrack *track)
     {
         if(currentTrackVCAFolderMode_ != 2)
             return;
@@ -4042,7 +4042,7 @@ public:
         OnTrackSelection();
     }
     
-    MediaTrack* GetSelectedTrack()
+    MediaTrack *GetSelectedTrack()
     {
         if(DAW::CountSelectedTracks() != 1)
             return nullptr;
@@ -4064,7 +4064,7 @@ public:
             ForceScrollLink();
     }
 
-    void OnTrackSelectionBySurface(MediaTrack* track)
+    void OnTrackSelectionBySurface(MediaTrack *track)
     {
         if(isScrollLinkEnabled_)
         {
@@ -4076,7 +4076,7 @@ public:
         }
     }
 
-    bool GetIsControlTouched(MediaTrack* track, int touchedControl)
+    bool GetIsControlTouched(MediaTrack *track, int touchedControl)
     {
         if(track == GetMasterTrackNavigator()->GetTrack())
             return GetIsNavigatorTouched(GetMasterTrackNavigator(), touchedControl);
@@ -4085,18 +4085,18 @@ public:
             if(track == navigator->GetTrack())
                 return GetIsNavigatorTouched(navigator, touchedControl);
  
-        if(MediaTrack* selectedTrack = GetSelectedTrack())
+        if(MediaTrack *selectedTrack = GetSelectedTrack())
              if(track == selectedTrack)
                 return GetIsNavigatorTouched(GetSelectedTrackNavigator(), touchedControl);
         
-        if(MediaTrack* focusedFXTrack = GetFocusedFXNavigator()->GetTrack())
+        if(MediaTrack *focusedFXTrack = GetFocusedFXNavigator()->GetTrack())
             if(track == focusedFXTrack)
                 return GetIsNavigatorTouched(GetFocusedFXNavigator(), touchedControl);
 
         return false;
     }
     
-    bool GetIsNavigatorTouched(Navigator* navigator,  int touchedControl)
+    bool GetIsNavigatorTouched(Navigator *navigator,  int touchedControl)
     {
         if(touchedControl == 0)
             return navigator->GetIsVolumeTouched();
@@ -4135,7 +4135,7 @@ public:
         // Get Visible Tracks
         for (int i = 1; i <= GetNumTracks(); i++)
         {
-            MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_);
+            MediaTrack *track = DAW::CSurf_TrackFromID(i, followMCP_);
             
             if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
                 vcaTopLeadTracks_.Add(track);
@@ -4179,7 +4179,7 @@ public:
         
         for (int i = 1; i <= GetNumTracks(); i++)
         {
-            MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_);
+            MediaTrack *track = DAW::CSurf_TrackFromID(i, followMCP_);
 
             if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             {
@@ -4218,8 +4218,8 @@ public:
          if(colorTracks_)
          {
          // capture track colors
-         for(auto* navigator : trackNavigators_)
-         if(MediaTrack* track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
+         for(auto *navigator : trackNavigators_)
+         if(MediaTrack *track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
          trackColors_[navigator->GetTrackGUID()] = DAW::GetTrackColor(track);
          }
          */
@@ -4232,8 +4232,8 @@ public:
          {
          DAW::PreventUIRefresh(1);
          // reset track colors
-         for(auto* navigator : trackNavigators_)
-         if(MediaTrack* track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
+         for(auto *navigator : trackNavigators_)
+         if(MediaTrack *track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
          if(trackColors_.count(navigator->GetTrackGUID()) > 0)
          DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", &trackColors_[navigator->GetTrackGUID()]);
          DAW::PreventUIRefresh(-1);
@@ -4248,8 +4248,8 @@ class Page
 {
 private:
     string const name_;
-    TrackNavigationManager* trackNavigationManager_;
-    ModifierManager* modifierManager_;
+    TrackNavigationManager *trackNavigationManager_;
+    ModifierManager *modifierManager_;
     WDL_PtrList<ControlSurface> surfaces_;
     
 public:
@@ -4268,11 +4268,11 @@ public:
         
     string GetName() { return name_; }
     
-    ModifierManager* GetModifierManager() { return modifierManager_; }
+    ModifierManager *GetModifierManager() { return modifierManager_; }
     
     WDL_PtrList<ControlSurface> &GetSurfaces() { return surfaces_; }
     
-    void AddSurface(ControlSurface* surface)
+    void AddSurface(ControlSurface *surface)
     {
         if(WDL_NOT_NORMALLY(!surface)) { return; }
         surfaces_.Add(surface);
@@ -4302,12 +4302,12 @@ public:
             surfaces_.Get(i)->ForceUpdateTrackColors();
     }
       
-    bool GetTouchState(MediaTrack* track, int touchedControl)
+    bool GetTouchState(MediaTrack *track, int touchedControl)
     {
         return trackNavigationManager_->GetIsControlTouched(track, touchedControl);
     }
     
-    void OnTrackSelection(MediaTrack* track)
+    void OnTrackSelection(MediaTrack *track)
     {
         trackNavigationManager_->OnTrackSelection();
         
@@ -4320,7 +4320,7 @@ public:
         trackNavigationManager_->OnTrackListChange();
     }
     
-    void OnTrackSelectionBySurface(MediaTrack* track)
+    void OnTrackSelectionBySurface(MediaTrack *track)
     {
         trackNavigationManager_->OnTrackSelectionBySurface(track);
         
@@ -4328,7 +4328,7 @@ public:
             surfaces_.Get(i)->OnTrackSelection(track);
     }
     
-    void TrackFXListChanged(MediaTrack* track)
+    void TrackFXListChanged(MediaTrack *track)
     {
         for(int i = 0; i < surfaces_.GetSize(); ++i)
             surfaces_.Get(i)->TrackFXListChanged(track);
@@ -4403,7 +4403,7 @@ public:
                 surfaces_.Get(i)->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
-    void AddZoneFilePath(ControlSurface* originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
+    void AddZoneFilePath(ControlSurface *originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
     {
         for(int i = 0; i < surfaces_.GetSize(); ++i)
             if(surfaces_.Get(i) != originatingSurface)
@@ -4416,31 +4416,31 @@ public:
     bool GetSynchPages() { return trackNavigationManager_->GetSynchPages(); }
     bool GetScrollLink() { return trackNavigationManager_->GetScrollLink(); }
     int  GetNumTracks() { return trackNavigationManager_->GetNumTracks(); }
-    Navigator* GetMasterTrackNavigator() { return trackNavigationManager_->GetMasterTrackNavigator(); }
-    Navigator*  GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
-    Navigator*  GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
+    Navigator *GetMasterTrackNavigator() { return trackNavigationManager_->GetMasterTrackNavigator(); }
+    Navigator * GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
+    Navigator * GetFocusedFXNavigator() { return trackNavigationManager_->GetFocusedFXNavigator(); }
     void VCAModeActivated() { trackNavigationManager_->VCAModeActivated(); }
     void VCAModeDeactivated() { trackNavigationManager_->VCAModeDeactivated(); }
     void FolderModeActivated() { trackNavigationManager_->FolderModeActivated(); }
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
     void SelectedTracksModeActivated() { trackNavigationManager_->SelectedTracksModeActivated(); }
     void SelectedTracksModeDeactivated() { trackNavigationManager_->SelectedTracksModeDeactivated(); }
-    Navigator*  GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
-    MediaTrack* GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
-    int GetIdFromTrack(MediaTrack* track) { return trackNavigationManager_->GetIdFromTrack(track); }
-    bool GetIsTrackVisible(MediaTrack* track) { return trackNavigationManager_->GetIsTrackVisible(track); }
-    bool GetIsVCASpilled(MediaTrack* track) { return trackNavigationManager_->GetIsVCASpilled(track); }
-    void ToggleVCASpill(MediaTrack* track) { trackNavigationManager_->ToggleVCASpill(track); }
-    bool GetIsFolderSpilled(MediaTrack* track) { return trackNavigationManager_->GetIsFolderSpilled(track); }
-    void ToggleFolderSpill(MediaTrack* track) { trackNavigationManager_->ToggleFolderSpill(track); }
+    Navigator * GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
+    MediaTrack *GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
+    int GetIdFromTrack(MediaTrack *track) { return trackNavigationManager_->GetIdFromTrack(track); }
+    bool GetIsTrackVisible(MediaTrack *track) { return trackNavigationManager_->GetIsTrackVisible(track); }
+    bool GetIsVCASpilled(MediaTrack *track) { return trackNavigationManager_->GetIsVCASpilled(track); }
+    void ToggleVCASpill(MediaTrack *track) { trackNavigationManager_->ToggleVCASpill(track); }
+    bool GetIsFolderSpilled(MediaTrack *track) { return trackNavigationManager_->GetIsFolderSpilled(track); }
+    void ToggleFolderSpill(MediaTrack *track) { trackNavigationManager_->ToggleFolderSpill(track); }
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
     void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
     void SetTrackOffset(int offset) { trackNavigationManager_->SetTrackOffset(offset); }
-    MediaTrack* GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
-    void NextInputMonitorMode(MediaTrack* track) { trackNavigationManager_->NextInputMonitorMode(track); }
+    MediaTrack *GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
+    void NextInputMonitorMode(MediaTrack *track) { trackNavigationManager_->NextInputMonitorMode(track); }
     const string &GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
     string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
-    string GetCurrentInputMonitorMode(MediaTrack* track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
+    string GetCurrentInputMonitorMode(MediaTrack *track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     const WDL_PtrList<MediaTrack> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
     
     
@@ -4722,7 +4722,7 @@ public:
     
     void Speak(string phrase)
     {
-        const void (*osara_outputMessage)(const char* message) = nullptr;
+        const void (*osara_outputMessage)(const char *message) = nullptr;
     
         osara_outputMessage = (decltype(osara_outputMessage))plugin_getapi("osara_outputMessage");
 
@@ -4802,7 +4802,7 @@ public:
             pages_.Get(currentPageIndex_)->SetTrackOffset(offset);
     }
     
-    void AdjustBank(Page* sendingPage, string zoneName, int amount)
+    void AdjustBank(Page *sendingPage, string zoneName, int amount)
     {
         if(! sendingPage->GetSynchPages())
             sendingPage->AdjustBank(zoneName, amount);
@@ -4843,7 +4843,7 @@ public:
         }
     }
     
-    bool GetTouchState(MediaTrack* track, int touchedControl)
+    bool GetTouchState(MediaTrack *track, int touchedControl)
     {
         if(pages_.Get(currentPageIndex_))
             return pages_.Get(currentPageIndex_)->GetTouchState(track, touchedControl);
@@ -4851,7 +4851,7 @@ public:
             return false;
     }
     
-    void TrackFXListChanged(MediaTrack* track)
+    void TrackFXListChanged(MediaTrack *track)
     {
         for(int i = 0; i < pages_.GetSize(); ++i)
             pages_.Get(i)->TrackFXListChanged(track);
@@ -4914,7 +4914,7 @@ public:
         }
     }
     
-    const string &GetTCPFXParamName(MediaTrack* track, int fxIndex, int paramIndex)
+    const string &GetTCPFXParamName(MediaTrack *track, int fxIndex, int paramIndex)
     {
         char fxName[BUFSZ];
         DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
