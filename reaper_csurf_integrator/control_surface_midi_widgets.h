@@ -102,9 +102,9 @@ public:
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
-        if(message1_->midi_message[1] == midiMessage->midi_message[1])
+        if (message1_->midi_message[1] == midiMessage->midi_message[1])
             message1_->midi_message[2] = midiMessage->midi_message[2];
-        else if(message2_->midi_message[1] == midiMessage->midi_message[1])
+        else if (message2_->midi_message[1] == midiMessage->midi_message[1])
             widget_->GetZoneManager()->DoAction(widget_, int14ToNormalized(message1_->midi_message[2], midiMessage->midi_message[2]));
     }
 };
@@ -146,9 +146,9 @@ public:
     {
         int val = midiMessage->midi_message[2];
         
-        if(accelerationValuesForIncrement_.count(val) > 0)
+        if (accelerationValuesForIncrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], 0.001);
-        else if(accelerationValuesForDecrement_.count(val) > 0)
+        else if (accelerationValuesForDecrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], -0.001);
     }
 };
@@ -168,22 +168,22 @@ public:
         vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
         vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "]");
         
-        if(openSquareBrace != params.end() && closeCurlyBrace != params.end())
+        if (openSquareBrace != params.end() && closeCurlyBrace != params.end())
         {
             vector<int> incValues;
             vector<int> decValues;
 
             bool inDec = false;
             
-            for(vector<string>::iterator it = openSquareBrace + 1; it != closeCurlyBrace; ++it)
+            for (vector<string>::iterator it = openSquareBrace + 1; it != closeCurlyBrace; ++it)
             {
                 string strVal = *(it);
                 
-                if(strVal == "<")
+                if (strVal == "<")
                     inDec = true;
-                else if(strVal == ">")
+                else if (strVal == ">")
                     inDec = false;
-                else if(regex_match(strVal, regex("[0-9A-Fa-f]+[-][0-9A-Fa-f]+")))
+                else if (regex_match(strVal, regex("[0-9A-Fa-f]+[-][0-9A-Fa-f]+")))
                 {
                     istringstream range(strVal);
                     vector<string> range_tokens;
@@ -192,60 +192,60 @@ public:
                     while (getline(range, range_token, '-'))
                         range_tokens.push_back(range_token);
                     
-                    if(range_tokens.size() == 2)
+                    if (range_tokens.size() == 2)
                     {
                         int firstVal = strtol(range_tokens[0].c_str(), nullptr, 16);
                         int lastVal = strtol(range_tokens[1].c_str(), nullptr, 16);
 
-                        if(firstVal < lastVal)
+                        if (firstVal < lastVal)
                         {
-                            if(inDec == false)
+                            if (inDec == false)
                             {
-                                for(int i = firstVal; i <= lastVal; i++)
+                                for (int i = firstVal; i <= lastVal; i++)
                                     incValues.push_back(i);
                             }
                             else
                             {
-                                for(int i = firstVal; i <= lastVal; i++)
+                                for (int i = firstVal; i <= lastVal; i++)
                                     decValues.push_back(i);
                             }
                         }
                         else
                         {
-                            if(inDec == false)
+                            if (inDec == false)
                             {
-                                for(int i = firstVal; i >= lastVal; i--)
+                                for (int i = firstVal; i >= lastVal; i--)
                                     incValues.push_back(i);
                             }
                             else
                             {
-                                for(int i = firstVal; i >= lastVal; i--)
+                                for (int i = firstVal; i >= lastVal; i--)
                                     decValues.push_back(i);
                             }
                         }
                     }
                 }
-                else if(inDec == false)
+                else if (inDec == false)
                     incValues.push_back(strtol(strVal.c_str(), nullptr, 16));
                 else
                     decValues.push_back(strtol(strVal.c_str(), nullptr, 16));
             }
             
-            if(incValues.size() > 0)
+            if (incValues.size() > 0)
             {
-                if(incValues.size() == 1)
+                if (incValues.size() == 1)
                     accelerationValuesForIncrement_[incValues[0]] = 0;
                 else
-                    for(int i = 0; i < incValues.size(); i++)
+                    for (int i = 0; i < incValues.size(); i++)
                         accelerationValuesForIncrement_[incValues[i]] = i;
             }
             
-            if(decValues.size() > 0)
+            if (decValues.size() > 0)
             {
-                if(decValues.size() == 1)
+                if (decValues.size() == 1)
                     accelerationValuesForDecrement_[decValues[0]] = 0;
                 else
-                    for(int i = 0; i < decValues.size(); i++)
+                    for (int i = 0; i < decValues.size(); i++)
                         accelerationValuesForDecrement_[decValues[i]] = i;
             }
         }
@@ -262,9 +262,9 @@ public:
         
         delta = delta / 2.0;
 
-        if(accelerationValuesForIncrement_.count(val) > 0)
+        if (accelerationValuesForIncrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], delta);
-        else if(accelerationValuesForDecrement_.count(val) > 0)
+        else if (accelerationValuesForDecrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], delta);
     }
 };
@@ -310,9 +310,9 @@ public:
     {
         int val = midiMessage->midi_message[2];
         
-        if(accelerationIndicesForIncrement_.count(val) > 0)
+        if (accelerationIndicesForIncrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForIncrement_[val], 0.001);
-        else if(accelerationIndicesForDecrement_.count(val) > 0)
+        else if (accelerationIndicesForDecrement_.count(val) > 0)
             widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_[val], -0.001);
     }
 };
@@ -376,7 +376,7 @@ public:
         int currentMessage = midiMessage->midi_message[2];
         double delta = 1.0 / 64.0;
         
-        if(lastMessage > currentMessage || (lastMessage == 0 && currentMessage == 0))
+        if (lastMessage > currentMessage || (lastMessage == 0 && currentMessage == 0))
             delta = -delta;
             
         lastMessage = currentMessage;
@@ -407,27 +407,27 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
         {
-            if(midiFeedbackMessage2_)
+            if (midiFeedbackMessage2_)
                 SendMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], midiFeedbackMessage2_->midi_message[2]);
-            else if(midiFeedbackMessage1_)
+            else if (midiFeedbackMessage1_)
                 SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
         }
-        else if(midiFeedbackMessage1_)
+        else if (midiFeedbackMessage1_)
             SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
     }
 
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
         {
-            if(midiFeedbackMessage2_)
+            if (midiFeedbackMessage2_)
                 ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], midiFeedbackMessage2_->midi_message[2]);
-            else if(midiFeedbackMessage1_)
+            else if (midiFeedbackMessage1_)
                 ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
         }
-        else if(midiFeedbackMessage1_)
+        else if (midiFeedbackMessage1_)
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
     }
 };
@@ -472,7 +472,7 @@ public:
         color.g = color.g / RGBIndexDivider;
         color.b = color.b / RGBIndexDivider;
         
-        if(color != lastColor_)
+        if (color != lastColor_)
             ForceColorValue(color);
     }
 
@@ -511,7 +511,7 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(lastValue_ != value)
+        if (lastValue_ != value)
             ForceValue(properties, value);
     }
     
@@ -521,9 +521,9 @@ public:
      
         rgba_color color;
 
-        if(value == 0 && properties.count("OffColor") > 0)
+        if (value == 0 && properties.count("OffColor") > 0)
             color = GetColorValue(properties["OffColor"]);
-        else if(value == 1 && properties.count("OnColor") > 0)
+        else if (value == 1 && properties.count("OnColor") > 0)
             color = GetColorValue(properties["OnColor"]);
 
         struct
@@ -587,18 +587,18 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
 {
     rows.DeleteAll();
     
-    for(int i = 0; i < contexts.GetSize(); ++i)
+    for (int i = 0; i < contexts.GetSize(); ++i)
     {
         map<string, string> properties = contexts.Get(i)->GetWidgetProperties();
         
-        if(properties.count("Row") > 0)
+        if (properties.count("Row") > 0)
         {
             const char *rowname = properties["Row"].c_str();
             RowInfo *row = rows.Get(rowname);
             if (!row)
                 rows.Insert(rowname, row = new RowInfo);
 
-            if(properties.count("Font") > 0)
+            if (properties.count("Font") > 0)
                 row->fontSize = stoi(properties["Font"]);
 
             contexts.Get(i)->SetProvideFeedback(true);
@@ -616,7 +616,7 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
     
     double factor = 64.0 / totalFontHeight;
     
-    if(factor < 1.0)
+    if (factor < 1.0)
         factor = 1.0;
     
     int topMargin = 0;
@@ -626,11 +626,11 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
         RowInfo *row = rows.Enumerate(i);
         if (!row) break;
         
-        if(topMargin > 63)
+        if (topMargin > 63)
             topMargin = 63;
         row->topMargin = topMargin;
         row->bottomMargin = int(factor  *s_fontHeights[row->fontSize]) + topMargin;
-        if(row->bottomMargin > 63)
+        if (row->bottomMargin > 63)
             row->bottomMargin = 63;
         topMargin = row->bottomMargin + 1;
     }
@@ -739,14 +739,14 @@ public:
         rgba_color backgroundColor;
         rgba_color textColor;
         
-        if(value == 0)
+        if (value == 0)
         {
-            if(properties.count("BackgroundColorOff") > 0)
+            if (properties.count("BackgroundColorOff") > 0)
                 backgroundColor = GetColorValue(properties["BackgroundColorOff"]);
-            if(properties.count("TextColorOff") > 0)
+            if (properties.count("TextColorOff") > 0)
                 textColor = GetColorValue(properties["TextColorOff"]);
             
-            if(row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
+            if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
             else
             {
@@ -756,12 +756,12 @@ public:
         }
         else
         {
-            if(properties.count("BackgroundColorOn") > 0)
+            if (properties.count("BackgroundColorOn") > 0)
                 backgroundColor = GetColorValue(properties["BackgroundColorOn"]);
-            if(properties.count("TextColorOn") > 0)
+            if (properties.count("TextColorOn") > 0)
                 textColor = GetColorValue(properties["TextColorOn "]);
             
-            if(row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
+            if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
             else
             {
@@ -772,7 +772,7 @@ public:
         
         string displayText = "";
         
-        if(properties.count("DisplayText") > 0)
+        if (properties.count("DisplayText") > 0)
             displayText = properties["DisplayText"];
         
         struct
@@ -802,7 +802,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
-        for(int i = 0; i < displayText.length(); i++)
+        for (int i = 0; i < displayText.length(); i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -908,7 +908,7 @@ public:
 
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
         
-        if(row->lastStringSent == displayText)
+        if (row->lastStringSent == displayText)
             return;
         
         row->lastStringSent = displayText;
@@ -916,9 +916,9 @@ public:
         rgba_color backgroundColor;
         rgba_color textColor;
 
-        if(properties.count("BackgroundColor") > 0)
+        if (properties.count("BackgroundColor") > 0)
             backgroundColor = GetColorValue(properties["BackgroundColor"]);
-        if(properties.count("TextColor") > 0)
+        if (properties.count("TextColor") > 0)
             textColor = GetColorValue(properties["TextColor"]);
 
         struct
@@ -948,7 +948,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
-        for(int i = 0; i < displayText.length(); i++)
+        for (int i = 0; i < displayText.length(); i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -986,7 +986,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
     while (getline(iss, colorDef, '+'))
         colorDefs.push_back(colorDef);
 
-    for(int i = 0; i < (int)colorDefs.size(); ++i)
+    for (int i = 0; i < (int)colorDefs.size(); ++i)
     {
         vector<string> rangeDefs;
         
@@ -995,19 +995,19 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
         while (getline(iss, rangeDef, '-'))
             rangeDefs.push_back(rangeDef);
         
-        if(rangeDefs.size() > 2)
+        if (rangeDefs.size() > 2)
         {
             LEDRingRangeColor color;
             
             color.ringColor = GetColorValue(rangeDefs[2]);
 
-            for(int i = stoi(rangeDefs[0]); i <= stoi(rangeDefs[1]); i++)
+            for (int i = stoi(rangeDefs[0]); i <= stoi(rangeDefs[1]); i++)
             {
-                if(i < 7)
+                if (i < 7)
                     color.ringRangeLow += 1 << i;
-                else if(i > 6 && i < 14)
+                else if (i > 6 && i < 14)
                     color.ringRangeMedium += 1 << (i - 7);
-                else if(i > 13)
+                else if (i > 13)
                     color.ringRangeHigh += 1 << (i - 14);
             }
   
@@ -1085,26 +1085,26 @@ public:
         
         int displayMode = 0;
         
-        if(properties.count("RingStyle") > 0)
+        if (properties.count("RingStyle") > 0)
         {
-            if(properties["RingStyle"] == "Dot")
+            if (properties["RingStyle"] == "Dot")
                 displayMode = 0;
-            else if(properties["RingStyle"] == "BoostCut")
+            else if (properties["RingStyle"] == "BoostCut")
                 displayMode = 1;
-            else if(properties["RingStyle"] == "Fill")
+            else if (properties["RingStyle"] == "Fill")
                 displayMode = 2;
-            else if(properties["RingStyle"] == "Spread")
+            else if (properties["RingStyle"] == "Spread")
                 displayMode = 3;
         }
 
         int val = 0;
         
-        if(displayMode == 3)
+        if (displayMode == 3)
             val = (1+((valueInt*15)>>8)) | (displayMode << 4);
         else
             val = (1+((valueInt*15)>>7)) | (displayMode << 4);
 
-        //if(displayMode) // Should light up lower middle light
+        //if (displayMode) // Should light up lower middle light
         //val |= 0x40;
 
         return val + 64;
@@ -1112,14 +1112,14 @@ public:
         
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
     {
-        if(contexts.GetSize() == 0)
+        if (contexts.GetSize() == 0)
             return;
         
         map<string, string> properties = contexts.Get(0)->GetWidgetProperties();
         
         vector<LEDRingRangeColor> colors;
         
-        if(properties.count("Push") > 0 && properties.count("PushColor") > 0 )
+        if (properties.count("Push") > 0 && properties.count("PushColor") > 0 )
         {
             LEDRingRangeColor color;
             
@@ -1139,7 +1139,7 @@ public:
             
             colors.push_back(color);
         }
-        else if(properties.count("LEDRingColor") > 0)
+        else if (properties.count("LEDRingColor") > 0)
         {
             LEDRingRangeColor color;
             
@@ -1160,12 +1160,12 @@ public:
 
             colors.push_back(color);
         }
-        else if(properties.count("LEDRingColors") > 0)
+        else if (properties.count("LEDRingColors") > 0)
         {
             colors = GetColorValues(properties["LEDRingColors"]);
         }
 
-        if(colors.size() == 0)
+        if (colors.size() == 0)
         {
             LEDRingRangeColor color;
             
@@ -1182,7 +1182,7 @@ public:
             char data[512];
         } midiSysExData;
          
-        for(int i = 0; i < (int)colors.size(); ++i)
+        for (int i = 0; i < (int)colors.size(); ++i)
         {
             midiSysExData.evt.frame_offset=0;
             midiSysExData.evt.size=0;
@@ -1223,7 +1223,7 @@ public:
 
     virtual void SetColorValue(rgba_color &color) override
     {
-        if(color != lastColor_)
+        if (color != lastColor_)
             ForceColorValue(color);
     }
 
@@ -1277,7 +1277,7 @@ public:
 
     virtual void SetColorValue(rgba_color &color) override
     {
-        if(color != lastColor_)
+        if (color != lastColor_)
             ForceColorValue(color);
     }
 
@@ -1316,7 +1316,7 @@ public:
 
     virtual void SetColorValue(rgba_color &color) override
     {
-        if(color != lastColor_)
+        if (color != lastColor_)
             ForceColorValue(color);
     }
 
@@ -1331,13 +1331,13 @@ public:
     
     virtual void UpdateTrackColors() override
     {
-        if(surface_->GetTrackColorForChannel(widget_->GetChannelNumber() - 1) != lastColor_)
+        if (surface_->GetTrackColorForChannel(widget_->GetChannelNumber() - 1) != lastColor_)
             ForceUpdateTrackColors();
     }
     
     virtual void ForceUpdateTrackColors() override
     {
-        if(preventUpdateTrackColors_)
+        if (preventUpdateTrackColors_)
             return;
         
         ForceColorValue(surface_->GetTrackColorForChannel(widget_->GetChannelNumber() - 1));
@@ -1370,7 +1370,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if(shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived_ > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], 0x00, 0x00);
             shouldSetToZero_ = false;
@@ -1379,7 +1379,7 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
         {
             shouldSetToZero_ = true;
             timeZeroValueReceived_ = (int)DAW::GetCurrentNumberOfMilliseconds();
@@ -1425,7 +1425,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if(shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived_ > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
             ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], 0x00);
@@ -1436,7 +1436,7 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
         {
             shouldSetToZero_ = true;
             timeZeroValueReceived_ = (int)DAW::GetCurrentNumberOfMilliseconds();
@@ -1447,7 +1447,7 @@ public:
     
         int volInt = int(value  *1024.0);
         
-        if(midiFeedbackMessage1_->midi_message[2] != ((volInt>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volInt&0x7f))
+        if (midiFeedbackMessage1_->midi_message[2] != ((volInt>>7)&0x7f) || midiFeedbackMessage2_->midi_message[2] != (volInt&0x7f))
         {
             midiFeedbackMessage1_->midi_message[2] = (volInt>>7)&0x7f;
             midiFeedbackMessage2_->midi_message[2] = volInt&0x7f;
@@ -1525,26 +1525,26 @@ public:
         
         int displayMode = 0;
         
-        if(properties.count("RingStyle") > 0)
+        if (properties.count("RingStyle") > 0)
         {
-            if(properties["RingStyle"] == "Dot")
+            if (properties["RingStyle"] == "Dot")
                 displayMode = 0;
-            else if(properties["RingStyle"] == "BoostCut")
+            else if (properties["RingStyle"] == "BoostCut")
                 displayMode = 1;
-            else if(properties["RingStyle"] == "Fill")
+            else if (properties["RingStyle"] == "Fill")
                 displayMode = 2;
-            else if(properties["RingStyle"] == "Spread")
+            else if (properties["RingStyle"] == "Spread")
                 displayMode = 3;
         }
 
         int val = 0;
         
-        if(displayMode == 3)
+        if (displayMode == 3)
             val = (1+((valueInt*11)>>8)) | (displayMode << 4);
         else
             val = (1+((valueInt*11)>>7)) | (displayMode << 4);
 
-        //if(displayMode) // Should light up lower middle light
+        //if (displayMode) // Should light up lower middle light
         //val |= 0x40;
 
         return val;
@@ -1587,11 +1587,11 @@ public:
     {
         displayMode_ = 2;
         
-        if(properties.count("RingStyle") > 0)
+        if (properties.count("RingStyle") > 0)
         {
-            if(properties["RingStyle"] == "Fill")
+            if (properties["RingStyle"] == "Fill")
                 displayMode_ = 1;
-            else if(properties["RingStyle"] == "Dot")
+            else if (properties["RingStyle"] == "Dot")
                 displayMode_ = 2;
         }
 
@@ -1631,7 +1631,7 @@ public:
         
         double midiVal = 0;
         
-        if(dB < 0)
+        if (dB < 0)
             midiVal = pow(10.0, dB / 48)  *96;
         else
             midiVal = pow(10.0, dB / 60)  *96;
@@ -1712,7 +1712,7 @@ public:
         
         int midiValue = int(value  *0x0f);
         
-        if(midiValue > 0x0d)
+        if (midiValue > 0x0d)
             midiValue = 0x0d;
         
         SendMidiMessage(0xd1, (param_ << 4) | midiValue, 0);
@@ -1729,7 +1729,7 @@ public:
         
         int midiValue = int(value  *0x0f);
         
-        if(midiValue > 0x0d)
+        if (midiValue > 0x0d)
             midiValue = 0x0d;
         
         ForceMidiMessage(0xd1, (param_ << 4) | midiValue, 0);
@@ -1776,7 +1776,7 @@ public:
     {
         //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
         int midiValue = int(value  *0x0f);
-        if(midiValue > 0x0d)
+        if (midiValue > 0x0d)
             midiValue = 0x0d;
 
         return midiValue;
@@ -1824,7 +1824,7 @@ public:
     {
         //D0 yx    : update VU meter, y=channel, x=0..d=volume, e=clip on, f=clip off
         int midiValue = int(value  *0x0f);
-        if(midiValue > 0x0d)
+        if (midiValue > 0x0d)
             midiValue = 0x0d;
 
         return midiValue;
@@ -1858,12 +1858,12 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(lastMidiValue_ == value || GetMidiValue(value) < 7)
+        if (lastMidiValue_ == value || GetMidiValue(value) < 7)
         {
             return;
         }
         
-        if(channelNumber_ < 8)
+        if (channelNumber_ < 8)
         {
             SendMidiMessage(0xd0 + channelNumber_, GetMidiValue(value), 0);
         } else {
@@ -1874,7 +1874,7 @@ public:
     virtual void ForceValue(map<string, string> &properties, double value) override
     {
         lastMidiValue_ = (int)value;
-        if(channelNumber_ < 8)
+        if (channelNumber_ < 8)
         {
             ForceMidiMessage(0xd0 + channelNumber_, GetMidiValue(value), 0);
         } else {
@@ -1903,15 +1903,15 @@ private:
     {
         // 0: Normal, 1: Bipolar, 2: Fill, 3: Spread, 4: Off
 
-        if(properties.count("BarStyle") > 0)
+        if (properties.count("BarStyle") > 0)
         {
-            if(properties["BarStyle"] == "Normal")
+            if (properties["BarStyle"] == "Normal")
                 return 0;
-            else if(properties["BarStyle"] == "BiPolar")
+            else if (properties["BarStyle"] == "BiPolar")
                 return 1;
-            else if(properties["BarStyle"] == "Fill")
+            else if (properties["BarStyle"] == "Fill")
                 return 2;
-            else if(properties["BarStyle"] == "Spread")
+            else if (properties["BarStyle"] == "Spread")
                 return 3;
         }
 
@@ -1935,7 +1935,7 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(value == lastValue_)
+        if (value == lastValue_)
             return;
         
         ForceValue(properties, value);
@@ -1986,7 +1986,7 @@ public:
 
     virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
-        if(inputText != lastStringSent_) // changes since last send
+        if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -1996,7 +1996,7 @@ public:
         
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
-        if(displayText == "" || displayText == "-150.00")
+        if (displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
         int pad = 7;
@@ -2068,7 +2068,7 @@ public:
 
     virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
-        if(inputText != lastStringSent_) // changes since last send
+        if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2078,12 +2078,12 @@ public:
         
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
-        if(displayText == "" || displayText == "-150.00")
+        if (displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
         int pad = 12;
         
-        if(displayRow_ == 3)
+        if (displayRow_ == 3)
             pad = 8;
         
         const char *text = displayText.c_str();
@@ -2168,7 +2168,7 @@ public:
 
         rgba_color color;
         
-        for(int i = 0; i < surface_->GetNumChannels(); i++)
+        for (int i = 0; i < surface_->GetNumChannels(); i++)
             currentTrackColors_.push_back(color);
         
         availableRGBColors_[0] = color; // Black
@@ -2231,22 +2231,22 @@ public:
         
         vector<rgba_color> trackColors;
         
-        for(int i = 0; i < surface_->GetNumChannels(); i++)
+        for (int i = 0; i < surface_->GetNumChannels(); i++)
         {
             int surfaceColor = 7; // White
             
-            if(currentColors.size() == 1 && availableColors.count(currentColors[0]) > 0)
+            if (currentColors.size() == 1 && availableColors.count(currentColors[0]) > 0)
                 surfaceColor = availableColors[currentColors[0]];
-            else if(currentColors.size() == 8 && availableColors.count(currentColors[i]) > 0)
+            else if (currentColors.size() == 8 && availableColors.count(currentColors[i]) > 0)
                 surfaceColor = availableColors[currentColors[i]];
 
-            if(zoneName == "Track")
+            if (zoneName == "Track")
                 trackColors.push_back(availableRGBColors_[surfaceColor]);
             
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
         }
         
-        if(trackColors.size() > 0)
+        if (trackColors.size() > 0)
             surface_->SetFixedTrackColors(trackColors);
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -2261,7 +2261,7 @@ public:
     
     virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
-        if(inputText != lastStringSent_) // changes since last send
+        if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2271,7 +2271,7 @@ public:
         
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
-        if(displayText == "" || displayText == "-150.00")
+        if (displayText == "" || displayText == "-150.00")
             displayText = "       ";
 
         int pad = 7;
@@ -2322,25 +2322,25 @@ public:
           
         vector<rgba_color> trackColors;
         
-        for(int i = 0; i < currentTrackColors_.size(); i++)
+        for (int i = 0; i < currentTrackColors_.size(); i++)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
         
-        for(int i = 0; i < trackColors.size(); i++)
+        for (int i = 0; i < trackColors.size(); i++)
         {
-            if(trackColors[i] != currentTrackColors_[i])
+            if (trackColors[i] != currentTrackColors_[i])
             {
                 shouldUpdate = true;
                 break;
             }
         }
         
-        if(shouldUpdate)
+        if (shouldUpdate)
             ForceUpdateTrackColors();
     }
     
     virtual void ForceUpdateTrackColors() override
     {
-        if(preventUpdateTrackColors_)
+        if (preventUpdateTrackColors_)
             return;
         
         struct
@@ -2359,12 +2359,12 @@ public:
 
         vector<rgba_color> trackColors;
         
-        for(int i = 0; i < currentTrackColors_.size(); i++)
+        for (int i = 0; i < currentTrackColors_.size(); i++)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
 
-        for(int i = 0; i < trackColors.size(); i++)
+        for (int i = 0; i < trackColors.size(); i++)
         {
-            if(lastStringSent_ == "")
+            if (lastStringSent_ == "")
             {
                 midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x07; // White
             }
@@ -2380,19 +2380,19 @@ public:
 
                 int surfaceColor = 0;
                 
-                if(abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  // White
+                if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  // White
                     surfaceColor = 7;
-                else if(abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
+                else if (abs(r - g) < 30 && r > b && g > b)  // Yellow r + g
                     surfaceColor = 3;
-                else if(abs(r - b) < 30 && r > g && b > g)  // Magenta r + b
+                else if (abs(r - b) < 30 && r > g && b > g)  // Magenta r + b
                     surfaceColor = 5;
-                else if(abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
+                else if (abs(g - b) < 30 && g > r && b > r)  // Cyan g + b
                     surfaceColor = 6;
-                else if(r > g && r > b) // Red
+                else if (r > g && r > b) // Red
                     surfaceColor = 1;
-                else if(g > r && g > b) // Green
+                else if (g > r && g > b) // Green
                     surfaceColor = 2;
-                else if(b > r && b > g) // Blue
+                else if (b > r && b > g) // Blue
                     surfaceColor = 4;
 
 
@@ -2419,11 +2419,11 @@ private:
     int GetTextAlign(map<string, string> &properties)
     {
         // Center: 0, Left: 1, Right: 2
-        if(properties.count("TextAlign") > 0)
+        if (properties.count("TextAlign") > 0)
         {
-            if(properties["TextAlign"] == "Left")
+            if (properties["TextAlign"] == "Left")
                 return 1;
-            else if(properties["TextAlign"] == "Right")
+            else if (properties["TextAlign"] == "Right")
                 return 2;
         }
 
@@ -2432,8 +2432,8 @@ private:
     
     int GetTextInvert(map<string, string> &properties)
     {
-        if(properties.count("TextInvert") > 0)
-            if(properties["TextInvert"] == "Yes")
+        if (properties.count("TextInvert") > 0)
+            if (properties["TextInvert"] == "Yes")
                 return 4;
 
         return 0;
@@ -2456,7 +2456,7 @@ public:
     
     virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
-        if(inputText != lastStringSent_) // changes since last send
+        if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2466,7 +2466,7 @@ public:
         
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
-        if(displayText == "")
+        if (displayText == "")
             displayText = "                            ";
         
         const char *text = displayText.c_str();
@@ -2528,7 +2528,7 @@ private:
     {
         int param = 2;
 
-        if(properties.count("Mode") > 0)
+        if (properties.count("Mode") > 0)
             param = stoi(properties["Mode"]);
 
         if (param >= 0 && param < 9)
@@ -2554,7 +2554,7 @@ public:
 
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(lastMode_ == GetMode(properties))
+        if (lastMode_ == GetMode(properties))
             return;
             
         ForceValue(properties, value);
@@ -2615,7 +2615,7 @@ public:
     
     virtual void SetValue(map<string, string> &properties, const string &inputText) override
     {
-        if(inputText != lastStringSent_) // changes since last send
+        if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2625,7 +2625,7 @@ public:
         
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
 
-        if(displayText == "")
+        if (displayText == "")
             displayText = "       ";
         
         int pad = 7;
@@ -2694,18 +2694,18 @@ public:
     
     virtual void SetValue(map<string, string> &properties, double value) override
     {
-        if(value == 0.0) // Selected Track
+        if (value == 0.0) // Selected Track
         {
-            if(lastFirstLetter_ != 0x13)
+            if (lastFirstLetter_ != 0x13)
             {
                 lastFirstLetter_ = 0x13;
                 SendMidiMessage(0xB0, 0x4B, 0x13); // S
                 SendMidiMessage(0xB0, 0x4A, 0x05); // E
             }
         }
-        else if(value == 1.0) // Track
+        else if (value == 1.0) // Track
         {
-            if(lastFirstLetter_ != 0x07)
+            if (lastFirstLetter_ != 0x07)
             {
                 lastFirstLetter_ = 0x07;
                 SendMidiMessage(0xB0, 0x4B, 0x07); // G
@@ -2734,7 +2734,7 @@ public:
         map<string, string> properties;
         ForceValue(properties, 0.0);
 
-        for(int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
             SendMidiMessage(0xB0, 0x40 + i, 0x20);
     }
     
@@ -3041,44 +3041,44 @@ static uint8_t s_colorMap7[128][3] = { {0, 0, 0},    // 0
 
 int GetColorIntFromRGB(int r, int g, int b)
 {
-    if(b == 0 && g == 0 && r == 0)
+    if (b == 0 && g == 0 && r == 0)
         return 0;
-    else if(b > 224 && g > 239 && r > 239)
+    else if (b > 224 && g > 239 && r > 239)
         return 127;
-    else if(b == 255 && r == 0)
+    else if (b == 255 && r == 0)
     {
-        for(int i = 1; i < 22; i++)
-            if(g > s_colorMap7[i - 1][1] && g <= s_colorMap7[i][1])
+        for (int i = 1; i < 22; i++)
+            if (g > s_colorMap7[i - 1][1] && g <= s_colorMap7[i][1])
                 return i;
     }
-    else if(g == 255 && r == 0)
+    else if (g == 255 && r == 0)
     {
-        for(int i = 22; i < 44; i++)
-            if(b < s_colorMap7[i - 1][0] && b >= s_colorMap7[i][0])
+        for (int i = 22; i < 44; i++)
+            if (b < s_colorMap7[i - 1][0] && b >= s_colorMap7[i][0])
                 return i;
     }
-    else if(b == 0 && g == 255)
+    else if (b == 0 && g == 255)
     {
-        for(int i = 44; i < 65; i++)
-            if(r > s_colorMap7[i - 1][2] && r <= s_colorMap7[i][2])
+        for (int i = 44; i < 65; i++)
+            if (r > s_colorMap7[i - 1][2] && r <= s_colorMap7[i][2])
                 return i;
     }
-    else if(b == 0 && r == 255)
+    else if (b == 0 && r == 255)
     {
-        for(int i = 65; i < 86; i++)
-            if(g < s_colorMap7[i - 1][1] && g >= s_colorMap7[i][1])
+        for (int i = 65; i < 86; i++)
+            if (g < s_colorMap7[i - 1][1] && g >= s_colorMap7[i][1])
                 return i;
     }
-    else if(g == 0 && r == 255)
+    else if (g == 0 && r == 255)
     {
-        for(int i = 86; i < 108; i++)
-            if(b > s_colorMap7[i - 1][0] && b <= s_colorMap7[i][0])
+        for (int i = 86; i < 108; i++)
+            if (b > s_colorMap7[i - 1][0] && b <= s_colorMap7[i][0])
                 return i;
     }
-    else if(b == 255 && g == 0)
+    else if (b == 255 && g == 0)
     {
-        for(int i = 108; i < 127; i++)
-            if(r < s_colorMap7[i - 1][2] && r >= s_colorMap7[i][2])
+        for (int i = 108; i < 127; i++)
+            if (r < s_colorMap7[i - 1][2] && r >= s_colorMap7[i][2])
                 return i;
     }
     
@@ -3103,7 +3103,7 @@ public:
     
     virtual void SetColorValue(rgba_color &color) override
     {
-        if(color != lastColor_)
+        if (color != lastColor_)
             ForceColorValue(color);
     }
 
@@ -3111,7 +3111,7 @@ public:
     {
         lastColor_ = color;
         
-        if((color.r == 177 || color.r == 181) && color.g == 31) // this sets the different MFT modes
+        if ((color.r == 177 || color.r == 181) && color.g == 31) // this sets the different MFT modes
             SendMidiMessage(color.r, color.g, color.b);
         else
         {
