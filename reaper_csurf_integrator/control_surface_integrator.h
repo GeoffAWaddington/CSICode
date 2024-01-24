@@ -2587,9 +2587,10 @@ private:
         double pressedTime;
     };
     ModifierState modifiers_[MaxModifiers];
-    vector<int> modifierCombinations_;
+    WDL_TypedBuf<int> modifierCombinations_;
+    static int intcmp_rev(const void *a, const void *b) { return *(const int *)a > *(const int *)b ? -1 : *(const int *)a < *(const int *)b ? 1 : 0; }
     
-    void GetCombinations(const Modifiers *indices, int num_indices, vector<int> &combinations)
+    void GetCombinations(const Modifiers *indices, int num_indices, WDL_TypedBuf<int> &combinations)
     {
         for (int mask = 0; mask < (1 << num_indices); mask++)
         {
@@ -2600,7 +2601,7 @@ private:
                     combination |= maskFromModifier(indices[position]);
             
             if(combination != 0)
-                combinations.push_back(combination);
+                combinations.Add(combination);
         }
     }
 
@@ -2614,7 +2615,8 @@ public:
         surface_ = nullptr;
         latchTime_ = 100;
 
-        modifierCombinations_.push_back(0);
+        int *p = modifierCombinations_.ResizeOK(1);
+        if (WDL_NORMALLY(p)) p[0]=0;
 
         memset(modifiers_,0,sizeof(modifiers_));
     }
@@ -2630,7 +2632,7 @@ public:
     }
     
     void RecalculateModifiers();
-    const vector<int> &GetModifiers() { return modifierCombinations_; }
+    const WDL_TypedBuf<int> &GetModifiers() { return modifierCombinations_; }
     
     bool GetShift() { return modifiers_[Shift].isEngaged; }
     bool GetOption() { return modifiers_[Option].isEngaged; }
@@ -3140,7 +3142,7 @@ public:
     void SetZoom(bool value);
     void SetScrub(bool value);
     
-    const vector<int> &GetModifiers();
+    const WDL_TypedBuf<int> &GetModifiers();
     void ClearModifiers();
     void ClearModifier(const string &modifier);
 

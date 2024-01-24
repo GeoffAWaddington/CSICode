@@ -2471,12 +2471,12 @@ void Zone::Deactivate()
 
 void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
 {
-    vector<int> modifiers = zoneManager_->GetSurface()->GetModifiers();
+    const WDL_TypedBuf<int> &modifiers = zoneManager_->GetSurface()->GetModifiers();
     
     int modifier = 0;
     
-    if(modifiers.size() > 0)
-        modifier = modifiers[0];
+    if(modifiers.GetSize() > 0)
+        modifier = modifiers.Get()[0];
     
     if(learnFXCells_.count(modifier) > 0)
     {
@@ -2637,11 +2637,12 @@ void Zone::UpdateCurrentActionContextModifiers()
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 {
-    for(int i = 0; i < (int)widget->GetSurface()->GetModifiers().size(); ++i)
+    const WDL_TypedBuf<int> &mods = widget->GetSurface()->GetModifiers();
+    for(int i = 0; i < mods.GetSize(); ++i)
     {
-        if(actionContextDictionary_[widget].count(widget->GetSurface()->GetModifiers()[i]) > 0)
+        if(actionContextDictionary_[widget].count(mods.Get()[i]) > 0)
         {
-            currentActionContextModifiers_[widget] = widget->GetSurface()->GetModifiers()[i];
+            currentActionContextModifiers_[widget] = mods.Get()[i];
             break;
         }
     }
@@ -3408,12 +3409,12 @@ void ZoneManager::SaveLearnedFXParams()
 
 LearnInfo* ZoneManager::GetLearnInfo(Widget *widget)
 {
-    vector<int> modifiers = surface_->GetModifiers();
+    const WDL_TypedBuf<int> &modifiers = surface_->GetModifiers();
 
-    if(modifiers.size() > 0)
-        return GetLearnInfo(widget, modifiers[0]);
+    if(modifiers.GetSize() > 0)
+        return GetLearnInfo(widget, modifiers.Get()[0]);
     else
-        return nullptr;
+        return NULL;
 }
 
 LearnInfo* ZoneManager::GetLearnInfo(Widget *widget, int modifier)
@@ -3975,8 +3976,8 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
            
             int currentModifier = 0;
             
-            if(surface_->GetModifiers().size() > 0)
-                currentModifier = surface_->GetModifiers()[0];
+            if(surface_->GetModifiers().GetSize() > 0)
+                currentModifier = surface_->GetModifiers().Get()[0];
 
             for(auto [widget, modifiers] : learnedFXParams_)
             {
@@ -4471,8 +4472,8 @@ void ModifierManager::RecalculateModifiers()
     if(surface_ == nullptr && page_ == nullptr)
         return;
     
-    modifierCombinations_.clear();
-    modifierCombinations_.push_back(0);
+    if (modifierCombinations_.ResizeOK(1,false))
+      modifierCombinations_.Get()[0] =0 ;
            
     Modifiers activeModifierIndices[MaxModifiers];
     int activeModifierIndices_cnt = 0;
@@ -4484,7 +4485,7 @@ void ModifierManager::RecalculateModifiers()
     if(activeModifierIndices_cnt>0)
     {
         GetCombinations(activeModifierIndices,activeModifierIndices_cnt, modifierCombinations_);
-        sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
+        qsort(modifierCombinations_.Get(), modifierCombinations_.GetSize(), sizeof(modifierCombinations_.Get()[0]), intcmp_rev);
     }
     
     if(surface_ != nullptr)
@@ -4957,7 +4958,7 @@ void ControlSurface::SetScrub(bool value)
         page_->GetModifierManager()->SetScrub(value, latchTime_);
 }
 
-const vector<int> &ControlSurface::GetModifiers()
+const WDL_TypedBuf<int> &ControlSurface::GetModifiers()
 {
     if(usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetModifiers();
