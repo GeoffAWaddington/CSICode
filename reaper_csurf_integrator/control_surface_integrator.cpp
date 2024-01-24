@@ -4474,15 +4474,16 @@ void ModifierManager::RecalculateModifiers()
     modifierCombinations_.clear();
     modifierCombinations_.push_back(0);
            
-    vector<int> activeModifierIndices;
+    Modifiers activeModifierIndices[MaxModifiers];
+    int activeModifierIndices_cnt = 0;
     
     for(int i = 0; i < MaxModifiers; i++)
         if(modifiers_[i].isEngaged)
-            activeModifierIndices.push_back(i);
+            activeModifierIndices[activeModifierIndices_cnt++] = (Modifiers)i;
     
-    if(activeModifierIndices.size() > 0)
+    if(activeModifierIndices_cnt>0)
     {
-        GetCombinations(activeModifierIndices,modifierCombinations_);
+        GetCombinations(activeModifierIndices,activeModifierIndices_cnt, modifierCombinations_);
         sort(modifierCombinations_.begin(), modifierCombinations_.end(), [](const int & a, const int & b) { return a > b; });
     }
     

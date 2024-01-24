@@ -2589,15 +2589,15 @@ private:
     ModifierState modifiers_[MaxModifiers];
     vector<int> modifierCombinations_;
     
-    void GetCombinations(const vector<int> &indices, vector<int> &combinations)
+    void GetCombinations(const Modifiers *indices, int num_indices, vector<int> &combinations)
     {
-        for (int mask = 0; mask < (1 << indices.size()); mask++)
+        for (int mask = 0; mask < (1 << num_indices); mask++)
         {
             int combination = 0;
             
-            for (int position = 0; position < indices.size(); position++)
+            for (int position = 0; position < num_indices; position++)
                 if (mask & (1 << position))
-                    combination |= maskFromModifier((Modifiers)indices[position]);
+                    combination |= maskFromModifier(indices[position]);
             
             if(combination != 0)
                 combinations.push_back(combination);
