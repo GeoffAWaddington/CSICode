@@ -602,7 +602,7 @@ public:
 protected:
     
     map<Widget *, bool> widgets_;
-    map<string, Widget *> widgetsByName_;
+    WDL_StringKeyedArray<Widget *> widgetsByName_;
     
     map<int, map<string, LearnFXCell>> learnFXCells_;
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
@@ -738,15 +738,12 @@ public:
     void AddWidget(Widget *widget, const string &name)
     {
         widgets_[widget] = true;
-        widgetsByName_[name] = widget;
+        widgetsByName_.Insert(name.c_str(), widget);
     }
     
     Widget *GetWidgetByName(const string &name)
     {
-        if(widgetsByName_.count(name) > 0)
-            return widgetsByName_[name];
-        else
-            return nullptr;
+        return widgetsByName_.Get(name.c_str());
     }
     
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)

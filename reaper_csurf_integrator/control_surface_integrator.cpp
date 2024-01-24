@@ -2288,9 +2288,10 @@ int Zone::GetSlotIndex()
 
 int Zone::GetParamIndex(const string &widgetName)
 {
-    if(widgetsByName_.count(widgetName) > 0)
+    Widget *w = widgetsByName_.Get(widgetName.c_str());
+    if(w)
     {
-        const WDL_PtrList<ActionContext> &contexts = GetActionContexts(widgetsByName_[widgetName]);
+        const WDL_PtrList<ActionContext> &contexts = GetActionContexts(w);
         
         if(contexts.GetSize() > 0)
             return contexts.Get(0)->GetParamIndex();
