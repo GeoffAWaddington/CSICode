@@ -106,7 +106,7 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
     {
         if(TheManager)
         {
-            MediaTrack* leftPtr = (MediaTrack*)parm1;
+            MediaTrack *leftPtr = (MediaTrack *)parm1;
             
             int offset = DAW::CSurf_TrackToID(leftPtr, true);
             
@@ -307,7 +307,7 @@ static const int s_fixedTextDisplayGroupBoxes[] = { IDC_GroupFixedTextDisplay1 ,
 static const int s_fxParamDisplayGroupBoxes[] = { IDC_GroupFXParamValueDisplay1 , IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
 static const int s_advancedButtons[] = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
 
-static const int * const s_baseControls[] =
+static const int  *const s_baseControls[] =
 {
     s_paramNumEditControls,
     s_widgetTypePickers,
@@ -329,7 +329,7 @@ static const int * const s_baseControls[] =
     s_advancedButtons
 };
 
-static const int * const s_fontControls[] =
+static const int  *const s_fontControls[] =
 {
     s_fixedTextDisplayFontLabels,
     s_fixedTextDisplayFontPickers,
@@ -337,7 +337,7 @@ static const int * const s_fontControls[] =
     s_paramValueDisplayFontPickers
 };
 
-static const int * const s_colorControls[] =
+static const int  *const s_colorControls[] =
 {
     s_widgetRingColorBoxes,
     s_widgetRingColors,
@@ -1070,7 +1070,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for(int i = 1; i <= s_numGroups * 2; i++)
+            for(int i = 1; i <= s_numGroups  *2; i++)
             {
                 columnDescriptor.cx = columnSizes[i];
                 ListView_InsertColumn(paramList, i, &columnDescriptor);
@@ -1232,7 +1232,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for(int i = 1; i <= s_numGroups * 2; i++)
+            for(int i = 1; i <= s_numGroups  *2; i++)
             {
                 columnDescriptor.cx = columnSizes[i];
                 ListView_InsertColumn(paramList, i, &columnDescriptor);
@@ -1508,13 +1508,13 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
     
     for(int i = 0; i < source.GetSize(); ++i)
     {
-        Broadcaster* destinationBroadcaster = new Broadcaster();
+        Broadcaster *destinationBroadcaster = new Broadcaster();
         
         destinationBroadcaster->name = source.Get(i)->name;
         
         for(int j = 0; j < source.Get(i)->listeners.GetSize(); ++j)
         {
-            Listener* destinationListener = new Listener();
+            Listener *destinationListener = new Listener();
             
             destinationListener->name = source.Get(i)->listeners.Get(j)->name;
             
@@ -1558,7 +1558,7 @@ static string s_fxZoneTemplateFolder = "";
 
 static WDL_PtrList<PageLine> s_pages;
 
-void AddComboEntry(HWND hwndDlg, int x, char * buf, int comboId)
+void AddComboEntry(HWND hwndDlg, int x, char  *buf, int comboId)
 {
     int a = (int)SendDlgItemMessage(hwndDlg,comboId,CB_ADDSTRING,0,(LPARAM)buf);
     SendDlgItemMessage(hwndDlg,comboId,CB_SETITEMDATA,a,x);
@@ -2063,7 +2063,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     return 0;
 }
 
-static void SetCheckBoxes(HWND hwndDlg, Listener* listener)
+static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
 {
     SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
 
@@ -2176,7 +2176,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                     foundit = true;
                             if(! foundit)
                             {
-                                Broadcaster* broadcaster = new Broadcaster();
+                                Broadcaster *broadcaster = new Broadcaster();
                                 broadcaster->name = broadcasterName;
                                 s_broadcasters.Add(broadcaster);
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
@@ -2203,7 +2203,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 foundit = true;
                             if(! foundit)
                             {
-                                Listener* listener = new Listener();
+                                Listener *listener = new Listener();
                                 listener->name = listenerName;
                                  s_broadcasters.Get(broadcasterIndex)->listeners.Add(listener);
                                 AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
@@ -2520,7 +2520,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
                                 if(s_dlgResult == IDOK)
                                 {
-                                    SurfaceLine* surface = new SurfaceLine();
+                                    SurfaceLine *surface = new SurfaceLine();
                                     surface->type = s_MidiSurfaceToken;
                                     surface->name = s_surfaceName;
                                     surface->inPort = s_surfaceInPort;
@@ -2546,7 +2546,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                 if(s_dlgResult == IDOK)
                                 {
-                                    SurfaceLine* surface = new SurfaceLine();
+                                    SurfaceLine *surface = new SurfaceLine();
                                     surface->type = s_OSCSurfaceToken;
                                     surface->name = s_surfaceName;
                                     surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
@@ -2570,7 +2570,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                             if(s_dlgResult == IDOK)
                             {
-                                PageLine* page = new PageLine();
+                                PageLine *page = new PageLine();
                                 page->name = s_surfaceName;
                                 page->followMCP = s_followMCP;
                                 page->synchPages = s_synchPages;
@@ -2592,7 +2592,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                             if(s_dlgResult == IDOK)
                             {
-                                PageSurfaceLine* pageSurface = new PageSurfaceLine();
+                                PageSurfaceLine *pageSurface = new PageSurfaceLine();
                                 pageSurface->pageSurfaceName = s_pageSurfaceName;
                                 pageSurface->numChannels = s_numChannels;
                                 pageSurface->channelOffset = s_channelOffset;
@@ -2821,7 +2821,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     
                     if(tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
                     {
-                        SurfaceLine* surface = new SurfaceLine();
+                        SurfaceLine *surface = new SurfaceLine();
                         
                         surface->type = tokens[0];
                         surface->name = tokens[1];
@@ -2857,7 +2857,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 scrollSynch = true;
                         }
 
-                        PageLine* page = new PageLine();
+                        PageLine *page = new PageLine();
                         page->name = tokens[1];
                         page->followMCP = followMCP;
                         page->synchPages = synchPages;
@@ -2870,13 +2870,13 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     }
                     else if(tokens[0] == "Broadcaster" && tokens.size() == 2 && s_pages.GetSize() > 0)
                     {
-                        Broadcaster* broadcaster = new Broadcaster();
+                        Broadcaster *broadcaster = new Broadcaster();
                         broadcaster->name = tokens[1];
                         s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Add(broadcaster);
                     }
                     else if(tokens[0] == "Listener" && tokens.size() == 3 && s_pages.GetSize() > 0 && s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() > 0)
                     {
-                        Listener* listener = new Listener();
+                        Listener *listener = new Listener();
                         listener->name = tokens[1];
 
                         vector<string> categoryTokens;
@@ -2918,7 +2918,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             tokens.erase(tokens.begin()); // pop front
                         }
 
-                        PageSurfaceLine* surface = new PageSurfaceLine();
+                        PageSurfaceLine *surface = new PageSurfaceLine();
                         
                         if (s_pages.GetSize() > 0)
                         {
