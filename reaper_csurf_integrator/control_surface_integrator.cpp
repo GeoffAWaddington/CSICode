@@ -2473,7 +2473,7 @@ void Zone::Deactivate()
             zones.Get(i)->Deactivate();
 }
 
-void Zone::RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets)
+void Zone::RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets)
 {
     const WDL_TypedBuf<int> &modifiers = zoneManager_->GetSurface()->GetModifiers();
     
@@ -3482,8 +3482,8 @@ void ZoneManager::InitializeNoMapZone()
         
         if(noMapZone_ != nullptr)
         {
-            const WDL_PointerKeyedArray<Widget *, bool> &wl = noMapZone_->GetWidgets();
-            WDL_PointerKeyedArray<Widget *, bool> usedWidgets;
+            const WDL_PointerKeyedArray<Widget*, bool> &wl = noMapZone_->GetWidgets();
+            WDL_PointerKeyedArray<Widget*, bool> usedWidgets;
             usedWidgets.CopyContents(wl); // since noMapZone_->GetWidgets() may change during this initialization, make a copy. making the copy might be unnecessary though
 
             vector<string> paramWidgets;

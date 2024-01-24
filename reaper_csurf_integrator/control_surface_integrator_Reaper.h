@@ -180,8 +180,6 @@ public:
     static int GetFocusedFX2(int* tracknumberOut, int* itemnumberOut, int* fxnumberOut) { return ::GetFocusedFX2(tracknumberOut, itemnumberOut, fxnumberOut); }
     
     static bool GetLastTouchedFX(int* tracknumberOut, int* fxnumberOut, int* paramnumberOut) {  return ::GetLastTouchedFX(tracknumberOut, fxnumberOut, paramnumberOut); }
-
-    //static bool GetTouchedOrFocusedFX(int mode, int* trackidxOut, int* itemidxOut, int* takeidxOut, int* fxidxOut, int* parmOut) { return ::GetTouchedOrFocusedFX(mode, trackidxOut, itemidxOut, takeidxOut, fxidxOut, parmOut); }
     
     static void CSurf_OnArrow(int whichdir, bool wantzoom) { ::CSurf_OnArrow(whichdir, wantzoom); }
     

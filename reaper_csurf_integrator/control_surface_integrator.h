@@ -602,8 +602,8 @@ public:
 protected:
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
-    WDL_PointerKeyedArray<Widget *, bool> widgets_; 
-    WDL_StringKeyedArray<Widget *> widgetsByName_;
+    WDL_PointerKeyedArray<Widget*, bool> widgets_; 
+    WDL_StringKeyedArray<Widget*> widgetsByName_;
     
     map<int, map<string, LearnFXCell>> learnFXCells_;
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
@@ -642,14 +642,14 @@ public:
     void Deactivate();
     void DoAction(Widget *widget, bool &isUsed, double value);
     int GetChannelNumber();
-    void RequestLearnFXUpdate(map<Widget *, bool> &usedWidgets);
+    void RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets);
     void SetFXParamNum(Widget *paramWidget, int paramIndex);
 
     const string &GetSourceFilePath() { return sourceFilePath_; }
     
     virtual string GetType() { return "Zone"; }
     
-    const WDL_PointerKeyedArray<Widget *, bool> &GetWidgets() { return widgets_; }
+    const WDL_PointerKeyedArray<Widget*, bool> &GetWidgets() { return widgets_; }
 
     Navigator* GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
@@ -795,7 +795,7 @@ public:
         }
     }
 
-    void RequestUpdate(map<Widget *, bool> &usedWidgets)
+    void RequestUpdate(map<Widget*, bool> &usedWidgets)
     {
         if(! isActive_)
             return;
@@ -1086,13 +1086,13 @@ private:
 
     map<string, CSIZoneInfo> zoneFilePaths_;
     
-    map<Widget *, bool> usedWidgets_;
+    map<Widget*, bool> usedWidgets_;
     
     Zone *noMapZone_;
     
     Zone *homeZone_;
     
-    map<int, map<Widget *, Widget *>> controlDisplayAssociations_;
+    map<int, map<Widget*, Widget*>> controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
     vector<string> fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
@@ -1141,7 +1141,7 @@ private:
 
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
-    map<Widget *, map<int, LearnInfo*>> learnedFXParams_;
+    map<Widget*, map<int, LearnInfo*>> learnedFXParams_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex);
 
@@ -1664,7 +1664,7 @@ public:
 
     void DoLearn(ActionContext* context, double value);
     LearnInfo* GetLearnInfo(Widget *widget);
-    LearnInfo* GetLearnInfo(Widget *, int modifier);
+    LearnInfo* GetLearnInfo(Widget*, int modifier);
 
     void DoTouch(Widget *widget, double value);
     
@@ -2792,7 +2792,7 @@ protected:
     int const channelOffset_ = 0;
     
     WDL_PtrList<Widget> widgets_; // owns list
-    WDL_StringKeyedArray<Widget *> widgetsByName_;
+    WDL_StringKeyedArray<Widget*> widgetsByName_;
     
     map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     

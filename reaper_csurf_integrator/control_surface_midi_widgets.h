@@ -641,7 +641,7 @@ class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    WDL_StringKeyedArray<RowInfo *> rows_;
+    WDL_StringKeyedArray<RowInfo*> rows_;
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
@@ -816,7 +816,7 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    WDL_StringKeyedArray<RowInfo *> rows_;
+    WDL_StringKeyedArray<RowInfo*> rows_;
 
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
