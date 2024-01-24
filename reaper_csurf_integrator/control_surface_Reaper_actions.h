@@ -2268,7 +2268,7 @@ class MetronomeSecondaryVolumeDisplay : public MetronomeVolumeDisplay
 public:
     string GetName() override { return "MetronomeSecondaryVolumeDisplay"; }
 
-    bool GetVolume(double& value) const override
+    bool GetVolume(double &value) const override
     {
         const auto *primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
         const auto *secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();

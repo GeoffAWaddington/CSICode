@@ -1360,7 +1360,7 @@ class FileSystem
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    static vector<string> GetDirectoryFilenames(const string& path)
+    static vector<string> GetDirectoryFilenames(const string &path)
     {
         vector<string> filenames;
 
@@ -1376,7 +1376,7 @@ public:
         return filenames;
     }
     
-    static vector<string> GetDirectoryFolderNames(const string& path)
+    static vector<string> GetDirectoryFolderNames(const string &path)
     {
         vector<string> folderNames;
 
