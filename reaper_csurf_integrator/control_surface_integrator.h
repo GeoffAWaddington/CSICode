@@ -34,6 +34,7 @@
 
 #include "control_surface_integrator_Reaper.h"
 #include "WDL/ptrlist.h"
+#include "WDL/assocarray.h"
 
 #ifdef _WIN32
 #include <functional>
@@ -2791,7 +2792,7 @@ protected:
     int const channelOffset_ = 0;
     
     WDL_PtrList<Widget> widgets_; // owns list
-    map<string, Widget *> widgetsByName_;
+    WDL_StringKeyedArray<Widget *> widgetsByName_;
     
     map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     
@@ -3009,26 +3010,27 @@ public:
     {
         OnTrackSelection(track);
     }
+
+    void DoWidgetAction(const char *name, double v=1.0)
+    {
+        Widget *w = widgetsByName_.Get(name);
+        if(w) zoneManager_->DoAction(w, 1.0);
+    }
     
     void HandleStop()
     {
-        if(widgetsByName_.count("OnRecordStop") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnRecordStop"], 1.0);
-
-        if(widgetsByName_.count("OnPlayStop") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnPlayStop"], 1.0);
+        DoWidgetAction("OnRecordStop");
+        DoWidgetAction("OnPlayStop");
     }
     
     void HandlePlay()
     {
-        if(widgetsByName_.count("OnPlayStart") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnPlayStart"], 1.0);
+        DoWidgetAction("OnPlayStart");
     }
     
     void HandleRecord()
     {
-        if(widgetsByName_.count("OnRecordStart") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnRecordStart"], 1.0);
+        DoWidgetAction("OnRecordStart");
     }
         
     void StartRewinding()
@@ -3079,7 +3081,7 @@ public:
     {
         if (WDL_NOT_NORMALLY(!widget)) return;
         widgets_.Add(widget);
-        widgetsByName_[widget->GetName()] = widget;
+        widgetsByName_.Insert(widget->GetName().c_str(),widget);
         zoneManager_->AddWidget(widget);
     }
     
@@ -3091,32 +3093,26 @@ public:
 
     Widget *GetWidgetByName(const string &name)
     {
-        if(widgetsByName_.count(name) > 0)
-            return widgetsByName_[name];
-        else
-            return nullptr;
+      return widgetsByName_.Get(name.c_str());
     }
     
     void OnPageEnter()
     {
         ForceClear();
         
-        if(widgetsByName_.count("OnPageEnter") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnPageEnter"], 1.0);
+        DoWidgetAction("OnPageEnter");
     }
     
     void OnPageLeave()
     {
         ForceClear();
         
-        if(widgetsByName_.count("OnPageLeave") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnPageLeave"], 1.0);
+        DoWidgetAction("OnPageLeave");
     }
     
     void OnInitialization()
     {
-        if(widgetsByName_.count("OnInitialization") > 0)
-            zoneManager_->DoAction(widgetsByName_["OnInitialization"], 1.0);
+        DoWidgetAction("OnInitialization");
     }
     
     

@@ -4629,10 +4629,11 @@ void ControlSurface::Record()
 
 void ControlSurface::OnTrackSelection(MediaTrack* track)
 {
-    if(widgetsByName_.count("OnTrackSelection") > 0)
+    Widget *w = widgetsByName_.Get("OnTrackSelection");
+    if (w)
     {
         if(DAW::GetMediaTrackInfo_Value(track, "I_SELECTED"))
-            zoneManager_->DoAction(widgetsByName_["OnTrackSelection"], 1.0);
+            zoneManager_->DoAction(w, 1.0);
         else
             zoneManager_->OnTrackDeselection();
         
