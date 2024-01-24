@@ -18,17 +18,17 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double min, max = 0;
             
-            if(value == 0)
+            if (value == 0)
                 DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
             else
                 DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
@@ -49,7 +49,7 @@ public:
     
         LearnInfo *info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
-        if(info == nullptr)
+        if (info == nullptr)
             return 0.0;
         
         int trackNum;
@@ -65,13 +65,13 @@ public:
     {
         LearnInfo *info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
-        if(info == nullptr)
+        if (info == nullptr)
         {
             context->ClearWidget();
             return;
         }
 
-        if(info->isLearned && info->fxParamWidget == context->GetWidget())
+        if (info->isLearned && info->fxParamWidget == context->GetWidget())
         {
             double currentValue = GetCurrentNormalizedValue(context);
             
@@ -100,27 +100,27 @@ public:
         int fxSlotNum;
         int fxParamNum;
         
-        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             int modifier = 0;
             
-            if(context->GetSurface()->GetModifiers().GetSize() > 0)
+            if (context->GetSurface()->GetModifiers().GetSize() > 0)
                 modifier = context->GetSurface()->GetModifiers().Get()[0];
 
             LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
 
             bool isLearned = false;
             
-            for(int i = 0; i < cell.fxParamWidgets.GetSize(); ++i)
+            for (int i = 0; i < cell.fxParamWidgets.GetSize(); ++i)
             {
-                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier)->isLearned)
+                if (context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier)->isLearned)
                 {
                     isLearned = true;
                     break;
                 }
             }
             
-            if(isLearned)
+            if (isLearned)
                 context->UpdateWidgetValue(DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum));
             else
                 context->ClearWidget();
@@ -143,27 +143,27 @@ public:
         int fxSlotNum;
         int fxParamNum;
                 
-        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             int modifier = 0;
             
-            if(context->GetSurface()->GetModifiers().GetSize() > 0)
+            if (context->GetSurface()->GetModifiers().GetSize() > 0)
                 modifier = context->GetSurface()->GetModifiers().Get()[0];
 
             const LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
 
             bool isLearned = false;
             
-            for(int i = 0; i < (int)cell.fxParamWidgets.GetSize(); ++i)
+            for (int i = 0; i < (int)cell.fxParamWidgets.GetSize(); ++i)
             {
-                if(context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier)->isLearned)
+                if (context->GetSurface()->GetZoneManager()->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier)->isLearned)
                 {
                     isLearned = true;
                     break;
                 }
             }
             
-            if(isLearned)
+            if (isLearned)
             {
                 char fxParamValue[128];
                 DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, paramNum, fxParamValue, sizeof(fxParamValue));
@@ -186,7 +186,7 @@ public:
    
     void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
     }
@@ -201,7 +201,7 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFXParams"))
+        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFXParams"))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -209,9 +209,9 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(context->GetZone()->GetName() == "LearnFXParams")
+        if (context->GetZone()->GetName() == "LearnFXParams")
             context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
     }
 };
@@ -225,7 +225,7 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFXParams"))
+        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFXParams"))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -233,7 +233,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->GetZoneManager()->SaveTemplatedFXParams();
     }
@@ -248,7 +248,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double min, max = 0.0;
             
@@ -256,7 +256,7 @@ public:
             
             double range = max - min;
             
-            if(min < 0)
+            if (min < 0)
                 value += fabs(min);
 
             return value / range;
@@ -267,12 +267,12 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double min, max = 0.0;
 
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
-            if(context->GetNumberOfSteppedValues() > 0)
+            if (context->GetNumberOfSteppedValues() > 0)
                 context->UpdateJSFXWidgetSteppedValue(DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
         }
         else
@@ -281,9 +281,9 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(context->GetNumberOfSteppedValues() > 0)
+            if (context->GetNumberOfSteppedValues() > 0)
                 DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value);
 
             else
@@ -301,11 +301,11 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double min, max = 0;
             
-            if(value == 0)
+            if (value == 0)
                 DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
             else
                 DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
@@ -322,16 +322,16 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int index = context->GetIntParam();
             
-            if(DAW::CountTCPFXParms(track) > index)
+            if (DAW::CountTCPFXParms(track) > index)
             {
                 int fxIndex = 0;
                 int paramIndex = 0;
                 
-                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
                 {
                     double min, max = 0.0;
                     
@@ -349,16 +349,16 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int index = context->GetIntParam();
             
-            if(DAW::CountTCPFXParms(track) > index)
+            if (DAW::CountTCPFXParms(track) > index)
             {
                 int fxIndex = 0;
                 int paramIndex = 0;
                 
-                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
                     DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
             }
         }
@@ -367,11 +367,11 @@ public:
     virtual void Touch(ActionContext *context, double value) override
     {
         /*
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double min, max = 0;
             
-            if(value == 0)
+            if (value == 0)
                 DAW::TrackFX_EndParamEdit(track, context->GetSlotIndex(), context->GetParamIndex());
             else
                 DAW::TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max));
@@ -401,7 +401,7 @@ public:
    
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = DAW::GetTrack(trackNum_))
+        if (MediaTrack *track = DAW::GetTrack(trackNum_))
         {
             double min = 0.0;
             double max = 0.0;
@@ -413,25 +413,25 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
-            if(DAW::GetTrack(trackNum_))
+        if (DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
+            if (DAW::GetTrack(trackNum_))
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
     }
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
-            if(MediaTrack *track = DAW::GetTrack(trackNum_))
+        if (DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
+            if (MediaTrack *track = DAW::GetTrack(trackNum_))
                 DAW::TrackFX_SetParam(track, fxSlotNum_, fxParamNum_, value);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
+        if (DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
         {
-            if(MediaTrack *track =  DAW::GetTrack(trackNum_))
+            if (MediaTrack *track =  DAW::GetTrack(trackNum_))
             {
-                if(value == 0)
+                if (value == 0)
                     DAW::TrackFX_EndParamEdit(track, fxSlotNum_, fxParamNum_);
                 else
                     DAW::TrackFX_SetParam(track, fxSlotNum_, fxParamNum_, GetCurrentNormalizedValue(context));
@@ -449,14 +449,14 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             //I_FXEN : fx enabled, 0=bypassed, !0=fx active
-            if(DAW::GetMediaTrackInfo_Value(track, "I_FXEN") == 0)
+            if (DAW::GetMediaTrackInfo_Value(track, "I_FXEN") == 0)
                 context->UpdateWidgetValue(0.0);
-            else if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            else if (DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
-                if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
+                if (DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
                     context->UpdateWidgetValue(1.0);
                 else
                     context->UpdateWidgetValue(0.0);
@@ -470,9 +470,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::TrackFX_SetEnabled(track, context->GetSlotIndex(), ! DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()));
     }
 };
@@ -486,14 +486,14 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             //I_FXEN : fx enabled, 0=bypassed, !0=fx active
-            if(DAW::GetMediaTrackInfo_Value(track, "I_FXEN") == 0)
+            if (DAW::GetMediaTrackInfo_Value(track, "I_FXEN") == 0)
                 context->UpdateWidgetValue("Bypassed");
-            else if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            else if (DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
-                if(DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
+                if (DAW::TrackFX_GetEnabled(track, context->GetSlotIndex()))
                     context->UpdateWidgetValue("Enabled");
                 else
                     context->UpdateWidgetValue("Bypassed");
@@ -515,11 +515,11 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            if (DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
-                if(DAW::TrackFX_GetOffline(track, context->GetSlotIndex()))
+                if (DAW::TrackFX_GetOffline(track, context->GetSlotIndex()))
                     context->UpdateWidgetValue(0.0);
                 else
                     context->UpdateWidgetValue(1.0);
@@ -533,9 +533,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::TrackFX_SetOffline(track, context->GetSlotIndex(), ! DAW::TrackFX_GetOffline(track, context->GetSlotIndex()));
     }
 };
@@ -549,11 +549,11 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
+            if (DAW::TrackFX_GetCount(track) > context->GetSlotIndex())
             {
-                if(DAW::TrackFX_GetOffline(track, context->GetSlotIndex()))
+                if (DAW::TrackFX_GetOffline(track, context->GetSlotIndex()))
                     context->UpdateWidgetValue("Offline");
                 else
                     context->UpdateWidgetValue("Online");
@@ -575,7 +575,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -587,7 +587,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -595,14 +595,14 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
 };
@@ -616,13 +616,13 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double trackVolume, trackPan = 0.0;
             DAW::GetTrackUIVolPan(track, &trackVolume, &trackPan);
             trackVolume = volToNormalized(trackVolume);
             
-            if( fabs(value - trackVolume) < 0.025) // GAW -- Magic number -- ne touche pas
+            if ( fabs(value - trackVolume) < 0.025) // GAW -- Magic number -- ne touche pas
                 DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
         }
     }
@@ -642,13 +642,13 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double trackVolume, trackPan = 0.0;
             DAW::GetTrackUIVolPan(track, &trackVolume, &trackPan);
             trackVolume = volToNormalized(trackVolume);
             
-            if( fabs(value - trackVolume) < 0.0025) // GAW -- Magic number -- ne touche pas
+            if ( fabs(value - trackVolume) < 0.0025) // GAW -- Magic number -- ne touche pas
                 DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
         }
     }
@@ -668,7 +668,7 @@ public:
     
     virtual double GetCurrentDBValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -680,7 +680,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(GetCurrentDBValue(context));
         else
             context->ClearWidget();
@@ -688,14 +688,14 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, DB2VAL(value), false), NULL);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, DB2VAL(GetCurrentDBValue(context)), false), NULL);
     }
 };
@@ -709,9 +709,9 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
             {
                 double vol, pan = 0.0;
                 DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -724,7 +724,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -732,9 +732,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_SetSurfacePan(track, DAW::CSurf_OnPanChange(track, normalizedToPan(value), false), NULL);
         }
     }
@@ -742,9 +742,9 @@ public:
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsPanTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_SetSurfacePan(track, DAW::CSurf_OnPanChange(track, normalizedToPan(GetCurrentNormalizedValue(context)), false), NULL);
         }
     }
@@ -759,9 +759,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
             {
                 double vol, pan = 0.0;
                 DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -774,17 +774,17 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
-            if(GetPanMode(track) != 6)
+        if (MediaTrack *track = context->GetTrack())
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_SetSurfacePan(track, DAW::CSurf_OnPanChange(track, value / 100.0, false), NULL);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsPanTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
             {
                 double vol, pan = 0.0;
                 DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -803,7 +803,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_WIDTH"));
         else
             return 0.0;
@@ -811,9 +811,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         }
         else
@@ -822,16 +822,16 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
-            if(GetPanMode(track) != 6)
+        if (MediaTrack *track = context->GetTrack())
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_OnWidthChange(track, normalizedToPan(value), false);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value);
-        if(MediaTrack *track = context->GetTrack())
-            if(GetPanMode(track) != 6)
+        if (MediaTrack *track = context->GetTrack())
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_OnWidthChange(track, normalizedToPan(GetCurrentNormalizedValue(context)), false);
     }
 };
@@ -845,9 +845,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
                 context->UpdateWidgetValue(DAW::GetMediaTrackInfo_Value(track, "D_WIDTH")  *100.0);
         }
         else
@@ -856,17 +856,17 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
-            if(GetPanMode(track) != 6)
+        if (MediaTrack *track = context->GetTrack())
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_OnWidthChange(track, value / 100.0, false);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) != 6)
+            if (GetPanMode(track) != 6)
                 DAW::CSurf_OnWidthChange(track, DAW::GetMediaTrackInfo_Value(track, "D_WIDTH"), false);
         }
     }
@@ -881,7 +881,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL"));
         else
             return 0.0;
@@ -889,9 +889,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         }
         else
@@ -900,9 +900,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double pan = normalizedToPan(value);
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANL", &pan);
@@ -925,9 +925,9 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->UpdateWidgetValue(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL")  *100.0);
         }
         else
@@ -936,9 +936,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double panFromPercent = value / 100.0;
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANL", &panFromPercent);
@@ -949,9 +949,9 @@ public:
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double panL = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL");
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANL", &panL);
@@ -969,7 +969,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR"));
         else
             return 0.0;
@@ -977,9 +977,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         }
         else
@@ -988,9 +988,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double pan = normalizedToPan(value);
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANR", &pan);
@@ -1013,9 +1013,9 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->UpdateWidgetValue(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR")  *100.0);
         }
         else
@@ -1024,9 +1024,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double panFromPercent = value / 100.0;
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANR", &panFromPercent);
@@ -1037,9 +1037,9 @@ public:
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsPanRightTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double panL = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANR", &panL);
@@ -1057,9 +1057,9 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL"));
             else
             {
@@ -1074,9 +1074,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->UpdateWidgetValue(panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL")));
             else
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
@@ -1087,9 +1087,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double pan = normalizedToPan(value);
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANL", &pan);
@@ -1101,9 +1101,9 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value);
             else
             {
@@ -1123,9 +1123,9 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR"));
             else
                 return panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_WIDTH"));
@@ -1136,9 +1136,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->UpdateWidgetValue(panToNormalized(DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR")));
             else
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
@@ -1149,9 +1149,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double pan = normalizedToPan(value);
                 DAW::GetSetMediaTrackInfo(track, "D_DUALPANR", &pan);
@@ -1163,9 +1163,9 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
                 context->GetZone()->GetNavigator()->SetIsPanRightTouched(value);
             else
             {
@@ -1186,7 +1186,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetMediaTrackInfo_Value(track, "I_RECARM");
         else
             return 0.0;
@@ -1194,7 +1194,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1202,9 +1202,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             DAW::CSurf_SetSurfaceRecArm(track, DAW::CSurf_OnRecArmChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_RECARM")), NULL);
         }
@@ -1220,7 +1220,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool mute = false;
             DAW::GetTrackUIMute(track, &mute);
@@ -1232,7 +1232,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1240,9 +1240,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool mute = false;
             DAW::GetTrackUIMute(track, &mute);
@@ -1260,7 +1260,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetMediaTrackInfo_Value(track, "I_SOLO") > 0 ? 1 : 0;
         else
             return 0.0;
@@ -1268,7 +1268,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1276,9 +1276,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             DAW::CSurf_SetSurfaceSolo(track, DAW::CSurf_OnSoloChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO")), NULL);
         }
@@ -1294,7 +1294,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetMediaTrackInfo_Value(track, "B_PHASE");
         else
             return 0.0;
@@ -1302,7 +1302,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1310,9 +1310,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool reversed = ! DAW::GetMediaTrackInfo_Value(track, "B_PHASE");
             
@@ -1330,7 +1330,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
         else
             return 0.0;
@@ -1338,7 +1338,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1346,9 +1346,9 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             DAW::CSurf_SetSurfaceSelected(track, DAW::CSurf_OnSelectedChange(track, ! DAW::GetMediaTrackInfo_Value(track, "I_SELECTED")), NULL);
             context->GetPage()->OnTrackSelectionBySurface(track);
@@ -1365,7 +1365,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
         else
             return 0.0;
@@ -1373,7 +1373,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1381,9 +1381,9 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             DAW::SetOnlyTrackSelected(track);
             context->GetPage()->OnTrackSelectionBySurface(track);
@@ -1400,7 +1400,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetMediaTrackInfo_Value(track, "I_SELECTED");
         else
             return 0.0;
@@ -1408,7 +1408,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1418,50 +1418,50 @@ public:
     {
         // GAW TBD  fix highest track bug
         
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
         int currentlySelectedCount = 0;
         int selectedTrackIndex = 0;
         int trackIndex = 0;
         
        
-        for(int i = 1; i <= context->GetPage()->GetNumTracks(); i++)
+        for (int i = 1; i <= context->GetPage()->GetNumTracks(); i++)
         {
             MediaTrack *currentTrack = context->GetPage()->GetTrackFromId(i);
            
-            if(currentTrack == nullptr)
+            if (currentTrack == nullptr)
                 continue;
             
-            if(currentTrack == context->GetTrack())
+            if (currentTrack == context->GetTrack())
                 trackIndex = i;
             
-            if(DAW::GetMediaTrackInfo_Value(currentTrack, "I_SELECTED"))
+            if (DAW::GetMediaTrackInfo_Value(currentTrack, "I_SELECTED"))
             {
                 selectedTrackIndex = i;
                 currentlySelectedCount++;
             }
         }
         
-        if(currentlySelectedCount != 1)
+        if (currentlySelectedCount != 1)
             return;
         
         int lowerBound = trackIndex < selectedTrackIndex ? trackIndex : selectedTrackIndex;
         int upperBound = trackIndex > selectedTrackIndex ? trackIndex : selectedTrackIndex;
 
-        for(int i = lowerBound; i <= upperBound; i++)
+        for (int i = lowerBound; i <= upperBound; i++)
         {
             MediaTrack *currentTrack = context->GetPage()->GetTrackFromId(i);
             
-            if(currentTrack == nullptr)
+            if (currentTrack == nullptr)
                 continue;
             
-            if(context->GetPage()->GetIsTrackVisible(currentTrack))
+            if (context->GetPage()->GetIsTrackVisible(currentTrack))
                 DAW::CSurf_SetSurfaceSelected(currentTrack, DAW::CSurf_OnSelectedChange(currentTrack, 1), NULL);
         }
         
         MediaTrack *lowestTrack = context->GetPage()->GetTrackFromId(lowerBound);
         
-        if(lowestTrack != nullptr)
+        if (lowestTrack != nullptr)
             context->GetPage()->OnTrackSelectionBySurface(lowestTrack);
     }
 };
@@ -1475,7 +1475,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
@@ -1488,7 +1488,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1496,7 +1496,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             DAW::SetTrackSendUIVol(track, context->GetSlotIndex() + numHardwareSends, normalizedToVol(value), 0);
@@ -1505,13 +1505,13 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
             DAW::GetTrackSendUIVolPan(track, context->GetSlotIndex() + numHardwareSends, &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIVol(track, context->GetSlotIndex() + numHardwareSends, vol, 1);
             else
                 DAW::SetTrackSendUIVol(track, context->GetSlotIndex() + numHardwareSends, vol, 0);
@@ -1528,7 +1528,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
@@ -1542,7 +1542,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             DAW::SetTrackSendUIVol(track, context->GetParamIndex() + numHardwareSends, DB2VAL(value), 0);
@@ -1551,13 +1551,13 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
             DAW::GetTrackSendUIVolPan(track, context->GetParamIndex() + numHardwareSends, &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIVol(track, context->GetParamIndex() + numHardwareSends, vol, 1);
             else
                 DAW::SetTrackSendUIVol(track, context->GetParamIndex() + numHardwareSends, vol, 0);
@@ -1574,7 +1574,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
@@ -1587,7 +1587,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1595,7 +1595,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             DAW::SetTrackSendUIPan(track, context->GetSlotIndex() + numHardwareSends, normalizedToPan(value), 0);
@@ -1604,13 +1604,13 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
             DAW::GetTrackSendUIVolPan(track, context->GetSlotIndex() + numHardwareSends, &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIPan(track, context->GetSlotIndex() + numHardwareSends, pan, 1);
             else
                 DAW::SetTrackSendUIPan(track, context->GetSlotIndex() + numHardwareSends, pan, 0);
@@ -1627,7 +1627,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
@@ -1640,7 +1640,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             DAW::SetTrackSendUIPan(track, context->GetParamIndex() + numHardwareSends, value / 100.0, 0);
@@ -1649,13 +1649,13 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             double vol, pan = 0.0;
             DAW::GetTrackSendUIVolPan(track, context->GetParamIndex() + numHardwareSends, &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIPan(track, context->GetParamIndex() + numHardwareSends, pan, 1);
             else
                 DAW::SetTrackSendUIPan(track, context->GetParamIndex() + numHardwareSends, pan, 0);
@@ -1672,7 +1672,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int numHardwareSends = DAW::GetTrackNumSends(track, 1);
             bool mute = false;
@@ -1685,7 +1685,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1693,9 +1693,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::ToggleTrackSendUIMute(track, context->GetSlotIndex() + DAW::GetTrackNumSends(track, 1));
     }
 };
@@ -1709,7 +1709,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "B_PHASE");
         else
             return 0.0;
@@ -1717,7 +1717,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1725,9 +1725,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool reversed = ! DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "B_PHASE");
             
@@ -1745,7 +1745,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "B_MONO");
         else
             return 0.0;
@@ -1753,7 +1753,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1761,9 +1761,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool mono = ! DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "B_MONO");
             
@@ -1786,15 +1786,15 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int mode = (int)DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
             
-            if(mode == 0)
+            if (mode == 0)
                 mode = 1; // switch to pre FX
-            else if(mode == 1)
+            else if (mode == 1)
                 mode = 3; // switch to post FX
             else
                 mode = 0; // switch to post pan
@@ -1813,7 +1813,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetSlotIndex(), &vol, &pan);
@@ -1825,7 +1825,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1833,18 +1833,18 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::SetTrackSendUIVol(track, -(context->GetSlotIndex() + 1), normalizedToVol(value), 0);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetSlotIndex(), &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIVol(track, -(context->GetSlotIndex() + 1), vol, 1);
             else
                 DAW::SetTrackSendUIVol(track, -(context->GetSlotIndex() + 1), vol, 0);
@@ -1861,7 +1861,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetParamIndex(), &vol, &pan);
@@ -1874,7 +1874,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             DAW::SetTrackSendUIVol(track, -(context->GetSlotIndex() + 1), DB2VAL(value), 0);
         }
@@ -1882,12 +1882,12 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetParamIndex(), &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIVol(track, -(context->GetSlotIndex() + 1), vol, 1);
             else
                 DAW::SetTrackSendUIVol(track, -(context->GetSlotIndex() + 1), vol, 0);
@@ -1904,7 +1904,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetSlotIndex(), &vol, &pan);
@@ -1916,7 +1916,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -1924,18 +1924,18 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::SetTrackSendUIPan(track, -(context->GetSlotIndex() + 1), normalizedToPan(value), 0);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetSlotIndex(), &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIPan(track, -(context->GetSlotIndex() + 1), pan, 1);
             else
                 DAW::SetTrackSendUIPan(track, -(context->GetSlotIndex() + 1), pan, 0);
@@ -1952,7 +1952,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetParamIndex(), &vol, &pan);
@@ -1964,18 +1964,18 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::SetTrackSendUIPan(track, -(context->GetSlotIndex() + 1), value / 100.0, 0);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackReceiveUIVolPan(track, context->GetParamIndex(), &vol, &pan);
             
-            if(value == 0)
+            if (value == 0)
                 DAW::SetTrackSendUIPan(track, -(context->GetSlotIndex() + 1), pan, 1);
             else
                 DAW::SetTrackSendUIPan(track, -(context->GetSlotIndex() + 1), pan, 0);
@@ -1992,7 +1992,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool mute = false;
             DAW::GetTrackReceiveUIMute(track, context->GetSlotIndex(), &mute);
@@ -2004,7 +2004,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -2012,9 +2012,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool isMuted = ! DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "B_MUTE");
             
@@ -2032,7 +2032,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "B_PHASE");
         else
             return 0.0;
@@ -2040,7 +2040,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -2048,9 +2048,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool reversed = ! DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "B_PHASE");
             
@@ -2068,7 +2068,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             return DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "B_MONO");
         else
             return 0.0;
@@ -2076,7 +2076,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetTrack())
+        if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
             context->ClearWidget();
@@ -2084,9 +2084,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             bool mono = ! DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "B_MONO");
             
@@ -2109,15 +2109,15 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int mode = (int)DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "I_SENDMODE");
             
-            if(mode == 0)
+            if (mode == 0)
                 mode = 1; // switch to pre FX
-            else if(mode == 1)
+            else if (mode == 1)
                 mode = 3; // switch to post FX
             else
                 mode = 0; // switch to post pan
@@ -2292,7 +2292,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetName());
         else
             context->ClearWidget();
@@ -2308,11 +2308,11 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             string name = "";
             
-            if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
+            if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
             
             context->UpdateWidgetValue(name);
@@ -2331,13 +2331,13 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             string name = "";
             
-            if(context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
+            if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
 
             TheManager->Speak(name);
@@ -2354,9 +2354,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(context->GetFXParamDisplayName() != "")
+            if (context->GetFXParamDisplayName() != "")
                 context->UpdateWidgetValue(context->GetFXParamDisplayName());
             else
                 context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
@@ -2375,16 +2375,16 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int index = context->GetIntParam();
             
-            if(DAW::CountTCPFXParms(track) > index)
+            if (DAW::CountTCPFXParms(track) > index)
             {
                 int fxIndex = 0;
                 int paramIndex = 0;
                 
-                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
                     context->UpdateWidgetValue(TheManager->GetTCPFXParamName(track, fxIndex, paramIndex));
                 else
                     context->ClearWidget();
@@ -2406,7 +2406,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             char fxParamValue[128];
             DAW::TrackFX_GetFormattedParamValue(track, context->GetSlotIndex(), context->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
@@ -2426,16 +2426,16 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int index = context->GetIntParam();
             
-            if(DAW::CountTCPFXParms(track) > index)
+            if (DAW::CountTCPFXParms(track) > index)
             {
                 int fxIndex = 0;
                 int paramIndex = 0;
                 
-                if(DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
+                if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
                 {
                     char fxParamValue[128];
                     DAW::TrackFX_GetFormattedParamValue(track, fxIndex, paramIndex, fxParamValue, sizeof(fxParamValue));
@@ -2465,9 +2465,9 @@ public:
         int fxSlotNum = 0;
         int fxParamNum = 0;
         
-        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
-            if(MediaTrack *track = DAW::GetTrack(trackNum))
+            if (MediaTrack *track = DAW::GetTrack(trackNum))
                 context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum));
         }
         else
@@ -2488,9 +2488,9 @@ public:
         int fxSlotNum = 0;
         int fxParamNum = 0;
         
-        if(DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
-            if(MediaTrack *track = DAW::GetTrack(trackNum))
+            if (MediaTrack *track = DAW::GetTrack(trackNum))
             {
                 char fxParamValue[128];
                 DAW::TrackFX_GetFormattedParamValue(track, fxSlotNum, fxParamNum, fxParamValue, sizeof(fxParamValue));
@@ -2511,11 +2511,11 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             string sendTrackName = "";
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
-            if(destTrack)
+            if (destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
             context->UpdateWidgetValue(sendTrackName);
         }
@@ -2533,13 +2533,13 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             string sendTrackName = "No Send Track";
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
-            if(destTrack)
+            if (destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
             TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
         }
@@ -2555,10 +2555,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
-            if(destTrack)
+            if (destTrack)
             {
                 int numHardwareSends = DAW::GetTrackNumSends(track, 1);
                 double vol, pan = 0.0;
@@ -2585,10 +2585,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
-            if(destTrack)
+            if (destTrack)
             {
                 int numHardwareSends = DAW::GetTrackNumSends(track, 1);
                 double vol, pan = 0.0;
@@ -2613,10 +2613,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
-            if(destTrack)
+            if (destTrack)
             {
                 // I_SENDMODE : returns int *, 0=post-fader, 1=pre-fx, 2=post-fx (deprecated), 3=post-fx
                 
@@ -2624,11 +2624,11 @@ public:
                 
                 string prePostValueString = "";
                 
-                if(prePostVal == 0)
+                if (prePostVal == 0)
                     prePostValueString = "PostPan";
-                else if(prePostVal == 1)
+                else if (prePostVal == 1)
                     prePostValueString = "PreFX";
-                else if(prePostVal == 2 || prePostVal == 3)
+                else if (prePostVal == 2 || prePostVal == 3)
                     prePostValueString = "PostFX";
                 
                 context->UpdateWidgetValue(prePostValueString);
@@ -2650,10 +2650,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
-            if(srcTrack)
+            if (srcTrack)
             {
                 string receiveTrackName = "";
                 receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
@@ -2676,12 +2676,12 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
-            if(srcTrack)
+            if (srcTrack)
             {
                 string receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
                 TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
@@ -2701,10 +2701,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
-            if(srcTrack)
+            if (srcTrack)
             {
                 char trackVolume[128];
                 snprintf(trackVolume, sizeof(trackVolume), "%7.2lf", VAL2DB(DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "D_VOL")));
@@ -2727,10 +2727,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
-            if(srcTrack)
+            if (srcTrack)
             {
                 double panVal = DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "D_PAN");
                 
@@ -2753,10 +2753,10 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
-            if(srcTrack)
+            if (srcTrack)
             {
                 // I_SENDMODE : returns int *, 0=post-fader, 1=pre-fx, 2=post-fx (deprecated), 3=post-fx
                 
@@ -2764,11 +2764,11 @@ public:
                 
                 string prePostValueString = "";
                 
-                if(prePostVal == 0)
+                if (prePostVal == 0)
                     prePostValueString = "PostPan";
-                else if(prePostVal == 1)
+                else if (prePostVal == 1)
                     prePostValueString = "PreFX";
-                else if(prePostVal == 2 || prePostVal == 3)
+                else if (prePostVal == 2 || prePostVal == 3)
                     prePostValueString = "PostFX";
                 
                 context->UpdateWidgetValue(prePostValueString);
@@ -2816,7 +2816,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             char buf[BUFSZ];
             
@@ -2838,7 +2838,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double index = DAW::GetMediaTrackInfo_Value(track, "IP_TRACKNUMBER");
             char idx[128];
@@ -2860,7 +2860,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             /*
             // I_RECINPUT : int  *: record input, <0=no input.
@@ -2874,22 +2874,22 @@ public:
             
             int input = (int)DAW::GetMediaTrackInfo_Value(track, "I_RECINPUT");
 
-            if(input < 0)
+            if (input < 0)
                 inputDisplay = "None";
-            else if(input & 4096)
+            else if (input & 4096)
             {
                 int channel = input & 0x1f;
                 
-                if(channel == 0)
+                if (channel == 0)
                     inputDisplay = "MD All";
                 else
                     inputDisplay = "MD " + to_string(channel);
             }
-            else if(input & 2048)
+            else if (input & 2048)
             {
                 inputDisplay = "Multi";
             }
-            else if(input & 1024)
+            else if (input & 1024)
             {
                 int channels = input ^ 1024;
                 
@@ -2916,7 +2916,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -2939,7 +2939,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -2960,7 +2960,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double widthVal = DAW::GetMediaTrackInfo_Value(track, "D_WIDTH");
             
@@ -2980,7 +2980,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL");
             
@@ -3000,7 +3000,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
             
@@ -3020,9 +3020,9 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL");
                 context->UpdateWidgetValue(context->GetPanValueString(panVal, "L"));
@@ -3048,9 +3048,9 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(GetPanMode(track) == 6)
+            if (GetPanMode(track) == 6)
             {
                 double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
                 context->UpdateWidgetValue(context->GetPanValueString(panVal, "R"));
@@ -3075,7 +3075,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetSurface()->GetIsRewinding())
+        if (context->GetSurface()->GetIsRewinding())
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -3083,7 +3083,7 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
 
         context->GetSurface()->StartRewinding();
     }
@@ -3098,7 +3098,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(context->GetSurface()->GetIsFastForwarding())
+        if (context->GetSurface()->GetIsFastForwarding())
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -3106,7 +3106,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->StartFastForwarding();
     }
@@ -3122,11 +3122,11 @@ public:
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
         int playState = DAW::GetPlayState();
-        if(playState == 1 || playState == 2 || playState == 5 || playState == 6) // playing or paused or recording or paused whilst recording
+        if (playState == 1 || playState == 2 || playState == 5 || playState == 6) // playing or paused or recording or paused whilst recording
             playState = 1;
         else playState = 0;
 
-        if(context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
+        if (context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
             playState = 0;
 
         return playState;
@@ -3139,7 +3139,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->Play();
     }
@@ -3155,11 +3155,11 @@ public:
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
         int stopState = DAW::GetPlayState();
-        if(stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
+        if (stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
             stopState = 1;
         else stopState = 0;
        
-        if(context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
+        if (context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
             stopState = 0;
         
         return stopState;
@@ -3172,7 +3172,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->Stop();
     }
@@ -3188,11 +3188,11 @@ public:
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
         int recordState = DAW::GetPlayState();
-        if(recordState == 5 || recordState == 6) // recording or paused whilst recording
+        if (recordState == 5 || recordState == 6) // recording or paused whilst recording
             recordState = 1;
         else recordState = 0;
         
-        if(context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
+        if (context->GetSurface()->GetIsRewinding() || context->GetSurface()->GetIsFastForwarding())
             recordState = 0;
         
         return recordState;
@@ -3205,7 +3205,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->Record();
     }
@@ -3221,7 +3221,7 @@ public:
     virtual void RequestUpdate(ActionContext *context) override
     {
         context->UpdateColorValue(0.0);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetIsVCASpilled(track));
         else
             context->UpdateWidgetValue(0.0);
@@ -3229,9 +3229,9 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->GetPage()->ToggleVCASpill(track);
     }
 };
@@ -3246,7 +3246,7 @@ public:
     virtual void RequestUpdate(ActionContext *context) override
     {
         context->UpdateColorValue(0.0);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetIsFolderSpilled(track));
         else
             context->UpdateWidgetValue(0.0);
@@ -3254,9 +3254,9 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->GetPage()->ToggleFolderSpill(track);
     }
 };
@@ -3280,7 +3280,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         DAW::SoloAllTracks(0);
     }
@@ -3295,7 +3295,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(context->GetIntParam() == DAW::GetGlobalAutomationOverride())
+        if (context->GetIntParam() == DAW::GetGlobalAutomationOverride())
             return 1.0;
         else
             return 0.0;
@@ -3308,7 +3308,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         DAW::SetGlobalAutomationOverride(context->GetIntParam());
     }
@@ -3325,9 +3325,9 @@ public:
     {
         double retVal = 0.0;
         
-        for(int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
+        for (int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
         {
-            if(context->GetIntParam() == DAW::GetMediaTrackInfo_Value(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE"))
+            if (context->GetIntParam() == DAW::GetMediaTrackInfo_Value(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE"))
             {
                 retVal = 1.0;
                 break;
@@ -3344,12 +3344,12 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
             return; // ignore button releases
         
         int mode = context->GetIntParam();
         
-        for(int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
+        for (int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
             DAW::GetSetMediaTrackInfo(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE", &mode);
     }
 };
@@ -3363,25 +3363,25 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName((int)DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
     }
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
             return;
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             int autoModeIndex_ = (int)DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE");
             
-            if(autoModeIndex_ == 2) // skip over write mode when cycling
+            if (autoModeIndex_ == 2) // skip over write mode when cycling
                 autoModeIndex_ += 2;
             else
                 autoModeIndex_++;
             
-            if(autoModeIndex_ > 5)
+            if (autoModeIndex_ > 5)
                 autoModeIndex_ = 0;
 
             DAW::GetSetMediaTrackInfo(track, "I_AUTOMODE", &autoModeIndex_);
@@ -3409,7 +3409,7 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0) return; // ignore button releases
+        if (value == 0.0) return; // ignore button releases
         
         DAW::GetSetRepeatEx(nullptr, ! DAW::GetSetRepeatEx(nullptr, -1));
     }
@@ -3429,10 +3429,10 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        if(value == 0.0)
+        if (value == 0.0)
             return;
 
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->GetPage()->NextInputMonitorMode(track);
     }
 };
@@ -3446,7 +3446,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetAutoModeDisplayName((int)DAW::GetMediaTrackInfo_Value(track, "I_AUTOMODE")));
     }
 };
@@ -3460,9 +3460,9 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0)
+            if (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0)
                 context->UpdateWidgetValue("Leader");
             else
                 context->UpdateWidgetValue("");
@@ -3481,9 +3481,9 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+            if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
                 context->UpdateWidgetValue("Parent");
             else
                 context->UpdateWidgetValue("");
@@ -3502,7 +3502,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetGlobalAutoModeDisplayName());
     }
 };
@@ -3516,7 +3516,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             context->UpdateWidgetValue(context->GetPage()->GetCurrentInputMonitorMode(track));
     }
 };
@@ -3551,7 +3551,7 @@ public:
         
         int tmode = 0;
         
-        if(tmodeptr && (*tmodeptr)>=0) tmode = *tmodeptr;
+        if (tmodeptr && (*tmodeptr)>=0) tmode = *tmodeptr;
         else
         {
             tmodeptr = TheManager->GetTimeModePtr();
@@ -3559,7 +3559,7 @@ public:
                 tmode=*tmodeptr;
         }
 
-        if(tmode == 3) // seconds
+        if (tmode == 3) // seconds
         {
             double *toptr = TheManager->GetTimeOffsPtr();
             
@@ -3568,19 +3568,19 @@ public:
             
             timeStr = to_string((int)pp) + " " + to_string(((int)(pp*100.0))%100);
         }
-        else if(tmode==4) // samples
+        else if (tmode==4) // samples
         {
             char buf[128];
             DAW::format_timestr_pos(pp, buf, sizeof(buf), 4);
             timeStr = string(buf);
         }
-        else if(tmode == 5) // frames
+        else if (tmode == 5) // frames
         {
             char buf[128];
             DAW::format_timestr_pos(pp, buf, sizeof(buf), 5);
             timeStr = string(buf);
         }
-        else if(tmode > 0)
+        else if (tmode > 0)
         {
             int num_measures=0;
             int currentTimeSignatureNumerator=0;
@@ -3598,9 +3598,9 @@ public:
             
             int subBeats = (int)(1000.0  *beats);
 
-            if(subBeats < 10)
+            if (subBeats < 10)
                 timeStr += "00";
-            else if(subBeats < 100)
+            else if (subBeats < 100)
                 timeStr += "0";
             
             timeStr += to_string(subBeats);
@@ -3614,29 +3614,29 @@ public:
             int fr=(int)((pp-ipp)*1000.0);
             
             int hours = (int)(ipp/3600);
-            if(hours < 10)
+            if (hours < 10)
                 timeStr += "00";
-            else if(hours < 100)
+            else if (hours < 100)
                 timeStr += "0";
             
             timeStr += to_string(hours) + ":";
             
             int minutes = ((int)(ipp/60)) %3600;
-            if(minutes < 10)
+            if (minutes < 10)
                 timeStr += "0";
             
             timeStr += to_string(minutes) + ":";
 
             int seconds = ((int)ipp) %60;
-            if(seconds < 10)
+            if (seconds < 10)
                 timeStr += "0";
             
             timeStr += to_string(seconds) + ":";
 
             int frames =(int)fr;
-            if(frames < 10)
+            if (frames < 10)
                 timeStr += "00";
-            else if(frames < 100)
+            else if (frames < 100)
                 timeStr += "0";
             
             timeStr += to_string((int)fr);
@@ -3655,9 +3655,9 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {           
-            if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(DAW::Track_GetPeakInfo(track, context->GetIntParam())));
@@ -3676,11 +3676,11 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
             
-            if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3699,7 +3699,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -3715,20 +3715,20 @@ public:
 
         map<string, string> properties;
         
-        if(stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
+        if (stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
         {
-            if(context->GetTrack())
+            if (context->GetTrack())
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
             else
                 context->ClearWidget();
         }
         else
         {
-            if(MediaTrack *track = context->GetTrack())
+            if (MediaTrack *track = context->GetTrack())
             {
                 double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
                 
-                if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+                if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                     context->ClearWidget();
                 else
                     context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3740,14 +3740,14 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
 };
@@ -3761,14 +3761,14 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double lVol = DAW::Track_GetPeakInfo(track, 0);
             double rVol = DAW::Track_GetPeakInfo(track, 1);
             
             double lrVol =  lVol > rVol ? lVol : rVol;
             
-            if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3787,7 +3787,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
@@ -3803,23 +3803,23 @@ public:
 
         map<string, string> properties;
         
-        if(stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
+        if (stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
         {
-            if(context->GetTrack())
+            if (context->GetTrack())
                 context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
             else
                 context->ClearWidget();
         }
         else
         {
-            if(MediaTrack *track = context->GetTrack())
+            if (MediaTrack *track = context->GetTrack())
             {
                 double lVol = DAW::Track_GetPeakInfo(track, 0);
                 double rVol = DAW::Track_GetPeakInfo(track, 1);
                 
                 double lrVol =  lVol > rVol ? lVol : rVol;
                 
-                if(DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+                if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                     context->ClearWidget();
                 else
                     context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3831,14 +3831,14 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(value), false), NULL);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
         context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
             DAW::CSurf_SetSurfaceVolume(track, DAW::CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
 };
@@ -3854,9 +3854,9 @@ public:
     {
         char buffer[BUFSZ];
         
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
-            if(DAW::TrackFX_GetNamedConfigParm(track, context->GetSlotIndex(), "GainReduction_dB", buffer, sizeof(buffer)))
+            if (DAW::TrackFX_GetNamedConfigParm(track, context->GetSlotIndex(), "GainReduction_dB", buffer, sizeof(buffer)))
                 context->UpdateWidgetValue(-atof(buffer)/20.0);
             else
                 context->UpdateWidgetValue(0.0);
