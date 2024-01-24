@@ -34,19 +34,19 @@ public:
     {
         int state = DAW::GetToggleCommandState(context->GetCommandId());
         
-        if(state == -1) // this Action does not report state
+        if (state == -1) // this Action does not report state
             state = 0;
         
-        if( ! (context->GetRangeMinimum() == -2.0 || context->GetRangeMaximum() == 2.0)) // used for Increase/Decrease
+        if ( ! (context->GetRangeMinimum() == -2.0 || context->GetRangeMaximum() == 2.0)) // used for Increase/Decrease
             context->UpdateWidgetValue(state);
     }
     
     virtual void Do(ActionContext *context, double value) override
     {
         // used for Increase/Decrease
-        if(value < 0 && context->GetRangeMinimum() < 0)
+        if (value < 0 && context->GetRangeMinimum() < 0)
             DAW::SendCommandMessage(context->GetCommandId());
-        else if(value > 0 && context->GetRangeMinimum() >= 0)
+        else if (value > 0 && context->GetRangeMinimum() >= 0)
             DAW::SendCommandMessage(context->GetCommandId());
     }
 };
@@ -60,7 +60,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double min, max = 0.0;
             
@@ -72,7 +72,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if(MediaTrack *track = context->GetTrack())
+        if (MediaTrack *track = context->GetTrack())
         {
             double currentValue = GetCurrentNormalizedValue(context);
             
