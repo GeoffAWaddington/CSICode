@@ -21,7 +21,7 @@ int g_maxNumParamSteps = 30;
 
 static double EnumSteppedValues(int numSteps, int stepNumber)
 {
-    return floor(stepNumber / (double)(numSteps - 1) * 100.0 + 0.5) * 0.01;
+    return floor(stepNumber / (double)(numSteps - 1)  *100.0 + 0.5)  *0.01;
 }
 
 void GetParamStepsString(string &outputString, int numSteps)
@@ -74,9 +74,9 @@ struct MidiInputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     int port_ = 0;
-    midi_Input* midiInput_ = nullptr;
+    midi_Input *midiInput_ = nullptr;
     
-    MidiInputPort(int port, midi_Input* midiInput) : port_(port), midiInput_(midiInput) {}
+    MidiInputPort(int port, midi_Input *midiInput) : port_(port), midiInput_(midiInput) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,9 +84,9 @@ struct MidiOutputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     int port_ = 0;
-    midi_Output* midiOutput_ = nullptr;
+    midi_Output *midiOutput_ = nullptr;
     
-    MidiOutputPort(int port, midi_Output* midiOutput) : port_(port), midiOutput_(midiOutput) {}
+    MidiOutputPort(int port, midi_Output *midiOutput) : port_(port), midiOutput_(midiOutput) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,13 +95,13 @@ struct MidiOutputPort
 static map<int, MidiInputPort*> s_midiInputs;
 static map<int, MidiOutputPort*> s_midiOutputs;
 
-static midi_Input* GetMidiInputForPort(int inputPort)
+static midi_Input *GetMidiInputForPort(int inputPort)
 {
     if(s_midiInputs.count(inputPort) > 0)
         return s_midiInputs[inputPort]->midiInput_; // return existing
     
     // otherwise make new
-    midi_Input* newInput = DAW::CreateMIDIInput(inputPort);
+    midi_Input *newInput = DAW::CreateMIDIInput(inputPort);
     
     if(newInput)
     {
@@ -113,13 +113,13 @@ static midi_Input* GetMidiInputForPort(int inputPort)
     return nullptr;
 }
 
-static midi_Output* GetMidiOutputForPort(int outputPort)
+static midi_Output *GetMidiOutputForPort(int outputPort)
 {
     if(s_midiOutputs.count(outputPort) > 0)
         return s_midiOutputs[outputPort]->midiOutput_; // return existing
     
     // otherwise make new
-    midi_Output* newOutput = DAW::CreateMIDIOutput(outputPort, false, NULL);
+    midi_Output *newOutput = DAW::CreateMIDIOutput(outputPort, false, NULL);
     
     if(newOutput)
     {
@@ -148,13 +148,13 @@ void ShutdownMidiIO()
 static map<string, oscpkt::UdpSocket*> s_inputSockets;
 static map<string, oscpkt::UdpSocket*> s_outputSockets;
 
-static oscpkt::UdpSocket* GetInputSocketForPort(string surfaceName, int inputPort)
+static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPort)
 {
     if(s_inputSockets.count(surfaceName) > 0)
         return s_inputSockets[surfaceName]; // return existing
     
     // otherwise make new
-    oscpkt::UdpSocket* newInputSocket = new oscpkt::UdpSocket();
+    oscpkt::UdpSocket *newInputSocket = new oscpkt::UdpSocket();
     
     if(newInputSocket)
     {
@@ -174,13 +174,13 @@ static oscpkt::UdpSocket* GetInputSocketForPort(string surfaceName, int inputPor
     return nullptr;
 }
 
-static oscpkt::UdpSocket* GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
+static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
     if(s_outputSockets.count(surfaceName) > 0)
         return s_outputSockets[surfaceName]; // return existing
     
     // otherwise make new
-    oscpkt::UdpSocket* newOutputSocket = new oscpkt::UdpSocket();
+    oscpkt::UdpSocket *newOutputSocket = new oscpkt::UdpSocket();
     
     if(newOutputSocket)
     {
@@ -292,7 +292,7 @@ static void listFilesOfType(const string &path, vector<string> &results, const c
     }
 }
 
-static void GetWidgetNameAndModifiers(const string &line, ActionTemplate* actionTemplate)
+static void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> tokens;
@@ -343,7 +343,7 @@ static void BuildActionTemplate(const vector<string> &tokens, map<string, map<in
             params.push_back(tokens[i]);
     }
 
-    ActionTemplate* currentActionTemplate = new ActionTemplate();
+    ActionTemplate *currentActionTemplate = new ActionTemplate();
     
     currentActionTemplate->actionName = tokens[1];
     currentActionTemplate->params = params;
@@ -856,7 +856,7 @@ static void SetColor(vector<string> &params, bool &supportsColor, bool &supports
     }
 }
 
-static void GetSteppedValues(Widget *widget, Action* action,  Zone *zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
     vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -941,7 +941,7 @@ static void GetSteppedValues(Widget *widget, Action* action,  Zone *zone, int pa
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens, Midi_ControlSurface* surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens, Midi_ControlSurface *surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if(tokens.size() < 2)
         return;
@@ -986,15 +986,15 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         
         string widgetType = tokenLines[i][0];
 
-        MIDI_event_ex_t* message1 = nullptr;
-        MIDI_event_ex_t* message2 = nullptr;
+        MIDI_event_ex_t *message1 = nullptr;
+        MIDI_event_ex_t *message2 = nullptr;
 
         int twoByteKey = 0;
         
         if(size > 3)
         {
             message1 = new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
-            twoByteKey = message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100;
+            twoByteKey = message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100;
         }
         if(size > 6)
             message2 = new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
@@ -1004,16 +1004,16 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         if(widgetType == "AnyPress" && (size == 4 || size == 7))
             surface->AddCSIMessageGenerator(new AnyPress_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
         if(widgetType == "Press" && size == 4)
-            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100 + message1->midi_message[2]);
         else if(widgetType == "Press" && size == 7)
         {
-            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
-            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
+            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0]  *0x10000 + message2->midi_message[1]  *0x100 + message2->midi_message[2]);
         }
         else if(widgetType == "Fader14Bit" && size == 4)
-            surface->AddCSIMessageGenerator(new Fader14Bit_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0] * 0x10000);
+            surface->AddCSIMessageGenerator(new Fader14Bit_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0]  *0x10000);
         else if(widgetType == "FaderportClassicFader14Bit" && size == 7)
-            surface->AddCSIMessageGenerator(new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0] * 0x10000);
+            surface->AddCSIMessageGenerator(new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0]  *0x10000);
         else if(widgetType == "Fader7Bit" && size== 4)
             surface->AddCSIMessageGenerator(new Fader7Bit_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
         else if(widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass")
@@ -1033,8 +1033,8 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
             surface->AddCSIMessageGenerator(new Encoder7Bit_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
         else if(widgetType == "Touch" && size == 7)
         {
-            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2]);
-            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2]);
+            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100 + message1->midi_message[2]);
+            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0]  *0x10000 + message2->midi_message[1]  *0x100 + message2->midi_message[2]);
         }
         
         // Feedback Processors
@@ -1235,7 +1235,7 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
     }
 }
 
-static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens,  OSC_ControlSurface* surface)
+static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens,  OSC_ControlSurface *surface)
 {
     if(tokens.size() < 2)
         return;
@@ -1332,7 +1332,7 @@ static void ProcessValues(const vector<vector<string>> &lines, map<string, doubl
     }
 }
 
-static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface* surface)
+static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1379,7 +1379,7 @@ static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface* s
     }
 }
 
-static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface* surface)
+static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface *surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1607,7 +1607,7 @@ void Manager::Init()
     
     string currentBroadcaster = "";
     
-    Page* currentPage = nullptr;
+    Page *currentPage = nullptr;
     
     string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
     
@@ -1693,8 +1693,8 @@ void Manager::Init()
                 }
                 else if(currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
                 {
-                    ControlSurface* broadcaster = nullptr;
-                    ControlSurface* listener = nullptr;
+                    ControlSurface *broadcaster = nullptr;
+                    ControlSurface *listener = nullptr;
 
                     for(int i = 0; i < currentPage->GetSurfaces().GetSize(); ++i)
                     {
@@ -1772,7 +1772,7 @@ void Manager::Init()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TrackNavigator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MediaTrack* TrackNavigator::GetTrack()
+MediaTrack *TrackNavigator::GetTrack()
 {
     return trackNavigationManager_->GetTrackFromChannel(channelNum_);
 }
@@ -1780,7 +1780,7 @@ MediaTrack* TrackNavigator::GetTrack()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MasterTrackNavigator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MediaTrack* MasterTrackNavigator::GetTrack()
+MediaTrack *MasterTrackNavigator::GetTrack()
 {
     return DAW::GetMasterTrack();
 }
@@ -1788,7 +1788,7 @@ MediaTrack* MasterTrackNavigator::GetTrack()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SelectedTrackNavigator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MediaTrack* SelectedTrackNavigator::GetTrack()
+MediaTrack *SelectedTrackNavigator::GetTrack()
 {
     return page_->GetSelectedTrack();
 }
@@ -1796,7 +1796,7 @@ MediaTrack* SelectedTrackNavigator::GetTrack()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FocusedFXNavigator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-MediaTrack* FocusedFXNavigator::GetTrack()
+MediaTrack *FocusedFXNavigator::GetTrack()
 {
     int trackNumber = 0;
     int itemNumber = 0;
@@ -1811,7 +1811,7 @@ MediaTrack* FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(Action* action, Widget *widget, Zone *zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(Action *action, Widget *widget, Zone *zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
 {
     // private:
     intParam_ = 0;
@@ -1952,17 +1952,17 @@ ActionContext::ActionContext(Action* action, Widget *widget, Zone *zone, const v
         acceleratedTickValues_.push_back(10);
 }
 
-Page* ActionContext::GetPage()
+Page *ActionContext::GetPage()
 {
     return widget_->GetSurface()->GetPage();
 }
 
-ControlSurface* ActionContext::GetSurface()
+ControlSurface *ActionContext::GetSurface()
 {
     return widget_->GetSurface();
 }
 
-MediaTrack* ActionContext::GetTrack()
+MediaTrack *ActionContext::GetTrack()
 {
     return zone_->GetNavigator()->GetTrack();
 }
@@ -2055,7 +2055,7 @@ void ActionContext::UpdateJSFXWidgetSteppedValue(double value)
 
 void ActionContext::UpdateTrackColor()
 {
-    if(MediaTrack* track = zone_->GetNavigator()->GetTrack())
+    if(MediaTrack *track = zone_->GetNavigator()->GetTrack())
     {
         rgba_color color = DAW::GetTrackColor(track);
         widget_->UpdateColorValue(color);
@@ -2216,7 +2216,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(ZoneManager * const zoneManager, Navigator* navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     //protected:
     isActive_ = false;
@@ -2490,7 +2490,7 @@ void Zone::RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets)
             
             for(int i = 0; i < cell.fxParamWidgets.GetSize(); ++i)
             {
-                LearnInfo* info = zoneManager_->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
+                LearnInfo *info = zoneManager_->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
                                 
                 if(info->isLearned)
                 {
@@ -2555,7 +2555,7 @@ void Zone::AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &
     {
         for(int i = 0; i < zoneManager_->GetNumChannels(); i++)
         {
-            Navigator* channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
+            Navigator *channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
             if(channelNavigator)
                 navigators.Add(channelNavigator);
         }
@@ -2762,7 +2762,7 @@ void Widget::LogInput(double value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_FeedbackProcessor
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Midi_FeedbackProcessor::SendMidiSysExMessage(MIDI_event_ex_t* midiMessage)
+void Midi_FeedbackProcessor::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
 {
     surface_->SendMidiSysExMessage(midiMessage);
 }
@@ -2909,7 +2909,7 @@ void ZoneManager::CheckFocusedFXState()
 
     if((retval & 1) && (fxIndex > -1))
     {
-        MediaTrack* track = DAW::GetTrack(trackNumber);
+        MediaTrack *track = DAW::GetTrack(trackNumber);
         
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
@@ -2960,7 +2960,7 @@ void ZoneManager::CheckFocusedFXState()
     }
 }
 
-void ZoneManager::AddListener(ControlSurface* surface)
+void ZoneManager::AddListener(ControlSurface *surface)
 {
     if(WDL_NOT_NORMALLY(!surface)) { return; }
     listeners_.Add(surface->GetZoneManager());
@@ -3005,7 +3005,7 @@ void ZoneManager::GoFocusedFX()
     int trackNumber = 0;
     int itemNumber = 0;
     int fxSlot = 0;
-    MediaTrack* focusedTrack = nullptr;
+    MediaTrack *focusedTrack = nullptr;
     
     if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
     {
@@ -3054,7 +3054,7 @@ void ZoneManager::GoSelectedTrackFX()
 
     selectedTrackFXZones_.Empty();
     
-    if(MediaTrack* selectedTrack = surface_->GetPage()->GetSelectedTrack())
+    if(MediaTrack *selectedTrack = surface_->GetPage()->GetSelectedTrack())
     {
         for(int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
         {
@@ -3081,7 +3081,7 @@ void ZoneManager::AutoMapFocusedFX()
     int trackNumber = 0;
     int itemNumber = 0;
     int fxSlot = 0;
-    MediaTrack* track = nullptr;
+    MediaTrack *track = nullptr;
     
     if(DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
     {
@@ -3099,7 +3099,7 @@ void ZoneManager::AutoMapFocusedFX()
     }
 }
 
-void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
+void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
 {
     if(homeZone_ != nullptr)
     {
@@ -3150,7 +3150,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack* track, int fxSlot)
     }
 }
 
-void ZoneManager::GoFXSlot(MediaTrack* track, Navigator* navigator, int fxSlot)
+void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 {
     if(fxSlot > DAW::TrackFX_GetCount(track) - 1)
         return;
@@ -3371,7 +3371,7 @@ void ZoneManager::SaveLearnedFXParams()
                         
                         for(int i = 0; i < cell.fxParamWidgets.GetSize(); i++)
                         {
-                            LearnInfo* info = GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
+                            LearnInfo *info = GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
                             
                             if(info == nullptr)
                                 continue;
@@ -3421,7 +3421,7 @@ void ZoneManager::SaveLearnedFXParams()
     }
 }
 
-LearnInfo* ZoneManager::GetLearnInfo(Widget *widget)
+LearnInfo *ZoneManager::GetLearnInfo(Widget *widget)
 {
     const WDL_TypedBuf<int> &modifiers = surface_->GetModifiers();
 
@@ -3431,7 +3431,7 @@ LearnInfo* ZoneManager::GetLearnInfo(Widget *widget)
         return NULL;
 }
 
-LearnInfo* ZoneManager::GetLearnInfo(Widget *widget, int modifier)
+LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
 {
     if(learnedFXParams_.count(widget) > 0 && learnedFXParams_[widget].count(modifier) > 0)
         return learnedFXParams_[widget][modifier];
@@ -3629,7 +3629,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
-                            LearnInfo* info = new LearnInfo(widget, cellAdress);
+                            LearnInfo *info = new LearnInfo(widget, cellAdress);
                             learnedFXParams_[widget][modifier] = info;
                         }
                         
@@ -3641,7 +3641,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
     }
 }
 
-void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack* track, int fxSlotNum)
+void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
 {
     zoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
     vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
@@ -3655,7 +3655,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
             Widget *widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName);
             if (widget)
             {
-                if(LearnInfo* info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
+                if(LearnInfo *info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
                 {
                     if(zoneDef_.paramDefs[i].definitions[j].paramNumber != "" && zoneDef_.paramDefs[i].definitions[j].paramNameDisplayWidget != "NullDisplay")
                     {
@@ -3772,7 +3772,7 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
     }
 }
 
-void ZoneManager::WidgetMoved(ActionContext* context)
+void ZoneManager::WidgetMoved(ActionContext *context)
 {
     if(fxLayoutFileLines_.size() < 1)
         return;
@@ -3780,9 +3780,9 @@ void ZoneManager::WidgetMoved(ActionContext* context)
     if(context->GetZone() != fxLayout_)
         return;
     
-    MediaTrack* track = nullptr;
+    MediaTrack *track = nullptr;
     
-    LearnInfo* info = GetLearnInfo(context->GetWidget());
+    LearnInfo *info = GetLearnInfo(context->GetWidget());
     
     if(info == nullptr)
         return;
@@ -3906,7 +3906,7 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                     
                     if(widget && lineTokens.size() > 1)
                     {
-                        LearnInfo* info = GetLearnInfo(widget);
+                        LearnInfo *info = GetLearnInfo(widget);
                         
                         if(info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
                             replacementString += " " + info->params + " ";
@@ -3922,7 +3922,7 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
     }
 }
 
-void ZoneManager::DoLearn(ActionContext* context, double value)
+void ZoneManager::DoLearn(ActionContext *context, double value)
 {    
     if(value == 0.0)
         return;
@@ -3931,9 +3931,9 @@ void ZoneManager::DoLearn(ActionContext* context, double value)
     int fxSlotNum = 0;
     int fxParamNum = 0;
 
-    MediaTrack* track = nullptr;
+    MediaTrack *track = nullptr;
     
-    LearnInfo* info = GetLearnInfo(context->GetWidget());
+    LearnInfo *info = GetLearnInfo(context->GetWidget());
     
     if(info == nullptr)
         return;
@@ -4082,7 +4082,7 @@ void ZoneManager::PreProcessZones()
     }
 }
 
-void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack* track, int fxIndex, int paramIndex)
+void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex)
 {
     // Check for UAD / Plugin Alliance and bail if neither
     if(fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
@@ -4126,7 +4126,7 @@ void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack* track,
         DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
-void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack* track, int fxIndex)
+void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
 {
     TheManager->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
 
@@ -4183,7 +4183,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack* track
         DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
 }
 
-void ZoneManager::AutoMapFX(const string &fxName, MediaTrack* track, int fxIndex)
+void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex)
 {    
     if(fxLayouts_.size() == 0)
         return;
@@ -4472,9 +4472,9 @@ void ZoneManager::DoTouch(Widget *widget, double value)
         homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 }
 
-Navigator* ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
-Navigator* ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
-Navigator* ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
+Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
+Navigator *ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
+Navigator *ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4551,7 +4551,7 @@ void TrackNavigationManager::RebuildTracks()
     
     for (int i = 1; i <= GetNumTracks(); i++)
     {
-        if(MediaTrack* track = DAW::CSurf_TrackFromID(i, followMCP_))
+        if(MediaTrack *track = DAW::CSurf_TrackFromID(i, followMCP_))
             if(DAW::IsTrackVisible(track, followMCP_))
                 tracks_.Add(track);
     }
@@ -4590,7 +4590,7 @@ void TrackNavigationManager::RebuildSelectedTracks()
 
 void TrackNavigationManager::AdjustSelectedTrackBank(int amount)
 {
-    if(MediaTrack* selectedTrack = GetSelectedTrack())
+    if(MediaTrack *selectedTrack = GetSelectedTrack())
     {
         int trackNum = GetIdFromTrack(selectedTrack);
         
@@ -4602,7 +4602,7 @@ void TrackNavigationManager::AdjustSelectedTrackBank(int amount)
         if(trackNum > GetNumTracks())
             trackNum = GetNumTracks();
         
-        if(MediaTrack* trackToSelect = GetTrackFromId(trackNum))
+        if(MediaTrack *trackToSelect = GetTrackFromId(trackNum))
         {
             DAW::SetOnlyTrackSelected(trackToSelect);
             if(GetScrollLink())
@@ -4640,7 +4640,7 @@ void ControlSurface::Record()
     DAW::CSurf_OnRecord();
 }
 
-void ControlSurface::OnTrackSelection(MediaTrack* track)
+void ControlSurface::OnTrackSelection(MediaTrack *track)
 {
     Widget *w = widgetsByName_.Get("OnTrackSelection");
     if (w)
@@ -4681,7 +4681,7 @@ rgba_color ControlSurface::GetTrackColorForChannel(int channel)
         return fixedTrackColors_[channel];
     else
     {
-        if(MediaTrack* track = page_->GetNavigatorForChannel(channel + channelOffset_)->GetTrack())
+        if(MediaTrack *track = page_->GetNavigatorForChannel(channel + channelOffset_)->GetTrack())
             return DAW::GetTrackColor(track);
         else
             return white;
@@ -5015,14 +5015,14 @@ void ControlSurface::ClearModifiers()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurfaceIO
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
+void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 {
     if(midiInput_)
     {
         DAW::SwapBufsPrecise(midiInput_);
-        MIDI_eventlist* list = midiInput_->GetReadBuf();
+        MIDI_eventlist *list = midiInput_->GetReadBuf();
         int bpos = 0;
-        MIDI_event_t* evt;
+        MIDI_event_t *evt;
         while ((evt = list->EnumItems(&bpos)))
             surface->ProcessMidiMessage((MIDI_event_ex_t*)evt);
     }
@@ -5031,7 +5031,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface* surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO* surfaceIO)
+Midi_ControlSurface::Midi_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
 : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 {
     // private:
@@ -5047,28 +5047,28 @@ Midi_ControlSurface::Midi_ControlSurface(Page* page, const string &name, int num
     zoneManager_->Initialize();
 }
 
-void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
+void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
 {
     bool isMapped = false;
     
     // At this point we don't know how much of the message comprises the key, so try all three
-    if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]) > 0)
+    if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100 + evt->midi_message[2]) > 0)
     {
         isMapped = true;
-        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100 + evt->midi_message[2]].Get(i)->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100 + evt->midi_message[2]].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100 + evt->midi_message[2]].Get(i)->ProcessMidiMessage(evt);
     }
-    else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100) > 0)
+    else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100) > 0)
     {
         isMapped = true;
-        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000 + evt->midi_message[1] * 0x100].Get(i)->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100].Get(i)->ProcessMidiMessage(evt);
     }
-    else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0] * 0x10000) > 0)
+    else if(Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0]  *0x10000) > 0)
     {
         isMapped = true;
-        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0] * 0x10000].Get(i)->ProcessMidiMessage(evt);
+        for(int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000].Get(i)->ProcessMidiMessage(evt);
     }
     
     if(TheManager->GetSurfaceRawInDisplay() || (! isMapped && TheManager->GetSurfaceInDisplay()))
@@ -5079,7 +5079,7 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t* evt)
     }
 }
 
-void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t* midiMessage)
+void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
 {
     surfaceIO_->SendMidiMessage(midiMessage);
     
@@ -5130,10 +5130,10 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
     }
     else // WHEN INPUT AND OUTPUT SOCKETS ARE THE SAME -- DO MAGIC :)
     {
-        oscpkt::UdpSocket* inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
+        oscpkt::UdpSocket *inSocket = GetInputSocketForPort(surfaceName, stoi(receiveOnPort));;
 
         struct addrinfo hints;
-        struct addrinfo* addressInfo;
+        struct addrinfo *addressInfo;
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_INET;      // IPV4
         hints.ai_socktype = SOCK_DGRAM; // UDP
@@ -5147,7 +5147,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
     }
  }
 
- void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface* surface)
+ void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
  {
     if(inSocket_ != nullptr && inSocket_->isOk())
     {
@@ -5188,7 +5188,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(Page* page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO* surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
 {
     zoneManager_ = new ZoneManager(this, zoneFolder, fxZoneFolder);
@@ -5247,7 +5247,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, const string &
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + value + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, double value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
@@ -5255,7 +5255,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, int value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
@@ -5263,7 +5263,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor* feedbackProcessor, const string &oscAddress, const string &value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, const string &value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
