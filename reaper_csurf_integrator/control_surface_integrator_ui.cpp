@@ -25,7 +25,7 @@ extern int g_registered_command_toggle_write_FX_params;
 
 bool hookCommandProc(int command, int flag)
 {
-    if(TheManager != nullptr)
+    if (TheManager != nullptr)
     {
         if (command == g_registered_command_toggle_show_raw_surface_input)
         {
@@ -66,45 +66,45 @@ CSurfIntegrator::CSurfIntegrator()
 
 CSurfIntegrator::~CSurfIntegrator()
 {
-    if(TheManager)
+    if (TheManager)
         TheManager->Shutdown();
 }
 
 void CSurfIntegrator::OnTrackSelection(MediaTrack *trackid)
 {
-    if(TheManager)
+    if (TheManager)
         TheManager->OnTrackSelection(trackid);
 }
 
 void CSurfIntegrator::SetTrackListChange()
 {
-    if(TheManager)
+    if (TheManager)
         TheManager->OnTrackListChange();
 }
 
 int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
 {
-    if(call == CSURF_EXT_SUPPORTS_EXTENDED_TOUCH)
+    if (call == CSURF_EXT_SUPPORTS_EXTENDED_TOUCH)
     {
         return 1;
     }
     
-    if(call == CSURF_EXT_RESET)
+    if (call == CSURF_EXT_RESET)
     {
-       if(TheManager)
+       if (TheManager)
            TheManager->Init();
     }
     
-    if(call == CSURF_EXT_SETFXCHANGE)
+    if (call == CSURF_EXT_SETFXCHANGE)
     {
         // parm1=(MediaTrack*)track, whenever FX are added, deleted, or change order
-        if(TheManager)
+        if (TheManager)
             TheManager->TrackFXListChanged((MediaTrack*)parm1);
     }
         
-    if(call == CSURF_EXT_SETMIXERSCROLL)
+    if (call == CSURF_EXT_SETMIXERSCROLL)
     {
-        if(TheManager)
+        if (TheManager)
         {
             MediaTrack *leftPtr = (MediaTrack *)parm1;
             
@@ -112,7 +112,7 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
             
             offset--;
             
-            if(offset < 0)
+            if (offset < 0)
                 offset = 0;
                 
             TheManager->SetTrackOffset(offset);
@@ -129,7 +129,7 @@ bool CSurfIntegrator::GetTouchState(MediaTrack *track, int touchedControl)
 
 void CSurfIntegrator::Run()
 {
-    if(TheManager)
+    if (TheManager)
         TheManager->Run();
 }
 
@@ -179,30 +179,30 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
             s_dlgResult = IDCANCEL;
                
-            if(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta != "")
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta != "")
                 SetDlgItemText(hwndDlg, IDC_EDIT_Delta, s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta.c_str());
 
-            if(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum != "")
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum != "")
                 SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum.c_str());
 
-            if(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum != "")
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum != "")
                 SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum.c_str());
 
-            if(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size() > 0)
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size() > 0)
             {
                 string deltas = "";
                 
-                for(int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size(); ++i)
+                for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size(); ++i)
                     deltas += s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas[i] + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             }
 
-            if(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size() > 0)
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size() > 0)
             {
                 string ticks = "";
                 
-                for(int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size(); ++i)
+                for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size(); ++i)
                     ticks += s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i] + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
@@ -221,34 +221,34 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         char buf[BUFSZ];
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
-                        if(string(buf) != "")
+                        if (string(buf) != "")
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
-                        if(string(buf) != "")
+                        if (string(buf) != "")
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
-                        if(string(buf) != "")
+                        if (string(buf) != "")
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
-                        if(string(buf) != "")
+                        if (string(buf) != "")
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.clear();
                             vector<string> deltas;
                             GetTokens(deltas, buf);
-                            for(int i = 0; i < (int)deltas.size(); ++i)
+                            for (int i = 0; i < (int)deltas.size(); ++i)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(deltas[i]);
                         }
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
-                        if(string(buf) != "")
+                        if (string(buf) != "")
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.clear();
                             vector<string> ticks;
                             GetTokens(ticks, buf);
-                            for(int i = 0; i < (int)ticks.size(); ++i)
+                            for (int i = 0; i < (int)ticks.size(); ++i)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(ticks[i]);
                         }
 
@@ -355,22 +355,22 @@ static const int  *const s_colorControls[] =
 
 static void ShowBaseControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(int i = 0; i < NUM_ELEM(s_baseControls); ++i)
-        for(int j = startIndex; j < endIndex; j++)
+    for (int i = 0; i < NUM_ELEM(s_baseControls); ++i)
+        for (int j = startIndex; j < endIndex; j++)
             ShowWindow(GetDlgItem(hwndDlg, s_baseControls[i][j]), show);
 }
 
 static void ShowFontControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(int i = 0; i < NUM_ELEM(s_fontControls); ++i)
-        for(int j = startIndex; j < endIndex; j++)
+    for (int i = 0; i < NUM_ELEM(s_fontControls); ++i)
+        for (int j = startIndex; j < endIndex; j++)
             ShowWindow(GetDlgItem(hwndDlg, s_fontControls[i][j]), show);
 }
 
 static void ShowColorControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
 {
-    for(int i = 0; i < NUM_ELEM(s_colorControls); ++i)
-        for(int j = startIndex; j < endIndex; j++)
+    for (int i = 0; i < NUM_ELEM(s_colorControls); ++i)
+        for (int j = startIndex; j < endIndex; j++)
             ShowWindow(GetDlgItem(hwndDlg, s_colorControls[i][j]), show);
 }
 
@@ -414,7 +414,7 @@ static void PopulateParamListView(HWND hwndParamList)
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    for(int i = 0; i < s_zoneDef.rawParams.size(); i++)
+    for (int i = 0; i < s_zoneDef.rawParams.size(); i++)
     {
         lvi.iItem = i;
         lvi.pszText = (char *)s_zoneDef.rawParams[i].c_str();
@@ -424,7 +424,7 @@ static void PopulateParamListView(HWND hwndParamList)
         
         int spaceBreak = (int)s_zoneDef.rawParams[i].find( " ");
           
-        if(spaceBreak != -1)
+        if (spaceBreak != -1)
         {
             string key = s_zoneDef.rawParams[i].substr(0, spaceBreak);
             string value = s_zoneDef.rawParams[i].substr(spaceBreak + 1, s_zoneDef.rawParams[i].length() - spaceBreak - 1);
@@ -444,16 +444,16 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_PAINT:
         {
-            if(s_hasColors)
+            if (s_hasColors)
             {
                 PAINTSTRUCT ps;
                 HDC hdc = BeginPaint(hwndDlg, &ps);
                 
-                for(int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
+                for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
                 {
                     const int colorPicker = s_buttonColors[x][0];
                     // GAW TBD -- think of a more elegant way to do this :)
-                    if(s_numGroups < 3 && ( colorPicker == s_widgetRingColors[2] ||
+                    if (s_numGroups < 3 && ( colorPicker == s_widgetRingColors[2] ||
                                             colorPicker == s_widgetRingIndicators[2] ||
                                             colorPicker == s_fixedTextDisplayForegroundColors[2] ||
                                             colorPicker == s_fixedTextDisplayBackgroundColors[2] ||
@@ -461,7 +461,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                             colorPicker == s_fxParamDisplayBackgroundColors[2] ))
                             continue;
 
-                    if(s_numGroups < 2 && ( colorPicker == s_widgetRingColors[1] ||
+                    if (s_numGroups < 2 && ( colorPicker == s_widgetRingColors[1] ||
                                             colorPicker == s_widgetRingIndicators[1] ||
                                             colorPicker == s_fixedTextDisplayForegroundColors[1] ||
                                             colorPicker == s_fixedTextDisplayBackgroundColors[1] ||
@@ -509,66 +509,66 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + s_layoutTemplates[s_fxListIndex].modifiers + s_layoutTemplates[s_fxListIndex].suffix).c_str());
 
-            for(int i = 0; i <NUM_ELEM( s_stepPickers); i++)
+            for (int i = 0; i <NUM_ELEM( s_stepPickers); i++)
             {
                 SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
-                for(int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
+                for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
                     SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(j).c_str());
             }
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
             
-            for(int i = 0; i < (int)s_surfaceLayoutTemplate.size(); ++i)
+            for (int i = 0; i < (int)s_surfaceLayoutTemplate.size(); ++i)
             {
-                if(s_surfaceLayoutTemplate[i].size() > 0 )
+                if (s_surfaceLayoutTemplate[i].size() > 0 )
                 {
-                    if(s_surfaceLayoutTemplate[i][0] == "WidgetTypes")
+                    if (s_surfaceLayoutTemplate[i][0] == "WidgetTypes")
                     {
-                        for(int j = 0; j < NUM_ELEM(s_widgetTypePickers); j++)
-                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                        for (int j = 0; j < NUM_ELEM(s_widgetTypePickers); j++)
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_widgetTypePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
-                    else if(s_surfaceLayoutTemplate[i][0] == "RingStyles")
+                    else if (s_surfaceLayoutTemplate[i][0] == "RingStyles")
                     {
-                        for(int j = 0; j < NUM_ELEM(s_ringStylePickers); j++)
-                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                        for (int j = 0; j < NUM_ELEM(s_ringStylePickers); j++)
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_ringStylePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
-                    else if(s_surfaceLayoutTemplate[i][0] == "DisplayRows")
+                    else if (s_surfaceLayoutTemplate[i][0] == "DisplayRows")
                     {
-                        for(int j = 0; j < NUM_ELEM(s_fixedTextDisplayRowPickers); j++)
+                        for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayRowPickers); j++)
                         {
                             SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
-                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         }
                         
-                        for(int j = 0; j < NUM_ELEM(s_paramValueDisplayRowPickers); j++)
+                        for (int j = 0; j < NUM_ELEM(s_paramValueDisplayRowPickers); j++)
                         {
                             SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
-                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         }
                     }
-                    else if(s_surfaceLayoutTemplate[i][0] == "DisplayFonts")
+                    else if (s_surfaceLayoutTemplate[i][0] == "DisplayFonts")
                     {
                         s_hasFonts = true;
                         
-                        for(int j = 0; j < NUM_ELEM(s_fixedTextDisplayFontPickers); j++)
-                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                        for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayFontPickers); j++)
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                         
-                        for(int j = 0; j < NUM_ELEM(s_paramValueDisplayFontPickers); j++)
-                            for(int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                        for (int j = 0; j < NUM_ELEM(s_paramValueDisplayFontPickers); j++)
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
                                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
                 }
             }
 
-            for(int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
+            for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
                 SetDlgItemText(hwndDlg, s_paramNumEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNumber.c_str());
                 SetDlgItemText(hwndDlg, s_fixedTextEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramName.c_str());
@@ -577,51 +577,51 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, s_fixedTextDisplayRowPickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidget.c_str());
                 SetDlgItemText(hwndDlg, s_paramValueDisplayRowPickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidget.c_str());
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("RingStyle") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("RingStyle") > 0)
                     SetDlgItemText(hwndDlg, s_ringStylePickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["RingStyle"].c_str());
                 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Font") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Font") > 0)
                     SetDlgItemText(hwndDlg, s_fixedTextDisplayFontPickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Font"].c_str());
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Font") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Font") > 0)
                     SetDlgItemText(hwndDlg, s_paramValueDisplayFontPickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Font"].c_str());
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("LEDRingColor") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("LEDRingColor") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["LEDRingColor"]);
                     GetButtonColorForID(s_widgetRingColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("PushColor") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.count("PushColor") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties["PushColor"]);
                     GetButtonColorForID(s_widgetRingIndicators[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Foreground") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Foreground"]);
                     GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Background") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.count("Background") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Background"]);
                     GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Foreground") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Foreground") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Foreground"]);
                     GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                if(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Background") > 0)
+                if (s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.count("Background") > 0)
                 {
                     s_hasColors = true;
                     rgba_color color = GetColorValue(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Background"]);
@@ -630,7 +630,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
                 string steps = "";
                 
-                for(int j = 0; j < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.size(); ++i)
+                for (int j = 0; j < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.size(); ++i)
                     steps += s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps[j] + "  ";
                 
                 SetDlgItemText(hwndDlg, s_stepEditControls[i], steps.c_str());
@@ -640,7 +640,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 GetDlgItemText(hwndDlg, s_widgetTypePickers[i], buf, sizeof(buf));
                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidget = buf;
 
-                if(string(buf) == "RotaryPush" && steps == "")
+                if (string(buf) == "RotaryPush" && steps == "")
                 {
                     SetDlgItemText(hwndDlg, s_stepEditControls[i], "0  1");
                     SetDlgItemText(hwndDlg, s_stepPickers[i], "2");
@@ -649,10 +649,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             ShowBaseControls(hwndDlg, 0, s_numGroups, true);
             
-            if(s_hasFonts)
+            if (s_hasFonts)
                 ShowFontControls(hwndDlg, 0, s_numGroups, true);
             
-            if(s_hasColors)
+            if (s_hasColors)
             {
                 ShowColorControls(hwndDlg, 0, s_numGroups, true);
                 InvalidateRect(hwndDlg, NULL, true);
@@ -724,7 +724,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        for(int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size(); i++)
+                        for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size(); i++)
                         {
                             char buf[BUFSZ];
                             
@@ -748,16 +748,16 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
                             GetDlgItemText(hwndDlg, s_stepEditControls[i], buf, sizeof(buf));
                             
-                            if(string(buf) != "")
+                            if (string(buf) != "")
                             {
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.clear();
                                 vector<string> steps;
                                 GetTokens(steps, buf);
-                                for(int j = 0; j< (int)steps.size(); ++j)
+                                for (int j = 0; j< (int)steps.size(); ++j)
                                     s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(steps[j]);
                             }
 
-                            if(s_hasFonts)
+                            if (s_hasFonts)
                             {
                                 GetDlgItemText(hwndDlg, s_fixedTextDisplayFontPickers[i], buf, sizeof(buf));
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties["Font"] = buf;
@@ -766,7 +766,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties["Font"] = buf;
                             }
                             
-                            if(s_hasColors)
+                            if (s_hasColors)
                             {
                                 rgba_color color;
                                 
@@ -802,9 +802,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_PickSteps1), CB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
-                                if(index == 0)
+                                if (index == 0)
                                     SetDlgItemText(hwndDlg, IDC_EditSteps1, "");
                                 else
                                 {
@@ -825,9 +825,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_PickSteps2), CB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
-                                if(index == 0)
+                                if (index == 0)
                                     SetDlgItemText(hwndDlg, IDC_EditSteps2, "");
                                 else
                                 {
@@ -848,9 +848,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_PickSteps3), CB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
-                                if(index == 0)
+                                if (index == 0)
                                     SetDlgItemText(hwndDlg, IDC_EditSteps3, "");
                                 else
                                 {
@@ -876,20 +876,20 @@ vector<string> GetLineComponents(int index)
     
     components.push_back(s_layoutTemplates[index].modifiers + s_layoutTemplates[index].suffix);
     
-    for(int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
+    for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
     {
         string widgetName = s_zoneDef.paramDefs[index].definitions[i].paramWidget;
         
-        if(widgetName == "RotaryPush")
+        if (widgetName == "RotaryPush")
             widgetName = "Push";
         
         components.push_back(widgetName);
         
         string alias = s_zoneDef.paramDefs[index].definitions[i].paramName;
 
-        if(s_zoneDef.paramDefs[index].definitions[i].paramName == "" && s_zoneDef.paramDefs[index].definitions[i].paramNumber != "" && s_zoneDef.rawParamsDictionary.count(s_zoneDef.paramDefs[index].definitions[i].paramNumber) > 0)
+        if (s_zoneDef.paramDefs[index].definitions[i].paramName == "" && s_zoneDef.paramDefs[index].definitions[i].paramNumber != "" && s_zoneDef.rawParamsDictionary.count(s_zoneDef.paramDefs[index].definitions[i].paramNumber) > 0)
             alias = s_zoneDef.rawParamsDictionary[s_zoneDef.paramDefs[index].definitions[i].paramNumber];
-        else if(s_zoneDef.paramDefs[index].definitions[i].paramNumber == "")
+        else if (s_zoneDef.paramDefs[index].definitions[i].paramNumber == "")
             alias = "NoAction";
         
         components.push_back(alias);
@@ -917,12 +917,12 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
     lvi.iItem = index;
     lvi.pszText = (char *)preamble.c_str();
     
-    if(shouldInsert)
+    if (shouldInsert)
         ListView_InsertItem(hwndParamList, &lvi);
     else
         ListView_SetItem(hwndParamList, &lvi);
     
-    for(int i = 1; i < components.size(); i++)
+    for (int i = 1; i < components.size(); i++)
     {
         lvi.iSubItem = i;
         lvi.pszText = (char *)components[i].c_str();
@@ -935,18 +935,18 @@ static void PopulateListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
         
-    for(int i = 0; i < s_zoneDef.paramDefs.size(); i++)
+    for (int i = 0; i < s_zoneDef.paramDefs.size(); i++)
         SetListViewItem(hwndParamList, i, true);
 }
 
 static void MoveUp(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if(index > 0)
+    if (index > 0)
     {
         FXParamDefinitions itemToMove;
         
-        for(int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
+        for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
             itemToMove.definitions.push_back(s_zoneDef.paramDefs[index].definitions[i]);
         
         s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + index);
@@ -962,11 +962,11 @@ static void MoveUp(HWND hwndParamList)
 static void MoveDown(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if(index >= 0 && index < s_zoneDef.paramDefs.size() - 1)
+    if (index >= 0 && index < s_zoneDef.paramDefs.size() - 1)
     {
         FXParamDefinitions itemToMove;
         
-        for(int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
+        for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
             itemToMove.definitions.push_back(s_zoneDef.paramDefs[index].definitions[i]);
 
         s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + index);
@@ -983,12 +983,12 @@ static void EditItem(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
     
-    if(index >= 0)
+    if (index >= 0)
     {
         s_fxListIndex = index;
         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
         
-        if(s_dlgResult == IDOK)
+        if (s_dlgResult == IDOK)
             SetListViewItem(hwndParamList, index, false);
         
         s_dlgResult = IDCANCEL;
@@ -997,7 +997,7 @@ static void EditItem(HWND hwndParamList)
 
 static bool DeleteZone()
 {
-    if(MessageBox(NULL, (string("This will permanently delete\n\n") + s_zoneDef.fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + s_zoneDef.fxAlias).c_str(), MB_YESNO) == IDNO)
+    if (MessageBox(NULL, (string("This will permanently delete\n\n") + s_zoneDef.fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + s_zoneDef.fxAlias).c_str(), MB_YESNO) == IDNO)
        return false;
     
     s_zoneManager->RemoveZone(s_zoneDef.fxName);
@@ -1020,9 +1020,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_NOTIFY:
         {
-            if(((LPNMHDR)lParam)->code == NM_DBLCLK)
+            if (((LPNMHDR)lParam)->code == NM_DBLCLK)
                 EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-            else if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
+            else if (((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
             {
                 HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
                
@@ -1031,7 +1031,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 p.y = 8;
 
                 int iPos = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-                if(iPos != -1)
+                if (iPos != -1)
                 {
                     s_oldPosition = iPos;
 
@@ -1059,7 +1059,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             vector<int> columnSizes = { 160 };
             
-            for(int i = 1; i <= s_numGroups; i++)
+            for (int i = 1; i <= s_numGroups; i++)
             {
                 columnSizes.push_back(80);
                 columnSizes.push_back(150);
@@ -1070,7 +1070,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for(int i = 1; i <= s_numGroups  *2; i++)
+            for (int i = 1; i <= s_numGroups  *2; i++)
             {
                 columnDescriptor.cx = columnSizes[i];
                 ListView_InsertColumn(paramList, i, &columnDescriptor);
@@ -1088,7 +1088,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_LBUTTONUP:
         {
-            if(s_isDragging)
+            if (s_isDragging)
             {
                 s_isDragging = FALSE;
                 
@@ -1117,7 +1117,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 
                 FXParamDefinitions itemToMove;
                 
-                for(int i = 0; i < (int)s_zoneDef.paramDefs[s_oldPosition].definitions.size(); ++i)
+                for (int i = 0; i < (int)s_zoneDef.paramDefs[s_oldPosition].definitions.size(); ++i)
                     itemToMove.definitions.push_back(s_zoneDef.paramDefs[s_oldPosition].definitions[i]);
                 
                 s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + s_oldPosition);
@@ -1134,7 +1134,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
         case WM_MOUSEMOVE:
         {
-            if(s_isDragging)
+            if (s_isDragging)
             {
                 POINT p;
                 p.x = LOWORD(lParam);
@@ -1177,7 +1177,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     
                 case IDC_Delete:
                     if (HIWORD(wParam) == BN_CLICKED)
-                         if(DeleteZone())
+                         if (DeleteZone())
                              EndDialog(hwndDlg, 0);
                     break ;
 
@@ -1202,9 +1202,9 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_NOTIFY:
         {
-            if(((LPNMHDR)lParam)->code == NM_DBLCLK)
+            if (((LPNMHDR)lParam)->code == NM_DBLCLK)
                 EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-            else if(((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
+            else if (((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
             {
                 s_isDragging = true;
                 GetCursorPos(&lastCursorPosition);
@@ -1221,7 +1221,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             vector<int> columnSizes = { 65 }; // modifiers
             
-            for(int i = 1; i <= s_numGroups; i++)
+            for (int i = 1; i <= s_numGroups; i++)
             {
                 columnSizes.push_back(38); // widget
                 columnSizes.push_back(75); // param name
@@ -1232,7 +1232,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for(int i = 1; i <= s_numGroups  *2; i++)
+            for (int i = 1; i <= s_numGroups  *2; i++)
             {
                 columnDescriptor.cx = columnSizes[i];
                 ListView_InsertColumn(paramList, i, &columnDescriptor);
@@ -1250,7 +1250,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_LBUTTONUP:
         {
-            if(s_isDragging)
+            if (s_isDragging)
             {
                 s_isDragging = false;
                 ReleaseCapture();
@@ -1260,18 +1260,18 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
         case WM_MOUSEMOVE:
         {
-            if(s_isDragging)
+            if (s_isDragging)
             {
                 POINT currentCursorPosition;
                 GetCursorPos(&currentCursorPosition);
                 
-                if(lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
+                if (lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
                 {
                     lastCursorPosition = currentCursorPosition;
                     
                     MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                 }
-                else if(currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
+                else if (currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
                 {
                     lastCursorPosition = currentCursorPosition;
                     
@@ -1317,7 +1317,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     
                 case IDC_Delete:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        if(DeleteZone())
+                        if (DeleteZone())
                             EndDialog(hwndDlg, 0);
                     break ;
                     
@@ -1346,7 +1346,7 @@ bool RemapAutoZoneDialog(ZoneManager *aZoneManager, string fullFilePath)
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
-    if(s_dlgResult == IDSAVE)
+    if (s_dlgResult == IDSAVE)
     {
         s_zoneManager->SaveAutoZone(s_zoneDef, s_layoutTemplates);
         return true;
@@ -1506,13 +1506,13 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
 {
     destination.Empty(true);
     
-    for(int i = 0; i < source.GetSize(); ++i)
+    for (int i = 0; i < source.GetSize(); ++i)
     {
         Broadcaster *destinationBroadcaster = new Broadcaster();
         
         destinationBroadcaster->name = source.Get(i)->name;
         
-        for(int j = 0; j < source.Get(i)->listeners.GetSize(); ++j)
+        for (int j = 0; j < source.Get(i)->listeners.GetSize(); ++j)
         {
             Listener *destinationListener = new Listener();
             
@@ -1575,7 +1575,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     {
         case WM_INITDIALOG:
         {
-            if(s_editMode)
+            if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_PageName, s_surfaceName.c_str());
                 
@@ -1600,9 +1600,9 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         GetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf, sizeof(buf));
                         s_surfaceName = buf;
                         
-                        if(IsDlgButtonChecked(hwndDlg, IDC_RADIO_TCP))
+                        if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_TCP))
                            s_followMCP = false;
-                        else if(IsDlgButtonChecked(hwndDlg, IDC_RADIO_MCP))
+                        else if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_MCP))
                            s_followMCP = true;
                         
                         s_synchPages = IsDlgButtonChecked(hwndDlg, IDC_CHECK_SynchPages);
@@ -1642,16 +1642,16 @@ static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
     
     GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
     
-    for(int i = 0; i < s_surfaces.GetSize(); ++i)
+    for (int i = 0; i < s_surfaces.GetSize(); ++i)
     {
-        if(s_surfaces.Get(i)->name == string(buf))
+        if (s_surfaces.Get(i)->name == string(buf))
         {
-            if(s_surfaces.Get(i)->type == s_MidiSurfaceToken)
-                for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/").size(); ++j)
+            if (s_surfaces.Get(i)->type == s_MidiSurfaceToken)
+                for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/").size(); ++j)
                     AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
 
-            if(s_surfaces.Get(i)->type == s_OSCSurfaceToken)
-                for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
+            if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
+                for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
                     AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
             
             break;
@@ -1667,7 +1667,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            if(s_editMode)
+            if (s_editMode)
             {
                 AddComboEntry(hwndDlg, 0, (char *)s_pageSurfaceName.c_str(), IDC_COMBO_PageSurface);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
@@ -1677,27 +1677,27 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
-                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
 
-                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
 
                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)s_templateFilename.c_str());
-                if(index >= 0)
+                if (index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, index, 0);
                 
                 index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)s_zoneTemplateFolder.c_str());
-                if(index >= 0)
+                if (index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
                 
                 index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxZoneTemplateFolder.c_str());
-                if(index >= 0)
+                if (index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_SETCURSEL, index, 0);
             }
             else
             {
-                for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                for (int i = 0; i < s_surfaces.GetSize(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_COMBO_PageSurface);
                 
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
@@ -1707,10 +1707,10 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                             
-                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
                 
-                for(int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
             }
         }
@@ -1740,15 +1740,15 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
-                            if(index >= 0 && ! s_editMode)
+                            if (index >= 0 && ! s_editMode)
                             {
                                 char buffer[BUFSZ];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
                                 
-                                for(int i = 0; i < sizeof(buffer); i++)
+                                for (int i = 0; i < sizeof(buffer); i++)
                                 {
-                                    if(buffer[i] == '.')
+                                    if (buffer[i] == '.')
                                     {
                                         buffer[i] = 0;
                                         break;
@@ -1756,7 +1756,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 }
                                 
                                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
-                                if(index >= 0)
+                                if (index >= 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
                             }
                         }
@@ -1770,14 +1770,14 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_GETCURSEL, 0, 0);
-                            if(index >= 0 && ! s_editMode)
+                            if (index >= 0 && ! s_editMode)
                             {
                                 char buffer[BUFSZ];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, buffer, sizeof(buffer));
                                 
                                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
-                                if(index >= 0)
+                                if (index >= 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_SETCURSEL, index, 0);
                             }
                         }
@@ -1847,7 +1847,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (DAW::GetMIDIInputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiIn);
-                    if(s_editMode && s_surfaceInPort == i)
+                    if (s_editMode && s_surfaceInPort == i)
                         SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn), CB_SETCURSEL, currentIndex, 0);
                     currentIndex++;
                 }
@@ -1858,14 +1858,14 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (DAW::GetMIDIOutputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiOut);
-                    if(s_editMode && s_surfaceOutPort == i)
+                    if (s_editMode && s_surfaceOutPort == i)
                         SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut), CB_SETCURSEL, currentIndex, 0);
                     currentIndex++;
                 }
             
             string resourcePath(DAW::GetResourcePath());
             
-            if(s_editMode)
+            if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, s_surfaceName.c_str());
             }
@@ -1889,15 +1889,15 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
-                            if(index >= 0 && !s_editMode)
+                            if (index >= 0 && !s_editMode)
                             {
                                 char buffer[BUFSZ];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
 
-                                for(int i = 0; i < sizeof(buffer); i++)
+                                for (int i = 0; i < sizeof(buffer); i++)
                                 {
-                                    if(buffer[i] == '.')
+                                    if (buffer[i] == '.')
                                     {
                                         buffer[i] = 0;
                                         break;
@@ -1905,7 +1905,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 }
                                 
                                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
-                                if(index >= 0)
+                                if (index >= 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
                             }
                         }
@@ -1962,13 +1962,13 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             string resourcePath(DAW::GetResourcePath());
             
             int i = 0;
-            for(int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
+            for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
                 AddComboEntry(hwndDlg, i++, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
             
-            for(int j = 0; j < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++j)
+            for (int j = 0; j < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++j)
                 AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[j].c_str(), IDC_COMBO_ZoneTemplates);
             
-            if(s_editMode)
+            if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, s_surfaceName.c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, s_surfaceRemoteDeviceIP.c_str());
@@ -1996,15 +1996,15 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         case CBN_SELCHANGE:
                         {
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
-                            if(index >= 0 && !s_editMode)
+                            if (index >= 0 && !s_editMode)
                             {
                                 char buffer[BUFSZ];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
                                 
-                                for(int i = 0; i < sizeof(buffer); i++)
+                                for (int i = 0; i < sizeof(buffer); i++)
                                 {
-                                    if(buffer[i] == '.')
+                                    if (buffer[i] == '.')
                                     {
                                         buffer[i] = 0;
                                         break;
@@ -2012,7 +2012,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 }
                                 
                                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
-                                if(index >= 0)
+                                if (index >= 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
                             }
                         }
@@ -2101,19 +2101,19 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     {
         case WM_INITDIALOG:
         {
-            for(int i = 0; i < s_surfaces.GetSize(); ++i)
+            for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddBroadcaster);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddBroadcaster), CB_SETCURSEL, 0, 0);
 
-            for(int i = 0; i < s_surfaces.GetSize(); ++i)
+            for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddListener);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddListener), CB_SETCURSEL, 0, 0);
             
             TransferBroadcasters(s_pages.Get(s_pageIndex)->broadcasters, s_broadcasters);
             
-            if(s_broadcasters.GetSize() > 0)
+            if (s_broadcasters.GetSize() > 0)
             {
-                for(int i = 0; i < s_broadcasters.GetSize(); ++i)
+                for (int i = 0; i < s_broadcasters.GetSize(); ++i)
                     AddListEntry(hwndDlg, s_broadcasters.Get(i)->name, IDC_LIST_Broadcasters);
                     
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
@@ -2135,10 +2135,10 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
                                 AddListEntry(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name, IDC_LIST_Listeners);
                             
-                            if(s_broadcasters.GetSize() > 0)
+                            if (s_broadcasters.GetSize() > 0)
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, 0, 0);
                             
-                            if(broadcasterIndex >= 0 && s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
+                            if (broadcasterIndex >= 0 && s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
                                 SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(0));
                             else
                                 ClearCheckBoxes(hwndDlg);
@@ -2156,7 +2156,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                         
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                             SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex));
                     }
                     break;
@@ -2171,10 +2171,10 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
                             
                             bool foundit = false;
-                            for(int i = 0; i < s_broadcasters.GetSize(); ++i)
-                                if(broadcasterName == s_broadcasters.Get(i)->name)
+                            for (int i = 0; i < s_broadcasters.GetSize(); ++i)
+                                if (broadcasterName == s_broadcasters.Get(i)->name)
                                     foundit = true;
-                            if(! foundit)
+                            if (! foundit)
                             {
                                 Broadcaster *broadcaster = new Broadcaster();
                                 broadcaster->name = broadcasterName;
@@ -2198,10 +2198,10 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
                             
                             bool foundit = false;
-                            for(int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
-                                if(listenerName == s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name)
+                            for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
+                                if (listenerName == s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name)
                                 foundit = true;
-                            if(! foundit)
+                            if (! foundit)
                             {
                                 Listener *listener = new Listener();
                                 listener->name = listenerName;
@@ -2222,9 +2222,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                  s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->goHome = true;
                             else
                                  s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->goHome = false;
@@ -2238,9 +2238,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->sends = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->sends = false;
@@ -2254,9 +2254,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex =(int) SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = false;
@@ -2270,9 +2270,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFX = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFX = false;
@@ -2286,9 +2286,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFXParam = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFXParam = false;
@@ -2302,9 +2302,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->fxMenu = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->fxMenu = false;
@@ -2318,9 +2318,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->localFXSlot = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->localFXSlot = false;
@@ -2334,9 +2334,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->modifiers = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->modifiers = false;
@@ -2350,9 +2350,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->selectedTrackFX = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->selectedTrackFX = false;
@@ -2366,9 +2366,9 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            if(SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Custom), BM_GETCHECK, 0, 0) == BST_CHECKED)
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->custom = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->custom = false;
@@ -2381,16 +2381,16 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                     {
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0)
+                        if (broadcasterIndex >= 0)
                         {
                             s_broadcasters.Delete(broadcasterIndex);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_RESETCONTENT, 0, 0);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
 
-                            if(s_broadcasters.GetSize() > 0)
+                            if (s_broadcasters.GetSize() > 0)
                             {
-                                for(int i = 0; i < s_broadcasters.GetSize(); ++i)
+                                for (int i = 0; i < s_broadcasters.GetSize(); ++i)
                                     AddListEntry(hwndDlg, s_broadcasters.Get(i)->name, IDC_LIST_Broadcasters);
                                     
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.GetSize() - 1, 0);
@@ -2405,14 +2405,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
 
-                        if(broadcasterIndex >= 0 && listenerIndex >= 0)
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             s_broadcasters.Get(broadcasterIndex)->listeners.Delete(listenerIndex, true);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
-                            if(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
+                            if (s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
                             {
-                                for(int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
+                                for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
                                     AddListEntry(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name, IDC_LIST_Listeners);
                                     
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
@@ -2420,7 +2420,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
 #ifdef WIN32
                                 listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                                 
-                                if(listenerIndex >= 0)
+                                if (listenerIndex >= 0)
                                     SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex));
 #endif
                             }
@@ -2479,7 +2479,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
                                     AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurfaceName, IDC_LIST_PageSurfaces);
                                 
-                                if(s_pages.Get(index)->surfaces.GetSize() > 0)
+                                if (s_pages.Get(index)->surfaces.GetSize() > 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
                             }
                             else
@@ -2518,7 +2518,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_dlgResult = false;
                                 s_editMode = false;
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                if(s_dlgResult == IDOK)
+                                if (s_dlgResult == IDOK)
                                 {
                                     SurfaceLine *surface = new SurfaceLine();
                                     surface->type = s_MidiSurfaceToken;
@@ -2544,7 +2544,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_dlgResult = false;
                                 s_editMode = false;
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
-                                if(s_dlgResult == IDOK)
+                                if (s_dlgResult == IDOK)
                                 {
                                     SurfaceLine *surface = new SurfaceLine();
                                     surface->type = s_OSCSurfaceToken;
@@ -2568,7 +2568,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             s_dlgResult = false;
                             s_editMode = false;
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
-                            if(s_dlgResult == IDOK)
+                            if (s_dlgResult == IDOK)
                             {
                                 PageLine *page = new PageLine();
                                 page->name = s_surfaceName;
@@ -2590,7 +2590,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             s_dlgResult = false;
                             s_editMode = false;
                             DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
-                            if(s_dlgResult == IDOK)
+                            if (s_dlgResult == IDOK)
                             {
                                 PageSurfaceLine *pageSurface = new PageSurfaceLine();
                                 pageSurface->pageSurfaceName = s_pageSurfaceName;
@@ -2615,7 +2615,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(s_surfaceName.c_str()));
                                 s_surfaceInPort = s_surfaces.Get(index)->inPort;
@@ -2625,12 +2625,12 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
-                                if(s_surfaces.Get(index)->type == s_MidiSurfaceToken)
+                                if (s_surfaces.Get(index)->type == s_MidiSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                else if(s_surfaces.Get(index)->type == s_OSCSurfaceToken)
+                                else if (s_surfaces.Get(index)->type == s_OSCSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                                                
-                                if(s_dlgResult == IDOK)
+                                if (s_dlgResult == IDOK)
                                 {
                                     s_surfaces.Get(index)->name = s_surfaceName;
                                     s_surfaces.Get(index)->remoteDeviceIP = s_surfaceRemoteDeviceIP;
@@ -2647,7 +2647,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(s_surfaceName.c_str()));
 
@@ -2660,7 +2660,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_scrollSynch = s_pages.Get(index)->scrollSynch;
                                 
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
-                                if(s_dlgResult == IDOK)
+                                if (s_dlgResult == IDOK)
                                 {
                                     s_pages.Get(index)->name = s_surfaceName;
                                     s_pages.Get(index)->followMCP = s_followMCP;
@@ -2669,7 +2669,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                     s_pages.Get(index)->scrollSynch = s_scrollSynch;
 
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
-                                    for(int i = 0; i < s_pages.GetSize(); ++i)
+                                    for (int i = 0; i < s_pages.GetSize(); ++i)
                                         AddListEntry(hwndDlg, s_pages.Get(i)->name, IDC_LIST_Pages);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                                 }
@@ -2690,7 +2690,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_PageSurfaces, LB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
                                 s_dlgResult = false;
                                 s_editMode = true;
@@ -2698,7 +2698,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(s_pageSurfaceName.c_str()));
 
                                 int pageIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
-                                if(pageIndex >= 0)
+                                if (pageIndex >= 0)
                                 {
                                     s_numChannels = s_pages.Get(pageIndex)->surfaces.Get(index)->numChannels;
                                     s_channelOffset = s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset;
@@ -2709,7 +2709,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
-                                    if(s_dlgResult == IDOK)
+                                    if (s_dlgResult == IDOK)
                                     {
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->numChannels = s_numChannels;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset = s_channelOffset;
@@ -2729,12 +2729,12 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
                                 s_surfaces.Delete(index, true);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
-                                for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                                for (int i = 0; i < s_surfaces.GetSize(); ++i)
                                     AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_Surfaces);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
                             }
@@ -2745,7 +2745,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
-                            if(index >= 0)
+                            if (index >= 0)
                             {
                                 s_pages.Delete(index, true);
                                 
@@ -2753,7 +2753,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 #ifdef WIN32
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 #endif
-                                for(int i = 0; i < s_pages.GetSize(); ++i)
+                                for (int i = 0; i < s_pages.GetSize(); ++i)
                                     AddListEntry(hwndDlg, s_pages.Get(i)->name, IDC_LIST_Pages);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                             }
@@ -2764,16 +2764,16 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
                             int pageIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
-                            if(pageIndex >= 0)
+                            if (pageIndex >= 0)
                             {
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_PageSurfaces, LB_GETCURSEL, 0, 0);
-                                if(index >= 0)
+                                if (index >= 0)
                                 {
                                     s_pages.Get(pageIndex)->surfaces.Delete(index, true);
                                     
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
-                                    for(int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
+                                    for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
                                         AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurfaceName, IDC_LIST_PageSurfaces);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                 }
@@ -2798,9 +2798,9 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 lineNumber++;
                 
-                if(lineNumber == 1)
+                if (lineNumber == 1)
                 {
-                    if(line != s_MajorVersionToken)
+                    if (line != s_MajorVersionToken)
                     {
                         MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + s_MajorVersionToken).c_str(), ("This is CSI " + s_MajorVersionToken).c_str(), MB_OK);
                         iniFile.close();
@@ -2810,7 +2810,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         continue;
                 }
                 
-                if(line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
+                if (line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
                 {
                     istringstream iss(line);
                     vector<string> tokens;
@@ -2819,18 +2819,18 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     while (iss >> quoted(token))
                         tokens.push_back(token);
                     
-                    if(tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
+                    if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
                     {
                         SurfaceLine *surface = new SurfaceLine();
                         
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
-                        if((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5))
+                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5))
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
-                            if(surface->type == s_OSCSurfaceToken && tokens.size() == 5)
+                            if (surface->type == s_OSCSurfaceToken && tokens.size() == 5)
                                 surface->remoteDeviceIP = tokens[4];
                         }
                         
@@ -2838,22 +2838,22 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                     }
-                    else if(tokens[0] == s_PageToken && tokens.size() > 1)
+                    else if (tokens[0] == s_PageToken && tokens.size() > 1)
                     {
                         bool followMCP = true;
                         bool synchPages = true;
                         bool isScrollLinkEnabled = false;
                         bool scrollSynch = false;
 
-                        for(int i = 2; i < tokens.size(); i++)
+                        for (int i = 2; i < tokens.size(); i++)
                         {
-                            if(tokens[i] == "FollowTCP")
+                            if (tokens[i] == "FollowTCP")
                                 followMCP = false;
-                            else if(tokens[i] == "NoSynchPages")
+                            else if (tokens[i] == "NoSynchPages")
                                 synchPages = false;
-                            else if(tokens[i] == "UseScrollLink")
+                            else if (tokens[i] == "UseScrollLink")
                                 isScrollLinkEnabled = true;
-                            else if(tokens[i] == "UseScrollSynch")
+                            else if (tokens[i] == "UseScrollSynch")
                                 scrollSynch = true;
                         }
 
@@ -2868,13 +2868,13 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
-                    else if(tokens[0] == "Broadcaster" && tokens.size() == 2 && s_pages.GetSize() > 0)
+                    else if (tokens[0] == "Broadcaster" && tokens.size() == 2 && s_pages.GetSize() > 0)
                     {
                         Broadcaster *broadcaster = new Broadcaster();
                         broadcaster->name = tokens[1];
                         s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Add(broadcaster);
                     }
-                    else if(tokens[0] == "Listener" && tokens.size() == 3 && s_pages.GetSize() > 0 && s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() > 0)
+                    else if (tokens[0] == "Listener" && tokens.size() == 3 && s_pages.GetSize() > 0 && s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() > 0)
                     {
                         Listener *listener = new Listener();
                         listener->name = tokens[1];
@@ -2882,37 +2882,37 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         vector<string> categoryTokens;
                         GetTokens(categoryTokens, tokens[2]);
                         
-                        for(int i = 0; i < (int)categoryTokens.size(); ++i)
+                        for (int i = 0; i < (int)categoryTokens.size(); ++i)
                         {
-                            if(categoryTokens[i] == "GoHome")
+                            if (categoryTokens[i] == "GoHome")
                                 listener->goHome = true;
-                            if(categoryTokens[i] == "Sends")
+                            if (categoryTokens[i] == "Sends")
                                 listener->sends = true;
-                            if(categoryTokens[i] == "Receives")
+                            if (categoryTokens[i] == "Receives")
                                 listener->receives = true;
-                            if(categoryTokens[i] == "FocusedFX")
+                            if (categoryTokens[i] == "FocusedFX")
                                 listener->focusedFX = true;
-                            if(categoryTokens[i] == "FocusedFXParam")
+                            if (categoryTokens[i] == "FocusedFXParam")
                                 listener->focusedFXParam = true;
-                            if(categoryTokens[i] == "FXMenu")
+                            if (categoryTokens[i] == "FXMenu")
                                 listener->fxMenu = true;
-                            if(categoryTokens[i] == "LocalFXSlot")
+                            if (categoryTokens[i] == "LocalFXSlot")
                                 listener->localFXSlot = true;
-                            if(categoryTokens[i] == "Modifiers")
+                            if (categoryTokens[i] == "Modifiers")
                                 listener->modifiers = true;
-                            if(categoryTokens[i] == "SelectedTrackFX")
+                            if (categoryTokens[i] == "SelectedTrackFX")
                                 listener->selectedTrackFX = true;
-                            if(categoryTokens[i] == "Custom")
+                            if (categoryTokens[i] == "Custom")
                                 listener->custom = true;
                         }
                         
                         s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Get(s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() - 1)->listeners.Add(listener);
                     }
-                    else if(tokens.size() == 6 || tokens.size() == 7)
+                    else if (tokens.size() == 6 || tokens.size() == 7)
                     {
                         bool useLocalModifiers = false;
                         
-                        if(tokens[0] == "LocalModifiers")
+                        if (tokens[0] == "LocalModifiers")
                         {
                             useLocalModifiers = true;
                             tokens.erase(tokens.begin()); // pop front
@@ -2935,17 +2935,17 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 }
             }
           
-            if(s_surfaces.GetSize() > 0)
+            if (s_surfaces.GetSize() > 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, 0, 0);
             
-            if(s_pages.GetSize() > 0)
+            if (s_pages.GetSize() > 0)
             {
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, 0, 0);
 
                 // the messages above don't trigger the user-initiated code, so pretend the user selected them
                 SendMessage(hwndDlg, WM_COMMAND, MAKEWPARAM(IDC_LIST_Pages, LBN_SELCHANGE), 0);
                 
-                if(s_pages.Get(0)->surfaces.GetSize() > 0)
+                if (s_pages.Get(0)->surfaces.GetSize() > 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
             }
         }
@@ -2955,11 +2955,11 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         {
             s_surfaces.Empty(true);
         
-            for(int i = 0; i < s_pages.GetSize(); ++i)
+            for (int i = 0; i < s_pages.GetSize(); ++i)
             {
                 s_pages.Get(i)->surfaces.Empty(true);
                 
-                for(int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
+                for (int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
                     s_pages.Get(i)->broadcasters.Get(j)->listeners.Empty();
                     
                 s_pages.Get(i)->broadcasters.Empty(true);
@@ -2973,7 +2973,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         {
             ofstream iniFile(string(DAW::GetResourcePath()) + "/CSI/CSI.ini");
 
-            if(iniFile.is_open())
+            if (iniFile.is_open())
             {
                 iniFile << s_MajorVersionToken + "\n";
                 
@@ -2981,14 +2981,14 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 string line = "";
                 
-                for(int i = 0; i < s_surfaces.GetSize(); ++i)
+                for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 {
                     line = s_surfaces.Get(i)->type + " ";
                     line += "\"" + s_surfaces.Get(i)->name + "\" ";
                     line += to_string(s_surfaces.Get(i)->inPort) + " ";
                     line += to_string(s_surfaces.Get(i)->outPort) + " ";
 
-                    if(s_surfaces.Get(i)->type == s_OSCSurfaceToken)
+                    if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
                         line += s_surfaces.Get(i)->remoteDeviceIP;
                     
                     iniFile << line + "\n";
@@ -2996,28 +2996,28 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 iniFile << "\n";
                 
-                for(int i = 0; i < s_pages.GetSize(); ++i)
+                for (int i = 0; i < s_pages.GetSize(); ++i)
                 {
                     line = s_PageToken + " ";
                     line += "\"" + s_pages.Get(i)->name + "\"";
                     
-                    if(s_pages.Get(i)->followMCP == false)
+                    if (s_pages.Get(i)->followMCP == false)
                         line += " FollowTCP";
                                         
-                    if(s_pages.Get(i)->synchPages == false)
+                    if (s_pages.Get(i)->synchPages == false)
                         line += " NoSynchPages";
                     
-                    if(s_pages.Get(i)->isScrollLinkEnabled == true)
+                    if (s_pages.Get(i)->isScrollLinkEnabled == true)
                         line += " UseScrollLink";
                     
-                    if(s_pages.Get(i)->scrollSynch == true)
+                    if (s_pages.Get(i)->scrollSynch == true)
                         line += " UseScrollSynch";
 
                     line += "\n";
                     
                     iniFile << line;
 
-                    for(int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
+                    for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
                         line = "\t";
                         line += "\"" + s_pages.Get(i)->surfaces.Get(j)->pageSurfaceName + "\" ";
@@ -3032,36 +3032,36 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     
                     iniFile << "\n";
                     
-                    for(int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
+                    for (int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
                     {
-                        if(s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize() == 0)
+                        if (s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize() == 0)
                             continue;
                         
                         iniFile << string("\tBroadcaster ") + "\"" + s_pages.Get(i)->broadcasters.Get(j)->name + "\"\n";
                         
-                        for(int k = 0; k < s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize(); ++k)
+                        for (int k = 0; k < s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize(); ++k)
                         {
                             string listenerCategories = "";
                             
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->goHome)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->goHome)
                                 listenerCategories += "GoHome ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->sends)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->sends)
                                 listenerCategories += "Sends ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->receives)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->receives)
                                 listenerCategories += "Receives ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFX)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFX)
                                 listenerCategories += "FocusedFX ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFXParam)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFXParam)
                                 listenerCategories += "FocusedFXParam ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->fxMenu)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->fxMenu)
                                 listenerCategories += "FXMenu ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->localFXSlot)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->localFXSlot)
                                 listenerCategories += "LocalFXSlot ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->modifiers)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->modifiers)
                                 listenerCategories += "Modifiers ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->selectedTrackFX)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->selectedTrackFX)
                                 listenerCategories += "SelectedTrackFX ";
-                            if(s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->custom)
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->custom)
                                 listenerCategories += "Custom ";
 
                             iniFile << string("\t\tListener ") + "\"" + s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->name + "\" \"" + listenerCategories + "\"\n";
