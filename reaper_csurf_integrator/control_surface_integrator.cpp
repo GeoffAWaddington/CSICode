@@ -583,6 +583,8 @@ void Zone::GCTagZone(Zone *zone)
 
 void ZoneManager::GarbageCollectZones()
 {
+    return;  // GAW -- disable for now, causing crash under certain conditions
+
     for (int x = 0; x < allZonesNeedFree_.GetSize(); x ++)
     {
         if (allZonesNeedFree_.Get(x)->zoneManager_ != this)
