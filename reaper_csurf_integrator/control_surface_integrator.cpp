@@ -583,7 +583,8 @@ void Zone::GCTagZone(Zone *zone)
 
 void ZoneManager::GarbageCollectZones()
 {
-    return;  // GAW -- disable for now, causing crash under certain conditions
+    if (needGarbageCollect_ == false) return;
+    needGarbageCollect_ = false;
 
     for (int x = 0; x < allZonesNeedFree_.GetSize(); x ++)
     {
@@ -2951,7 +2952,7 @@ void ZoneManager::CheckFocusedFXState()
             else if (retval & 4)
             {
                 focusedFXZones_.Empty();
-                GarbageCollectZones();
+                needGarbageCollect_ = true;
             }
             
             if (focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
@@ -3041,7 +3042,7 @@ void ZoneManager::GoFocusedFX()
         for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
             focusedFXZones_.Get(i)->RestoreXTouchDisplayColors();
 
-    GarbageCollectZones();
+    needGarbageCollect_ = true;
 }
 
 void ZoneManager::GoSelectedTrackFX()
@@ -3075,7 +3076,7 @@ void ZoneManager::GoSelectedTrackFX()
             }
         }
     }
-    GarbageCollectZones();
+    needGarbageCollect_ = true;
 }
 
 void ZoneManager::AutoMapFocusedFX()
@@ -3184,7 +3185,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
         noMapZone_->SetSlotIndex(fxSlot);
         noMapZone_->Activate();
     }
-    GarbageCollectZones();
+    needGarbageCollect_ = true;
 }
 
 void ZoneManager::UpdateCurrentActionContextModifiers()
@@ -4053,7 +4054,7 @@ void ZoneManager::RemapAutoZone()
             
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(slotNumber);
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
-            GarbageCollectZones();
+            needGarbageCollect_ = true;
         }
     }
 }
@@ -4437,7 +4438,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
             fxSlotZones_.Get(fxSlotZones_.GetSize() -1)->SetSlotIndex(fxIndex);
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
         }
-        GarbageCollectZones();
+        needGarbageCollect_ = true;
     }
 }
 

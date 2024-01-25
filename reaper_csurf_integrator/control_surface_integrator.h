@@ -1114,6 +1114,8 @@ private:
     bool listensToSelectedTrackFX_;
     bool listensToCustom_;
 
+    bool needGarbageCollect_;
+
     Zone *focusedFXParamZone_;
     bool isFocusedFXParamMappingEnabled_;
     
@@ -1421,7 +1423,7 @@ private:
         focusedFXZones_.Empty();
         focusedFXDictionary_.clear();
 
-        GarbageCollectZones();
+        needGarbageCollect_ = true;
     }
         
     void ClearSelectedTrackFX()
@@ -1431,7 +1433,7 @@ private:
         
         selectedTrackFXZones_.Empty();
 
-        GarbageCollectZones();
+        needGarbageCollect_ = true;
     }
     
     void ClearFXSlot(Zone *zone)
@@ -1444,7 +1446,7 @@ private:
                 fxSlotZones_.Delete(i);
                 if (homeZone_ != nullptr)
                     homeZone_->ReactivateFXMenuZone();
-                GarbageCollectZones();
+                needGarbageCollect_ = true;
                 break;
             }
         }
@@ -1600,6 +1602,8 @@ public:
         listensToLocalFXSlot_ = false;
         listensToSelectedTrackFX_ = false;
         listensToCustom_ = false;
+
+        needGarbageCollect_ = false;
 
         isFocusedFXParamMappingEnabled_ = false;
         
@@ -1851,7 +1855,7 @@ public:
     void OnTrackSelection()
     {
         fxSlotZones_.Empty();
-        GarbageCollectZones();
+        needGarbageCollect_ = true;
     }
 
     void OnTrackDeselection()
@@ -1864,7 +1868,7 @@ public:
             
             homeZone_->OnTrackDeselection();
 
-            GarbageCollectZones();
+            needGarbageCollect_ = true;
         }
     }
     
@@ -1908,7 +1912,7 @@ public:
         selectedTrackFXZones_.Empty();
         fxSlotZones_.Empty();
 
-        GarbageCollectZones();
+        needGarbageCollect_ = true;
     }
            
     void AdjustBank(const string &zoneName, int amount)
@@ -1983,6 +1987,7 @@ public:
                 widget->UpdateColorValue(color);
             }
         }
+        GarbageCollectZones();
     }
 
     void DoAction(Widget *widget, double value)
