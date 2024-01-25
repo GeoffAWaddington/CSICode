@@ -814,10 +814,10 @@ public:
         for (int i = 0; i < widgets_.GetSize(); i ++)
         {
             Widget *widget = NULL;
-            bool *p = widgets_.EnumeratePtr(i,&widget);
-            if (WDL_NORMALLY(p && widget) && !*p)
+            widgets_.EnumeratePtr(i,&widget);
+            if (WDL_NORMALLY(widget) && usedWidgets[widget] == false)
             {
-                *p = true;
+                usedWidgets[widget] = true;
                 RequestUpdateWidget(widget);
             }
         }
