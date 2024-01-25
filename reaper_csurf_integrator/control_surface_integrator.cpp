@@ -688,7 +688,6 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             SetFocusedFXParamZone(zone);
                         
                         zones.Add(zone);
-                        allZonesNeedFree_.Add(zone);
                         
                         for (auto [widgetName, modifiedActionTemplates] : actionTemplatesDictionary)
                         {
@@ -742,6 +741,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                     
                         if (enclosingZone == nullptr && subZones.size() > 0)
                             zone->InitSubZones(subZones, zone);
+                        allZonesNeedFree_.Add(zone);
                     }
                                     
                     includedZones.clear();
