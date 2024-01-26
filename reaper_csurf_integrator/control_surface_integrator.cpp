@@ -715,8 +715,6 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                     for (int i = 0; i < navigators.GetSize(); i++)
                     {
                         string numStr = to_string(i + 1);
-                        
-                        map<string, string> expandedTouchIds;
                                                 
                         Zone *zone;
                         

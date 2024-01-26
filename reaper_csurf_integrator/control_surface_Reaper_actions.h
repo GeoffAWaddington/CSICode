@@ -3800,8 +3800,6 @@ public:
     virtual void RequestUpdate(ActionContext *context) override
     {
         int stopState = DAW::GetPlayState();
-
-        map<string, string> properties;
         
         if (stopState == 0 || stopState == 2 || stopState == 6) // stopped or paused or paused whilst recording
         {
