@@ -47,7 +47,6 @@ int g_registered_command_toggle_write_FX_params = 0;
 
 extern bool hookCommandProc(int command, int flag);
 
-extern void ShutdownMidiIO();
 extern void ShutdownOSCIO();
 
 extern reaper_csurf_reg_t csurf_integrator_reg;
@@ -64,7 +63,6 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
     
     if (! reaper_plugin_info)
     {
-        ShutdownMidiIO();
         ShutdownOSCIO();
         return 0;
     }

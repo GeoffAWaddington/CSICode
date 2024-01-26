@@ -70,93 +70,88 @@ int strToHex(const string &valueStr)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct MidiInputPort
+struct MidiPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    int port;
-    midi_Input *midiInput;
+    int port, refcnt;
+    void *dev;
     
-    MidiInputPort()
-    {
-        port = 0;
-        midiInput = nullptr;
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct MidiOutputPort
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    int port;
-    midi_Output *midiOutput;
-    
-    MidiOutputPort()
-    {
-        port = 0;
-        midiOutput = nullptr;
-    }
+    MidiPort(int portidx, void *devptr) : port(portidx), refcnt(1), dev(devptr) { };
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static WDL_TypedBuf<MidiInputPort> s_midiInputs;
-static WDL_TypedBuf<MidiOutputPort> s_midiOutputs;
+static WDL_TypedBuf<MidiPort> s_midiInputs, s_midiOutputs;
+
+void ReleaseMidiInput(midi_Input *input)
+{
+    for(int i = 0; i < s_midiInputs.GetSize(); ++i)
+        if (s_midiInputs.Get()[i].dev == (void*)input)
+        {
+            if (!--s_midiInputs.Get()[i].refcnt)
+            {
+                input->stop();
+                delete input;
+                s_midiInputs.Delete(i);
+                break;
+            }
+        }
+}
+
+void ReleaseMidiOutput(midi_Output *output)
+{
+    for(int i = 0; i < s_midiOutputs.GetSize(); ++i)
+        if (s_midiOutputs.Get()[i].dev == (void*)output)
+        {
+            if (!--s_midiOutputs.Get()[i].refcnt)
+            {
+                delete output;
+                s_midiOutputs.Delete(i);
+                break;
+            }
+        }
+}
 
 static midi_Input *GetMidiInputForPort(int inputPort)
 {
     for(int i = 0; i < s_midiInputs.GetSize(); ++i)
         if(s_midiInputs.Get()[i].port == inputPort)
-            return s_midiInputs.Get()[i].midiInput; // return existing
+        {
+            s_midiInputs.Get()[i].refcnt++;
+            return (midi_Input *)s_midiInputs.Get()[i].dev;
+        }
     
-    // otherwise make new
     midi_Input *newInput = DAW::CreateMIDIInput(inputPort);
     
     if (newInput)
     {
         newInput->start();
-        MidiInputPort midiInputPort;
-        midiInputPort.port = inputPort;
-        midiInputPort.midiInput = newInput;
-        if(s_midiInputs.Add(midiInputPort))
-            return newInput;
-        else
-            return nullptr;
+        MidiPort midiInputPort(inputPort, newInput);
+        s_midiInputs.Add(midiInputPort);
     }
     
-    return nullptr;
+    return newInput;
 }
 
 static midi_Output *GetMidiOutputForPort(int outputPort)
 {
     for(int i = 0; i < s_midiOutputs.GetSize(); ++i)
         if(s_midiOutputs.Get()[i].port == outputPort)
-            return s_midiOutputs.Get()[i].midiOutput; // return existing
+        {
+            s_midiOutputs.Get()[i].refcnt++;
+            return (midi_Output *)s_midiOutputs.Get()[i].dev;
+        }
     
-    // otherwise make new
     midi_Output *newOutput = DAW::CreateMIDIOutput(outputPort, false, NULL);
     
     if (newOutput)
     {
-        MidiOutputPort midiOutputPort;
-        midiOutputPort.port = outputPort;
-        midiOutputPort.midiOutput = newOutput;
-        if(s_midiOutputs.Add(midiOutputPort))
-            return newOutput;
-        else
-            return nullptr;
+        MidiPort midiOutputPort(outputPort, newOutput);
+        s_midiOutputs.Add(midiOutputPort);
     }
     
-    return nullptr;
-}
-
-void ShutdownMidiIO()
-{
-    for(int i = 0; i < s_midiInputs.GetSize(); ++i)
-        s_midiInputs.Get()[i].midiInput->stop();
-    
-    s_midiInputs.Resize(0);
-    s_midiOutputs.Resize(0);
+    return newOutput;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

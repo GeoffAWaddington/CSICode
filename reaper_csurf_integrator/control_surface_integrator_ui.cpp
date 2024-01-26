@@ -10,7 +10,8 @@
 #include "WDL/dirscan.h"
 #include "WDL/wdlcstring.h"
 
-unique_ptr<Manager> TheManager;
+void ShutdownOSCIO();
+Manager *TheManager;
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
@@ -61,13 +62,19 @@ bool hookCommandProc(int command, int flag)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 CSurfIntegrator::CSurfIntegrator()
 {
-    TheManager = make_unique<Manager>();
+    // JF - Manager should be a member of CSurfIntegrator?
+    if (!TheManager) TheManager = new Manager;
+    TheManager->csurf_refcnt_++;
 }
 
 CSurfIntegrator::~CSurfIntegrator()
 {
-    if (TheManager)
-        TheManager->Shutdown();
+    if (TheManager && !--TheManager->csurf_refcnt_)
+    {
+        delete TheManager;
+        TheManager = NULL;
+        ShutdownOSCIO();
+    }
 }
 
 void CSurfIntegrator::OnTrackSelection(MediaTrack *trackid)
