@@ -1987,6 +1987,7 @@ public:
                 widget->UpdateColorValue(color);
             }
         }
+        
         GarbageCollectZones();
     }
 

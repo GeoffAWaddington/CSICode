@@ -73,32 +73,41 @@ int strToHex(const string &valueStr)
 struct MidiInputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    int port_ = 0;
-    midi_Input *midiInput_ = nullptr;
+    int port;
+    midi_Input *midiInput;
     
-    MidiInputPort(int port, midi_Input *midiInput) : port_(port), midiInput_(midiInput) {}
+    MidiInputPort()
+    {
+        port = 0;
+        midiInput = nullptr;
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct MidiOutputPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    int port_ = 0;
-    midi_Output *midiOutput_ = nullptr;
+    int port;
+    midi_Output *midiOutput;
     
-    MidiOutputPort(int port, midi_Output *midiOutput) : port_(port), midiOutput_(midiOutput) {}
+    MidiOutputPort()
+    {
+        port = 0;
+        midiOutput = nullptr;
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<int, MidiInputPort*> s_midiInputs;
-static map<int, MidiOutputPort*> s_midiOutputs;
+static WDL_TypedBuf<MidiInputPort> s_midiInputs;
+static WDL_TypedBuf<MidiOutputPort> s_midiOutputs;
 
 static midi_Input *GetMidiInputForPort(int inputPort)
 {
-    if (s_midiInputs.count(inputPort) > 0)
-        return s_midiInputs[inputPort]->midiInput_; // return existing
+    for(int i = 0; i < s_midiInputs.GetSize(); ++i)
+        if(s_midiInputs.Get()[i].port == inputPort)
+            return s_midiInputs.Get()[i].midiInput; // return existing
     
     // otherwise make new
     midi_Input *newInput = DAW::CreateMIDIInput(inputPort);
@@ -106,8 +115,13 @@ static midi_Input *GetMidiInputForPort(int inputPort)
     if (newInput)
     {
         newInput->start();
-        s_midiInputs[inputPort] = new MidiInputPort(inputPort, newInput);
-        return newInput;
+        MidiInputPort midiInputPort;
+        midiInputPort.port = inputPort;
+        midiInputPort.midiInput = newInput;
+        if(s_midiInputs.Add(midiInputPort))
+            return newInput;
+        else
+            return nullptr;
     }
     
     return nullptr;
@@ -115,16 +129,22 @@ static midi_Input *GetMidiInputForPort(int inputPort)
 
 static midi_Output *GetMidiOutputForPort(int outputPort)
 {
-    if (s_midiOutputs.count(outputPort) > 0)
-        return s_midiOutputs[outputPort]->midiOutput_; // return existing
+    for(int i = 0; i < s_midiOutputs.GetSize(); ++i)
+        if(s_midiOutputs.Get()[i].port == outputPort)
+            return s_midiOutputs.Get()[i].midiOutput; // return existing
     
     // otherwise make new
     midi_Output *newOutput = DAW::CreateMIDIOutput(outputPort, false, NULL);
     
     if (newOutput)
     {
-        s_midiOutputs[outputPort] = new MidiOutputPort(outputPort, newOutput);
-        return newOutput;
+        MidiOutputPort midiOutputPort;
+        midiOutputPort.port = outputPort;
+        midiOutputPort.midiOutput = newOutput;
+        if(s_midiOutputs.Add(midiOutputPort))
+            return newOutput;
+        else
+            return nullptr;
     }
     
     return nullptr;
@@ -132,26 +152,38 @@ static midi_Output *GetMidiOutputForPort(int outputPort)
 
 void ShutdownMidiIO()
 {
-    for (auto [index, input] : s_midiInputs)
-        input->midiInput_->stop();
+    for(int i = 0; i < s_midiInputs.GetSize(); ++i)
+        s_midiInputs.Get()[i].midiInput->stop();
     
-    for (auto [index, input] : s_midiInputs)
-        delete input;
-    
-    for (auto [index, output] : s_midiOutputs)
-        delete output;
+    s_midiInputs.Resize(0);
+    s_midiOutputs.Resize(0);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct OSCSurfaceSocket
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    string surfaceName;
+    oscpkt::UdpSocket *socket;
+    
+    OSCSurfaceSocket()
+    {
+        surfaceName = "";
+        socket = nullptr;
+    }
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static map<string, oscpkt::UdpSocket*> s_inputSockets;
-static map<string, oscpkt::UdpSocket*> s_outputSockets;
+static WDL_TypedBuf<OSCSurfaceSocket> s_inputSockets;
+static WDL_TypedBuf<OSCSurfaceSocket> s_outputSockets;
 
 static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPort)
 {
-    if (s_inputSockets.count(surfaceName) > 0)
-        return s_inputSockets[surfaceName]; // return existing
+    for(int i = 0; i < s_inputSockets.GetSize(); ++i)
+        if(s_inputSockets.Get()[i].surfaceName == surfaceName)
+            return s_inputSockets.Get()[i].socket; // return existing
     
     // otherwise make new
     oscpkt::UdpSocket *newInputSocket = new oscpkt::UdpSocket();
@@ -166,9 +198,13 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
             return nullptr;
         }
         
-        s_inputSockets[surfaceName] = newInputSocket;
-        
-        return s_inputSockets[surfaceName];
+        OSCSurfaceSocket surfaceSocket;
+        surfaceSocket.surfaceName = surfaceName;
+        surfaceSocket.socket = newInputSocket;
+        if(s_inputSockets.Add(surfaceSocket))
+            return newInputSocket;
+        else
+            return nullptr;
     }
     
     return nullptr;
@@ -176,8 +212,9 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
 
 static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
-    if (s_outputSockets.count(surfaceName) > 0)
-        return s_outputSockets[surfaceName]; // return existing
+    for(int i = 0; i < s_outputSockets.GetSize(); ++i)
+        if(s_outputSockets.Get()[i].surfaceName == surfaceName)
+            return s_outputSockets.Get()[i].socket; // return existing
     
     // otherwise make new
     oscpkt::UdpSocket *newOutputSocket = new oscpkt::UdpSocket();
@@ -190,17 +227,19 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
             return nullptr;
         }
         
-        //newOutputSocket->bindTo(outputPort);
-        
         if ( ! newOutputSocket->isOk())
         {
             //cerr << "Error opening port " << outPort_ << ": " << outSocket_.errorMessage() << "\n";
             return nullptr;
         }
 
-        s_outputSockets[surfaceName] = newOutputSocket;
-        
-        return s_outputSockets[surfaceName];
+        OSCSurfaceSocket surfaceSocket;
+        surfaceSocket.surfaceName = surfaceName;
+        surfaceSocket.socket = newOutputSocket;
+        if(s_outputSockets.Add(surfaceSocket))
+            return newOutputSocket;
+        else
+            return nullptr;
     }
     
     return nullptr;
@@ -208,11 +247,15 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
 
 void ShutdownOSCIO()
 {
-    for (auto [index, input] : s_inputSockets)
-        delete input;
+    for(int i = 0; i < s_inputSockets.GetSize(); ++i)
+        delete s_inputSockets.Get()[i].socket;
     
-    for (auto [index, output] : s_outputSockets)
-        delete output;
+    s_inputSockets.Resize(0);
+    
+    for(int i = 0; i < s_outputSockets.GetSize(); ++i)
+        delete s_outputSockets.Get()[i].socket;
+    
+    s_outputSockets.Resize(0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -5146,7 +5189,6 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
 
         inSocket_  = inSocket;
         outSocket_ = inSocket;
-        s_outputSockets[surfaceName] = outSocket_;
     }
  }
 
