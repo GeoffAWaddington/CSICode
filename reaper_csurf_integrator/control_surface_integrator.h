@@ -2766,6 +2766,34 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct ChannelTouch
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    int channelNum;
+    bool isTouched;
+    
+    ChannelTouch()
+    {
+        channelNum = 0;
+        isTouched = false;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct ChannelToggle
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    int channelNum;
+    bool isToggled;
+    
+    ChannelToggle()
+    {
+        channelNum = 0;
+        isToggled = false;
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
@@ -2787,9 +2815,9 @@ private:
     WDL_PtrList<FeedbackProcessor> trackColorFeedbackProcessors_; // does not own pointers
     vector<rgba_color> fixedTrackColors_;
     
-    map<int, bool> channelTouches_;
-    map<int, bool> channelToggles_;
-    
+    WDL_TypedBuf<ChannelTouch> channelTouches_;
+    WDL_TypedBuf<ChannelToggle> channelToggles_;
+
 protected:
     Page *const page_;
     string const name_;
@@ -2833,8 +2861,13 @@ protected:
         
         for (int i = 1 ; i <= numChannels; i++)
         {
-            channelTouches_[i] = false;
-            channelToggles_[i] = false;
+            ChannelTouch channelTouch;
+            channelTouch.channelNum = i;
+            channelTouches_.Add(channelTouch);
+            
+            ChannelToggle channelToggle;
+            channelToggle.channelNum = i;
+            channelToggles_.Add(channelToggle);
         }
     }
     
@@ -2931,24 +2964,42 @@ public:
 
     void TouchChannel(int channelNum, bool isTouched)
     {
-        if (channelNum > 0 && channelNum <= numChannels_)
-            channelTouches_[channelNum] = isTouched;
+        for(int i = 0; i < channelTouches_.GetSize(); ++i)
+            if(channelTouches_.Get()[i].channelNum == channelNum)
+            {
+                channelTouches_.Get()[i].isTouched = isTouched;
+                break;
+            }
     }
     
     bool GetIsChannelTouched(int channelNum)
     {
-        if (channelNum > 0 && channelNum <= numChannels_)
-            return channelTouches_[channelNum];
-        else
-            return false;
+        for(int i = 0; i < channelTouches_.GetSize(); ++i)
+            if(channelTouches_.Get()[i].channelNum == channelNum)
+                return channelTouches_.Get()[i].isTouched;
+
+        return false;
     }
        
     void ToggleChannel(int channelNum)
     {
-        if (channelNum > 0 && channelNum <= numChannels_)
-            channelToggles_[channelNum] = ! channelToggles_[channelNum];
+        for(int i = 0; i < channelToggles_.GetSize(); ++i)
+            if(channelToggles_.Get()[i].channelNum == channelNum)
+            {
+                channelToggles_.Get()[i].isToggled = ! channelToggles_.Get()[i].isToggled;
+                break;
+            }
     }
     
+    bool GetIsChannelToggled(int channelNum)
+    {
+        for(int i = 0; i < channelToggles_.GetSize(); ++i)
+            if(channelToggles_.Get()[i].channelNum == channelNum)
+                return channelToggles_.Get()[i].isToggled;
+
+        return false;
+    }
+
     void ToggleRestrictTextLength(int length)
     {
         isTextLengthRestricted_ = ! isTextLengthRestricted_;
@@ -2985,15 +3036,7 @@ public:
 
         return restrictedText;
     }
-    
-    bool GetIsChannelToggled(int channelNum)
-    {
-        if (channelNum > 0 && channelNum <= numChannels_)
-            return channelToggles_[channelNum];
-        else
-            return false;
-    }
-       
+           
     void AddTrackColorFeedbackProcessor(FeedbackProcessor *feedbackProcessor) // does not own this pointer
     {
         if (WDL_NOT_NORMALLY(!feedbackProcessor)) { return; }
