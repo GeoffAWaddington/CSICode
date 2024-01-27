@@ -257,6 +257,7 @@ public:
     
     virtual string GetName() { return "Navigator"; }
     virtual MediaTrack *GetTrack() { return nullptr; }
+    virtual int GetChannelNum() { return 0; }
 
     bool GetIsNavigatorTouched() { return isVolumeTouched_ || isPanTouched_ || isPanWidthTouched_ || isPanLeftTouched_ || isPanRightTouched_; }
     
@@ -293,6 +294,9 @@ public:
     virtual string GetName() override { return "TrackNavigator"; }
    
     virtual MediaTrack *GetTrack() override;
+    
+    virtual int GetChannelNum() override { return channelNum_; }
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3597,7 +3601,7 @@ private:
     WDL_PtrList<MediaTrack> folderSpillTracks_;
     map<MediaTrack*, WDL_PtrList<MediaTrack>> folderDictionary_;
 
-    map<int, Navigator*> trackNavigators_;
+    WDL_PtrList<Navigator> trackNavigators_;
     Navigator *const masterTrackNavigator_;
     Navigator *selectedTrackNavigator_;
     Navigator *focusedFXNavigator_;
@@ -3611,8 +3615,8 @@ private:
         
         if (selectedTrack != nullptr)
         {
-            for (auto  [key, navigator] : trackNavigators_)
-                if (selectedTrack == navigator->GetTrack())
+            for (int i = 0; i < trackNavigators_.GetSize(); ++i)
+                if (selectedTrack == trackNavigators_.Get(i)->GetTrack())
                     return;
             
             for (int i = 1; i <= GetNumTracks(); i++)
@@ -3629,7 +3633,7 @@ private:
             if (trackOffset_ <  0)
                 trackOffset_ =  0;
             
-            int top = GetNumTracks() - (int)trackNavigators_.size();
+            int top = GetNumTracks() - trackNavigators_.GetSize();
             
             if (trackOffset_ >  top)
                 trackOffset_ = top;
@@ -3664,8 +3668,7 @@ public:
         delete selectedTrackNavigator_;
         delete focusedFXNavigator_;
         
-        for (auto [key, navigator] : trackNavigators_)
-            delete navigator;
+        trackNavigators_.Empty(true);
     }
     
     void RebuildTracks();
@@ -3835,7 +3838,7 @@ public:
 
         int numTracks = tracks_.GetSize();
         
-        if (numTracks <= (int)trackNavigators_.size())
+        if (numTracks <= trackNavigators_.GetSize())
             return;
        
         trackOffset_ += amount;
@@ -3843,7 +3846,7 @@ public:
         if (trackOffset_ <  0)
             trackOffset_ =  0;
         
-        int top = numTracks - (int)trackNavigators_.size();
+        int top = numTracks - trackNavigators_.GetSize();
         
         if (trackOffset_ >  top)
             trackOffset_ = top;
@@ -3866,7 +3869,7 @@ public:
 
         int numTracks = vcaSpillTracks_.GetSize();
             
-        if (numTracks <= (int)trackNavigators_.size())
+        if (numTracks <= trackNavigators_.GetSize())
             return;
        
         vcaTrackOffset_ += amount;
@@ -3874,7 +3877,7 @@ public:
         if (vcaTrackOffset_ <  0)
             vcaTrackOffset_ =  0;
         
-        int top = numTracks - (int)trackNavigators_.size();
+        int top = numTracks - trackNavigators_.GetSize();
         
         if (vcaTrackOffset_ >  top)
             vcaTrackOffset_ = top;
@@ -3887,7 +3890,7 @@ public:
 
         int numTracks = folderSpillTracks_.GetSize();
         
-        if (numTracks <= trackNavigators_.size())
+        if (numTracks <= trackNavigators_.GetSize())
             return;
        
         folderTrackOffset_ += amount;
@@ -3895,7 +3898,7 @@ public:
         if (folderTrackOffset_ <  0)
             folderTrackOffset_ =  0;
         
-        int top = numTracks - (int)trackNavigators_.size();
+        int top = numTracks - trackNavigators_.GetSize();
         
         if (folderTrackOffset_ >  top)
             folderTrackOffset_ = top;
@@ -3908,7 +3911,7 @@ public:
 
         int numTracks = selectedTracks_.GetSize();
        
-        if (numTracks <= trackNavigators_.size())
+        if (numTracks <= trackNavigators_.GetSize())
             return;
         
         selectedTracksOffset_ += amount;
@@ -3916,7 +3919,7 @@ public:
         if (selectedTracksOffset_ < 0)
             selectedTracksOffset_ = 0;
         
-        int top = numTracks - (int)trackNavigators_.size();
+        int top = numTracks - trackNavigators_.GetSize();
         
         if (selectedTracksOffset_ > top)
             selectedTracksOffset_ = top;
@@ -3924,10 +3927,15 @@ public:
     
     Navigator *GetNavigatorForChannel(int channelNum)
     {
-        if (trackNavigators_.count(channelNum) < 1)
-            trackNavigators_[channelNum] = new TrackNavigator(page_, this, channelNum);
+        for(int i = 0; i < trackNavigators_.GetSize(); ++i)
+            if(trackNavigators_.Get(i)->GetChannelNum() == channelNum)
+                return trackNavigators_.Get(i);
+          
+        TrackNavigator *newNavigator = new TrackNavigator(page_, this, channelNum);
+        
+        trackNavigators_.Add(newNavigator);
             
-        return trackNavigators_[channelNum];
+        return newNavigator;
     }
     
     MediaTrack *GetTrackFromChannel(int channelNumber)
@@ -4118,13 +4126,13 @@ public:
        
     void OnTrackSelection()
     {
-        if (isScrollLinkEnabled_ && tracks_.GetSize() > trackNavigators_.size())
+        if (isScrollLinkEnabled_ && tracks_.GetSize() > trackNavigators_.GetSize())
             ForceScrollLink();
     }
     
     void OnTrackListChange()
     {
-        if (isScrollLinkEnabled_ && tracks_.GetSize() > trackNavigators_.size())
+        if (isScrollLinkEnabled_ && tracks_.GetSize() > trackNavigators_.GetSize())
             ForceScrollLink();
     }
 
@@ -4145,9 +4153,9 @@ public:
         if (track == GetMasterTrackNavigator()->GetTrack())
             return GetIsNavigatorTouched(GetMasterTrackNavigator(), touchedControl);
         
-        for (auto  [key, navigator] : trackNavigators_)
-            if (track == navigator->GetTrack())
-                return GetIsNavigatorTouched(navigator, touchedControl);
+        for(int i = 0; i < trackNavigators_.GetSize(); ++i)
+            if(track == trackNavigators_.Get(i)->GetTrack())
+                return GetIsNavigatorTouched(trackNavigators_.Get(i), touchedControl);
  
         if (MediaTrack *selectedTrack = GetSelectedTrack())
              if (track == selectedTrack)
