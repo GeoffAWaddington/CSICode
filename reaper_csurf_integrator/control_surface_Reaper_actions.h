@@ -2137,7 +2137,7 @@ public:
 
     double GetCurrentNormalizedValue(ActionContext*) override
     {
-        if (const double *volume = TheManager->GetMetronomePrimaryVolumePtr())
+        if (const double *volume = csiManager->GetMetronomePrimaryVolumePtr())
              return volToNormalized(*volume);
         else
             return 0.0;
@@ -2150,8 +2150,8 @@ public:
 
     void Do(ActionContext*, double value) override
     {
-        double *primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
-        double *secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+        double *primaryVolume = csiManager->GetMetronomePrimaryVolumePtr();
+        double *secondaryVolume = csiManager->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
         {
@@ -2175,8 +2175,8 @@ public:
 
     double GetCurrentNormalizedValue(ActionContext*) override
     {
-        const auto *primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
-        const auto *secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+        const auto *primaryVolume = csiManager->GetMetronomePrimaryVolumePtr();
+        const auto *secondaryVolume = csiManager->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             return volToNormalized((*secondaryVolume) / (*primaryVolume));
@@ -2191,8 +2191,8 @@ public:
 
     void Do(ActionContext*, double value) override
     {
-        const auto *primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
-        auto *secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+        const auto *primaryVolume = csiManager->GetMetronomePrimaryVolumePtr();
+        auto *secondaryVolume = csiManager->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             *secondaryVolume = normalizedToVol(value)  *(*primaryVolume);
@@ -2251,7 +2251,7 @@ public:
 
     bool GetVolume(double& value) const override
     {
-        if (const double *volume = TheManager->GetMetronomePrimaryVolumePtr())
+        if (const double *volume = csiManager->GetMetronomePrimaryVolumePtr())
         {
             value = *volume;
             return true;
@@ -2270,8 +2270,8 @@ public:
 
     bool GetVolume(double &value) const override
     {
-        const auto *primaryVolume = TheManager->GetMetronomePrimaryVolumePtr();
-        const auto *secondaryVolume = TheManager->GetMetronomeSecondaryVolumePtr();
+        const auto *primaryVolume = csiManager->GetMetronomePrimaryVolumePtr();
+        const auto *secondaryVolume = csiManager->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
         {
@@ -2340,7 +2340,7 @@ public:
             if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
 
-            TheManager->Speak(name);
+            csiManager->Speak(name);
         }
     }
 };
@@ -2385,7 +2385,7 @@ public:
                 int paramIndex = 0;
                 
                 if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-                    context->UpdateWidgetValue(TheManager->GetTCPFXParamName(track, fxIndex, paramIndex));
+                    context->UpdateWidgetValue(csiManager->GetTCPFXParamName(track, fxIndex, paramIndex));
                 else
                     context->ClearWidget();
             }
@@ -2541,7 +2541,7 @@ public:
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if (destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
-            TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
+            csiManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
         }
     }
 };
@@ -2684,10 +2684,10 @@ public:
             if (srcTrack)
             {
                 string receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                TheManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
+                csiManager->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
             }
             else
-                TheManager->Speak("No Receive Track");
+                csiManager->Speak("No Receive Track");
         }
     }
 };
@@ -3547,21 +3547,21 @@ public:
         
         double pp=(DAW::GetPlayState()&1) ? DAW::GetPlayPosition() : DAW::GetCursorPosition();
 
-        int *tmodeptr = TheManager->GetTimeMode2Ptr();
+        int *tmodeptr = csiManager->GetTimeMode2Ptr();
         
         int tmode = 0;
         
         if (tmodeptr && (*tmodeptr)>=0) tmode = *tmodeptr;
         else
         {
-            tmodeptr = TheManager->GetTimeModePtr();
+            tmodeptr = csiManager->GetTimeModePtr();
             if (tmodeptr)
                 tmode=*tmodeptr;
         }
 
         if (tmode == 3) // seconds
         {
-            double *toptr = TheManager->GetTimeOffsPtr();
+            double *toptr = csiManager->GetTimeOffsPtr();
             
             if (toptr)
                 pp+=*toptr;
@@ -3592,7 +3592,7 @@ public:
             if (num_measures <= 0 && pp < 0.0)
                 --num_measures;
             
-            int *measptr = TheManager->GetMeasOffsPtr();
+            int *measptr = csiManager->GetMeasOffsPtr();
           
             timeStr = to_string(num_measures+1+(measptr ? *measptr : 0)) + " " + to_string((int)(nbeats + 1)) + " ";
             
@@ -3607,7 +3607,7 @@ public:
         }
         else
         {
-            double *toptr = TheManager->GetTimeOffsPtr();
+            double *toptr = csiManager->GetTimeOffsPtr();
             if (toptr) pp+=(*toptr);
             
             int ipp=(int)pp;

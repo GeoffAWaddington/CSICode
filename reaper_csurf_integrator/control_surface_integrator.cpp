@@ -753,7 +753,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                     for (int k = 0; k < actionTemplates.Get(j)->params.size(); k++)
                                         memberParams.push_back(regex_replace(actionTemplates.Get(j)->params[k], regex("[|]"), numStr));
                                     
-                                    ActionContext *context = TheManager->GetActionContext(actionName, widget, zone, memberParams);
+                                    ActionContext *context = csiManager->GetActionContext(actionName, widget, zone, memberParams);
                                         
                                     context->SetProvideFeedback(actionTemplates.Get(j)->provideFeedback);
                                     
@@ -970,7 +970,7 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
         if (stepSize != 0.0)
         {
             stepSize *= 10000.0;
-            int baseTickCount = TheManager->GetBaseTickCount((int)steppedValues.size());
+            int baseTickCount = csiManager->GetBaseTickCount((int)steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }
@@ -1468,7 +1468,7 @@ static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface *sur
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Manager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Manager::InitActionsDictionary()
+void CSIManager::InitActionsDictionary()
 {
     //actions_["DumpHex"] =                           make_shared<DumpHex>();
     actions_["MetronomePrimaryVolumeDisplay"] =     new MetronomePrimaryVolumeDisplay();
@@ -1640,7 +1640,7 @@ void Manager::InitActionsDictionary()
     learnFXActions_["LearnFXParamValueDisplay"] =   new LearnFXParamValueDisplay();
 }
 
-void Manager::Init()
+void CSIManager::Init()
 {
     pages_.Empty(true);
     
@@ -2647,7 +2647,7 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 
     if (widgets_.Exists(widget))
     {
-        if (TheManager->GetSurfaceInDisplay())
+        if (csiManager->GetSurfaceInDisplay())
         {
             char buffer[250];
             snprintf(buffer, sizeof(buffer), "Zone -- %s\n", sourceFilePath_.c_str());
@@ -2790,7 +2790,7 @@ void  Widget::ForceClear()
 
 void Widget::LogInput(double value)
 {
-    if (TheManager->GetSurfaceInDisplay())
+    if (csiManager->GetSurfaceInDisplay())
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName().c_str(), GetName().c_str(), value);
@@ -3131,7 +3131,7 @@ void ZoneManager::AutoMapFocusedFX()
         {
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-            if ( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
+            if ( ! csiManager->HaveFXSteppedValuesBeenCalculated(fxName))
                 CalculateSteppedValues(fxName, track, fxSlot);
             AutoMapFX(fxName, track, fxSlot);
         }
@@ -3198,7 +3198,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     
     DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
     
-    if ( ! TheManager->HaveFXSteppedValuesBeenCalculated(fxName))
+    if ( ! csiManager->HaveFXSteppedValuesBeenCalculated(fxName))
         CalculateSteppedValues(fxName, track, fxSlot);
 
     if (zoneFilePaths_.count(fxName) > 0)
@@ -3555,7 +3555,7 @@ void ZoneManager::InitializeNoMapZone()
                     if (widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
-                    ActionContext *context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                    ActionContext *context = csiManager->GetActionContext("NoAction", widget, noMapZone_, 0);
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
 
@@ -3563,7 +3563,7 @@ void ZoneManager::InitializeNoMapZone()
                     if (widget == nullptr || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
-                    context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                    context = csiManager->GetActionContext("NoAction", widget, noMapZone_, 0);
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
                     
@@ -3573,7 +3573,7 @@ void ZoneManager::InitializeNoMapZone()
                         if (widget == NULL || usedWidgets.Exists(widget))
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
-                        context = TheManager->GetActionContext("NoAction", widget, noMapZone_, 0);
+                        context = csiManager->GetActionContext("NoAction", widget, noMapZone_, 0);
                         noMapZone_->AddActionContext(widget, modifier, context);
                     }
                 }
@@ -3643,7 +3643,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
-                        ActionContext *context = TheManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
+                        ActionContext *context = csiManager->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
                         context->SetProvideFeedback(true);
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
@@ -3653,7 +3653,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             continue;
                         cell.fxParamValueDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
-                        context = TheManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, valueDisplayParams);
+                        context = csiManager->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, valueDisplayParams);
                         context->SetProvideFeedback(true);
                         context->SetCellAddress(cellAdress);
                         zone->AddActionContext(widget, modifier, context);
@@ -3665,7 +3665,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                                 continue;
                             cell.fxParamWidgets.Add(widget);
                             zone->AddWidget(widget, widget->GetName());
-                            context = TheManager->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
+                            context = csiManager->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
                             LearnInfo *info = new LearnInfo(widget, cellAdress);
@@ -3847,10 +3847,10 @@ void ZoneManager::WidgetMoved(ActionContext *context)
             
             if (context->GetWidget()->GetName().find("Fader") == string::npos)
             {
-                if (TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
+                if (csiManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
                     context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
                 
-                int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
+                int numSteps = csiManager->GetSteppedValueCount(fxName, fxParamNum);
                 
                 if (context->GetWidget()->GetName().find("Push") != string::npos)
                 {
@@ -3996,10 +3996,10 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
             
             if (context->GetWidget()->GetName().find("Fader") == string::npos)
             {
-                if (TheManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
+                if (csiManager->GetSteppedValueCount(fxName, fxParamNum) == 0)
                     context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
                 
-                int numSteps = TheManager->GetSteppedValueCount(fxName, fxParamNum);
+                int numSteps = csiManager->GetSteppedValueCount(fxName, fxParamNum);
                 
                 if (context->GetWidget()->GetName().find("Push") != string::npos)
                 {
@@ -4157,7 +4157,7 @@ void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track,
         }
         
     if (stepCount > 1 && stepCount < 31)
-        TheManager->SetSteppedValueCount(fxName, paramIndex, stepCount);
+        csiManager->SetSteppedValueCount(fxName, paramIndex, stepCount);
 
     DAW::TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
     
@@ -4167,7 +4167,7 @@ void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track,
 
 void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
 {
-    TheManager->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+    csiManager->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
 
     // Check for UAD / Plugin Alliance and bail if neither
     if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
@@ -4212,7 +4212,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
         }
         
         if (stepCount > 1 && stepCount < 31)
-            TheManager->SetSteppedValueCount(fxName, i, stepCount);
+            csiManager->SetSteppedValueCount(fxName, i, stepCount);
     }
     
     for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
@@ -4321,7 +4321,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                             
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FXParam")
                             {
-                                int steppedValueCount =  TheManager->GetSteppedValueCount(fxName, paramIdx);
+                                int steppedValueCount =  csiManager->GetSteppedValueCount(fxName, paramIdx);
                                 
                                 if (steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
                                 {
@@ -4563,7 +4563,7 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
             {
                 char tmp[256];
                 snprintf(tmp,sizeof(tmp), "%s Unlock", stringFromModifier(modifier));
-                TheManager->Speak(tmp);
+                csiManager->Speak(tmp);
             }
 
             modifiers_[modifier].isEngaged = value;
@@ -4572,7 +4572,7 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
         {
             char tmp[256];
             snprintf(tmp,sizeof(tmp), "%s Lock", stringFromModifier(modifier));
-            TheManager->Speak(tmp);
+            csiManager->Speak(tmp);
         }
     }
     
@@ -5110,7 +5110,7 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
             Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000].Get(i)->ProcessMidiMessage(evt);
     }
     
-    if (TheManager->GetSurfaceRawInDisplay() || (! isMapped && TheManager->GetSurfaceInDisplay()))
+    if (csiManager->GetSurfaceRawInDisplay() || (! isMapped && csiManager->GetSurfaceInDisplay()))
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %02x  %02x  %02x \n", name_.c_str(), evt->midi_message[0], evt->midi_message[1], evt->midi_message[2]);
@@ -5135,7 +5135,7 @@ void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
     
     output += "\n";
 
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(output.c_str());
 }
 
@@ -5143,7 +5143,7 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
 {
     surfaceIO_->SendMidiMessage(first, second, third);
     
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "%s  %02x  %02x  %02x \n", ("OUT->" + name_).c_str(), first, second, third);
@@ -5241,7 +5241,7 @@ void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
     if (CSIMessageGeneratorsByMessage_.count(message) > 0)
         CSIMessageGeneratorsByMessage_[message]->ProcessMessage(value);
     
-    if (TheManager->GetSurfaceInDisplay())
+    if (csiManager->GetSurfaceInDisplay())
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s  %f  \n", name_.c_str(), message.c_str(), value);
@@ -5257,7 +5257,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &zoneName)
 
     surfaceIO_->SendOSCMessage(oscAddress);
         
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg((zoneName + "->" + "LoadingZone---->" + name_ + "\n").c_str());
 }
 
@@ -5265,7 +5265,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
@@ -5273,7 +5273,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
@@ -5281,7 +5281,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, const string &
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + value + "\n").c_str());
 }
 
@@ -5289,7 +5289,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
@@ -5297,7 +5297,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
 }
 
@@ -5305,7 +5305,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
-    if (TheManager->GetSurfaceOutDisplay())
+    if (csiManager->GetSurfaceOutDisplay())
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + value + "\n").c_str());
 }
 

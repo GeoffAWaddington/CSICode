@@ -11,7 +11,7 @@
 #include "WDL/wdlcstring.h"
 
 void ShutdownOSCIO();
-Manager *TheManager;
+CSIManager *csiManager;
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
@@ -26,31 +26,31 @@ extern int g_registered_command_toggle_write_FX_params;
 
 bool hookCommandProc(int command, int flag)
 {
-    if (TheManager != nullptr)
+    if (csiManager != nullptr)
     {
         if (command == g_registered_command_toggle_show_raw_surface_input)
         {
-            TheManager->ToggleSurfaceRawInDisplay();
+            csiManager->ToggleSurfaceRawInDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_show_surface_input)
         {
-            TheManager->ToggleSurfaceInDisplay();
+            csiManager->ToggleSurfaceInDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_show_surface_output)
         {
-            TheManager->ToggleSurfaceOutDisplay();
+            csiManager->ToggleSurfaceOutDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_show_FX_params)
         {
-            TheManager->ToggleFXParamsDisplay();
+            csiManager->ToggleFXParamsDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_write_FX_params)
         {
-            TheManager->ToggleFXParamsWrite();
+            csiManager->ToggleFXParamsWrite();
             return true;
         }
     }
@@ -62,32 +62,32 @@ bool hookCommandProc(int command, int flag)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 CSurfIntegrator::CSurfIntegrator()
 {
-    // JF - Manager should be a member of CSurfIntegrator?
-    if (!TheManager) TheManager = new Manager;
-    TheManager->csurf_refcnt_++;
+    // JF - CSIManager should be a member of CSurfIntegrator?
+    if (!csiManager) csiManager = new CSIManager;
+    csiManager->csurf_refcnt_++;
 }
 
 CSurfIntegrator::~CSurfIntegrator()
 {
-    if (TheManager && !--TheManager->csurf_refcnt_)
+    if (csiManager && !--csiManager->csurf_refcnt_)
     {
-        TheManager->Shutdown();
-        delete TheManager;
-        TheManager = NULL;
+        csiManager->Shutdown();
+        delete csiManager;
+        csiManager = NULL;
         ShutdownOSCIO();
     }
 }
 
 void CSurfIntegrator::OnTrackSelection(MediaTrack *trackid)
 {
-    if (TheManager)
-        TheManager->OnTrackSelection(trackid);
+    if (csiManager)
+        csiManager->OnTrackSelection(trackid);
 }
 
 void CSurfIntegrator::SetTrackListChange()
 {
-    if (TheManager)
-        TheManager->OnTrackListChange();
+    if (csiManager)
+        csiManager->OnTrackListChange();
 }
 
 int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
@@ -99,20 +99,20 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
     
     if (call == CSURF_EXT_RESET)
     {
-       if (TheManager)
-           TheManager->Init();
+       if (csiManager)
+           csiManager->Init();
     }
     
     if (call == CSURF_EXT_SETFXCHANGE)
     {
         // parm1=(MediaTrack*)track, whenever FX are added, deleted, or change order
-        if (TheManager)
-            TheManager->TrackFXListChanged((MediaTrack*)parm1);
+        if (csiManager)
+            csiManager->TrackFXListChanged((MediaTrack*)parm1);
     }
         
     if (call == CSURF_EXT_SETMIXERSCROLL)
     {
-        if (TheManager)
+        if (csiManager)
         {
             MediaTrack *leftPtr = (MediaTrack *)parm1;
             
@@ -123,7 +123,7 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
             if (offset < 0)
                 offset = 0;
                 
-            TheManager->SetTrackOffset(offset);
+            csiManager->SetTrackOffset(offset);
         }
     }
         
@@ -132,13 +132,13 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
 
 bool CSurfIntegrator::GetTouchState(MediaTrack *track, int touchedControl)
 {
-    return TheManager->GetTouchState(track, touchedControl);
+    return csiManager->GetTouchState(track, touchedControl);
 }
 
 void CSurfIntegrator::Run()
 {
-    if (TheManager)
-        TheManager->Run();
+    if (csiManager)
+        csiManager->Run();
 }
 
 const char *CSurfIntegrator::GetTypeString()
