@@ -1693,9 +1693,9 @@ void CSIManager::Init()
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
-                    midiSurfaces_[tokens[1]] = new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())));
+                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str()))));
                 else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfaces_[tokens[1]] = new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]);
+                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]));
                 else if (tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
@@ -1756,10 +1756,36 @@ void CSIManager::Init()
                         string zoneFolder = tokens[4];
                         string fxZoneFolder = tokens[5];
                         
-                        if (midiSurfaces_.count(tokens[0]) > 0)
-                            currentPage->AddSurface(new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, midiSurfaces_[tokens[0]]));
-                        else if (oscSurfaces_.count(tokens[0]) > 0)
-                            currentPage->AddSurface(new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, oscSurfaces_[tokens[0]]));
+                        // GAW -- there is a potential bug here (if you hand edit CSI.ini for instance), no way to tell if surfacew is MIDI or OSC
+                        // maybe prepend the line with s_MidiSurfaceToken or s_OSCSurfaceToken, would break existing installs though
+                        bool foundIt = false;
+                        
+                        for(int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
+                        {
+                            Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
+                            
+                            if(tokens[0] == io->GetName())
+                            {
+                                foundIt = true;
+                                currentPage->AddSurface(new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
+                                break;
+                            }
+                        }
+                        
+                        if( ! foundIt)
+                        {
+                            for(int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
+                            {
+                                OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
+                                
+                                if(tokens[0] == io->GetName())
+                                {
+                                    foundIt = true;
+                                    currentPage->AddSurface(new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }

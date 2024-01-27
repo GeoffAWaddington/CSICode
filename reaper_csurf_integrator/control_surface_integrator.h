@@ -3340,6 +3340,8 @@ public:
         if (midiOutput_) ReleaseMidiOutput(midiOutput_);
     }
     
+    const string &GetName() { return name_; }
+    
     void HandleExternalInput(Midi_ControlSurface *surface);
     
     void SendMidiMessage(MIDI_event_ex_t *midiMessage)
@@ -3463,6 +3465,8 @@ private:
     
 public:
     OSC_ControlSurfaceIO(const string &name, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress);
+
+    const string &GetName() { return name_; }
 
     void HandleExternalInput(OSC_ControlSurface *surface);
     
@@ -4602,8 +4606,8 @@ class CSIManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<string, Midi_ControlSurfaceIO*> midiSurfaces_;
-    map<string, OSC_ControlSurfaceIO*> oscSurfaces_;
+    WDL_PtrList<Midi_ControlSurfaceIO> midiSurfacesIO_;
+    WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
 
     map<string, Action*> actions_;
     map<string, Action*> learnFXActions_;
@@ -4700,11 +4704,9 @@ public:
 
     ~CSIManager()
     {
-        for (auto [key, surface] : midiSurfaces_)
-            delete surface;
+        midiSurfacesIO_.Empty(true);
         
-        for (auto [key, surface] : oscSurfaces_)
-            delete surface;
+        oscSurfacesIO_.Empty(true);
         
         for (auto [key, action] : actions_)
             delete action;
