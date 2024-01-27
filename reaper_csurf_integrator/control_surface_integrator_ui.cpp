@@ -71,6 +71,7 @@ CSurfIntegrator::~CSurfIntegrator()
 {
     if (TheManager && !--TheManager->csurf_refcnt_)
     {
+        TheManager->Shutdown();
         delete TheManager;
         TheManager = NULL;
         ShutdownOSCIO();
