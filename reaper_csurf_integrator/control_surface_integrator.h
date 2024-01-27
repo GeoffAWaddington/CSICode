@@ -1135,8 +1135,6 @@ private:
     int selectedTrackReceiveOffset_;
     int selectedTrackFXMenuOffset_;
     int masterTrackFXMenuOffset_;
-
-    map<string, int*> bankOffsets_;
     
     string learnFXName_;
     LearnInfo *lastTouched_;
@@ -1147,6 +1145,14 @@ private:
 
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
 
+    void AdjustBank(int &bankOffset, int amount)
+    {
+        bankOffset += amount;
+            
+        if (bankOffset < 0)
+            bankOffset = 0;
+    }
+    
     void ResetOffsets()
     {
         trackSendOffset_ = 0;
@@ -1616,17 +1622,6 @@ public:
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
         masterTrackFXMenuOffset_ = 0;
-
-        bankOffsets_ =
-        {
-            { "TrackSend",               &trackSendOffset_ },
-            { "TrackReceive",            &trackReceiveOffset_ },
-            { "TrackFXMenu",             &trackFXMenuOffset_ },
-            { "SelectedTrackSend",       &selectedTrackSendOffset_ },
-            { "SelectedTrackReceive",    &selectedTrackReceiveOffset_ },
-            { "SelectedTrackFXMenu",     &selectedTrackFXMenuOffset_ },
-            { "MasterTrackFXMenu",       &masterTrackFXMenuOffset_ },
-        };
         
         learnFXName_ = "";
         lastTouched_ = nullptr;
@@ -1914,18 +1909,25 @@ public:
 
         needGarbageCollect_ = true;
     }
-           
+        
     void AdjustBank(const string &zoneName, int amount)
     {
-        if (bankOffsets_.count(zoneName) > 0)
-        {
-            *bankOffsets_[zoneName] += amount;
-            
-            if (*bankOffsets_[zoneName] < 0)
-                *bankOffsets_[zoneName] = 0;
-        }
+        if(zoneName == "TrackSend")
+            AdjustBank(trackSendOffset_, amount);
+        else if(zoneName == "TrackReceive")
+            AdjustBank(trackReceiveOffset_, amount);
+        else if(zoneName == "TrackFXMenu")
+            AdjustBank(trackFXMenuOffset_, amount);
+        else if(zoneName == "SelectedTrackSend")
+            AdjustBank(selectedTrackSendOffset_, amount);
+        else if(zoneName == "SelectedTrackReceive")
+            AdjustBank(selectedTrackReceiveOffset_, amount);
+        else if(zoneName == "SelectedTrackFXMenu")
+            AdjustBank(selectedTrackFXMenuOffset_, amount);
+        else if(zoneName == "MasterTrackFXMenu")
+            AdjustBank(masterTrackFXMenuOffset_, amount);
     }
-            
+             
     void AddWidget(Widget *widget)
     {
         usedWidgets_[widget] = false;
