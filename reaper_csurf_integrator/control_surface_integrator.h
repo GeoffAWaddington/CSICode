@@ -4579,7 +4579,7 @@ private:
 
     WDL_StringKeyedArray<Action*> actions_;
     WDL_StringKeyedArray<Action*> learnFXActions_;
-    static void disposeAction(Action *act) { delete act; }
+    static void disposeAction(Action *action) { delete action; }
 
     WDL_PtrList<Page> pages_;
 
@@ -4622,7 +4622,7 @@ private:
 public:
     int csurf_refcnt_;
 
-    CSIManager() : learnFXActions_(true, disposeAction)
+    CSIManager() : actions_(true, disposeAction), learnFXActions_(true, disposeAction)
     {
         csurf_refcnt_ = 0;
         // private:
@@ -4668,18 +4668,7 @@ public:
         midiSurfacesIO_.Empty(true);
         
         oscSurfacesIO_.Empty(true);
-        
-        for (int i = 0; i < actions_.GetSize(); i ++)
-        {
-            const char *key = NULL;
-            actions_.EnumeratePtr(i,&key);
-            
-            if (WDL_NORMALLY(key))
-                delete actions_.Get(key);
-        }
-        
-        actions_.DeleteAll();
-        
+                
         pages_.Empty(true);
     }
     
