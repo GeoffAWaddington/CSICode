@@ -4579,6 +4579,7 @@ private:
 
     WDL_StringKeyedArray<Action*> actions_;
     WDL_StringKeyedArray<Action*> learnFXActions_;
+    static void disposeAction(Action *act) { delete act; }
 
     WDL_PtrList<Page> pages_;
 
@@ -4621,7 +4622,7 @@ private:
 public:
     int csurf_refcnt_;
 
-    CSIManager()
+    CSIManager() : learnFXActions_(true, disposeAction)
     {
         csurf_refcnt_ = 0;
         // private:
@@ -4678,17 +4679,6 @@ public:
         }
         
         actions_.DeleteAll();
-        
-        for (int i = 0; i < learnFXActions_.GetSize(); i ++)
-        {
-            const char *key = NULL;
-            learnFXActions_.EnumeratePtr(i,&key);
-            
-            if (WDL_NORMALLY(key))
-                delete learnFXActions_.Get(key);
-        }
-        
-        learnFXActions_.DeleteAll();
         
         pages_.Empty(true);
     }
