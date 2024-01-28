@@ -4577,8 +4577,8 @@ private:
     WDL_PtrList<Midi_ControlSurfaceIO> midiSurfacesIO_;
     WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
 
-    map<string, Action*> actions_;
-    map<string, Action*> learnFXActions_;
+    WDL_StringKeyedArray<Action*> actions_;
+    WDL_StringKeyedArray<Action*> learnFXActions_;
 
     WDL_PtrList<Page> pages_;
 
@@ -4668,11 +4668,27 @@ public:
         
         oscSurfacesIO_.Empty(true);
         
-        for (auto [key, action] : actions_)
-            delete action;
-
-        for (auto [key, action] : learnFXActions_)
-            delete action;
+        for (int i = 0; i < actions_.GetSize(); i ++)
+        {
+            const char *key = NULL;
+            actions_.EnumeratePtr(i,&key);
+            
+            if (WDL_NORMALLY(key))
+                delete actions_.Get(key);
+        }
+        
+        actions_.DeleteAll();
+        
+        for (int i = 0; i < learnFXActions_.GetSize(); i ++)
+        {
+            const char *key = NULL;
+            learnFXActions_.EnumeratePtr(i,&key);
+            
+            if (WDL_NORMALLY(key))
+                delete learnFXActions_.Get(key);
+        }
+        
+        learnFXActions_.DeleteAll();
         
         pages_.Empty(true);
     }
@@ -4757,34 +4773,34 @@ public:
     
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
-        if (actions_.count(actionName) > 0)
-            return new ActionContext(actions_[actionName], widget, zone, params);
+        if(actions_.Exists(actionName.c_str()))
+            return new ActionContext(actions_.Get(actionName.c_str()), widget, zone, params);
         else
-            return new ActionContext(actions_["NoAction"], widget, zone, params);
+            return new ActionContext(actions_.Get("NoAction"), widget, zone, params);
     }
 
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, int paramIndex)
     {
-        if (actions_.count(actionName) > 0)
-            return new ActionContext(actions_[actionName], widget, zone, paramIndex);
+        if(actions_.Exists(actionName.c_str()))
+            return new ActionContext(actions_.Get(actionName.c_str()), widget, zone, paramIndex);
         else
-            return new ActionContext(actions_["NoAction"], widget, zone, paramIndex);
+            return new ActionContext(actions_.Get("NoAction"), widget, zone, paramIndex);
     }
 
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const string &stringParam)
     {
-        if (actions_.count(actionName) > 0)
-            return new ActionContext(actions_[actionName], widget, zone, stringParam);
+        if(actions_.Exists(actionName.c_str()))
+            return new ActionContext(actions_.Get(actionName.c_str()), widget, zone, stringParam);
         else
-            return new ActionContext(actions_["NoAction"], widget, zone, stringParam);
+            return new ActionContext(actions_.Get("NoAction"), widget, zone, stringParam);
     }
 
     ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
-        if (learnFXActions_.count(actionName) > 0)
-            return new ActionContext(learnFXActions_[actionName], widget, zone, params);
+        if(learnFXActions_.Exists(actionName.c_str()))
+            return new ActionContext(learnFXActions_.Get(actionName.c_str()), widget, zone, params);
         else
-            return new ActionContext(actions_["NoAction"], widget, zone, params);
+            return new ActionContext(actions_.Get("NoAction"), widget, zone, params);
     }
 
     void OnTrackSelection(MediaTrack *track)
