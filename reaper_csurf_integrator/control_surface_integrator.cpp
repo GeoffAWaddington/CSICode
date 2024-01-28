@@ -2538,7 +2538,34 @@ void Zone::Deactivate()
             zones.Get(i)->Deactivate();
 }
 
-void Zone::RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets)
+void Zone::RequestUpdate()
+{
+    if (! isActive_)
+        return;
+  
+    for (const auto &[key, zones] : subZones_)
+        for (int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->RequestUpdate();
+    
+    for (const auto &[key, zones] : associatedZones_)
+        for (int i = 0; i < zones.GetSize(); ++i)
+            zones.Get(i)->RequestUpdate();
+
+    for (int i =  0; i < includedZones_.GetSize(); ++i)
+        includedZones_.Get(i)->RequestUpdate();
+    
+    for (int i = 0; i < widgetsOnly_.GetSize(); i ++)
+    {
+        if( ! widgetsOnly_.Get(i)->GetHasBeenUsedByUpdate())
+        {
+            widgetsOnly_.Get(i)->SetHasBeenUsedByUpdate();
+            RequestUpdateWidget(widgetsOnly_.Get(i));
+        }
+    }
+}
+
+
+void Zone::RequestLearnFXUpdate()
 {
     const WDL_TypedBuf<int> &modifiers = zoneManager_->GetSurface()->GetModifiers();
     
@@ -2581,7 +2608,7 @@ void Zone::RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets)
                     }
                 }
                 
-                usedWidgets[cell.fxParamWidgets.Get(i)] = true;
+                cell.fxParamWidgets.Get(i)->SetHasBeenUsedByUpdate();
             }
             
             if (! foundIt)
@@ -2594,7 +2621,7 @@ void Zone::RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets)
                         actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
                     }
                     
-                    usedWidgets[cell.fxParamNameDisplayWidget] = true;
+                    cell.fxParamNameDisplayWidget->SetHasBeenUsedByUpdate();
                 }
 
                 if (actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
@@ -2605,7 +2632,7 @@ void Zone::RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets)
                         actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
                     }
                     
-                    usedWidgets[cell.fxParamValueDisplayWidget] = true;
+                    cell.fxParamValueDisplayWidget->SetHasBeenUsedByUpdate();
                 }
             }
         }
@@ -4758,8 +4785,29 @@ void ControlSurface::RequestUpdate()
     for (int i = 0; i < trackColorFeedbackProcessors_.GetSize(); ++i)
         trackColorFeedbackProcessors_.Get(i)->UpdateTrackColors();
     
-    zoneManager_->RequestUpdate();
+    for(int i = 0; i < widgets_.GetSize(); ++i)
+        widgets_.Get(i)->ClearHasBeenUsedByUpdate();
     
+    zoneManager_->RequestUpdate();
+
+    // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
+    map<string, string> properties;
+    
+    for(int i = 0; i < widgets_.GetSize(); ++i)
+    {
+        Widget *widget =  widgets_.Get(i);
+        
+        if ( ! widget->GetHasBeenUsedByUpdate())
+        {
+            widget->SetHasBeenUsedByUpdate();
+            
+            rgba_color color;
+            widget->UpdateValue(properties, 0.0);
+            widget->UpdateValue(properties, "");
+            widget->UpdateColorValue(color);
+        }
+    }
+
     if (isRewinding_)
     {
         if (DAW::GetCursorPosition() == 0)

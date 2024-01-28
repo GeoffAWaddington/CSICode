@@ -606,6 +606,7 @@ public:
 protected:
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
+    WDL_PtrList<Widget> widgetsOnly_;
     WDL_PointerKeyedArray<Widget*, bool> widgets_; 
     WDL_StringKeyedArray<Widget*> widgetsByName_;
     
@@ -628,8 +629,10 @@ protected:
 public:
     Zone(ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
     
-    virtual ~Zone() {
+    virtual ~Zone()
+    {
         actionContextNeedFree_.Empty(true);
+        widgetsOnly_.Empty();
     }
     
     void InitSubZones(const vector<string> &subZones, Zone *enclosingZone);
@@ -646,7 +649,8 @@ public:
     void Deactivate();
     void DoAction(Widget *widget, bool &isUsed, double value);
     int GetChannelNumber();
-    void RequestLearnFXUpdate(map<Widget*, bool> &usedWidgets);
+    void RequestUpdate();
+    void RequestLearnFXUpdate();
     void SetFXParamNum(Widget *paramWidget, int paramIndex);
 
     const string &GetSourceFilePath() { return sourceFilePath_; }
@@ -742,6 +746,7 @@ public:
     
     void AddWidget(Widget *widget, const string &name)
     {
+        widgetsOnly_.Add(widget);
         widgets_.Insert(widget, true);
         widgetsByName_.Insert(name.c_str(), widget);
     }
@@ -796,34 +801,6 @@ public:
         {
             GetActionContexts(widget).Get(i)->RunDeferredActions();
             GetActionContexts(widget).Get(i)->RequestUpdate();
-        }
-    }
-
-    void RequestUpdate(map<Widget*, bool> &usedWidgets)
-    {
-        if (! isActive_)
-            return;
-      
-        for (const auto &[key, zones] : subZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->RequestUpdate(usedWidgets);
-        
-        for (const auto &[key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->RequestUpdate(usedWidgets);
-
-        for (int i =  0; i < includedZones_.GetSize(); ++i)
-            includedZones_.Get(i)->RequestUpdate(usedWidgets);
-        
-        for (int i = 0; i < widgets_.GetSize(); i ++)
-        {
-            Widget *widget = NULL;
-            widgets_.EnumeratePtr(i,&widget);
-            if (WDL_NORMALLY(widget) && usedWidgets[widget] == false)
-            {
-                usedWidgets[widget] = true;
-                RequestUpdateWidget(widget);
-            }
         }
     }
 
@@ -954,6 +931,8 @@ private:
     double stepSize_;
     vector<double> accelerationValues_;
     
+    bool hasBeenUsedByUpdate_;
+    
 public:
     // all Widges are owned by their ControlSurface!
     Widget(ControlSurface *surface, const string &name) : surface_(surface), name_(name)
@@ -962,6 +941,7 @@ public:
         channelNumber_ = 0;
         lastIncomingMessageTime_ = 0.0;
         stepSize_ = 0.0;
+        hasBeenUsedByUpdate_ = false;
 
         int index = (int)name.length() - 1;
         if (isdigit(name[index]))
@@ -978,6 +958,10 @@ public:
     {
       feedbackProcessors_.Empty(true);
     }
+    
+    void ClearHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = false; }
+    void SetHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = true; }
+    bool GetHasBeenUsedByUpdate() { return hasBeenUsedByUpdate_; }
     
     const string &GetName() { return name_; }
     ControlSurface *GetSurface() { return surface_; }
@@ -1090,8 +1074,6 @@ private:
 
     map<string, CSIZoneInfo> zoneFilePaths_;
     
-    map<Widget*, bool> usedWidgets_;
-    
     Zone *noMapZone_;
     
     Zone *homeZone_;
@@ -1129,8 +1111,6 @@ private:
     
     WDL_PtrList<Zone> selectedTrackFXZones_;
     WDL_PtrList<Zone> fxSlotZones_;
-    
-    map <string, map<int, vector<double>>> steppedValues_;
     
     int trackSendOffset_;
     int trackReceiveOffset_;
@@ -1931,12 +1911,7 @@ public:
         else if(zoneName == "MasterTrackFXMenu")
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
-             
-    void AddWidget(Widget *widget)
-    {
-        usedWidgets_[widget] = false;
-    }
-    
+                
     void AddZoneFilePath(const string &name, const struct CSIZoneInfo &info)
     {
         if (name != "")
@@ -1953,47 +1928,30 @@ public:
     {
         CheckFocusedFXState();
             
-        for (auto &[key, value] : usedWidgets_)
-            value = false;
-
         if (noMapZone_ != nullptr)
-            noMapZone_->RequestUpdate(usedWidgets_);
+            noMapZone_->RequestUpdate();
         
         if (homeZone_ != nullptr && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
         {
-            homeZone_->RequestUpdate(usedWidgets_);
-            homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate(usedWidgets_);
+            homeZone_->RequestUpdate();
+            homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate();
         }
 
         if (focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
-            focusedFXParamZone_->RequestUpdate(usedWidgets_);
+            focusedFXParamZone_->RequestUpdate();
 
         for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-            focusedFXZones_.Get(i)->RequestUpdate(usedWidgets_);
+            focusedFXZones_.Get(i)->RequestUpdate();
         
         for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
-            selectedTrackFXZones_.Get(i)->RequestUpdate(usedWidgets_);
+            selectedTrackFXZones_.Get(i)->RequestUpdate();
         
         for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
-            fxSlotZones_.Get(i)->RequestUpdate(usedWidgets_);
+            fxSlotZones_.Get(i)->RequestUpdate();
         
         if (homeZone_ != nullptr)
-            homeZone_->RequestUpdate(usedWidgets_);
-        
-        // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
-        map<string, string> properties;
-        
-        for (auto &[widget, value] : usedWidgets_)
-        {
-            if (value == false)
-            {
-                rgba_color color;
-                widget->UpdateValue(properties, 0.0);
-                widget->UpdateValue(properties, "");
-                widget->UpdateColorValue(color);
-            }
-        }
-        
+            homeZone_->RequestUpdate();
+                
         GarbageCollectZones();
     }
 
@@ -3137,7 +3095,6 @@ public:
         if (WDL_NOT_NORMALLY(!widget)) return;
         widgets_.Add(widget);
         widgetsByName_.Insert(widget->GetName().c_str(),widget);
-        zoneManager_->AddWidget(widget);
     }
     
     void AddCSIMessageGenerator(CSIMessageGenerator *messageGenerator, const string &message)
