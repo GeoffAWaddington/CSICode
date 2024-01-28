@@ -606,7 +606,7 @@ public:
 protected:
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
-    WDL_PtrList<Widget> widgetsOnly_;
+    WDL_PtrList<Widget> thisZoneWidgets_;
     WDL_PointerKeyedArray<Widget*, bool> widgets_; 
     WDL_StringKeyedArray<Widget*> widgetsByName_;
     
@@ -620,7 +620,7 @@ protected:
     WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
     map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
     WDL_PtrList<ActionContext> empty_;
-    map<Widget*, int> currentActionContextModifiers_;
+    WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
     WDL_PtrList<ActionContext> defaultContexts_;
     
     void AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators);
@@ -632,7 +632,7 @@ public:
     virtual ~Zone()
     {
         actionContextNeedFree_.Empty(true);
-        widgetsOnly_.Empty();
+        thisZoneWidgets_.Empty();
     }
     
     void InitSubZones(const vector<string> &subZones, Zone *enclosingZone);
@@ -669,8 +669,8 @@ public:
     {
         int modifier = 0;
         
-        if (currentActionContextModifiers_.count(widget) > 0 )
-            modifier = currentActionContextModifiers_[widget];
+        if (currentActionContextModifiers_.Exists(widget))
+            modifier = currentActionContextModifiers_.Get(widget);
 
         return modifier;
     }
@@ -746,7 +746,7 @@ public:
     
     void AddWidget(Widget *widget, const string &name)
     {
-        widgetsOnly_.Add(widget);
+        thisZoneWidgets_.Add(widget);
         widgets_.Insert(widget, true);
         widgetsByName_.Insert(name.c_str(), widget);
     }
@@ -2517,6 +2517,7 @@ private:
       if (WDL_NOT_NORMALLY(m == ErrorModifier)) return 0;
       return 4 << (int) m;
     }
+    
     static Modifiers modifierFromString(const char *s)
     {
          if (!strcmp(s,"Shift")) return Shift;

@@ -2383,8 +2383,8 @@ void Zone::SetFXParamNum(Widget *widget, int paramIndex)
 {
     if (widgets_.Exists(widget))
     {
-        for (int i = 0; i < GetActionContexts(widget, currentActionContextModifiers_[widget]).GetSize(); ++i)
-            GetActionContexts(widget, currentActionContextModifiers_[widget]).Get(i)->SetParamIndex(paramIndex);
+        for (int i = 0; i < GetActionContexts(widget, currentActionContextModifiers_.Get(widget)).GetSize(); ++i)
+            GetActionContexts(widget, currentActionContextModifiers_.Get(widget)).Get(i)->SetParamIndex(paramIndex);
     }
 }
 
@@ -2554,12 +2554,12 @@ void Zone::RequestUpdate()
     for (int i =  0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->RequestUpdate();
     
-    for (int i = 0; i < widgetsOnly_.GetSize(); i ++)
+    for (int i = 0; i < thisZoneWidgets_.GetSize(); i ++)
     {
-        if( ! widgetsOnly_.Get(i)->GetHasBeenUsedByUpdate())
+        if( ! thisZoneWidgets_.Get(i)->GetHasBeenUsedByUpdate())
         {
-            widgetsOnly_.Get(i)->SetHasBeenUsedByUpdate();
-            RequestUpdateWidget(widgetsOnly_.Get(i));
+            thisZoneWidgets_.Get(i)->SetHasBeenUsedByUpdate();
+            RequestUpdateWidget(thisZoneWidgets_.Get(i));
         }
     }
 }
@@ -2726,7 +2726,7 @@ void Zone::UpdateCurrentActionContextModifiers()
         Widget *widget = NULL;
         if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
         UpdateCurrentActionContextModifier(widget);
-        widget->Configure(GetActionContexts(widget, currentActionContextModifiers_[widget]));
+        widget->Configure(GetActionContexts(widget, currentActionContextModifiers_.Get(widget)));
     }
     
     for (int i = 0; i < includedZones_.GetSize(); ++i)
@@ -2744,11 +2744,13 @@ void Zone::UpdateCurrentActionContextModifiers()
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 {
     const WDL_TypedBuf<int> &mods = widget->GetSurface()->GetModifiers();
+    
     for (int i = 0; i < mods.GetSize(); ++i)
     {
         if (actionContextDictionary_[widget].count(mods.Get()[i]) > 0)
         {
-            currentActionContextModifiers_[widget] = mods.Get()[i];
+            currentActionContextModifiers_.Delete(widget);
+            currentActionContextModifiers_.Insert(widget, mods.Get()[i]);
             break;
         }
     }
@@ -2756,7 +2758,7 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 
 const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
 {
-    if (currentActionContextModifiers_.count(widget) == 0)
+    if ( ! currentActionContextModifiers_.Exists(widget))
         UpdateCurrentActionContextModifier(widget);
     
     bool isTouched = false;
@@ -2768,9 +2770,9 @@ const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
     if (widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
         isToggled = true;
     
-    if (currentActionContextModifiers_.count(widget) > 0 && actionContextDictionary_.count(widget) > 0)
+    if (currentActionContextModifiers_.Exists(widget) && actionContextDictionary_.count(widget) > 0)
     {
-        int modifier = currentActionContextModifiers_[widget];
+        int modifier = currentActionContextModifiers_.Get(widget);
         
         if (isTouched && isToggled && actionContextDictionary_[widget].count(modifier + 3) > 0)
             return actionContextDictionary_[widget][modifier + 3];
