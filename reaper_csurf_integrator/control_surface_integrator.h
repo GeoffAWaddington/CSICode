@@ -609,6 +609,8 @@ protected:
     WDL_PtrList<Widget> thisZoneWidgets_;
     WDL_PointerKeyedArray<Widget*, bool> widgets_; 
     WDL_StringKeyedArray<Widget*> widgetsByName_;
+    WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
+    map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
     
     map<int, map<string, LearnFXCell>> learnFXCells_;
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
@@ -618,9 +620,7 @@ protected:
     map<string, WDL_PtrList<Zone> > associatedZones_;
     
     WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
-    map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
     WDL_PtrList<ActionContext> empty_;
-    WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
     WDL_PtrList<ActionContext> defaultContexts_;
     
     void AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators);
@@ -1071,9 +1071,10 @@ private:
     ControlSurface *const surface_;
     string const zoneFolder_;
     string const fxZoneFolder_;
+   
+    WDL_StringKeyedArray<CSIZoneInfo*> zoneFilePaths_;
+    static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
 
-    map<string, CSIZoneInfo> zoneFilePaths_;
-    
     Zone *noMapZone_;
     
     Zone *homeZone_;
@@ -1575,7 +1576,7 @@ private:
     }
 
 public:
-    ZoneManager(ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder)
+    ZoneManager(ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction)
     {
         //private:
         noMapZone_ = NULL;
@@ -1658,7 +1659,7 @@ public:
     void EraseLastTouchedControl();
     
     const string &GetZoneFolder() { return zoneFolder_; }
-    map<string, CSIZoneInfo> &GetZoneFilePaths() { return zoneFilePaths_; }
+    WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
     vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
@@ -1707,10 +1708,10 @@ public:
                 
     void RemoveZone(string zoneName)
     {
-        if (zoneFilePaths_.count(zoneName) > 0)
+        if (zoneFilePaths_.Exists(zoneName.c_str()))
         {
-            remove(zoneFilePaths_[zoneName].filePath.c_str());
-            zoneFilePaths_.erase(zoneName);
+            remove(zoneFilePaths_.Get(zoneName.c_str())->filePath.c_str());
+            zoneFilePaths_.Delete(zoneName.c_str());
         }
     }
       
@@ -1719,8 +1720,8 @@ public:
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
-        if (zoneFilePaths_.count(fxName) > 0)
-            name = zoneFilePaths_[fxName].alias;
+        if (zoneFilePaths_.Exists(name.c_str()))
+            name = zoneFilePaths_.Get(name.c_str())->alias;
         else
             GetAlias(fxName,name);
     }
@@ -1912,13 +1913,13 @@ public:
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
                 
-    void AddZoneFilePath(const string &name, const struct CSIZoneInfo &info)
+    void AddZoneFilePath(const string &name, CSIZoneInfo *info)
     {
         if (name != "")
-            zoneFilePaths_[name] = info;
+            zoneFilePaths_.Insert(name.c_str(), info);
     }
         
-    void AddZoneFilePath(const string &fxZoneFolder, const string &name, const struct CSIZoneInfo &info)
+    void AddZoneFilePath(const string &fxZoneFolder, const string &name, CSIZoneInfo *info)
     {
         if (fxZoneFolder == fxZoneFolder_)
             AddZoneFilePath(name, info);
@@ -4433,7 +4434,7 @@ public:
                 surfaces_.Get(i)->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
-    void AddZoneFilePath(ControlSurface *originatingSurface, const string &zoneFolder, const string &name, struct CSIZoneInfo info)
+    void AddZoneFilePath(ControlSurface *originatingSurface, const string &zoneFolder, const string &name, CSIZoneInfo *info)
     {
         for (int i = 0; i < surfaces_.GetSize(); ++i)
             if (surfaces_.Get(i) != originatingSurface)

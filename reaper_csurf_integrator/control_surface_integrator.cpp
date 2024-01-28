@@ -542,8 +542,8 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
     {
         ifstream file(filePath);
         
-        CSIZoneInfo info;
-        info.filePath = filePath;
+        CSIZoneInfo *info = new CSIZoneInfo();
+        info->filePath = filePath;
                  
         for (string line; getline(file, line) ; )
         {
@@ -558,7 +558,7 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
             if (tokens[0] == "Zone" && tokens.size() > 1)
             {
                 zoneName = tokens[1];
-                info.alias = tokens.size() > 2 ? tokens[2] : zoneName;
+                info->alias = tokens.size() > 2 ? tokens[2] : zoneName;
                 zoneManager->AddZoneFilePath(zoneName, info);
             }
 
@@ -2290,26 +2290,26 @@ Zone::Zone(ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex,
     {
         for (int i = 0; i < (int)associatedZones.size(); ++i)
         {
-            if (zoneManager_->GetZoneFilePaths().count(associatedZones[i]) > 0)
+            if (zoneManager_->GetZoneFilePaths().Exists(associatedZones[i].c_str()))
             {
                 WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
                 associatedZones_[associatedZones[i]] = WDL_PtrList<Zone>();
                 
-                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[associatedZones[i]].filePath, navigators, associatedZones_[associatedZones[i]], nullptr);
+                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath, navigators, associatedZones_[associatedZones[i]], nullptr);
             }
         }
     }
     
     for (int i = 0; i < (int)includedZones.size(); ++i)
     {
-        if (zoneManager_->GetZoneFilePaths().count(includedZones[i]) > 0)
+        if (zoneManager_->GetZoneFilePaths().Exists(includedZones[i].c_str()))
         {
             WDL_PtrList<Navigator> navigators;
             AddNavigatorsForZone(includedZones[i], navigators);
             
-            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[includedZones[i]].filePath, navigators, includedZones_, nullptr);
+            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(includedZones[i].c_str())->filePath, navigators, includedZones_, nullptr);
         }
     }
 }
@@ -2318,14 +2318,14 @@ void Zone::InitSubZones(const vector<string> &subZones, Zone *enclosingZone)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
-        if (zoneManager_->GetZoneFilePaths().count(subZones[i]) > 0)
+        if (zoneManager_->GetZoneFilePaths().Exists(subZones[i].c_str()) > 0)
         {
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetNavigator());
 
             subZones_[subZones[i]] = WDL_PtrList<Zone>();
         
-            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths()[subZones[i]].filePath, navigators, subZones_[subZones[i]], enclosingZone);
+            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(subZones[i].c_str())->filePath, navigators, subZones_[subZones[i]], enclosingZone);
         }
     }
 }
@@ -2966,7 +2966,7 @@ void ZoneManager::Initialize()
 {
     PreProcessZones();
 
-    if (zoneFilePaths_.count("Home") < 1)
+    if ( ! zoneFilePaths_.Exists("Home"))
     {
         MessageBox(g_hwnd, (surface_->GetName() + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + surface_->GetName()).c_str(), MB_OK);
         return;
@@ -2975,17 +2975,17 @@ void ZoneManager::Initialize()
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
     WDL_PtrList<Zone> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
-    LoadZoneFile(zoneFilePaths_["Home"].filePath, navigators, dummy, nullptr);
-    if (zoneFilePaths_.count("FocusedFXParam") > 0)
-        LoadZoneFile(zoneFilePaths_["FocusedFXParam"].filePath, navigators, dummy, nullptr);
-    if (zoneFilePaths_.count("SurfaceFXLayout") > 0)
-        ProcessSurfaceFXLayout(zoneFilePaths_["SurfaceFXLayout"].filePath, surfaceFXLayout_, surfaceFXLayoutTemplate_);
-    if (zoneFilePaths_.count("FXLayouts") > 0)
-        ProcessFXLayouts(zoneFilePaths_["FXLayouts"].filePath, fxLayouts_);
-    if (zoneFilePaths_.count("FXPrologue") > 0)
-        ProcessFXBoilerplate(zoneFilePaths_["FXPrologue"].filePath, fxPrologue_);
-    if (zoneFilePaths_.count("FXEpilogue") > 0)
-        ProcessFXBoilerplate(zoneFilePaths_["FXEpilogue"].filePath, fxEpilogue_);
+    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath, navigators, dummy, nullptr);
+    if (zoneFilePaths_.Exists("FocusedFXParam"))
+        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath, navigators, dummy, nullptr);
+    if (zoneFilePaths_.Exists("SurfaceFXLayout"))
+        ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, surfaceFXLayout_, surfaceFXLayoutTemplate_);
+    if (zoneFilePaths_.Exists("FXLayouts"))
+        ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, fxLayouts_);
+    if (zoneFilePaths_.Exists("FXPrologue"))
+        ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
+    if (zoneFilePaths_.Exists("FXEpilogue"))
+        ProcessFXBoilerplate(zoneFilePaths_.Get("FXEpilogue")->filePath, fxEpilogue_);
     
     InitializeNoMapZone();
     InitializeFXParamsLearnZone();
@@ -3114,12 +3114,12 @@ void ZoneManager::GoFocusedFX()
         char FXName[BUFSZ];
         DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
-        if (zoneFilePaths_.count(FXName) > 0)
+        if (zoneFilePaths_.Exists(FXName))
         {
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
-            LoadZoneFile(zoneFilePaths_[FXName].filePath, navigators, focusedFXZones_, nullptr);
+            LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath, navigators, focusedFXZones_, nullptr);
             
             for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
             {
@@ -3156,11 +3156,11 @@ void ZoneManager::GoSelectedTrackFX()
             
             DAW::TrackFX_GetFXName(selectedTrack, i, FXName, sizeof(FXName));
             
-            if (zoneFilePaths_.count(FXName) > 0)
+            if (zoneFilePaths_.Exists(FXName))
             {
                 WDL_PtrList<Navigator> navigators;
                 navigators.Add(GetSurface()->GetPage()->GetSelectedTrackNavigator());
-                LoadZoneFile(zoneFilePaths_[FXName].filePath, navigators, selectedTrackFXZones_, nullptr);
+                LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath, navigators, selectedTrackFXZones_, nullptr);
                 
                 selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->SetSlotIndex(i);
                 selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->Activate();
@@ -3208,9 +3208,9 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
         
-        if (zoneFilePaths_.count(fxName) > 0)
+        if (zoneFilePaths_.Exists(fxName))
         {
-            ifstream file(zoneFilePaths_[fxName].filePath);
+            ifstream file(zoneFilePaths_.Get(fxName)->filePath);
              
             string line = "";
             
@@ -3229,7 +3229,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
                 {
                     file.close();
                     
-                    if (MessageBox(NULL, (zoneFilePaths_[fxName].alias + " already exists\n\n Do you want to delete it permanently and go into LearnMode ?").c_str(), "Zone Already Exists", MB_YESNO) == IDYES)
+                    if (MessageBox(NULL, (zoneFilePaths_.Get(fxName)->alias + " already exists\n\n Do you want to delete it permanently and go into LearnMode ?").c_str(), "Zone Already Exists", MB_YESNO) == IDYES)
                     {
                         ClearLearnedFXParams();
                         RemoveZone(fxName);
@@ -3256,12 +3256,12 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     if ( ! csiManager->HaveFXSteppedValuesBeenCalculated(fxName))
         CalculateSteppedValues(fxName, track, fxSlot);
 
-    if (zoneFilePaths_.count(fxName) > 0)
+    if (zoneFilePaths_.Exists(fxName))
     {
         WDL_PtrList<Navigator> navigators;
         navigators.Add(navigator);
         
-        LoadZoneFile(zoneFilePaths_[fxName].filePath, navigators, fxSlotZones_, nullptr);
+        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath, navigators, fxSlotZones_, nullptr);
         
         if (fxSlotZones_.GetSize() > 0)
         {
@@ -3345,10 +3345,10 @@ void ZoneManager::SaveTemplatedFXParams()
         
         string path = "";
          
-        if (zoneFilePaths_.count(learnFXName_) > 0)
+        if (zoneFilePaths_.Exists(learnFXName_.c_str()))
         {
-            path = zoneFilePaths_[learnFXName_].filePath;
-            alias = zoneFilePaths_[learnFXName_].alias;
+            path = zoneFilePaths_.Get(learnFXName_.c_str())->filePath;
+            alias = zoneFilePaths_.Get(learnFXName_.c_str())->alias;
         }
         else
         {
@@ -3360,9 +3360,9 @@ void ZoneManager::SaveTemplatedFXParams()
             
             path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
             
-            CSIZoneInfo info;
-            info.filePath = path;
-            info.alias = alias;
+            CSIZoneInfo *info = new CSIZoneInfo();
+            info->filePath = path;
+            info->alias = alias;
             
             AddZoneFilePath(learnFXName_, info);
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
@@ -3405,10 +3405,10 @@ void ZoneManager::SaveLearnedFXParams()
         string path = "";
         string alias = "";
         
-        if (zoneFilePaths_.count(learnFXName_) > 0)
+        if (zoneFilePaths_.Exists(learnFXName_.c_str()))
         {
-            path = zoneFilePaths_[learnFXName_].filePath;
-            alias = zoneFilePaths_[learnFXName_].alias;
+            path = zoneFilePaths_.Get(learnFXName_.c_str())->filePath;
+            alias = zoneFilePaths_.Get(learnFXName_.c_str())->alias;
         }
         else
         {
@@ -3420,9 +3420,9 @@ void ZoneManager::SaveLearnedFXParams()
             
             path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
             
-            CSIZoneInfo info;
-            info.filePath = path;
-            info.alias = alias;
+            CSIZoneInfo *info = new CSIZoneInfo();
+            info->filePath = path;
+            info->alias = alias;
             
             AddZoneFilePath(learnFXName_, info);
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
@@ -3562,14 +3562,14 @@ void ZoneManager::InitializeNoMapZone()
     if (surfaceFXLayout_.size() != 3)
         return;
     
-    if (GetZoneFilePaths().count("NoMap") > 0)
+    if (GetZoneFilePaths().Exists("NoMap"))
     {
         WDL_PtrList<Navigator> navigators;
         navigators.Add(GetSelectedTrackNavigator());
         
         WDL_PtrList<Zone> zones;
         
-        LoadZoneFile(GetZoneFilePaths()["NoMap"].filePath, navigators, zones, nullptr);
+        LoadZoneFile(GetZoneFilePaths().Get("NoMap")->filePath, navigators, zones, nullptr);
         
         if (zones.GetSize() > 0)
             noMapZone_ = zones.Get(0);
@@ -3737,7 +3737,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
 void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
 {
-    zoneDef_.fullPath = zoneFilePaths_[fxName].filePath;
+    zoneDef_.fullPath = zoneFilePaths_.Get(fxName.c_str())->filePath;
     vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
         
     UnpackZone(zoneDef_, layoutTemplates);
@@ -3812,9 +3812,9 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
         
         fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
         
-        if (zoneFilePaths_.count(zoneName) > 0 && fxLayout_ != nullptr)
+        if (zoneFilePaths_.Exists(zoneName.c_str()) && fxLayout_ != nullptr)
         {
-            ifstream file(zoneFilePaths_[zoneName].filePath);
+            ifstream file(zoneFilePaths_.Get(zoneName.c_str())->filePath);
             
             for (string line; getline(file, line) ; )
             {
@@ -4299,9 +4299,9 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     if (fxName.find("JS:") != string::npos)
         paramAction = " JSFXParam ";
     
-    CSIZoneInfo info;
-    info.filePath = path;
-    info.alias = alias;
+    CSIZoneInfo *info = new CSIZoneInfo();
+    info->filePath = path;
+    info->alias = alias;
 
     int totalAvailableChannels = 0;
     
@@ -4517,12 +4517,12 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         fxZone.close();
     }
     
-    if (zoneFilePaths_.count(fxName) > 0)
+    if (zoneFilePaths_.Exists(fxName.c_str()))
     {
         WDL_PtrList<Navigator> navigators;
         navigators.Add(GetSelectedTrackNavigator());
         
-        LoadZoneFile(zoneFilePaths_[fxName].filePath, navigators, fxSlotZones_, nullptr);
+        LoadZoneFile(zoneFilePaths_.Get(fxName.c_str())->filePath, navigators, fxSlotZones_, nullptr);
         
         if (fxSlotZones_.GetSize() > 0)
         {
