@@ -2581,27 +2581,17 @@ private:
     void SetLatchModifier(bool value, Modifiers modifier, int latchTime);
 
 public:
-    ModifierManager()
+    ModifierManager(Page *page = NULL, ControlSurface *surface = NULL)
     {
         // private:
-        page_ = nullptr;
-        surface_ = nullptr;
+        page_ = page;
+        surface_ = surface;
         latchTime_ = 100;
 
         int *p = modifierCombinations_.ResizeOK(1);
         if (WDL_NORMALLY(p)) p[0]=0;
 
         memset(modifiers_,0,sizeof(modifiers_));
-    }
-    
-    ModifierManager(Page *page) : ModifierManager()
-    {
-        page_ = page;
-    }
-    
-    ModifierManager(ControlSurface *surface) : ModifierManager()
-    {
-        surface_ = surface;
     }
     
     void RecalculateModifiers();
@@ -2818,7 +2808,7 @@ protected:
         
         // protected
         zoneManager_ = NULL;
-        modifierManager_ = new ModifierManager(this);
+        modifierManager_ = new ModifierManager(NULL, this);
         speedX5_ = false;
         
         int size = 0;
@@ -3235,28 +3225,11 @@ protected:
     MIDI_event_ex_t *midiFeedbackMessage1_;
     MIDI_event_ex_t *midiFeedbackMessage2_;
     
-    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget) : FeedbackProcessor(widget), surface_(surface)
+    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1 = NULL, MIDI_event_ex_t *feedback2 = NULL) : FeedbackProcessor(widget)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
-        midiFeedbackMessage1_ = new MIDI_event_ex_t(0, 0, 0);
-        midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
-    }
-    
-    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget)
-    {
-        lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
-        if (WDL_NOT_NORMALLY(!feedback1)) return;
-        midiFeedbackMessage1_ = feedback1;
-        midiFeedbackMessage2_ = new MIDI_event_ex_t(0, 0, 0);
-    }
-    
-    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) :  Midi_FeedbackProcessor(surface, widget)
-    {
-        lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
-        if (WDL_NOT_NORMALLY(!feedback1)) return;
-        midiFeedbackMessage1_ = feedback1;
-        if (WDL_NOT_NORMALLY(!feedback2)) return;
-        midiFeedbackMessage2_ = feedback2;
+        midiFeedbackMessage1_ = feedback1 ? feedback1 : new MIDI_event_ex_t(0, 0, 0);
+        midiFeedbackMessage2_ = feedback2 ? feedback2 : new MIDI_event_ex_t(0, 0, 0);
     }
     
     void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage);
@@ -4281,7 +4254,7 @@ public:
     Page(const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : name_(name)
     {
         trackNavigationManager_ = new TrackNavigationManager(this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
-        modifierManager_ = new ModifierManager(this);
+        modifierManager_ = new ModifierManager(this, NULL);
     }
 
     ~Page()
