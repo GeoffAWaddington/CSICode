@@ -5160,7 +5160,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 Midi_ControlSurface::Midi_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
-: ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+: ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
     // special processing for MCU meters
@@ -5184,23 +5184,20 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
     int oneByteKey = evt->midi_message[0] * 0x10000;
 
     // At this point we don't know how much of the message comprises the key, so try all three
-    if (Midi_CSIMessageGeneratorsByMessage_.count(threeByteKey) > 0)
+    if (Midi_CSIMessageGeneratorsByMessage_.Exists(threeByteKey))
     {
         isMapped = true;
-        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[threeByteKey].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[threeByteKey].Get(i)->ProcessMidiMessage(evt);
+        Midi_CSIMessageGeneratorsByMessage_.Get(threeByteKey)->ProcessMidiMessage(evt);
     }
-    else if (Midi_CSIMessageGeneratorsByMessage_.count(twoByteKey) > 0)
+    else if (Midi_CSIMessageGeneratorsByMessage_.Exists(twoByteKey))
     {
         isMapped = true;
-        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[twoByteKey].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[twoByteKey].Get(i)->ProcessMidiMessage(evt);
+        Midi_CSIMessageGeneratorsByMessage_.Get(twoByteKey)->ProcessMidiMessage(evt);
     }
-    else if (Midi_CSIMessageGeneratorsByMessage_.count(oneByteKey) > 0)
+    else if (Midi_CSIMessageGeneratorsByMessage_.Exists(oneByteKey))
     {
         isMapped = true;
-        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[oneByteKey].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[oneByteKey].Get(i)->ProcessMidiMessage(evt);
+        Midi_CSIMessageGeneratorsByMessage_.Get(oneByteKey)->ProcessMidiMessage(evt);
     }
     
     if (csiManager->GetSurfaceRawInDisplay() || (! isMapped && csiManager->GetSurfaceInDisplay()))

@@ -3327,10 +3327,9 @@ class Midi_ControlSurface : public ControlSurface
 private:
     string const templateFilename_;
     Midi_ControlSurfaceIO *const surfaceIO_;
-    map<int, WDL_PtrList<Midi_CSIMessageGenerator>> Midi_CSIMessageGeneratorsByMessage_;
+    WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
+    static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
 
-    WDL_IntKeyedArray<WDL_PtrList<Midi_CSIMessageGenerator>> wMidi_CSIMessageGeneratorsByMessage_;
-    
     // special processing for MCU meters
     bool hasMCUMeters_;
     int displayType_;
@@ -3352,11 +3351,7 @@ private:
 public:
     Midi_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
-    virtual ~Midi_ControlSurface()
-    {
-        for (auto [key, generators] : Midi_CSIMessageGeneratorsByMessage_)
-            generators.Empty(true);
-    }
+    virtual ~Midi_ControlSurface() {}
     
     void ProcessMidiMessage(const MIDI_event_ex_t *evt);
     virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) override;
@@ -3376,7 +3371,7 @@ public:
     void AddCSIMessageGenerator(int messageKey, Midi_CSIMessageGenerator *messageGenerator)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) return;
-        Midi_CSIMessageGeneratorsByMessage_[messageKey].Add(messageGenerator);
+        Midi_CSIMessageGeneratorsByMessage_.Insert(messageKey, messageGenerator);
     }
 };
 
