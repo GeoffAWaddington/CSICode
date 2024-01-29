@@ -895,7 +895,7 @@ static void SetColor(vector<string> &params, bool &supportsColor, bool &supports
     }
 }
 
-static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const map<string, string> &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
     vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1940,7 +1940,18 @@ ActionContext::ActionContext(Action *action, Widget *widget, Zone *zone, const v
                 kvp.push_back(token);
 
             if (kvp.size() == 2)
-                widgetProperties_[kvp[0]] = kvp[1];
+            {
+                PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
+                if (prop != PropertyType_Unknown)
+                {
+                   widgetProperties_.set_prop(prop, kvp[1].c_str());;
+                }
+                else
+                {
+                   // cerr << "unknown property" << str;
+                   WDL_ASSERT(false);
+                }
+            }
         }
         else
             params.push_back(paramsAndProperties[i]);
@@ -2814,13 +2825,13 @@ void Widget::Configure(const WDL_PtrList<ActionContext> &contexts)
         feedbackProcessors_.Get(i)->Configure(contexts);
 }
 
-void  Widget::UpdateValue(map<string, string> &properties, double value)
+void  Widget::UpdateValue(const PropertyList &properties, double value)
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->SetValue(properties, value);
 }
 
-void  Widget::UpdateValue(map<string, string> &properties, string value)
+void  Widget::UpdateValue(const PropertyList &properties, string value)
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->SetValue(properties, value);
@@ -2929,7 +2940,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(rgba_color &color)
     surface_->SendOSCMessage(this, oscAddress, surfaceColor);
 }
 
-void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, double value)
+void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
     if (DAW::GetCurrentNumberOfMilliseconds() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
         return;
@@ -2938,7 +2949,7 @@ void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, double v
     surface_->SendOSCMessage(this, oscAddress_, value);
 }
 
-void OSC_FeedbackProcessor::ForceValue(map<string, string> &properties, const string &value)
+void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, const string &value)
 {
     lastStringValue_ = value;
     surface_->SendOSCMessage(this, oscAddress_, GetWidget()->GetSurface()->GetRestrictedLengthText(value));
@@ -2953,7 +2964,7 @@ void OSC_FeedbackProcessor::ForceClear()
     surface_->SendOSCMessage(this, oscAddress_, "");
 }
 
-void OSC_IntFeedbackProcessor::ForceValue(map<string, string> &properties, double value)
+void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
     lastDoubleValue_ = value;
     
@@ -4806,7 +4817,7 @@ void ControlSurface::RequestUpdate()
     zoneManager_->RequestUpdate();
 
     // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
-    map<string, string> properties;
+    const PropertyList properties;
     
     for(int i = 0; i < widgets_.GetSize(); ++i)
     {

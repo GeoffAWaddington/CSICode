@@ -401,11 +401,11 @@ public:
     
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (value == 0.0)
         {
@@ -418,7 +418,7 @@ public:
             SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         if (value == 0.0)
         {
@@ -456,7 +456,7 @@ public:
         active_ = false;
     }
 
-    virtual void SetValue(map<string, string> &properties, double active) override
+    virtual void SetValue(const PropertyList &properties, double active) override
     {
         active_ = (bool)active;
     }
@@ -505,26 +505,26 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (lastValue_ != value)
             ForceValue(properties, value);
     }
     
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         lastValue_ = value;
      
         rgba_color color;
 
-        if (value == 0 && properties.count("OffColor") > 0)
-            color = GetColorValue(properties["OffColor"]);
-        else if (value == 1 && properties.count("OnColor") > 0)
-            color = GetColorValue(properties["OnColor"]);
+        if (value == 0 && properties.get_prop(PropertyType_OffColor))
+            color = GetColorValue(properties.get_prop(PropertyType_OffColor));
+        else if (value == 1 && properties.get_prop(PropertyType_OnColor))
+            color = GetColorValue(properties.get_prop(PropertyType_OnColor));
 
         struct
         {
@@ -589,17 +589,18 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
     
     for (int i = 0; i < contexts.GetSize(); ++i)
     {
-        map<string, string> properties = contexts.Get(i)->GetWidgetProperties();
+        const PropertyList &properties = contexts.Get(i)->GetWidgetProperties();
         
-        if (properties.count("Row") > 0)
+        const char *rowname = properties.get_prop(PropertyType_Row);
+        if (rowname)
         {
-            const char *rowname = properties["Row"].c_str();
             RowInfo *row = rows.Get(rowname);
             if (!row)
                 rows.Insert(rowname, row = new RowInfo);
 
-            if (properties.count("Font") > 0)
-                row->fontSize = stoi(properties["Font"]);
+            const char *font = properties.get_prop(PropertyType_Font);
+            if (font)
+                row->fontSize = atoi(font);
 
             contexts.Get(i)->SetProvideFeedback(true);
         }
@@ -655,39 +656,17 @@ public:
     
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        PropertyList properties;
+        properties.set_prop(PropertyType_DisplayText, "");
+        properties.set_prop(PropertyType_TopMargin, "0");
+        properties.set_prop(PropertyType_BottomMargin, "63");
+        properties.set_prop(PropertyType_Font, "9");
         
-        properties["Row"] = "1";
-        properties["DisplayText"] = "";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, 0.0);
-        
-        properties["Row"] = "2";
-        properties["DisplayText"] = "";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, 0.0);
-        
-        properties["Row"] = "3";
-        properties["DisplayText"] = "";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, 0.0);
-        
-        properties["Row"] = "4";
-        properties["DisplayText"] = "";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, 0.0);
+        for (int x = 1; x <= 4; x ++)
+        {
+          properties.set_prop_int(PropertyType_Row,x);
+          ForceValue(properties, 0.0);
+        }
     }
     
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
@@ -726,14 +705,17 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         ForceValue(properties, value);
     }
         
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
-        RowInfo *row = rows_.Get(properties["Row"].c_str());
+        const char *rowname = properties.get_prop(PropertyType_Row);
+        if (!rowname) return;
+
+        RowInfo *row = rows_.Get(rowname);
         if (!row) return;
 
         rgba_color backgroundColor;
@@ -741,10 +723,13 @@ public:
         
         if (value == 0)
         {
-            if (properties.count("BackgroundColorOff") > 0)
-                backgroundColor = GetColorValue(properties["BackgroundColorOff"]);
-            if (properties.count("TextColorOff") > 0)
-                textColor = GetColorValue(properties["TextColorOff"]);
+            const char *col = properties.get_prop(PropertyType_BackgroundColorOff);
+            if (col)
+                backgroundColor = GetColorValue(col);
+
+            col = properties.get_prop(PropertyType_TextColorOff);
+            if (col)
+                textColor = GetColorValue(col);
             
             if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
@@ -756,10 +741,12 @@ public:
         }
         else
         {
-            if (properties.count("BackgroundColorOn") > 0)
-                backgroundColor = GetColorValue(properties["BackgroundColorOn"]);
-            if (properties.count("TextColorOn") > 0)
-                textColor = GetColorValue(properties["TextColorOn "]);
+            const char *col = properties.get_prop(PropertyType_BackgroundColorOn);
+            if (col)
+                backgroundColor = GetColorValue(col);
+            col = properties.get_prop(PropertyType_TextColorOn);
+            if (col)
+                textColor = GetColorValue(col);
             
             if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
@@ -770,10 +757,8 @@ public:
             }
         }
         
-        string displayText = "";
-        
-        if (properties.count("DisplayText") > 0)
-            displayText = properties["DisplayText"];
+        const char *displayText = properties.get_prop(PropertyType_DisplayText);
+        if (!displayText) displayText = "";
         
         struct
         {
@@ -802,7 +787,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
-        for (int i = 0; i < displayText.length(); i++)
+        for (int i = 0; displayText[i]; i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -829,35 +814,17 @@ public:
     
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        PropertyList properties;
+        properties.set_prop(PropertyType_DisplayText, "");
+        properties.set_prop(PropertyType_TopMargin, "0");
+        properties.set_prop(PropertyType_BottomMargin, "63");
+        properties.set_prop(PropertyType_Font, "9");
         
-        properties["Row"] = "1";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, "");
-        
-        properties["Row"] = "2";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, "");
-        
-        properties["Row"] = "3";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, "");
-        
-        properties["Row"] = "4";
-        properties["TopMargin"] = "0";
-        properties["BottomMargin"] = "63";
-        properties["Font"] = "9";
-
-        ForceValue(properties, "");
+        for (int x = 1; x <= 4; x ++)
+        {
+          properties.set_prop_int(PropertyType_Row,x);
+          ForceValue(properties, "");
+        }
     }
 
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
@@ -896,14 +863,17 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
     }
 
-    virtual void SetValue(map<string, string> &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const string &inputText) override
     {
         ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
     {
-        RowInfo *row = rows_.Get(properties["Row"].c_str());
+        const char *rowname = properties.get_prop(PropertyType_Row);
+        if (!rowname) return;
+
+        RowInfo *row = rows_.Get(rowname);
         if (!row) return;
 
         string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
@@ -916,10 +886,12 @@ public:
         rgba_color backgroundColor;
         rgba_color textColor;
 
-        if (properties.count("BackgroundColor") > 0)
-            backgroundColor = GetColorValue(properties["BackgroundColor"]);
-        if (properties.count("TextColor") > 0)
-            textColor = GetColorValue(properties["TextColor"]);
+        const char *col = properties.get_prop(PropertyType_BackgroundColor);
+        if (col)
+            backgroundColor = GetColorValue(col);
+        col = properties.get_prop(PropertyType_TextColor);
+        if (col)
+            textColor = GetColorValue(col);
 
         struct
         {
@@ -1065,35 +1037,36 @@ public:
         
         SendMidiSysExMessage(&midiSysExData.evt);
         
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(properties, value));
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(properties, value));
     }
     
-    int GetMidiValue(map<string, string> &properties, double value)
+    int GetMidiValue(const PropertyList &properties, double value)
     {
         int valueInt = int(value  *127);
         
         int displayMode = 0;
         
-        if (properties.count("RingStyle") > 0)
+        const char *ringstyle = properties.get_prop(PropertyType_RingStyle);
+        if (ringstyle)
         {
-            if (properties["RingStyle"] == "Dot")
+            if (!strcmp(ringstyle, "Dot"))
                 displayMode = 0;
-            else if (properties["RingStyle"] == "BoostCut")
+            else if (!strcmp(ringstyle, "BoostCut"))
                 displayMode = 1;
-            else if (properties["RingStyle"] == "Fill")
+            else if (!strcmp(ringstyle, "Fill"))
                 displayMode = 2;
-            else if (properties["RingStyle"] == "Spread")
+            else if (!strcmp(ringstyle, "Spread"))
                 displayMode = 3;
         }
 
@@ -1115,15 +1088,18 @@ public:
         if (contexts.GetSize() == 0)
             return;
         
-        map<string, string> properties = contexts.Get(0)->GetWidgetProperties();
+        const PropertyList &properties = contexts.Get(0)->GetWidgetProperties();
         
         vector<LEDRingRangeColor> colors;
         
-        if (properties.count("Push") > 0 && properties.count("PushColor") > 0 )
+        const char *ledringcolor = properties.get_prop(PropertyType_LEDRingColor);
+        const char *ledringcolors = properties.get_prop(PropertyType_LEDRingColors);
+        const char *pushcolor = properties.get_prop(PropertyType_PushColor);
+        if (properties.get_prop(PropertyType_Push) && pushcolor)
         {
             LEDRingRangeColor color;
             
-            color.ringColor = GetColorValue(properties["PushColor"]);
+            color.ringColor = GetColorValue(pushcolor);
             color.ringRangeLow = 7;
             color.ringRangeMedium = 0;
             color.ringRangeHigh = 0;
@@ -1139,11 +1115,11 @@ public:
             
             colors.push_back(color);
         }
-        else if (properties.count("LEDRingColor") > 0)
+        else if (ledringcolor)
         {
             LEDRingRangeColor color;
             
-            color.ringColor = GetColorValue(properties["LEDRingColor"]);
+            color.ringColor = GetColorValue(ledringcolor);
 
             color.ringRangeLow = 120;
             color.ringRangeMedium = 127;
@@ -1160,9 +1136,9 @@ public:
 
             colors.push_back(color);
         }
-        else if (properties.count("LEDRingColors") > 0)
+        else if (ledringcolors)
         {
-            colors = GetColorValues(properties["LEDRingColors"]);
+            colors = GetColorValues(ledringcolors);
         }
 
         if (colors.size() == 0)
@@ -1364,7 +1340,7 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
@@ -1377,7 +1353,7 @@ public:
         }
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (value == 0.0)
         {
@@ -1392,7 +1368,7 @@ public:
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
     }
     
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         int volInt = int(value  *16383.0);
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], volInt&0x7f, (volInt>>7)&0x7f);
@@ -1419,7 +1395,7 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
@@ -1434,7 +1410,7 @@ public:
         }
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (value == 0.0)
         {
@@ -1457,7 +1433,7 @@ public:
         }
     }
     
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         int volInt = int(value  *16383.0);
         
@@ -1478,16 +1454,16 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value  *127.0));
     }
     
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(value  *127.0));
     }
@@ -1505,35 +1481,36 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
     }
     
-    int GetMidiValue(map<string, string> &properties, double value)
+    int GetMidiValue(const PropertyList &properties, double value)
     {
         int valueInt = int(value  *127);
         
         int displayMode = 0;
         
-        if (properties.count("RingStyle") > 0)
+        const char *ringstyle = properties.get_prop(PropertyType_RingStyle);
+        if (ringstyle)
         {
-            if (properties["RingStyle"] == "Dot")
+            if (!strcmp(ringstyle, "Dot"))
                 displayMode = 0;
-            else if (properties["RingStyle"] == "BoostCut")
+            else if (!strcmp(ringstyle, "BoostCut"))
                 displayMode = 1;
-            else if (properties["RingStyle"] == "Fill")
+            else if (!strcmp(ringstyle, "Fill"))
                 displayMode = 2;
-            else if (properties["RingStyle"] == "Spread")
+            else if (!strcmp(ringstyle, "Spread"))
                 displayMode = 3;
         }
 
@@ -1569,29 +1546,30 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0] + displayMode_, midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0] + displayMode_, midiFeedbackMessage1_->midi_message[1] + 0x20, GetMidiValue(properties, value));
     }
     
-    int GetMidiValue(map<string, string> &properties, double value)
+    int GetMidiValue(const PropertyList &properties, double value)
     {
         displayMode_ = 2;
         
-        if (properties.count("RingStyle") > 0)
+        const char *ringstyle = properties.get_prop(PropertyType_RingStyle);
+        if (ringstyle)
         {
-            if (properties["RingStyle"] == "Fill")
+            if (!strcmp(ringstyle, "Fill"))
                 displayMode_ = 1;
-            else if (properties["RingStyle"] == "Dot")
+            else if (!strcmp(ringstyle, "Dot"))
                 displayMode_ = 2;
         }
 
@@ -1611,16 +1589,16 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(value));
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], GetMidiValue(value));
     }
@@ -1660,16 +1638,16 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value)  *127.0));
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], int(fabs(1.0 - value)  *127.0));
     }
@@ -1697,11 +1675,11 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         //Master Channel:
         //Master Level 1 : 0xd1, 0x0L
@@ -1718,7 +1696,7 @@ public:
         SendMidiMessage(0xd1, (param_ << 4) | midiValue, 0);
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         //Master Channel:
         //Master Level 1 : 0xd1, 0x0L
@@ -1758,16 +1736,16 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
     }
@@ -1806,16 +1784,16 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         SendMidiMessage(isRight_ ? 0xd1 : 0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         ForceMidiMessage(isRight_ ? 0xd1 : 0xd0, (channelNumber_ << 4) | GetMidiValue(value), 0);
     }
@@ -1852,11 +1830,11 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (lastMidiValue_ == value || GetMidiValue(value) < 7)
         {
@@ -1871,7 +1849,7 @@ public:
         }
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         lastMidiValue_ = (int)value;
         if (channelNumber_ < 8)
@@ -1899,19 +1877,20 @@ private:
     double lastValue_;
     int channel_;
     
-    int GetValueBarType(map<string, string> &properties)
+    int GetValueBarType(const PropertyList &properties)
     {
         // 0: Normal, 1: Bipolar, 2: Fill, 3: Spread, 4: Off
 
-        if (properties.count("BarStyle") > 0)
+        const char *barstyle = properties.get_prop(PropertyType_BarStyle);
+        if (barstyle)
         {
-            if (properties["BarStyle"] == "Normal")
+            if (!strcmp(barstyle, "Normal"))
                 return 0;
-            else if (properties["BarStyle"] == "BiPolar")
+            else if (!strcmp(barstyle, "BiPolar"))
                 return 1;
-            else if (properties["BarStyle"] == "Fill")
+            else if (!strcmp(barstyle, "Fill"))
                 return 2;
-            else if (properties["BarStyle"] == "Spread")
+            else if (!strcmp(barstyle, "Spread"))
                 return 3;
         }
 
@@ -1929,11 +1908,11 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (value == lastValue_)
             return;
@@ -1941,7 +1920,7 @@ public:
         ForceValue(properties, value);
     }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         lastValue_ = value;
         
@@ -1980,17 +1959,17 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(map<string, string> &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const string &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
     {
         lastStringSent_ = inputText;
         
@@ -2062,17 +2041,17 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(map<string, string> &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const string &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
     {
         lastStringSent_ = inputText;
         
@@ -2204,7 +2183,7 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, "");
     }
     
@@ -2259,13 +2238,13 @@ public:
         preventUpdateTrackColors_ = false;
     }
     
-    virtual void SetValue(map<string, string> &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const string &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
     {
         lastStringSent_ = inputText;
         
@@ -2416,25 +2395,26 @@ private:
     int channel_;
     string lastStringSent_;
     
-    int GetTextAlign(map<string, string> &properties)
+    int GetTextAlign(const PropertyList &properties)
     {
         // Center: 0, Left: 1, Right: 2
-        if (properties.count("TextAlign") > 0)
+        const char *textalign = properties.get_prop(PropertyType_TextAlign);
+        if (textalign)
         {
-            if (properties["TextAlign"] == "Left")
+            if (!strcmp(textalign, "Left"))
                 return 1;
-            else if (properties["TextAlign"] == "Right")
+            else if (!strcmp(textalign, "Right"))
                 return 2;
         }
 
         return 0;
     }
     
-    int GetTextInvert(map<string, string> &properties)
+    int GetTextInvert(const PropertyList &properties)
     {
-        if (properties.count("TextInvert") > 0)
-            if (properties["TextInvert"] == "Yes")
-                return 4;
+        const char *textinvert = properties.get_prop(PropertyType_TextInvert);
+        if (textinvert && !strcmp(textinvert, "Yes"))
+            return 4;
 
         return 0;
     }
@@ -2450,17 +2430,17 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(map<string, string> &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const string &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
     {
         lastStringSent_ = inputText;
         
@@ -2524,12 +2504,13 @@ private:
     int channel_;
     int lastMode_;
 
-    int GetMode(map<string, string> &properties)
+    int GetMode(const PropertyList &properties)
     {
         int param = 2;
 
-        if (properties.count("Mode") > 0)
-            param = stoi(properties["Mode"]);
+        const char *mode = properties.get_prop(PropertyType_Mode);
+        if (mode)
+            param = atoi(mode);
 
         if (param >= 0 && param < 9)
             return param;
@@ -2548,11 +2529,11 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
     }
 
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (lastMode_ == GetMode(properties))
             return;
@@ -2560,7 +2541,7 @@ public:
         ForceValue(properties, value);
     }
     
-    virtual void ForceValue(map<string, string> &properties, double value) override
+    virtual void ForceValue(const PropertyList &properties, double value) override
     {
         lastMode_ = GetMode(properties);
         
@@ -2609,17 +2590,17 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(map<string, string> &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const string &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(map<string, string> &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
     {
         lastStringSent_ = inputText;
         
@@ -2686,13 +2667,13 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
         SendMidiMessage(0xB0, 0x4B, 0x20);
         SendMidiMessage(0xB0, 0x4A, 0x20);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         if (value == 0.0) // Selected Track
         {
@@ -2731,14 +2712,14 @@ public:
 
     virtual void ForceClear() override
     {
-        map<string, string> properties;
+        const PropertyList properties;
         ForceValue(properties, 0.0);
 
         for (int i = 0; i < 10; i++)
             SendMidiMessage(0xB0, 0x40 + i, 0x20);
     }
     
-    virtual void SetValue(map<string, string> &properties, double value) override
+    virtual void SetValue(const PropertyList &properties, double value) override
     {
         
 #ifndef timeGetTime

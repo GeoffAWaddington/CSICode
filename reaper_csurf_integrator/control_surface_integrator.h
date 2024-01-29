@@ -242,16 +242,16 @@ struct FXParamDefinition
     string paramWidget;
     string paramWidgetFullName;
     string paramNumber;
-    map<string, string> paramWidgetProperties;
+    PropertyList paramWidgetProperties;
 
     string paramNameDisplayWidget;
     string paramNameDisplayWidgetFullName;
     string paramName;
-    map<string, string> paramNameDisplayWidgetProperties;
+    PropertyList paramNameDisplayWidgetProperties;
     
     string paramValueDisplayWidget;
     string paramValueDisplayWidgetFullName;
-    map<string, string> paramValueDisplayWidgetProperties;
+    PropertyList paramValueDisplayWidgetProperties;
 
     string delta;
     vector<string> deltas;
@@ -529,7 +529,7 @@ private:
         
     bool provideFeedback_ = false;
     
-    map<string, string> widgetProperties_;
+    PropertyList widgetProperties_;
     
     // For Learn
     string cellAddress_;
@@ -581,7 +581,7 @@ public:
     int GetParamIndex() { return paramIndex_; }
     void SetParamIndex(int paramIndex) { paramIndex_ = paramIndex; }
       
-    map<string, string> &GetWidgetProperties() { return widgetProperties_; }
+    PropertyList &GetWidgetProperties() { return widgetProperties_; }
     
     void SetIsValueInverted() { isValueInverted_ = true; }
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
@@ -1121,8 +1121,8 @@ public:
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
     void Configure(const WDL_PtrList<ActionContext> &contexts);
-    void UpdateValue(map<string, string> &properties, double value);
-    void UpdateValue(map<string, string> &properties, string value);
+    void UpdateValue(const PropertyList &properties, double value);
+    void UpdateValue(const PropertyList &properties, string value);
     void RunDeferredActions();
     void UpdateColorValue(rgba_color);
     void SetXTouchDisplayColors(const string &zoneName, const string &colors);
@@ -1586,7 +1586,7 @@ private:
         }
     }
 
-    void GetProperties(int start, int finish, vector<string> &tokens, map<string, string> &properties)
+    void GetProperties(int start, int finish, vector<string> &tokens, PropertyList &properties) 
     {
         for (int i = start; i < finish; i++)
         {
@@ -1600,7 +1600,18 @@ private:
                     kvp.push_back(token);
 
                 if (kvp.size() == 2)
-                    properties[kvp[0]] = kvp[1];
+                {
+                    PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
+                    if (prop != PropertyType_Unknown)
+                    {
+                        properties.set_prop(prop, kvp[1].c_str());
+                    }
+                    else
+                    {
+                        // cerr << "unknown property" << str;
+                        WDL_ASSERT(false);
+                    }
+                }
             }
         }
     }
@@ -2497,10 +2508,7 @@ public:
                             fxFile << "]";
                         }
                         
-                        for (auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramWidgetProperties)
-                            fxFile << " " + key + "=" + value ;
-                        
-                        fxFile << "\n";
+                        zoneDef.paramDefs[i].definitions[j].paramWidgetProperties.save_list(fxFile);
                     }
                     
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
@@ -2518,10 +2526,7 @@ public:
                         
                         fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].paramName + "\" ";
                         
-                        for (auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties)
-                            fxFile << " " + key + "=" + value;
-                        
-                        fxFile << "\n";
+                        zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties.save_list(fxFile);
                     }
                     
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
@@ -2539,10 +2544,7 @@ public:
                         
                         fxFile << layoutTemplates[i].valueDisplayAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber;
                         
-                        for (auto [ key, value ] : zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties)
-                            fxFile << " " + key + "=" + value;
-                        
-                        fxFile << "\n";
+                        zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties.save_list(fxFile);
                     }
                     
                     fxFile << "\n";
@@ -3316,9 +3318,9 @@ public:
     Widget *GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color &color) {}
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
-    virtual void ForceValue(map<string, string> &properties, double value) {}
+    virtual void ForceValue(const PropertyList &properties, double value) {}
     virtual void ForceColorValue(const rgba_color &color) {}
-    virtual void ForceValue(map<string, string> &properties, const string &value) {}
+    virtual void ForceValue(const PropertyList &properties, const string &value) {}
     virtual void RunDeferredActions() {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
@@ -3326,7 +3328,7 @@ public:
     virtual void RestoreXTouchDisplayColors() {}
     virtual void ForceClear() {}
     
-    virtual void SetValue(map<string, string> &properties, double value)
+    virtual void SetValue(const PropertyList &properties, double value)
     {
         if (lastDoubleValue_ != value)
         {
@@ -3335,7 +3337,7 @@ public:
         }
     }
     
-    virtual void SetValue(map<string, string> &properties, const string &value)
+    virtual void SetValue(const PropertyList &properties, const string &value)
     {
         if (lastStringValue_ != value)
         {
@@ -3504,8 +3506,8 @@ public:
 
     virtual void SetColorValue(rgba_color &color) override;
     virtual void X32SetColorValue(rgba_color &color);
-    virtual void ForceValue(map<string, string> &properties, double value) override;
-    virtual void ForceValue(map<string, string> &properties, const string &value) override;
+    virtual void ForceValue(const PropertyList &properties, double value) override;
+    virtual void ForceValue(const PropertyList &properties, const string &value) override;
     virtual void ForceClear() override;
 };
 
@@ -3519,7 +3521,7 @@ public:
 
     virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
 
-    virtual void ForceValue(map<string, string> &properties, double value) override;
+    virtual void ForceValue(const PropertyList &properties, double value) override;
     virtual void ForceClear() override;
 };
 
