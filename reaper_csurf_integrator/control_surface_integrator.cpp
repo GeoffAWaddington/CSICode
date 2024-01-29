@@ -2910,10 +2910,11 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color &color)
         {
             lastColor_ = color;
 
+            char tmp[32];
             if (surface_->IsX32())
                 X32SetColorValue(color);
             else
-                surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string());
+                surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string(tmp));
         }
     }
 }

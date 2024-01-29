@@ -34,17 +34,6 @@ struct rgba_color
         return r != other.r || g != other.g || b != other.b || a != other.a;
     }
     
-    string to_string()
-    {
-        std::stringstream hexStream;
-        hexStream << "#";
-        hexStream << hex;
-        hexStream << setw(2) << setfill('0') << r;
-        hexStream << setw(2) << setfill('0') << g;
-        hexStream << setw(2) << setfill('0') << b;
-        hexStream << setw(2) << setfill('0') << a;
-        return hexStream.str();
-    }
     const char *to_string(char *buf) // buf must be at least 10 bytes
     {
       snprintf(buf,10,"#%02x%02x%02x%02x",r,g,b,a);
