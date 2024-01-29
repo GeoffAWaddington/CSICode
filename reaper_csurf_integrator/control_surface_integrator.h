@@ -3532,8 +3532,6 @@ private:
     Navigator *selectedTrackNavigator_;
     Navigator *focusedFXNavigator_;
     
-    vector<string> autoModeDisplayNames_;
-    
     void ForceScrollLink()
     {
         // Make sure selected track is visble on the control surface
@@ -3586,7 +3584,6 @@ public:
         selectedTracksOffset_ = 0;
         vcaLeadTrack_ = nullptr;
         folderParentTrack_ = nullptr;
-        autoModeDisplayNames_ = { "Trim", "Read", "Touch", "Write", "Latch", "LtchPre" };
     }
     ~TrackNavigationManager()
     {
@@ -3658,25 +3655,38 @@ public:
         else
             return "";
     }
+    static const char *GetAutoModeDisplayNameNoOverride(int modeIndex)
+    {
+        switch (modeIndex)
+        {
+            case 0: return "Trim";
+            case 1: return "Read";
+            case 2: return "Touch";
+            case 3: return "Write";
+            case 4: return "Latch";
+            case 5: return "LtchPre";
+            default: WDL_ASSERT(false); return "?";
+        }
+    }
 
-    const string &GetAutoModeDisplayName(int modeIndex)
+    const char *GetAutoModeDisplayName(int modeIndex)
     {
         int globalOverride = DAW::GetGlobalAutomationOverride();
 
         if (globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
-            return autoModeDisplayNames_[globalOverride];
+            return GetAutoModeDisplayNameNoOverride(globalOverride);
         else
-            return autoModeDisplayNames_[modeIndex];
+            return GetAutoModeDisplayNameNoOverride(modeIndex);
     }
 
-    string GetGlobalAutoModeDisplayName()
+    const char *GetGlobalAutoModeDisplayName()
     {
         int globalOverride = DAW::GetGlobalAutomationOverride();
 
         if (globalOverride == -1)
             return "NoOverride";
         else if (globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
-            return autoModeDisplayNames_[globalOverride];
+            return GetAutoModeDisplayNameNoOverride(globalOverride);
         else
             return "";
     }
@@ -4436,8 +4446,8 @@ public:
     void SetTrackOffset(int offset) { trackNavigationManager_->SetTrackOffset(offset); }
     MediaTrack *GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
     void NextInputMonitorMode(MediaTrack *track) { trackNavigationManager_->NextInputMonitorMode(track); }
-    const string &GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
-    string GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
+    const char *GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
+    const char *GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     string GetCurrentInputMonitorMode(MediaTrack *track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     const WDL_PtrList<MediaTrack> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
     
