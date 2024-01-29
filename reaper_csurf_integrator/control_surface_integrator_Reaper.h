@@ -45,6 +45,11 @@ struct rgba_color
         hexStream << setw(2) << setfill('0') << a;
         return hexStream.str();
     }
+    const char *to_string(char *buf) // buf must be at least 10 bytes
+    {
+      snprintf(buf,10,"#%02x%02x%02x%02x",r,g,b,a);
+      return buf;
+    }
     
     rgba_color()
     {
