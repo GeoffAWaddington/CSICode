@@ -71,6 +71,149 @@ class Widget;
 extern CSIManager *csiManager;
 extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+enum PropertyType {
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define DECLARE_PROPERTY_TYPES(D) \
+  D(Row) \
+  D(Font) \
+  D(TopMargin) \
+  D(BottomMargin) \
+  D(BackgroundColorOff) \
+  D(TextColorOff) \
+  D(BackgroundColorOn) \
+  D(TextColorOn) \
+  D(DisplayText) \
+  D(BackgroundColor) \
+  D(TextColor) \
+  D(RingStyle) \
+  D(Push) \
+  D(PushColor) \
+  D(LEDRingColor) \
+  D(LEDRingColors) \
+  D(BarStyle) \
+  D(TextAlign) \
+  D(TextInvert) \
+  D(Mode) \
+  D(OffColor) \
+  D(OnColor) \
+  D(Background) \
+  D(Foreground) \
+
+
+
+  PropertyType_Unknown = 0,
+#define DEFPT(x) PropertyType_##x ,
+  DECLARE_PROPERTY_TYPES(DEFPT)
+#undef DEFPT
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class PropertyList
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    enum { MAX_PROP=64, RECLEN=10 };
+    int nprops_;
+    PropertyType props_[MAX_PROP];
+    char vals_[MAX_PROP][RECLEN]; // if last byte is nonzero, pointer, otherwise, string
+
+    static char *get_item_ptr(char *vp) // returns a strdup'd string
+    {
+        if (!vp[RECLEN-1]) return NULL;
+        char *ret;
+        memcpy(&ret,vp,sizeof(char *));
+        return ret;
+    }
+
+  public:
+    PropertyList() : nprops_(0) { }
+    ~PropertyList()
+    {
+        for (int x = 0; x < nprops_; x ++) free(get_item_ptr(&vals_[x][0]));
+    }
+
+    void set_prop(PropertyType prop, const char *val)
+    {
+        int x;
+        for (x = 0; x < nprops_ && props_[x] != prop; x ++);
+
+        if (WDL_NOT_NORMALLY(x >= MAX_PROP)) return;
+
+        char *rec = &vals_[x][0];
+        if (x == nprops_)
+        {
+            nprops_++;
+            props_[x] = prop;
+        }
+        else
+        {
+            free(get_item_ptr(rec));
+        }
+
+        if (strlen(val) < RECLEN)
+        {
+          lstrcpyn_safe(rec, val, RECLEN);
+          rec[RECLEN-1] = 0;
+        }
+        else
+        {
+          char *v = strdup(val);
+          memcpy(rec, &v, sizeof(v));
+          rec[RECLEN-1] = 1;
+        }
+    }
+    void set_prop_int(PropertyType prop, int v) { char tmp[64]; snprintf(tmp,sizeof(tmp),"%d",v); set_prop(prop,tmp); }
+
+    const char *get_prop(PropertyType prop) const
+    {
+        for (int x = 0; x < nprops_; x ++)
+            if (props_[x] == prop)
+            {
+                char *p = get_item_ptr((char *) (&vals_[x][0]));
+                return p ? p : &vals_[x][0];
+            }
+        return NULL;
+    }
+
+    const char *enum_props(int x, PropertyType &type) const
+    {
+        if (x<0 || x >= nprops_) return NULL;
+        type = props_[x];
+        return get_item_ptr((char*)&vals_[x][0]);
+    }
+
+    static PropertyType prop_from_string(const char *str)
+    {
+#define CHK(x) if (!strcmp(str,#x)) return PropertyType_##x;
+        DECLARE_PROPERTY_TYPES(CHK)
+#undef CHK
+        return PropertyType_Unknown;
+    }
+    static const char *string_from_prop(PropertyType type)
+    {
+#define CHK(x) if (type == PropertyType_##x) return #x;
+        DECLARE_PROPERTY_TYPES(CHK)
+#undef CHK
+        return NULL;
+    }
+
+    void save_list(ofstream &fxFile) const
+    {
+        for (int x = 0; x < nprops_; x ++)
+        {
+            PropertyType t;
+            const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
+            if (WDL_NORMALLY(key != NULL))
+                fxFile << " " << key << "=" << value ;
+        }
+        fxFile << "\n";
+    }
+
+};
+
+
 struct FXParamLayoutTemplate
 {
     string modifiers;
