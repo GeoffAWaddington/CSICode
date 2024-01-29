@@ -3225,7 +3225,7 @@ protected:
     MIDI_event_ex_t *midiFeedbackMessage1_;
     MIDI_event_ex_t *midiFeedbackMessage2_;
     
-    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1 = NULL, MIDI_event_ex_t *feedback2 = NULL) : FeedbackProcessor(widget)
+    Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1 = NULL, MIDI_event_ex_t *feedback2 = NULL) : FeedbackProcessor(widget), surface_(surface)
     {
         lastMessageSent_ = new MIDI_event_ex_t(0, 0, 0);
         midiFeedbackMessage1_ = feedback1 ? feedback1 : new MIDI_event_ex_t(0, 0, 0);
