@@ -167,7 +167,7 @@ static IReaperControlSurface *createFunc(const char *type_string, const char *co
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
-static vector<vector<string>> s_surfaceLayoutTemplate;
+static vector<vector<string> > s_surfaceLayoutTemplate;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
 static vector<FXParamLayoutTemplate> s_layoutTemplates;

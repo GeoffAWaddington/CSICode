@@ -612,7 +612,7 @@ protected:
     WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
     map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
     
-    map<int, map<string, LearnFXCell>> learnFXCells_;
+    map<int, map<string, LearnFXCell> > learnFXCells_;
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
     
     WDL_PtrList<Zone> includedZones_;
@@ -663,7 +663,7 @@ public:
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
-    const map<int, map<string, LearnFXCell>> &GetLearnFXCells() { return learnFXCells_; }
+    const map<int, map<string, LearnFXCell> > &GetLearnFXCells() { return learnFXCells_; }
     
     int GetModifier(Widget *widget)
     {
@@ -1079,12 +1079,12 @@ private:
     
     Zone *homeZone_;
     
-    map<int, map<Widget*, Widget*>> controlDisplayAssociations_;
+    map<int, map<Widget*, Widget*> > controlDisplayAssociations_;
     vector<string> fxLayoutFileLines_;
     vector<string> fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
-    vector<vector<string>> surfaceFXLayout_;
-    vector<vector<string>> surfaceFXLayoutTemplate_;
+    vector<vector<string> > surfaceFXLayout_;
+    vector<vector<string> > surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
     vector<string> fxPrologue_;
     vector<string> fxEpilogue_;
@@ -1106,7 +1106,7 @@ private:
     Zone *focusedFXParamZone_;
     bool isFocusedFXParamMappingEnabled_;
     
-    map<int, map<int, int>> focusedFXDictionary_;
+    map<int, map<int, int> > focusedFXDictionary_;
     WDL_PtrList<Zone> focusedFXZones_;
     bool isFocusedFXMappingEnabled_;
     
@@ -1126,7 +1126,7 @@ private:
 
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
-    map<Widget*, map<int, LearnInfo*>> learnedFXParams_;
+    map<Widget*, map<int, LearnInfo*> > learnedFXParams_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
 
@@ -1661,7 +1661,7 @@ public:
     const string &GetZoneFolder() { return zoneFolder_; }
     WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
     vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    vector<vector<string>> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+    vector<vector<string> > &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -1768,7 +1768,7 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
     
-    const vector<vector<string>> &GetSurfaceFXLayout()
+    const vector<vector<string> > &GetSurfaceFXLayout()
     {
         return surfaceFXLayout_;
     }
@@ -3525,7 +3525,7 @@ private:
     MediaTrack *            folderParentTrack_;
     WDL_PtrList<MediaTrack> folderParentTracks_;
     WDL_PtrList<MediaTrack> folderSpillTracks_;
-    map<MediaTrack*, WDL_PtrList<MediaTrack>> folderDictionary_;
+    map<MediaTrack*, WDL_PtrList<MediaTrack> > folderDictionary_;
 
     WDL_PtrList<Navigator> trackNavigators_;
     Navigator *const masterTrackNavigator_;
@@ -4571,8 +4571,8 @@ private:
     int projectMetronomePrimaryVolumeOffs_; // for double -- if invalid, use fallbacks
     int projectMetronomeSecondaryVolumeOffs_; // for double -- if invalid, use fallbacks
     
-    map<string, map<int, string>> fxParamAliases_;
-    map<string, map<int, int>> fxParamSteppedValueCounts_;
+    map<string, map<int, string> > fxParamAliases_;
+    map<string, map<int, int> > fxParamSteppedValueCounts_;
                                          
     void InitActionsDictionary();
     
