@@ -1065,7 +1065,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
-            vector<int> columnSizes = { 160 };
+            vector<int> columnSizes;
+            columnSizes.push_back(160);
             
             for (int i = 1; i <= s_numGroups; i++)
             {
@@ -1227,7 +1228,8 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
-            vector<int> columnSizes = { 65 }; // modifiers
+            vector<int> columnSizes;
+            columnSizes.push_back(65); // modifiers
             
             for (int i = 1; i <= s_numGroups; i++)
             {
