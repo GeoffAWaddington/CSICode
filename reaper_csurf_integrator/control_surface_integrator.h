@@ -114,7 +114,7 @@ enum PropertyType {
 class PropertyList
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    enum { MAX_PROP=64, RECLEN=10 };
+    enum { MAX_PROP=24, RECLEN=10 };
     int nprops_;
     PropertyType props_[MAX_PROP];
     char vals_[MAX_PROP][RECLEN]; // if last byte is nonzero, pointer, otherwise, string
