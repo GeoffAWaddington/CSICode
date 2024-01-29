@@ -1028,81 +1028,94 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         MIDI_event_ex_t *message1 = nullptr;
         MIDI_event_ex_t *message2 = nullptr;
 
+        int oneByteKey = 0;
         int twoByteKey = 0;
+        int threeByteKey = 0;
+        int threeByteKeyMsg2 = 0;
         
         if (size > 3)
         {
             message1 = new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
-            twoByteKey = message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100;
+            
+            if(message1)
+            {
+                oneByteKey = message1->midi_message[0] * 0x10000;
+                twoByteKey = message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100;
+                threeByteKey = message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100 + message1->midi_message[2];
+            }
         }
         if (size > 6)
+        {
             message2 = new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
-        
+            
+            if(message2)
+                threeByteKeyMsg2 = message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2];
+        }
         // Control Signal Generators
         
-        if (widgetType == "AnyPress" && (size == 4 || size == 7))
-            surface->AddCSIMessageGenerator(new AnyPress_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
-        if (widgetType == "Press" && size == 4)
-            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100 + message1->midi_message[2]);
-        else if (widgetType == "Press" && size == 7)
+        if (widgetType == "AnyPress" && (size == 4 || size == 7) && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new AnyPress_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "Press" && size == 4 && message1)
+            surface->AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "Press" && size == 7 && message1 && message2)
         {
-            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100 + message1->midi_message[2]);
-            surface->AddCSIMessageGenerator(new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0]  *0x10000 + message2->midi_message[1]  *0x100 + message2->midi_message[2]);
+            surface->AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2));
+            surface->AddCSIMessageGenerator(threeByteKeyMsg2, new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2));
         }
-        else if (widgetType == "Fader14Bit" && size == 4)
-            surface->AddCSIMessageGenerator(new Fader14Bit_Midi_CSIMessageGenerator(widget, message1), message1->midi_message[0]  *0x10000);
-        else if (widgetType == "FaderportClassicFader14Bit" && size == 7)
-            surface->AddCSIMessageGenerator(new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0]  *0x10000);
-        else if (widgetType == "Fader7Bit" && size== 4)
-            surface->AddCSIMessageGenerator(new Fader7Bit_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
-        else if (widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass")
+        else if (widgetType == "Fader14Bit" && size == 4 && message1)
+            surface->AddCSIMessageGenerator(oneByteKey, new Fader14Bit_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "FaderportClassicFader14Bit" && size == 7 && message1 && message2)
+            surface->AddCSIMessageGenerator(oneByteKey, new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(widget, message1, message2));
+        else if (widgetType == "Fader7Bit" && size== 4 && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass"  && message1)
         {
             if (stepSizes.count(widgetClass) > 0 && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
-                surface->AddCSIMessageGenerator(new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]), twoByteKey);
+                surface->AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]));
         }
-        else if (widgetType == "Encoder" && size == 4)
-            surface->AddCSIMessageGenerator(new Encoder_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
-        else if (widgetType == "Encoder" && size > 4)
-            surface->AddCSIMessageGenerator(new AcceleratedEncoder_Midi_CSIMessageGenerator(widget, message1, tokenLines[i]), twoByteKey);
-        else if (widgetType == "MFTEncoder" && size > 4)
-            surface->AddCSIMessageGenerator(new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(widget, message1, tokenLines[i]), twoByteKey);
-        else if (widgetType == "EncoderPlain" && size == 4)
-            surface->AddCSIMessageGenerator(new EncoderPlain_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
-        else if (widgetType == "Encoder7Bit" && size == 4)
-            surface->AddCSIMessageGenerator(new Encoder7Bit_Midi_CSIMessageGenerator(widget, message1), twoByteKey);
-        else if (widgetType == "Touch" && size == 7)
+        else if (widgetType == "Encoder" && size == 4 && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "Encoder" && size > 4 && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new AcceleratedEncoder_Midi_CSIMessageGenerator(widget, message1, tokenLines[i]));
+        else if (widgetType == "MFTEncoder" && size > 4 && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(widget, message1, tokenLines[i]));
+        else if (widgetType == "EncoderPlain" && size == 4 && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new EncoderPlain_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "Encoder7Bit" && size == 4 && message1)
+            surface->AddCSIMessageGenerator(twoByteKey, new Encoder7Bit_Midi_CSIMessageGenerator(widget, message1));
+        else if (widgetType == "Touch" && size == 7 && message1  && message2)
         {
-            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message1->midi_message[0]  *0x10000 + message1->midi_message[1]  *0x100 + message1->midi_message[2]);
-            surface->AddCSIMessageGenerator(new Touch_Midi_CSIMessageGenerator(widget, message1, message2), message2->midi_message[0]  *0x10000 + message2->midi_message[1]  *0x100 + message2->midi_message[2]);
+            surface->AddCSIMessageGenerator(threeByteKey, new Touch_Midi_CSIMessageGenerator(widget, message1, message2));
+            surface->AddCSIMessageGenerator(threeByteKeyMsg2, new Touch_Midi_CSIMessageGenerator(widget, message1, message2));
         }
         
         // Feedback Processors
         FeedbackProcessor *feedbackProcessor = NULL;
 
-        if (widgetType == "FB_TwoState" && size == 7)
+        if (widgetType == "FB_TwoState" && size == 7 && message1 && message2)
         {
             feedbackProcessor = new TwoState_Midi_FeedbackProcessor(surface, widget, message1, message2);
         }
-        else if (widgetType == "FB_NovationLaunchpadMiniRGB7Bit" && size == 4)
+        else if (widgetType == "FB_NovationLaunchpadMiniRGB7Bit" && size == 4 && message1)
         {
             feedbackProcessor = new NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_MFT_RGB" && size == 4)
+        else if (widgetType == "FB_MFT_RGB" && size == 4 && message1)
         {
             feedbackProcessor = new MFT_RGB_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_AsparionRGB" && size == 4)
+        else if (widgetType == "FB_AsparionRGB" && size == 4 && message1)
         {
             feedbackProcessor = new AsparionRGB_Midi_FeedbackProcessor(surface, widget, message1);
             
             if (feedbackProcessor)
                 surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
         }
-        else if (widgetType == "FB_FaderportRGB" && size == 4)
+        else if (widgetType == "FB_FaderportRGB" && size == 4 && message1)
         {
             feedbackProcessor = new FaderportRGB_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_FaderportTwoStateRGB" && size == 4)
+        else if (widgetType == "FB_FaderportTwoStateRGB" && size == 4 && message1)
         {
             feedbackProcessor = new FPTwoStateRGB_Midi_FeedbackProcessor(surface, widget, message1);
         }
@@ -1114,31 +1127,31 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         {
             feedbackProcessor = new FPVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
         }
-        else if (widgetType == "FB_Fader14Bit" && size == 4)
+        else if (widgetType == "FB_Fader14Bit" && size == 4 && message1)
         {
             feedbackProcessor = new Fader14Bit_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_FaderportClassicFader14Bit" && size == 7)
+        else if (widgetType == "FB_FaderportClassicFader14Bit" && size == 7 && message1 && message2)
         {
             feedbackProcessor = new FaderportClassicFader14Bit_Midi_FeedbackProcessor(surface, widget, message1, message2);
         }
-        else if (widgetType == "FB_Fader7Bit" && size == 4)
+        else if (widgetType == "FB_Fader7Bit" && size == 4 && message1)
         {
             feedbackProcessor = new Fader7Bit_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_Encoder" && size == 4)
+        else if (widgetType == "FB_Encoder" && size == 4 && message1)
         {
             feedbackProcessor = new Encoder_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_AsparionEncoder" && size == 4)
+        else if (widgetType == "FB_AsparionEncoder" && size == 4 && message1)
         {
             feedbackProcessor = new AsparionEncoder_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_ConsoleOneVUMeter" && size == 4)
+        else if (widgetType == "FB_ConsoleOneVUMeter" && size == 4 && message1)
         {
             feedbackProcessor = new ConsoleOneVUMeter_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_ConsoleOneGainReductionMeter" && size == 4)
+        else if (widgetType == "FB_ConsoleOneGainReductionMeter" && size == 4 && message1)
         {
             feedbackProcessor = new ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(surface, widget, message1);
         }
@@ -1178,11 +1191,11 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         {
             feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
-        else if (widgetType == "FB_SCE24Encoder" && size == 4)
+        else if (widgetType == "FB_SCE24Encoder" && size == 4 && message1)
         {
             feedbackProcessor = new SCE24Encoder_Midi_FeedbackProcessor(surface, widget, message1);
         }
-        else if (widgetType == "FB_SCE24EncoderText" && size == 4)
+        else if (widgetType == "FB_SCE24EncoderText" && size == 4 && message1)
         {
             feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(surface, widget, message1);
         }
@@ -5166,24 +5179,28 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
 {
     bool isMapped = false;
     
+    int threeByteKey = evt->midi_message[0]  * 0x10000 + evt->midi_message[1]  * 0x100 + evt->midi_message[2];
+    int twoByteKey = evt->midi_message[0]  * 0x10000 + evt->midi_message[1]  * 0x100;
+    int oneByteKey = evt->midi_message[0] * 0x10000;
+
     // At this point we don't know how much of the message comprises the key, so try all three
-    if (Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100 + evt->midi_message[2]) > 0)
+    if (Midi_CSIMessageGeneratorsByMessage_.count(threeByteKey) > 0)
     {
         isMapped = true;
-        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100 + evt->midi_message[2]].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100 + evt->midi_message[2]].Get(i)->ProcessMidiMessage(evt);
+        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[threeByteKey].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[threeByteKey].Get(i)->ProcessMidiMessage(evt);
     }
-    else if (Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100) > 0)
+    else if (Midi_CSIMessageGeneratorsByMessage_.count(twoByteKey) > 0)
     {
         isMapped = true;
-        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000 + evt->midi_message[1]  *0x100].Get(i)->ProcessMidiMessage(evt);
+        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[twoByteKey].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[twoByteKey].Get(i)->ProcessMidiMessage(evt);
     }
-    else if (Midi_CSIMessageGeneratorsByMessage_.count(evt->midi_message[0]  *0x10000) > 0)
+    else if (Midi_CSIMessageGeneratorsByMessage_.count(oneByteKey) > 0)
     {
         isMapped = true;
-        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000].GetSize(); ++i)
-            Midi_CSIMessageGeneratorsByMessage_[evt->midi_message[0]  *0x10000].Get(i)->ProcessMidiMessage(evt);
+        for (int i = 0; i < (int)Midi_CSIMessageGeneratorsByMessage_[oneByteKey].GetSize(); ++i)
+            Midi_CSIMessageGeneratorsByMessage_[oneByteKey].Get(i)->ProcessMidiMessage(evt);
     }
     
     if (csiManager->GetSurfaceRawInDisplay() || (! isMapped && csiManager->GetSurfaceInDisplay()))

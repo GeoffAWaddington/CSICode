@@ -3329,6 +3329,8 @@ private:
     Midi_ControlSurfaceIO *const surfaceIO_;
     map<int, WDL_PtrList<Midi_CSIMessageGenerator>> Midi_CSIMessageGeneratorsByMessage_;
 
+    WDL_IntKeyedArray<WDL_PtrList<Midi_CSIMessageGenerator>> wMidi_CSIMessageGeneratorsByMessage_;
+    
     // special processing for MCU meters
     bool hasMCUMeters_;
     int displayType_;
@@ -3371,10 +3373,10 @@ public:
         surfaceIO_->HandleExternalInput(this);
     }
         
-    void AddCSIMessageGenerator(Midi_CSIMessageGenerator *messageGenerator, int message)
+    void AddCSIMessageGenerator(int messageKey, Midi_CSIMessageGenerator *messageGenerator)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) return;
-        Midi_CSIMessageGeneratorsByMessage_[message].Add(messageGenerator);
+        Midi_CSIMessageGeneratorsByMessage_[messageKey].Add(messageGenerator);
     }
 };
 
