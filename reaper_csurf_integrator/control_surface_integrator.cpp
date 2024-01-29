@@ -1319,13 +1319,13 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, con
     for (int i = 0; i < (int)tokenLines.size(); ++i)
     {
         if (tokenLines[i].size() > 1 && tokenLines[i][0] == "Control")
-            surface->AddCSIMessageGenerator(new CSIMessageGenerator(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(tokenLines[i][1], new CSIMessageGenerator(widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "AnyPress")
-            surface->AddCSIMessageGenerator(new AnyPress_CSIMessageGenerator(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(tokenLines[i][1], new AnyPress_CSIMessageGenerator(widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "MotorizedFaderWithoutTouch")
-            surface->AddCSIMessageGenerator(new MotorizedFaderWithoutTouch_CSIMessageGenerator(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(tokenLines[i][1], new MotorizedFaderWithoutTouch_CSIMessageGenerator(widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
-            surface->AddCSIMessageGenerator(new Touch_CSIMessageGenerator(widget), tokenLines[i][1]);
+            surface->AddCSIMessageGenerator(tokenLines[i][1], new Touch_CSIMessageGenerator(widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
             widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(surface, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
@@ -5328,8 +5328,8 @@ OSC_ControlSurface::OSC_ControlSurface(Page *page, const string &name, int numCh
 
 void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
 {
-    if (CSIMessageGeneratorsByMessage_.count(message) > 0)
-        CSIMessageGeneratorsByMessage_[message]->ProcessMessage(value);
+    if (CSIMessageGeneratorsByMessage_.Exists(message.c_str()))
+        CSIMessageGeneratorsByMessage_.Get(message.c_str())->ProcessMessage(value);
     
     if (csiManager->GetSurfaceInDisplay())
     {

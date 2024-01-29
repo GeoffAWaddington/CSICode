@@ -2794,11 +2794,12 @@ protected:
     WDL_PtrList<Widget> widgets_; // owns list
     WDL_StringKeyedArray<Widget*> widgetsByName_;
     
-    map<string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
-    
+    WDL_StringKeyedArray<CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
+    static void disposeAction(CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
+
     bool speedX5_;
 
-    ControlSurface(Page *page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset)
+    ControlSurface(Page *page, const string &name, int numChannels, int channelOffset) : page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), CSIMessageGeneratorsByMessage_(true, disposeAction)
     {
         //private:
         scrubModePtr_ = nullptr;
@@ -2880,10 +2881,6 @@ public:
         widgets_.Empty(true);
         delete zoneManager_;
         delete modifierManager_;
-        
-        for ( auto [key, generator] : CSIMessageGeneratorsByMessage_)
-            if (generator != nullptr)
-                delete generator;
     }
     
     void Stop();
@@ -3099,10 +3096,10 @@ public:
         widgetsByName_.Insert(widget->GetName().c_str(),widget);
     }
     
-    void AddCSIMessageGenerator(CSIMessageGenerator *messageGenerator, const string &message)
+    void AddCSIMessageGenerator(const string &message, CSIMessageGenerator *messageGenerator)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) { return; }
-        CSIMessageGeneratorsByMessage_[message] = messageGenerator;
+        CSIMessageGeneratorsByMessage_.Insert(message.c_str(), messageGenerator);
     }
 
     Widget *GetWidgetByName(const string &name)
