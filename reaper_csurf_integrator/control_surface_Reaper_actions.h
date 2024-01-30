@@ -2388,8 +2388,9 @@ public:
                 int fxIndex = 0;
                 int paramIndex = 0;
                 
+                char tmp[BUFSZ];
                 if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-                    context->UpdateWidgetValue(context->GetCSI()->GetTCPFXParamName(track, fxIndex, paramIndex));
+                    context->UpdateWidgetValue(context->GetCSI()->GetTCPFXParamName(track, fxIndex, paramIndex, tmp, sizeof(tmp)));
                 else
                     context->ClearWidget();
             }

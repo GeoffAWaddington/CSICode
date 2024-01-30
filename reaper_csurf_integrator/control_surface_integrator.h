@@ -4756,7 +4756,6 @@ private:
     int projectMetronomePrimaryVolumeOffs_; // for double -- if invalid, use fallbacks
     int projectMetronomeSecondaryVolumeOffs_; // for double -- if invalid, use fallbacks
     
-    map<string, map<int, string> > fxParamAliases_;
     map<string, map<int, int> > fxParamSteppedValueCounts_;
                                          
     void InitActionsDictionary();
@@ -5088,17 +5087,9 @@ public:
         }
     }
     
-    const string &GetTCPFXParamName(MediaTrack *track, int fxIndex, int paramIndex)
+    const char *GetTCPFXParamName(MediaTrack *track, int fxIndex, int paramIndex, char *buf, int bufsz)
     {
-        char fxName[BUFSZ];
-        DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
-
-        char fxParamName[BUFSZ];
-        DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
-        
-        fxParamAliases_[fxName][paramIndex] = fxParamName;
-
-        return fxParamAliases_[fxName][paramIndex];
+        return DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, buf, bufsz);
     }
     
     void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValuecount)
