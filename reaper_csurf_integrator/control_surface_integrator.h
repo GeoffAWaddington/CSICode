@@ -35,6 +35,7 @@
 #include "control_surface_integrator_Reaper.h"
 #include "WDL/ptrlist.h"
 #include "WDL/assocarray.h"
+#include "WDL/wdlstring.h"
 
 #ifdef _WIN32
 #include <functional>
@@ -104,7 +105,7 @@ enum PropertyType {
 
 
 
-  PropertyType_Unknown = 0,
+  PropertyType_Unknown = 0, // in this case, string is type=value pair
 #define DEFPT(x) PropertyType_##x ,
   DECLARE_PROPERTY_TYPES(DEFPT)
 #undef DEFPT
@@ -205,8 +206,10 @@ class PropertyList
         {
             PropertyType t;
             const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
-            if (WDL_NORMALLY(key != NULL))
+            if (key != NULL)
                 fxFile << " " << key << "=" << value ;
+            else if (WDL_NORMALLY(props_[x] == PropertyType_Unknown && value && strstr(value,"=")))
+                fxFile << " " << value;
         }
         fxFile << "\n";
     }
@@ -1608,7 +1611,12 @@ private:
                     }
                     else
                     {
-                        // cerr << "unknown property" << str;
+                        WDL_FastString fs;
+                        fs.Set(kvp[0].c_str());
+                        fs.Append("=");
+                        fs.Append(kvp[1].c_str());
+                        properties.set_prop(prop, fs.Get());
+                        // preserve unknown properties
                         WDL_ASSERT(false);
                     }
                 }
