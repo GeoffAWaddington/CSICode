@@ -1643,10 +1643,10 @@ private:
                 else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
                 {
                     istringstream acceleratedDeltaValueStream(strVal);
-                    string deltaValue;
+                    string tmp;
                     
-                    while (getline(acceleratedDeltaValueStream, deltaValue, ','))
-                        acceleratedDeltaValues.push_back(regex_replace(deltaValue, regex("[()]"), "") + "  ");
+                    while (getline(acceleratedDeltaValueStream, tmp, ','))
+                        acceleratedDeltaValues.push_back(regex_replace(tmp, regex("[()]"), "") + "  ");
                 }
                 else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
                 {
@@ -2312,17 +2312,17 @@ public:
                     continue;
             }
 
-            vector<string> tokens;
-            GetTokens(tokens, line);
+            vector<string> ltokens;
+            GetTokens(ltokens, line);
 
             if (line.substr(0, 5) == "Zone ")
             {
                 inZone = true;
                 
-                if (tokens.size() > 1)
-                    zoneDef.fxName = tokens[1];
-                if (tokens.size() > 2)
-                    zoneDef.fxAlias = tokens[2];
+                if (ltokens.size() > 1)
+                    zoneDef.fxName = ltokens[1];
+                if (ltokens.size() > 2)
+                    zoneDef.fxAlias = ltokens[2];
                 
                 continue;
             }
@@ -2359,31 +2359,31 @@ public:
             }
             else
             {
-                tokens.clear();
-                GetTokens(tokens, line);
+                ltokens.clear();
+                GetTokens(ltokens, line);
                 
-                if (tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
+                if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
                     listSlotIndex++;
-                    FXParamDefinitions definitions;
-                    zoneDef.paramDefs.push_back(definitions);
+                    FXParamDefinitions tmp;
+                    zoneDef.paramDefs.push_back(tmp);
                 }
                 
                 FXParamDefinition def;
                 
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                GetWidgetNameAndModifiers(ltokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                 
-                if (tokens.size() > 2)
-                    def.paramNumber = tokens[2];
+                if (ltokens.size() > 2)
+                    def.paramNumber = ltokens[2];
                 
                 int propertiesOffset = 3;
                 
-                if (tokens.size() > 4 && tokens[3] == "[")
+                if (ltokens.size() > 4 && ltokens[3] == "[")
                 {
                     vector<string> params;
 
-                    for (int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
-                        params.push_back(tokens[i]);
+                    for (int i = 3; i < ltokens.size() && ltokens[i] != "]"; i++)
+                        params.push_back(ltokens[i]);
                     
                     params.push_back("]");
                  
@@ -2392,8 +2392,8 @@ public:
                     GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
                 }
                                        
-                if (tokens.size() > propertiesOffset)
-                    GetProperties(propertiesOffset, (int)tokens.size(), tokens, def.paramWidgetProperties);
+                if (ltokens.size() > propertiesOffset)
+                    GetProperties(propertiesOffset, (int)ltokens.size(), ltokens, def.paramWidgetProperties);
                 
                 if (getline(autoFXFile, line))
                 {
@@ -4293,9 +4293,9 @@ public:
         }
         
         // Get Visible Tracks
-        for (int i = 1; i <= GetNumTracks(); i++)
+        for (int tidx = 1; tidx <= GetNumTracks(); tidx++)
         {
-            MediaTrack *track = DAW::CSurf_TrackFromID(i, followMCP_);
+            MediaTrack *track = DAW::CSurf_TrackFromID(tidx, followMCP_);
             
             if (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
                 vcaTopLeadTracks_.Add(track);
@@ -4362,7 +4362,7 @@ public:
                 
                 int folderBackTrack = (int)-DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
-                for (int i = 0; i < folderBackTrack && currentDepthTracks.size() > 0; i++)
+                for (int t = 0; t < folderBackTrack && currentDepthTracks.size() > 0; t++)
                     currentDepthTracks.pop_back();
             }
         }

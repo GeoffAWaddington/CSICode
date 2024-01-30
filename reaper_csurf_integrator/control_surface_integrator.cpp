@@ -914,10 +914,10 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
             else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
             {
                 istringstream acceleratedDeltaValueStream(strVal.substr( 1, strVal.length() - 2 ));
-                string deltaValue;
+                string tmp;
                 
-                while (getline(acceleratedDeltaValueStream, deltaValue, ','))
-                    acceleratedDeltaValues.push_back(stod(deltaValue));
+                while (getline(acceleratedDeltaValueStream, tmp, ','))
+                    acceleratedDeltaValues.push_back(stod(tmp));
             }
             else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
             {
@@ -979,23 +979,23 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens, Midi_ControlSurface *surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, Midi_ControlSurface *surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
-    if (tokens.size() < 2)
+    if (in_tokens.size() < 2)
         return;
     
-    string widgetName = tokens[1];
+    string widgetName = in_tokens[1];
     
     string widgetClass = "";
     
-    if (tokens.size() > 2)
-        widgetClass = tokens[2];
+    if (in_tokens.size() > 2)
+        widgetClass = in_tokens[2];
 
     Widget *widget = new Widget(surface, widgetName);
        
     surface->AddWidget(widget);
 
-    vector<vector<string>> tokenLines;
+    vector<vector<string> > tokenLines;
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -1286,12 +1286,12 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
     }
 }
 
-static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &tokens,  OSC_ControlSurface *surface)
+static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens,  OSC_ControlSurface *surface)
 {
-    if (tokens.size() < 2)
+    if (in_tokens.size() < 2)
         return;
     
-    Widget *widget = new Widget(surface, tokens[1]);
+    Widget *widget = new Widget(surface, in_tokens[1]);
     
     surface->AddWidget(widget);
 
@@ -3648,7 +3648,7 @@ void ZoneManager::InitializeNoMapZone()
                     
                     for (int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
-                        Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
+                        widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                         if (widget == NULL || usedWidgets.Exists(widget))
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
@@ -3739,7 +3739,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         
                         for (int k = 0; k < (int)paramWidgets.size(); ++k)
                         {
-                            Widget *widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
+                            widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
                             if (widget == NULL)
                                 continue;
                             cell.fxParamWidgets.Add(widget);
@@ -3808,8 +3808,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
                         if (zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Rotary") != string::npos && zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Push") == string::npos)
                         {
                             if (surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
-                                for (int i = 2; i < surfaceFXLayout_[0].size(); i++)
-                                    info->params += " " + surfaceFXLayout_[0][i];
+                                for (int k = 2; k < surfaceFXLayout_[0].size(); k++)
+                                    info->params += " " + surfaceFXLayout_[0][k];
                         }
                     }
                 }
@@ -3986,10 +3986,10 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
         {
             istringstream fullLine(line);
             vector<string> tokens;
-            string token;
+            string tltoken;
             
-            while (getline(fullLine, token, '+'))
-                tokens.push_back(token);
+            while (getline(fullLine, tltoken, '+'))
+                tokens.push_back(tltoken);
 
             if (tokens.size() < 1)
                 continue;
@@ -3998,8 +3998,8 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
             
             tokens.clear();
 
-            while (getline(modifiersAndWidgetName, token, '+'))
-                tokens.push_back(token);
+            while (getline(modifiersAndWidgetName, tltoken, '+'))
+                tokens.push_back(tltoken);
 
             int lineModifier = surface_->GetModifierManager()->GetModifierValue(tokens);
 

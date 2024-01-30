@@ -952,17 +952,17 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
     
     string property = regex_replace(inputProperty, regex("\""), "");
     
-    istringstream iss(property);
+    istringstream isstop(property);
     string colorDef = "";
     vector<string> colorDefs;
-    while (getline(iss, colorDef, '+'))
+    while (getline(isstop, colorDef, '+'))
         colorDefs.push_back(colorDef);
 
-    for (int i = 0; i < (int)colorDefs.size(); ++i)
+    for (int defi = 0; defi < (int)colorDefs.size(); ++defi)
     {
         vector<string> rangeDefs;
         
-        istringstream iss(colorDefs[i]);
+        istringstream iss(colorDefs[defi]);
         string rangeDef;
         while (getline(iss, rangeDef, '-'))
             rangeDefs.push_back(rangeDef);
