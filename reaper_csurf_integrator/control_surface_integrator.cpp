@@ -3608,8 +3608,8 @@ void ZoneManager::InitializeNoMapZone()
 
             for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
                 if (surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
-                    for (int i = 1; i < surfaceFXLayoutTemplate_[i].size(); i++)
-                        paramWidgets.push_back(surfaceFXLayoutTemplate_[i][i]);
+                    for (int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
+                        paramWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
             
             string nameDisplayWidget = "";
             if (surfaceFXLayout_[1].size() > 0)

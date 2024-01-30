@@ -2253,9 +2253,9 @@ public:
             }
         }
         
-        for (int i = 0; i < (int)GetFXLayouts().size(); ++i)
+        for (int j = 0; j < (int)GetFXLayouts().size(); ++j)
         {
-            for (int i = 0; i < GetFXLayouts()[i].channelCount_; i++)
+            for (int i = 0; i < GetFXLayouts()[j].channelCount_; i++)
             {
                 string modifiers = "";
                 if (GetFXLayouts()[i].modifiers_ != "")
