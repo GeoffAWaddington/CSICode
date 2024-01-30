@@ -1780,6 +1780,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             }
                         }
                     }
+                    break;
                 }
                     
                 case IDC_COMBO_ZoneTemplates:
