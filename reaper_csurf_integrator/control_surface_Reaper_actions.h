@@ -120,8 +120,9 @@ public:
                 }
             }
             
+            char tmp[BUFSZ];
             if (isLearned)
-                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum));
+                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, paramNum, tmp, sizeof(tmp)));
             else
                 context->ClearWidget();
         }
@@ -2358,10 +2359,11 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
+            char tmp[BUFSZ];
             if (context->GetFXParamDisplayName() != "")
                 context->UpdateWidgetValue(context->GetFXParamDisplayName());
             else
-                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex()));
+                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex(), tmp, sizeof(tmp)));
         }
         else
             context->ClearWidget();
@@ -2469,8 +2471,9 @@ public:
         
         if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
+            char tmp[BUFSZ];
             if (MediaTrack *track = DAW::GetTrack(trackNum))
-                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum));
+                context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum, tmp, sizeof(tmp)));
         }
         else
             context->ClearWidget();

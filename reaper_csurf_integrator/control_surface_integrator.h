@@ -5033,7 +5033,6 @@ public:
         if (fxParamsDisplay_ || fxParamsWrite_)
         {
             char fxName[BUFSZ];
-            string fxParamName;
             
             ofstream fxFile;
             
@@ -5057,7 +5056,8 @@ public:
 
                 for (int j = 0; j < DAW::TrackFX_GetNumParams(track, i); j++)
                 {
-                    fxParamName = DAW::TrackFX_GetParamName(track, i, j);
+                    char fxParamName[BUFSZ];
+                    DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
 
                     if (fxParamsDisplay_)
                         DAW::ShowConsoleMsg(("\n\tFXParam " + to_string(j) + " \"" + string(fxParamName) + "\"").c_str());
@@ -5093,7 +5093,8 @@ public:
         char fxName[BUFSZ];
         DAW::TrackFX_GetNamedConfigParm(track, fxIndex, "fx_name", fxName, sizeof(fxName));
 
-        string fxParamName = DAW::TrackFX_GetParamName(track, fxIndex, paramIndex);
+        char fxParamName[BUFSZ];
+        DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
         
         fxParamAliases_[fxName][paramIndex] = fxParamName;
 

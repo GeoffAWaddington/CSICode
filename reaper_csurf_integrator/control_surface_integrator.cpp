@@ -3946,7 +3946,8 @@ void ZoneManager::WidgetMoved(ActionContext *context)
 
             info->isLearned = true;
             info->paramNumber = fxParamNum;
-            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+            char tmp[BUFSZ];
+            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
             info->params = paramStr;
             info->track = DAW::GetTrack(trackNum);
             info->fxSlotNum = fxSlotNum;
@@ -4049,11 +4050,13 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
             char fxName[BUFSZ];
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             
-            string paramName = DAW::TrackFX_GetParamName(track, fxSlotNum, fxParamNum);
-            
             if (paramList_.size() == 0)
                 for (int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
-                    paramList_.push_back(to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxSlotNum, i));
+                {
+                    char tmp[BUFSZ], tmp2[BUFSZ];
+                    snprintf(tmp2,sizeof(tmp2),"%d %s",i,DAW::TrackFX_GetParamName(track, fxSlotNum, i, tmp, sizeof(tmp)));
+                    paramList_.push_back(tmp2);
+                }
                                             
             string paramStr = "";
             
@@ -4112,7 +4115,8 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
 
             info->isLearned = true;
             info->paramNumber = fxParamNum;
-            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum);
+            char tmp[BUFSZ];
+            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
             info->params = paramStr;
             info->track = DAW::GetTrack(trackNum);
             info->fxSlotNum = fxSlotNum;
@@ -4378,7 +4382,12 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                                 fxZone <<  string("NoAction");
                             
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
-                                fxZone << " \"" + DAW::TrackFX_GetParamName(track, fxIndex, paramIdx) + "\"";
+                            {
+                                char tmp[BUFSZ];
+                                fxZone << " \"";
+                                fxZone << DAW::TrackFX_GetParamName(track, fxIndex, paramIdx, tmp, sizeof(tmp));
+                                fxZone << "\"";
+                            }
                             else if (widgetIdx == 0)
                                 fxZone << " " + to_string(paramIdx);
                             
@@ -4520,7 +4529,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         fxZone << "ZoneEnd\n\n";
         
         for (int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
-            fxZone << to_string(i) + " " + DAW::TrackFX_GetParamName(track, fxIndex, i) + "\n";
+        {
+            char tmp[BUFSZ], tmp2[BUFSZ];
+            snprintf(tmp2, sizeof(tmp2), "%d %s\n", i, DAW::TrackFX_GetParamName(track, fxIndex, i, tmp, sizeof(tmp)));
+            fxZone << tmp2;
+        }
         
         fxZone.close();
     }

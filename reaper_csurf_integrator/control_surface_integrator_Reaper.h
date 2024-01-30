@@ -329,16 +329,14 @@ public:
             return 0;
     }
     
-    static string TrackFX_GetParamName(MediaTrack *track, int fxIndex, int paramIndex)
+    static char *TrackFX_GetParamName(MediaTrack *track, int fxIndex, int paramIndex, char *buf, int bufsz)
     {
+        buf[0]=0;
         if (ValidateTrackPtr(track))
         {
-            char fxParamName[BUFSZ];
-            ::TrackFX_GetParamName(track, fxIndex, paramIndex, fxParamName, sizeof(fxParamName));
-            return string(fxParamName);
+            ::TrackFX_GetParamName(track, fxIndex, paramIndex, buf, bufsz);
         }
-        else
-            return "";
+        return buf;
     }
     
     static bool TrackFX_GetFormattedParamValue(MediaTrack *track, int fx, int param, char *buf, int buf_sz)
