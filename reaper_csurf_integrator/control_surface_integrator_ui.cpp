@@ -17,7 +17,7 @@ extern void GetParamStepsString(string &outputString, int numSteps);
 
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
-const string Control_Surface_Integrator = "Control Surface Integrator";
+const char * const Control_Surface_Integrator = "Control Surface Integrator";
 extern int g_registered_command_toggle_show_raw_surface_input;
 extern int g_registered_command_toggle_show_surface_input;
 extern int g_registered_command_toggle_show_surface_output;
@@ -148,8 +148,7 @@ const char *CSurfIntegrator::GetTypeString()
 
 const char *CSurfIntegrator::GetDescString()
 {
-    descspace.Set(Control_Surface_Integrator.c_str());
-    return descspace.Get();
+    return Control_Surface_Integrator;
 }
 
 const char *CSurfIntegrator::GetConfigString() // string of configuration data
@@ -3108,7 +3107,7 @@ static HWND configFunc(const char *type_string, HWND parent, const char *initCon
 reaper_csurf_reg_t csurf_integrator_reg =
 {
     "CSI",
-    Control_Surface_Integrator.c_str(),
+    Control_Surface_Integrator,
     createFunc,
     configFunc,
 };
