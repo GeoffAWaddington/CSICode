@@ -676,7 +676,6 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     
     string zoneName = "";
     string zoneAlias = "";
-    string actionName = "";
     int lineNumber = 0;
    
     try

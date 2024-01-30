@@ -2929,11 +2929,8 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                     }
                     else if (tokens.size() == 6 || tokens.size() == 7)
                     {
-                        bool useLocalModifiers = false;
-                        
                         if (tokens[0] == "LocalModifiers")
                         {
-                            useLocalModifiers = true;
                             tokens.erase(tokens.begin()); // pop front
                         }
 

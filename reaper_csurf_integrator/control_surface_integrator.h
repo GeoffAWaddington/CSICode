@@ -204,7 +204,6 @@ class PropertyList
     {
         for (int x = 0; x < nprops_; x ++)
         {
-            PropertyType t;
             const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
             if (key != NULL)
                 fxFile << " " << key << "=" << value ;
