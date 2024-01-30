@@ -1157,20 +1157,20 @@ struct CSIZoneInfo
 struct CSILayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string modifiers;
-    string suffix;
-    int channelCount;
+    string modifiers_;
+    string suffix_;
+    int channelCount_;
     
     CSILayoutInfo()
     {
-        modifiers = "";
-        suffix = "";
-        channelCount = 0;
+        modifiers_ = "";
+        suffix_ = "";
+        channelCount_ = 0;
     }
     
     vector<string> GetModifierTokens()
     {
-        istringstream modifierStr(modifiers);
+        istringstream modifierStr(modifiers_);
         string modifier;
         vector<string> modifiers;
         
@@ -2256,16 +2256,16 @@ public:
         
         for (int i = 0; i < (int)GetFXLayouts().size(); ++i)
         {
-            for (int i = 0; i < GetFXLayouts()[i].channelCount; i++)
+            for (int i = 0; i < GetFXLayouts()[i].channelCount_; i++)
             {
                 string modifiers = "";
-                if (GetFXLayouts()[i].modifiers != "")
-                    modifiers = GetFXLayouts()[i].modifiers + "+";
+                if (GetFXLayouts()[i].modifiers_ != "")
+                    modifiers = GetFXLayouts()[i].modifiers_ + "+";
                 
                 FXParamLayoutTemplate layoutTemplate;
                 
                 layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].suffix + to_string(i + 1);
+                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + to_string(i + 1);
                 
                 layoutTemplate.widgetAction = widgetAction;
                 layoutTemplate.aliasDisplayAction = aliasDisplayAction;
