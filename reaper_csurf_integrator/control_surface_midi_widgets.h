@@ -2733,21 +2733,21 @@ public:
         
         memset(bla,0,sizeof(bla));
         
-        int *tmodeptr = csiManager->GetTimeMode2Ptr();
+        int *tmodeptr = csi_->GetTimeMode2Ptr();
         
         int tmode=0;
         
         if (tmodeptr && (*tmodeptr)>=0) tmode = *tmodeptr;
         else
         {
-            tmodeptr = csiManager->GetTimeModePtr();
+            tmodeptr = csi_->GetTimeModePtr();
             if (tmodeptr)
                 tmode=*tmodeptr;
         }
         
         if (tmode==3) // seconds
         {
-            double *toptr = csiManager->GetTimeOffsPtr();
+            double *toptr = csi_->GetTimeOffsPtr();
             
             if (toptr) pp+=*toptr;
             char buf[64];
@@ -2804,7 +2804,7 @@ public:
             if (num_measures <= 0 && pp < 0.0)
                 --num_measures;
             
-            int *measptr = csiManager->GetMeasOffsPtr();
+            int *measptr = csi_->GetMeasOffsPtr();
             int nm=num_measures+1+(measptr ? *measptr : 0);
             
             // Here we display a '-' minus sign so we make it clearer that we are on "count down".
@@ -2829,7 +2829,7 @@ public:
         }
         else
         {
-            double *toptr = csiManager->GetTimeOffsPtr();
+            double *toptr = csi_->GetTimeOffsPtr();
             if (toptr) pp+=(*toptr);
             
             int ipp=(int)pp;

@@ -11,7 +11,7 @@
 #include "WDL/wdlcstring.h"
 
 void ShutdownOSCIO();
-CSIManager *csiManager;
+CSIManager *csi_;
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
@@ -26,31 +26,31 @@ extern int g_registered_command_toggle_write_FX_params;
 
 bool hookCommandProc(int command, int flag)
 {
-    if (csiManager != nullptr)
+    if (csi_ != nullptr)
     {
         if (command == g_registered_command_toggle_show_raw_surface_input)
         {
-            csiManager->ToggleSurfaceRawInDisplay();
+            csi_->ToggleSurfaceRawInDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_show_surface_input)
         {
-            csiManager->ToggleSurfaceInDisplay();
+            csi_->ToggleSurfaceInDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_show_surface_output)
         {
-            csiManager->ToggleSurfaceOutDisplay();
+            csi_->ToggleSurfaceOutDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_show_FX_params)
         {
-            csiManager->ToggleFXParamsDisplay();
+            csi_->ToggleFXParamsDisplay();
             return true;
         }
         else if (command == g_registered_command_toggle_write_FX_params)
         {
-            csiManager->ToggleFXParamsWrite();
+            csi_->ToggleFXParamsWrite();
             return true;
         }
     }
@@ -63,31 +63,31 @@ bool hookCommandProc(int command, int flag)
 CSurfIntegrator::CSurfIntegrator()
 {
     // JF - CSIManager should be a member of CSurfIntegrator?
-    if (!csiManager) csiManager = new CSIManager;
-    csiManager->csurf_refcnt_++;
+    if (!csi_) csi_ = new CSIManager;
+    csi_->csurf_refcnt_++;
 }
 
 CSurfIntegrator::~CSurfIntegrator()
 {
-    if (csiManager && !--csiManager->csurf_refcnt_)
+    if (csi_ && !--csi_->csurf_refcnt_)
     {
-        csiManager->Shutdown();
-        delete csiManager;
-        csiManager = NULL;
+        csi_->Shutdown();
+        delete csi_;
+        csi_ = NULL;
         ShutdownOSCIO();
     }
 }
 
 void CSurfIntegrator::OnTrackSelection(MediaTrack *trackid)
 {
-    if (csiManager)
-        csiManager->OnTrackSelection(trackid);
+    if (csi_)
+        csi_->OnTrackSelection(trackid);
 }
 
 void CSurfIntegrator::SetTrackListChange()
 {
-    if (csiManager)
-        csiManager->OnTrackListChange();
+    if (csi_)
+        csi_->OnTrackListChange();
 }
 
 int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
@@ -99,20 +99,20 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
     
     if (call == CSURF_EXT_RESET)
     {
-       if (csiManager)
-           csiManager->Init();
+       if (csi_)
+           csi_->Init();
     }
     
     if (call == CSURF_EXT_SETFXCHANGE)
     {
         // parm1=(MediaTrack*)track, whenever FX are added, deleted, or change order
-        if (csiManager)
-            csiManager->TrackFXListChanged((MediaTrack*)parm1);
+        if (csi_)
+            csi_->TrackFXListChanged((MediaTrack*)parm1);
     }
         
     if (call == CSURF_EXT_SETMIXERSCROLL)
     {
-        if (csiManager)
+        if (csi_)
         {
             MediaTrack *leftPtr = (MediaTrack *)parm1;
             
@@ -123,7 +123,7 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
             if (offset < 0)
                 offset = 0;
                 
-            csiManager->SetTrackOffset(offset);
+            csi_->SetTrackOffset(offset);
         }
     }
         
@@ -132,13 +132,13 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
 
 bool CSurfIntegrator::GetTouchState(MediaTrack *track, int touchedControl)
 {
-    return csiManager->GetTouchState(track, touchedControl);
+    return csi_->GetTouchState(track, touchedControl);
 }
 
 void CSurfIntegrator::Run()
 {
-    if (csiManager)
-        csiManager->Run();
+    if (csi_)
+        csi_->Run();
 }
 
 const char *CSurfIntegrator::GetTypeString()

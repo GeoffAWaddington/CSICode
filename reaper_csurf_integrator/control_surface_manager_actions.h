@@ -146,7 +146,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        csiManager->Speak(context->GetStringParam());
+        csi_->Speak(context->GetStringParam());
     }
 };
 
@@ -362,7 +362,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        csiManager->NextTimeDisplayMode();
+        csi_->NextTimeDisplayMode();
     }
 };
 
@@ -382,7 +382,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        csiManager->NextPage();
+        csi_->NextPage();
     }
 };
 
@@ -402,7 +402,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        csiManager->GoToPage(context->GetStringParam());
+        csi_->GoToPage(context->GetStringParam());
     }
 };
 
@@ -813,9 +813,9 @@ public:
     void Do(ActionContext *context, double value) override
     {
         if (value < 0 && context->GetRangeMinimum() < 0)
-            csiManager->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
+            csi_->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
         else if (value > 0 && context->GetRangeMinimum() >= 0)
-            csiManager->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
+            csi_->AdjustBank(context->GetPage(), context->GetStringParam(), context->GetIntParam());
     }
 };
 
