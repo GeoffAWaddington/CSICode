@@ -17,7 +17,7 @@
 class PressRelease_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     MIDI_event_ex_t *press_;
     MIDI_event_ex_t *release_;
     
@@ -38,7 +38,7 @@ public:
 class Touch_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     MIDI_event_ex_t *press_;
     MIDI_event_ex_t *release_;
 
@@ -57,7 +57,7 @@ public:
 class AnyPress_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     MIDI_event_ex_t *press_;
 
 public:
@@ -88,7 +88,7 @@ public:
 class FaderportClassicFader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     MIDI_event_ex_t *message1_;
     MIDI_event_ex_t *message2_;
 
@@ -1718,7 +1718,7 @@ public:
 class MCUVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     int displayType_;
     int channelNumber_;
     int lastMidiValue_;
@@ -1765,7 +1765,7 @@ public:
 class AsparionVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     int displayType_;
     int channelNumber_;
     int lastMidiValue_;
@@ -2700,7 +2700,7 @@ public:
 class MCU_TimeDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
+protected:
     char m_mackie_lasttime[10];
     int m_mackie_lasttime_mode;
     DWORD m_mcu_timedisp_lastforce, m_mcu_meter_lastrun;
