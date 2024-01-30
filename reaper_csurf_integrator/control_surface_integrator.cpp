@@ -1943,12 +1943,17 @@ ActionContext::ActionContext(Action *action, Widget *widget, Zone *zone, const v
                 PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
                 if (prop != PropertyType_Unknown)
                 {
-                   widgetProperties_.set_prop(prop, kvp[1].c_str());;
+                    widgetProperties_.set_prop(prop, kvp[1].c_str());;
                 }
                 else
                 {
-                   // cerr << "unknown property" << str;
-                   WDL_ASSERT(false);
+                    WDL_FastString fs;
+                    fs.Set(kvp[0].c_str());
+                    fs.Append("=");
+                    fs.Append(kvp[1].c_str());
+                    widgetProperties_.set_prop(prop, fs.Get());
+                    // cerr << "unknown property" << str;
+                    WDL_ASSERT(false);
                 }
             }
         }
