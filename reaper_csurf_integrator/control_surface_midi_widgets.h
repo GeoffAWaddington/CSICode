@@ -2116,9 +2116,8 @@ private:
     int preventUpdateTrackColors_;
     string lastStringSent_;
     vector<rgba_color> currentTrackColors_;
-    map<string, int> availableColors;
-    
-    map<int, rgba_color> availableRGBColors_;
+    WDL_StringKeyedArray<int> availableColors_;
+    WDL_TypedBuf<rgba_color> availableRGBColors_;
     
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
@@ -2126,50 +2125,47 @@ public:
     {
         preventUpdateTrackColors_ = false;
         lastStringSent_ = "";
-        availableColors =
-        {
-            { "Black", 0 },
-            { "Red", 1 },
-            { "Green", 2 },
-            { "Yellow", 3 },
-            { "Blue", 4 },
-            { "Magenta", 5 },
-            { "Cyan", 6 },
-            { "White", 7 }
-        };
+        
+        availableColors_.Insert("Black", 0);
+        availableColors_.Insert("Red", 1);
+        availableColors_.Insert("Green", 2);
+        availableColors_.Insert("Yellow", 3);
+        availableColors_.Insert("Blue", 4);
+        availableColors_.Insert("Cyan", 6);
+        availableColors_.Insert("White", 7);
 
         rgba_color color;
         
         for (int i = 0; i < surface_->GetNumChannels(); i++)
             currentTrackColors_.push_back(color);
         
-        availableRGBColors_[0] = color; // Black
+        availableRGBColors_.Add(color); // Black
         
         color.r = 255;
-        availableRGBColors_[1] = color; // Red
+        availableRGBColors_.Add(color); // Red
 
         color.r = 0;
         color.g = 255;
-        availableRGBColors_[2] = color; // Green
+        availableRGBColors_.Add(color); // Green
         
         color.r = 255;
         color.g = 255;
-        availableRGBColors_[3] = color; // Yellow
+        availableRGBColors_.Add(color); // Yellow
         
         color.r = 0;
         color.g = 0;
         color.b = 255;
-        availableRGBColors_[4] = color; // Blue
+        availableRGBColors_.Add(color); // Blue
         
         color.r = 255;
-        availableRGBColors_[5] = color; // Magenta
+        availableRGBColors_.Add(color); // Magenta
 
         color.r = 0;
         color.g = 255;
-        availableRGBColors_[6] = color; // Cyan
+        availableRGBColors_.Add(color); // Cyan
 
         color.r = 255;
-        availableRGBColors_[7] = color; // White
+        availableRGBColors_.Add(color); // White
     }
         
     virtual const char *GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
@@ -2207,13 +2203,13 @@ public:
         {
             int surfaceColor = 7; // White
             
-            if (currentColors.size() == 1 && availableColors.count(currentColors[0]) > 0)
-                surfaceColor = availableColors[currentColors[0]];
-            else if (currentColors.size() == 8 && availableColors.count(currentColors[i]) > 0)
-                surfaceColor = availableColors[currentColors[i]];
+            if (currentColors.size() == 1 && availableColors_.Exists(currentColors[0].c_str()))
+                surfaceColor = availableColors_.Get(currentColors[0].c_str());
+            else if (currentColors.size() == 8 && availableColors_.Exists(currentColors[i].c_str()))
+                surfaceColor = availableColors_.Get(currentColors[i].c_str());
 
-            if (zoneName == "Track")
-                trackColors.push_back(availableRGBColors_[surfaceColor]);
+            if (zoneName == "Track" && surfaceColor < availableRGBColors_.GetSize())
+                trackColors.push_back(availableRGBColors_.Get()[surfaceColor]);
             
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
         }
