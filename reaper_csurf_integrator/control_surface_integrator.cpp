@@ -969,8 +969,7 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
         if (stepSize != 0.0)
         {
             stepSize *= 10000.0;
-            // GAW TBD add call
-            int baseTickCount = 0; //context->GetCSI()->GetBaseTickCount((int)steppedValues.size());
+            int baseTickCount = widget->GetCSI()->GetBaseTickCount((int)steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }

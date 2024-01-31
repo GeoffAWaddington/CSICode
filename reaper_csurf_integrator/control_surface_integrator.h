@@ -1114,6 +1114,7 @@ public:
     void SetHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = true; }
     bool GetHasBeenUsedByUpdate() { return hasBeenUsedByUpdate_; }
     
+    CSurfIntegrator *GetCSI() { return csi_; }
     const string &GetName() { return name_; }
     ControlSurface *GetSurface() { return surface_; }
     ZoneManager *GetZoneManager();

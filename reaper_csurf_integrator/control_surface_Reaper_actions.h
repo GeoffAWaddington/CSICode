@@ -2147,11 +2147,9 @@ public:
     {
         context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
     }
-
-    // GAW TBD metronome needs context
     
-    void Do(ActionContext*, double value) override
-    {/*
+    void Do(ActionContext *context, double value) override
+    {
         double *primaryVolume =  context->GetCSI()->GetMetronomePrimaryVolumePtr();
         double *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
@@ -2165,7 +2163,6 @@ public:
             *primaryVolume = normalizedValue;
             *secondaryVolume = normalizedValue  *(oldPrimaryVolume / oldSecondaryVolume);
         }
-      */
     }
 };
 
@@ -2192,16 +2189,13 @@ public:
         context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
     }
 
-    // GAW TBD metronome needs context
-
-    void Do(ActionContext*, double value) override
-    {/*
-        const auto *primaryVolume = csi_->GetMetronomePrimaryVolumePtr();
-        auto *secondaryVolume = csi_->GetMetronomeSecondaryVolumePtr();
+    void Do(ActionContext *context, double value) override
+    {
+        const auto *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        auto *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             *secondaryVolume = normalizedToVol(value)  *(*primaryVolume);
-      */
     }
 };
 
@@ -2214,13 +2208,13 @@ public:
 
     // Should write to the provided argument the metronome volume (in linear factor). Returns true
     // if the call was sucessful, false otherwise.
-    virtual bool GetVolume(double& value) const = 0;
+    virtual bool GetVolume(ActionContext *context, double& value) const = 0;
 
     void RequestUpdate(ActionContext *context) override final
     {
         double volume = 0.0;
 
-        if (GetVolume(volume))
+        if (GetVolume(context, volume))
         {
             // The min value Reaper (as of v6.68) shows for the metronome volume before displaying "-inf".
             double reaperMinMetronomeVolumeInDb = -135.0;
@@ -2255,17 +2249,15 @@ class MetronomePrimaryVolumeDisplay : public MetronomeVolumeDisplay
 public:
     string GetName() override { return "MetronomePrimaryVolumeDisplay"; }
 
-    // GAW TBD -- metronome needs context
-     
-    bool GetVolume(double& value) const override
+    bool GetVolume(ActionContext *context, double& value) const override
     {
-        /*
-        if (const double *volume = csi_->GetMetronomePrimaryVolumePtr())
+
+        if (const double *volume = context->GetCSI()->GetMetronomePrimaryVolumePtr())
         {
             value = *volume;
             return true;
         }
-        else */
+        else
             return false;
          
     }
@@ -2278,19 +2270,17 @@ class MetronomeSecondaryVolumeDisplay : public MetronomeVolumeDisplay
 public:
     string GetName() override { return "MetronomeSecondaryVolumeDisplay"; }
 
-    // GAW TBD -- metronome needs context
-
-    bool GetVolume(double &value) const override
-    {/*
-        const auto *primaryVolume = csi_->GetMetronomePrimaryVolumePtr();
-        const auto *secondaryVolume = csi_->GetMetronomeSecondaryVolumePtr();
+    bool GetVolume(ActionContext *context, double &value) const override
+    {
+        const auto *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        const auto *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
         {
             value = (*secondaryVolume) / (*primaryVolume);
             return true;
         }
-        else */
+        else
             return false;
     }
 };
