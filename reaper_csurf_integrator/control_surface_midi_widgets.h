@@ -549,19 +549,7 @@ public:
     }
 };
 
-static map<int, int> s_fontHeights =
-{
-    { 0, 8 },
-    { 1, 13 },
-    { 2, 16 },
-    { 3, 18 },
-    { 4, 20 },
-    { 5, 24 },
-    { 6, 28 },
-    { 7, 32 },
-    { 8, 48 },
-    { 9, 60 }
-};
+static int s_fontHeights[] = { 0, 13, 16, 18, 20, 24, 28, 32, 48, 60 };
 
 struct RowInfo
 {
@@ -612,7 +600,9 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
     {
         RowInfo *row = rows.Enumerate(i);
         if (!row) break;
-        totalFontHeight += s_fontHeights[row->fontSize];
+        
+        if(row->fontSize < NUM_ELEM(s_fontHeights))
+            totalFontHeight += s_fontHeights[row->fontSize];
     }
     
     double factor = 64.0 / totalFontHeight;
@@ -630,7 +620,10 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
         if (topMargin > 63)
             topMargin = 63;
         row->topMargin = topMargin;
-        row->bottomMargin = int(factor  *s_fontHeights[row->fontSize]) + topMargin;
+        
+        if(row->fontSize < NUM_ELEM(s_fontHeights))
+            row->bottomMargin = int(factor  * s_fontHeights[row->fontSize]) + topMargin;
+        
         if (row->bottomMargin > 63)
             row->bottomMargin = 63;
         topMargin = row->bottomMargin + 1;
