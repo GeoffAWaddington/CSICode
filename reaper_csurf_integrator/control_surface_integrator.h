@@ -3460,7 +3460,7 @@ private:
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
 
-    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues);
+    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, WDL_StringKeyedArray<double> &stepSize, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     

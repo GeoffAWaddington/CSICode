@@ -985,7 +985,7 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, WDL_StringKeyedArray<double> &stepSize, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1075,8 +1075,8 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
             AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass"  && message1)
         {
-            if (stepSizes.count(widgetClass) > 0 && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
-                AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]));
+            if (stepSize.Exists(widgetClass.c_str()) && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
+                AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, stepSize.Get(widgetClass.c_str()), accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]));
         }
         else if (widgetType == "Encoder" && size == 4 && message1)
             AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(csi_, widget, message1));
@@ -1338,7 +1338,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     }
 }
 
-static void ProcessValues(const vector<vector<string>> &lines, map<string, double> &stepSizes, map<string, map<int, int>> &accelerationValuesForDecrement, map<string, map<int, int>> &accelerationValuesForIncrement, map<string, vector<double>> &accelerationValues)
+static void ProcessValues(const vector<vector<string>> &lines, WDL_StringKeyedArray<double> &stepSizes, map<string, map<int, int>> &accelerationValuesForDecrement, map<string, map<int, int>> &accelerationValuesForIncrement, map<string, vector<double>> &accelerationValues)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -1371,7 +1371,7 @@ static void ProcessValues(const vector<vector<string>> &lines, map<string, doubl
             if (lines[i].size() > 1)
             {
                 if (inStepSizes)
-                    stepSizes[lines[i][0]] = stod(lines[i][1]);
+                    stepSizes.Insert(lines[i][0].c_str(), stod(lines[i][1]));
                 else if (lines[i].size() > 2 && inAccelerationValues)
                 {
                     if (lines[i][1] == "Dec")
@@ -1394,7 +1394,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
     int lineNumber = 0;
     vector<vector<string>> valueLines;
     
-    map<string, double> stepSizes;
+    WDL_StringKeyedArray<double> stepSize;
     map<string, map<int, int>> accelerationValuesForDecrement;
     map<string, map<int, int>> accelerationValuesForIncrement;
     map<string, vector<double>> accelerationValues;
@@ -1421,11 +1421,11 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
                     valueLines.push_back(tokens);
                 
                 if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                    ProcessValues(valueLines, stepSize, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
             }
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
-                ProcessMidiWidget(lineNumber, file, tokens, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                ProcessMidiWidget(lineNumber, file, tokens, stepSize, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
         }
     }
     catch (exception &e)
@@ -1441,7 +1441,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
     int lineNumber = 0;
     vector<vector<string>> valueLines;
     
-    map<string, double> stepSizes;
+    WDL_StringKeyedArray<double> stepSize;
     map<string, map<int, int>> accelerationValuesForDecrement;
     map<string, map<int, int>> accelerationValuesForIncrement;
     map<string, vector<double>> accelerationValues;
@@ -1468,7 +1468,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
                     valueLines.push_back(tokens);
                 
                 if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                    ProcessValues(valueLines, stepSize, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
             }
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
