@@ -2115,7 +2115,7 @@ private:
     int channel_;
     int preventUpdateTrackColors_;
     string lastStringSent_;
-    vector<rgba_color> currentTrackColors_;
+    WDL_TypedBuf<rgba_color> currentTrackColors_;
     WDL_StringKeyedArray<int> availableColors_;
     WDL_TypedBuf<rgba_color> availableRGBColors_;
     
@@ -2137,7 +2137,7 @@ public:
         rgba_color color;
         
         for (int i = 0; i < surface_->GetNumChannels(); i++)
-            currentTrackColors_.push_back(color);
+            currentTrackColors_.Add(color);
         
         availableRGBColors_.Add(color); // Black
         
@@ -2290,12 +2290,12 @@ public:
           
         vector<rgba_color> trackColors;
         
-        for (int i = 0; i < currentTrackColors_.size(); i++)
+        for (int i = 0; i < currentTrackColors_.GetSize(); i++)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
         
         for (int i = 0; i < trackColors.size(); i++)
         {
-            if (trackColors[i] != currentTrackColors_[i])
+            if (trackColors[i] != currentTrackColors_.Get()[i])
             {
                 shouldUpdate = true;
                 break;
@@ -2327,7 +2327,7 @@ public:
 
         vector<rgba_color> trackColors;
         
-        for (int i = 0; i < currentTrackColors_.size(); i++)
+        for (int i = 0; i < currentTrackColors_.GetSize(); i++)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
 
         for (int i = 0; i < trackColors.size(); i++)
@@ -2340,7 +2340,7 @@ public:
             {
                 rgba_color color = trackColors[i];
                 
-                currentTrackColors_[i] = color;
+                currentTrackColors_.Get()[i] = color;
                 
                 int r = color.r;
                 int g = color.g;
