@@ -346,6 +346,7 @@ class TrackNavigationManager;
 class FeedbackProcessor;
 class Zone;
 class ActionContext;
+class ActionTemplate;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -539,7 +540,10 @@ private:
     string cellAddress_;
     
     void UpdateTrackColor();
-
+    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+    void SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
+    void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors);
+    void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
 public:
     ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, const vector<string> &params);
     ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex) : ActionContext(csi, action, widget, zone, emptyParameters_)
@@ -1101,7 +1105,6 @@ public:
     void SetHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = true; }
     bool GetHasBeenUsedByUpdate() { return hasBeenUsedByUpdate_; }
     
-    CSurfIntegrator *GetCSI() { return csi_; }
     const char *GetName() { return name_.c_str(); }
     ControlSurface *GetSurface() { return surface_; }
     ZoneManager *GetZoneManager();
@@ -1303,7 +1306,12 @@ private:
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const vector<string> &modifiers);
-
+    void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate);
+    void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
+    void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate);
+    void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
+    void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, WDL_PtrList<ActionTemplate>>> &actionTemplatesDictionary);
+    
     void GoLearnFXParams()
     {
         int trackNumber = 0;

@@ -330,7 +330,46 @@ static void listFilesOfType(const string &path, vector<string> &results, const c
     }
 }
 
-static void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate)
+static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
+{
+    string zoneName = "";
+    
+    try
+    {
+        ifstream file(filePath);
+        
+        CSIZoneInfo *info = new CSIZoneInfo();
+        info->filePath = filePath;
+                 
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            vector<string> tokens;
+            GetTokens(tokens, line);
+
+            if (tokens[0] == "Zone" && tokens.size() > 1)
+            {
+                zoneName = tokens[1];
+                info->alias = tokens.size() > 2 ? tokens[2] : zoneName;
+                zoneManager->AddZoneFilePath(zoneName, info);
+            }
+
+            break;
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        DAW::ShowConsoleMsg(buffer);
+    }
+}
+
+void ZoneManager::GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
     vector<string> tokens;
@@ -368,7 +407,7 @@ static void GetWidgetNameAndModifiers(const string &line, ActionTemplate *action
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-static void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, WDL_PtrList<ActionTemplate>>> &actionTemplatesDictionary)
+void ZoneManager::BuildActionTemplate(const vector<string> &tokens, map<string, map<int, WDL_PtrList<ActionTemplate>>> &actionTemplatesDictionary)
 {
     string feedbackIndicator = "";
     
@@ -404,7 +443,7 @@ static void BuildActionTemplate(const vector<string> &tokens, map<string, map<in
     }
 }
 
-static void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate)
+void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate)
 {
     try
     {
@@ -470,7 +509,7 @@ static void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>
     }
 }
 
-static void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts)
+void ZoneManager::ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts)
 {
     try
     {
@@ -509,7 +548,7 @@ static void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLa
     }
 }
 
-static void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate)
+void ZoneManager::ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate)
 {
     try
     {
@@ -534,46 +573,7 @@ static void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoile
     }
 }
 
-static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
-{
-    string zoneName = "";
-    
-    try
-    {
-        ifstream file(filePath);
-        
-        CSIZoneInfo *info = new CSIZoneInfo();
-        info->filePath = filePath;
-                 
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-            
-            vector<string> tokens;
-            GetTokens(tokens, line);
-
-            if (tokens[0] == "Zone" && tokens.size() > 1)
-            {
-                zoneName = tokens[1];
-                info->alias = tokens.size() > 2 ? tokens[2] : zoneName;
-                zoneManager->AddZoneFilePath(zoneName, info);
-            }
-
-            break;
-        }
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
-    }
-}
-
-static void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
+void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
 {
     for (int i = 0; i < (int)colors.size(); ++i)
     {
@@ -832,7 +832,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
             templates.Empty(true);
 }
 
-static void SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+void ActionContext::SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
     vector<string> hexColors;
@@ -894,7 +894,7 @@ static void SetColor(vector<string> &params, bool &supportsColor, bool &supports
     }
 }
 
-static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
     vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -969,7 +969,7 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
         if (stepSize != 0.0)
         {
             stepSize *= 10000.0;
-            int baseTickCount = widget->GetCSI()->GetBaseTickCount((int)steppedValues.size());
+            int baseTickCount = csi_->GetBaseTickCount((int)steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }
