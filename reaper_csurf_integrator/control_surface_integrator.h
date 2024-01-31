@@ -4719,10 +4719,12 @@ static const int s_stepSizes_[]  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,
 static const int s_tickCounts_[] = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class CSurfIntegrator
+class CSurfIntegrator : public IReaperControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
+    char configtmp[1024];
+
     WDL_PtrList<Midi_ControlSurfaceIO> midiSurfacesIO_;
     WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
 
@@ -4768,58 +4770,15 @@ private:
     }
     
 public:
-    int csurf_refcnt_;
-
-    CSurfIntegrator() : actions_(true, disposeAction), learnFXActions_(true, disposeAction)
-    {
-        csurf_refcnt_ = 0;
-        // private:
-        currentPageIndex_ = 0;
-        surfaceInDisplay_ = false;
-        surfaceRawInDisplay_ = false;
-        surfaceOutDisplay_ = false;
-        fxParamsDisplay_ = false;
-        fxParamsWrite_ = false;
-
-        shouldRun_ = true;
-        
-        InitActionsDictionary();
-
-        int size = 0;
-        int index = projectconfig_var_getoffs("projtimemode", &size);
-        timeModeOffs_ = size==4 ? index : -1;
-        
-        index = projectconfig_var_getoffs("projtimemode2", &size);
-        timeMode2Offs_ = size==4 ? index : -1;
-        
-        index = projectconfig_var_getoffs("projmeasoffs", &size);
-        measOffsOffs_ = size==4 ? index : - 1;
-        
-        index = projectconfig_var_getoffs("projtimeoffs", &size);
-        timeOffsOffs_ = size==8 ? index : -1;
-        
-        index = projectconfig_var_getoffs("panmode", &size);
-        projectPanModeOffs_ = size==4 ? index : -1;
-
-        // these are supported by ~7.10+, previous versions we fallback to get_config_var() on-demand
-        index = projectconfig_var_getoffs("projmetrov1", &size);
-        projectMetronomePrimaryVolumeOffs_ = size==8 ? index : -1;
-
-        index = projectconfig_var_getoffs("projmetrov2", &size);
-        projectMetronomeSecondaryVolumeOffs_ = size==8 ? index : -1;
-                
-        //GenerateX32SurfaceFile();
-    }
-
-    ~CSurfIntegrator()
-    {
-        midiSurfacesIO_.Empty(true);
-        
-        oscSurfacesIO_.Empty(true);
-                
-        pages_.Empty(true);
-    }
+    CSurfIntegrator();
     
+    ~CSurfIntegrator();
+    
+    virtual int Extended(int call, void *parm1, void *parm2, void *parm3) override;
+    const char *GetTypeString() override;
+    const char *GetDescString() override;
+    const char *GetConfigString() override; // string of configuration data
+
     void Shutdown()
     {
         fxParamsDisplay_ = false;
@@ -4930,13 +4889,13 @@ public:
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, params);
     }
 
-    void OnTrackSelection(MediaTrack *track)
+    void OnTrackSelection(MediaTrack *track) override
     {
         if (pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->OnTrackSelection(track);
     }
     
-    void OnTrackListChange()
+    void SetTrackListChange() override
     {
         if (pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->OnTrackListChange();
@@ -5011,7 +4970,7 @@ public:
         }
     }
     
-    bool GetTouchState(MediaTrack *track, int touchedControl)
+    bool GetTouchState(MediaTrack *track, int touchedControl) override
     {
         if (pages_.Get(currentPageIndex_))
             return pages_.Get(currentPageIndex_)->GetTouchState(track, touchedControl);
@@ -5110,7 +5069,7 @@ public:
     
     //int repeats = 0;
     
-    void Run()
+    void Run() override
     {
         //int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         

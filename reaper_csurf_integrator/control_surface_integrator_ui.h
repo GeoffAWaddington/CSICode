@@ -7,29 +7,6 @@
 #ifndef control_surface_integrator_ui_h
 #define control_surface_integrator_ui_h
 
-#include "control_surface_integrator.h"
-#include "WDL/wdlstring.h"
-#include "resource.h"
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class CSurfIntegratorOld : public IReaperControlSurface
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-private:
-    CSurfIntegrator *csi_;
-    char configtmp[1024];
-    
-public:
-    CSurfIntegratorOld();
-    ~CSurfIntegratorOld();
-    virtual void SetTrackListChange() override;
-    virtual void OnTrackSelection(MediaTrack *trackid) override;
-    virtual int Extended(int call, void *parm1, void *parm2, void *parm3) override;
-    virtual bool GetTouchState(MediaTrack *trackid, int touchedControl) override;
-    virtual void Run() override;
-    const char *GetTypeString() override;
-    const char *GetDescString() override;
-    const char *GetConfigString() override; // string of configuration data
-};
+// GAW TBD -- could remoive this, maybe wait until things setle, could need it
 
 #endif /* control_surface_integrator_ui_h */

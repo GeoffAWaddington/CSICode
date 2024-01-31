@@ -5,159 +5,15 @@
 //
 
 #include "control_surface_integrator.h"
-#include "control_surface_integrator_ui.h"
-#include <memory>
 #include "WDL/dirscan.h"
 #include "WDL/wdlcstring.h"
-
-void ShutdownOSCIO();
+#include "resource.h"
 
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
-const char * const Control_Surface_Integrator = "Control Surface Integrator";
-extern int g_registered_command_toggle_show_raw_surface_input;
-extern int g_registered_command_toggle_show_surface_input;
-extern int g_registered_command_toggle_show_surface_output;
-extern int g_registered_command_toggle_show_FX_params;
-extern int g_registered_command_toggle_write_FX_params;
-
-bool hookCommandProc(int command, int flag)
-{
-    /*
-    if (csi_ != nullptr)
-    {
-        if (command == g_registered_command_toggle_show_raw_surface_input)
-        {
-            csi_->ToggleSurfaceRawInDisplay();
-            return true;
-        }
-        else if (command == g_registered_command_toggle_show_surface_input)
-        {
-            csi_->ToggleSurfaceInDisplay();
-            return true;
-        }
-        else if (command == g_registered_command_toggle_show_surface_output)
-        {
-            csi_->ToggleSurfaceOutDisplay();
-            return true;
-        }
-        else if (command == g_registered_command_toggle_show_FX_params)
-        {
-            csi_->ToggleFXParamsDisplay();
-            return true;
-        }
-        else if (command == g_registered_command_toggle_write_FX_params)
-        {
-            csi_->ToggleFXParamsWrite();
-            return true;
-        }
-    }
-     */
-    return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CSurfIntegrator
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-CSurfIntegratorOld::CSurfIntegratorOld()
-{
-    csi_ = new CSurfIntegrator;
-}
-
-CSurfIntegratorOld::~CSurfIntegratorOld()
-{
-    csi_->Shutdown();
-    delete csi_;
-    csi_ = NULL;
-    ShutdownOSCIO();
-}
-
-void CSurfIntegratorOld::OnTrackSelection(MediaTrack *trackid)
-{
-    if (csi_)
-        csi_->OnTrackSelection(trackid);
-}
-
-void CSurfIntegratorOld::SetTrackListChange()
-{
-    if (csi_)
-        csi_->OnTrackListChange();
-}
-
-int CSurfIntegratorOld::Extended(int call, void *parm1, void *parm2, void *parm3)
-{
-    if (call == CSURF_EXT_SUPPORTS_EXTENDED_TOUCH)
-    {
-        return 1;
-    }
-    
-    if (call == CSURF_EXT_RESET)
-    {
-       if (csi_)
-           csi_->Init();
-    }
-    
-    if (call == CSURF_EXT_SETFXCHANGE)
-    {
-        // parm1=(MediaTrack*)track, whenever FX are added, deleted, or change order
-        if (csi_)
-            csi_->TrackFXListChanged((MediaTrack*)parm1);
-    }
-        
-    if (call == CSURF_EXT_SETMIXERSCROLL)
-    {
-        if (csi_)
-        {
-            MediaTrack *leftPtr = (MediaTrack *)parm1;
-            
-            int offset = DAW::CSurf_TrackToID(leftPtr, true);
-            
-            offset--;
-            
-            if (offset < 0)
-                offset = 0;
-                
-            csi_->SetTrackOffset(offset);
-        }
-    }
-        
-    return 1;
-}
-
-bool CSurfIntegratorOld::GetTouchState(MediaTrack *track, int touchedControl)
-{
-    return csi_->GetTouchState(track, touchedControl);
-}
-
-void CSurfIntegratorOld::Run()
-{
-    if (csi_)
-        csi_->Run();
-}
-
-const char *CSurfIntegratorOld::GetTypeString()
-{
-    return "CSI";
-}
-
-const char *CSurfIntegratorOld::GetDescString()
-{
-    return Control_Surface_Integrator;
-}
-
-const char *CSurfIntegratorOld::GetConfigString() // string of configuration data
-{
-    snprintf(configtmp, sizeof(configtmp),"0 0");
-    return configtmp;
-}
-
-static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
-{
-    return new CSurfIntegratorOld();
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Remap Auto FX
@@ -2468,7 +2324,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     return 0;
 }
 
-static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -3093,16 +2949,3 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     
     return 0;
 }
-
-static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
-{
-    return CreateDialogParam(g_hInst,MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI),parent,dlgProcMainConfig,(LPARAM)initConfigString);
-}
-
-reaper_csurf_reg_t csurf_integrator_reg =
-{
-    "CSI",
-    Control_Surface_Integrator,
-    createFunc,
-    configFunc,
-};

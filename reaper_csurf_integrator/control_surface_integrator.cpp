@@ -14,6 +14,10 @@
 #include "WDL/ptrlist.h"
 #include "WDL/wdlcstring.h"
 
+#include "resource.h"
+
+WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 extern reaper_plugin_info_t *g_reaper_plugin_info;
 
 int g_minNumParamSteps = 2;
@@ -573,35 +577,6 @@ void ZoneManager::ProcessFXBoilerplate(const string &filePath, vector<string> &f
     }
 }
 
-void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
-{
-    for (int i = 0; i < (int)colors.size(); ++i)
-    {
-        rgba_color colorValue;
-        
-        if (colors[i].length() == 7)
-        {
-            regex pattern("#([0-9a-fA-F]{6})");
-            smatch match;
-            if (regex_match(colors[i], match, pattern))
-            {
-                sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
-                colorValues.push_back(colorValue);
-            }
-        }
-        else if (colors[i].length() == 9)
-        {
-            regex pattern("#([0-9a-fA-F]{8})");
-            smatch match;
-            if (regex_match(colors[i], match, pattern))
-            {
-                sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
-                colorValues.push_back(colorValue);
-            }
-        }
-    }
-}
-
 void Zone::GCTagZone(Zone *zone)
 {
     if (!zone || zone->gcState_) return;
@@ -830,6 +805,35 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     for (auto [key, actionTemplatesForModifer] : actionTemplatesDictionary)
         for (auto [key, templates] : actionTemplatesForModifer)
             templates.Empty(true);
+}
+
+void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
+{
+    for (int i = 0; i < (int)colors.size(); ++i)
+    {
+        rgba_color colorValue;
+        
+        if (colors[i].length() == 7)
+        {
+            regex pattern("#([0-9a-fA-F]{6})");
+            smatch match;
+            if (regex_match(colors[i], match, pattern))
+            {
+                sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
+                colorValues.push_back(colorValue);
+            }
+        }
+        else if (colors[i].length() == 9)
+        {
+            regex pattern("#([0-9a-fA-F]{8})");
+            smatch match;
+            if (regex_match(colors[i], match, pattern))
+            {
+                sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
+                colorValues.push_back(colorValue);
+            }
+        }
+    }
 }
 
 void ActionContext::SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
@@ -5477,4 +5481,131 @@ void Midi_ControlSurface::InitializeMCUXT()
     }
 
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CSurfIntegrator
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+static const char * const Control_Surface_Integrator = "Control Surface Integrator";
+
+CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActions_(true, disposeAction)
+{
+    // private:
+    currentPageIndex_ = 0;
+    surfaceInDisplay_ = false;
+    surfaceRawInDisplay_ = false;
+    surfaceOutDisplay_ = false;
+    fxParamsDisplay_ = false;
+    fxParamsWrite_ = false;
+
+    shouldRun_ = true;
+    
+    InitActionsDictionary();
+
+    int size = 0;
+    int index = projectconfig_var_getoffs("projtimemode", &size);
+    timeModeOffs_ = size==4 ? index : -1;
+    
+    index = projectconfig_var_getoffs("projtimemode2", &size);
+    timeMode2Offs_ = size==4 ? index : -1;
+    
+    index = projectconfig_var_getoffs("projmeasoffs", &size);
+    measOffsOffs_ = size==4 ? index : - 1;
+    
+    index = projectconfig_var_getoffs("projtimeoffs", &size);
+    timeOffsOffs_ = size==8 ? index : -1;
+    
+    index = projectconfig_var_getoffs("panmode", &size);
+    projectPanModeOffs_ = size==4 ? index : -1;
+
+    // these are supported by ~7.10+, previous versions we fallback to get_config_var() on-demand
+    index = projectconfig_var_getoffs("projmetrov1", &size);
+    projectMetronomePrimaryVolumeOffs_ = size==8 ? index : -1;
+
+    index = projectconfig_var_getoffs("projmetrov2", &size);
+    projectMetronomeSecondaryVolumeOffs_ = size==8 ? index : -1;
+            
+    //GenerateX32SurfaceFile();
+}
+
+CSurfIntegrator::~CSurfIntegrator()
+{
+    Shutdown();
+    ShutdownOSCIO();
+
+    midiSurfacesIO_.Empty(true);
+    
+    oscSurfacesIO_.Empty(true);
+            
+    pages_.Empty(true);    
+}
+
+const char *CSurfIntegrator::GetTypeString()
+{
+    return "CSI";
+}
+
+const char *CSurfIntegrator::GetDescString()
+{
+    return Control_Surface_Integrator;
+}
+
+const char *CSurfIntegrator::GetConfigString() // string of configuration data
+{
+    snprintf(configtmp, sizeof(configtmp),"0 0");
+    return configtmp;
+}
+
+int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
+{
+    if (call == CSURF_EXT_SUPPORTS_EXTENDED_TOUCH)
+    {
+        return 1;
+    }
+    
+    if (call == CSURF_EXT_RESET)
+    {
+       Init();
+    }
+    
+    if (call == CSURF_EXT_SETFXCHANGE)
+    {
+        // parm1=(MediaTrack*)track, whenever FX are added, deleted, or change order
+        TrackFXListChanged((MediaTrack*)parm1);
+    }
+        
+    if (call == CSURF_EXT_SETMIXERSCROLL)
+    {
+        MediaTrack *leftPtr = (MediaTrack *)parm1;
+        
+        int offset = DAW::CSurf_TrackToID(leftPtr, true);
+        
+        offset--;
+        
+        if (offset < 0)
+            offset = 0;
+            
+        SetTrackOffset(offset);
+    }
+        
+    return 1;
+}
+
+static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
+{
+    return new CSurfIntegrator();
+}
+
+static HWND configFunc(const char *type_string, HWND parent, const char *initConfigString)
+{
+    return CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_SURFACEEDIT_CSI), parent, dlgProcMainConfig, (LPARAM)initConfigString);
+}
+
+reaper_csurf_reg_t csurf_integrator_reg =
+{
+    "CSI",
+    Control_Surface_Integrator,
+    createFunc,
+    configFunc,
+};
+
 

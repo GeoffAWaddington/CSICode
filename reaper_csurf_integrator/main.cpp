@@ -45,7 +45,7 @@ gaccel_register_t acreg_write_FX_params =
 int g_registered_command_toggle_write_FX_params = 0;
 
 
-extern bool hookCommandProc(int command, int flag);
+//extern bool hookCommandProc(int command, int flag);
 
 extern void ShutdownOSCIO();
 
@@ -122,7 +122,7 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
         reaper_plugin_info->Register("gaccel", &acreg_write_FX_params);
         
 
-        reaper_plugin_info->Register("hookcommand", (void*)hookCommandProc);
+        //reaper_plugin_info->Register("hookcommand", (void*)hookCommandProc);
         
       
         // plugin registered
