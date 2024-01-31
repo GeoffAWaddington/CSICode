@@ -3523,7 +3523,7 @@ protected:
     string const oscAddress_;
     
 public:
-    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, string oscAddress) : FeedbackProcessor(csi_, widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, string oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual string GetName() override { return "OSC_FeedbackProcessor"; }
