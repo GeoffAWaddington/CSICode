@@ -14,7 +14,7 @@ class FXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXParam"; }
+    virtual const char *GetName() override { return "FXParam"; }
     
     virtual void Do(ActionContext *context, double value) override
     {
@@ -41,7 +41,7 @@ class LearnFXParam : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "LearnFXParam"; }
+    virtual const char *GetName() override { return "LearnFXParam"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -92,7 +92,7 @@ class LearnFXParamNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "LearnFXParamNameDisplay"; }
+    virtual const char *GetName() override { return "LearnFXParamNameDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context, int paramNum) override
     {
@@ -136,7 +136,7 @@ class LearnFXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "LearnFXParamValueDisplay"; }
+    virtual const char *GetName() override { return "LearnFXParamValueDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context, int paramNum) override
     {
@@ -168,7 +168,7 @@ public:
             {
                 char fxParamValue[128];
                 DAW::TrackFX_GetFormattedParamValue(DAW::GetTrack(trackNum), fxSlotNum, paramNum, fxParamValue, sizeof(fxParamValue));
-                context->UpdateWidgetValue(string(fxParamValue));
+                context->UpdateWidgetValue(fxParamValue);
             }
             else
                 context->ClearWidget();
@@ -183,7 +183,7 @@ class EraseLastTouchedControl : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "EraseLastTouchedControl"; }
+    virtual const char *GetName() override { return "EraseLastTouchedControl"; }
    
     void Do(ActionContext *context, double value) override
     {
@@ -198,7 +198,7 @@ class SaveLearnedFXParams : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SaveLearnedFXParams"; }
+    virtual const char *GetName() override { return "SaveLearnedFXParams"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -212,7 +212,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        if (context->GetZone()->GetName() == "LearnFXParams")
+        if (!strcmp(context->GetZone()->GetName(), "LearnFXParams"))
             context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
     }
 };
@@ -222,7 +222,7 @@ class SaveTemplatedFXParams : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SaveTemplatedFXParams"; }
+    virtual const char *GetName() override { return "SaveTemplatedFXParams"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -245,7 +245,7 @@ class JSFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "JSFXParam"; }
+    virtual const char *GetName() override { return "JSFXParam"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -319,7 +319,7 @@ class TCPFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TCPFXParam"; }
+    virtual const char *GetName() override { return "TCPFXParam"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -398,7 +398,7 @@ public:
         fxParamNum_ = 0;
     }
     
-    virtual string GetName() override { return "FocusedFXParam"; }
+    virtual const char *GetName() override { return "FocusedFXParam"; }
    
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -446,7 +446,7 @@ class ToggleFXBypass : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleFXBypass"; }
+    virtual const char *GetName() override { return "ToggleFXBypass"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -483,7 +483,7 @@ class FXBypassDisplay : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXBypassDisplay"; }
+    virtual const char *GetName() override { return "FXBypassDisplay"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -512,7 +512,7 @@ class ToggleFXOffline : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleFXOffline"; }
+    virtual const char *GetName() override { return "ToggleFXOffline"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -546,7 +546,7 @@ class FXOfflineDisplay : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXOfflineDisplay"; }
+    virtual const char *GetName() override { return "FXOfflineDisplay"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -572,7 +572,7 @@ class TrackVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackVolume"; }
+    virtual const char *GetName() override { return "TrackVolume"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -613,7 +613,7 @@ class SoftTakeover7BitTrackVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SoftTakeover7BitTrackVolume"; }
+    virtual const char *GetName() override { return "SoftTakeover7BitTrackVolume"; }
     
     virtual void Do(ActionContext *context, double value) override
     {
@@ -639,7 +639,7 @@ class SoftTakeover14BitTrackVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SoftTakeover14BitTrackVolume"; }
+    virtual const char *GetName() override { return "SoftTakeover14BitTrackVolume"; }
     
     virtual void Do(ActionContext *context, double value) override
     {
@@ -665,7 +665,7 @@ class TrackVolumeDB : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackVolumeDB"; }
+    virtual const char *GetName() override { return "TrackVolumeDB"; }
     
     virtual double GetCurrentDBValue(ActionContext *context) override
     {
@@ -706,7 +706,7 @@ class TrackPan : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPan"; }
+    virtual const char *GetName() override { return "TrackPan"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -756,7 +756,7 @@ class TrackPanPercent : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanPercent"; }
+    virtual const char *GetName() override { return "TrackPanPercent"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -800,7 +800,7 @@ class TrackPanWidth : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanWidth"; }
+    virtual const char *GetName() override { return "TrackPanWidth"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -842,7 +842,7 @@ class TrackPanWidthPercent : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanWidthPercent"; }
+    virtual const char *GetName() override { return "TrackPanWidthPercent"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -878,7 +878,7 @@ class TrackPanL : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanL"; }
+    virtual const char *GetName() override { return "TrackPanL"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -922,7 +922,7 @@ class TrackPanLPercent : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanLPercent"; }
+    virtual const char *GetName() override { return "TrackPanLPercent"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -966,7 +966,7 @@ class TrackPanR : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanR"; }
+    virtual const char *GetName() override { return "TrackPanR"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1010,7 +1010,7 @@ class TrackPanRPercent : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanRPercent"; }
+    virtual const char *GetName() override { return "TrackPanRPercent"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -1054,7 +1054,7 @@ class TrackPanAutoLeft : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanAutoLeft"; }
+    virtual const char *GetName() override { return "TrackPanAutoLeft"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1120,7 +1120,7 @@ class TrackPanAutoRight : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanAutoRight"; }
+    virtual const char *GetName() override { return "TrackPanAutoRight"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1183,7 +1183,7 @@ class TrackRecordArm : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackRecordArm"; }
+    virtual const char *GetName() override { return "TrackRecordArm"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1217,7 +1217,7 @@ class TrackMute : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackMute"; }
+    virtual const char *GetName() override { return "TrackMute"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1257,7 +1257,7 @@ class TrackSolo : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSolo"; }
+    virtual const char *GetName() override { return "TrackSolo"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1291,7 +1291,7 @@ class TrackInvertPolarity : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackInvertPolarity"; }
+    virtual const char *GetName() override { return "TrackInvertPolarity"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1327,7 +1327,7 @@ class TrackSelect : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSelect"; }
+    virtual const char *GetName() override { return "TrackSelect"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1362,7 +1362,7 @@ class TrackUniqueSelect : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackUniqueSelect"; }
+    virtual const char *GetName() override { return "TrackUniqueSelect"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1397,7 +1397,7 @@ class TrackRangeSelect : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackRangeSelect"; }
+    virtual const char *GetName() override { return "TrackRangeSelect"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1472,7 +1472,7 @@ class TrackSendVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendVolume"; }
+    virtual const char *GetName() override { return "TrackSendVolume"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1525,7 +1525,7 @@ class TrackSendVolumeDB : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendVolumeDB"; }
+    virtual const char *GetName() override { return "TrackSendVolumeDB"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -1571,7 +1571,7 @@ class TrackSendPan : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendPan"; }
+    virtual const char *GetName() override { return "TrackSendPan"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1624,7 +1624,7 @@ class TrackSendPanPercent : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendPanPercent"; }
+    virtual const char *GetName() override { return "TrackSendPanPercent"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -1669,7 +1669,7 @@ class TrackSendMute : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendMute"; }
+    virtual const char *GetName() override { return "TrackSendMute"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1706,7 +1706,7 @@ class TrackSendInvertPolarity : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendInvertPolarity"; }
+    virtual const char *GetName() override { return "TrackSendInvertPolarity"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1742,7 +1742,7 @@ class TrackSendStereoMonoToggle : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendStereoMonoToggle"; }
+    virtual const char *GetName() override { return "TrackSendStereoMonoToggle"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1778,7 +1778,7 @@ class TrackSendPrePost : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendPrePost"; }
+    virtual const char *GetName() override { return "TrackSendPrePost"; }
        
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -1810,7 +1810,7 @@ class TrackReceiveVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceiveVolume"; }
+    virtual const char *GetName() override { return "TrackReceiveVolume"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1858,7 +1858,7 @@ class TrackReceiveVolumeDB : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceiveVolumeDB"; }
+    virtual const char *GetName() override { return "TrackReceiveVolumeDB"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -1901,7 +1901,7 @@ class TrackReceivePan : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceivePan"; }
+    virtual const char *GetName() override { return "TrackReceivePan"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1949,7 +1949,7 @@ class TrackReceivePanPercent : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceivePanPercent"; }
+    virtual const char *GetName() override { return "TrackReceivePanPercent"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -1989,7 +1989,7 @@ class TrackReceiveMute : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceivMute"; }
+    virtual const char *GetName() override { return "TrackReceivMute"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -2029,7 +2029,7 @@ class TrackReceiveInvertPolarity : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceiveInvertPolarity"; }
+    virtual const char *GetName() override { return "TrackReceiveInvertPolarity"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -2065,7 +2065,7 @@ class TrackReceiveStereoMonoToggle : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceiveStereoMonoToggle"; }
+    virtual const char *GetName() override { return "TrackReceiveStereoMonoToggle"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -2101,7 +2101,7 @@ class TrackReceivePrePost : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceivePrePost"; }
+    virtual const char *GetName() override { return "TrackReceivePrePost"; }
         
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2134,7 +2134,7 @@ class MetronomePrimaryVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    string GetName() override { return "MetronomePrimaryVolume"; }
+    virtual const char *GetName() override { return "MetronomePrimaryVolume"; }
 
     double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -2172,7 +2172,7 @@ class MetronomeSecondaryVolume : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    string GetName() override { return "MetronomeSecondaryVolume"; }
+    virtual const char *GetName() override { return "MetronomeSecondaryVolume"; }
 
     double GetCurrentNormalizedValue(ActionContext* context) override
     {
@@ -2205,7 +2205,7 @@ class MetronomeVolumeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    string GetName() override { return "MetronomeVolumeDisplay"; }
+    virtual const char *GetName() override { return "MetronomeVolumeDisplay"; }
 
     // Should write to the provided argument the metronome volume (in linear factor). Returns true
     // if the call was sucessful, false otherwise.
@@ -2220,9 +2220,9 @@ public:
             // The min value Reaper (as of v6.68) shows for the metronome volume before displaying "-inf".
             double reaperMinMetronomeVolumeInDb = -135.0;
 
-            const string stringArgument = context->GetStringParam();
-            const bool hasPrefix = !stringArgument.empty();
-            const char prefix = hasPrefix ? stringArgument.front() : ' ';
+            const char *stringArgument = context->GetStringParam();
+            const bool hasPrefix = stringArgument[0] != 0;
+            const char prefix = hasPrefix ? stringArgument[0] : ' ';
 
             const double volumeInDb = VAL2DB(volume);
 
@@ -2236,7 +2236,7 @@ public:
             if (hasPrefix)
                 str[0] = prefix;
 
-            context->UpdateWidgetValue(string(str));
+            context->UpdateWidgetValue(str);
         }
         else
             context->ClearWidget();
@@ -2248,7 +2248,7 @@ class MetronomePrimaryVolumeDisplay : public MetronomeVolumeDisplay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    string GetName() override { return "MetronomePrimaryVolumeDisplay"; }
+    virtual const char *GetName() override { return "MetronomePrimaryVolumeDisplay"; }
 
     bool GetVolume(ActionContext *context, double& value) const override
     {
@@ -2269,7 +2269,7 @@ class MetronomeSecondaryVolumeDisplay : public MetronomeVolumeDisplay
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    string GetName() override { return "MetronomeSecondaryVolumeDisplay"; }
+    virtual const char *GetName() override { return "MetronomeSecondaryVolumeDisplay"; }
 
     bool GetVolume(ActionContext *context, double &value) const override
     {
@@ -2291,7 +2291,7 @@ class FXNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXNameDisplay"; }
+    virtual const char *GetName() override { return "FXNameDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2307,7 +2307,7 @@ class FXMenuNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXMenuNameDisplay"; }
+    virtual const char *GetName() override { return "FXMenuNameDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2318,7 +2318,7 @@ public:
             if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
             
-            context->UpdateWidgetValue(name);
+            context->UpdateWidgetValue(name.c_str());
         }
         else
             context->ClearWidget();
@@ -2330,7 +2330,7 @@ class SpeakFXMenuName : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SpeakFXMenuName"; }
+    virtual const char *GetName() override { return "SpeakFXMenuName"; }
     
     virtual void Do(ActionContext *context, double value) override
     {
@@ -2353,14 +2353,14 @@ class FXParamNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXParamNameDisplay"; }
+    virtual const char *GetName() override { return "FXParamNameDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
         if (MediaTrack *track = context->GetTrack())
         {
             char tmp[BUFSZ];
-            if (context->GetFXParamDisplayName() != "")
+            if (context->GetFXParamDisplayName()[0])
                 context->UpdateWidgetValue(context->GetFXParamDisplayName());
             else
                 context->UpdateWidgetValue(DAW::TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex(), tmp, sizeof(tmp)));
@@ -2375,7 +2375,7 @@ class TCPFXParamNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TCPFXParamNameDisplay"; }
+    virtual const char *GetName() override { return "TCPFXParamNameDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2407,7 +2407,7 @@ class FXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXParamValueDisplay"; }
+    virtual const char *GetName() override { return "FXParamValueDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2415,7 +2415,7 @@ public:
         {
             char fxParamValue[128];
             DAW::TrackFX_GetFormattedParamValue(track, context->GetSlotIndex(), context->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
-            context->UpdateWidgetValue(string(fxParamValue));
+            context->UpdateWidgetValue(fxParamValue);
         }
         else
             context->ClearWidget();
@@ -2427,7 +2427,7 @@ class TCPFXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TCPFXParamValueDisplay"; }
+    virtual const char *GetName() override { return "TCPFXParamValueDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2444,7 +2444,7 @@ public:
                 {
                     char fxParamValue[128];
                     DAW::TrackFX_GetFormattedParamValue(track, fxIndex, paramIndex, fxParamValue, sizeof(fxParamValue));
-                    context->UpdateWidgetValue(string(fxParamValue));
+                    context->UpdateWidgetValue(fxParamValue);
                 }
                 else
                     context->ClearWidget();
@@ -2462,7 +2462,7 @@ class FocusedFXParamNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FocusedFXParamNameDisplay"; }
+    virtual const char *GetName() override { return "FocusedFXParamNameDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2486,7 +2486,7 @@ class FocusedFXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FocusedFXParamValueDisplay"; }
+    virtual const char *GetName() override { return "FocusedFXParamValueDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2500,7 +2500,7 @@ public:
             {
                 char fxParamValue[128];
                 DAW::TrackFX_GetFormattedParamValue(track, fxSlotNum, fxParamNum, fxParamValue, sizeof(fxParamValue));
-                context->UpdateWidgetValue(string(fxParamValue));
+                context->UpdateWidgetValue(fxParamValue);
             }
         }
         else
@@ -2513,16 +2513,16 @@ class TrackSendNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendNameDisplay"; }
+    virtual const char *GetName() override { return "TrackSendNameDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            string sendTrackName = "";
+            const char *sendTrackName = "";
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if (destTrack)
-                sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
+                sendTrackName = (const char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
             context->UpdateWidgetValue(sendTrackName);
         }
         else
@@ -2535,7 +2535,7 @@ class SpeakTrackSendDestination : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SpeakTrackSendDestination"; }
+    virtual const char *GetName() override { return "SpeakTrackSendDestination"; }
     
     virtual void Do(ActionContext *context, double value) override
     {
@@ -2543,10 +2543,10 @@ public:
 
         if (MediaTrack *track = context->GetTrack())
         {
-            string sendTrackName = "No Send Track";
+            const char *sendTrackName = "No Send Track";
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if (destTrack)
-                sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
+                sendTrackName = (const char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
             context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
         }
     }
@@ -2557,7 +2557,7 @@ class TrackSendVolumeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendVolumeDisplay"; }
+    virtual const char *GetName() override { return "TrackSendVolumeDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2572,7 +2572,7 @@ public:
 
                 char trackVolume[128];
                 snprintf(trackVolume, sizeof(trackVolume), "%7.2lf", VAL2DB(vol));
-                context->UpdateWidgetValue(string(trackVolume));
+                context->UpdateWidgetValue(trackVolume);
             }
             else
                 context->ClearWidget();
@@ -2587,7 +2587,7 @@ class TrackSendPanDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendPanDisplay"; }
+    virtual const char *GetName() override { return "TrackSendPanDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2600,7 +2600,8 @@ public:
                 double vol, pan = 0.0;
                 DAW::GetTrackSendUIVolPan(track, context->GetSlotIndex() + numHardwareSends, &vol, &pan);
 
-                context->UpdateWidgetValue(context->GetPanValueString(pan, ""));
+                char tmp[BUFSZ];
+                context->UpdateWidgetValue(context->GetPanValueString(pan, "", tmp, sizeof(tmp)));
             }
             else
                 context->ClearWidget();
@@ -2615,7 +2616,7 @@ class TrackSendPrePostDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackSendPrePostDisplay"; }
+    virtual const char *GetName() override { return "TrackSendPrePostDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2628,7 +2629,7 @@ public:
                 
                 double prePostVal = DAW::GetTrackSendInfo_Value(track, 0, context->GetSlotIndex(), "I_SENDMODE");
                 
-                string prePostValueString = "";
+                const char *prePostValueString = "";
                 
                 if (prePostVal == 0)
                     prePostValueString = "PostPan";
@@ -2652,7 +2653,7 @@ class TrackReceiveNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceiveNameDisplay"; }
+    virtual const char *GetName() override { return "TrackReceiveNameDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2661,8 +2662,7 @@ public:
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
             if (srcTrack)
             {
-                string receiveTrackName = "";
-                receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
+                const char *receiveTrackName = (const char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
                 context->UpdateWidgetValue(receiveTrackName);
             }
             else
@@ -2678,7 +2678,7 @@ class SpeakTrackReceiveSource : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SpeakTrackReceiveSource"; }
+    virtual const char *GetName() override { return "SpeakTrackReceiveSource"; }
     
     virtual void Do(ActionContext *context, double value) override
     {
@@ -2689,8 +2689,8 @@ public:
             MediaTrack *srcTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, -1, context->GetSlotIndex(), "P_SRCTRACK", 0);
             if (srcTrack)
             {
-                string receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
+                const char *receiveTrackName = (const char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
+                context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + string(receiveTrackName));
             }
             else
                 context->GetCSI()->Speak("No Receive Track");
@@ -2703,7 +2703,7 @@ class TrackReceiveVolumeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceiveVolumeDisplay"; }
+    virtual const char *GetName() override { return "TrackReceiveVolumeDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2714,7 +2714,7 @@ public:
             {
                 char trackVolume[128];
                 snprintf(trackVolume, sizeof(trackVolume), "%7.2lf", VAL2DB(DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "D_VOL")));
-                context->UpdateWidgetValue(string(trackVolume));
+                context->UpdateWidgetValue(trackVolume);
             }
             else
                 context->ClearWidget();
@@ -2729,7 +2729,7 @@ class TrackReceivePanDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceivePanDisplay"; }
+    virtual const char *GetName() override { return "TrackReceivePanDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2740,7 +2740,8 @@ public:
             {
                 double panVal = DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "D_PAN");
                 
-                context->UpdateWidgetValue(context->GetPanValueString(panVal, ""));
+                char tmp[BUFSZ];
+                context->UpdateWidgetValue(context->GetPanValueString(panVal, "", tmp, sizeof(tmp)));
             }
             else
                 context->ClearWidget();
@@ -2755,7 +2756,7 @@ class TrackReceivePrePostDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackReceivePrePostDisplay"; }
+    virtual const char *GetName() override { return "TrackReceivePrePostDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2768,7 +2769,7 @@ public:
                 
                 double prePostVal = DAW::GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "I_SENDMODE");
                 
-                string prePostValueString = "";
+                const char *prePostValueString = "";
                 
                 if (prePostVal == 0)
                     prePostValueString = "PostPan";
@@ -2792,7 +2793,7 @@ class FixedTextDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FixedTextDisplay"; }
+    virtual const char *GetName() override { return "FixedTextDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2805,11 +2806,11 @@ class FixedRGBColorDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FixedRGBColorDisplay"; }
+    virtual const char *GetName() override { return "FixedRGBColorDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        context->UpdateWidgetValue(0);
+        context->UpdateWidgetValue(0.0);
     }
 };
 
@@ -2818,7 +2819,7 @@ class TrackNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackNameDisplay"; }
+    virtual const char *GetName() override { return "TrackNameDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2828,7 +2829,7 @@ public:
             
             DAW::GetTrackName(track, buf, sizeof(buf));
             
-            context->UpdateWidgetValue(string(buf));
+            context->UpdateWidgetValue(buf);
         }
         else
             context->ClearWidget();
@@ -2840,7 +2841,7 @@ class TrackNumberDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackNumberDisplay"; }
+    virtual const char *GetName() override { return "TrackNumberDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2850,7 +2851,7 @@ public:
             char idx[128];
             snprintf(idx, sizeof(idx), "%d", (int)index);
 
-            context->UpdateWidgetValue(string(idx));
+            context->UpdateWidgetValue(idx);
         }
         else
             context->ClearWidget();
@@ -2862,7 +2863,7 @@ class TrackRecordInputDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackRecordInputDisplay"; }
+    virtual const char *GetName() override { return "TrackRecordInputDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2876,34 +2877,34 @@ public:
             If 1024 is set, input is stereo input, otherwise input is mono.
             */
             
-            string inputDisplay = "";
+            char inputDisplay[BUFSZ];
             
             int input = (int)DAW::GetMediaTrackInfo_Value(track, "I_RECINPUT");
 
             if (input < 0)
-                inputDisplay = "None";
+                lstrcpyn_safe(inputDisplay, "None", sizeof(inputDisplay));
             else if (input & 4096)
             {
                 int channel = input & 0x1f;
                 
                 if (channel == 0)
-                    inputDisplay = "MD All";
+                    lstrcpyn_safe(inputDisplay, "MD All", sizeof(inputDisplay));
                 else
-                    inputDisplay = "MD " + to_string(channel);
+                    snprintf(inputDisplay, sizeof(inputDisplay), "MD %d", channel);
             }
             else if (input & 2048)
             {
-                inputDisplay = "Multi";
+                lstrcpyn_safe(inputDisplay, "Multi", sizeof(inputDisplay));
             }
             else if (input & 1024)
             {
                 int channels = input ^ 1024;
                 
-                inputDisplay = to_string(channels + 1) + "+" + to_string(channels + 2);
+                snprintf(inputDisplay, sizeof(inputDisplay), "%d+%d", channels + 1, channels + 2);
             }
             else
             {
-                inputDisplay = "Mno " + to_string(input + 1);
+                snprintf(inputDisplay, sizeof(inputDisplay), "Mno %d", input + 1);
             }
 
             context->UpdateWidgetValue(inputDisplay);
@@ -2918,7 +2919,7 @@ class TrackVolumeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackVolumeDisplay"; }
+    virtual const char *GetName() override { return "TrackVolumeDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2929,7 +2930,7 @@ public:
 
             char trackVolume[128];
             snprintf(trackVolume, sizeof(trackVolume), "%7.2lf", VAL2DB(vol));
-            context->UpdateWidgetValue(string(trackVolume));
+            context->UpdateWidgetValue(trackVolume);
         }
         else
             context->ClearWidget();
@@ -2941,7 +2942,7 @@ class TrackPanDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanDisplay"; }
+    virtual const char *GetName() override { return "TrackPanDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2950,7 +2951,8 @@ public:
             double vol, pan = 0.0;
             DAW::GetTrackUIVolPan(track, &vol, &pan);
 
-            context->UpdateWidgetValue(context->GetPanValueString(pan, ""));
+            char tmp[BUFSZ];
+            context->UpdateWidgetValue(context->GetPanValueString(pan, "", tmp, sizeof(tmp)));
         }
         else
             context->ClearWidget();
@@ -2962,7 +2964,7 @@ class TrackPanWidthDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanWidthDisplay"; }
+    virtual const char *GetName() override { return "TrackPanWidthDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2970,7 +2972,8 @@ public:
         {
             double widthVal = DAW::GetMediaTrackInfo_Value(track, "D_WIDTH");
             
-            context->UpdateWidgetValue(context->GetPanWidthValueString(widthVal));
+            char tmp[BUFSZ];
+            context->UpdateWidgetValue(context->GetPanWidthValueString(widthVal, tmp, sizeof(tmp)));
         }
         else
             context->ClearWidget();
@@ -2982,7 +2985,7 @@ class TrackPanLeftDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanLeftDisplay"; }
+    virtual const char *GetName() override { return "TrackPanLeftDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2990,7 +2993,8 @@ public:
         {
             double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL");
             
-            context->UpdateWidgetValue(context->GetPanValueString(panVal, "L"));
+            char tmp[BUFSZ];
+            context->UpdateWidgetValue(context->GetPanValueString(panVal, "L", tmp, sizeof(tmp)));
         }
         else
             context->ClearWidget();
@@ -3002,7 +3006,7 @@ class TrackPanRightDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanRightDisplay"; }
+    virtual const char *GetName() override { return "TrackPanRightDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3010,7 +3014,8 @@ public:
         {
             double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
             
-            context->UpdateWidgetValue(context->GetPanValueString(panVal, "R"));
+            char tmp[BUFSZ];
+            context->UpdateWidgetValue(context->GetPanValueString(panVal, "R", tmp, sizeof(tmp)));
         }
         else
             context->ClearWidget();
@@ -3022,22 +3027,23 @@ class TrackPanAutoLeftDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanAutoLeftDisplay"; }
+    virtual const char *GetName() override { return "TrackPanAutoLeftDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
         if (MediaTrack *track = context->GetTrack())
         {
+            char tmp[BUFSZ];
             if (GetPanMode(track) == 6)
             {
                 double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANL");
-                context->UpdateWidgetValue(context->GetPanValueString(panVal, "L"));
+                context->UpdateWidgetValue(context->GetPanValueString(panVal, "L", tmp, sizeof(tmp)));
             }
             else
             {
                 double vol, pan = 0.0;
                 DAW::GetTrackUIVolPan(track, &vol, &pan);
-                context->UpdateWidgetValue(context->GetPanValueString(pan, ""));
+                context->UpdateWidgetValue(context->GetPanValueString(pan, "", tmp, sizeof(tmp)));
             }
         }
         else
@@ -3050,21 +3056,22 @@ class TrackPanAutoRightDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackPanAutoRightDisplay"; }
+    virtual const char *GetName() override { return "TrackPanAutoRightDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
         if (MediaTrack *track = context->GetTrack())
         {
+            char tmp[BUFSZ];
             if (GetPanMode(track) == 6)
             {
                 double panVal = DAW::GetMediaTrackInfo_Value(track, "D_DUALPANR");
-                context->UpdateWidgetValue(context->GetPanValueString(panVal, "R"));
+                context->UpdateWidgetValue(context->GetPanValueString(panVal, "R", tmp, sizeof(tmp)));
             }
             else
             {
                 double widthVal = DAW::GetMediaTrackInfo_Value(track, "D_WIDTH");
-                context->UpdateWidgetValue(context->GetPanWidthValueString(widthVal));
+                context->UpdateWidgetValue(context->GetPanWidthValueString(widthVal, tmp, sizeof(tmp)));
             }
         }
         else
@@ -3077,7 +3084,7 @@ class Rewind : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Rewind"; }
+    virtual const char *GetName() override { return "Rewind"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3100,7 +3107,7 @@ class FastForward : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FastForward"; }
+    virtual const char *GetName() override { return "FastForward"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3123,7 +3130,7 @@ class Play : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Play"; }
+    virtual const char *GetName() override { return "Play"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3156,7 +3163,7 @@ class Stop : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Stop"; }
+    virtual const char *GetName() override { return "Stop"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3189,7 +3196,7 @@ class Record : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Record"; }
+    virtual const char *GetName() override { return "Record"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3222,7 +3229,7 @@ class TrackToggleVCASpill : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackToggleVCASpill"; }
+    virtual const char *GetName() override { return "TrackToggleVCASpill"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3247,7 +3254,7 @@ class TrackToggleFolderSpill : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackToggleFolderSpill"; }
+    virtual const char *GetName() override { return "TrackToggleFolderSpill"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3272,7 +3279,7 @@ class ClearAllSolo : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearAllSolo"; }
+    virtual const char *GetName() override { return "ClearAllSolo"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3297,7 +3304,7 @@ class GlobalAutoMode : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GlobalAutoMode"; }
+    virtual const char *GetName() override { return "GlobalAutoMode"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3325,7 +3332,7 @@ class TrackAutoMode : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackAutoMode"; }
+    virtual const char *GetName() override { return "TrackAutoMode"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3365,7 +3372,7 @@ class CycleTrackAutoMode : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "CycleTrackAutoMode"; }
+    virtual const char *GetName() override { return "CycleTrackAutoMode"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3401,7 +3408,7 @@ class CycleTimeline : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "CycleTimeline"; }
+    virtual const char *GetName() override { return "CycleTimeline"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3426,7 +3433,7 @@ class CycleTrackInputMonitor : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "CycleTrackInputMonitor"; }
+    virtual const char *GetName() override { return "CycleTrackInputMonitor"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3448,7 +3455,7 @@ class TrackAutoModeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackAutoModeDisplay"; }
+    virtual const char *GetName() override { return "TrackAutoModeDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3462,7 +3469,7 @@ class TrackVCALeaderDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackVCALeaderDisplay"; }
+    virtual const char *GetName() override { return "TrackVCALeaderDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3483,7 +3490,7 @@ class TrackFolderParentDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackFolderParentDisplay"; }
+    virtual const char *GetName() override { return "TrackFolderParentDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3504,7 +3511,7 @@ class GlobalAutoModeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GlobalAutoModeDisplay"; }
+    virtual const char *GetName() override { return "GlobalAutoModeDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3518,7 +3525,7 @@ class TrackInputMonitorDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackInputMonitorDisplay"; }
+    virtual const char *GetName() override { return "TrackInputMonitorDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3532,11 +3539,11 @@ class MCUTimeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "MCUTimeDisplay"; }
+    virtual const char *GetName() override { return "MCUTimeDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        context->UpdateWidgetValue(0);
+        context->UpdateWidgetValue(0.0);
     }
 };
 
@@ -3545,11 +3552,11 @@ class OSCTimeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "OSCTimeDisplay"; }
+    virtual const char *GetName() override { return "OSCTimeDisplay"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        string timeStr = "";
+        char timeStr[BUFSZ];
         
         double pp=(DAW::GetPlayState()&1) ? DAW::GetPlayPosition() : DAW::GetCursorPosition();
 
@@ -3572,19 +3579,15 @@ public:
             if (toptr)
                 pp+=*toptr;
             
-            timeStr = to_string((int)pp) + " " + to_string(((int)(pp*100.0))%100);
+            snprintf(timeStr, sizeof(timeStr), "%d %d", (int)pp, ((int)(pp*100.0))%100);
         }
         else if (tmode==4) // samples
         {
-            char buf[128];
-            DAW::format_timestr_pos(pp, buf, sizeof(buf), 4);
-            timeStr = string(buf);
+            DAW::format_timestr_pos(pp, timeStr, sizeof(timeStr), 4);
         }
         else if (tmode == 5) // frames
         {
-            char buf[128];
-            DAW::format_timestr_pos(pp, buf, sizeof(buf), 5);
-            timeStr = string(buf);
+            DAW::format_timestr_pos(pp, timeStr, sizeof(timeStr), 5);
         }
         else if (tmode > 0)
         {
@@ -3599,17 +3602,9 @@ public:
                 --num_measures;
             
             int *measptr = context->GetCSI()->GetMeasOffsPtr();
-          
-            timeStr = to_string(num_measures+1+(measptr ? *measptr : 0)) + " " + to_string((int)(nbeats + 1)) + " ";
-            
             int subBeats = (int)(1000.0  *beats);
-
-            if (subBeats < 10)
-                timeStr += "00";
-            else if (subBeats < 100)
-                timeStr += "0";
-            
-            timeStr += to_string(subBeats);
+          
+            snprintf(timeStr, sizeof(timeStr), "%d %d %03d", (num_measures+1+(measptr ? *measptr : 0)), ((int)(nbeats + 1)), subBeats);
         }
         else
         {
@@ -3620,32 +3615,10 @@ public:
             int fr=(int)((pp-ipp)*1000.0);
             
             int hours = (int)(ipp/3600);
-            if (hours < 10)
-                timeStr += "00";
-            else if (hours < 100)
-                timeStr += "0";
-            
-            timeStr += to_string(hours) + ":";
-            
             int minutes = ((int)(ipp/60)) %3600;
-            if (minutes < 10)
-                timeStr += "0";
-            
-            timeStr += to_string(minutes) + ":";
-
             int seconds = ((int)ipp) %60;
-            if (seconds < 10)
-                timeStr += "0";
-            
-            timeStr += to_string(seconds) + ":";
-
             int frames =(int)fr;
-            if (frames < 10)
-                timeStr += "00";
-            else if (frames < 100)
-                timeStr += "0";
-            
-            timeStr += to_string((int)fr);
+            snprintf(timeStr, sizeof(timeStr), "%03d:%02d:%02d:%03d", hours, minutes, seconds, frames);
         }
 
         context->UpdateWidgetValue(timeStr);
@@ -3657,7 +3630,7 @@ class TrackOutputMeter : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackOutputMeter"; }
+    virtual const char *GetName() override { return "TrackOutputMeter"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3678,7 +3651,7 @@ class TrackOutputMeterAverageLR : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackOutputMeterAverageLR"; }
+    virtual const char *GetName() override { return "TrackOutputMeterAverageLR"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3701,7 +3674,7 @@ class TrackVolumeWithMeterAverageLR : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackVolumeWithMeterAverageLR"; }
+    virtual const char *GetName() override { return "TrackVolumeWithMeterAverageLR"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3761,7 +3734,7 @@ class TrackOutputMeterMaxPeakLR : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackOutputMeterMaxPeakLR"; }
+    virtual const char *GetName() override { return "TrackOutputMeterMaxPeakLR"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -3787,7 +3760,7 @@ class TrackVolumeWithMeterMaxPeakLR : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "TrackVolumeWithMeterMaxPeakLR"; }
+    virtual const char *GetName() override { return "TrackVolumeWithMeterMaxPeakLR"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -3850,7 +3823,7 @@ class FXGainReductionMeter : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXGainReductionMeter"; }
+    virtual const char *GetName() override { return "FXGainReductionMeter"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {

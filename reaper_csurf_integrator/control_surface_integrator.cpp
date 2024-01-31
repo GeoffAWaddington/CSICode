@@ -1685,7 +1685,7 @@ void CSurfIntegrator::Init()
             {
                 if (line != s_MajorVersionToken)
                 {
-                    MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + s_MajorVersionToken).c_str(), ("This is CSI " + s_MajorVersionToken).c_str(), MB_OK);
+                    MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + string(s_MajorVersionToken)).c_str(), ("This is CSI " + string(s_MajorVersionToken)).c_str(), MB_OK);
                     iniFile.close();
                     return;
                 }
@@ -2046,9 +2046,9 @@ int ActionContext::GetSlotIndex()
     return zone_->GetSlotIndex();
 }
 
-const string &ActionContext::GetName()
+const char *ActionContext::GetName()
 {
-    return zone_->GetNameOrAlias();
+    return zone_->GetNameOrAlias().c_str();
 }
 
 void ActionContext::RunDeferredActions()
@@ -2136,9 +2136,9 @@ void ActionContext::UpdateTrackColor()
     }
 }
 
-void ActionContext::UpdateWidgetValue(string value)
+void ActionContext::UpdateWidgetValue(const char *value)
 {
-    widget_->UpdateValue(widgetProperties_, value);
+    widget_->UpdateValue(widgetProperties_, value ? value : "");
 }
 
 void ActionContext::DoAction(double value)
@@ -2480,7 +2480,7 @@ void Zone::Activate()
     {
         Widget *widget = NULL;
         if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
-        if (widget->GetName() == "OnZoneActivation")
+        if (!strcmp(widget->GetName(), "OnZoneActivation"))
             for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
                 GetActionContexts(widget).Get(i)->DoAction(1.0);
             
@@ -2489,11 +2489,11 @@ void Zone::Activate()
 
     isActive_ = true;
     
-    if (GetName() == "VCA")
+    if (!strcmp(GetName(), "VCA"))
         zoneManager_->GetSurface()->GetPage()->VCAModeActivated();
-    else if (GetName() == "Folder")
+    else if (!strcmp(GetName(), "Folder"))
         zoneManager_->GetSurface()->GetPage()->FolderModeActivated();
-    else if (GetName() == "SelectedTracks")
+    else if (!strcmp(GetName(), "SelectedTracks"))
         zoneManager_->GetSurface()->GetPage()->SelectedTracksModeActivated();
 
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
@@ -2521,18 +2521,18 @@ void Zone::Deactivate()
             GetActionContexts(widget).Get(i)->UpdateWidgetValue(0.0);
             GetActionContexts(widget).Get(i)->UpdateWidgetValue("");
 
-            if (widget->GetName() == "OnZoneDeactivation")
+            if (!strcmp(widget->GetName(), "OnZoneDeactivation"))
                 GetActionContexts(widget).Get(i)->DoAction(1.0);
         }
     }
 
     isActive_ = false;
     
-    if (GetName() == "VCA")
+    if (!strcmp(GetName(), "VCA"))
         zoneManager_->GetSurface()->GetPage()->VCAModeDeactivated();
-    else if (GetName() == "Folder")
+    else if (!strcmp(GetName(), "Folder"))
         zoneManager_->GetSurface()->GetPage()->FolderModeDeactivated();
-    else if (GetName() == "SelectedTracks")
+    else if (!strcmp(GetName(), "SelectedTracks"))
         zoneManager_->GetSurface()->GetPage()->SelectedTracksModeDeactivated();
     
     for (int i = 0; i < includedZones_.GetSize(); ++i)
@@ -2857,7 +2857,7 @@ void Widget::LogInput(double value)
     if (csi_->GetSurfaceInDisplay())
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName().c_str(), GetName().c_str(), value);
+        snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName(), GetName(), value);
         DAW::ShowConsoleMsg(buffer);
     }
 }
@@ -2978,7 +2978,7 @@ void ZoneManager::Initialize()
 
     if ( ! zoneFilePaths_.Exists("Home"))
     {
-        MessageBox(g_hwnd, (surface_->GetName() + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + surface_->GetName()).c_str(), MB_OK);
+        MessageBox(g_hwnd, (string(surface_->GetName()) + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + string(surface_->GetName())).c_str(), MB_OK);
         return;
     }
         
@@ -3344,7 +3344,7 @@ void ZoneManager::SaveTemplatedFXParams()
         size_t pos = 0;
         while ((pos = fxLayoutFileLines_[0].find(fxLayout_->GetName(), pos)) != std::string::npos)
         {
-            fxLayoutFileLines_[0].replace(pos, fxLayout_->GetName().length(), learnFXName_);
+            fxLayoutFileLines_[0].replace(pos, (int)strlen(fxLayout_->GetName()), learnFXName_);
             pos += learnFXName_.length();
         }
         
@@ -3910,14 +3910,14 @@ void ZoneManager::WidgetMoved(ActionContext *context)
                                                                     
             string paramStr = "";
             
-            if (context->GetWidget()->GetName().find("Fader") == string::npos)
+            if (strstr(context->GetWidget()->GetName(), "Fader") == NULL)
             {
                 if (csi_->GetSteppedValueCount(fxName, fxParamNum) == 0)
                     context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
                 
                 int numSteps = csi_->GetSteppedValueCount(fxName, fxParamNum);
                 
-                if (context->GetWidget()->GetName().find("Push") != string::npos)
+                if (strstr(context->GetWidget()->GetName(), "Push") != NULL)
                 {
                     if (numSteps == 0)
                         numSteps = 2;
@@ -4060,14 +4060,14 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                                             
             string paramStr = "";
             
-            if (context->GetWidget()->GetName().find("Fader") == string::npos)
+            if (strstr(context->GetWidget()->GetName(), "Fader") == NULL)
             {
                 if (csi_->GetSteppedValueCount(fxName, fxParamNum) == 0)
                     context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
                 
                 int numSteps = csi_->GetSteppedValueCount(fxName, fxParamNum);
                 
-                if (context->GetWidget()->GetName().find("Push") != string::npos)
+                if (strstr(context->GetWidget()->GetName(), "Push") != NULL)
                 {
                     if (numSteps == 0)
                         numSteps = 2;
@@ -4084,7 +4084,7 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                     paramStr = "[ " + steps + "]";
                 }
                 
-                if (context->GetWidget()->GetName().find("Rotary") != string::npos && context->GetWidget()->GetName().find("Push") == string::npos)
+                if (strstr(context->GetWidget()->GetName(), "Rotary") != NULL && strstr(context->GetWidget()->GetName(), "Push") == NULL)
                 {
                     if (surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
                         for (int i = 2; i < surfaceFXLayout_[0].size(); i++)
@@ -4169,7 +4169,7 @@ void ZoneManager::PreProcessZones()
        
     if (zoneFilesToProcess.size() == 0)
     {
-        MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (GetSurface()->GetName() + " Zone folder is missing or empty").c_str(), MB_OK);
+        MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (string(GetSurface()->GetName()) + " Zone folder is missing or empty").c_str(), MB_OK);
 
         return;
     }

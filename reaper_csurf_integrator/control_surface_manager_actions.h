@@ -14,7 +14,7 @@ class DumpHex : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "DumpHex"; }
+    virtual const char *GetName() override { return "DumpHex"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -72,7 +72,7 @@ class SendMIDIMessage : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SendMIDIMessage"; }
+    virtual const char *GetName() override { return "SendMIDIMessage"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -109,7 +109,7 @@ class SendOSCMessage : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SendOSCMessage"; }
+    virtual const char *GetName() override { return "SendOSCMessage"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -135,7 +135,7 @@ class SpeakOSARAMessage : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SpeakOSARAMessage"; }
+    virtual const char *GetName() override { return "SpeakOSARAMessage"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -155,7 +155,7 @@ class SetXTouchDisplayColors : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetXTouchDisplayColors"; }
+    virtual const char *GetName() override { return "SetXTouchDisplayColors"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -170,7 +170,7 @@ class RestoreXTouchDisplayColors : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "RestoreXTouchDisplayColors"; }
+    virtual const char *GetName() override { return "RestoreXTouchDisplayColors"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -185,14 +185,14 @@ class SaveProject : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SaveProject"; }
+    virtual const char *GetName() override { return "SaveProject"; }
     
     void RequestUpdate(ActionContext *context) override
     {
         if (DAW::IsProjectDirty())
             context->UpdateWidgetValue(1);
         else
-            context->UpdateWidgetValue(0);
+            context->UpdateWidgetValue(0.0);
     }
     
     void Do(ActionContext *context, double value) override
@@ -209,14 +209,14 @@ class Undo : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Undo"; }
+    virtual const char *GetName() override { return "Undo"; }
     
     void RequestUpdate(ActionContext *context) override
     {
         if (DAW::CanUndo())
             context->UpdateWidgetValue(1);
         else
-            context->UpdateWidgetValue(0);
+            context->UpdateWidgetValue(0.0);
     }
     
     void Do(ActionContext *context, double value) override
@@ -233,14 +233,14 @@ class Redo : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Redo"; }
+    virtual const char *GetName() override { return "Redo"; }
     
     void RequestUpdate(ActionContext *context) override
     {
         if (DAW::CanRedo())
             context->UpdateWidgetValue(1);
         else
-            context->UpdateWidgetValue(0);
+            context->UpdateWidgetValue(0.0);
     }
     
     void Do(ActionContext *context, double value) override
@@ -257,7 +257,7 @@ class ToggleSynchPageBanking : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleSynchPageBanking"; }
+    virtual const char *GetName() override { return "ToggleSynchPageBanking"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -277,7 +277,7 @@ class ToggleScrollLink : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleScrollLink"; }
+    virtual const char *GetName() override { return "ToggleScrollLink"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -297,7 +297,7 @@ class ToggleRestrictTextLength : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleRestrictTextLength"; }
+    virtual const char *GetName() override { return "ToggleRestrictTextLength"; }
         
     void Do(ActionContext *context, double value) override
     {
@@ -312,7 +312,7 @@ class CSINameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "CSINameDisplay"; }
+    virtual const char *GetName() override { return "CSINameDisplay"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -325,7 +325,7 @@ class CSIVersionDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "CSIVersionDisplay"; }
+    virtual const char *GetName() override { return "CSIVersionDisplay"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -338,7 +338,7 @@ class GlobalModeDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GlobalModeDisplay"; }
+    virtual const char *GetName() override { return "GlobalModeDisplay"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -351,7 +351,7 @@ class CycleTimeDisplayModes : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "CycleTimeDisplayModes"; }
+    virtual const char *GetName() override { return "CycleTimeDisplayModes"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -371,7 +371,7 @@ class GoNextPage : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoNextPage"; }
+    virtual const char *GetName() override { return "GoNextPage"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -391,7 +391,7 @@ class GoPage : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoPage"; }
+    virtual const char *GetName() override { return "GoPage"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -411,7 +411,7 @@ class PageNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "PageNameDisplay"; }
+    virtual const char *GetName() override { return "PageNameDisplay"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -424,7 +424,7 @@ class GoHome : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoHome"; }
+    virtual const char *GetName() override { return "GoHome"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -448,7 +448,7 @@ class AllSurfacesGoHome : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "AllSurfacesGoHome"; }
+    virtual const char *GetName() override { return "AllSurfacesGoHome"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -464,7 +464,7 @@ class GoSubZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoSubZone"; }
+    virtual const char *GetName() override { return "GoSubZone"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -485,7 +485,7 @@ class LeaveSubZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "LeaveSubZone"; }
+    virtual const char *GetName() override { return "LeaveSubZone"; }
     
     void RequestUpdate(ActionContext *context) override
     {
@@ -506,7 +506,7 @@ class GoFXSlot  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoFXSlot"; }
+    virtual const char *GetName() override { return "GoFXSlot"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -527,7 +527,7 @@ class ShowFXSlot  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ShowFXSlot"; }
+    virtual const char *GetName() override { return "ShowFXSlot"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -543,7 +543,7 @@ class HideFXSlot  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "HideFXSlot"; }
+    virtual const char *GetName() override { return "HideFXSlot"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -559,7 +559,7 @@ class ToggleUseLocalModifiers  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleUseLocalModifiers"; }
+    virtual const char *GetName() override { return "ToggleUseLocalModifiers"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -574,7 +574,7 @@ class SetLatchTime  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetLatchTime"; }
+    virtual const char *GetName() override { return "SetLatchTime"; }
 
     void Do(ActionContext *context, double value) override
     {
@@ -589,7 +589,7 @@ class ToggleEnableFocusedFXMapping  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleEnableFocusedFXMapping"; }
+    virtual const char *GetName() override { return "ToggleEnableFocusedFXMapping"; }
 
     void RequestUpdate(ActionContext *context) override
     {
@@ -609,7 +609,7 @@ class ToggleEnableFocusedFXParamMapping  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ToggleEnableFocusedFXParamMapping"; }
+    virtual const char *GetName() override { return "ToggleEnableFocusedFXParamMapping"; }
 
     void RequestUpdate(ActionContext *context) override
     {
@@ -629,7 +629,7 @@ class RemapAutoZone  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "RemapAutoZone"; }
+    virtual const char *GetName() override { return "RemapAutoZone"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -644,7 +644,7 @@ class AutoMapSlotFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "AutoMapFX"; }
+    virtual const char *GetName() override { return "AutoMapFX"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -670,7 +670,7 @@ class AutoMapFocusedFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "AutoMapFocusedFX"; }
+    virtual const char *GetName() override { return "AutoMapFocusedFX"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -686,7 +686,7 @@ class GoAssociatedZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoAssociatedZone"; }
+    virtual const char *GetName() override { return "GoAssociatedZone"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -701,9 +701,14 @@ public:
         if (value == 0.0)
             return; // ignore button releases
        
-        string name = context->GetStringParam();
+        const char *name = context->GetStringParam();
         
-        if (name == "Folder" || name == "VCA" || name == "TrackSend" || name == "TrackReceive" || name == "MasterTrackFXMenu" || name == "TrackFXMenu")
+        if (!strcmp(name, "Folder") ||
+            !strcmp(name, "VCA") ||
+            !strcmp(name, "TrackSend") ||
+            !strcmp(name, "TrackReceive") ||
+            !strcmp(name, "MasterTrackFXMenu") ||
+            !strcmp(name, "TrackFXMenu"))
             context->GetPage()->GoAssociatedZone(name);
         else
             context->GetSurface()->GetZoneManager()->GoAssociatedZone(name);
@@ -715,7 +720,7 @@ class GoFXLayoutZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "GoFXLayoutZone"; }
+    virtual const char *GetName() override { return "GoFXLayoutZone"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -739,7 +744,7 @@ class ClearFocusedFXParam : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearFocusedFXParam"; }
+    virtual const char *GetName() override { return "ClearFocusedFXParam"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -755,7 +760,7 @@ class ClearFocusedFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearFocusedFX"; }
+    virtual const char *GetName() override { return "ClearFocusedFX"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -771,7 +776,7 @@ class ClearSelectedTrackFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearSelectedTrackFX"; }
+    virtual const char *GetName() override { return "ClearSelectedTrackFX"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -787,7 +792,7 @@ class ClearFXSlot : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearFXSlot"; }
+    virtual const char *GetName() override { return "ClearFXSlot"; }
     
     void Do(ActionContext *context, double value) override
     {
@@ -803,7 +808,7 @@ class Bank : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "Bank"; }
+    virtual const char *GetName() override { return "Bank"; }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -824,7 +829,7 @@ class SetShift : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetShift"; }
+    virtual const char *GetName() override { return "SetShift"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -847,7 +852,7 @@ class SetOption : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetOption"; }
+    virtual const char *GetName() override { return "SetOption"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -870,7 +875,7 @@ class SetControl : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetControl"; }
+    virtual const char *GetName() override { return "SetControl"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -893,7 +898,7 @@ class SetAlt : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetAlt"; }
+    virtual const char *GetName() override { return "SetAlt"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -916,7 +921,7 @@ class SetFlip : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetFlip"; }
+    virtual const char *GetName() override { return "SetFlip"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -939,7 +944,7 @@ class SetGlobal : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetGlobal"; }
+    virtual const char *GetName() override { return "SetGlobal"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -962,7 +967,7 @@ class SetMarker : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetMarker"; }
+    virtual const char *GetName() override { return "SetMarker"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -985,7 +990,7 @@ class SetNudge : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetNudge"; }
+    virtual const char *GetName() override { return "SetNudge"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1008,7 +1013,7 @@ class SetZoom : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetZoom"; }
+    virtual const char *GetName() override { return "SetZoom"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1031,7 +1036,7 @@ class SetScrub : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetScrub"; }
+    virtual const char *GetName() override { return "SetScrub"; }
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -1054,7 +1059,7 @@ class ClearModifier : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearModifier"; }
+    virtual const char *GetName() override { return "ClearModifier"; }
    
     void Do(ActionContext *context, double value) override
     {
@@ -1069,7 +1074,7 @@ class ClearModifiers : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ClearModifiers"; }
+    virtual const char *GetName() override { return "ClearModifiers"; }
    
     void Do(ActionContext *context, double value) override
     {
@@ -1082,7 +1087,7 @@ class SetToggleChannel : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "SetToggleChannel"; }
+    virtual const char *GetName() override { return "SetToggleChannel"; }
      
     virtual void RequestUpdate(ActionContext *context) override
     {

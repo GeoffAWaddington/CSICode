@@ -397,7 +397,7 @@ public:
     virtual ~TwoState_Midi_FeedbackProcessor() {}
     TwoState_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(csi, surface, widget, feedback1, feedback2) { }
     
-    virtual string GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
     {
@@ -446,7 +446,7 @@ public:
         active_ = false;
     }
     
-    virtual string GetName() override { return "FPTwoStateRGB_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FPTwoStateRGB_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -501,7 +501,7 @@ public:
         lastValue_ = 0.0;
     }
     
-    virtual string GetName() override { return "SCE24TwoStateLED_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "SCE24TwoStateLED_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -652,7 +652,7 @@ public:
     {
     }
 
-    virtual string GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
     {
@@ -810,7 +810,7 @@ public:
       rows_(true, RowInfo::dispose)
     {
     }
-    virtual string GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
     {
@@ -1009,7 +1009,7 @@ public:
     virtual ~SCE24Encoder_Midi_FeedbackProcessor() {}
     SCE24Encoder_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
-    virtual string GetName() override { return "SCE24Encoder_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "SCE24Encoder_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1189,7 +1189,7 @@ public:
     virtual ~NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor() {}
     NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
-    virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1243,7 +1243,7 @@ public:
     virtual ~FaderportRGB_Midi_FeedbackProcessor() {}
     FaderportRGB_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
-    virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
     {
@@ -1282,7 +1282,7 @@ public:
         preventUpdateTrackColors_ = false;
     }
     
-    virtual string GetName() override { return "AsparionRGB_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "AsparionRGB_Midi_FeedbackProcessor"; }
     
     virtual void ForceClear() override
     {
@@ -1336,7 +1336,7 @@ public:
         timeZeroValueReceived_ = 0;
     }
     
-    virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1391,7 +1391,7 @@ public:
         timeZeroValueReceived_ = 0;
     }
     
-    virtual string GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1450,7 +1450,7 @@ public:
     virtual ~Fader7Bit_Midi_FeedbackProcessor() {}
     Fader7Bit_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
-    virtual string GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1477,7 +1477,7 @@ public:
     virtual ~Encoder_Midi_FeedbackProcessor() {}
     Encoder_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
-    virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1542,7 +1542,7 @@ public:
         displayMode_ = 0;
     }
     
-    virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1585,7 +1585,7 @@ public:
     virtual ~ConsoleOneVUMeter_Midi_FeedbackProcessor() {}
     ConsoleOneVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
-    virtual string GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1634,7 +1634,7 @@ public:
         maxDB_ = 24.0;
     }
     
-    virtual string GetName() override { return "ConsoleOneGainReductionMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "ConsoleOneGainReductionMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1671,7 +1671,7 @@ public:
         param_ = 0;
     }
     
-    virtual string GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1732,7 +1732,7 @@ public:
         isClipOn_ = false;
     }
     
-    virtual string GetName() override { return "MCUVUMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "MCUVUMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1780,7 +1780,7 @@ public:
         isClipOn_ = false;
     }
     
-    virtual string GetName() override { return "AsparionVUMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "AsparionVUMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1826,7 +1826,7 @@ public:
         isClipOn_ = false;
     }
     
-    virtual string GetName() override { return "FPVUMeter_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FPVUMeter_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1904,7 +1904,7 @@ public:
         lastValue_ = 0;
     }
 
-    virtual string GetName() override { return "FPValueBar_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FPValueBar_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1955,7 +1955,7 @@ public:
         lastStringSent_ = "";
     }
     
-    virtual string GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2037,7 +2037,7 @@ public:
         lastStringSent_ = "";
     }
     
-    virtual string GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2179,7 +2179,7 @@ public:
         availableRGBColors_[7] = color; // White
     }
         
-    virtual string GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2426,7 +2426,7 @@ public:
         lastStringSent_ = " ";
     }
     
-    virtual string GetName() override { return "FPDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FPDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2525,7 +2525,7 @@ public:
         lastMode_ = 0;
     }
     
-    virtual string GetName() override { return "FPScribbleStripMode_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FPScribbleStripMode_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2586,7 +2586,7 @@ public:
         lastStringSent_ = "";
     }
     
-    virtual string GetName() override { return "QConLiteDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "QConLiteDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2663,7 +2663,7 @@ public:
         lastFirstLetter_ = 0x00;
     }
     
-    virtual string GetName() override { return "FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -2708,7 +2708,7 @@ protected:
 public:
     MCU_TimeDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(csi, surface, widget) {}
     
-    virtual string GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -3074,7 +3074,7 @@ public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
     MFT_RGB_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
   
-    virtual string GetName() override { return "MFT_RGB_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "MFT_RGB_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {

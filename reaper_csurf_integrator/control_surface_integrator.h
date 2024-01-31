@@ -52,12 +52,12 @@ extern int strToHex(const string &valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
-static const string s_CSIName = "CSI";
-static const string s_CSIVersionDisplay = "v3.0";
-static const string s_MajorVersionToken = "Version 3.0";
-static const string s_PageToken = "Page";
-static const string s_MidiSurfaceToken = "MidiSurface";
-static const string s_OSCSurfaceToken = "OSCSurface";
+static const char * const s_CSIName = "CSI";
+static const char * const s_CSIVersionDisplay = "v3.0";
+static const char * const s_MajorVersionToken = "Version 3.0";
+static const char * const s_PageToken = "Page";
+static const char * const s_MidiSurfaceToken = "MidiSurface";
+static const char * const s_OSCSurfaceToken = "OSCSurface";
 
 static const string s_BadFileChars = "[ \\:*?<>|.,()/]";
 static const string s_CRLFChars = "[\r\n]";
@@ -355,7 +355,7 @@ class Action
 public:
     virtual ~Action() {}
     
-    virtual string GetName() { return "Action"; }
+    virtual const char *GetName() { return "Action"; }
 
     virtual void Touch(ActionContext *context, double value) {}
     virtual void RequestUpdate(ActionContext *context) {}
@@ -401,7 +401,7 @@ protected:
 public:
     virtual ~Navigator() {}
     
-    virtual string GetName() { return "Navigator"; }
+    virtual const char *GetName() { return "Navigator"; }
     virtual MediaTrack *GetTrack() { return nullptr; }
     virtual int GetChannelNum() { return 0; }
 
@@ -437,7 +437,7 @@ public:
     TrackNavigator(CSurfIntegrator *const csi, Page *page, TrackNavigationManager *trackNavigationManager, int channelNum) : Navigator(csi, page), trackNavigationManager_(trackNavigationManager), channelNum_(channelNum) {}
     virtual ~TrackNavigator() {}
     
-    virtual string GetName() override { return "TrackNavigator"; }
+    virtual const char *GetName() override { return "TrackNavigator"; }
    
     virtual MediaTrack *GetTrack() override;
     
@@ -453,7 +453,7 @@ public:
     MasterTrackNavigator(CSurfIntegrator *const csi, Page * page) : Navigator(csi, page) {}
     virtual ~MasterTrackNavigator() {}
     
-    virtual string GetName() override { return "MasterTrackNavigator"; }
+    virtual const char *GetName() override { return "MasterTrackNavigator"; }
     
     virtual MediaTrack *GetTrack() override;
 };
@@ -466,7 +466,7 @@ public:
     SelectedTrackNavigator(CSurfIntegrator *const csi, Page * page) : Navigator(csi, page) {}
     virtual ~SelectedTrackNavigator() {}
     
-    virtual string GetName() override { return "SelectedTrackNavigator"; }
+    virtual const char *GetName() override { return "SelectedTrackNavigator"; }
     
     virtual MediaTrack *GetTrack() override;
 };
@@ -479,7 +479,7 @@ public:
     FocusedFXNavigator(CSurfIntegrator *const csi, Page * page) : Navigator(csi, page) {}
     virtual ~FocusedFXNavigator() {}
     
-    virtual string GetName() override { return "FocusedFXNavigator"; }
+    virtual const char *GetName() override { return "FocusedFXNavigator"; }
     
     virtual MediaTrack *GetTrack() override;
 };
@@ -565,15 +565,15 @@ public:
     Widget *GetWidget() { return widget_; }
     Zone *GetZone() { return zone_; }
     int GetSlotIndex();
-    const string &GetName();
+    const char *GetName();
 
     vector<string> &GetParameters() { return parameters_; }
     
     int GetIntParam() { return intParam_; }
-    const string &GetStringParam() { return stringParam_; }
+    const char *GetStringParam() { return stringParam_.c_str(); }
     int GetCommandId() { return commandId_; }
     
-    const string &GetFXParamDisplayName() { return fxParamDisplayName_; }
+    const char *GetFXParamDisplayName() { return fxParamDisplayName_.c_str(); }
     
     MediaTrack *GetTrack();
     
@@ -607,9 +607,9 @@ public:
     void RequestUpdateWidgetMode();
     void RunDeferredActions();
     void ClearWidget();
-    void UpdateWidgetValue(double value);
+    void UpdateWidgetValue(double value); // note: if passing the constant 0, must be 0.0 to avoid ambiguous type vs pointer
+    void UpdateWidgetValue(const char *value);
     void UpdateJSFXWidgetSteppedValue(double value);
-    void UpdateWidgetValue(string value);
     void UpdateColorValue(double value);
 
     void   SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
@@ -651,7 +651,7 @@ public:
         steppedValuesIndex_ = index;
     }
 
-    const string GetPanValueString(double panVal, const string &dualPan)
+    char *GetPanValueString(double panVal, const char *dualPan, char *buf, int bufsz)
     {
         bool left = false;
         
@@ -662,54 +662,47 @@ public:
         }
         
         int panIntVal = int(panVal  *100.0);
-        string trackPanValueString = "";
         
         if (left)
         {
+            const char *prefix;
             if (panIntVal == 100)
-                trackPanValueString += "<";
+                prefix = "";
             else if (panIntVal < 100 && panIntVal > 9)
-                trackPanValueString += "< ";
+                prefix  =" ";
             else
-                trackPanValueString += "<  ";
+                prefix = "  ";
             
-            trackPanValueString += to_string(panIntVal);
-            
-            if (dualPan != "")
-                trackPanValueString += dualPan;
+            snprintf(buf, bufsz, "<%s%d%s", prefix, panIntVal, dualPan ? dualPan : "");
         }
         else
         {
-            if (dualPan == "")
-                trackPanValueString += "   ";
-            else
-                trackPanValueString += "  " + dualPan;
-            
-            trackPanValueString += to_string(panIntVal);
+            const char *suffix;
             
             if (panIntVal == 100)
-                trackPanValueString += ">";
+                suffix = "";
             else if (panIntVal < 100 && panIntVal > 9)
-                trackPanValueString += " >";
+                suffix = " ";
             else
-                trackPanValueString += "  >";
+                suffix = "  ";
+
+            snprintf(buf, bufsz, "  %s%d%s>", dualPan && *dualPan ? dualPan : " ", panIntVal, suffix);
         }
         
         if (panIntVal == 0)
         {
-            if (dualPan == "")
-                trackPanValueString = "  <C>  ";
-            if (dualPan == "L")
-                trackPanValueString = " L<C>  ";
-            if (dualPan == "R")
-                trackPanValueString = " <C>R  ";
-
+            if (!dualPan || !dualPan[0])
+                lstrcpyn_safe(buf, "  <C>  ", bufsz);
+            else if (!strcmp(dualPan, "L"))
+                lstrcpyn_safe(buf, " L<C>  ", bufsz);
+            else if (!strcmp(dualPan, "R"))
+                lstrcpyn_safe(buf, " <C>R  ", bufsz);
         }
 
-        return trackPanValueString;
+        return buf;
     }
     
-    string GetPanWidthValueString(double widthVal)
+    char *GetPanWidthValueString(double widthVal, char *buf, int bufsz)
     {
         bool reversed = false;
         
@@ -720,19 +713,13 @@ public:
         }
         
         int widthIntVal = int(widthVal  *100.0);
-        string trackPanWidthString = "";
-        
-        if (! reversed)
-            trackPanWidthString += "Wid ";
-        else
-            trackPanWidthString += "Rev ";
-        
-        trackPanWidthString += to_string(widthIntVal);
         
         if (widthIntVal == 0)
-            trackPanWidthString = "<Mono> ";
-
-        return trackPanWidthString;
+            lstrcpyn_safe(buf, "<Mono> ", bufsz);
+        else
+            snprintf(buf, bufsz, "%s %d", reversed ? "Rev" : "Wid", widthIntVal);
+        
+        return buf;
     }
 };
 
@@ -881,9 +868,9 @@ public:
             Activate();
     }
 
-    const string &GetName()
+    const char *GetName()
     {
-        return name_;
+        return name_.c_str();
     }
     
     const string &GetNameOrAlias()
@@ -1115,7 +1102,7 @@ public:
     bool GetHasBeenUsedByUpdate() { return hasBeenUsedByUpdate_; }
     
     CSurfIntegrator *GetCSI() { return csi_; }
-    const string &GetName() { return name_; }
+    const char *GetName() { return name_.c_str(); }
     ControlSurface *GetSurface() { return surface_; }
     ZoneManager *GetZoneManager();
     int GetChannelNumber() { return channelNumber_; }
@@ -3059,7 +3046,7 @@ public:
     ModifierManager *GetModifierManager() { return modifierManager_; }
     ZoneManager *GetZoneManager() { return zoneManager_; }
     Page *GetPage() { return page_; }
-    string GetName() { return name_; }
+    const char *GetName() { return name_.c_str(); }
     
     int GetNumChannels() { return numChannels_; }
     int GetChannelOffset() { return channelOffset_; }
@@ -3246,7 +3233,7 @@ public:
     {
         if (WDL_NOT_NORMALLY(!widget)) return;
         widgets_.Add(widget);
-        widgetsByName_.Insert(widget->GetName().c_str(),widget);
+        widgetsByName_.Insert(widget->GetName(),widget);
     }
     
     void AddCSIMessageGenerator(const string &message, CSIMessageGenerator *messageGenerator)
@@ -3333,7 +3320,7 @@ public:
         lastStringValue_ = "";
     }
     virtual ~FeedbackProcessor() {}
-    virtual string GetName()  { return "FeedbackProcessor"; }
+    virtual const char *GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
     virtual void SetColorValue(rgba_color &color) {}
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
@@ -3413,7 +3400,7 @@ public:
             delete midiFeedbackMessage2_;
     }
     
-    virtual string GetName() override { return "Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "Midi_FeedbackProcessor"; }
 };
 
 void ReleaseMidiInput(midi_Input *input);
@@ -3526,7 +3513,7 @@ public:
     OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, string oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
-    virtual string GetName() override { return "OSC_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "OSC_FeedbackProcessor"; }
 
     virtual void SetColorValue(rgba_color &color) override;
     virtual void X32SetColorValue(rgba_color &color);
@@ -3543,7 +3530,7 @@ public:
     OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, string oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
-    virtual string GetName() override { return "OSC_IntFeedbackProcessor"; }
+    virtual const char *GetName() override { return "OSC_IntFeedbackProcessor"; }
 
     virtual void ForceValue(const PropertyList &properties, double value) override;
     virtual void ForceClear() override;
@@ -3652,7 +3639,7 @@ public:
 
     bool IsX32()
     {
-        return GetName().find("X32") != string::npos || GetName().find("x32") != string::npos;
+        return strstr(GetName(), "X32") || strstr(GetName(), "x32");
     }
     
     virtual void RequestUpdate() override
@@ -3903,7 +3890,7 @@ public:
         DAW::GetSetMediaTrackInfo(track, "I_RECMONITEMS", &recMonitorItemMode);
     }
     
-    string GetCurrentInputMonitorMode(MediaTrack *track)
+    const char *GetCurrentInputMonitorMode(MediaTrack *track)
     {
         // I_RECMON : int  *: record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
         int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
@@ -4449,7 +4436,7 @@ public:
         surfaces_.Empty(true);
     }
         
-    string GetName() { return name_; }
+    const char *GetName() { return name_.c_str(); }
     
     ModifierManager *GetModifierManager() { return modifierManager_; }
     
@@ -4623,7 +4610,7 @@ public:
     void NextInputMonitorMode(MediaTrack *track) { trackNavigationManager_->NextInputMonitorMode(track); }
     const char *GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
     const char *GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
-    string GetCurrentInputMonitorMode(MediaTrack *track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
+    const char *GetCurrentInputMonitorMode(MediaTrack *track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     const WDL_PtrList<MediaTrack> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
     
     

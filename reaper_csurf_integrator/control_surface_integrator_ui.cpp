@@ -2819,7 +2819,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 {
                     if (line != s_MajorVersionToken)
                     {
-                        MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + s_MajorVersionToken).c_str(), ("This is CSI " + s_MajorVersionToken).c_str(), MB_OK);
+                        MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + string(s_MajorVersionToken)).c_str(), ("This is CSI " + string(s_MajorVersionToken)).c_str(), MB_OK);
                         iniFile.close();
                         break;
                     }
@@ -2989,7 +2989,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
             if (iniFile.is_open())
             {
-                iniFile << s_MajorVersionToken + "\n";
+                iniFile << string(s_MajorVersionToken) + "\n";
                 
                 iniFile << "\n";
                 
@@ -3012,7 +3012,7 @@ static WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 
                 for (int i = 0; i < s_pages.GetSize(); ++i)
                 {
-                    line = s_PageToken + " ";
+                    line = string(s_PageToken) + " ";
                     line += "\"" + s_pages.Get(i)->name + "\"";
                     
                     if (s_pages.Get(i)->followMCP == false)

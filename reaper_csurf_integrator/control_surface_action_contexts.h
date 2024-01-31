@@ -14,7 +14,7 @@ class NoAction : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "NoAction"; }
+    virtual const char *GetName() override { return "NoAction"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -28,7 +28,7 @@ class ReaperAction : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "ReaperAction"; }
+    virtual const char *GetName() override { return "ReaperAction"; }
    
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -56,7 +56,7 @@ class FXAction : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual string GetName() override { return "FXAction"; }
+    virtual const char *GetName() override { return "FXAction"; }
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
