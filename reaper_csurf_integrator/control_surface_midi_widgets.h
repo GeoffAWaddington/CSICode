@@ -24,9 +24,9 @@ protected:
 public:
     virtual ~PressRelease_Midi_CSIMessageGenerator() {}
 
-    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(widget), press_(press) {}
+    PressRelease_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(csi, widget), press_(press) {}
     
-    PressRelease_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
+    PressRelease_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -45,7 +45,7 @@ protected:
 public:
     virtual ~Touch_Midi_CSIMessageGenerator() {}
     
-    Touch_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(widget), press_(press), release_(release) {}
+    Touch_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -62,7 +62,7 @@ protected:
 
 public:
     virtual ~AnyPress_Midi_CSIMessageGenerator() {}
-    AnyPress_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(widget), press_(press) {}
+    AnyPress_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(csi, widget), press_(press) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -77,7 +77,7 @@ class Fader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader14Bit_Midi_CSIMessageGenerator() {}
-    Fader14Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
+    Fader14Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -94,7 +94,7 @@ protected:
 
 public:
     virtual ~FaderportClassicFader14Bit_Midi_CSIMessageGenerator() {}
-    FaderportClassicFader14Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message1, MIDI_event_ex_t *message2) : Midi_CSIMessageGenerator(widget)
+    FaderportClassicFader14Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message1, MIDI_event_ex_t *message2) : Midi_CSIMessageGenerator(csi, widget)
     {
         message1_ = message1;
         message2_ = message2;
@@ -115,7 +115,7 @@ class Fader7Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader7Bit_Midi_CSIMessageGenerator() {}
-    Fader7Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
+    Fader7Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -133,7 +133,7 @@ private:
     
 public:
     virtual ~AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message, double stepSize, map<int, int> accelerationValuesForDecrement, map<int, int> accelerationValuesForIncrement, vector<double> accelerationValues) :  Midi_CSIMessageGenerator(widget)
+    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, double stepSize, map<int, int> accelerationValuesForDecrement, map<int, int> accelerationValuesForIncrement, vector<double> accelerationValues) :  Midi_CSIMessageGenerator(csi, widget)
     {
         accelerationValuesForDecrement_ = accelerationValuesForDecrement;
         accelerationValuesForIncrement_ = accelerationValuesForIncrement;
@@ -163,7 +163,7 @@ private:
 
 public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(widget)
+    AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
     {       
         vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
         vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "]");
@@ -279,7 +279,7 @@ private:
     
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(widget)
+    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
     {
         accelerationIndicesForDecrement_[0x3f] = 0;
         accelerationIndicesForDecrement_[0x3e] = 1;
@@ -323,7 +323,7 @@ class Encoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Encoder_Midi_CSIMessageGenerator() {}
-    Encoder_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
+    Encoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -344,7 +344,7 @@ class EncoderPlain_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~EncoderPlain_Midi_CSIMessageGenerator() {}
-    EncoderPlain_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget) {}
+    EncoderPlain_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -366,7 +366,7 @@ private:
     
 public:
     virtual ~Encoder7Bit_Midi_CSIMessageGenerator() {}
-    Encoder7Bit_Midi_CSIMessageGenerator(Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(widget)
+    Encoder7Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget)
     {
         lastMessage = -1;
     }
@@ -395,7 +395,7 @@ class TwoState_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~TwoState_Midi_FeedbackProcessor() {}
-    TwoState_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2) { }
+    TwoState_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(csi, surface, widget, feedback1, feedback2) { }
     
     virtual string GetName() override { return "TwoState_Midi_FeedbackProcessor"; }
     
@@ -441,7 +441,7 @@ private:
     
 public:
     virtual ~FPTwoStateRGB_Midi_FeedbackProcessor() {}
-    FPTwoStateRGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    FPTwoStateRGB_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1)
     {
         active_ = false;
     }
@@ -496,7 +496,7 @@ private:
 
 public:
     virtual ~SCE24TwoStateLED_Midi_FeedbackProcessor() {}
-    SCE24TwoStateLED_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    SCE24TwoStateLED_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1)
     {
         lastValue_ = 0.0;
     }
@@ -646,8 +646,8 @@ private:
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
-    SCE24OLED_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
-      Midi_FeedbackProcessor(surface, widget, feedback1),
+    SCE24OLED_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
+      Midi_FeedbackProcessor(csi, surface, widget, feedback1),
       rows_(true, RowInfo::dispose)
     {
     }
@@ -805,8 +805,8 @@ private:
 
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
-    SCE24Text_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
-      Midi_FeedbackProcessor(surface, widget, feedback1),
+    SCE24Text_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
+      Midi_FeedbackProcessor(csi, surface, widget, feedback1),
       rows_(true, RowInfo::dispose)
     {
     }
@@ -1007,7 +1007,7 @@ class SCE24Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~SCE24Encoder_Midi_FeedbackProcessor() {}
-    SCE24Encoder_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    SCE24Encoder_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
     virtual string GetName() override { return "SCE24Encoder_Midi_FeedbackProcessor"; }
 
@@ -1187,7 +1187,7 @@ class NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor : public Midi_Feedback
 {
 public:
     virtual ~NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor() {}
-    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
     virtual string GetName() override { return "NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor"; }
 
@@ -1241,7 +1241,7 @@ class FaderportRGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~FaderportRGB_Midi_FeedbackProcessor() {}
-    FaderportRGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    FaderportRGB_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
     virtual string GetName() override { return "FaderportRGB_Midi_FeedbackProcessor"; }
     
@@ -1277,7 +1277,7 @@ private:
 
 public:
     virtual ~AsparionRGB_Midi_FeedbackProcessor() {}
-    AsparionRGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    AsparionRGB_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1)
     {
         preventUpdateTrackColors_ = false;
     }
@@ -1330,7 +1330,7 @@ private:
     
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
-    Fader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    Fader14Bit_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1)
     {
         shouldSetToZero_ = false;
         timeZeroValueReceived_ = 0;
@@ -1385,7 +1385,7 @@ private:
     
 public:
     virtual ~FaderportClassicFader14Bit_Midi_FeedbackProcessor() {}
-    FaderportClassicFader14Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(surface, widget, feedback1, feedback2)
+    FaderportClassicFader14Bit_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, MIDI_event_ex_t *feedback2) : Midi_FeedbackProcessor(csi, surface, widget, feedback1, feedback2)
     {
         shouldSetToZero_ = false;
         timeZeroValueReceived_ = 0;
@@ -1448,7 +1448,7 @@ class Fader7Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Fader7Bit_Midi_FeedbackProcessor() {}
-    Fader7Bit_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Fader7Bit_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Fader7Bit_Midi_FeedbackProcessor"; }
 
@@ -1475,7 +1475,7 @@ class Encoder_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~Encoder_Midi_FeedbackProcessor() {}
-    Encoder_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    Encoder_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
     virtual string GetName() override { return "Encoder_Midi_FeedbackProcessor"; }
 
@@ -1537,7 +1537,7 @@ private:
     
 public:
     virtual ~AsparionEncoder_Midi_FeedbackProcessor() {}
-    AsparionEncoder_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    AsparionEncoder_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1)
     {
         displayMode_ = 0;
     }
@@ -1583,7 +1583,7 @@ class ConsoleOneVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~ConsoleOneVUMeter_Midi_FeedbackProcessor() {}
-    ConsoleOneVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    ConsoleOneVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
     
     virtual string GetName() override { return "ConsoleOneVUMeter_Midi_FeedbackProcessor"; }
 
@@ -1628,7 +1628,7 @@ private:
     
 public:
     virtual ~ConsoleOneGainReductionMeter_Midi_FeedbackProcessor() {}
-    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1)
+    ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1)
     {
         minDB_ = 0.0;
         maxDB_ = 24.0;
@@ -1664,7 +1664,7 @@ private:
     
 public:
     virtual ~QConProXMasterVUMeter_Midi_FeedbackProcessor() {}
-    QConProXMasterVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int param) : Midi_FeedbackProcessor(surface, widget), param_(param)
+    QConProXMasterVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int param) : Midi_FeedbackProcessor(csi, surface, widget), param_(param)
     {
         minDB_ = 0.0;
         maxDB_ = 24.0;
@@ -1726,7 +1726,7 @@ protected:
 
 public:
     virtual ~MCUVUMeter_Midi_FeedbackProcessor() {}
-    MCUVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber)
+    MCUVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayType, int channelNumber) : Midi_FeedbackProcessor(csi, surface, widget), displayType_(displayType), channelNumber_(channelNumber)
     {
         lastMidiValue_ = 0;
         isClipOn_ = false;
@@ -1774,7 +1774,7 @@ protected:
 
 public:
     virtual ~AsparionVUMeter_Midi_FeedbackProcessor() {}
-    AsparionVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channelNumber, bool isRight) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channelNumber_(channelNumber),  isRight_(isRight)
+    AsparionVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayType, int channelNumber, bool isRight) : Midi_FeedbackProcessor(csi, surface, widget), displayType_(displayType), channelNumber_(channelNumber),  isRight_(isRight)
     {
         lastMidiValue_ = 0;
         isClipOn_ = false;
@@ -1820,7 +1820,7 @@ private:
 
 public:
     virtual ~FPVUMeter_Midi_FeedbackProcessor() {}
-    FPVUMeter_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int channelNumber) : Midi_FeedbackProcessor(surface, widget), channelNumber_(channelNumber)
+    FPVUMeter_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int channelNumber) : Midi_FeedbackProcessor(csi, surface, widget), channelNumber_(channelNumber)
     {
         lastMidiValue_ = 0;
         isClipOn_ = false;
@@ -1899,7 +1899,7 @@ private:
     
 public:
     virtual ~FPValueBar_Midi_FeedbackProcessor() {}
-    FPValueBar_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int channel) : Midi_FeedbackProcessor(surface, widget), channel_(channel)
+    FPValueBar_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int channel) : Midi_FeedbackProcessor(csi, surface, widget), channel_(channel)
     {
         lastValue_ = 0;
     }
@@ -1950,7 +1950,7 @@ private:
 
 public:
     virtual ~MCUDisplay_Midi_FeedbackProcessor() {}
-    MCUDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    MCUDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(csi,surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         lastStringSent_ = "";
     }
@@ -2032,7 +2032,7 @@ private:
 
 public:
     virtual ~AsparionDisplay_Midi_FeedbackProcessor() {}
-    AsparionDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayRow, int displayType, int displayTextType, int channel) : Midi_FeedbackProcessor(surface, widget), displayRow_(displayRow), displayType_(displayType), displayTextType_(displayTextType), channel_(channel)
+    AsparionDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayRow, int displayType, int displayTextType, int channel) : Midi_FeedbackProcessor(csi, surface, widget), displayRow_(displayRow), displayType_(displayType), displayTextType_(displayTextType), channel_(channel)
     {
         lastStringSent_ = "";
     }
@@ -2129,7 +2129,7 @@ private:
     
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
-    XTouchDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    XTouchDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(csi, surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         preventUpdateTrackColors_ = false;
         lastStringSent_ = "";
@@ -2421,7 +2421,7 @@ private:
     
 public:
     virtual ~FPDisplay_Midi_FeedbackProcessor() {}
-    FPDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow)
+    FPDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayType, int channel, int displayRow) : Midi_FeedbackProcessor(csi, surface, widget), displayType_(displayType), channel_(channel), displayRow_(displayRow)
     {
         lastStringSent_ = " ";
     }
@@ -2520,7 +2520,7 @@ private:
     
 public:
     virtual ~FPScribbleStripMode_Midi_FeedbackProcessor() {}
-    FPScribbleStripMode_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayType, int channel) : Midi_FeedbackProcessor(surface, widget), displayType_(displayType), channel_(channel)
+    FPScribbleStripMode_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayType, int channel) : Midi_FeedbackProcessor(csi, surface, widget), displayType_(displayType), channel_(channel)
     {
         lastMode_ = 0;
     }
@@ -2581,7 +2581,7 @@ private:
     
 public:
     virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
-    QConLiteDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(surface, widget), offset_(displayUpperLower  *28), displayType_(displayType), displayRow_(displayRow), channel_(channel)
+    QConLiteDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(csi, surface, widget), offset_(displayUpperLower  *28), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         lastStringSent_ = "";
     }
@@ -2658,7 +2658,7 @@ private:
     int lastFirstLetter_;
 
 public:
-    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(surface, widget)
+    FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(csi, surface, widget)
     {
         lastFirstLetter_ = 0x00;
     }
@@ -2706,7 +2706,7 @@ protected:
     DWORD m_mcu_timedisp_lastforce, m_mcu_meter_lastrun;
     
 public:
-    MCU_TimeDisplay_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(surface, widget) {}
+    MCU_TimeDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget) : Midi_FeedbackProcessor(csi, surface, widget) {}
     
     virtual string GetName() override { return "MCU_TimeDisplay_Midi_FeedbackProcessor"; }
 
@@ -3072,7 +3072,7 @@ class MFT_RGB_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 public:
     virtual ~MFT_RGB_Midi_FeedbackProcessor() {}
-    MFT_RGB_Midi_FeedbackProcessor(Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(surface, widget, feedback1) { }
+    MFT_RGB_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) : Midi_FeedbackProcessor(csi, surface, widget, feedback1) { }
   
     virtual string GetName() override { return "MFT_RGB_Midi_FeedbackProcessor"; }
 

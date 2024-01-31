@@ -12,15 +12,16 @@
 #include "resource.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class CSurfIntegrator : public IReaperControlSurface
+class CSurfIntegratorOld : public IReaperControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
+    CSurfIntegrator *csi_;
     char configtmp[1024];
     
 public:
-    CSurfIntegrator();
-    ~CSurfIntegrator();
+    CSurfIntegratorOld();
+    ~CSurfIntegratorOld();
     virtual void SetTrackListChange() override;
     virtual void OnTrackSelection(MediaTrack *trackid) override;
     virtual int Extended(int call, void *parm1, void *parm2, void *parm3) override;

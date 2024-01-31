@@ -11,7 +11,7 @@
 #include "WDL/wdlcstring.h"
 
 void ShutdownOSCIO();
-CSIManager *csi_;
+
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
@@ -26,6 +26,7 @@ extern int g_registered_command_toggle_write_FX_params;
 
 bool hookCommandProc(int command, int flag)
 {
+    /*
     if (csi_ != nullptr)
     {
         if (command == g_registered_command_toggle_show_raw_surface_input)
@@ -54,43 +55,39 @@ bool hookCommandProc(int command, int flag)
             return true;
         }
     }
+     */
     return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSurfIntegrator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-CSurfIntegrator::CSurfIntegrator()
+CSurfIntegratorOld::CSurfIntegratorOld()
 {
-    // JF - CSIManager should be a member of CSurfIntegrator?
-    if (!csi_) csi_ = new CSIManager;
-    csi_->csurf_refcnt_++;
+    csi_ = new CSurfIntegrator;
 }
 
-CSurfIntegrator::~CSurfIntegrator()
+CSurfIntegratorOld::~CSurfIntegratorOld()
 {
-    if (csi_ && !--csi_->csurf_refcnt_)
-    {
-        csi_->Shutdown();
-        delete csi_;
-        csi_ = NULL;
-        ShutdownOSCIO();
-    }
+    csi_->Shutdown();
+    delete csi_;
+    csi_ = NULL;
+    ShutdownOSCIO();
 }
 
-void CSurfIntegrator::OnTrackSelection(MediaTrack *trackid)
+void CSurfIntegratorOld::OnTrackSelection(MediaTrack *trackid)
 {
     if (csi_)
         csi_->OnTrackSelection(trackid);
 }
 
-void CSurfIntegrator::SetTrackListChange()
+void CSurfIntegratorOld::SetTrackListChange()
 {
     if (csi_)
         csi_->OnTrackListChange();
 }
 
-int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
+int CSurfIntegratorOld::Extended(int call, void *parm1, void *parm2, void *parm3)
 {
     if (call == CSURF_EXT_SUPPORTS_EXTENDED_TOUCH)
     {
@@ -130,28 +127,28 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
     return 1;
 }
 
-bool CSurfIntegrator::GetTouchState(MediaTrack *track, int touchedControl)
+bool CSurfIntegratorOld::GetTouchState(MediaTrack *track, int touchedControl)
 {
     return csi_->GetTouchState(track, touchedControl);
 }
 
-void CSurfIntegrator::Run()
+void CSurfIntegratorOld::Run()
 {
     if (csi_)
         csi_->Run();
 }
 
-const char *CSurfIntegrator::GetTypeString()
+const char *CSurfIntegratorOld::GetTypeString()
 {
     return "CSI";
 }
 
-const char *CSurfIntegrator::GetDescString()
+const char *CSurfIntegratorOld::GetDescString()
 {
     return Control_Surface_Integrator;
 }
 
-const char *CSurfIntegrator::GetConfigString() // string of configuration data
+const char *CSurfIntegratorOld::GetConfigString() // string of configuration data
 {
     snprintf(configtmp, sizeof(configtmp),"0 0");
     return configtmp;
@@ -159,7 +156,7 @@ const char *CSurfIntegrator::GetConfigString() // string of configuration data
 
 static IReaperControlSurface *createFunc(const char *type_string, const char *configString, int *errStats)
 {
-    return new CSurfIntegrator();
+    return new CSurfIntegratorOld();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

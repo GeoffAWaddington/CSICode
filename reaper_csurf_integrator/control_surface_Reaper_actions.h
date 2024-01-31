@@ -2135,9 +2135,9 @@ class MetronomePrimaryVolume : public Action
 public:
     string GetName() override { return "MetronomePrimaryVolume"; }
 
-    double GetCurrentNormalizedValue(ActionContext*) override
+    double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if (const double *volume = csi_->GetMetronomePrimaryVolumePtr())
+        if (const double *volume = context->GetCSI()->GetMetronomePrimaryVolumePtr())
              return volToNormalized(*volume);
         else
             return 0.0;
@@ -2148,10 +2148,12 @@ public:
         context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
     }
 
+    // GAW TBD metronome needs context
+    
     void Do(ActionContext*, double value) override
-    {
-        double *primaryVolume = csi_->GetMetronomePrimaryVolumePtr();
-        double *secondaryVolume = csi_->GetMetronomeSecondaryVolumePtr();
+    {/*
+        double *primaryVolume =  context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        double *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
         {
@@ -2163,6 +2165,7 @@ public:
             *primaryVolume = normalizedValue;
             *secondaryVolume = normalizedValue  *(oldPrimaryVolume / oldSecondaryVolume);
         }
+      */
     }
 };
 
@@ -2173,10 +2176,10 @@ class MetronomeSecondaryVolume : public Action
 public:
     string GetName() override { return "MetronomeSecondaryVolume"; }
 
-    double GetCurrentNormalizedValue(ActionContext*) override
+    double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        const auto *primaryVolume = csi_->GetMetronomePrimaryVolumePtr();
-        const auto *secondaryVolume = csi_->GetMetronomeSecondaryVolumePtr();
+        const auto *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        const auto *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             return volToNormalized((*secondaryVolume) / (*primaryVolume));
@@ -2189,13 +2192,16 @@ public:
         context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
     }
 
+    // GAW TBD metronome needs context
+
     void Do(ActionContext*, double value) override
-    {
+    {/*
         const auto *primaryVolume = csi_->GetMetronomePrimaryVolumePtr();
         auto *secondaryVolume = csi_->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             *secondaryVolume = normalizedToVol(value)  *(*primaryVolume);
+      */
     }
 };
 
@@ -2249,15 +2255,19 @@ class MetronomePrimaryVolumeDisplay : public MetronomeVolumeDisplay
 public:
     string GetName() override { return "MetronomePrimaryVolumeDisplay"; }
 
+    // GAW TBD -- metronome needs context
+     
     bool GetVolume(double& value) const override
     {
+        /*
         if (const double *volume = csi_->GetMetronomePrimaryVolumePtr())
         {
             value = *volume;
             return true;
         }
-        else
+        else */
             return false;
+         
     }
 };
 
@@ -2268,8 +2278,10 @@ class MetronomeSecondaryVolumeDisplay : public MetronomeVolumeDisplay
 public:
     string GetName() override { return "MetronomeSecondaryVolumeDisplay"; }
 
+    // GAW TBD -- metronome needs context
+
     bool GetVolume(double &value) const override
-    {
+    {/*
         const auto *primaryVolume = csi_->GetMetronomePrimaryVolumePtr();
         const auto *secondaryVolume = csi_->GetMetronomeSecondaryVolumePtr();
 
@@ -2278,7 +2290,7 @@ public:
             value = (*secondaryVolume) / (*primaryVolume);
             return true;
         }
-        else
+        else */
             return false;
     }
 };
@@ -2340,7 +2352,7 @@ public:
             if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
 
-            csi_->Speak(name);
+            context->GetCSI()->Speak(name);
         }
     }
 };
@@ -2385,7 +2397,7 @@ public:
                 int paramIndex = 0;
                 
                 if (DAW::GetTCPFXParm(track, index, &fxIndex, &paramIndex))
-                    context->UpdateWidgetValue(csi_->GetTCPFXParamName(track, fxIndex, paramIndex));
+                    context->UpdateWidgetValue(context->GetCSI()->GetTCPFXParamName(track, fxIndex, paramIndex));
                 else
                     context->ClearWidget();
             }
@@ -2541,7 +2553,7 @@ public:
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if (destTrack)
                 sendTrackName = (char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
-            csi_->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
+            context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
         }
     }
 };
@@ -2684,10 +2696,10 @@ public:
             if (srcTrack)
             {
                 string receiveTrackName = (char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                csi_->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
+                context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + receiveTrackName);
             }
             else
-                csi_->Speak("No Receive Track");
+                context->GetCSI()->Speak("No Receive Track");
         }
     }
 };
@@ -3547,21 +3559,21 @@ public:
         
         double pp=(DAW::GetPlayState()&1) ? DAW::GetPlayPosition() : DAW::GetCursorPosition();
 
-        int *tmodeptr = csi_->GetTimeMode2Ptr();
+        int *tmodeptr = context->GetCSI()->GetTimeMode2Ptr();
         
         int tmode = 0;
         
         if (tmodeptr && (*tmodeptr)>=0) tmode = *tmodeptr;
         else
         {
-            tmodeptr = csi_->GetTimeModePtr();
+            tmodeptr = context->GetCSI()->GetTimeModePtr();
             if (tmodeptr)
                 tmode=*tmodeptr;
         }
 
         if (tmode == 3) // seconds
         {
-            double *toptr = csi_->GetTimeOffsPtr();
+            double *toptr = context->GetCSI()->GetTimeOffsPtr();
             
             if (toptr)
                 pp+=*toptr;
@@ -3592,7 +3604,7 @@ public:
             if (num_measures <= 0 && pp < 0.0)
                 --num_measures;
             
-            int *measptr = csi_->GetMeasOffsPtr();
+            int *measptr = context->GetCSI()->GetMeasOffsPtr();
           
             timeStr = to_string(num_measures+1+(measptr ? *measptr : 0)) + " " + to_string((int)(nbeats + 1)) + " ";
             
@@ -3607,7 +3619,7 @@ public:
         }
         else
         {
-            double *toptr = csi_->GetTimeOffsPtr();
+            double *toptr = context->GetCSI()->GetTimeOffsPtr();
             if (toptr) pp+=(*toptr);
             
             int ipp=(int)pp;

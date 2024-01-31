@@ -336,7 +336,7 @@ static void GetWidgetNameAndModifiers(const string &line, ActionTemplate *action
     vector<string> tokens;
     string token;
     
-    ModifierManager modifierManager;
+    ModifierManager modifierManager(NULL);
     
     while (getline(modifiersAndWidgetName, token, '+'))
         tokens.push_back(token);
@@ -713,9 +713,9 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                         Zone *zone;
                         
                         if (enclosingZone == nullptr)
-                            zone = new Zone(this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                            zone = new Zone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
-                            zone = new SubZone(this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+                            zone = new SubZone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
 
                         if (zoneName == "Home")
                             SetHomeZone(zone);
@@ -969,7 +969,8 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
         if (stepSize != 0.0)
         {
             stepSize *= 10000.0;
-            int baseTickCount = csi_->GetBaseTickCount((int)steppedValues.size());
+            // GAW TBD add call
+            int baseTickCount = 0; //context->GetCSI()->GetBaseTickCount((int)steppedValues.size());
             int tickCount = int(baseTickCount / stepSize + 0.5);
             acceleratedTickValues.push_back(tickCount);
         }
@@ -979,7 +980,7 @@ static void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int pa
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, Midi_ControlSurface *surface, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, map<string, double> &stepSizes, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
 {
     if (in_tokens.size() < 2)
         return;
@@ -991,9 +992,9 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
     if (in_tokens.size() > 2)
         widgetClass = in_tokens[2];
 
-    Widget *widget = new Widget(surface, widgetName);
+    Widget *widget = new Widget(csi_, this, widgetName);
        
-    surface->AddWidget(widget);
+    AddWidget(widget);
 
     vector<vector<string> > tokenLines;
     
@@ -1053,39 +1054,39 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
         // Control Signal Generators
         
         if (widgetType == "AnyPress" && (size == 4 || size == 7) && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new AnyPress_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(twoByteKey, new AnyPress_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Press" && size == 4 && message1)
-            surface->AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Press" && size == 7 && message1 && message2)
         {
-            surface->AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2));
-            surface->AddCSIMessageGenerator(threeByteKeyMsg2, new PressRelease_Midi_CSIMessageGenerator(widget, message1, message2));
+            AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
+            AddCSIMessageGenerator(threeByteKeyMsg2, new PressRelease_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
         }
         else if (widgetType == "Fader14Bit" && size == 4 && message1)
-            surface->AddCSIMessageGenerator(oneByteKey, new Fader14Bit_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(oneByteKey, new Fader14Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "FaderportClassicFader14Bit" && size == 7 && message1 && message2)
-            surface->AddCSIMessageGenerator(oneByteKey, new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(widget, message1, message2));
+            AddCSIMessageGenerator(oneByteKey, new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
         else if (widgetType == "Fader7Bit" && size== 4 && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass"  && message1)
         {
             if (stepSizes.count(widgetClass) > 0 && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
-                surface->AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]));
+                AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, stepSizes[widgetClass], accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]));
         }
         else if (widgetType == "Encoder" && size == 4 && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Encoder" && size > 4 && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new AcceleratedEncoder_Midi_CSIMessageGenerator(widget, message1, tokenLines[i]));
+            AddCSIMessageGenerator(twoByteKey, new AcceleratedEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, tokenLines[i]));
         else if (widgetType == "MFTEncoder" && size > 4 && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(widget, message1, tokenLines[i]));
+            AddCSIMessageGenerator(twoByteKey, new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, tokenLines[i]));
         else if (widgetType == "EncoderPlain" && size == 4 && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new EncoderPlain_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(twoByteKey, new EncoderPlain_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Encoder7Bit" && size == 4 && message1)
-            surface->AddCSIMessageGenerator(twoByteKey, new Encoder7Bit_Midi_CSIMessageGenerator(widget, message1));
+            AddCSIMessageGenerator(twoByteKey, new Encoder7Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Touch" && size == 7 && message1  && message2)
         {
-            surface->AddCSIMessageGenerator(threeByteKey, new Touch_Midi_CSIMessageGenerator(widget, message1, message2));
-            surface->AddCSIMessageGenerator(threeByteKeyMsg2, new Touch_Midi_CSIMessageGenerator(widget, message1, message2));
+            AddCSIMessageGenerator(threeByteKey, new Touch_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
+            AddCSIMessageGenerator(threeByteKeyMsg2, new Touch_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
         }
         
         // Feedback Processors
@@ -1093,151 +1094,151 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
 
         if (widgetType == "FB_TwoState" && size == 7 && message1 && message2)
         {
-            feedbackProcessor = new TwoState_Midi_FeedbackProcessor(surface, widget, message1, message2);
+            feedbackProcessor = new TwoState_Midi_FeedbackProcessor(csi_, this, widget, message1, message2);
         }
         else if (widgetType == "FB_NovationLaunchpadMiniRGB7Bit" && size == 4 && message1)
         {
-            feedbackProcessor = new NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new NovationLaunchpadMiniRGB7Bit_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_MFT_RGB" && size == 4 && message1)
         {
-            feedbackProcessor = new MFT_RGB_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new MFT_RGB_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_AsparionRGB" && size == 4 && message1)
         {
-            feedbackProcessor = new AsparionRGB_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new AsparionRGB_Midi_FeedbackProcessor(csi_, this, widget, message1);
             
             if (feedbackProcessor)
-                surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
+                AddTrackColorFeedbackProcessor(feedbackProcessor);
         }
         else if (widgetType == "FB_FaderportRGB" && size == 4 && message1)
         {
-            feedbackProcessor = new FaderportRGB_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new FaderportRGB_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_FaderportTwoStateRGB" && size == 4 && message1)
         {
-            feedbackProcessor = new FPTwoStateRGB_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new FPTwoStateRGB_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_FaderportValueBar"  && size == 2)
         {
-            feedbackProcessor = new FPValueBar_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new FPValueBar_Midi_FeedbackProcessor(csi_, this, widget, stoi(tokenLines[i][1]));
         }
         else if ((widgetType == "FB_FPVUMeter") && size == 2)
         {
-            feedbackProcessor = new FPVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new FPVUMeter_Midi_FeedbackProcessor(csi_, this, widget, stoi(tokenLines[i][1]));
         }
         else if (widgetType == "FB_Fader14Bit" && size == 4 && message1)
         {
-            feedbackProcessor = new Fader14Bit_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new Fader14Bit_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_FaderportClassicFader14Bit" && size == 7 && message1 && message2)
         {
-            feedbackProcessor = new FaderportClassicFader14Bit_Midi_FeedbackProcessor(surface, widget, message1, message2);
+            feedbackProcessor = new FaderportClassicFader14Bit_Midi_FeedbackProcessor(csi_, this, widget, message1, message2);
         }
         else if (widgetType == "FB_Fader7Bit" && size == 4 && message1)
         {
-            feedbackProcessor = new Fader7Bit_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new Fader7Bit_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_Encoder" && size == 4 && message1)
         {
-            feedbackProcessor = new Encoder_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new Encoder_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_AsparionEncoder" && size == 4 && message1)
         {
-            feedbackProcessor = new AsparionEncoder_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new AsparionEncoder_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_ConsoleOneVUMeter" && size == 4 && message1)
         {
-            feedbackProcessor = new ConsoleOneVUMeter_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new ConsoleOneVUMeter_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_ConsoleOneGainReductionMeter" && size == 4 && message1)
         {
-            feedbackProcessor = new ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new ConsoleOneGainReductionMeter_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_MCUTimeDisplay" && size == 1)
         {
-            feedbackProcessor = new MCU_TimeDisplay_Midi_FeedbackProcessor(surface, widget);
+            feedbackProcessor = new MCU_TimeDisplay_Midi_FeedbackProcessor(csi_, this, widget);
         }
         else if (widgetType == "FB_MCUAssignmentDisplay" && size == 1)
         {
-            feedbackProcessor = new FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(surface, widget);
+            feedbackProcessor = new FB_MCU_AssignmentDisplay_Midi_FeedbackProcessor(csi_, this, widget);
         }
         else if (widgetType == "FB_QConProXMasterVUMeter" && size == 2)
         {
-            feedbackProcessor = new QConProXMasterVUMeter_Midi_FeedbackProcessor(surface, widget, stoi(tokenLines[i][1]));
+            feedbackProcessor = new QConProXMasterVUMeter_Midi_FeedbackProcessor(csi_, this, widget, stoi(tokenLines[i][1]));
         }
         else if ((widgetType == "FB_MCUVUMeter" || widgetType == "FB_MCUXTVUMeter") && size == 2)
         {
             int displayType = widgetType == "FB_MCUVUMeter" ? 0x14 : 0x15;
             
-            feedbackProcessor = new MCUVUMeter_Midi_FeedbackProcessor(surface, widget, displayType, stoi(tokenLines[i][1]));
+            feedbackProcessor = new MCUVUMeter_Midi_FeedbackProcessor(csi_, this, widget, displayType, stoi(tokenLines[i][1]));
             
-            surface->SetHasMCUMeters(displayType);
+            SetHasMCUMeters(displayType);
         }
         else if ((widgetType == "FB_AsparionVUMeterL" || widgetType == "FB_AsparionVUMeterR") && size == 2)
         {
             bool isRight = widgetType == "FB_AsparionVUMeterR" ? true : false;
             
-            feedbackProcessor = new AsparionVUMeter_Midi_FeedbackProcessor(surface, widget, 0x14, stoi(tokenLines[i][1]), isRight);
+            feedbackProcessor = new AsparionVUMeter_Midi_FeedbackProcessor(csi_, this, widget, 0x14, stoi(tokenLines[i][1]), isRight);
             
-            surface->SetHasMCUMeters(0x14);
+            SetHasMCUMeters(0x14);
         }
         else if (widgetType == "FB_SCE24LEDButton" && size == 4)
         {
-            feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if (widgetType == "FB_SCE24OLEDButton" && size == 4)
         {
-            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(surface, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
         else if (widgetType == "FB_SCE24Encoder" && size == 4 && message1)
         {
-            feedbackProcessor = new SCE24Encoder_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new SCE24Encoder_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if (widgetType == "FB_SCE24EncoderText" && size == 4 && message1)
         {
-            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(surface, widget, message1);
+            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
         else if ((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
         {
             if (widgetType == "FB_MCUDisplayUpper")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_MCUDisplayLower")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_MCUXTDisplayUpper")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_MCUXTDisplayLower")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
         }
         else if ((widgetType == "FB_AsparionDisplayUpper" || widgetType == "FB_AsparionDisplayLower" || widgetType == "FB_AsparionDisplayEncoder") && size == 2)
         {
             if (widgetType == "FB_AsparionDisplayUpper")
-                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(surface, widget, 0x01, 0x14, 0x1A, stoi(tokenLines[i][1]));
+                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x01, 0x14, 0x1A, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_AsparionDisplayLower")
-                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, 0x14, 0x1A, stoi(tokenLines[i][1]));
+                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x02, 0x14, 0x1A, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_AsparionDisplayEncoder")
-                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(surface, widget, 0x03, 0x14, 0x19, stoi(tokenLines[i][1]));
+                feedbackProcessor = new AsparionDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x03, 0x14, 0x19, stoi(tokenLines[i][1]));
         }
         else if ((widgetType == "FB_XTouchDisplayUpper" || widgetType == "FB_XTouchDisplayLower" || widgetType == "FB_XTouchXTDisplayUpper" || widgetType == "FB_XTouchXTDisplayLower") && size == 2)
         {
             if (widgetType == "FB_XTouchDisplayUpper")
-                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_XTouchDisplayLower")
-                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_XTouchXTDisplayUpper")
-                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x15, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_XTouchXTDisplayLower")
-                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new XTouchDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x15, 0x12, stoi(tokenLines[i][1]));
             
             if (feedbackProcessor)
-                surface->AddTrackColorFeedbackProcessor(feedbackProcessor);
+                AddTrackColorFeedbackProcessor(feedbackProcessor);
         }
         else if ((widgetType == "FB_C4DisplayUpper" || widgetType == "FB_C4DisplayLower") && size == 3)
         {
             if (widgetType == "FB_C4DisplayUpper")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
             else if (widgetType == "FB_C4DisplayLower")
-                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x17, stoi(tokenLines[i][1]) + 0x30, stoi(tokenLines[i][2]));
         }
         else if ((widgetType == "FB_FP8ScribbleLine1" || widgetType == "FB_FP16ScribbleLine1"
                  || widgetType == "FB_FP8ScribbleLine2" || widgetType == "FB_FP16ScribbleLine2"
@@ -1245,40 +1246,40 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
                  || widgetType == "FB_FP8ScribbleLine4" || widgetType == "FB_FP16ScribbleLine4") && size == 2)
         {
             if (widgetType == "FB_FP8ScribbleLine1")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x02, stoi(tokenLines[i][1]), 0x00);
             else if (widgetType == "FB_FP8ScribbleLine2")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x02, stoi(tokenLines[i][1]), 0x01);
             else if (widgetType == "FB_FP8ScribbleLine3")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x02, stoi(tokenLines[i][1]), 0x02);
             else if (widgetType == "FB_FP8ScribbleLine4")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x02, stoi(tokenLines[i][1]), 0x03);
 
             else if (widgetType == "FB_FP16ScribbleLine1")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x16, stoi(tokenLines[i][1]), 0x00);
             else if (widgetType == "FB_FP16ScribbleLine2")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x16, stoi(tokenLines[i][1]), 0x01);
             else if (widgetType == "FB_FP16ScribbleLine3")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x16, stoi(tokenLines[i][1]), 0x02);
             else if (widgetType == "FB_FP16ScribbleLine4")
-                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
+                feedbackProcessor = new FPDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0x16, stoi(tokenLines[i][1]), 0x03);
         }
         else if ((widgetType == "FB_FP8ScribbleStripMode" || widgetType == "FB_FP16ScribbleStripMode") && size == 2)
         {
             if (widgetType == "FB_FP8ScribbleStripMode")
-                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(surface, widget, 0x02, stoi(tokenLines[i][1]));
+                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(csi_, this, widget, 0x02, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_FP16ScribbleStripMode")
-                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(surface, widget, 0x16, stoi(tokenLines[i][1]));
+                feedbackProcessor = new FPScribbleStripMode_Midi_FeedbackProcessor(csi_, this, widget, 0x16, stoi(tokenLines[i][1]));
         }
         else if ((widgetType == "FB_QConLiteDisplayUpper" || widgetType == "FB_QConLiteDisplayUpperMid" || widgetType == "FB_QConLiteDisplayLowerMid" || widgetType == "FB_QConLiteDisplayLower") && size == 2)
         {
             if (widgetType == "FB_QConLiteDisplayUpper")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_QConLiteDisplayUpperMid")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_QConLiteDisplayLowerMid")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 2, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(csi_, this, widget, 2, 0x14, 0x12, stoi(tokenLines[i][1]));
             else if (widgetType == "FB_QConLiteDisplayLower")
-                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(surface, widget, 3, 0x14, 0x12, stoi(tokenLines[i][1]));
+                feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(csi_, this, widget, 3, 0x14, 0x12, stoi(tokenLines[i][1]));
         }
 
         if (feedbackProcessor != NULL)
@@ -1286,14 +1287,14 @@ static void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, co
     }
 }
 
-static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens,  OSC_ControlSurface *surface)
+void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
     
-    Widget *widget = new Widget(surface, in_tokens[1]);
+    Widget *widget = new Widget(csi_, this, in_tokens[1]);
     
-    surface->AddWidget(widget);
+    AddWidget(widget);
 
     vector<vector<string>> tokenLines;
 
@@ -1318,17 +1319,17 @@ static void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, con
     for (int i = 0; i < (int)tokenLines.size(); ++i)
     {
         if (tokenLines[i].size() > 1 && tokenLines[i][0] == "Control")
-            surface->AddCSIMessageGenerator(tokenLines[i][1], new CSIMessageGenerator(widget));
+            AddCSIMessageGenerator(tokenLines[i][1], new CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "AnyPress")
-            surface->AddCSIMessageGenerator(tokenLines[i][1], new AnyPress_CSIMessageGenerator(widget));
+            AddCSIMessageGenerator(tokenLines[i][1], new AnyPress_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "MotorizedFaderWithoutTouch")
-            surface->AddCSIMessageGenerator(tokenLines[i][1], new MotorizedFaderWithoutTouch_CSIMessageGenerator(widget));
+            AddCSIMessageGenerator(tokenLines[i][1], new MotorizedFaderWithoutTouch_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
-            surface->AddCSIMessageGenerator(tokenLines[i][1], new Touch_CSIMessageGenerator(widget));
+            AddCSIMessageGenerator(tokenLines[i][1], new Touch_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
-            widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(surface, widget, tokenLines[i][1]));
+            widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
-            widget->AddFeedbackProcessor(new OSC_IntFeedbackProcessor(surface, widget, tokenLines[i][1]));
+            widget->AddFeedbackProcessor(new OSC_IntFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
     }
 }
 
@@ -1383,7 +1384,7 @@ static void ProcessValues(const vector<vector<string>> &lines, map<string, doubl
     }
 }
 
-static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
+void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1419,7 +1420,7 @@ static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *s
             }
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
-                ProcessMidiWidget(lineNumber, file, tokens, surface, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                ProcessMidiWidget(lineNumber, file, tokens, stepSizes, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
         }
     }
     catch (exception &e)
@@ -1430,7 +1431,7 @@ static void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *s
     }
 }
 
-static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface *surface)
+void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
     vector<vector<string>> valueLines;
@@ -1466,7 +1467,7 @@ static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface *sur
             }
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
-                ProcessOSCWidget(lineNumber, file, tokens, surface);
+                ProcessOSCWidget(lineNumber, file, tokens);
         }
     }
     catch (exception &e)
@@ -1480,7 +1481,7 @@ static void ProcessOSCWidgetFile(const string &filePath, OSC_ControlSurface *sur
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Manager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CSIManager::InitActionsDictionary()
+void CSurfIntegrator::InitActionsDictionary()
 {
     // actions_.Insert("DumpHex", new DumpHex());
     actions_.Insert("MetronomePrimaryVolumeDisplay", new MetronomePrimaryVolumeDisplay());
@@ -1652,7 +1653,7 @@ void CSIManager::InitActionsDictionary()
     learnFXActions_.Insert("LearnFXParamValueDisplay", new LearnFXParamValueDisplay());
 }
 
-void CSIManager::Init()
+void CSurfIntegrator::Init()
 {
     pages_.Empty(true);
     
@@ -1705,9 +1706,9 @@ void CSIManager::Init()
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
-                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str()))));
+                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str()))));
                 else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(tokens[1], tokens[2], tokens[3], tokens[4]));
+                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4]));
                 else if (tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
@@ -1734,7 +1735,7 @@ void CSIManager::Init()
                             }
                         }
                             
-                        currentPage = new Page(tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+                        currentPage = new Page(this, tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.Add(currentPage);
                     }
                 }
@@ -1779,7 +1780,7 @@ void CSIManager::Init()
                             if(tokens[0] == io->GetName())
                             {
                                 foundIt = true;
-                                currentPage->AddSurface(new Midi_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
+                                currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
                                 break;
                             }
                         }
@@ -1793,7 +1794,7 @@ void CSIManager::Init()
                                 if(tokens[0] == io->GetName())
                                 {
                                     foundIt = true;
-                                    currentPage->AddSurface(new OSC_ControlSurface(currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
+                                    currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
                                     break;
                                 }
                             }
@@ -1804,25 +1805,6 @@ void CSIManager::Init()
             
             lineNumber++;
         }
-        /*
-        // Restore the PageIndex
-        currentPageIndex_ = 0;
-        
-        char buf[512];
-        
-        int result = DAW::GetProjExtState(0, "CSI", "PageIndex", buf, sizeof(buf));
-        
-        if (result > 0)
-        {
-            currentPageIndex_ = atoi(buf);
- 
-            if (currentPageIndex_ > pages_.size() - 1)
-                currentPageIndex_ = 0;
-        }
-        
-        if (pages_.size() > 0)
-            pages_[currentPageIndex_]->ForceClear();
-        */
     }
     catch (exception &e)
     {
@@ -1888,7 +1870,7 @@ MediaTrack *FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(Action *action, Widget *widget, Zone *zone, const vector<string> &paramsAndProperties): action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, const vector<string> &paramsAndProperties): csi_(csi), action_(action), widget_(widget), zone_(zone)
 {
     // private:
     intParam_ = 0;
@@ -2309,7 +2291,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
 {
     //protected:
     isActive_ = false;
@@ -3581,7 +3563,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotInde
 
 int ZoneManager::GetModifierValue(const vector<string> &modifierTokens)
 {
-    ModifierManager modifierManager;
+    ModifierManager modifierManager(csi_);
 
     return modifierManager.GetModifierValue(modifierTokens);
 }
@@ -4019,8 +4001,6 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                     istringstream layoutLine(line);
                     vector<string> lineTokens;
                     string token;
-                    
-                    ModifierManager modifierManager;
                     
                     while (getline(layoutLine, token, '|'))
                         lineTokens.push_back(token);
@@ -5175,15 +5155,15 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
-: ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
+Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
+: ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
     // special processing for MCU meters
     hasMCUMeters_ = false;
     displayType_ = 0x14;
     
-    zoneManager_ = new ZoneManager(this, zoneFolder, fxZoneFolder);
+    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
     
     ProcessMIDIWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
     InitHardwiredWidgets(this);
@@ -5260,7 +5240,7 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress) : name_(surfaceName)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const string &surfaceName, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress) : csi_(csi), name_(surfaceName)
 {
     // private:
     inSocket_ = nullptr;
@@ -5332,12 +5312,12 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(const string &surfaceName, const stri
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
 {
-    zoneManager_ = new ZoneManager(this, zoneFolder, fxZoneFolder);
+    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 
-    ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename, this);
+    ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
     InitHardwiredWidgets(this);
     zoneManager_->Initialize();
 }
