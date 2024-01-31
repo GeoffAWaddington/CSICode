@@ -71,6 +71,11 @@ BEGIN
     LTEXT           "Pages",IDC_STATIC,145,6,20,8
     LTEXT           "Assignments",IDC_STATIC,255,6,41,8
     PUSHBUTTON      "Advanced",IDC_BUTTON_Advanced,324,3,37,14
+    CONTROL         "Show raw input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,3,164,65,10
+    CONTROL         "Show input",IDC_CHECK_ShowInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,73,164,52,10
+    CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,144,164,53,10
+    CONTROL         "Write params to /CSI/Zones/ZoneRawFXFiles",IDC_CHECK_WriteFXParams,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,206,164,153,10
 END
 
 IDD_DIALOG_Page DIALOGEX 0, 0, 199, 145

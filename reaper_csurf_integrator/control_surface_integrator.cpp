@@ -16,6 +16,8 @@
 
 #include "resource.h"
 
+CSurfIntegrator *g_csiForGui = NULL;
+
 WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
@@ -5489,12 +5491,13 @@ static const char * const Control_Surface_Integrator = "Control Surface Integrat
 
 CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActions_(true, disposeAction)
 {
+    g_csiForGui = this;
+    
     // private:
     currentPageIndex_ = 0;
-    surfaceInDisplay_ = false;
     surfaceRawInDisplay_ = false;
+    surfaceInDisplay_ = false;
     surfaceOutDisplay_ = false;
-    fxParamsDisplay_ = false;
     fxParamsWrite_ = false;
 
     shouldRun_ = true;

@@ -165,9 +165,13 @@
 #define IDC_GroupFXParamValueDisplay3   1263
 #define IDC_CHECK_FocusedFX             1263
 #define IDC_CHECK_FocusedFXParam        1264
+#define IDC_CHECK_ShowRawInput          1264
 #define IDC_CHECK_Custom                1265
+#define IDC_CHECK_ShowInput             1265
 #define IDC_CHECK_LocalFXSlot           1266
+#define IDC_CHECK_ShowOutput            1266
 #define IDC_CHECK_Modifiers             1267
+#define IDC_CHECK_WriteFXParams         1267
 
 // Next default values for new objects
 // 
@@ -175,7 +179,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1264
+#define _APS_NEXT_CONTROL_VALUE         1265
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

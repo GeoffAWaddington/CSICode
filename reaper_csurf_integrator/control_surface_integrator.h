@@ -4735,10 +4735,9 @@ private:
     WDL_PtrList<Page> pages_;
 
     int currentPageIndex_;
-    bool surfaceInDisplay_;
     bool surfaceRawInDisplay_;
+    bool surfaceInDisplay_;
     bool surfaceOutDisplay_;
-    bool fxParamsDisplay_;
     bool fxParamsWrite_;
 
     bool shouldRun_;
@@ -4781,10 +4780,11 @@ public:
 
     void Shutdown()
     {
-        fxParamsDisplay_ = false;
+        surfaceRawInDisplay_ = false;
         surfaceInDisplay_ = false;
         surfaceOutDisplay_ = false;
-       
+        fxParamsWrite_ = false;
+        
         // GAW -- IMPORTANT
         
         // We want to stop polling
@@ -4797,16 +4797,16 @@ public:
     
     void Init();
     
-    void ToggleSurfaceInDisplay() { surfaceInDisplay_ = ! surfaceInDisplay_;  }
-    void ToggleSurfaceRawInDisplay() { surfaceRawInDisplay_ = ! surfaceRawInDisplay_;  }
-    void ToggleSurfaceOutDisplay() { surfaceOutDisplay_ = ! surfaceOutDisplay_;  }
-    void ToggleFXParamsDisplay() { fxParamsDisplay_ = ! fxParamsDisplay_;  }
-    void ToggleFXParamsWrite() { fxParamsWrite_ = ! fxParamsWrite_;  }
+    void SetSurfaceRawInDisplay(bool isEnabled) { surfaceRawInDisplay_ = isEnabled;  }
+    void SetSurfaceInDisplay(bool isEnabled) { surfaceInDisplay_ = isEnabled;  }
+    void SetSurfaceOutDisplay(bool isEnabled) { surfaceOutDisplay_ = isEnabled;  }
+    void SetFXParamsWrite(bool isEnabled) { fxParamsWrite_ = isEnabled;  }
 
-    bool GetSurfaceInDisplay() { return surfaceInDisplay_;  }
     bool GetSurfaceRawInDisplay() { return surfaceRawInDisplay_;  }
+    bool GetSurfaceInDisplay() { return surfaceInDisplay_;  }
     bool GetSurfaceOutDisplay() { return surfaceOutDisplay_;  }
-    
+    bool GetFXParamsWrite() { return fxParamsWrite_;  }
+
     double GetFaderMaxDB() { return GetPrivateProfileDouble("slidermaxv"); }
     double GetFaderMinDB() { return GetPrivateProfileDouble("sliderminv"); }
     double GetVUMaxDB() { return GetPrivateProfileDouble("vumaxvol"); }
@@ -4983,7 +4983,7 @@ public:
         for (int i = 0; i < pages_.GetSize(); ++i)
             pages_.Get(i)->TrackFXListChanged(track);
         
-        if (fxParamsDisplay_ || fxParamsWrite_)
+        if (fxParamsWrite_)
         {
             char fxName[BUFSZ];
             
@@ -4992,10 +4992,7 @@ public:
             for (int i = 0; i < DAW::TrackFX_GetCount(track); i++)
             {
                 DAW::TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
-                
-                if (fxParamsDisplay_)
-                    DAW::ShowConsoleMsg(("Zone \"" + string(fxName) + "\"").c_str());
-                
+                                
                 if (fxParamsWrite_)
                 {
                     string fxNameNoBadChars(fxName);
@@ -5011,10 +5008,7 @@ public:
                 {
                     char fxParamName[BUFSZ];
                     DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
-
-                    if (fxParamsDisplay_)
-                        DAW::ShowConsoleMsg(("\n\tFXParam " + to_string(j) + " \"" + string(fxParamName) + "\"").c_str());
-  
+ 
                     if (fxParamsWrite_ && fxFile.is_open())
                         fxFile <<  "\tFXParam " + to_string(j) + " \"" + string(fxParamName)+ "\"\n";
                         
@@ -5029,9 +5023,6 @@ public:
                     */
                 }
                 
-                if (fxParamsDisplay_)
-                    DAW::ShowConsoleMsg("\nZoneEnd\n\n");
-
                 if (fxParamsWrite_ && fxFile.is_open())
                 {
                     fxFile << "ZoneEnd";
