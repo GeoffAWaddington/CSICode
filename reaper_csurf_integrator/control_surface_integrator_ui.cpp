@@ -291,7 +291,7 @@ static void PopulateParamListView(HWND hwndParamList)
             string key = s_zoneDef.rawParams[i].substr(0, spaceBreak);
             string value = s_zoneDef.rawParams[i].substr(spaceBreak + 1, s_zoneDef.rawParams[i].length() - spaceBreak - 1);
             
-            s_zoneDef.rawParamsDictionary[key] = value;
+            s_zoneDef.rawParamsDictionary.Insert(key.c_str(), value);
         }
     }
 }
@@ -759,8 +759,8 @@ vector<string> GetLineComponents(int index)
         
         string alias = s_zoneDef.paramDefs[index].definitions[i].paramName;
 
-        if (s_zoneDef.paramDefs[index].definitions[i].paramName == "" && s_zoneDef.paramDefs[index].definitions[i].paramNumber != "" && s_zoneDef.rawParamsDictionary.count(s_zoneDef.paramDefs[index].definitions[i].paramNumber) > 0)
-            alias = s_zoneDef.rawParamsDictionary[s_zoneDef.paramDefs[index].definitions[i].paramNumber];
+        if (s_zoneDef.paramDefs[index].definitions[i].paramName == "" && s_zoneDef.paramDefs[index].definitions[i].paramNumber != "" && s_zoneDef.rawParamsDictionary.Exists(s_zoneDef.paramDefs[index].definitions[i].paramNumber.c_str()))
+            alias = s_zoneDef.rawParamsDictionary.Get(s_zoneDef.paramDefs[index].definitions[i].paramNumber.c_str());
         else if (s_zoneDef.paramDefs[index].definitions[i].paramNumber == "")
             alias = "NoAction";
         

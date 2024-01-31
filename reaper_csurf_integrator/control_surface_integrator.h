@@ -296,7 +296,7 @@ struct AutoZoneDefinition
     vector<FXParamDefinitions> paramDefs;
     
     vector<string> rawParams;
-    map<string, string> rawParamsDictionary;
+    WDL_StringKeyedArray<string> rawParamsDictionary;
 
     string fxName;
     string fxAlias;
@@ -316,7 +316,7 @@ struct AutoZoneDefinition
         paramDefs.clear();
         
         rawParams.clear();
-        rawParamsDictionary.clear();
+        rawParamsDictionary.DeleteAll();
 
         fxName = "";
         fxAlias = "";
@@ -2286,7 +2286,7 @@ public:
         zoneDef.prologue.clear();
         zoneDef.epilogue.clear();
         zoneDef.rawParams.clear();
-        zoneDef.rawParamsDictionary.clear();
+        zoneDef.rawParamsDictionary.DeleteAll();
 
         zoneDef.fxName = "";
         zoneDef.fxAlias = "";
