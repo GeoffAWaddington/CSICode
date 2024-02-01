@@ -2932,6 +2932,15 @@ private:
     WDL_TypedBuf<ChannelToggle> channelToggles_;
 
 protected:
+    WDL_StringKeyedArray<double> stepSize_;
+    WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > accelerationValuesForDecrement_;
+    WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > accelerationValuesForIncrement_;
+    static void disposeIncDecAccelValues(WDL_IntKeyedArray<int> *accelValues) { delete  accelValues; }
+    WDL_StringKeyedArray<vector<double>* > accelerationValues_;
+    static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
+    
+    void ProcessValues(const vector<vector<string>> &lines);
+    
     CSurfIntegrator *const csi_;
     Page *const page_;
     string const name_;
@@ -2949,7 +2958,8 @@ protected:
 
     bool speedX5_;
 
-    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), CSIMessageGeneratorsByMessage_(true, disposeAction)
+    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
+        accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
     {
         //private:
         scrubModePtr_ = nullptr;
@@ -3462,7 +3472,7 @@ private:
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
 
-    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, WDL_StringKeyedArray<double> &stepSize, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues);
+    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     

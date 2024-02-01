@@ -128,28 +128,28 @@ class AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator : public Midi_CSI
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<int, int> accelerationValuesForIncrement_;
-    map<int, int> accelerationValuesForDecrement_;
+    WDL_IntKeyedArray<int> *accelerationValuesForIncrement_;
+    WDL_IntKeyedArray<int> *accelerationValuesForDecrement_;
     
 public:
     virtual ~AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, double stepSize, map<int, int> accelerationValuesForDecrement, map<int, int> accelerationValuesForIncrement, vector<double> accelerationValues) :  Midi_CSIMessageGenerator(csi, widget)
+    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, double stepSize, WDL_IntKeyedArray<int> *accelerationValuesForDecrement, WDL_IntKeyedArray<int> *accelerationValuesForIncrement, vector<double> *accelerationValues) :  Midi_CSIMessageGenerator(csi, widget)
     {
         accelerationValuesForDecrement_ = accelerationValuesForDecrement;
         accelerationValuesForIncrement_ = accelerationValuesForIncrement;
         
         widget->SetStepSize(stepSize);
-        widget->SetAccelerationValues(accelerationValues);
+        widget->SetAccelerationValues(*accelerationValues);
     }
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int val = midiMessage->midi_message[2];
         
-        if (accelerationValuesForIncrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], 0.001);
-        else if (accelerationValuesForDecrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], -0.001);
+        if (accelerationValuesForIncrement_ && accelerationValuesForIncrement_->Exists(val))
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_->Get(val), 0.001);
+        else if (accelerationValuesForDecrement_ && accelerationValuesForDecrement_->Exists(val))
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_->Get(val), -0.001);
     }
 };
 

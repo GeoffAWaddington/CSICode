@@ -985,7 +985,7 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens, WDL_StringKeyedArray<double> &stepSize, map<string, map<int, int>> accelerationValuesForDecrement, map<string, map<int, int>> accelerationValuesForIncrement, map<string, vector<double>> accelerationValues)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1075,8 +1075,8 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
             AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
         else if (widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass"  && message1)
         {
-            if (stepSize.Exists(widgetClass.c_str()) && accelerationValuesForDecrement.count(widgetClass) > 0 && accelerationValuesForIncrement.count(widgetClass) > 0 && accelerationValues.count(widgetClass) > 0)
-                AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, stepSize.Get(widgetClass.c_str()), accelerationValuesForDecrement[widgetClass], accelerationValuesForIncrement[widgetClass], accelerationValues[widgetClass]));
+            if (stepSize_.Exists(widgetClass.c_str()) && accelerationValuesForDecrement_.Exists(widgetClass.c_str()) && accelerationValuesForIncrement_.Exists(widgetClass.c_str()) && accelerationValues_.Exists(widgetClass.c_str()))
+                AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, stepSize_.Get(widgetClass.c_str()), accelerationValuesForDecrement_.Get(widgetClass.c_str()), accelerationValuesForIncrement_.Get(widgetClass.c_str()), accelerationValues_.Get(widgetClass.c_str())));
         }
         else if (widgetType == "Encoder" && size == 4 && message1)
             AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(csi_, widget, message1));
@@ -1338,7 +1338,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     }
 }
 
-static void ProcessValues(const vector<vector<string>> &lines, WDL_StringKeyedArray<double> &stepSizes, map<string, map<int, int>> &accelerationValuesForDecrement, map<string, map<int, int>> &accelerationValuesForIncrement, map<string, vector<double>> &accelerationValues)
+void ControlSurface::ProcessValues(const vector<vector<string>> &lines)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -1370,19 +1370,39 @@ static void ProcessValues(const vector<vector<string>> &lines, WDL_StringKeyedAr
 
             if (lines[i].size() > 1)
             {
+                const char *widgetClass = lines[i][0].c_str();
+                
                 if (inStepSizes)
-                    stepSizes.Insert(lines[i][0].c_str(), stod(lines[i][1]));
+                    stepSize_.Insert(widgetClass, stod(lines[i][1]));
                 else if (lines[i].size() > 2 && inAccelerationValues)
                 {
+                    
                     if (lines[i][1] == "Dec")
                         for (int j = 2; j < lines[i].size(); j++)
-                            accelerationValuesForDecrement[lines[i][0]][strtol(lines[i][j].c_str(), nullptr, 16)] = j - 2;
+                        {
+                            if ( ! accelerationValuesForDecrement_.Exists(widgetClass))
+                                accelerationValuesForDecrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
+                            
+                            if(accelerationValuesForDecrement_.Exists(widgetClass))
+                                accelerationValuesForDecrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), nullptr, 16), j - 2);
+                        }
                     else if (lines[i][1] == "Inc")
                         for (int j = 2; j < lines[i].size(); j++)
-                            accelerationValuesForIncrement[lines[i][0]][strtol(lines[i][j].c_str(), nullptr, 16)] = j - 2;
+                        {
+                            if ( ! accelerationValuesForIncrement_.Exists(widgetClass))
+                                accelerationValuesForIncrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
+                            
+                            if(accelerationValuesForIncrement_.Exists(widgetClass))
+                                accelerationValuesForIncrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), nullptr, 16), j - 2);
+                        }
                     else if (lines[i][1] == "Val")
                         for (int j = 2; j < lines[i].size(); j++)
-                            accelerationValues[lines[i][0]].push_back(stod(lines[i][j]));
+                        {
+                            if ( ! accelerationValues_.Exists(widgetClass))
+                                accelerationValues_.Insert(widgetClass, new vector<double>());
+                            
+                            accelerationValues_.Get(widgetClass)->push_back(stod(lines[i][j]));
+                        }
                 }
             }
         }
@@ -1394,11 +1414,11 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
     int lineNumber = 0;
     vector<vector<string>> valueLines;
     
-    WDL_StringKeyedArray<double> stepSize;
-    map<string, map<int, int>> accelerationValuesForDecrement;
-    map<string, map<int, int>> accelerationValuesForIncrement;
-    map<string, vector<double>> accelerationValues;
-    
+    stepSize_.DeleteAll();
+    accelerationValuesForDecrement_.DeleteAll();
+    accelerationValuesForIncrement_.DeleteAll();
+    accelerationValues_.DeleteAll();
+
     try
     {
         ifstream file(filePath);
@@ -1421,11 +1441,11 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
                     valueLines.push_back(tokens);
                 
                 if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines, stepSize, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                    ProcessValues(valueLines);
             }
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
-                ProcessMidiWidget(lineNumber, file, tokens, stepSize, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                ProcessMidiWidget(lineNumber, file, tokens);
         }
     }
     catch (exception &e)
@@ -1441,11 +1461,11 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
     int lineNumber = 0;
     vector<vector<string>> valueLines;
     
-    WDL_StringKeyedArray<double> stepSize;
-    map<string, map<int, int>> accelerationValuesForDecrement;
-    map<string, map<int, int>> accelerationValuesForIncrement;
-    map<string, vector<double>> accelerationValues;
-    
+    stepSize_.DeleteAll();
+    accelerationValuesForDecrement_.DeleteAll();
+    accelerationValuesForIncrement_.DeleteAll();
+    accelerationValues_.DeleteAll();
+
     try
     {
         ifstream file(filePath);
@@ -1468,7 +1488,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
                     valueLines.push_back(tokens);
                 
                 if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines, stepSize, accelerationValuesForDecrement, accelerationValuesForIncrement, accelerationValues);
+                    ProcessValues(valueLines);
             }
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
