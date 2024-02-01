@@ -50,9 +50,6 @@
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_integrator_Reaper.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_integrator_ui.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\reaper_csurf_integrator\oscpkt.hh">
       <Filter>Source Files</Filter>
     </ClInclude>

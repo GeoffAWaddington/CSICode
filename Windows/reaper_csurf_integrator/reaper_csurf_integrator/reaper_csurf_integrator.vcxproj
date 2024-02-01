@@ -127,7 +127,6 @@
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_action_contexts.h" />
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_integrator.h" />
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_integrator_Reaper.h" />
-    <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_integrator_ui.h" />
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_manager_actions.h" />
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_midi_widgets.h" />
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_Reaper_actions.h" />
