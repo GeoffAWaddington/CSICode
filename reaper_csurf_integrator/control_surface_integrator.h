@@ -11,6 +11,10 @@
 #ifndef control_surface_integrator
 #define control_surface_integrator
 
+#if __cplusplus < 201100
+#define override
+#endif
+
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_NONSTDC_NO_DEPRECATE // for later Visual Studio versions that want _strdup instead of strdup
@@ -548,14 +552,14 @@ private:
     double delayStartTime_;
     double deferredValue_;
     
-    bool supportsColor_ = false;
+    bool supportsColor_;
     vector<rgba_color> colorValues_;
     int currentColorIndex_;
     
-    bool supportsTrackColor_ = false;
+    bool supportsTrackColor_;
         
-    bool provideFeedback_ = false;
-    
+    bool provideFeedback_;
+
     PropertyList widgetProperties_;
     
     // For Learn
@@ -1247,7 +1251,7 @@ struct LearnInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     Widget  *const fxParamWidget;
-    string const cellAddress = "";
+    string const cellAddress;
     
     bool isLearned;
     int paramNumber;
@@ -1256,7 +1260,7 @@ struct LearnInfo
     MediaTrack *track;
     int fxSlotNum;
     
-    LearnInfo(Widget *paramWidget, string cellAddress) : fxParamWidget(paramWidget), cellAddress(cellAddress)
+    LearnInfo(Widget *paramWidget, string cellA) : fxParamWidget(paramWidget), cellAddress(cellA)
     {
         isLearned = false;
         paramNumber = 0;
@@ -1384,7 +1388,7 @@ private:
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const vector<string> &modifiers);
-    void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate);
+    void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string> > &surfaceFXLayout,  vector<vector<string> > &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate);
     void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
@@ -3016,7 +3020,7 @@ protected:
     WDL_StringKeyedArray<vector<double>* > accelerationValues_;
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
     
-    void ProcessValues(const vector<vector<string>> &lines);
+    void ProcessValues(const vector<vector<string> > &lines);
     
     CSurfIntegrator *const csi_;
     Page *const page_;
@@ -3024,8 +3028,8 @@ protected:
     ZoneManager *zoneManager_;
     ModifierManager *modifierManager_;
     
-    int const numChannels_ = 0;
-    int const channelOffset_ = 0;
+    int const numChannels_;
+    int const channelOffset_;
     
     WDL_PtrList<Widget> widgets_; // owns list
     WDL_StringKeyedArray<Widget*> widgetsByName_;
@@ -3467,7 +3471,7 @@ class Midi_FeedbackProcessor : public FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    Midi_ControlSurface *const surface_ = nullptr;
+    Midi_ControlSurface *const surface_;
     
     MIDI_event_ex_t *lastMessageSent_;
     MIDI_event_ex_t *midiFeedbackMessage1_;
