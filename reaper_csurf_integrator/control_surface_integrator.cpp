@@ -2335,7 +2335,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), learnFXCells_(destroyLearnFXCellList)
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), learnFXCells_(destroyLearnFXCellList), actionContextDictionary_(destroyActionContextListArray)
 {
     //protected:
     isActive_ = false;
@@ -2704,22 +2704,29 @@ void Zone::RequestLearnFXUpdate()
                 {
                     foundIt = true;
 
-                    if (actionContextDictionary_.count(cell->fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamNameDisplayWidget].count(modifier) > 0)
-                        for (int j = 0; j < actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].GetSize(); ++j)
-                            actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
+                    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(cell->fxParamNameDisplayWidget);
+                    WDL_PtrList<ActionContext> *list = wl ? wl->Get(modifier) : NULL;
+                    if (list)
+                        for (int j = 0; j < list->GetSize(); ++j)
+                            list->Get(j)->RequestUpdate(info->paramNumber);
 
-                    if (actionContextDictionary_.count(cell->fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamValueDisplayWidget].count(modifier) > 0)
-                        for (int j = 0; j < actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].GetSize(); ++j)
-                            actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
+                    wl = actionContextDictionary_.Get(cell->fxParamValueDisplayWidget);
+                    list = wl ? wl->Get(modifier) : NULL;
+                    if (list)
+                        for (int j = 0; j < list->GetSize(); ++j)
+                            list->Get(j)->RequestUpdate(info->paramNumber);
                 }
                 else
                 {
-                    if (actionContextDictionary_.count(cell->fxParamWidgets.Get(i)) > 0 && actionContextDictionary_[cell->fxParamWidgets.Get(i)].count(modifier) > 0)
+                    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(cell->fxParamWidgets.Get(i));
+                    WDL_PtrList<ActionContext> *list = wl ? wl->Get(modifier) : NULL;
+
+                    if (list)
                     {
-                        for (int j = 0; j < actionContextDictionary_[cell->fxParamWidgets.Get(i)][modifier].GetSize(); ++j)
+                        for (int j = 0; j < list->GetSize(); ++j)
                         {
-                            actionContextDictionary_[cell->fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue(0.0);
-                            actionContextDictionary_[cell->fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue("");
+                            list->Get(j)->UpdateWidgetValue(0.0);
+                            list->Get(j)->UpdateWidgetValue("");
                         }
                     }
                 }
@@ -2729,23 +2736,27 @@ void Zone::RequestLearnFXUpdate()
             
             if (! foundIt)
             {
-                if (actionContextDictionary_.count(cell->fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamNameDisplayWidget].count(modifier) > 0)
+                WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(cell->fxParamNameDisplayWidget);
+                WDL_PtrList<ActionContext> *list = wl ? wl->Get(modifier) : NULL;
+                if (list)
                 {
-                    for (int i = 0; i < (int)actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].GetSize(); ++i)
+                    for (int i = 0; i < list->GetSize(); ++i)
                     {
-                        actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
-                        actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
+                        list->Get(i)->UpdateWidgetValue(0.0);
+                        list->Get(i)->UpdateWidgetValue("");
                     }
                     
                     cell->fxParamNameDisplayWidget->SetHasBeenUsedByUpdate();
                 }
 
-                if (actionContextDictionary_.count(cell->fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamValueDisplayWidget].count(modifier) > 0)
+                wl = actionContextDictionary_.Get(cell->fxParamValueDisplayWidget);
+                list = wl ? wl->Get(modifier) : NULL;
+                if (list)
                 {
-                    for (int i = 0; i < (int)actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].GetSize(); ++i)
+                    for (int i = 0; i < list->GetSize(); ++i)
                     {
-                        actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
-                        actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
+                        list->Get(i)->UpdateWidgetValue(0.0);
+                        list->Get(i)->UpdateWidgetValue("");
                     }
                     
                     cell->fxParamValueDisplayWidget->SetHasBeenUsedByUpdate();
@@ -2873,9 +2884,10 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 {
     const WDL_TypedBuf<int> &mods = widget->GetSurface()->GetModifiers();
     
-    for (int i = 0; i < mods.GetSize(); ++i)
+    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(widget);
+    if (wl != NULL) for (int i = 0; i < mods.GetSize(); ++i)
     {
-        if (actionContextDictionary_[widget].count(mods.Get()[i]) > 0)
+        if (wl->Get(mods.Get()[i]))
         {
             currentActionContextModifiers_.Delete(widget);
             currentActionContextModifiers_.Insert(widget, mods.Get()[i]);
@@ -2898,21 +2910,21 @@ const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
     if (widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
         isToggled = true;
     
-    if (currentActionContextModifiers_.Exists(widget) && actionContextDictionary_.count(widget) > 0)
+    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = NULL;
+    if (currentActionContextModifiers_.Exists(widget) && (wl = actionContextDictionary_.Get(widget)) != NULL)
     {
-        int modifier = currentActionContextModifiers_.Get(widget);
+        const int modifier = currentActionContextModifiers_.Get(widget);
         
-        if (isTouched && isToggled && actionContextDictionary_[widget].count(modifier + 3) > 0)
-            return actionContextDictionary_[widget][modifier + 3];
-        else if (isTouched && actionContextDictionary_[widget].count(modifier + 1) > 0)
-            return actionContextDictionary_[widget][modifier + 1];
-        else if (isToggled && actionContextDictionary_[widget].count(modifier + 2) > 0)
-            return actionContextDictionary_[widget][modifier + 2];
-        else if (actionContextDictionary_[widget].count(modifier) > 0)
-            return actionContextDictionary_[widget][modifier];
+        WDL_PtrList<ActionContext> *ret = NULL;
+        if (isTouched && isToggled && !ret) ret = wl->Get(modifier+3);
+        if (isTouched && !ret) ret = wl->Get(modifier+1);
+        if (isToggled && !ret) ret = wl->Get(modifier+2);
+        if (!ret) ret = wl->Get(modifier);
+        if (ret) return *ret;
     }
 
-    return defaultContexts_;
+    static WDL_PtrList<ActionContext> empty;
+    return empty;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

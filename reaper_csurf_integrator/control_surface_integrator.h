@@ -751,7 +751,10 @@ protected:
     WDL_PointerKeyedArray<Widget*, bool> widgets_; 
     WDL_StringKeyedArray<Widget*> widgetsByName_;
     WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
-    map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
+
+    static void destroyActionContextListArray(WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *list) { delete list; }
+    static void destroyActionContextList(WDL_PtrList<ActionContext> *l) { l->Empty(true); delete l; }
+    WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
     
     static void destroyLearnFXCellList(WDL_StringKeyedArray<LearnFXCell *> *l) { delete l; }
     static void destroyLearnFXCell(LearnFXCell *l) { delete l; }
@@ -763,10 +766,6 @@ protected:
     WDL_StringKeyedArray<WDL_PtrList<Zone> *> subZones_;
     WDL_StringKeyedArray<WDL_PtrList<Zone> *> associatedZones_;
     
-    WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
-    WDL_PtrList<ActionContext> empty_;
-    WDL_PtrList<ActionContext> defaultContexts_;
-    
     void AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators);
     void UpdateCurrentActionContextModifier(Widget *widget);
         
@@ -775,7 +774,6 @@ public:
     
     virtual ~Zone()
     {
-        actionContextNeedFree_.Empty(true);
         thisZoneWidgets_.Empty();
     }
     
@@ -913,16 +911,31 @@ public:
     
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
-        actionContextDictionary_[widget][modifier].Add(actionContext);
-        actionContextNeedFree_.Add(actionContext);
+        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
+        if (!m)
+        {
+            m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>(destroyActionContextList);
+            actionContextDictionary_.Insert(widget,m);
+        }
+        WDL_PtrList<ActionContext> *l = m->Get(modifier);
+        if (!l)
+        {
+            l = new WDL_PtrList<ActionContext>;
+            m->Insert(modifier,l);
+        }
+        l->Add(actionContext);
     }
     
     const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget, int modifier)
     {
-        if (actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
-            return actionContextDictionary_[widget][modifier];
-        else
-            return empty_;
+        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
+        if (m)
+        {
+            WDL_PtrList<ActionContext> *list = m->Get(modifier);
+            if (list) return *list;
+        }
+        static const WDL_PtrList<ActionContext> empty;
+        return empty;
     }
     
     virtual void GoSubZone(const string &subZoneName)
