@@ -430,7 +430,7 @@ void ZoneManager::BuildActionTemplate(const vector<string> &tokens)
     }
 }
 
-void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<string>> &surfaceFXLayout,  vector<vector<string>> &surfaceFXLayoutTemplate)
+void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<string> > &surfaceFXLayout,  vector<vector<string> > &surfaceFXLayoutTemplate)
 {
     try
     {
@@ -734,10 +734,20 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                     if (actionTemplates->Get(j)->holdDelayAmount != 0.0)
                                         context->SetHoldDelayAmount(actionTemplates->Get(j)->holdDelayAmount);
                                     
+                                    vector<double> range;
+                                    
                                     if (actionTemplates->Get(j)->isDecrease)
-                                        context->SetRange({ -2.0, 1.0 });
+                                    {
+                                        range.push_back(-2.0);
+                                        range.push_back(1.0);
+                                        context->SetRange(range);
+                                    }
                                     else if (actionTemplates->Get(j)->isIncrease)
-                                        context->SetRange({ 0.0, 2.0 });
+                                    {
+                                        range.push_back(0.0);
+                                        range.push_back(2.0);
+                                        context->SetRange(range);
+                                    }
                                    
                                     zone->AddActionContext(widget, modifier, context);
                                 }
@@ -1289,7 +1299,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     
     AddWidget(widget);
 
-    vector<vector<string>> tokenLines;
+    vector<vector<string> > tokenLines;
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -1326,7 +1336,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     }
 }
 
-void ControlSurface::ProcessValues(const vector<vector<string>> &lines)
+void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -1400,7 +1410,7 @@ void ControlSurface::ProcessValues(const vector<vector<string>> &lines)
 void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
-    vector<vector<string>> valueLines;
+    vector<vector<string> > valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -1447,7 +1457,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
-    vector<vector<string>> valueLines;
+    vector<vector<string> > valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -5535,8 +5545,10 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 
 void Midi_ControlSurface::InitializeMCU()
 {
-    vector<vector<int>> sysExLines;
+    // GAW TBD -- try to come up with something elegant
     
+    vector<vector<int> > sysExLines;
+    /*
     sysExLines.push_back({0xF0, 0x7E, 0x00, 0x06, 0x01, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x14, 0x00, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x14, 0x21, 0x01, 0xF7});
@@ -5548,7 +5560,7 @@ void Midi_ControlSurface::InitializeMCU()
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x14, 0x20, 0x05, 0x01, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x14, 0x20, 0x06, 0x01, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x14, 0x20, 0x07, 0x01, 0xF7});
-    
+    */
     struct
     {
         MIDI_event_ex_t evt;
@@ -5571,8 +5583,8 @@ void Midi_ControlSurface::InitializeMCU()
 
 void Midi_ControlSurface::InitializeMCUXT()
 {
-    vector<vector<int>> sysExLines;
-    
+    vector<vector<int> > sysExLines;
+    /*
     sysExLines.push_back({0xF0, 0x7E, 0x00, 0x06, 0x01, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x15, 0x00, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x15, 0x21, 0x01, 0xF7});
@@ -5584,7 +5596,7 @@ void Midi_ControlSurface::InitializeMCUXT()
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x15, 0x20, 0x05, 0x01, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x15, 0x20, 0x06, 0x01, 0xF7});
     sysExLines.push_back({0xF0, 0x00, 0x00, 0x66, 0x15, 0x20, 0x07, 0x01, 0xF7});
-    
+    */
     struct
     {
         MIDI_event_ex_t evt;
