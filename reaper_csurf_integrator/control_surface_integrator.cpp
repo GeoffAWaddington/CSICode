@@ -2335,7 +2335,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList)
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), learnFXCells_(destroyLearnFXCellList)
 {
     //protected:
     isActive_ = false;
@@ -2686,65 +2686,69 @@ void Zone::RequestLearnFXUpdate()
     if (modifiers.GetSize() > 0)
         modifier = modifiers.Get()[0];
     
-    if (learnFXCells_.count(modifier) > 0)
+
+    WDL_StringKeyedArray<LearnFXCell *> *mlist = learnFXCells_.Get(modifier);
+    if (mlist)
     {
-        for (auto [cellAddress, cell] : learnFXCells_[modifier])
+        for (int ci = 0; ci < mlist->GetSize(); ci ++)
         {
+            const LearnFXCell * const cell = mlist->Enumerate(ci);
+            if (WDL_NOT_NORMALLY(!cell)) continue;
             bool foundIt = false;
             
-            for (int i = 0; i < cell.fxParamWidgets.GetSize(); ++i)
+            for (int i = 0; i < cell->fxParamWidgets.GetSize(); ++i)
             {
-                LearnInfo *info = zoneManager_->GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
+                LearnInfo *info = zoneManager_->GetLearnInfo(cell->fxParamWidgets.Get(i), modifier);
                                 
                 if (info->isLearned)
                 {
                     foundIt = true;
 
-                    if (actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
-                        for (int j = 0; j < actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].GetSize(); ++j)
-                            actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
+                    if (actionContextDictionary_.count(cell->fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamNameDisplayWidget].count(modifier) > 0)
+                        for (int j = 0; j < actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].GetSize(); ++j)
+                            actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
 
-                    if (actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
-                        for (int j = 0; j < actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].GetSize(); ++j)
-                            actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
+                    if (actionContextDictionary_.count(cell->fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamValueDisplayWidget].count(modifier) > 0)
+                        for (int j = 0; j < actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].GetSize(); ++j)
+                            actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].Get(j)->RequestUpdate(info->paramNumber);
                 }
                 else
                 {
-                    if (actionContextDictionary_.count(cell.fxParamWidgets.Get(i)) > 0 && actionContextDictionary_[cell.fxParamWidgets.Get(i)].count(modifier) > 0)
+                    if (actionContextDictionary_.count(cell->fxParamWidgets.Get(i)) > 0 && actionContextDictionary_[cell->fxParamWidgets.Get(i)].count(modifier) > 0)
                     {
-                        for (int j = 0; j < actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].GetSize(); ++j)
+                        for (int j = 0; j < actionContextDictionary_[cell->fxParamWidgets.Get(i)][modifier].GetSize(); ++j)
                         {
-                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue(0.0);
-                            actionContextDictionary_[cell.fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue("");
+                            actionContextDictionary_[cell->fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue(0.0);
+                            actionContextDictionary_[cell->fxParamWidgets.Get(i)][modifier].Get(j)->UpdateWidgetValue("");
                         }
                     }
                 }
                 
-                cell.fxParamWidgets.Get(i)->SetHasBeenUsedByUpdate();
+                cell->fxParamWidgets.Get(i)->SetHasBeenUsedByUpdate();
             }
             
             if (! foundIt)
             {
-                if (actionContextDictionary_.count(cell.fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamNameDisplayWidget].count(modifier) > 0)
+                if (actionContextDictionary_.count(cell->fxParamNameDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamNameDisplayWidget].count(modifier) > 0)
                 {
-                    for (int i = 0; i < (int)actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].GetSize(); ++i)
+                    for (int i = 0; i < (int)actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].GetSize(); ++i)
                     {
-                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
-                        actionContextDictionary_[cell.fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
+                        actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
+                        actionContextDictionary_[cell->fxParamNameDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
                     }
                     
-                    cell.fxParamNameDisplayWidget->SetHasBeenUsedByUpdate();
+                    cell->fxParamNameDisplayWidget->SetHasBeenUsedByUpdate();
                 }
 
-                if (actionContextDictionary_.count(cell.fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell.fxParamValueDisplayWidget].count(modifier) > 0)
+                if (actionContextDictionary_.count(cell->fxParamValueDisplayWidget) > 0 && actionContextDictionary_[cell->fxParamValueDisplayWidget].count(modifier) > 0)
                 {
-                    for (int i = 0; i < (int)actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].GetSize(); ++i)
+                    for (int i = 0; i < (int)actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].GetSize(); ++i)
                     {
-                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
-                        actionContextDictionary_[cell.fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
+                        actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue(0.0);
+                        actionContextDictionary_[cell->fxParamValueDisplayWidget][modifier].Get(i)->UpdateWidgetValue("");
                     }
                     
-                    cell.fxParamValueDisplayWidget->SetHasBeenUsedByUpdate();
+                    cell->fxParamValueDisplayWidget->SetHasBeenUsedByUpdate();
                 }
             }
         }
@@ -3581,17 +3585,25 @@ void ZoneManager::SaveLearnedFXParams()
 
             if (homeZone_->GetLearnFXParamsZone())
             {
-                for (auto [modifier, widgetCells] : homeZone_->GetLearnFXParamsZone()->GetLearnFXCells())
+                const WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * > &lc = homeZone_->GetLearnFXParamsZone()->GetLearnFXCells();
+
+                for (int wc = 0; wc < lc.GetSize(); wc++)
                 {
+                    int modifier = 0;
+                    const WDL_StringKeyedArray<LearnFXCell *> * const widgetCells = lc.Enumerate(wc,&modifier);
+                    if (WDL_NOT_NORMALLY(widgetCells == NULL)) continue;
+
                     string modifierStr = ModifierManager::GetModifierString(modifier);
                     
-                    for (auto [address, cell] : widgetCells)
+                    for (int ci = 0; ci < widgetCells->GetSize(); ci ++)
                     {
+                        const LearnFXCell * const cell = widgetCells->Enumerate(ci);
+                        if (WDL_NOT_NORMALLY(cell == NULL)) continue;
                         bool cellHasDisplayWidgetsDefined = false;
                         
-                        for (int i = 0; i < cell.fxParamWidgets.GetSize(); i++)
+                        for (int i = 0; i < cell->fxParamWidgets.GetSize(); i++)
                         {
-                            LearnInfo *info = GetLearnInfo(cell.fxParamWidgets.Get(i), modifier);
+                            LearnInfo *info = GetLearnInfo(cell->fxParamWidgets.Get(i), modifier);
                             
                             if (info == nullptr)
                                 continue;
@@ -3600,19 +3612,19 @@ void ZoneManager::SaveLearnedFXParams()
                             {
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets.Get(i)->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + "\n";
-                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
-                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + "\n\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + "\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + "\n\n";
                             }
-                            else if (i == cell.fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
+                            else if (i == cell->fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
                             {
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
-                                fxZone << "\t" + modifierStr + cell.fxParamNameDisplayWidget->GetName() + "\tNoAction\n";
-                                fxZone << "\t" + modifierStr + cell.fxParamValueDisplayWidget->GetName() + "\tNoAction\n\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamNameDisplayWidget->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamValueDisplayWidget->GetName() + "\tNoAction\n\n";
                             }
                             else
                             {
-                                fxZone << "\t" + modifierStr + cell.fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
                                 fxZone << "\tNullDisplay\tNoAction\n";
                                 fxZone << "\tNullDisplay\tNoAction\n\n";
                             }

@@ -753,7 +753,9 @@ protected:
     WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
     map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
     
-    map<int, map<string, LearnFXCell> > learnFXCells_;
+    static void destroyLearnFXCellList(WDL_StringKeyedArray<LearnFXCell *> *l) { delete l; }
+    static void destroyLearnFXCell(LearnFXCell *l) { delete l; }
+    WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * > learnFXCells_;
     
     WDL_PtrList<Zone> includedZones_;
 
@@ -805,7 +807,7 @@ public:
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
 
-    const map<int, map<string, LearnFXCell> > &GetLearnFXCells() { return learnFXCells_; }
+    const WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * >  &GetLearnFXCells() { return learnFXCells_; }
     
     int GetModifier(Widget *widget)
     {
@@ -817,16 +819,25 @@ public:
         return modifier;
     }
     
-    void AddLearnFXCell(int modifier, const char *cellAddress, LearnFXCell cell)
+    void AddLearnFXCell(int modifier, const char *cellAddress, const LearnFXCell &cell)
     {
-        learnFXCells_[modifier][cellAddress] = cell;
+        WDL_StringKeyedArray<LearnFXCell *> *m = learnFXCells_.Get(modifier);
+        if (!m)
+        {
+            m = new WDL_StringKeyedArray<LearnFXCell *>(true,destroyLearnFXCell);
+            learnFXCells_.Insert(modifier,m);
+        }
+        m->Insert(cellAddress, new LearnFXCell(cell));
     }
     
     const LearnFXCell &GetLearnFXCell(int modifier, const char *cellAddress)
     {
-        if (learnFXCells_.count(modifier) > 0 && learnFXCells_[modifier].count(cellAddress) > 0)
-            return learnFXCells_[modifier][cellAddress];
-
+        WDL_StringKeyedArray<LearnFXCell *> *m = learnFXCells_.Get(modifier);
+        if (m)
+        {
+            LearnFXCell *p = m->Get(cellAddress);
+            if (p) return *p;
+        }
         static LearnFXCell empty;
         return empty;
     }
