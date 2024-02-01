@@ -1749,7 +1749,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX), wactionTemplatesDictionary_(disposeActionTemplates)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX), wactionTemplatesDictionary_(true, disposeActionTemplates)
     {
         //private:
         noMapZone_ = NULL;
