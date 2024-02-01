@@ -158,8 +158,8 @@ class AcceleratedEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenera
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<int, int> accelerationValuesForIncrement_;
-    map<int, int> accelerationValuesForDecrement_;
+    WDL_IntKeyedArray<int> accelerationValuesForIncrement_;
+    WDL_IntKeyedArray<int> accelerationValuesForDecrement_;
 
 public:
     virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
@@ -234,19 +234,19 @@ public:
             if (incValues.size() > 0)
             {
                 if (incValues.size() == 1)
-                    accelerationValuesForIncrement_[incValues[0]] = 0;
+                    accelerationValuesForIncrement_.Insert(incValues[0], 0);
                 else
                     for (int i = 0; i < incValues.size(); i++)
-                        accelerationValuesForIncrement_[incValues[i]] = i;
+                        accelerationValuesForIncrement_.Insert(incValues[i], i);
             }
             
             if (decValues.size() > 0)
             {
                 if (decValues.size() == 1)
-                    accelerationValuesForDecrement_[decValues[0]] = 0;
+                    accelerationValuesForDecrement_.Insert(decValues[0], 0);
                 else
                     for (int i = 0; i < decValues.size(); i++)
-                        accelerationValuesForDecrement_[decValues[i]] = i;
+                        accelerationValuesForDecrement_.Insert(decValues[i], i);
             }
         }
     }
@@ -262,10 +262,10 @@ public:
         
         delta = delta / 2.0;
 
-        if (accelerationValuesForIncrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], delta);
-        else if (accelerationValuesForDecrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], delta);
+        if (accelerationValuesForIncrement_.Exists(val))
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_.Get(val), delta);
+        else if (accelerationValuesForDecrement_.Exists(val))
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_.Get(val), delta);
     }
 };
 
