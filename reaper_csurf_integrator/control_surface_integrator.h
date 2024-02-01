@@ -779,8 +779,8 @@ public:
     }
     
     void InitSubZones(const vector<string> &subZones, Zone *enclosingZone);
-    void GoAssociatedZone(const string &associatedZoneName);
-    void GoAssociatedZone(const string &associatedZoneName, int slotIndex);
+    void GoAssociatedZone(const char *associatedZoneName);
+    void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
     int GetParamIndex(const string &widgetName);
@@ -1382,7 +1382,7 @@ private:
         return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
     }
 
-    void DeclareGoSelectedTrackSend(const string &zoneName)
+    void DeclareGoSelectedTrackSend(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1399,7 +1399,7 @@ private:
                 listeners_.Get(i)->ListenToGoSelectedTrackSend(zoneName);
     }
     
-    void DeclareGoSelectedTrackReceive(const string &zoneName)
+    void DeclareGoSelectedTrackReceive(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1425,7 +1425,7 @@ private:
                 listeners_.Get(i)->ListenToGoSelectedTrackFX();
     }
         
-    void DeclareGoCustom(const string &zoneName)
+    void DeclareGoCustom(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1448,7 +1448,7 @@ private:
             GoHome();
     }
     
-    void ListenToGoSelectedTrackSend(const string &zoneName)
+    void ListenToGoSelectedTrackSend(const char *zoneName)
     {
         if (listensToSends_)
         {
@@ -1462,7 +1462,7 @@ private:
         }
     }
 
-    void ListenToGoSelectedTrackReceive(const string &zoneName)
+    void ListenToGoSelectedTrackReceive(const char *zoneName)
     {
         if (listensToReceives_)
         {
@@ -1476,7 +1476,7 @@ private:
         }
     }
     
-    void ListenToGoCustom(const string &zoneName)
+    void ListenToGoCustom(const char *zoneName)
     {
         if (listensToCustom_)
         {
@@ -1490,7 +1490,7 @@ private:
         }
     }
         
-    void DeclareGoSelectedTrackFXMenu(const string &zoneName)
+    void DeclareGoSelectedTrackFXMenu(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
@@ -1507,7 +1507,7 @@ private:
                 listeners_.Get(i)->ListenToGoSelectedTrackFXMenu(zoneName);
     }
     
-    void ListenToGoSelectedTrackFXMenu(const string &zoneName)
+    void ListenToGoSelectedTrackFXMenu(const char *zoneName)
     {
         if (listensToFXMenu_)
         {
@@ -1844,7 +1844,7 @@ public:
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
-    void GoFXLayoutZone(const string &zoneName, int slotIndex);
+    void GoFXLayoutZone(const char *zoneName, int slotIndex);
     void WidgetMoved(ActionContext *context);
     void SetParamNum(Widget *widget, int fxParamNum);
 
@@ -1980,22 +1980,22 @@ public:
         return surfaceFXLayout_;
     }
               
-    void GoAssociatedZone(const string &zoneName)
+    void GoAssociatedZone(const char *zoneName)
     {
         if (noMapZone_ != nullptr)
             noMapZone_->Deactivate();
         
-        if (zoneName == "SelectedTrackSend")
+        if (!strcmp(zoneName, "SelectedTrackSend"))
             DeclareGoSelectedTrackSend(zoneName);
-        else if (zoneName == "SelectedTrackReceive")
+        else if (!strcmp(zoneName, "SelectedTrackReceive"))
             DeclareGoSelectedTrackReceive(zoneName);
-        else if (zoneName == "SelectedTrackFX")
+        else if (!strcmp(zoneName, "SelectedTrackFX"))
             DeclareGoSelectedTrackFX();
-        else if (zoneName == "SelectedTrackFXMenu")
+        else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
             DeclareGoSelectedTrackFXMenu(zoneName);
-        else if (zoneName == "LearnFXParams")
+        else if (!strcmp(zoneName, "LearnFXParams"))
             GoLearnFXParams();
-        else if (zoneName.substr(0, 6) == "Custom")
+        else if (!strncmp(zoneName, "Custom",6))
             DeclareGoCustom(zoneName);
         else if (homeZone_ != nullptr)
         {
@@ -4618,7 +4618,7 @@ public:
             surfaces_.Get(i)->GetZoneManager()->GoHome();
     }
     
-    void GoAssociatedZone(string name)
+    void GoAssociatedZone(const char *name)
     {
         for (int i = 0; i < surfaces_.GetSize(); ++i)
             surfaces_.Get(i)->GetZoneManager()->GoAssociatedZone(name);

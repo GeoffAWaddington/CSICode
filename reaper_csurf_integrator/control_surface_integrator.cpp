@@ -2443,9 +2443,9 @@ void Zone::SetFXParamNum(Widget *widget, int paramIndex)
     }
 }
 
-void Zone::GoAssociatedZone(const string &zoneName)
+void Zone::GoAssociatedZone(const char *zoneName)
 {
-    if (zoneName == "Track")
+    if (!strcmp(zoneName, "Track"))
     {
         for (int j = 0; j < associatedZones_.GetSize(); j++)
         {
@@ -2457,7 +2457,7 @@ void Zone::GoAssociatedZone(const string &zoneName)
         return;
     }
     
-    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName.c_str());
+    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName);
     if (az != NULL && az->Get(0) != NULL && az->Get(0)->GetIsActive())
     {
         for (int i = 0; i < az->GetSize(); ++i)
@@ -2475,15 +2475,15 @@ void Zone::GoAssociatedZone(const string &zoneName)
             zones->Get(i)->Deactivate();
     }
 
-    az = associatedZones_.Get(zoneName.c_str());
+    az = associatedZones_.Get(zoneName);
     if (az != NULL)
         for (int i = 0; i < az->GetSize(); ++i)
             az->Get(i)->Activate();
 }
 
-void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
+void Zone::GoAssociatedZone(const char *zoneName, int slotIndex)
 {
-    if (zoneName == "Track")
+    if (!strcmp(zoneName, "Track"))
     {
         for (int j = 0; j < associatedZones_.GetSize(); j++)
         {
@@ -2495,7 +2495,7 @@ void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
         return;
     }
 
-    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName.c_str());
+    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName);
     if (az != NULL && az->Get(0) != NULL && az->Get(0)->GetIsActive())
     {
         for (int i = 0; i < az->GetSize(); ++i)
@@ -2514,7 +2514,7 @@ void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
     }
 
 
-    az = associatedZones_.Get(zoneName.c_str());
+    az = associatedZones_.Get(zoneName);
     if (az != NULL)
     {
         for (int i = 0; i < az->GetSize(); ++i)
@@ -3906,7 +3906,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
     }
 }
 
-void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
+void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 {
     if (noMapZone_ != nullptr)
         noMapZone_->Deactivate();
@@ -3924,9 +3924,9 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
         
         fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
         
-        if (zoneFilePaths_.Exists(zoneName.c_str()) && fxLayout_ != nullptr)
+        if (zoneFilePaths_.Exists(zoneName) && fxLayout_ != nullptr)
         {
-            ifstream file(zoneFilePaths_.Get(zoneName.c_str())->filePath);
+            ifstream file(zoneFilePaths_.Get(zoneName)->filePath);
             
             for (string line; getline(file, line) ; )
             {
