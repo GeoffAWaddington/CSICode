@@ -1883,14 +1883,17 @@ MediaTrack *FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, const vector<string> &paramsAndProperties): csi_(csi), action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const vector<string> *paramsAndProperties, const string *stringParam): csi_(csi), action_(action), widget_(widget), zone_(zone)
 {
-    // private:
     intParam_ = 0;
+    supportsColor_ = false;
+    supportsTrackColor_ = false;
+    provideFeedback_ = false;
     
-    stringParam_ = "";
+    if (stringParam != NULL)
+        stringParam_ = *stringParam;
     
-    paramIndex_ = 0;
+    paramIndex_ = paramIndex;
     fxParamDisplayName_ = "";
     
     commandId_ = 0;
@@ -1922,11 +1925,11 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     
     vector<string> params;
     
-    for (int i = 0; i < (int)paramsAndProperties.size(); ++i)
+    if (paramsAndProperties != NULL) for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
     {
-        if (paramsAndProperties[i].find("=") != string::npos)
+        if ((*paramsAndProperties)[i].find("=") != string::npos)
         {
-            istringstream widgetProperty(paramsAndProperties[i]);
+            istringstream widgetProperty((*paramsAndProperties)[i]);
             vector<string> kvp;
             string token;
             
@@ -1953,7 +1956,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
             }
         }
         else
-            params.push_back(paramsAndProperties[i]);
+            params.push_back((*paramsAndProperties)[i]);
     }
     
     for (int i = 1; i < params.size(); i++)

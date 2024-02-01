@@ -521,8 +521,6 @@ private:
 
     vector<string> parameters_;
     
-    const vector<string> emptyParameters_;
-    
     int intParam_;
     
     string stringParam_;
@@ -569,21 +567,7 @@ private:
     void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors);
     void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
 public:
-    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, const vector<string> &params);
-    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex) : ActionContext(csi, action, widget, zone, emptyParameters_)
-    {
-        paramIndex_ = paramIndex;
-        
-        if (acceleratedTickValues_.size() < 1)
-            acceleratedTickValues_.push_back(10);
-    }
-    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, string stringParam) : ActionContext(csi, action, widget, zone, emptyParameters_)
-    {
-        stringParam_ = stringParam;
-        
-        if (acceleratedTickValues_.size() < 1)
-            acceleratedTickValues_.push_back(10);
-    }
+    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const vector<string> *params, const string *stringParam);
 
     virtual ~ActionContext() {}
     
@@ -4973,33 +4957,33 @@ public:
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
         if(actions_.Exists(actionName.c_str()))
-            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, params);
+            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
         else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, params);
+            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
     }
 
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, int paramIndex)
     {
         if(actions_.Exists(actionName.c_str()))
-            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, paramIndex);
+            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, paramIndex, NULL, NULL);
         else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, paramIndex);
+            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, paramIndex, NULL, NULL);
     }
 
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const string &stringParam)
     {
         if(actions_.Exists(actionName.c_str()))
-            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, stringParam);
+            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, NULL, &stringParam);
         else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, stringParam);
+            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, NULL, &stringParam);
     }
 
     ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
         if(learnFXActions_.Exists(actionName.c_str()))
-            return new ActionContext(this, learnFXActions_.Get(actionName.c_str()), widget, zone, params);
+            return new ActionContext(this, learnFXActions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
         else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, params);
+            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
     }
 
     void OnTrackSelection(MediaTrack *track) override
