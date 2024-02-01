@@ -1221,8 +1221,10 @@ private:
     Zone *noMapZone_;
     
     Zone *homeZone_;
-    
-    map<int, map<Widget*, Widget*> > controlDisplayAssociations_;
+        
+    WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
+    static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
+
     vector<string> fxLayoutFileLines_;
     vector<string> fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
@@ -1740,7 +1742,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations)
     {
         //private:
         noMapZone_ = NULL;

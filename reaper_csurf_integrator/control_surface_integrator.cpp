@@ -3327,8 +3327,8 @@ void ZoneManager::EraseLastTouchedControl()
                 
                 int modifier = fxLayout_->GetModifier(widget);
                 
-                if (controlDisplayAssociations_.count(modifier) > 0 && controlDisplayAssociations_[modifier].count(widget) > 0)
-                    SetParamNum(controlDisplayAssociations_[modifier][widget], 1);
+                if (controlDisplayAssociations_.Exists(modifier) && controlDisplayAssociations_.Get(modifier)->Exists(widget))
+                    SetParamNum(controlDisplayAssociations_.Get(modifier)->Get(widget), 1);
             }
         }
 
@@ -3822,8 +3822,8 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
         fxLayoutFileLines_.clear();
         fxLayoutFileLinesOriginal_.clear();
 
-        controlDisplayAssociations_.clear();
-        
+        controlDisplayAssociations_.DeleteAll();
+
         homeZone_->GoAssociatedZone(zoneName, slotIndex);
         
         fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
@@ -3869,7 +3869,13 @@ void ZoneManager::GoFXLayoutZone(const string &zoneName, int slotIndex)
                                 Widget *displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
 
                                 if (controlWidget && displayWidget)
-                                    controlDisplayAssociations_[modifier][controlWidget] = displayWidget;
+                                {
+                                    if( ! controlDisplayAssociations_.Exists(modifier))
+                                        controlDisplayAssociations_.Insert(modifier, new WDL_PointerKeyedArray<Widget*, Widget*>());
+                                    
+                                    if(controlDisplayAssociations_.Exists(modifier))
+                                        controlDisplayAssociations_.Get(modifier)->Insert(controlWidget, displayWidget);
+                                }
                             }
                         }
                     }
@@ -3947,8 +3953,8 @@ void ZoneManager::WidgetMoved(ActionContext *context)
             
             int modifier = fxLayout_->GetModifier(widget);
             
-            if (controlDisplayAssociations_.count(modifier) > 0 && controlDisplayAssociations_[modifier].count(widget) > 0)
-                SetParamNum(controlDisplayAssociations_[modifier][widget], fxParamNum);
+            if (controlDisplayAssociations_.Exists(modifier) && controlDisplayAssociations_.Get(modifier)->Exists(widget))
+                SetParamNum(controlDisplayAssociations_.Get(modifier)->Get(widget), fxParamNum);
 
             info->isLearned = true;
             info->paramNumber = fxParamNum;
