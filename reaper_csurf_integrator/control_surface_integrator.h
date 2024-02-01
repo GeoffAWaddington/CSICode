@@ -1218,6 +1218,11 @@ private:
     WDL_StringKeyedArray<CSIZoneInfo*> zoneFilePaths_;
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
 
+    map<string, map<int, WDL_PtrList<ActionTemplate>>> actionTemplatesDictionary_;
+  
+    WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > wactionTemplatesDictionary_;
+    static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
+    
     Zone *noMapZone_;
     
     Zone *homeZone_;
@@ -1314,7 +1319,7 @@ private:
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate);
     void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
-    void BuildActionTemplate(const vector<string> &tokens, map<string, map<int, WDL_PtrList<ActionTemplate>>> &actionTemplatesDictionary);
+    void BuildActionTemplate(const vector<string> &tokens);
     
     void GoLearnFXParams()
     {
@@ -1744,7 +1749,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX), wactionTemplatesDictionary_(disposeActionTemplates)
     {
         //private:
         noMapZone_ = NULL;

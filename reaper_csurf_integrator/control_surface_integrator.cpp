@@ -413,7 +413,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const string &line, ActionTemplate *
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-void ZoneManager::BuildActionTemplate(const vector<string> &tokens, map<string, map<int, WDL_PtrList<ActionTemplate>>> &actionTemplatesDictionary)
+void ZoneManager::BuildActionTemplate(const vector<string> &tokens)
 {
     string feedbackIndicator = "";
     
@@ -433,19 +433,19 @@ void ZoneManager::BuildActionTemplate(const vector<string> &tokens, map<string, 
     
     GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
-    actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].Add(currentActionTemplate);
+    actionTemplatesDictionary_[currentActionTemplate->widgetName][currentActionTemplate->modifier].Add(currentActionTemplate);
     
-    if (actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize() == 1)
+    if (actionTemplatesDictionary_[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize() == 1)
     {
         if (feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
             currentActionTemplate->provideFeedback = true;
     }
     else if (feedbackIndicator == "Feedback=Yes")
     {
-        for (int i = 0; i < actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize(); ++i)
-            actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].Get(i)->provideFeedback = false;
+        for (int i = 0; i < actionTemplatesDictionary_[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize(); ++i)
+            actionTemplatesDictionary_[currentActionTemplate->widgetName][currentActionTemplate->modifier].Get(i)->provideFeedback = false;
         
-        actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].Get(actionTemplatesDictionary[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize() - 1)->provideFeedback = true;
+        actionTemplatesDictionary_[currentActionTemplate->widgetName][currentActionTemplate->modifier].Get(actionTemplatesDictionary_[currentActionTemplate->widgetName][currentActionTemplate->modifier].GetSize() - 1)->provideFeedback = true;
     }
 }
 
@@ -649,8 +649,6 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     bool isInAssociatedZonesSection = false;
     vector<string> associatedZones;
     
-    map<string, map<int, WDL_PtrList<ActionTemplate>>> actionTemplatesDictionary;
-    
     string zoneName = "";
     string zoneAlias = "";
     int lineNumber = 0;
@@ -702,7 +700,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                         
                         zones.Add(zone);
                         
-                        for (auto [widgetName, modifiedActionTemplates] : actionTemplatesDictionary)
+                        for (auto [widgetName, modifiedActionTemplates] : actionTemplatesDictionary_)
                         {
                             string surfaceWidgetName = widgetName;
                             
@@ -760,7 +758,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                     includedZones.clear();
                     subZones.clear();
                     associatedZones.clear();
-                    actionTemplatesDictionary.clear();
+                    actionTemplatesDictionary_.clear();
                     
                     break;
                 }
@@ -793,7 +791,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                     associatedZones.push_back(tokens[0]);
                                
                 else if (tokens.size() > 1)
-                    BuildActionTemplate(tokens, actionTemplatesDictionary);
+                    BuildActionTemplate(tokens);
             }
         }
     }
@@ -803,10 +801,6 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
         DAW::ShowConsoleMsg(buffer);
     }
-    
-    for (auto [key, actionTemplatesForModifer] : actionTemplatesDictionary)
-        for (auto [key, templates] : actionTemplatesForModifer)
-            templates.Empty(true);
 }
 
 void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
