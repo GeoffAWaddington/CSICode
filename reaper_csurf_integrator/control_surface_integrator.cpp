@@ -3068,8 +3068,8 @@ void ZoneManager::CheckFocusedFXState()
     {
         int lastRetval = -1;
 
-        if (focusedFXDictionary_.count(trackNumber) > 0 && focusedFXDictionary_[trackNumber].count(fxIndex) > 0)
-            lastRetval = focusedFXDictionary_[trackNumber][fxIndex];
+        if (focusedFXDictionary_.Exists(trackNumber) && focusedFXDictionary_.Get(trackNumber)->Exists(fxIndex))
+            lastRetval = focusedFXDictionary_.Get(trackNumber)->Get(fxIndex);
         
         if (lastRetval != retval)
         {
@@ -3082,10 +3082,11 @@ void ZoneManager::CheckFocusedFXState()
                 needGarbageCollect_ = true;
             }
             
-            if (focusedFXDictionary_[trackNumber].count(trackNumber) < 1)
-                focusedFXDictionary_[trackNumber] = map<int, int>();
-                               
-            focusedFXDictionary_[trackNumber][fxIndex] = retval;;
+            if ( ! focusedFXDictionary_.Exists(trackNumber))
+                focusedFXDictionary_.Insert(trackNumber, new WDL_IntKeyedArray<int>());
+             
+            if (focusedFXDictionary_.Exists(trackNumber))
+                focusedFXDictionary_.Get(trackNumber)->Insert(fxIndex, retval);
         }
     }
 }
