@@ -13,18 +13,13 @@
 
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_NONSTDC_NO_DEPRECATE // for later Visual Studio versions that want _strdup instead of strdup
 #endif
 
-#include "time.h"
 #include <sstream>
-#include <vector>
-#include <map>
 #include <iomanip>
 #include <fstream>
 #include <regex>
-#include <cmath>
-#include <memory>
-#include <chrono>
 
 #ifdef _WIN32
 #include "oscpkt.hh"

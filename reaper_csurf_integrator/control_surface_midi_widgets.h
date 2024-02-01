@@ -7,9 +7,7 @@
 #ifndef control_surface_midi_widgets_h
 #define control_surface_midi_widgets_h
 
-#include "control_surface_integrator.h"
 #include "handy_functions.h"
-#include "WDL/assocarray.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSIMessageGenerators

@@ -40,12 +40,10 @@
 		0355636A1F814C0600583062 /* reaper_plugin_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reaper_plugin_functions.h; sourceTree = "<group>"; };
 		0362B03B1FD80DD500E37C2F /* res.rc_mac_menu */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = res.rc_mac_menu; sourceTree = "<group>"; };
 		0362B03D1FD80DD500E37C2F /* res.rc_mac_dlg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = res.rc_mac_dlg; sourceTree = "<group>"; };
-		03644D1C1F8FAA61001F9ED9 /* control_surface_integrator_ui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = control_surface_integrator_ui.h; sourceTree = "<group>"; };
 		03644D1D1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = control_surface_integrator_ui.cpp; sourceTree = "<group>"; };
 		03719C611F8FC43E009C8F2E /* control_surface_integrator_Reaper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = control_surface_integrator_Reaper.h; sourceTree = "<group>"; };
 		037FB6761EB8C96C0012F4C1 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		0393E6B11F7501F100BC2E2E /* handy_functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = handy_functions.h; sourceTree = "<group>"; };
-		03AE6F382399128800BA6EDF /* ReportLoggingEtc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReportLoggingEtc.h; sourceTree = "<group>"; };
 		03C7D8BA1EB78AF500DBBD98 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -92,7 +90,6 @@
 				0310E4C61EB5403C00040D1A /* control_surface_integrator.cpp */,
 				0310E4C71EB5403C00040D1A /* control_surface_integrator.h */,
 				03644D1D1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp */,
-				03644D1C1F8FAA61001F9ED9 /* control_surface_integrator_ui.h */,
 				0302E0B71F805102001F3578 /* control_surface_midi_widgets.h */,
 				0302E0B81F805229001F3578 /* control_surface_action_contexts.h */,
 				0302E0B91F805291001F3578 /* control_surface_Reaper_actions.h */,
@@ -102,7 +99,6 @@
 				0310E4CA1EB5403C00040D1A /* reaper_plugin.h */,
 				0393E6B11F7501F100BC2E2E /* handy_functions.h */,
 				0310E4CB1EB5403C00040D1A /* resource.h */,
-				03AE6F382399128800BA6EDF /* ReportLoggingEtc.h */,
 				0310E4CC1EB5403C00040D1A /* WDL */,
 			);
 			path = reaper_csurf_integrator;
