@@ -272,36 +272,6 @@ void ShutdownOSCIO()
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Parsing
 //////////////////////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct ActionTemplate
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string widgetName;
-    int modifier;
-    string actionName;
-    vector<string> params;
-    bool isValueInverted;
-    bool isFeedbackInverted;
-    double holdDelayAmount;
-    bool isDecrease;
-    bool isIncrease;
-    bool provideFeedback;
-    
-    ActionTemplate()
-    {
-        widgetName = "";
-        modifier = 0;
-        actionName = "";
-        isValueInverted = false;
-        isFeedbackInverted = false;
-        holdDelayAmount = 0.0;
-        isDecrease = false;
-        isIncrease = false;
-        provideFeedback = false;
-    }
-};
-
 static void listFilesOfType(const string &path, vector<string> &results, const char *type)
 {
     WDL_PtrList<char> stack;
