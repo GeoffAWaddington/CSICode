@@ -274,46 +274,47 @@ class MFT_AcceleratedEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGe
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    map<int, int> accelerationIndicesForIncrement_;
-    map<int, int> accelerationIndicesForDecrement_;
+    WDL_IntKeyedArray<int> accelerationIndicesForIncrement_;
+    WDL_IntKeyedArray<int> accelerationIndicesForDecrement_;
+
     
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
     MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
     {
-        accelerationIndicesForDecrement_[0x3f] = 0;
-        accelerationIndicesForDecrement_[0x3e] = 1;
-        accelerationIndicesForDecrement_[0x3d] = 2;
-        accelerationIndicesForDecrement_[0x3c] = 3;
-        accelerationIndicesForDecrement_[0x3b] = 4;
-        accelerationIndicesForDecrement_[0x3a] = 5;
-        accelerationIndicesForDecrement_[0x39] = 6;
-        accelerationIndicesForDecrement_[0x38] = 7;
-        accelerationIndicesForDecrement_[0x36] = 8;
-        accelerationIndicesForDecrement_[0x33] = 9;
-        accelerationIndicesForDecrement_[0x2f] = 10;
+        accelerationIndicesForDecrement_.Insert(0x3f, 0);
+        accelerationIndicesForDecrement_.Insert(0x3e, 1);
+        accelerationIndicesForDecrement_.Insert(0x3d, 2);
+        accelerationIndicesForDecrement_.Insert(0x3c, 3);
+        accelerationIndicesForDecrement_.Insert(0x3b, 4);
+        accelerationIndicesForDecrement_.Insert(0x3a, 5);
+        accelerationIndicesForDecrement_.Insert(0x39, 6);
+        accelerationIndicesForDecrement_.Insert(0x38, 7);
+        accelerationIndicesForDecrement_.Insert(0x36, 8);
+        accelerationIndicesForDecrement_.Insert(0x33, 9);
+        accelerationIndicesForDecrement_.Insert(0x2f, 10);
 
-        accelerationIndicesForIncrement_[0x41] = 0;
-        accelerationIndicesForIncrement_[0x42] = 1;
-        accelerationIndicesForIncrement_[0x43] = 2;
-        accelerationIndicesForIncrement_[0x44] = 3;
-        accelerationIndicesForIncrement_[0x45] = 4;
-        accelerationIndicesForIncrement_[0x46] = 5;
-        accelerationIndicesForIncrement_[0x47] = 6;
-        accelerationIndicesForIncrement_[0x48] = 7;
-        accelerationIndicesForIncrement_[0x4a] = 8;
-        accelerationIndicesForIncrement_[0x4d] = 9;
-        accelerationIndicesForIncrement_[0x51] = 10;
+        accelerationIndicesForIncrement_.Insert(0x41, 0);
+        accelerationIndicesForIncrement_.Insert(0x42, 1);
+        accelerationIndicesForIncrement_.Insert(0x43, 2);
+        accelerationIndicesForIncrement_.Insert(0x44, 3);
+        accelerationIndicesForIncrement_.Insert(0x45, 4);
+        accelerationIndicesForIncrement_.Insert(0x46, 5);
+        accelerationIndicesForIncrement_.Insert(0x47, 6);
+        accelerationIndicesForIncrement_.Insert(0x48, 7);
+        accelerationIndicesForIncrement_.Insert(0x4a, 8);
+        accelerationIndicesForIncrement_.Insert(0x4d, 9);
+        accelerationIndicesForIncrement_.Insert(0x51, 10);
     }
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int val = midiMessage->midi_message[2];
         
-        if (accelerationIndicesForIncrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForIncrement_[val], 0.001);
-        else if (accelerationIndicesForDecrement_.count(val) > 0)
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_[val], -0.001);
+        if (accelerationIndicesForIncrement_.Exists(val))
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForIncrement_.Get(val), 0.001);
+        else if (accelerationIndicesForDecrement_.Exists(val))
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_.Get(val), -0.001);
     }
 };
 
