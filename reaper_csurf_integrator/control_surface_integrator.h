@@ -757,8 +757,10 @@ protected:
     LearnFXCell emptyLearnFXCell_ = LearnFXCell();
     
     WDL_PtrList<Zone> includedZones_;
-    map<string, WDL_PtrList<Zone> > subZones_;
-    map<string, WDL_PtrList<Zone> > associatedZones_;
+
+    static void disposeZoneRefList(WDL_PtrList<Zone> *l) { delete l; }  // does not dispose zones in list, these are not owned by us
+    WDL_StringKeyedArray<WDL_PtrList<Zone> *> subZones_;
+    WDL_StringKeyedArray<WDL_PtrList<Zone> *> associatedZones_;
     
     WDL_PtrList<ActionContext> actionContextNeedFree_; // owns the ActionContext, frees on destroy
     WDL_PtrList<ActionContext> empty_;
@@ -830,35 +832,35 @@ public:
     
     Zone *GetLearnFXParamsZone()
     {
-        if (associatedZones_.count("LearnFXParams") && associatedZones_["LearnFXParams"].GetSize() == 1)
-            return associatedZones_["LearnFXParams"].Get(0);
-        else
-            return NULL;
+        WDL_PtrList<Zone> *zones = associatedZones_.Get("LearnFXParams");
+        return zones ? zones->Get(0) : NULL;
     }
        
     Zone *GetFXLayoutZone(const string &name)
     {
-        if (associatedZones_.count(name) && associatedZones_[name].GetSize() == 1)
-            return associatedZones_[name].Get(0);
-        else
-            return NULL;
+        WDL_PtrList<Zone> *zones = associatedZones_.Get(name.c_str());
+        return zones ? zones->Get(0) : NULL;
     }
        
     bool GetIsMainZoneOnlyActive()
     {
-        for (auto [key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                if (zones.Get(i)->GetIsActive())
+        for (int j = 0; j < associatedZones_.GetSize(); j ++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+                if (zones->Get(i)->GetIsActive())
                     return false;
+        }
         
         return true;
     }
     
     bool GetIsAssociatedZoneActive(const string &zoneName)
     {
-        if (associatedZones_.count(zoneName) > 0)
-            for (int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
-                if (associatedZones_[zoneName].Get(i)->GetIsActive())
+        WDL_PtrList<Zone> *zones = associatedZones_.Get(zoneName.c_str());
+        if (zones)
+            for (int i = 0; i < zones->GetSize(); ++i)
+                if (zones->Get(i)->GetIsActive())
                     return true;
         
         return false;
@@ -913,12 +915,13 @@ public:
     
     virtual void GoSubZone(const string &subZoneName)
     {
-        if (subZones_.count(subZoneName) > 0)
+        WDL_PtrList<Zone> *zones = subZones_.Get(subZoneName.c_str());
+        if (zones != NULL)
         {
-            for (int i = 0; i < subZones_[subZoneName].GetSize(); ++i)
+            for (int i = 0; i < zones->GetSize(); ++i)
             {
-                subZones_[subZoneName].Get(i)->SetSlotIndex(GetSlotIndex());
-                subZones_[subZoneName].Get(i)->Activate();
+                zones->Get(i)->SetSlotIndex(GetSlotIndex());
+                zones->Get(i)->Activate();
             }
         }
     }
@@ -930,10 +933,19 @@ public:
         for (int i = 0; i < includedZones_.GetSize(); ++i)
             includedZones_.Get(i)->Activate();
        
-        for (auto &[key, zones] : associatedZones_)
-            if (key == "SelectedTrack" || key == "SelectedTrackSend" || key == "SelectedTrackReceive" || key == "SelectedTrackFXMenu")
-                for (int i = 0; i < zones.GetSize(); ++i)
-                    zones.Get(i)->Deactivate();
+        static const char * const chk[] = {
+            "SelectedTrack",
+            "SelectedTrackSend",
+            "SelectedTrackReceive",
+            "SelectedTrackFXMenu",
+        };
+        for (int j = 0; j < NUM_ELEM(chk); j ++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Get(chk[j]);
+            if (zones != NULL)
+                for (int i = 0; i < zones->GetSize(); ++i)
+                    zones->Get(i)->Deactivate();
+        }
     }
 
     void RequestUpdateWidget(Widget *widget)
@@ -950,13 +962,19 @@ public:
         if (! isActive_ || isUsed)
             return;
         
-        for (const auto &[key, zones] : subZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->DoRelativeAction(widget, isUsed, delta);
+        for (int j = 0; j < subZones_.GetSize(); j ++)
+        {
+            WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
+        }
 
-        for (const auto &[key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->DoRelativeAction(widget, isUsed, delta);
+        for (int j = 0; j < associatedZones_.GetSize(); j++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
+        }
 
         if (isUsed)
             return;
@@ -980,13 +998,19 @@ public:
         if (! isActive_ || isUsed)
             return;
 
-        for (const auto &[key, zones] : subZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        for (int j = 0; j < subZones_.GetSize(); j ++)
+        {
+            WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+            for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        }
         
-        for (const auto &[key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        for (int j = 0; j < associatedZones_.GetSize(); j++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        }
 
         if (isUsed)
             return;
@@ -1010,13 +1034,19 @@ public:
         if (! isActive_ || isUsed)
             return;
 
-        for (const auto &[key, zones] : subZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->DoTouch(widget, widgetName, isUsed, value);
+        for (int j = 0; j < subZones_.GetSize(); j ++)
+        {
+            WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+            for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
+        }
         
-        for (const auto &[key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->DoTouch(widget, widgetName, isUsed, value);
+        for (int j = 0; j < associatedZones_.GetSize(); j++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
+        }
 
         if (isUsed)
             return;

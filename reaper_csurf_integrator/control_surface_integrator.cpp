@@ -584,13 +584,19 @@ void Zone::GCTagZone(Zone *zone)
     if (!zone || zone->gcState_) return;
     zone->gcState_ = true;
 
-    for (auto [key, zones] : zone->associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            GCTagZone(zones.Get(i));
+    for (int j = 0; j < zone->associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = zone->associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            GCTagZone(zones->Get(i));
+    }
 
-    for (auto [key, zones] : zone->subZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            GCTagZone(zones.Get(i));
+    for (int j = 0; j < zone->subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = zone->subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            GCTagZone(zones->Get(i));
+    }
 
     for (int i = 0; i < zone->includedZones_.GetSize(); ++i)
         GCTagZone(zone->includedZones_.Get(i));
@@ -2310,7 +2316,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath)
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList)
 {
     //protected:
     isActive_ = false;
@@ -2324,9 +2330,19 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
                 WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
-                associatedZones_[associatedZones[i]] = WDL_PtrList<Zone>();
+                WDL_PtrList<Zone> *az = associatedZones_.Get(associatedZones[i].c_str());
+                if (WDL_NORMALLY(az == NULL))
+                {
+                  az = new WDL_PtrList<Zone>;
+                  associatedZones_.Insert(associatedZones[i].c_str(), az);
+                }
+                else
+                {
+                  // how to handle duplicates?
+                  az->Empty();
+                }
                 
-                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath, navigators, associatedZones_[associatedZones[i]], nullptr);
+                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath, navigators, *az, nullptr);
             }
         }
     }
@@ -2352,9 +2368,19 @@ void Zone::InitSubZones(const vector<string> &subZones, Zone *enclosingZone)
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetNavigator());
 
-            subZones_[subZones[i]] = WDL_PtrList<Zone>();
+            WDL_PtrList<Zone> *sz = subZones_.Get(subZones[i].c_str());
+            if (WDL_NORMALLY(sz == NULL))
+            {
+                sz = new WDL_PtrList<Zone>;
+                subZones_.Insert(subZones[i].c_str(), sz);
+            }
+            else
+            {
+                // how to handle duplicates?
+                sz->Empty();
+            }
         
-            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(subZones[i].c_str())->filePath, navigators, subZones_[subZones[i]], enclosingZone);
+            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(subZones[i].c_str())->filePath, navigators, *sz, enclosingZone);
         }
     }
 }
@@ -2421,75 +2447,94 @@ void Zone::GoAssociatedZone(const string &zoneName)
 {
     if (zoneName == "Track")
     {
-        for (auto [key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->Deactivate();
+        for (int j = 0; j < associatedZones_.GetSize(); j++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->Deactivate();
+        }
         
         return;
     }
     
-    if (associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].GetSize() > 0 && associatedZones_[zoneName].Get(0)->GetIsActive())
+    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName.c_str());
+    if (az != NULL && az->Get(0) != NULL && az->Get(0)->GetIsActive())
     {
-        for (int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
-            associatedZones_[zoneName].Get(i)->Deactivate();
+        for (int i = 0; i < az->GetSize(); ++i)
+            az->Get(i)->Deactivate();
         
         zoneManager_->GoHome();
         
         return;
     }
     
-    for (auto [key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->Deactivate();
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->Deactivate();
+    }
 
-    if (associatedZones_.count(zoneName) > 0)
-        for (int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
-            associatedZones_[zoneName].Get(i)->Activate();
+    az = associatedZones_.Get(zoneName.c_str());
+    if (az != NULL)
+        for (int i = 0; i < az->GetSize(); ++i)
+            az->Get(i)->Activate();
 }
 
 void Zone::GoAssociatedZone(const string &zoneName, int slotIndex)
 {
     if (zoneName == "Track")
     {
-        for (auto [key, zones] : associatedZones_)
-            for (int i = 0; i < zones.GetSize(); ++i)
-                zones.Get(i)->Deactivate();
+        for (int j = 0; j < associatedZones_.GetSize(); j++)
+        {
+            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+                zones->Get(i)->Deactivate();
+        }
 
         return;
     }
-    
-    if (associatedZones_.count(zoneName) > 0 && associatedZones_[zoneName].GetSize() > 0 && associatedZones_[zoneName].Get(0)->GetIsActive())
+
+    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName.c_str());
+    if (az != NULL && az->Get(0) != NULL && az->Get(0)->GetIsActive())
     {
-        for (int i = 0; i < associatedZones_[zoneName].GetSize(); ++i)
-            associatedZones_[zoneName].Get(i)->Deactivate();
+        for (int i = 0; i < az->GetSize(); ++i)
+            az->Get(i)->Deactivate();
         
         zoneManager_->GoHome();
-        
+
         return;
     }
-    
-    for (auto [key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->Deactivate();
 
-    if (associatedZones_.count(zoneName) > 0)
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
     {
-        for (int i = 0; i < (int)associatedZones_[zoneName].GetSize(); ++i)
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->Deactivate();
+    }
+
+
+    az = associatedZones_.Get(zoneName.c_str());
+    if (az != NULL)
+    {
+        for (int i = 0; i < az->GetSize(); ++i)
         {
-            associatedZones_[zoneName].Get(i)->SetSlotIndex(slotIndex);
-            associatedZones_[zoneName].Get(i)->Activate();
+            az->Get(i)->SetSlotIndex(slotIndex);
+            az->Get(i)->Activate();
         }
     }
 }
 
 void Zone::ReactivateFXMenuZone()
 {
-    if (associatedZones_.count("TrackFXMenu") > 0 && associatedZones_["TrackFXMenu"].Get(0)->GetIsActive())
-        for (int i = 0; i < associatedZones_["TrackFXMenu"].GetSize(); ++i)
-            associatedZones_["TrackFXMenu"].Get(i)->Activate();
-    else if (associatedZones_.count("SelectedTrackFXMenu") > 0 && associatedZones_["SelectedTrackFXMenu"].Get(0)->GetIsActive())
-        for (int i = 0; i < associatedZones_["SelectedTrackFXMenu"].GetSize(); ++i)
-            associatedZones_["SelectedTrackFXMenu"].Get(i)->Activate();
+    WDL_PtrList<Zone> *fxmenu = associatedZones_.Get("TrackFXMenu");
+    WDL_PtrList<Zone> *selfxmenu = associatedZones_.Get("SelectedTrackFXMenu");
+    if (fxmenu && fxmenu->Get(0) != NULL && fxmenu->Get(0)->GetIsActive())
+        for (int i = 0; i < fxmenu->GetSize(); ++i)
+            fxmenu->Get(i)->Activate();
+    else if (selfxmenu && selfxmenu->Get(0) && selfxmenu->Get(0)->GetIsActive())
+        for (int i = 0; i < selfxmenu->GetSize(); ++i)
+            selfxmenu->Get(i)->Activate();
 }
 
 void Zone::Activate()
@@ -2517,14 +2562,20 @@ void Zone::Activate()
         zoneManager_->GetSurface()->GetPage()->SelectedTracksModeActivated();
 
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
-       
-    for (auto [key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->Deactivate();
+
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->Deactivate();
+    }
     
-    for (auto [key, zones] : subZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->Deactivate();
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->Deactivate();
+    }
 
     for (int i = 0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->Activate();
@@ -2558,27 +2609,40 @@ void Zone::Deactivate()
     for (int i = 0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->Deactivate();
 
-    for (auto [key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->Deactivate();
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->Deactivate();
+    }
+    
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->Deactivate();
+    }
 
-    for (auto [key, zones] : subZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->Deactivate();
 }
 
 void Zone::RequestUpdate()
 {
     if (! isActive_)
         return;
-  
-    for (const auto &[key, zones] : subZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->RequestUpdate();
     
-    for (const auto &[key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->RequestUpdate();
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->RequestUpdate();
+    }
+
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->RequestUpdate();
+    }
 
     for (int i =  0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->RequestUpdate();
@@ -2716,13 +2780,19 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     if (! isActive_ || isUsed)
         return;
     
-    for (auto [key, zones] : subZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->DoAction(widget, isUsed, value);
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoAction(widget, isUsed, value);
+    }
 
-    for (auto [key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->DoAction(widget, isUsed, value);
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoAction(widget, isUsed, value);
+    }
 
     if (isUsed)
         return;
@@ -2761,13 +2831,19 @@ void Zone::UpdateCurrentActionContextModifiers()
     for (int i = 0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->UpdateCurrentActionContextModifiers();
 
-    for (auto [key, zones] : subZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->UpdateCurrentActionContextModifiers();
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->UpdateCurrentActionContextModifiers();
+    }
     
-    for (auto [key, zones] : associatedZones_)
-        for (int i = 0; i < zones.GetSize(); ++i)
-            zones.Get(i)->UpdateCurrentActionContextModifiers();
+    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->UpdateCurrentActionContextModifiers();
+    }
 }
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
