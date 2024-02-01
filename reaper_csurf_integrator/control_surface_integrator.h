@@ -3695,8 +3695,9 @@ protected:
     MediaTrack *            folderParentTrack_;
     WDL_PtrList<MediaTrack> folderParentTracks_;
     WDL_PtrList<MediaTrack> folderSpillTracks_;
-    map<MediaTrack*, WDL_PtrList<MediaTrack> > folderDictionary_;
-
+    WDL_PointerKeyedArray<MediaTrack*, WDL_PtrList<MediaTrack>* > folderDictionary_;
+    static void disposeFolderParents(WDL_PtrList<MediaTrack> *parent) { delete parent;  }
+ 
     WDL_PtrList<Navigator> trackNavigators_;
     Navigator *const masterTrackNavigator_;
     Navigator *selectedTrackNavigator_;
@@ -3744,7 +3745,8 @@ public:
     isScrollSynchEnabled_(isScrollSynchEnabled),
     masterTrackNavigator_(new MasterTrackNavigator(csi_, page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(csi_, page_)),
-    focusedFXNavigator_(new FocusedFXNavigator(csi_, page_))
+    focusedFXNavigator_(new FocusedFXNavigator(csi_, page_)),
+    folderDictionary_(disposeFolderParents)
     {
         //private:
         currentTrackVCAFolderMode_ = 0;
@@ -4351,7 +4353,8 @@ public:
             return;
         
         folderTopParentTracks_.Empty();
-        folderDictionary_.clear();
+        folderDictionary_.DeleteAll();
+
         folderSpillTracks_.Empty();
        
         vector<WDL_PtrList<MediaTrack>*> currentDepthTracks;
@@ -4367,9 +4370,13 @@ public:
                 else
                     currentDepthTracks.back()->Add(track);
                 
-                folderDictionary_[track].Add(track);
+                if( ! folderDictionary_.Exists(track))
+                    folderDictionary_.Insert(track, new WDL_PtrList<MediaTrack>());
                 
-                currentDepthTracks.push_back(&folderDictionary_[track]);
+                if(folderDictionary_.Exists(track))
+                    folderDictionary_.Get(track)->Add(track);
+                
+                currentDepthTracks.push_back(folderDictionary_.Get(track));
             }
             else if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
             {
@@ -4387,8 +4394,8 @@ public:
         }
         
         if (folderParentTrack_ != nullptr)
-            for (int i = 0; i < folderDictionary_[folderParentTrack_].GetSize(); ++i)
-                folderSpillTracks_.Add(folderDictionary_[folderParentTrack_].Get(i));
+            for (int i = 0; i < folderDictionary_.Get(folderParentTrack_)->GetSize(); ++i)
+                folderSpillTracks_.Add(folderDictionary_.Get(folderParentTrack_)->Get(i));
     }
     
     void EnterPage()
