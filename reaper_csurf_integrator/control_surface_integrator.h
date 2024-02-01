@@ -4761,8 +4761,9 @@ private:
     int projectMetronomePrimaryVolumeOffs_; // for double -- if invalid, use fallbacks
     int projectMetronomeSecondaryVolumeOffs_; // for double -- if invalid, use fallbacks
     
-    map<string, map<int, int> > fxParamSteppedValueCounts_;
-                                         
+    WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > fxParamSteppedValueCounts_;
+    static void disposeCounts(WDL_IntKeyedArray<int> *counts) { delete counts; }
+    
     void InitActionsDictionary();
     
     void InitFXParamStepValues();
@@ -5048,12 +5049,16 @@ public:
     
     void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValuecount)
     {
-        fxParamSteppedValueCounts_[fxName][paramIndex] = steppedValuecount;
+        if( ! fxParamSteppedValueCounts_.Exists(fxName.c_str()))
+            fxParamSteppedValueCounts_.Insert(fxName.c_str(), new WDL_IntKeyedArray<int>());
+        
+        if(fxParamSteppedValueCounts_.Exists(fxName.c_str()))
+            fxParamSteppedValueCounts_.Get(fxName.c_str())->Insert(paramIndex, steppedValuecount);
     }
     
     bool HaveFXSteppedValuesBeenCalculated(string fxName)
     {
-        if (fxParamSteppedValueCounts_.count(fxName) > 0)
+        if (fxParamSteppedValueCounts_.Exists(fxName.c_str()))
             return true;
         else
             return false;
@@ -5061,8 +5066,8 @@ public:
     
     int GetSteppedValueCount(const string &fxName, int paramIndex)
     {
-        if (fxParamSteppedValueCounts_.count(fxName) > 0 && fxParamSteppedValueCounts_[fxName].count(paramIndex) > 0)
-            return fxParamSteppedValueCounts_[fxName][paramIndex];
+        if (fxParamSteppedValueCounts_.Exists(fxName.c_str()) && fxParamSteppedValueCounts_.Get(fxName.c_str())->Exists(paramIndex))
+            return fxParamSteppedValueCounts_.Get(fxName.c_str())->Get(paramIndex);
         else
             return  0;
     }

@@ -5495,7 +5495,7 @@ void Midi_ControlSurface::InitializeMCUXT()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 static const char * const Control_Surface_Integrator = "Control Surface Integrator";
 
-CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActions_(true, disposeAction)
+CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActions_(true, disposeAction), fxParamSteppedValueCounts_(true, disposeCounts)
 {
     g_csiForGui = this;
     
