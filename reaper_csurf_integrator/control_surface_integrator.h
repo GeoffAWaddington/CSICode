@@ -537,7 +537,7 @@ private:
     PropertyList widgetProperties_;
     
     // For Learn
-    string cellAddress_;
+    WDL_FastString cellAddress_;
     
     void UpdateTrackColor();
     void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
@@ -599,8 +599,8 @@ public:
     void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
     
     // For Learn
-    void SetCellAddress(string cellAddress) { cellAddress_ = cellAddress; }
-    const string &GetCellAddress() { return cellAddress_; }
+    void SetCellAddress(const char *cellAddress) { cellAddress_.Set(cellAddress); }
+    const char *GetCellAddress() { return cellAddress_.Get(); }
 
     void DoAction(double value);
     void DoRelativeAction(double value);
@@ -754,7 +754,6 @@ protected:
     map<Widget*, map<int, WDL_PtrList<ActionContext> > > actionContextDictionary_;
     
     map<int, map<string, LearnFXCell> > learnFXCells_;
-    LearnFXCell emptyLearnFXCell_ = LearnFXCell();
     
     WDL_PtrList<Zone> includedZones_;
 
@@ -818,16 +817,18 @@ public:
         return modifier;
     }
     
-    void AddLearnFXCell(int modifier, const string &cellAddress, LearnFXCell cell)
+    void AddLearnFXCell(int modifier, const char *cellAddress, LearnFXCell cell)
     {
         learnFXCells_[modifier][cellAddress] = cell;
     }
     
-    const LearnFXCell &GetLearnFXCell(int modifier, const string &cellAddress)
+    const LearnFXCell &GetLearnFXCell(int modifier, const char *cellAddress)
     {
         if (learnFXCells_.count(modifier) > 0 && learnFXCells_[modifier].count(cellAddress) > 0)
             return learnFXCells_[modifier][cellAddress];
-        else return emptyLearnFXCell_;
+
+        static LearnFXCell empty;
+        return empty;
     }
     
     Zone *GetLearnFXParamsZone()

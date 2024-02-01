@@ -1949,7 +1949,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     provideFeedback_ = false;
     
     // For Learn
-    cellAddress_ = "";
+    cellAddress_.Set("");
     
     vector<string> params;
     
@@ -3815,31 +3815,32 @@ void ZoneManager::InitializeFXParamsLearnZone()
                     {
                         LearnFXCell cell;
                         
-                        string cellAdress = fxLayouts_[i].suffix_ + to_string(j);
+                        char cellAddress[BUFSZ];
+                        snprintf(cellAddress, sizeof(cellAddress), "%s%d",fxLayouts_[i].suffix_.c_str(),j);
                         
-                        Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
+                        Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAddress);
                         if (widget == NULL)
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
                         ActionContext *context = csi_->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
                         context->SetProvideFeedback(true);
-                        context->SetCellAddress(cellAdress);
+                        context->SetCellAddress(cellAddress);
                         zone->AddActionContext(widget, modifier, context);
 
-                        widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
+                        widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAddress);
                         if (widget == NULL)
                             continue;
                         cell.fxParamValueDisplayWidget = widget;
                         zone->AddWidget(widget, widget->GetName());
                         context = csi_->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, valueDisplayParams);
                         context->SetProvideFeedback(true);
-                        context->SetCellAddress(cellAdress);
+                        context->SetCellAddress(cellAddress);
                         zone->AddActionContext(widget, modifier, context);
                         
                         for (int k = 0; k < (int)paramWidgets.size(); ++k)
                         {
-                            widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
+                            widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAddress);
                             if (widget == NULL)
                                 continue;
                             cell.fxParamWidgets.Add(widget);
@@ -3848,7 +3849,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
 
-                            LearnInfo *info = new LearnInfo(widget, cellAdress);
+                            LearnInfo *info = new LearnInfo(widget, cellAddress);
                             WDL_IntKeyedArray<LearnInfo*> *modifiers = learnedFXParams_.Get(widget);
                             if (modifiers == NULL)
                             {
@@ -3858,7 +3859,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             modifiers->Insert(modifier,info);
                         }
                         
-                        zone->AddLearnFXCell(modifier, cellAdress, cell);
+                        zone->AddLearnFXCell(modifier, cellAddress, cell);
                     }
                 }
             }

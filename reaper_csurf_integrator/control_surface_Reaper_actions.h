@@ -107,7 +107,7 @@ public:
             if (context->GetSurface()->GetModifiers().GetSize() > 0)
                 modifier = context->GetSurface()->GetModifiers().Get()[0];
 
-            LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
+            const LearnFXCell &cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
 
             bool isLearned = false;
             
@@ -151,7 +151,7 @@ public:
             if (context->GetSurface()->GetModifiers().GetSize() > 0)
                 modifier = context->GetSurface()->GetModifiers().Get()[0];
 
-            const LearnFXCell cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
+            const LearnFXCell &cell = context->GetZone()->GetLearnFXCell(modifier, context->GetCellAddress());
 
             bool isLearned = false;
             
