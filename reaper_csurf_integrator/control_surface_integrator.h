@@ -1278,7 +1278,10 @@ private:
 
     AutoZoneDefinition zoneDef_;
     vector<string> paramList_;
-    map<Widget*, map<int, LearnInfo*> > learnedFXParams_;
+
+    static void disposeLearnInfoArray(WDL_IntKeyedArray<LearnInfo*> *ar) { delete ar; }
+    static void disposeLearnInfo(LearnInfo *inf) { delete inf; }
+    WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<LearnInfo*> * > learnedFXParams_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
 
@@ -1749,7 +1752,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX), wactionTemplatesDictionary_(true, disposeActionTemplates)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX), wactionTemplatesDictionary_(true, disposeActionTemplates), learnedFXParams_(disposeLearnInfoArray)
     {
         //private:
         noMapZone_ = NULL;
@@ -1787,10 +1790,6 @@ public:
 
     ~ZoneManager()
     {
-        for (auto [key, learnedFXParamsForModifier] : learnedFXParams_)
-            for (auto [key, learnedFXParam] : learnedFXParamsForModifier)
-                delete learnedFXParam;
-
         allZonesNeedFree_.Empty(true);
     }
         
@@ -1907,16 +1906,21 @@ public:
         paramList_.clear();
         learnFXName_ = "";
         
-        for (auto [widget, modifiers] : learnedFXParams_)
+        for (int x = 0; x < learnedFXParams_.GetSize(); x ++)
         {
-            for (auto [modifier, info] : modifiers)
+            WDL_IntKeyedArray<LearnInfo*> *modifiers = learnedFXParams_.Enumerate(x);
+            if (WDL_NORMALLY(modifiers != NULL)) for (int i = 0; i < modifiers->GetSize(); i ++)
             {
-                info->isLearned = false;
-                info->paramNumber = 0;
-                info->paramName = "";
-                info->params = "";
-                info->track = nullptr;
-                info->fxSlotNum = 0;
+                LearnInfo *info = modifiers->Enumerate(i);
+                if (WDL_NORMALLY(info!=NULL))
+                {
+                    info->isLearned = false;
+                    info->paramNumber = 0;
+                    info->paramName = "";
+                    info->params = "";
+                    info->track = nullptr;
+                    info->fxSlotNum = 0;
+                }
             }
         }
         

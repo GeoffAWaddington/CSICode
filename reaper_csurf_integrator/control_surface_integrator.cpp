@@ -3558,10 +3558,8 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget)
 
 LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
 {
-    if (learnedFXParams_.count(widget) > 0 && learnedFXParams_[widget].count(modifier) > 0)
-        return learnedFXParams_[widget][modifier];
-    else
-        return nullptr;
+    WDL_IntKeyedArray<LearnInfo *> *modifiers = learnedFXParams_.Get(widget);
+    return modifiers ? modifiers->Get(modifier) : NULL;
 }
 
 void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
@@ -3754,8 +3752,15 @@ void ZoneManager::InitializeFXParamsLearnZone()
                             context = csi_->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
                             context->SetProvideFeedback(true);
                             zone->AddActionContext(widget, modifier, context);
+
                             LearnInfo *info = new LearnInfo(widget, cellAdress);
-                            learnedFXParams_[widget][modifier] = info;
+                            WDL_IntKeyedArray<LearnInfo*> *modifiers = learnedFXParams_.Get(widget);
+                            if (modifiers == NULL)
+                            {
+                                modifiers = new WDL_IntKeyedArray<LearnInfo*>(disposeLearnInfo);
+                                learnedFXParams_.Insert(widget, modifiers);
+                            }
+                            modifiers->Insert(modifier,info);
                         }
                         
                         zone->AddLearnFXCell(modifier, cellAdress, cell);
@@ -4124,11 +4129,13 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
             if (surface_->GetModifiers().GetSize() > 0)
                 currentModifier = surface_->GetModifiers().Get()[0];
 
-            for (auto [widget, modifiers] : learnedFXParams_)
+            for (int i = 0; i < learnedFXParams_.GetSize(); i ++)
             {
-                for (auto [modifier, widgetInfo] : modifiers)
+                WDL_IntKeyedArray<LearnInfo *> *modifiers = learnedFXParams_.Enumerate(i);
+                if (WDL_NORMALLY(modifiers != NULL)) 
                 {
-                    if (modifier == currentModifier && widgetInfo->cellAddress == info->cellAddress)
+                    LearnInfo *widgetInfo = modifiers->Get(currentModifier);
+                    if (widgetInfo && widgetInfo->cellAddress == info->cellAddress)
                     {
                         widgetInfo->isLearned = false;
                         widgetInfo->paramNumber = 0;
