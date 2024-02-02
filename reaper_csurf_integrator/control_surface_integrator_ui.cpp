@@ -2322,7 +2322,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        if(g_csiForGui)
+                        if (g_csiForGui)
                         {
                             g_csiForGui->SetSurfaceRawInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowRawInput));
                             g_csiForGui->SetSurfaceInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowInput));

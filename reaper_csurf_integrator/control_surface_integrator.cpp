@@ -122,7 +122,7 @@ static WDL_TypedBuf<MidiPort> s_midiInputs, s_midiOutputs;
 
 void ReleaseMidiInput(midi_Input *input)
 {
-    for(int i = 0; i < s_midiInputs.GetSize(); ++i)
+    for (int i = 0; i < s_midiInputs.GetSize(); ++i)
         if (s_midiInputs.Get()[i].dev == (void*)input)
         {
             if (!--s_midiInputs.Get()[i].refcnt)
@@ -137,7 +137,7 @@ void ReleaseMidiInput(midi_Input *input)
 
 void ReleaseMidiOutput(midi_Output *output)
 {
-    for(int i = 0; i < s_midiOutputs.GetSize(); ++i)
+    for (int i = 0; i < s_midiOutputs.GetSize(); ++i)
         if (s_midiOutputs.Get()[i].dev == (void*)output)
         {
             if (!--s_midiOutputs.Get()[i].refcnt)
@@ -151,8 +151,8 @@ void ReleaseMidiOutput(midi_Output *output)
 
 static midi_Input *GetMidiInputForPort(int inputPort)
 {
-    for(int i = 0; i < s_midiInputs.GetSize(); ++i)
-        if(s_midiInputs.Get()[i].port == inputPort)
+    for (int i = 0; i < s_midiInputs.GetSize(); ++i)
+        if (s_midiInputs.Get()[i].port == inputPort)
         {
             s_midiInputs.Get()[i].refcnt++;
             return (midi_Input *)s_midiInputs.Get()[i].dev;
@@ -172,8 +172,8 @@ static midi_Input *GetMidiInputForPort(int inputPort)
 
 static midi_Output *GetMidiOutputForPort(int outputPort)
 {
-    for(int i = 0; i < s_midiOutputs.GetSize(); ++i)
-        if(s_midiOutputs.Get()[i].port == outputPort)
+    for (int i = 0; i < s_midiOutputs.GetSize(); ++i)
+        if (s_midiOutputs.Get()[i].port == outputPort)
         {
             s_midiOutputs.Get()[i].refcnt++;
             return (midi_Output *)s_midiOutputs.Get()[i].dev;
@@ -212,8 +212,8 @@ static WDL_TypedBuf<OSCSurfaceSocket> s_outputSockets;
 
 static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPort)
 {
-    for(int i = 0; i < s_inputSockets.GetSize(); ++i)
-        if(s_inputSockets.Get()[i].surfaceName == surfaceName)
+    for (int i = 0; i < s_inputSockets.GetSize(); ++i)
+        if (s_inputSockets.Get()[i].surfaceName == surfaceName)
             return s_inputSockets.Get()[i].socket; // return existing
     
     // otherwise make new
@@ -232,7 +232,7 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
         OSCSurfaceSocket surfaceSocket;
         surfaceSocket.surfaceName = surfaceName;
         surfaceSocket.socket = newInputSocket;
-        if(s_inputSockets.Add(surfaceSocket))
+        if (s_inputSockets.Add(surfaceSocket))
             return newInputSocket;
         else
             return nullptr;
@@ -243,8 +243,8 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
 
 static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
-    for(int i = 0; i < s_outputSockets.GetSize(); ++i)
-        if(s_outputSockets.Get()[i].surfaceName == surfaceName)
+    for (int i = 0; i < s_outputSockets.GetSize(); ++i)
+        if (s_outputSockets.Get()[i].surfaceName == surfaceName)
             return s_outputSockets.Get()[i].socket; // return existing
     
     // otherwise make new
@@ -267,7 +267,7 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
         OSCSurfaceSocket surfaceSocket;
         surfaceSocket.surfaceName = surfaceName;
         surfaceSocket.socket = newOutputSocket;
-        if(s_outputSockets.Add(surfaceSocket))
+        if (s_outputSockets.Add(surfaceSocket))
             return newOutputSocket;
         else
             return nullptr;
@@ -278,12 +278,12 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
 
 void ShutdownOSCIO()
 {
-    for(int i = 0; i < s_inputSockets.GetSize(); ++i)
+    for (int i = 0; i < s_inputSockets.GetSize(); ++i)
         delete s_inputSockets.Get()[i].socket;
     
     s_inputSockets.Resize(0);
     
-    for(int i = 0; i < s_outputSockets.GetSize(); ++i)
+    for (int i = 0; i < s_outputSockets.GetSize(); ++i)
         delete s_outputSockets.Get()[i].socket;
     
     s_outputSockets.Resize(0);
@@ -1071,7 +1071,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         {
             message1 = new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]), strToHex(tokenLines[i][3]));
             
-            if(message1)
+            if (message1)
             {
                 oneByteKey = message1->midi_message[0] * 0x10000;
                 twoByteKey = message1->midi_message[0] * 0x10000 + message1->midi_message[1] * 0x100;
@@ -1082,7 +1082,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         {
             message2 = new MIDI_event_ex_t(strToHex(tokenLines[i][4]), strToHex(tokenLines[i][5]), strToHex(tokenLines[i][6]));
             
-            if(message2)
+            if (message2)
                 threeByteKeyMsg2 = message2->midi_message[0] * 0x10000 + message2->midi_message[1] * 0x100 + message2->midi_message[2];
         }
         // Control Signal Generators
@@ -1412,7 +1412,7 @@ void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
                             if ( ! accelerationValuesForDecrement_.Exists(widgetClass))
                                 accelerationValuesForDecrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
                             
-                            if(accelerationValuesForDecrement_.Exists(widgetClass))
+                            if (accelerationValuesForDecrement_.Exists(widgetClass))
                                 accelerationValuesForDecrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), nullptr, 16), j - 2);
                         }
                     else if (lines[i][1] == "Inc")
@@ -1421,7 +1421,7 @@ void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
                             if ( ! accelerationValuesForIncrement_.Exists(widgetClass))
                                 accelerationValuesForIncrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
                             
-                            if(accelerationValuesForIncrement_.Exists(widgetClass))
+                            if (accelerationValuesForIncrement_.Exists(widgetClass))
                                 accelerationValuesForIncrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), nullptr, 16), j - 2);
                         }
                     else if (lines[i][1] == "Val")
@@ -1827,11 +1827,11 @@ void CSurfIntegrator::Init()
                         // maybe prepend the line with s_MidiSurfaceToken or s_OSCSurfaceToken, would break existing installs though
                         bool foundIt = false;
                         
-                        for(int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
+                        for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
                         {
                             Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
                             
-                            if(tokens[0] == io->GetName())
+                            if (tokens[0] == io->GetName())
                             {
                                 foundIt = true;
                                 currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
@@ -1839,13 +1839,13 @@ void CSurfIntegrator::Init()
                             }
                         }
                         
-                        if( ! foundIt)
+                        if ( ! foundIt)
                         {
-                            for(int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
+                            for (int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
                             {
                                 OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
                                 
-                                if(tokens[0] == io->GetName())
+                                if (tokens[0] == io->GetName())
                                 {
                                     foundIt = true;
                                     currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
@@ -2681,7 +2681,7 @@ void Zone::RequestUpdate()
     
     for (int i = 0; i < thisZoneWidgets_.GetSize(); i ++)
     {
-        if( ! thisZoneWidgets_.Get(i)->GetHasBeenUsedByUpdate())
+        if ( ! thisZoneWidgets_.Get(i)->GetHasBeenUsedByUpdate())
         {
             thisZoneWidgets_.Get(i)->SetHasBeenUsedByUpdate();
             RequestUpdateWidget(thisZoneWidgets_.Get(i));
@@ -4023,10 +4023,10 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 
                                 if (controlWidget && displayWidget)
                                 {
-                                    if( ! controlDisplayAssociations_.Exists(modifier))
+                                    if ( ! controlDisplayAssociations_.Exists(modifier))
                                         controlDisplayAssociations_.Insert(modifier, new WDL_PointerKeyedArray<Widget*, Widget*>());
                                     
-                                    if(controlDisplayAssociations_.Exists(modifier))
+                                    if (controlDisplayAssociations_.Exists(modifier))
                                         controlDisplayAssociations_.Get(modifier)->Insert(controlWidget, displayWidget);
                                 }
                             }
@@ -4976,7 +4976,7 @@ void ControlSurface::RequestUpdate()
     for (int i = 0; i < trackColorFeedbackProcessors_.GetSize(); ++i)
         trackColorFeedbackProcessors_.Get(i)->UpdateTrackColors();
     
-    for(int i = 0; i < widgets_.GetSize(); ++i)
+    for (int i = 0; i < widgets_.GetSize(); ++i)
         widgets_.Get(i)->ClearHasBeenUsedByUpdate();
     
     zoneManager_->RequestUpdate();
@@ -4984,7 +4984,7 @@ void ControlSurface::RequestUpdate()
     // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
     const PropertyList properties;
     
-    for(int i = 0; i < widgets_.GetSize(); ++i)
+    for (int i = 0; i < widgets_.GetSize(); ++i)
     {
         Widget *widget =  widgets_.Get(i);
         

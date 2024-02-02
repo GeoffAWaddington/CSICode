@@ -2143,19 +2143,19 @@ public:
         
     void AdjustBank(const string &zoneName, int amount)
     {
-        if(zoneName == "TrackSend")
+        if (zoneName == "TrackSend")
             AdjustBank(trackSendOffset_, amount);
-        else if(zoneName == "TrackReceive")
+        else if (zoneName == "TrackReceive")
             AdjustBank(trackReceiveOffset_, amount);
-        else if(zoneName == "TrackFXMenu")
+        else if (zoneName == "TrackFXMenu")
             AdjustBank(trackFXMenuOffset_, amount);
-        else if(zoneName == "SelectedTrackSend")
+        else if (zoneName == "SelectedTrackSend")
             AdjustBank(selectedTrackSendOffset_, amount);
-        else if(zoneName == "SelectedTrackReceive")
+        else if (zoneName == "SelectedTrackReceive")
             AdjustBank(selectedTrackReceiveOffset_, amount);
-        else if(zoneName == "SelectedTrackFXMenu")
+        else if (zoneName == "SelectedTrackFXMenu")
             AdjustBank(selectedTrackFXMenuOffset_, amount);
-        else if(zoneName == "MasterTrackFXMenu")
+        else if (zoneName == "MasterTrackFXMenu")
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
                 
@@ -3165,8 +3165,8 @@ public:
 
     void TouchChannel(int channelNum, bool isTouched)
     {
-        for(int i = 0; i < channelTouches_.GetSize(); ++i)
-            if(channelTouches_.Get()[i].channelNum == channelNum)
+        for (int i = 0; i < channelTouches_.GetSize(); ++i)
+            if (channelTouches_.Get()[i].channelNum == channelNum)
             {
                 channelTouches_.Get()[i].isTouched = isTouched;
                 break;
@@ -3175,8 +3175,8 @@ public:
     
     bool GetIsChannelTouched(int channelNum)
     {
-        for(int i = 0; i < channelTouches_.GetSize(); ++i)
-            if(channelTouches_.Get()[i].channelNum == channelNum)
+        for (int i = 0; i < channelTouches_.GetSize(); ++i)
+            if (channelTouches_.Get()[i].channelNum == channelNum)
                 return channelTouches_.Get()[i].isTouched;
 
         return false;
@@ -3184,8 +3184,8 @@ public:
        
     void ToggleChannel(int channelNum)
     {
-        for(int i = 0; i < channelToggles_.GetSize(); ++i)
-            if(channelToggles_.Get()[i].channelNum == channelNum)
+        for (int i = 0; i < channelToggles_.GetSize(); ++i)
+            if (channelToggles_.Get()[i].channelNum == channelNum)
             {
                 channelToggles_.Get()[i].isToggled = ! channelToggles_.Get()[i].isToggled;
                 break;
@@ -3194,8 +3194,8 @@ public:
     
     bool GetIsChannelToggled(int channelNum)
     {
-        for(int i = 0; i < channelToggles_.GetSize(); ++i)
-            if(channelToggles_.Get()[i].channelNum == channelNum)
+        for (int i = 0; i < channelToggles_.GetSize(); ++i)
+            if (channelToggles_.Get()[i].channelNum == channelNum)
                 return channelToggles_.Get()[i].isToggled;
 
         return false;
@@ -4128,8 +4128,8 @@ public:
     
     Navigator *GetNavigatorForChannel(int channelNum)
     {
-        for(int i = 0; i < trackNavigators_.GetSize(); ++i)
-            if(trackNavigators_.Get(i)->GetChannelNum() == channelNum)
+        for (int i = 0; i < trackNavigators_.GetSize(); ++i)
+            if (trackNavigators_.Get(i)->GetChannelNum() == channelNum)
                 return trackNavigators_.Get(i);
           
         TrackNavigator *newNavigator = new TrackNavigator(csi_, page_, this, channelNum);
@@ -4354,8 +4354,8 @@ public:
         if (track == GetMasterTrackNavigator()->GetTrack())
             return GetIsNavigatorTouched(GetMasterTrackNavigator(), touchedControl);
         
-        for(int i = 0; i < trackNavigators_.GetSize(); ++i)
-            if(track == trackNavigators_.Get(i)->GetTrack())
+        for (int i = 0; i < trackNavigators_.GetSize(); ++i)
+            if (track == trackNavigators_.Get(i)->GetTrack())
                 return GetIsNavigatorTouched(trackNavigators_.Get(i), touchedControl);
  
         if (MediaTrack *selectedTrack = GetSelectedTrack())
@@ -4462,10 +4462,10 @@ public:
                 else
                     currentDepthTracks.back()->Add(track);
                 
-                if( ! folderDictionary_.Exists(track))
+                if ( ! folderDictionary_.Exists(track))
                     folderDictionary_.Insert(track, new WDL_PtrList<MediaTrack>());
                 
-                if(folderDictionary_.Exists(track))
+                if (folderDictionary_.Exists(track))
                     folderDictionary_.Get(track)->Add(track);
                 
                 currentDepthTracks.push_back(folderDictionary_.Get(track));
@@ -4943,7 +4943,7 @@ public:
     
     int GetBaseTickCount(int stepCount)
     {
-        if(NUM_ELEM(s_tickCounts_) < stepCount)
+        if (NUM_ELEM(s_tickCounts_) < stepCount)
             return s_tickCounts_[stepCount];
         else
             return s_tickCounts_[NUM_ELEM(s_tickCounts_) - 1];
@@ -4961,7 +4961,7 @@ public:
     
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
-        if(actions_.Exists(actionName.c_str()))
+        if (actions_.Exists(actionName.c_str()))
             return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
         else
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
@@ -4969,7 +4969,7 @@ public:
 
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, int paramIndex)
     {
-        if(actions_.Exists(actionName.c_str()))
+        if (actions_.Exists(actionName.c_str()))
             return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, paramIndex, NULL, NULL);
         else
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, paramIndex, NULL, NULL);
@@ -4977,7 +4977,7 @@ public:
 
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const string &stringParam)
     {
-        if(actions_.Exists(actionName.c_str()))
+        if (actions_.Exists(actionName.c_str()))
             return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, NULL, &stringParam);
         else
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, NULL, &stringParam);
@@ -4985,7 +4985,7 @@ public:
 
     ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
-        if(learnFXActions_.Exists(actionName.c_str()))
+        if (learnFXActions_.Exists(actionName.c_str()))
             return new ActionContext(this, learnFXActions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
         else
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
@@ -5141,10 +5141,10 @@ public:
     
     void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValuecount)
     {
-        if( ! fxParamSteppedValueCounts_.Exists(fxName.c_str()))
+        if ( ! fxParamSteppedValueCounts_.Exists(fxName.c_str()))
             fxParamSteppedValueCounts_.Insert(fxName.c_str(), new WDL_IntKeyedArray<int>());
         
-        if(fxParamSteppedValueCounts_.Exists(fxName.c_str()))
+        if (fxParamSteppedValueCounts_.Exists(fxName.c_str()))
             fxParamSteppedValueCounts_.Get(fxName.c_str())->Insert(paramIndex, steppedValuecount);
     }
     

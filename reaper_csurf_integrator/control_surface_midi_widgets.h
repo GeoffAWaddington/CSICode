@@ -600,7 +600,7 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
         RowInfo *row = rows.Enumerate(i);
         if (!row) break;
         
-        if(row->fontSize < NUM_ELEM(s_fontHeights))
+        if (row->fontSize < NUM_ELEM(s_fontHeights))
             totalFontHeight += s_fontHeights[row->fontSize];
     }
     
@@ -620,7 +620,7 @@ static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_Str
             topMargin = 63;
         row->topMargin = topMargin;
         
-        if(row->fontSize < NUM_ELEM(s_fontHeights))
+        if (row->fontSize < NUM_ELEM(s_fontHeights))
             row->bottomMargin = int(factor  * s_fontHeights[row->fontSize]) + topMargin;
         
         if (row->bottomMargin > 63)
