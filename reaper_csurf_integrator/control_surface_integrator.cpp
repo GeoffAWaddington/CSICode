@@ -63,10 +63,41 @@ void TrimLine(string &line)
 
 void GetTokens(vector<string> &tokens, const string &line)
 {
-    istringstream iss(line);
+    const char *rd = line.c_str();
     string token;
-    while (iss >> quoted(token))
+    for (;;)
+    {
+        while (*rd > 0 && isspace(*rd)) rd++;
+        if (!*rd) break;
+
+        if (*rd == '\"')
+        {
+            token.clear();
+            rd++;
+            while (*rd)
+            {
+                if (*rd == '\"')
+                {
+                    rd++;
+                    break;
+                }
+                if (*rd == '\\' && (rd[1] == '\\' || rd[1] == '\"')) // if \\ or \", passthrough second character
+                    rd++;
+                token.append(rd,1);
+                rd++;
+            }
+        }
+        else
+        {
+            const char *sp = rd;
+            while (*rd && (*rd<0 || !isspace(*rd))) rd++;
+            if (rd > sp)
+                token.assign(sp, (int)(rd-sp));
+            else
+                token.clear();
+        }
         tokens.push_back(token);
+    }
 }
 
 int strToHex(const string &valueStr)
