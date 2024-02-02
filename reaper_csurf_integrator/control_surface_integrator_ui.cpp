@@ -11,7 +11,6 @@
 
 extern CSurfIntegrator *g_csiForGui;
 
-extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
 
 extern int g_minNumParamSteps;
