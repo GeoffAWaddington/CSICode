@@ -1993,6 +1993,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                     
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
             }
+            
+            if (g_csiForGui)
+            {
+                CheckDlgButton(hwndDlg, IDC_CHECK_ShowRawInput, g_csiForGui->GetSurfaceRawInDisplay());
+                CheckDlgButton(hwndDlg, IDC_CHECK_ShowInput, g_csiForGui->GetSurfaceInDisplay());
+                CheckDlgButton(hwndDlg, IDC_CHECK_ShowOutput, g_csiForGui->GetSurfaceOutDisplay());
+                CheckDlgButton(hwndDlg, IDC_CHECK_WriteFXParams, g_csiForGui->GetFXParamsWrite());
+            }
         }
             
         case WM_COMMAND:
@@ -2314,6 +2322,14 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+                        if(g_csiForGui)
+                        {
+                            g_csiForGui->SetSurfaceRawInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowRawInput));
+                            g_csiForGui->SetSurfaceInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowInput));
+                            g_csiForGui->SetSurfaceOutDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowOutput));
+                            g_csiForGui->SetFXParamsWrite(IsDlgButtonChecked(hwndDlg, IDC_CHECK_WriteFXParams));
+                        }
+                        
                         TransferBroadcasters(s_broadcasters, s_pages.Get(s_pageIndex)->broadcasters);
 
                         EndDialog(hwndDlg, 0);
@@ -2655,52 +2671,12 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             }
                         }
                         break ;
-
-                    case IDC_CHECK_ShowRawInput:
-                        if (HIWORD(wParam) == BN_CLICKED)
-                        {
-                            if(g_csiForGui)
-                                g_csiForGui->SetSurfaceRawInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowRawInput));
-                        }
-                        break ;
-
-                    case IDC_CHECK_ShowInput:
-                        if (HIWORD(wParam) == BN_CLICKED)
-                        {
-                            if(g_csiForGui)
-                                g_csiForGui->SetSurfaceInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowInput));
-                        }
-                        break ;
-
-                    case IDC_CHECK_ShowOutput:
-                        if (HIWORD(wParam) == BN_CLICKED)
-                        {
-                            if(g_csiForGui)
-                                g_csiForGui->SetSurfaceOutDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowOutput));
-                        }
-                        break ;
-
-                    case IDC_CHECK_WriteFXParams:
-                        if (HIWORD(wParam) == BN_CLICKED)
-                        {
-                            if(g_csiForGui)
-                                g_csiForGui->SetFXParamsWrite(IsDlgButtonChecked(hwndDlg, IDC_CHECK_WriteFXParams));
-                        }
-                        break ;
                 }
             }
             break ;
             
         case WM_INITDIALOG:
         {
-            if (g_csiForGui)
-            {
-                CheckDlgButton(hwndDlg, IDC_CHECK_ShowRawInput, g_csiForGui->GetSurfaceRawInDisplay());
-                CheckDlgButton(hwndDlg, IDC_CHECK_ShowInput, g_csiForGui->GetSurfaceInDisplay());
-                CheckDlgButton(hwndDlg, IDC_CHECK_ShowOutput, g_csiForGui->GetSurfaceOutDisplay());
-                CheckDlgButton(hwndDlg, IDC_CHECK_WriteFXParams, g_csiForGui->GetFXParamsWrite());
-            }
-
             string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
             
             ifstream iniFile(iniFilePath);

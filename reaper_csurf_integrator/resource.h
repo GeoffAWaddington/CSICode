@@ -165,12 +165,12 @@
 #define IDC_GroupFXParamValueDisplay3   1263
 #define IDC_CHECK_FocusedFX             1263
 #define IDC_CHECK_FocusedFXParam        1264
-#define IDC_CHECK_ShowRawInput          1268
 #define IDC_CHECK_Custom                1265
-#define IDC_CHECK_ShowInput             1269
 #define IDC_CHECK_LocalFXSlot           1266
-#define IDC_CHECK_ShowOutput            1270
 #define IDC_CHECK_Modifiers             1267
+#define IDC_CHECK_ShowRawInput          1268
+#define IDC_CHECK_ShowInput             1269
+#define IDC_CHECK_ShowOutput            1270
 #define IDC_CHECK_WriteFXParams         1271
 
 // Next default values for new objects
