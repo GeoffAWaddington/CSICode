@@ -4101,8 +4101,9 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
 
     int index = 0;
     
-    for (string &line : fxLayoutFileLines_)
+    for (int ln = 0; ln < (int)fxLayoutFileLines_.size(); ln ++ )
     {
+        string &line = fxLayoutFileLines_[ln];
         if (line.find(widget->GetName()) != string::npos)
         {
             istringstream fullLine(line);

@@ -2138,7 +2138,8 @@ public:
 
     double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if (const double *volume = context->GetCSI()->GetMetronomePrimaryVolumePtr())
+        const double *volume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        if (volume)
              return volToNormalized(*volume);
         else
             return 0.0;
@@ -2176,8 +2177,8 @@ public:
 
     double GetCurrentNormalizedValue(ActionContext* context) override
     {
-        const auto *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
-        const auto *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
+        const double *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        const double *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             return volToNormalized((*secondaryVolume) / (*primaryVolume));
@@ -2192,8 +2193,8 @@ public:
 
     void Do(ActionContext *context, double value) override
     {
-        const auto *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
-        auto *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
+        const double *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        double *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
             *secondaryVolume = normalizedToVol(value)  *(*primaryVolume);
@@ -2211,7 +2212,7 @@ public:
     // if the call was sucessful, false otherwise.
     virtual bool GetVolume(ActionContext *context, double& value) const = 0;
 
-    void RequestUpdate(ActionContext *context) override final
+    void RequestUpdate(ActionContext *context) override
     {
         double volume = 0.0;
 
@@ -2273,8 +2274,8 @@ public:
 
     bool GetVolume(ActionContext *context, double &value) const override
     {
-        const auto *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
-        const auto *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
+        const double *primaryVolume = context->GetCSI()->GetMetronomePrimaryVolumePtr();
+        const double *secondaryVolume = context->GetCSI()->GetMetronomeSecondaryVolumePtr();
 
         if (primaryVolume && secondaryVolume)
         {
