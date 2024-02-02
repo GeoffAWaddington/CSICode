@@ -41,21 +41,26 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
             s_dlgResult = IDCANCEL;
                
-            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta != "")
-                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta.c_str());
+            char tmp[BUFSZ];
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta != 0.0)
+                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta, tmp, sizeof(tmp)));
 
-            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum != "")
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum.c_str());
-
-            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum != "")
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum.c_str());
+            if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum != 1.0 ||
+                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum != 0.0)
+            {
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum, tmp, sizeof(tmp)));
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum, tmp, sizeof(tmp)));
+            }
 
             if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size() > 0)
             {
                 string deltas = "";
                 
                 for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size(); ++i)
-                    deltas += s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas[i] + " ";
+                {
+                    deltas += format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas[i], tmp, sizeof(tmp));
+                    deltas += " ";
+                }
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             }
@@ -65,7 +70,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 string ticks = "";
                 
                 for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size(); ++i)
-                    ticks += s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i] + " ";
+                    ticks += to_string(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i]) + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
@@ -83,35 +88,35 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         char buf[BUFSZ];
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
-                        if (string(buf) != "")
-                            s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta = buf;
+                        if (buf[0])
+                            s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta = atof(buf);
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
-                        if (string(buf) != "")
-                            s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum = buf;
+                        if (buf[0])
+                            s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMinimum = atof(buf);
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
-                        if (string(buf) != "")
-                            s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum = buf;
+                        if (buf[0])
+                            s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].rangeMaximum = atof(buf);
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
-                        if (string(buf) != "")
+                        if (buf[0])
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.clear();
                             vector<string> deltas;
                             GetTokens(deltas, buf);
                             for (int i = 0; i < (int)deltas.size(); ++i)
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(deltas[i]);
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(stof(deltas[i]));
                         }
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
-                        if (string(buf) != "")
+                        if (buf[0])
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.clear();
                             vector<string> ticks;
                             GetTokens(ticks, buf);
                             for (int i = 0; i < (int)ticks.size(); ++i)
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(ticks[i]);
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(stoi(ticks[i]));
                         }
 
                         s_dlgResult = IDOK;
@@ -501,12 +506,14 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
                 string steps = "";
                 
+                char buf[BUFSZ];
                 for (int j = 0; j < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.size(); ++i)
-                    steps += s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps[j] + "  ";
+                {
+                    steps += format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps[j], buf, sizeof(buf));
+                    steps += "  ";
+                }
                 
                 SetDlgItemText(hwndDlg, s_stepEditControls[i], steps.c_str());
-                
-                char buf[BUFSZ];
                 
                 GetDlgItemText(hwndDlg, s_widgetTypePickers[i], buf, sizeof(buf));
                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidget = buf;
@@ -625,7 +632,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 vector<string> steps;
                                 GetTokens(steps, buf);
                                 for (int j = 0; j< (int)steps.size(); ++j)
-                                    s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(steps[j]);
+                                    s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(stoi(steps[j]));
                             }
 
                             if (s_hasFonts)

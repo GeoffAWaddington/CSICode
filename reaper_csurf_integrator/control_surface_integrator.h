@@ -69,6 +69,13 @@ class CSurfIntegrator;
 class ZoneManager;
 class Widget;
 
+static char *format_number(double v, char *buf, int bufsz)
+{
+  snprintf(buf,bufsz,"%.12f", v);
+  WDL_remove_trailing_decimal_zeros(buf,2); // trim 1.0000 down to 1.0
+  return buf;
+}
+
 extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,12 +260,12 @@ struct FXParamDefinition
     string paramValueDisplayWidgetFullName;
     PropertyList paramValueDisplayWidgetProperties;
 
-    string delta;
-    vector<string> deltas;
-    string rangeMinimum;
-    string rangeMaximum;
-    vector<string> steps;
-    vector<string> ticks;
+    double delta;
+    vector<double> deltas;
+    double rangeMinimum;
+    double rangeMaximum;
+    vector<double> steps;
+    vector<int> ticks;
     
     FXParamDefinition()
     {
@@ -276,9 +283,9 @@ struct FXParamDefinition
         paramValueDisplayWidget = "";
         paramValueDisplayWidgetFullName = "";
  
-        delta = "";
-        rangeMinimum = "";
-        rangeMaximum = "";
+        delta = 0.0;
+        rangeMinimum = 1.0;
+        rangeMaximum = 0.0;
     }
 };
 
@@ -1707,7 +1714,7 @@ private:
         }
     }
 
-    void GetSteppedValues(vector<string> &params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
+    void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
     {
         vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
         vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
@@ -1716,21 +1723,21 @@ private:
         {
             for (vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
             {
-                string strVal = *(it);
+                const string &strVal = *(it);
                 
                 if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
-                    steppedValues.push_back(strVal);
+                    steppedValues.push_back(atof(strVal.c_str()));
                 else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
-                    deltaValue = regex_replace(strVal, regex("[()]"), "");
+                    deltaValue = atof(strVal.c_str()+1);
                 else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
-                    acceleratedTickValues.push_back(strVal);
+                    acceleratedTickValues.push_back(atoi(strVal.c_str()+1));
                 else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
                 {
-                    istringstream acceleratedDeltaValueStream(strVal);
+                    istringstream acceleratedDeltaValueStream(strVal.substr(1, strVal.length() - 2 ));
                     string tmp;
                     
                     while (getline(acceleratedDeltaValueStream, tmp, ','))
-                        acceleratedDeltaValues.push_back(regex_replace(tmp, regex("[()]"), "") + "  ");
+                        acceleratedDeltaValues.push_back(atof(tmp.c_str()));
                 }
                 else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
                 {
@@ -1738,9 +1745,9 @@ private:
                     string tickValue;
                     
                     while (getline(acceleratedTickValueStream, tickValue, ','))
-                        acceleratedTickValues.push_back(tickValue + "  ");
+                        acceleratedTickValues.push_back(atoi(tickValue.c_str()));
                 }
-                else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
+                else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")))
                 {
                     istringstream range(strVal);
                     vector<string> range_tokens;
@@ -1751,8 +1758,8 @@ private:
                     
                     if (range_tokens.size() == 2)
                     {
-                        string firstValue = range_tokens[0];
-                        string lastValue = range_tokens[1];
+                        double firstValue = atof(range_tokens[0].c_str());
+                        double lastValue = atof(range_tokens[1].c_str());
                         
                         if (lastValue > firstValue)
                         {
@@ -2552,51 +2559,51 @@ public:
                     {
                         fxFile << layoutTemplates[i].widgetAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber + " ";
                         
-                        if (zoneDef.paramDefs[i].definitions[j].delta != "" ||
-                           (zoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && zoneDef.paramDefs[i].definitions[j].rangeMaximum != "") ||
-                           zoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
-                           zoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
-                           zoneDef.paramDefs[i].definitions[j].steps.size() > 0)
+                        if (zoneDef.paramDefs[i].definitions[j].delta != 0.0 ||
+                            zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
+                            zoneDef.paramDefs[i].definitions[j].rangeMaximum != 0.0 ||
+                            zoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
+                            zoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
+                            zoneDef.paramDefs[i].definitions[j].steps.size() > 0)
                         {
                             fxFile << "[ ";
                             
-                            if (zoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && zoneDef.paramDefs[i].definitions[j].rangeMaximum != "")
-                                fxFile << " " + zoneDef.paramDefs[i].definitions[j].rangeMinimum + ">" + zoneDef.paramDefs[i].definitions[j].rangeMaximum + " ";
+                            char tmp[128];
+                            if (zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
+                                zoneDef.paramDefs[i].definitions[j].rangeMaximum != 0.0)
+                                fxFile << " " << format_number(zoneDef.paramDefs[i].definitions[j].rangeMinimum, tmp, sizeof(tmp)) << ">" << format_number(zoneDef.paramDefs[i].definitions[j].rangeMaximum, tmp, sizeof(tmp)) << " ";
                             
-                            if (zoneDef.paramDefs[i].definitions[j].delta != "")
-                                fxFile << " (" + zoneDef.paramDefs[i].definitions[j].delta + ") ";
+                            if (zoneDef.paramDefs[i].definitions[j].delta != 0.0)
+                                fxFile << " (" << format_number(zoneDef.paramDefs[i].definitions[j].delta, tmp, sizeof(tmp)) << ") ";
                             
                             if (zoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
                             {
-                                string deltaStr = " (";
+                                fxFile << " (";
                                 
                                 for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].deltas.size(); ++k)
-                                    deltaStr += zoneDef.paramDefs[i].definitions[j].deltas[k] + ",";
+                                {
+                                    if (k) fxFile << ",";
+                                    fxFile << format_number(zoneDef.paramDefs[i].definitions[j].deltas[k], tmp, sizeof(tmp));
+                                }
                                 
-                                deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
-                                
-                                deltaStr += ") ";
-                                
-                                fxFile << deltaStr;
+                                fxFile << ") ";
                             }
                             
                             if (zoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
                             {
-                                string tickStr = " (";
+                                fxFile << " (";
                                 
                                 for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].ticks.size(); ++k)
-                                    tickStr += zoneDef.paramDefs[i].definitions[j].ticks[k] + ",";
-                                
-                                tickStr = tickStr.substr(0, tickStr.length() - 1);
-                                
-                                tickStr += ") ";
-                                
-                                fxFile << tickStr;
+                                {
+                                    if (k) fxFile << ",";
+                                    fxFile << to_string(zoneDef.paramDefs[i].definitions[j].ticks[k]);
+                                }
+                                fxFile << ") ";
                             }
                             
                             for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].steps.size(); ++k)
-                                fxFile << zoneDef.paramDefs[i].definitions[j].steps[k] + " " ;
-                            
+                                fxFile << format_number(zoneDef.paramDefs[i].definitions[j].steps[k], tmp, sizeof(tmp)) << " " ;
+
                             fxFile << "]";
                         }
                         

@@ -3933,17 +3933,18 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
                             info->params = "[ ";
                             
                             for (int k = 0; k < (int)zoneDef_.paramDefs[i].definitions[j].steps.size(); ++k)
-                                info->params += zoneDef_.paramDefs[i].definitions[j].steps[k] + "  ";
+                            {
+                                char tmp[BUFSZ];
+                                info->params += format_number(zoneDef_.paramDefs[i].definitions[j].steps[k], tmp, sizeof(tmp));
+                                info->params += "  ";
+                            }
                             
                             info->params += "]";
                             
                             Zone *learnZone = homeZone_->GetLearnFXParamsZone();
                             if (learnZone)
                             {
-                                vector<double> steps;
-                                
-                                for (int k = 0; k < (int)zoneDef_.paramDefs[i].definitions[j].steps.size(); ++k)
-                                    steps.push_back(stod(zoneDef_.paramDefs[i].definitions[j].steps[k]));
+                                const vector<double> &steps = zoneDef_.paramDefs[i].definitions[j].steps;
                                 
                                 for (int k = 0; k < learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).GetSize(); ++k)
                                     learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).Get(k)->SetStepValues(steps);
