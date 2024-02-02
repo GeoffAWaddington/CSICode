@@ -1278,6 +1278,10 @@ struct LearnInfo
     }
 };
 
+
+void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1708,69 +1712,6 @@ private:
                         properties.set_prop(prop, fs.Get());
                         // preserve unknown properties
                         WDL_ASSERT(false);
-                    }
-                }
-            }
-        }
-    }
-
-    void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
-    {
-        vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
-        vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
-        
-        if (openSquareBrace != params.end() && closeSquareBrace != params.end())
-        {
-            for (vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
-            {
-                const string &strVal = *(it);
-                
-                if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
-                    steppedValues.push_back(atof(strVal.c_str()));
-                else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
-                    deltaValue = atof(strVal.c_str()+1);
-                else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
-                    acceleratedTickValues.push_back(atoi(strVal.c_str()+1));
-                else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
-                {
-                    istringstream acceleratedDeltaValueStream(strVal.substr(1, strVal.length() - 2 ));
-                    string tmp;
-                    
-                    while (getline(acceleratedDeltaValueStream, tmp, ','))
-                        acceleratedDeltaValues.push_back(atof(tmp.c_str()));
-                }
-                else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
-                {
-                    istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
-                    string tickValue;
-                    
-                    while (getline(acceleratedTickValueStream, tickValue, ','))
-                        acceleratedTickValues.push_back(atoi(tickValue.c_str()));
-                }
-                else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")))
-                {
-                    istringstream range(strVal);
-                    vector<string> range_tokens;
-                    string range_token;
-                    
-                    while (getline(range, range_token, '>'))
-                        range_tokens.push_back(range_token);
-                    
-                    if (range_tokens.size() == 2)
-                    {
-                        double firstValue = atof(range_tokens[0].c_str());
-                        double lastValue = atof(range_tokens[1].c_str());
-                        
-                        if (lastValue > firstValue)
-                        {
-                            rangeMinimum = firstValue;
-                            rangeMaximum = lastValue;
-                        }
-                        else
-                        {
-                            rangeMinimum = lastValue;
-                            rangeMaximum = firstValue;
-                        }
                     }
                 }
             }
