@@ -76,55 +76,9 @@ static string csiReplace(const string &stringToChange, string regExp, string rep
     return regex_replace(stringToChange, regex(regExp), replacementString);
 }
 
-static void TrimLine(string &line)
-{
-    line = csiReplace(line, s_TabChars, " ");
-    line = csiReplace(line, s_CRLFChars, "");
-    
-    line = line.substr(0, line.find("//")); // remove trailing commewnts
-    
-    // Trim leading and trailing spaces
-    line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
-}
-
 static bool csiMatch(const string &stringToMatch, string regExp)
 {
     return regex_match(stringToMatch, regex(regExp));
-}
-
-static bool csiGetColor(const string &hexColor, rgba_color &colorValue)
-{
-    bool retVal = false;
-    
-    if (hexColor.length() == 7)
-    {
-        regex pattern("#([0-9a-fA-F]{6})");
-        smatch match;
-        if (regex_match(hexColor, match, pattern))
-        {
-            retVal = true;
-            sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
-        }
-    }
-    else if (hexColor.length() == 9)
-    {
-        regex pattern("#([0-9a-fA-F]{8})");
-        smatch match;
-        if (regex_match(hexColor, match, pattern))
-        {
-            retVal = true;
-            sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
-        }
-    }  
-    
-    return retVal;
-}
-
-static rgba_color GetColorValue(const string &hexColor)
-{
-    rgba_color colorValue;
-    csiGetColor(hexColor, colorValue);
-    return colorValue;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -50,6 +50,17 @@ void GetParamStepsValues(vector<double> &outputVector, int numSteps)
         outputVector.push_back(EnumSteppedValues(numSteps, i));
 }
 
+void TrimLine(string &line)
+{
+    line = csiReplace(line, s_TabChars, " ");
+    line = csiReplace(line, s_CRLFChars, "");
+    
+    line = line.substr(0, line.find("//")); // remove trailing commewnts
+    
+    // Trim leading and trailing spaces
+    line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+}
+
 void GetTokens(vector<string> &tokens, const string &line)
 {
     const char *rd = line.c_str();
@@ -1279,8 +1290,26 @@ void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector
     {
         rgba_color colorValue;
         
-        if(csiGetColor(colors[i], colorValue))
-            colorValues.push_back(colorValue);
+        if (colors[i].length() == 7)
+        {
+            regex pattern("#([0-9a-fA-F]{6})");
+            smatch match;
+            if (regex_match(colors[i], match, pattern))
+            {
+                sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
+                colorValues.push_back(colorValue);
+            }
+        }
+        else if (colors[i].length() == 9)
+        {
+            regex pattern("#([0-9a-fA-F]{8})");
+            smatch match;
+            if (regex_match(colors[i], match, pattern))
+            {
+                sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
+                colorValues.push_back(colorValue);
+            }
+        }
     }
 }
 
