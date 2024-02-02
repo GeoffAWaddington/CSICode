@@ -61,7 +61,7 @@ void TrimLine(string &line)
     line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
 }
 
-void GetTokens(vector<string> &tokens, string line)
+void GetTokens(vector<string> &tokens, const string &line)
 {
     istringstream iss(line);
     string token;

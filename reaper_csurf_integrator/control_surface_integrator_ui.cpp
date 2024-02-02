@@ -2727,12 +2727,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 if (line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
                 {
-                    istringstream iss(line);
                     vector<string> tokens;
-                    string token;
-                    
-                    while (iss >> quoted(token))
-                        tokens.push_back(token);
+                    GetTokens(tokens, line);
                     
                     if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
                     {

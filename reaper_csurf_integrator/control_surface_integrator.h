@@ -46,7 +46,7 @@
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
-extern void GetTokens(vector<string> &tokens, string line);
+extern void GetTokens(vector<string> &tokens, const string &line);
 extern int strToHex(const string &valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
