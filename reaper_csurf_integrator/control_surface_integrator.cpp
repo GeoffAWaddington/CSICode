@@ -52,8 +52,8 @@ void GetParamStepsValues(vector<double> &outputVector, int numSteps)
 
 void TrimLine(string &line)
 {
-    line = regex_replace(line, regex(s_TabChars), " ");
-    line = regex_replace(line, regex(s_CRLFChars), "");
+    line = csiReplace(line, s_TabChars, " ");
+    line = csiReplace(line, s_CRLFChars, "");
     
     line = line.substr(0, line.find("//")); // remove trailing commewnts
     
@@ -427,7 +427,7 @@ void ZoneManager::GetSteppedValues(vector<string> &params, string &deltaValue, v
             if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
                 steppedValues.push_back(strVal);
             else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
-                deltaValue = regex_replace(strVal, regex("[()]"), "");
+                deltaValue = csiReplace(strVal, "[()]", "");
             else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
                 acceleratedTickValues.push_back(strVal);
             else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
@@ -436,7 +436,7 @@ void ZoneManager::GetSteppedValues(vector<string> &params, string &deltaValue, v
                 string tmp;
                 
                 while (getline(acceleratedDeltaValueStream, tmp, ','))
-                    acceleratedDeltaValues.push_back(regex_replace(tmp, regex("[()]"), "") + "  ");
+                    acceleratedDeltaValues.push_back(csiReplace(tmp, "[()]", "") + "  ");
             }
             else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
             {
@@ -828,10 +828,10 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             string surfaceWidgetName = widgetName;
                             
                             if (navigators.GetSize() > 1)
-                                surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(i + 1));
+                                surfaceWidgetName = csiReplace(surfaceWidgetName, "[|]", to_string(i + 1));
                             
                             if (enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
-                                surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(enclosingZone->GetChannelNumber()));
+                                surfaceWidgetName = csiReplace(surfaceWidgetName, "[|]", to_string(enclosingZone->GetChannelNumber()));
                             
                             Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName);
                                                         
@@ -847,11 +847,11 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                 if (WDL_NOT_NORMALLY(actionTemplates == NULL)) continue;
                                 for (int j = 0; j < actionTemplates->GetSize(); ++j)
                                 {
-                                    string actionName = regex_replace(actionTemplates->Get(j)->actionName, regex("[|]"), numStr);
+                                    string actionName = csiReplace(actionTemplates->Get(j)->actionName, "[|]", numStr);
 
                                     vector<string> memberParams;
                                     for (int k = 0; k < actionTemplates->Get(j)->params.size(); k++)
-                                        memberParams.push_back(regex_replace(actionTemplates->Get(j)->params[k], regex("[|]"), numStr));
+                                        memberParams.push_back(csiReplace(actionTemplates->Get(j)->params[k], "[|]", numStr));
                                     
                                     ActionContext *context = csi_->GetActionContext(actionName, widget, zone, memberParams);
                                         
@@ -1008,12 +1008,12 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTe
     
     for (string line; getline(autoFXFile, line) ; )
     {
-        line = regex_replace(line, regex(s_CRLFChars), "");
+        line = csiReplace(line, s_CRLFChars, "");
 
         if (inAutoZone && ! pastAutoZone)
         {
             // Trim leading and trailing spaces
-            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            TrimLine(line);
             
             if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
@@ -3959,7 +3959,7 @@ void ZoneManager::SaveTemplatedFXParams()
 
             GetAlias(learnFXName_.c_str(),alias);
             
-            path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
+            path += "/" + csiReplace(learnFXName_, s_BadFileChars, "_") + ".zon";
             
             CSIZoneInfo *info = new CSIZoneInfo();
             info->filePath = path;
@@ -4019,7 +4019,7 @@ void ZoneManager::SaveLearnedFXParams()
 
             GetAlias(learnFXName_.c_str(),alias);
             
-            path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
+            path += "/" + csiReplace(learnFXName_, s_BadFileChars, "_") + ".zon";
             
             CSIZoneInfo *info = new CSIZoneInfo();
             info->filePath = path;
@@ -4915,7 +4915,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     
     RecursiveCreateDirectory(path.c_str(),0);
     
-    path += "/" + regex_replace(fxName, regex(s_BadFileChars), "_") + ".zon";
+    path += "/" + csiReplace(fxName, s_BadFileChars, "_") + ".zon";
 
     string alias;
     GetAlias(fxName.c_str(),alias);
@@ -5964,7 +5964,7 @@ void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
 void OSC_ControlSurface::SendOSCMessage(const string &zoneName)
 {
     string oscAddress(zoneName);
-    oscAddress = regex_replace(oscAddress, regex(s_BadFileChars), "_");
+    oscAddress = csiReplace(oscAddress, s_BadFileChars, "_");
     oscAddress = "/" + oscAddress;
 
     surfaceIO_->SendOSCMessage(oscAddress);
