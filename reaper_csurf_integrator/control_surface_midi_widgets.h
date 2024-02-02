@@ -8,7 +8,6 @@
 #define control_surface_midi_widgets_h
 
 #include "handy_functions.h"
-#include "control_surface_integrator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSIMessageGenerators
@@ -943,7 +942,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
 {
     s_encoderRingColors.clear();
     
-    string property = csiReplace(inputProperty, "\"", "");
+    string property = regex_replace(inputProperty, regex("\""), "");
     
     istringstream isstop(property);
     string colorDef = "";

@@ -71,11 +71,6 @@ class Widget;
 
 extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
-static string csiReplace(const string &stringToChange, string regExp, string replacementString)
-{
-    return regex_replace(stringToChange, regex(regExp), replacementString);
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2786,17 +2781,17 @@ public:
             
             restrictedText = restrictedText.substr(1, restrictedText.length() - 1);
             
-            restrictedText = csiReplace(restrictedText, "[\\s]", "");
+            restrictedText = regex_replace(restrictedText, regex("[\\s]"), "");
 
             if (restrictedText.length() <= restrictedTextLength_ - 1)
                 return firstLetter + restrictedText;
             
-            restrictedText = csiReplace(restrictedText, "[`~!@#$%^&*:()_|=?;:'\",]", "");
+            restrictedText = regex_replace(restrictedText, regex("[`~!@#$%^&*:()_|=?;:'\",]"), "");
 
             if (restrictedText.length() <= restrictedTextLength_ - 1)
                 return firstLetter + restrictedText;
             
-            restrictedText = csiReplace(restrictedText, "[aeiou]", "");
+            restrictedText = regex_replace(restrictedText, regex("[aeiou]"), "");
 
             restrictedText = firstLetter + restrictedText;
             
@@ -4667,7 +4662,7 @@ public:
                 if (fxParamsWrite_)
                 {
                     string fxNameNoBadChars(fxName);
-                    fxNameNoBadChars = csiReplace(fxNameNoBadChars, s_BadFileChars, "_");
+                    fxNameNoBadChars = regex_replace(fxNameNoBadChars, regex(s_BadFileChars), "_");
 
                     fxFile.open(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt");
                     
