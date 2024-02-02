@@ -3574,6 +3574,8 @@ private:
         }
     }
 
+    void SendSysexInitData(int line[], int numElem);
+    
 public:
     Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
