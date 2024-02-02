@@ -375,6 +375,107 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// ZoneManager
+//////////////////////////////////////////////////////////////////////////////
+void ZoneManager::GetProperties(int start, int finish, vector<string> &tokens, PropertyList &properties)
+{
+    for (int i = start; i < finish; i++)
+    {
+        if (tokens[i].find("=") != string::npos)
+        {
+            istringstream property(tokens[i]);
+            vector<string> kvp;
+            string token;
+            
+            while (getline(property, token, '='))
+                kvp.push_back(token);
+
+            if (kvp.size() == 2)
+            {
+                PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
+                if (prop != PropertyType_Unknown)
+                {
+                    properties.set_prop(prop, kvp[1].c_str());
+                }
+                else
+                {
+                    WDL_FastString fs;
+                    fs.Set(kvp[0].c_str());
+                    fs.Append("=");
+                    fs.Append(kvp[1].c_str());
+                    properties.set_prop(prop, fs.Get());
+                    // preserve unknown properties
+                    WDL_ASSERT(false);
+                }
+            }
+        }
+    }
+}
+
+void ZoneManager::GetSteppedValues(vector<string> &params, string &deltaValue, vector<string> &acceleratedDeltaValues, string &rangeMinimum, string &rangeMaximum, vector<string> &steppedValues, vector<string> &acceleratedTickValues)
+{
+    vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
+    vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
+    
+    if (openSquareBrace != params.end() && closeSquareBrace != params.end())
+    {
+        for (vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
+        {
+            string strVal = *(it);
+            
+            if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
+                steppedValues.push_back(strVal);
+            else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
+                deltaValue = regex_replace(strVal, regex("[()]"), "");
+            else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
+                acceleratedTickValues.push_back(strVal);
+            else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
+            {
+                istringstream acceleratedDeltaValueStream(strVal);
+                string tmp;
+                
+                while (getline(acceleratedDeltaValueStream, tmp, ','))
+                    acceleratedDeltaValues.push_back(regex_replace(tmp, regex("[()]"), "") + "  ");
+            }
+            else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
+            {
+                istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
+                string tickValue;
+                
+                while (getline(acceleratedTickValueStream, tickValue, ','))
+                    acceleratedTickValues.push_back(tickValue + "  ");
+            }
+            else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
+            {
+                istringstream range(strVal);
+                vector<string> range_tokens;
+                string range_token;
+                
+                while (getline(range, range_token, '>'))
+                    range_tokens.push_back(range_token);
+                
+                if (range_tokens.size() == 2)
+                {
+                    string firstValue = range_tokens[0];
+                    string lastValue = range_tokens[1];
+                    
+                    if (lastValue > firstValue)
+                    {
+                        rangeMinimum = firstValue;
+                        rangeMaximum = lastValue;
+                    }
+                    else
+                    {
+                        rangeMinimum = lastValue;
+                        rangeMaximum = firstValue;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void ZoneManager::GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
@@ -838,6 +939,351 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     }
 }
 
+vector<FXParamLayoutTemplate> ZoneManager::GetFXLayoutTemplates()
+{
+    vector<FXParamLayoutTemplate> layoutTemplates;
+    
+    string widgetAction = "";
+    string aliasDisplayAction = "";
+    string valueDisplayAction = "";
+
+    for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
+    {
+        if (surfaceFXLayoutTemplate_[i].size() > 1)
+        {
+            if (surfaceFXLayoutTemplate_[i][0] == "WidgetAction")
+                widgetAction = surfaceFXLayoutTemplate_[i][1];
+            else if (surfaceFXLayoutTemplate_[i][0] == "AliasDisplayAction")
+                aliasDisplayAction = surfaceFXLayoutTemplate_[i][1];
+            else if (surfaceFXLayoutTemplate_[i][0] == "ValueDisplayAction")
+                valueDisplayAction = surfaceFXLayoutTemplate_[i][1];
+        }
+    }
+    
+    for (int j = 0; j < (int)GetFXLayouts().size(); ++j)
+    {
+        for (int i = 0; i < GetFXLayouts()[j].channelCount_; i++)
+        {
+            string modifiers = "";
+            if (GetFXLayouts()[i].modifiers_ != "")
+                modifiers = GetFXLayouts()[i].modifiers_ + "+";
+            
+            FXParamLayoutTemplate layoutTemplate;
+            
+            layoutTemplate.modifiers = modifiers;
+            layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + to_string(i + 1);
+            
+            layoutTemplate.widgetAction = widgetAction;
+            layoutTemplate.aliasDisplayAction = aliasDisplayAction;
+            layoutTemplate.valueDisplayAction = valueDisplayAction;
+            
+            layoutTemplates.push_back(layoutTemplate);
+        }
+    }
+
+    return layoutTemplates;
+}
+
+void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
+{
+    zoneDef.paramDefs.clear();
+    zoneDef.prologue.clear();
+    zoneDef.epilogue.clear();
+    zoneDef.rawParams.clear();
+    zoneDef.rawParamsDictionary.DeleteAll();
+
+    zoneDef.fxName = "";
+    zoneDef.fxAlias = "";
+
+    bool inZone = false;
+    bool inAutoZone = false;
+    bool pastAutoZone = false;
+    
+    ifstream autoFXFile(zoneDef.fullPath);
+    
+    int listSlotIndex = 0;
+    
+    FXParamDefinitions definitions;
+    zoneDef.paramDefs.push_back(definitions);
+    
+    for (string line; getline(autoFXFile, line) ; )
+    {
+        line = regex_replace(line, regex(s_CRLFChars), "");
+
+        if (inAutoZone && ! pastAutoZone)
+        {
+            // Trim leading and trailing spaces
+            line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        }
+
+        vector<string> ltokens;
+        GetTokens(ltokens, line);
+
+        if (line.substr(0, 5) == "Zone ")
+        {
+            inZone = true;
+            
+            if (ltokens.size() > 1)
+                zoneDef.fxName = ltokens[1];
+            if (ltokens.size() > 2)
+                zoneDef.fxAlias = ltokens[2];
+            
+            continue;
+        }
+        else if (line == s_BeginAutoSection)
+        {
+            inAutoZone = true;
+            continue;
+        }
+        else if (inZone && ! inAutoZone)
+        {
+            zoneDef.prologue.push_back(line);
+            continue;
+        }
+        else if (line == s_EndAutoSection)
+        {
+            pastAutoZone = true;
+            continue;
+        }
+        else if (line == "ZoneEnd")
+        {
+            inZone = false;
+            continue;
+        }
+        else if (inZone && pastAutoZone)
+        {
+            zoneDef.epilogue.push_back(line);
+            continue;
+        }
+        else if (! inZone && pastAutoZone)
+        {
+            if (line != "")
+                zoneDef.rawParams.push_back(line);
+            continue;
+        }
+        else
+        {
+            ltokens.clear();
+            GetTokens(ltokens, line);
+            
+            if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
+            {
+                listSlotIndex++;
+                FXParamDefinitions tmp;
+                zoneDef.paramDefs.push_back(tmp);
+            }
+            
+            FXParamDefinition def;
+            
+            GetWidgetNameAndModifiers(ltokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+            
+            if (ltokens.size() > 2)
+                def.paramNumber = ltokens[2];
+            
+            int propertiesOffset = 3;
+            
+            if (ltokens.size() > 4 && ltokens[3] == "[")
+            {
+                vector<string> params;
+
+                for (int i = 3; i < ltokens.size() && ltokens[i] != "]"; i++)
+                    params.push_back(ltokens[i]);
+                
+                params.push_back("]");
+             
+                propertiesOffset += (int)params.size();
+                
+                GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+            }
+                                   
+            if (ltokens.size() > propertiesOffset)
+                GetProperties(propertiesOffset, (int)ltokens.size(), ltokens, def.paramWidgetProperties);
+            
+            if (getline(autoFXFile, line))
+            {
+                vector<string> tokens;
+                GetTokens(tokens, line);
+
+                if (tokens.size() > 2)
+                {
+                    vector<string> modifers;
+                    
+                    GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                    
+                    def.paramName = tokens[2];
+                    
+                    if (tokens.size() > 3)
+                        GetProperties(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
+                }
+            }
+            else
+                continue;
+            
+            if (getline(autoFXFile, line))
+            {
+                vector<string> tokens;
+                GetTokens(tokens, line);
+
+                if (tokens.size() > 2)
+                {
+                    vector<string> modifers;
+                    
+                    GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                    
+                    if (tokens.size() > 3)
+                        GetProperties(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
+                }
+            }
+            else
+                continue;
+           
+            zoneDef.paramDefs.back().definitions.push_back(def);
+        }
+    }
+}
+
+void ZoneManager::SaveAutoZone(const AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
+{
+    ofstream fxFile(zoneDef.fullPath);
+    
+    if (fxFile.is_open())
+    {
+        fxFile << "Zone \"" + zoneDef.fxName + "\" \"" + zoneDef.fxAlias + "\"\n";
+        
+        for (int i = 0; i < (int)zoneDef.prologue.size(); ++i)
+            fxFile << zoneDef.prologue[i] + "\n";
+        
+        fxFile << s_BeginAutoSection + "\n\n";
+        
+        for (int i = 0; i < zoneDef.paramDefs.size(); i++)
+        {
+            bool cellHasDisplayWidgetsDefined = false;
+            
+            for (int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
+            {
+                fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramWidget + layoutTemplates[i].suffix + "\t";
+                
+                if (zoneDef.paramDefs[i].definitions[j].paramNumber == "")
+                {
+                    fxFile << "NoAction\n";
+                }
+                else
+                {
+                    fxFile << layoutTemplates[i].widgetAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber + " ";
+                    
+                    if (zoneDef.paramDefs[i].definitions[j].delta != "" ||
+                       (zoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && zoneDef.paramDefs[i].definitions[j].rangeMaximum != "") ||
+                       zoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
+                       zoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
+                       zoneDef.paramDefs[i].definitions[j].steps.size() > 0)
+                    {
+                        fxFile << "[ ";
+                        
+                        if (zoneDef.paramDefs[i].definitions[j].rangeMinimum != ""  && zoneDef.paramDefs[i].definitions[j].rangeMaximum != "")
+                            fxFile << " " + zoneDef.paramDefs[i].definitions[j].rangeMinimum + ">" + zoneDef.paramDefs[i].definitions[j].rangeMaximum + " ";
+                        
+                        if (zoneDef.paramDefs[i].definitions[j].delta != "")
+                            fxFile << " (" + zoneDef.paramDefs[i].definitions[j].delta + ") ";
+                        
+                        if (zoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
+                        {
+                            string deltaStr = " (";
+                            
+                            for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].deltas.size(); ++k)
+                                deltaStr += zoneDef.paramDefs[i].definitions[j].deltas[k] + ",";
+                            
+                            deltaStr = deltaStr.substr(0, deltaStr.length() - 1);
+                            
+                            deltaStr += ") ";
+                            
+                            fxFile << deltaStr;
+                        }
+                        
+                        if (zoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
+                        {
+                            string tickStr = " (";
+                            
+                            for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].ticks.size(); ++k)
+                                tickStr += zoneDef.paramDefs[i].definitions[j].ticks[k] + ",";
+                            
+                            tickStr = tickStr.substr(0, tickStr.length() - 1);
+                            
+                            tickStr += ") ";
+                            
+                            fxFile << tickStr;
+                        }
+                        
+                        for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].steps.size(); ++k)
+                            fxFile << zoneDef.paramDefs[i].definitions[j].steps[k] + " " ;
+                        
+                        fxFile << "]";
+                    }
+                    
+                    zoneDef.paramDefs[i].definitions[j].paramWidgetProperties.save_list(fxFile);
+                }
+                
+                if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
+                {
+                    if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
+                        fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction\n";
+                    else
+                        fxFile << "\tNullDisplay\tNoAction\n";
+                }
+                else
+                {
+                    cellHasDisplayWidgetsDefined = true;
+                    
+                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget + layoutTemplates[i].suffix + "\t";
+                    
+                    fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].paramName + "\" ";
+                    
+                    zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties.save_list(fxFile);
+                }
+                
+                if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
+                {
+                    if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
+                        fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction\n";
+                    else
+                        fxFile << "\tNullDisplay\tNoAction\n";
+                }
+                else
+                {
+                    cellHasDisplayWidgetsDefined = true;
+
+                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget + layoutTemplates[i].suffix + "\t";
+                    
+                    fxFile << layoutTemplates[i].valueDisplayAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber;
+                    
+                    zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties.save_list(fxFile);
+                }
+                
+                fxFile << "\n";
+            }
+            
+            fxFile << "\n";
+        }
+        
+        fxFile <<  s_EndAutoSection + "\n";
+        
+        for (int i = 0; i < (int)zoneDef.epilogue.size(); ++i)
+            fxFile << zoneDef.epilogue[i] + "\n";
+        
+        fxFile << "ZoneEnd\n";
+        
+        for (int i = 0; i < (int)zoneDef.rawParams.size(); ++i)
+            fxFile << zoneDef.rawParams[i] + "\n";
+        
+        fxFile.close();
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// ActionContext
+//////////////////////////////////////////////////////////////////////////////
 void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
 {
     for (int i = 0; i < (int)colors.size(); ++i)
