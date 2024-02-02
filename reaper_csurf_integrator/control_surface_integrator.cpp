@@ -424,13 +424,13 @@ void ZoneManager::GetSteppedValues(vector<string> &params, string &deltaValue, v
         {
             string strVal = *(it);
             
-            if (csiMatch(strVal, "-?[0-9]+[.][0-9]+") || csiMatch(strVal, "-?[0-9]+"))
+            if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
                 steppedValues.push_back(strVal);
-            else if (csiMatch(strVal, "[(]-?[0-9]+[.][0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
                 deltaValue = csiReplace(strVal, "[()]", "");
-            else if (csiMatch(strVal, "[(]-?[0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
                 acceleratedTickValues.push_back(strVal);
-            else if (csiMatch(strVal, "[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
             {
                 istringstream acceleratedDeltaValueStream(strVal);
                 string tmp;
@@ -438,7 +438,7 @@ void ZoneManager::GetSteppedValues(vector<string> &params, string &deltaValue, v
                 while (getline(acceleratedDeltaValueStream, tmp, ','))
                     acceleratedDeltaValues.push_back(csiReplace(tmp, "[()]", "") + "  ");
             }
-            else if (csiMatch(strVal, "[(](-?[0-9]+[,])+-?[0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
             {
                 istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
                 string tickValue;
@@ -446,7 +446,7 @@ void ZoneManager::GetSteppedValues(vector<string> &params, string &deltaValue, v
                 while (getline(acceleratedTickValueStream, tickValue, ','))
                     acceleratedTickValues.push_back(tickValue + "  ");
             }
-            else if (csiMatch(strVal, "-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+") || csiMatch(strVal, "[0-9]+[-][0-9]+"))
+            else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
             {
                 istringstream range(strVal);
                 vector<string> range_tokens;
@@ -1340,7 +1340,7 @@ void ActionContext::SetColor(vector<string> &params, bool &supportsColor, bool &
             }
             else
             {
-                if (csiMatch(strVal, "[0-9]+"))
+                if (regex_match(strVal, regex("[0-9]+")))
                 {
                     int value = stoi(strVal);
                     value = value < 0 ? 0 : value;
@@ -1386,13 +1386,13 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
         {
             string strVal = *(it);
             
-            if (csiMatch(strVal, "-?[0-9]+[.][0-9]+") || csiMatch(strVal, "-?[0-9]+"))
+            if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
                 steppedValues.push_back(stod(strVal));
-            else if (csiMatch(strVal, "[(]-?[0-9]+[.][0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
                 deltaValue = stod(strVal.substr( 1, strVal.length() - 2 ));
-            else if (csiMatch(strVal, "[(]-?[0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
                 acceleratedTickValues.push_back(stoi(strVal.substr( 1, strVal.length() - 2 )));
-            else if (csiMatch(strVal, "[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
             {
                 istringstream acceleratedDeltaValueStream(strVal.substr( 1, strVal.length() - 2 ));
                 string tmp;
@@ -1400,7 +1400,7 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
                 while (getline(acceleratedDeltaValueStream, tmp, ','))
                     acceleratedDeltaValues.push_back(stod(tmp));
             }
-            else if (csiMatch(strVal, "[(](-?[0-9]+[,])+-?[0-9]+[)]"))
+            else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
             {
                 istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
                 string tickValue;
@@ -1408,7 +1408,7 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
                 while (getline(acceleratedTickValueStream, tickValue, ','))
                     acceleratedTickValues.push_back(stoi(tickValue));
             }
-            else if (csiMatch(strVal, "-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+") || csiMatch(strVal, "[0-9]+[-][0-9]+"))
+            else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("[0-9]+[-][0-9]+")))
             {
                 istringstream range(strVal);
                 vector<string> range_tokens;

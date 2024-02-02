@@ -120,9 +120,9 @@ public:
         if (tokens.size() != 2)
             return;
         
-        if (csiMatch(tokens[1], "(\\+|-)?[[:digit:]]+"))
+        if (regex_match(tokens[1], regex("(\\+|-)?[[:digit:]]+")))
             context->GetSurface()->SendOSCMessage(tokens[0], stoi(tokens[1]));
-        else if (csiMatch(tokens[1], "[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)"))
+        else if (regex_match(tokens[1], regex("[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)")))
             context->GetSurface()->SendOSCMessage(tokens[0], stod(tokens[1]));
         else
             context->GetSurface()->SendOSCMessage(tokens[0], tokens[1]);

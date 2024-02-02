@@ -182,7 +182,7 @@ public:
                     inDec = true;
                 else if (strVal == ">")
                     inDec = false;
-                else if (csiMatch(strVal, "[0-9A-Fa-f]+[-][0-9A-Fa-f]+"))
+                else if (regex_match(strVal, regex("[0-9A-Fa-f]+[-][0-9A-Fa-f]+")))
                 {
                     istringstream range(strVal);
                     vector<string> range_tokens;
