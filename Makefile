@@ -43,7 +43,7 @@ else
   CFLAGS += -O2 -DNDEBUG
 endif
 
-CXXFLAGS = $(CFLAGS) -std=c++17
+CXXFLAGS = $(CFLAGS) -std=c++03
 
 $(OBJS): $(SRC_PATH)/*.h
 
