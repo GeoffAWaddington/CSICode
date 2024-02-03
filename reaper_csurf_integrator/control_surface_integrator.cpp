@@ -118,13 +118,31 @@ void GetParamStepsValues(vector<double> &outputVector, int numSteps)
 
 void TrimLine(string &line)
 {
-    line = regex_replace(line, regex(s_TabChars), " ");
-    line = regex_replace(line, regex(s_CRLFChars), "");
-    
-    line = line.substr(0, line.find("//")); // remove trailing commewnts
-    
-    // Trim leading and trailing spaces
-    line = regex_replace(line, regex("^\\s+|\\s+$"), "", regex_constants::format_default);
+    const string tmp = line;
+    const char *p = tmp.c_str();
+
+    // remove leading and trailing spaces
+    // condense whitespace to single whitespace
+    // stop copying at "//" (comment)
+    line.clear();
+    for (;;)
+    {
+        // advance over whitespace
+        while (*p > 0 && isspace(*p))
+            p++;
+
+        if (!*p || (p[0] == '/' && p[1] == '/')) return;
+
+        if (line.length())
+            line.append(" ",1);
+
+        // copy non-whitespace to output
+        while (*p && (*p < 0 || !isspace(*p)))
+        {
+           if (p[0] == '/' && p[1] == '/') return; // existing behavior, maybe not ideal, but a comment can start anywhere
+           line.append(p++,1);
+        }
+    }
 }
 
 void GetTokens(vector<string> &tokens, const string &line)
