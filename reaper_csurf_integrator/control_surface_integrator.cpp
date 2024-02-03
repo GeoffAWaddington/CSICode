@@ -146,13 +146,13 @@ void TrimLine(string &line)
     }
 }
 
-void ReplaceAllWith(string &output, const string &input, string replaceWith, string replacement)
+void ReplaceAllWith(string &output, const string &input, string charsToReplace, string replacement)
 {
     // replace all occurences of
-    // any char in replaceWith
+    // any char in charsToReplace
     // with replacement string
 
-    string regExStr = "[" + replaceWith + "]";
+    string regExStr = "[" + charsToReplace + "]";
     
     output = regex_replace(input, regex(regExStr), replacement);
 }
