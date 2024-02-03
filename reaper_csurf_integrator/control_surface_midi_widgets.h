@@ -942,6 +942,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
 {
     s_encoderRingColors.clear();
     
+    // GAW TBD - remove leading and trailing quotes without regex
     string property = regex_replace(inputProperty, regex("\""), "");
     
     istringstream isstop(property);

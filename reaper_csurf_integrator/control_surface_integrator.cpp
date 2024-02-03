@@ -146,6 +146,44 @@ void TrimLine(string &line)
     }
 }
 
+string ReplaceAllWith(const string &line, string replaceWith, string replacement)
+{
+    // replace all occurences of
+    // any char in replaceWith
+    // with replacement string
+
+    string regExStr = "[" + replaceWith + "]";
+    
+    return regex_replace(line, regex(regExStr), replacement);
+    
+    
+    /*
+    const string tmp = line;
+    const char *p = tmp.c_str();
+
+    line.clear();
+    for (;;)
+    {
+        // advance over whitespace
+        while (*p > 0 && isspace(*p))
+            p++;
+
+        // a single / at the beginning of a line indicates a comment
+        if (!*p || p[0] == '/') return;
+
+        if (line.length())
+            line.append(" ",1);
+
+        // copy non-whitespace to output
+        while (*p && (*p < 0 || !isspace(*p)))
+        {
+           if (p[0] == '/' && p[1] == '/') return; // existing behavior, maybe not ideal, but a comment can start anywhere
+           line.append(p++,1);
+        }
+    }
+    */
+}
+
 void GetTokens(vector<string> &tokens, const string &line)
 {
     const char *rd = line.c_str();
@@ -812,10 +850,10 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             string surfaceWidgetName = widgetName;
                             
                             if (navigators.GetSize() > 1)
-                                surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(i + 1));
+                                surfaceWidgetName = ReplaceAllWith(surfaceWidgetName, "|", to_string(i + 1));
                             
                             if (enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
-                                surfaceWidgetName = regex_replace(surfaceWidgetName, regex("[|]"), to_string(enclosingZone->GetChannelNumber()));
+                                surfaceWidgetName = ReplaceAllWith(surfaceWidgetName, "|", to_string(enclosingZone->GetChannelNumber()));
                             
                             Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName);
                                                         
@@ -831,11 +869,11 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                 if (WDL_NOT_NORMALLY(actionTemplates == NULL)) continue;
                                 for (int j = 0; j < actionTemplates->GetSize(); ++j)
                                 {
-                                    string actionName = regex_replace(actionTemplates->Get(j)->actionName, regex("[|]"), numStr);
+                                    string actionName = ReplaceAllWith(actionTemplates->Get(j)->actionName, "|", numStr);
 
                                     vector<string> memberParams;
                                     for (int k = 0; k < actionTemplates->Get(j)->params.size(); k++)
-                                        memberParams.push_back(regex_replace(actionTemplates->Get(j)->params[k], regex("[|]"), numStr));
+                                        memberParams.push_back(ReplaceAllWith(actionTemplates->Get(j)->params[k], "|", numStr));
                                     
                                     ActionContext *context = csi_->GetActionContext(actionName, widget, zone, memberParams);
                                         
@@ -3522,7 +3560,7 @@ void ZoneManager::SaveTemplatedFXParams()
 
             GetAlias(learnFXName_.c_str(),alias);
             
-            path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
+            path += "/" + ReplaceAllWith(learnFXName_, s_BadFileChars, "_") + ".zon";
             
             CSIZoneInfo *info = new CSIZoneInfo();
             info->filePath = path;
@@ -3582,7 +3620,7 @@ void ZoneManager::SaveLearnedFXParams()
 
             GetAlias(learnFXName_.c_str(),alias);
             
-            path += "/" + regex_replace(learnFXName_, regex(s_BadFileChars), "_") + ".zon";
+            path += "/" + ReplaceAllWith(learnFXName_, s_BadFileChars, "_") + ".zon";
             
             CSIZoneInfo *info = new CSIZoneInfo();
             info->filePath = path;
@@ -4479,7 +4517,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     
     RecursiveCreateDirectory(path.c_str(),0);
     
-    path += "/" + regex_replace(fxName, regex(s_BadFileChars), "_") + ".zon";
+    path += "/" + ReplaceAllWith(fxName, s_BadFileChars, "_") + ".zon";
 
     string alias;
     GetAlias(fxName.c_str(),alias);
@@ -5528,7 +5566,7 @@ void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
 void OSC_ControlSurface::SendOSCMessage(const string &zoneName)
 {
     string oscAddress(zoneName);
-    oscAddress = regex_replace(oscAddress, regex(s_BadFileChars), "_");
+    oscAddress = ReplaceAllWith(oscAddress, s_BadFileChars, "_");
     oscAddress = "/" + oscAddress;
 
     surfaceIO_->SendOSCMessage(oscAddress);
