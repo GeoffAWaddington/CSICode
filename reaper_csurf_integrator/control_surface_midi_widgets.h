@@ -942,8 +942,8 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
 {
     s_encoderRingColors.clear();
     
-    string property;
-    ReplaceAllWith(property, inputProperty, "\"", "");
+    string property = inputProperty;
+    ReplaceAllWith(property, "\"", "");
     
     istringstream isstop(property);
     string colorDef = "";
