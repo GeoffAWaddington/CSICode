@@ -33,54 +33,57 @@ void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double>
     {
         for (vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
         {
-            const string &strVal = *(it);
+            const char *str = it->c_str();
 
-            if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+")) || regex_match(strVal, regex("-?[0-9]+")))
-                steppedValues.push_back(atof(strVal.c_str()));
-            else if (regex_match(strVal, regex("[(]-?[0-9]+[.][0-9]+[)]")))
-                deltaValue = atof(strVal.c_str()+1);
-            else if (regex_match(strVal, regex("[(]-?[0-9]+[)]")))
-                acceleratedTickValues.push_back(atoi(strVal.c_str()+1));
-            else if (regex_match(strVal, regex("[(](-?[0-9]+[.][0-9]+[,])+-?[0-9]+[.][0-9]+[)]")))
+            if (str[0] == '(' && str[strlen(str)-1] == ')')
             {
-                istringstream acceleratedDeltaValueStream(strVal.substr(1, strVal.length() - 2 ));
-                string tmp;
+                str++; // skip (
 
-                while (getline(acceleratedDeltaValueStream, tmp, ','))
-                    acceleratedDeltaValues.push_back(atof(tmp.c_str()));
-            }
-            else if (regex_match(strVal, regex("[(](-?[0-9]+[,])+-?[0-9]+[)]")))
-            {
-                istringstream acceleratedTickValueStream(strVal.substr( 1, strVal.length() - 2 ));
-                string tickValue;
+                // (1.0,2.0,3.0) -> acceleratedDeltaValues : mode = 2
+                // (1.0) -> deltaValue : mode = 1
+                // (1) or (1,2,3) -> acceleratedTickValues : mode = 0
+                const int mode = strstr(str, ".") ? strstr(str, ",") ? 2 : 1 : 0;
 
-                while (getline(acceleratedTickValueStream, tickValue, ','))
-                    acceleratedTickValues.push_back(atoi(tickValue.c_str()));
-            }
-            else if (regex_match(strVal, regex("-?[0-9]+[.][0-9]+[>]-?[0-9]+[.][0-9]+")))
-            {
-                istringstream range(strVal);
-                vector<string> range_tokens;
-                string range_token;
-
-                while (getline(range, range_token, '>'))
-                    range_tokens.push_back(range_token);
-
-                if (range_tokens.size() == 2)
+                while (*str)
                 {
-                    double firstValue = atof(range_tokens[0].c_str());
-                    double lastValue = atof(range_tokens[1].c_str());
-
-                    if (lastValue > firstValue)
+                    if (mode == 0)
                     {
-                        rangeMinimum = firstValue;
-                        rangeMaximum = lastValue;
+                        int v = 0;
+                        if (WDL_NOT_NORMALLY(sscanf(str, "%d", &v) != 1)) break;
+                        acceleratedTickValues.push_back(v);
                     }
                     else
                     {
-                        rangeMinimum = lastValue;
-                        rangeMaximum = firstValue;
+                        double v = 0.0;
+                        if (WDL_NOT_NORMALLY(sscanf(str,"%lf", &v) != 1)) break;
+                        if (mode == 1)
+                        {
+                            deltaValue = v;
+                            break;
+                        }
+                        acceleratedDeltaValues.push_back(v);
                     }
+
+                    while (*str && *str != ',') str++;
+                    if (*str == ',') str++;
+                }
+            }
+            // todo: support 1-3 syntax? else if (!strstr(str,".") && str[0] != '-' && strstr(str,"-"))
+            else
+            {
+                // 1.0>3.0 writes to rangeMinimum/rangeMaximum
+                // 1 or 1.0 -> steppedValues
+                double a = 0.0, b = 0.0;
+                const int nmatch = sscanf(str, "%lf>%lf", &a, &b);
+
+                if (nmatch == 2)
+                {
+                    rangeMinimum = wdl_min(a,b);
+                    rangeMaximum = wdl_max(a,b);
+                }
+                else if (WDL_NORMALLY(nmatch == 1))
+                {
+                    steppedValues.push_back(a);
                 }
             }
         }
