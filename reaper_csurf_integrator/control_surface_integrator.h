@@ -4899,9 +4899,14 @@ public:
     
     void Speak(string phrase)
     {
-        const void (*osara_outputMessage)(const char *message) = NULL;
+        static void (*osara_outputMessage)(const char *message);
+        static bool chk;
     
-        osara_outputMessage = (decltype(osara_outputMessage))plugin_getapi("osara_outputMessage");
+        if (!chk)
+        {
+            *(void **)&osara_outputMessage = plugin_getapi("osara_outputMessage");
+            chk = true;
+        }
 
         if (osara_outputMessage)
             osara_outputMessage(phrase.c_str());
