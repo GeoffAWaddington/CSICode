@@ -166,7 +166,7 @@ struct Storage {
   const char *begin() const { return data.size() ? &data.front() : 0; }
   const char *end() const { return begin() + size(); }
   size_t size() const { return data.size(); }
-  void assign(const char *beg, const char *end) { data.assign(beg, end); }
+  void assign(const char *beg, const char *endv) { data.assign(beg, endv); }
   void clear() { data.resize(0); }
 };
 
