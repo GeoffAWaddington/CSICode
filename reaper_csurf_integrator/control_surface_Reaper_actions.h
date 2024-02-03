@@ -49,7 +49,7 @@ public:
     
         LearnInfo *info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
-        if (info == nullptr)
+        if (info == NULL)
             return 0.0;
         
         int trackNum;
@@ -65,7 +65,7 @@ public:
     {
         LearnInfo *info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
-        if (info == nullptr)
+        if (info == NULL)
         {
             context->ClearWidget();
             return;
@@ -1430,7 +1430,7 @@ public:
         {
             MediaTrack *currentTrack = context->GetPage()->GetTrackFromId(i);
            
-            if (currentTrack == nullptr)
+            if (currentTrack == NULL)
                 continue;
             
             if (currentTrack == context->GetTrack())
@@ -1453,7 +1453,7 @@ public:
         {
             MediaTrack *currentTrack = context->GetPage()->GetTrackFromId(i);
             
-            if (currentTrack == nullptr)
+            if (currentTrack == NULL)
                 continue;
             
             if (context->GetPage()->GetIsTrackVisible(currentTrack))
@@ -1462,7 +1462,7 @@ public:
         
         MediaTrack *lowestTrack = context->GetPage()->GetTrackFromId(lowerBound);
         
-        if (lowestTrack != nullptr)
+        if (lowestTrack != NULL)
             context->GetPage()->OnTrackSelectionBySurface(lowestTrack);
     }
 };
@@ -3284,7 +3284,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        return DAW::AnyTrackSolo(nullptr);
+        return DAW::AnyTrackSolo(NULL);
     }
 
     void RequestUpdate(ActionContext *context) override
@@ -3413,7 +3413,7 @@ public:
 
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        return DAW::GetSetRepeatEx(nullptr, -1);
+        return DAW::GetSetRepeatEx(NULL, -1);
     }
 
     virtual void RequestUpdate(ActionContext *context) override
@@ -3425,7 +3425,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        DAW::GetSetRepeatEx(nullptr, ! DAW::GetSetRepeatEx(nullptr, -1));
+        DAW::GetSetRepeatEx(NULL, ! DAW::GetSetRepeatEx(NULL, -1));
     }
 };
 
@@ -3637,7 +3637,7 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {           
-            if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if (DAW::AnyTrackSolo(NULL) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(DAW::Track_GetPeakInfo(track, context->GetIntParam())));
@@ -3660,7 +3660,7 @@ public:
         {
             double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
             
-            if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if (DAW::AnyTrackSolo(NULL) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3706,7 +3706,7 @@ public:
             {
                 double lrVol = (DAW::Track_GetPeakInfo(track, 0) + DAW::Track_GetPeakInfo(track, 1)) / 2.0;
                 
-                if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+                if (DAW::AnyTrackSolo(NULL) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                     context->ClearWidget();
                 else
                     context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3746,7 +3746,7 @@ public:
             
             double lrVol =  lVol > rVol ? lVol : rVol;
             
-            if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+            if (DAW::AnyTrackSolo(NULL) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                 context->ClearWidget();
             else
                 context->UpdateWidgetValue(volToNormalized(lrVol));
@@ -3795,7 +3795,7 @@ public:
                 
                 double lrVol =  lVol > rVol ? lVol : rVol;
                 
-                if (DAW::AnyTrackSolo(nullptr) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
+                if (DAW::AnyTrackSolo(NULL) && ! DAW::GetMediaTrackInfo_Value(track, "I_SOLO"))
                     context->ClearWidget();
                 else
                     context->UpdateWidgetValue(volToNormalized(lrVol));

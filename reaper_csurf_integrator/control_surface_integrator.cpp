@@ -208,7 +208,7 @@ void GetTokens(vector<string> &tokens, const string &line)
 
 int strToHex(const string &valueStr)
 {
-    return strtol(valueStr.c_str(), nullptr, 16);
+    return strtol(valueStr.c_str(), NULL, 16);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,7 +306,7 @@ struct OSCSurfaceSocket
     OSCSurfaceSocket()
     {
         surfaceName = "";
-        socket = nullptr;
+        socket = NULL;
     }
 };
 
@@ -332,7 +332,7 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
         if (! newInputSocket->isOk())
         {
             //cerr << "Error opening port " << PORT_NUM << ": " << inSocket_.errorMessage() << "\n";
-            return nullptr;
+            return NULL;
         }
         
         OSCSurfaceSocket surfaceSocket;
@@ -341,10 +341,10 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
         if (s_inputSockets.Add(surfaceSocket))
             return newInputSocket;
         else
-            return nullptr;
+            return NULL;
     }
     
-    return nullptr;
+    return NULL;
 }
 
 static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
@@ -361,13 +361,13 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
         if ( ! newOutputSocket->connectTo(address, outputPort))
         {
             //cerr << "Error connecting " << remoteDeviceIP_ << ": " << outSocket_.errorMessage() << "\n";
-            return nullptr;
+            return NULL;
         }
         
         if ( ! newOutputSocket->isOk())
         {
             //cerr << "Error opening port " << outPort_ << ": " << outSocket_.errorMessage() << "\n";
-            return nullptr;
+            return NULL;
         }
 
         OSCSurfaceSocket surfaceSocket;
@@ -376,10 +376,10 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
         if (s_outputSockets.Add(surfaceSocket))
             return newOutputSocket;
         else
-            return nullptr;
+            return NULL;
     }
     
-    return nullptr;
+    return NULL;
 }
 
 void ShutdownOSCIO()
@@ -811,7 +811,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                                 
                         Zone *zone;
                         
-                        if (enclosingZone == nullptr)
+                        if (enclosingZone == NULL)
                             zone = new Zone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
                             zone = new SubZone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
@@ -835,7 +835,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             if (navigators.GetSize() > 1)
                                 ReplaceAllWith(surfaceWidgetName, "|", to_string(i + 1).c_str());
                             
-                            if (enclosingZone != nullptr && enclosingZone->GetChannelNumber() != 0)
+                            if (enclosingZone != NULL && enclosingZone->GetChannelNumber() != 0)
                                 ReplaceAllWith(surfaceWidgetName, "|", to_string(enclosingZone->GetChannelNumber()).c_str());
                             
                             Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName);
@@ -896,7 +896,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             }
                         }
                     
-                        if (enclosingZone == nullptr && subZones.size() > 0)
+                        if (enclosingZone == NULL && subZones.size() > 0)
                             zone->InitSubZones(subZones, zone);
                         allZonesNeedFree_.Add(zone);
                     }
@@ -1090,8 +1090,8 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         
         string widgetType = tokenLines[i][0];
 
-        MIDI_event_ex_t *message1 = nullptr;
-        MIDI_event_ex_t *message2 = nullptr;
+        MIDI_event_ex_t *message1 = NULL;
+        MIDI_event_ex_t *message2 = NULL;
 
         int oneByteKey = 0;
         int twoByteKey = 0;
@@ -1444,7 +1444,7 @@ void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
                                 accelerationValuesForDecrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
                             
                             if (accelerationValuesForDecrement_.Exists(widgetClass))
-                                accelerationValuesForDecrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), nullptr, 16), j - 2);
+                                accelerationValuesForDecrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
                         }
                     else if (lines[i][1] == "Inc")
                         for (int j = 2; j < lines[i].size(); j++)
@@ -1453,7 +1453,7 @@ void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
                                 accelerationValuesForIncrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
                             
                             if (accelerationValuesForIncrement_.Exists(widgetClass))
-                                accelerationValuesForIncrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), nullptr, 16), j - 2);
+                                accelerationValuesForIncrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
                         }
                     else if (lines[i][1] == "Val")
                         for (int j = 2; j < lines[i].size(); j++)
@@ -1744,7 +1744,7 @@ void CSurfIntegrator::Init()
     
     string currentBroadcaster = "";
     
-    Page *currentPage = nullptr;
+    Page *currentPage = NULL;
     
     string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
     
@@ -1801,7 +1801,7 @@ void CSurfIntegrator::Init()
                     bool isScrollLinkEnabled = false;
                     bool isScrollSynchEnabled = false;
 
-                    currentPage = nullptr;
+                    currentPage = NULL;
                     
                     if (tokens.size() > 1)
                     {
@@ -1830,8 +1830,8 @@ void CSurfIntegrator::Init()
                 }
                 else if (currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
                 {
-                    ControlSurface *broadcaster = nullptr;
-                    ControlSurface *listener = nullptr;
+                    ControlSurface *broadcaster = NULL;
+                    ControlSurface *listener = NULL;
 
                     for (int i = 0; i < currentPage->GetSurfaces().GetSize(); ++i)
                     {
@@ -1841,7 +1841,7 @@ void CSurfIntegrator::Init()
                             listener = currentPage->GetSurfaces().Get(i);
                     }
                     
-                    if (broadcaster != nullptr && listener != nullptr)
+                    if (broadcaster != NULL && listener != NULL)
                     {
                         broadcaster->GetZoneManager()->AddListener(listener);
                         listener->GetZoneManager()->SetListenerCategories(tokens[2]);
@@ -1949,7 +1949,7 @@ MediaTrack *FocusedFXNavigator::GetTrack()
     if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex) == 1) // Track FX
         return DAW::GetTrack(trackNumber);
     else
-        return nullptr;
+        return NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2405,7 +2405,7 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
                   az->Empty();
                 }
                 
-                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath, navigators, *az, nullptr);
+                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath, navigators, *az, NULL);
             }
         }
     }
@@ -2417,7 +2417,7 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
             WDL_PtrList<Navigator> navigators;
             AddNavigatorsForZone(includedZones[i], navigators);
             
-            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(includedZones[i].c_str())->filePath, navigators, includedZones_, nullptr);
+            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(includedZones[i].c_str())->filePath, navigators, includedZones_, NULL);
         }
     }
 }
@@ -3160,9 +3160,9 @@ void ZoneManager::Initialize()
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
     WDL_PtrList<Zone> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
-    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath, navigators, dummy, nullptr);
+    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath, navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
-        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath, navigators, dummy, nullptr);
+        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath, navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("SurfaceFXLayout"))
         ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, surfaceFXLayout_, surfaceFXLayoutTemplate_);
     if (zoneFilePaths_.Exists("FXLayouts"))
@@ -3285,7 +3285,7 @@ void ZoneManager::GoFocusedFX()
     int trackNumber = 0;
     int itemNumber = 0;
     int fxSlot = 0;
-    MediaTrack *focusedTrack = nullptr;
+    MediaTrack *focusedTrack = NULL;
     
     if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
     {
@@ -3305,7 +3305,7 @@ void ZoneManager::GoFocusedFX()
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetSurface()->GetPage()->GetFocusedFXNavigator());
             
-            LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath, navigators, focusedFXZones_, nullptr);
+            LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath, navigators, focusedFXZones_, NULL);
             
             for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
             {
@@ -3324,7 +3324,7 @@ void ZoneManager::GoFocusedFX()
 
 void ZoneManager::GoSelectedTrackFX()
 {
-    if (homeZone_ != nullptr)
+    if (homeZone_ != NULL)
     {
         ClearFXMapping();
         ResetOffsets();
@@ -3346,7 +3346,7 @@ void ZoneManager::GoSelectedTrackFX()
             {
                 WDL_PtrList<Navigator> navigators;
                 navigators.Add(GetSurface()->GetPage()->GetSelectedTrackNavigator());
-                LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath, navigators, selectedTrackFXZones_, nullptr);
+                LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath, navigators, selectedTrackFXZones_, NULL);
                 
                 selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->SetSlotIndex(i);
                 selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->Activate();
@@ -3361,7 +3361,7 @@ void ZoneManager::AutoMapFocusedFX()
     int trackNumber = 0;
     int itemNumber = 0;
     int fxSlot = 0;
-    MediaTrack *track = nullptr;
+    MediaTrack *track = NULL;
     
     if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
     {
@@ -3381,7 +3381,7 @@ void ZoneManager::AutoMapFocusedFX()
 
 void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
 {
-    if (homeZone_ != nullptr)
+    if (homeZone_ != NULL)
     {
         ClearFXMapping();
         ResetOffsets();
@@ -3447,7 +3447,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
         WDL_PtrList<Navigator> navigators;
         navigators.Add(navigator);
         
-        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath, navigators, fxSlotZones_, nullptr);
+        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath, navigators, fxSlotZones_, NULL);
         
         if (fxSlotZones_.GetSize() > 0)
         {
@@ -3455,7 +3455,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
         }
     }
-    else if (noMapZone_ != nullptr)
+    else if (noMapZone_ != NULL)
     {
         DAW::TrackFX_SetOpen(track, fxSlot, true);
         
@@ -3467,7 +3467,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 
 void ZoneManager::UpdateCurrentActionContextModifiers()
 {    
-    if (focusedFXParamZone_ != nullptr)
+    if (focusedFXParamZone_ != NULL)
         focusedFXParamZone_->UpdateCurrentActionContextModifiers();
     
     for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
@@ -3479,15 +3479,15 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
         fxSlotZones_.Get(i)->UpdateCurrentActionContextModifiers();
     
-    if (homeZone_ != nullptr)
+    if (homeZone_ != NULL)
         homeZone_->UpdateCurrentActionContextModifiers();
 }
 
 void ZoneManager::EraseLastTouchedControl()
 {
-    if (lastTouched_ != nullptr)
+    if (lastTouched_ != NULL)
     {
-        if (fxLayout_ != nullptr && fxLayoutFileLines_.size() > 0)
+        if (fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
         {
             Widget *widget = lastTouched_->fxParamWidget;
             if (widget)
@@ -3506,16 +3506,16 @@ void ZoneManager::EraseLastTouchedControl()
         lastTouched_->paramNumber = 0;
         lastTouched_->paramName = "";
         lastTouched_->params = "";
-        lastTouched_->track = nullptr;
+        lastTouched_->track = NULL;
         lastTouched_->fxSlotNum = 0;
         
-        lastTouched_ = nullptr;
+        lastTouched_ = NULL;
     }
 }
 
 void ZoneManager::SaveTemplatedFXParams()
 {
-    if (learnFXName_ != "" && fxLayout_ != nullptr && fxLayoutFileLines_.size() > 0)
+    if (learnFXName_ != "" && fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
     {
         size_t pos = 0;
         while ((pos = fxLayoutFileLines_[0].find(fxLayout_->GetName(), pos)) != std::string::npos)
@@ -3667,7 +3667,7 @@ void ZoneManager::SaveLearnedFXParams()
                         {
                             LearnInfo *info = GetLearnInfo(cell->fxParamWidgets.Get(i), modifier);
                             
-                            if (info == nullptr)
+                            if (info == NULL)
                                 continue;
                             
                             if (info->isLearned)
@@ -3767,12 +3767,12 @@ void ZoneManager::InitializeNoMapZone()
         
         WDL_PtrList<Zone> zones;
         
-        LoadZoneFile(GetZoneFilePaths().Get("NoMap")->filePath, navigators, zones, nullptr);
+        LoadZoneFile(GetZoneFilePaths().Get("NoMap")->filePath, navigators, zones, NULL);
         
         if (zones.GetSize() > 0)
             noMapZone_ = zones.Get(0);
         
-        if (noMapZone_ != nullptr)
+        if (noMapZone_ != NULL)
         {
             const WDL_PointerKeyedArray<Widget*, bool> &wl = noMapZone_->GetWidgets();
             WDL_PointerKeyedArray<Widget*, bool> usedWidgets;
@@ -3813,7 +3813,7 @@ void ZoneManager::InitializeNoMapZone()
                     noMapZone_->AddActionContext(widget, modifier, context);
 
                     widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
-                    if (widget == nullptr || usedWidgets.Exists(widget))
+                    if (widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
                     context = csi_->GetActionContext("NoAction", widget, noMapZone_, 0);
@@ -3840,7 +3840,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
     if (surfaceFXLayout_.size() != 3)
         return;
     
-    if (homeZone_ != nullptr)
+    if (homeZone_ != NULL)
     {
         Zone *zone = homeZone_->GetLearnFXParamsZone();
         if (zone)
@@ -4003,10 +4003,10 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
 
 void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 {
-    if (noMapZone_ != nullptr)
+    if (noMapZone_ != NULL)
         noMapZone_->Deactivate();
 
-    if (homeZone_ != nullptr)
+    if (homeZone_ != NULL)
     {
         ClearFXMapping();
 
@@ -4019,7 +4019,7 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
         
         fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
         
-        if (zoneFilePaths_.Exists(zoneName) && fxLayout_ != nullptr)
+        if (zoneFilePaths_.Exists(zoneName) && fxLayout_ != NULL)
         {
             ifstream file(zoneFilePaths_.Get(zoneName)->filePath);
             
@@ -4087,11 +4087,11 @@ void ZoneManager::WidgetMoved(ActionContext *context)
     if (context->GetZone() != fxLayout_)
         return;
     
-    MediaTrack *track = nullptr;
+    MediaTrack *track = NULL;
     
     LearnInfo *info = GetLearnInfo(context->GetWidget());
     
-    if (info == nullptr)
+    if (info == NULL)
         return;
     
     if (! info->isLearned)
@@ -4104,7 +4104,7 @@ void ZoneManager::WidgetMoved(ActionContext *context)
         {
             track = DAW::GetTrack(trackNum);
             
-            if (track == nullptr)
+            if (track == NULL)
                 return;
             
             char fxName[BUFSZ];
@@ -4215,7 +4215,7 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                     {
                         LearnInfo *info = GetLearnInfo(widget);
                         
-                        if (info != nullptr && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
+                        if (info != NULL && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
                             replacementString += " " + info->params + " ";
                     }
                     
@@ -4238,11 +4238,11 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
     int fxSlotNum = 0;
     int fxParamNum = 0;
 
-    MediaTrack *track = nullptr;
+    MediaTrack *track = NULL;
     
     LearnInfo *info = GetLearnInfo(context->GetWidget());
     
-    if (info == nullptr)
+    if (info == NULL)
         return;
     
     if (! info->isLearned)
@@ -4313,7 +4313,7 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                         widgetInfo->paramNumber = 0;
                         widgetInfo->paramName = "";
                         widgetInfo->params = "";
-                        widgetInfo->track = nullptr;
+                        widgetInfo->track = NULL;
                         widgetInfo->fxSlotNum = 0;
                     }
                 }
@@ -4359,7 +4359,7 @@ void ZoneManager::RemapAutoZone()
             fxSlotZones_.Empty();
             
             PreProcessZoneFile(filePath, this);
-            LoadZoneFile(filePath, navigators, fxSlotZones_, nullptr);
+            LoadZoneFile(filePath, navigators, fxSlotZones_, NULL);
             
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(slotNumber);
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
@@ -4752,7 +4752,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         WDL_PtrList<Navigator> navigators;
         navigators.Add(GetSelectedTrackNavigator());
         
-        LoadZoneFile(zoneFilePaths_.Get(fxName.c_str())->filePath, navigators, fxSlotZones_, nullptr);
+        LoadZoneFile(zoneFilePaths_.Get(fxName.c_str())->filePath, navigators, fxSlotZones_, NULL);
         
         if (fxSlotZones_.GetSize() > 0)
         {
@@ -4771,7 +4771,7 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     
     bool isUsed = false;
     
-    if (focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
         focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
     for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
@@ -4792,7 +4792,7 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     if (isUsed)
         return;
 
-    if (homeZone_ != nullptr)
+    if (homeZone_ != NULL)
         homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 }
 
@@ -4806,7 +4806,7 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ModifierManager::RecalculateModifiers()
 {
-    if (surface_ == nullptr && page_ == nullptr)
+    if (surface_ == NULL && page_ == NULL)
         return;
     
     if (modifierCombinations_.ResizeOK(1,false))
@@ -4825,9 +4825,9 @@ void ModifierManager::RecalculateModifiers()
         qsort(modifierCombinations_.Get(), modifierCombinations_.GetSize(), sizeof(modifierCombinations_.Get()[0]), intcmp_rev);
     }
     
-    if (surface_ != nullptr)
+    if (surface_ != NULL)
         surface_->GetZoneManager()->UpdateCurrentActionContextModifiers();
-    else if (page_ != nullptr)
+    else if (page_ != NULL)
         page_->UpdateCurrentActionContextModifiers();
 }
 
@@ -5060,7 +5060,7 @@ void ControlSurface::RequestUpdate()
         
     else if (isFastForwarding_)
     {
-        if (DAW::GetCursorPosition() > DAW::GetProjectLength(nullptr))
+        if (DAW::GetCursorPosition() > DAW::GetProjectLength(NULL))
             StopFastForwarding();
         else
         {
@@ -5464,8 +5464,8 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
 OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const string &surfaceName, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress) : csi_(csi), name_(surfaceName)
 {
     // private:
-    inSocket_ = nullptr;
-    outSocket_ = nullptr;
+    inSocket_ = NULL;
+    outSocket_ = NULL;
     X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
     X32HeartBeatLastRefreshTime_ = 0.0;
 
@@ -5494,7 +5494,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const str
 
  void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
  {
-    if (inSocket_ != nullptr && inSocket_->isOk())
+    if (inSocket_ != NULL && inSocket_->isOk())
     {
         while (inSocket_->receiveNextPacket(0))  // timeout, in ms
         {

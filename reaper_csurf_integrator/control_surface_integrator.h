@@ -436,7 +436,7 @@ public:
     virtual ~Navigator() {}
     
     virtual const char *GetName() { return "Navigator"; }
-    virtual MediaTrack *GetTrack() { return nullptr; }
+    virtual MediaTrack *GetTrack() { return NULL; }
     virtual int GetChannelNum() { return 0; }
 
     bool GetIsNavigatorTouched() { return isVolumeTouched_ || isPanTouched_ || isPanWidthTouched_ || isPanLeftTouched_ || isPanRightTouched_; }
@@ -1271,7 +1271,7 @@ struct LearnInfo
         paramNumber = 0;
         paramName = "";
         params = "";
-        track = nullptr;
+        track = NULL;
         fxSlotNum = 0;
 
     }
@@ -1408,7 +1408,7 @@ private:
         int trackNumber = 0;
         int itemNumber = 0;
         int fxSlot = 0;
-        MediaTrack *track = nullptr;
+        MediaTrack *track = NULL;
         
         if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
         {
@@ -1435,7 +1435,7 @@ private:
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1452,7 +1452,7 @@ private:
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1478,7 +1478,7 @@ private:
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1501,7 +1501,7 @@ private:
     {
         if (listensToSends_)
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1515,7 +1515,7 @@ private:
     {
         if (listensToReceives_)
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1529,7 +1529,7 @@ private:
     {
         if (listensToCustom_)
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1543,7 +1543,7 @@ private:
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1560,7 +1560,7 @@ private:
     {
         if (listensToFXMenu_)
         {
-            if (homeZone_ != nullptr)
+            if (homeZone_ != NULL)
             {
                 ClearFXMapping();
                 ResetOffsets();
@@ -1610,7 +1610,7 @@ private:
     {
         isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
         
-        if (focusedFXParamZone_ != nullptr)
+        if (focusedFXParamZone_ != NULL)
         {
             if (isFocusedFXParamMappingEnabled_)
                 focusedFXParamZone_->Activate();
@@ -1638,10 +1638,10 @@ private:
 
     void ClearFocusedFXParam()
     {
-        if (focusedFXParamZone_ != nullptr)
+        if (focusedFXParamZone_ != NULL)
         {
             focusedFXParamZone_->Deactivate();
-            focusedFXParamZone_ = nullptr;
+            focusedFXParamZone_ = NULL;
         }
     }
     
@@ -1674,7 +1674,7 @@ private:
             {
                 fxSlotZones_.Get(i)->Deactivate();
                 fxSlotZones_.Delete(i);
-                if (homeZone_ != nullptr)
+                if (homeZone_ != NULL)
                     homeZone_->ReactivateFXMenuZone();
                 needGarbageCollect_ = true;
                 break;
@@ -1801,7 +1801,7 @@ public:
         masterTrackFXMenuOffset_ = 0;
         
         learnFXName_ = "";
-        lastTouched_ = nullptr;
+        lastTouched_ = NULL;
     }
 
     ~ZoneManager()
@@ -1916,7 +1916,7 @@ public:
         
     void ClearLearnedFXParams()
     {
-        fxLayout_ = nullptr;
+        fxLayout_ = NULL;
         fxLayoutFileLines_.clear();
         fxLayoutFileLinesOriginal_.clear();
         paramList_.clear();
@@ -1934,13 +1934,13 @@ public:
                     info->paramNumber = 0;
                     info->paramName = "";
                     info->params = "";
-                    info->track = nullptr;
+                    info->track = NULL;
                     info->fxSlotNum = 0;
                 }
             }
         }
         
-        lastTouched_ = nullptr;
+        lastTouched_ = NULL;
     }
         
     void DeclareClearFocusedFXParam()
@@ -1968,7 +1968,7 @@ public:
               
     void GoAssociatedZone(const char *zoneName)
     {
-        if (noMapZone_ != nullptr)
+        if (noMapZone_ != NULL)
             noMapZone_->Deactivate();
         
         if (!strcmp(zoneName, "SelectedTrackSend"))
@@ -1983,7 +1983,7 @@ public:
             GoLearnFXParams();
         else if (!strncmp(zoneName, "Custom",6))
             DeclareGoCustom(zoneName);
-        else if (homeZone_ != nullptr)
+        else if (homeZone_ != NULL)
         {
             ClearFXMapping();
             ResetOffsets();
@@ -2006,10 +2006,10 @@ public:
 
         ClearFXMapping();
 
-        if (noMapZone_ != nullptr && noMapZone_->GetIsActive())
+        if (noMapZone_ != NULL && noMapZone_->GetIsActive())
             noMapZone_->Deactivate();
         
-        if (homeZone_ != nullptr)
+        if (homeZone_ != NULL)
         {
             ResetOffsets();
             homeZone_->Activate();
@@ -2033,7 +2033,7 @@ public:
 
     void OnTrackDeselection()
     {
-        if (homeZone_ != nullptr)
+        if (homeZone_ != NULL)
         {
             ResetSelectedTrackOffsets();
             
@@ -2065,7 +2065,7 @@ public:
 
     bool GetIsHomeZoneOnlyActive()
     {
-        if (homeZone_ !=  nullptr)
+        if (homeZone_ !=  NULL)
             return homeZone_->GetIsMainZoneOnlyActive();
         else
             return false;
@@ -2073,7 +2073,7 @@ public:
     
     bool GetIsAssociatedZoneActive(const string &zoneName)
     {
-        if (homeZone_ !=  nullptr)
+        if (homeZone_ !=  NULL)
             return homeZone_->GetIsAssociatedZoneActive(zoneName);
         else
             return false;
@@ -2122,16 +2122,16 @@ public:
     {
         CheckFocusedFXState();
             
-        if (noMapZone_ != nullptr)
+        if (noMapZone_ != NULL)
             noMapZone_->RequestUpdate();
         
-        if (homeZone_ != nullptr && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
+        if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
         {
             homeZone_->RequestUpdate();
             homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate();
         }
 
-        if (focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate();
 
         for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
@@ -2143,7 +2143,7 @@ public:
         for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
             fxSlotZones_.Get(i)->RequestUpdate();
         
-        if (homeZone_ != nullptr)
+        if (homeZone_ != NULL)
             homeZone_->RequestUpdate();
                 
         GarbageCollectZones();
@@ -2156,10 +2156,10 @@ public:
         
         bool isUsed = false;
         
-        if (noMapZone_ != nullptr && noMapZone_->GetIsActive())
+        if (noMapZone_ != NULL && noMapZone_->GetIsActive())
             noMapZone_->DoAction(widget, isUsed, value);
         
-        if (focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoAction(widget, isUsed, value);
 
         for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
@@ -2180,7 +2180,7 @@ public:
         if (isUsed)
             return;
 
-        if (homeZone_ != nullptr)
+        if (homeZone_ != NULL)
             homeZone_->DoAction(widget, isUsed, value);
     }
     
@@ -2191,7 +2191,7 @@ public:
         
         bool isUsed = false;
         
-        if (focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
 
         for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
@@ -2212,7 +2212,7 @@ public:
         if (isUsed)
             return;
 
-        if (homeZone_ != nullptr)
+        if (homeZone_ != NULL)
             homeZone_->DoRelativeAction(widget, isUsed, delta);
     }
     
@@ -2223,7 +2223,7 @@ public:
         
         bool isUsed = false;
            
-        if (focusedFXParamZone_ != nullptr && isFocusedFXParamMappingEnabled_)
+        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
         for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
@@ -2244,7 +2244,7 @@ public:
         if (isUsed)
             return;
 
-        if (homeZone_ != nullptr)
+        if (homeZone_ != NULL)
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
@@ -2990,7 +2990,7 @@ protected:
         accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
     {
         //private:
-        scrubModePtr_ = nullptr;
+        scrubModePtr_ = NULL;
         configScrubMode_ = 0;
 
         isRewinding_ = false;
@@ -3438,13 +3438,13 @@ protected:
 public:
     ~Midi_FeedbackProcessor()
     {
-        if (lastMessageSent_ != nullptr)
+        if (lastMessageSent_ != NULL)
             delete lastMessageSent_;
         
-        if (midiFeedbackMessage1_ != nullptr)
+        if (midiFeedbackMessage1_ != NULL)
             delete midiFeedbackMessage1_;
         
-        if (midiFeedbackMessage2_ != nullptr)
+        if (midiFeedbackMessage2_ != NULL)
             delete midiFeedbackMessage2_;
     }
     
@@ -3609,7 +3609,7 @@ public:
     
     void SendOSCMessage(const string &oscAddress, double value)
     {
-        if (outSocket_ != nullptr && outSocket_->isOk())
+        if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
             message.init(oscAddress).pushFloat((float)value);
@@ -3620,7 +3620,7 @@ public:
     
     void SendOSCMessage(const string &oscAddress, int value)
     {
-        if (outSocket_ != nullptr && outSocket_->isOk())
+        if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
             message.init(oscAddress).pushInt32(value);
@@ -3631,7 +3631,7 @@ public:
     
     void SendOSCMessage(const string &oscAddress, string value)
     {
-        if (outSocket_ != nullptr && outSocket_->isOk())
+        if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
             message.init(oscAddress).pushStr(value);
@@ -3642,7 +3642,7 @@ public:
     
     void SendOSCMessage(const string &value)
     {
-        if (outSocket_ != nullptr && outSocket_->isOk())
+        if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
             message.init(value);
@@ -3748,7 +3748,7 @@ protected:
         // Make sure selected track is visble on the control surface
         MediaTrack *selectedTrack = GetSelectedTrack();
         
-        if (selectedTrack != nullptr)
+        if (selectedTrack != NULL)
         {
             for (int i = 0; i < trackNavigators_.GetSize(); ++i)
                 if (selectedTrack == trackNavigators_.Get(i)->GetTrack())
@@ -3795,8 +3795,8 @@ public:
         vcaTrackOffset_ = 0;
         folderTrackOffset_ = 0;
         selectedTracksOffset_ = 0;
-        vcaLeadTrack_ = nullptr;
-        folderParentTrack_ = nullptr;
+        vcaLeadTrack_ = NULL;
+        folderParentTrack_ = NULL;
     }
     ~TrackNavigationManager()
     {
@@ -4094,16 +4094,16 @@ public:
             if (channelNumber + trackOffset_ < GetNumTracks() && channelNumber + trackOffset_ < tracks_.GetSize())
                 return tracks_.Get(channelNumber + trackOffset_);
             else
-                return nullptr;
+                return NULL;
         }
         else if (currentTrackVCAFolderMode_ == 1)
         {
-            if (vcaLeadTrack_ == nullptr)
+            if (vcaLeadTrack_ == NULL)
             {
                 if (channelNumber < vcaTopLeadTracks_.GetSize() && DAW::ValidateTrackPtr(vcaTopLeadTracks_.Get(channelNumber)))
                     return vcaTopLeadTracks_.Get(channelNumber);
                 else
-                    return nullptr;
+                    return NULL;
             }
             else
             {
@@ -4122,12 +4122,12 @@ public:
         }
         else if (currentTrackVCAFolderMode_ == 2)
         {
-            if (folderParentTrack_ == nullptr)
+            if (folderParentTrack_ == NULL)
             {
                 if (channelNumber < folderTopParentTracks_.GetSize() && DAW::ValidateTrackPtr(folderTopParentTracks_.Get(channelNumber)))
                     return folderTopParentTracks_.Get(channelNumber);
                 else
-                    return nullptr;
+                    return NULL;
             }
             else
             {
@@ -4147,12 +4147,12 @@ public:
         else if (currentTrackVCAFolderMode_ == 3)
         {
             if (channelNumber + selectedTracksOffset_ >= selectedTracks_.GetSize())
-                return nullptr;
+                return NULL;
             else
                 return selectedTracks_.Get(channelNumber + selectedTracksOffset_);
         }
         
-        return nullptr;
+        return NULL;
     }
     
     MediaTrack *GetTrackFromId(int trackNumber)
@@ -4160,7 +4160,7 @@ public:
         if (trackNumber <= GetNumTracks())
             return DAW::CSurf_TrackFromID(trackNumber, followMCP_);
         else
-            return nullptr;
+            return NULL;
     }
     
     int GetIdFromTrack(MediaTrack *track)
@@ -4170,7 +4170,7 @@ public:
     
     bool GetIsVCASpilled(MediaTrack *track)
     {
-        if (vcaLeadTrack_ == nullptr && (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0))
+        if (vcaLeadTrack_ == NULL && (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 || DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0))
             return true;
         else if (vcaLeadTrack_ == track)
             return true;
@@ -4194,9 +4194,9 @@ public:
                 vcaLeadTracks_.Delete(vcaLeadTracks_.GetSize() - 1);
             }
             else
-                vcaLeadTrack_ = nullptr;
+                vcaLeadTrack_ = NULL;
         }
-        else if (vcaLeadTrack_ != nullptr)
+        else if (vcaLeadTrack_ != NULL)
         {
             vcaLeadTracks_.Add(vcaLeadTrack_);
             vcaLeadTrack_ = track;
@@ -4236,9 +4236,9 @@ public:
                 folderParentTracks_.Delete(folderParentTracks_.GetSize() - 1);
             }
             else
-                folderParentTrack_ = nullptr;
+                folderParentTrack_ = NULL;
         }
-        else if (folderParentTrack_ != nullptr)
+        else if (folderParentTrack_ != NULL)
         {
             folderParentTracks_.Add(folderParentTrack_);
             folderParentTrack_ = track;
@@ -4266,7 +4266,7 @@ public:
     MediaTrack *GetSelectedTrack()
     {
         if (DAW::CountSelectedTracks() != 1)
-            return nullptr;
+            return NULL;
         else
             return DAW::GetSelectedTrack(0);
     }
@@ -4346,7 +4346,7 @@ public:
         bitset<32> leadTrackVCALeaderGroup;
         bitset<32> leadTrackVCALeaderGroupHigh;
         
-        if (vcaLeadTrack_ != nullptr)
+        if (vcaLeadTrack_ != NULL)
         {
             leadTrackVCALeaderGroup = DAW::GetTrackGroupMembership(vcaLeadTrack_, "VOLUME_VCA_LEAD");
             leadTrackVCALeaderGroupHigh = DAW::GetTrackGroupMembershipHigh(vcaLeadTrack_, "VOLUME_VCA_LEAD");
@@ -4364,7 +4364,7 @@ public:
             if (DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW") == 0)
                 vcaTopLeadTracks_.Add(track);
             
-            if (vcaLeadTrack_ != nullptr)
+            if (vcaLeadTrack_ != NULL)
             {
                 bool isFollower = false;
                 
@@ -4433,7 +4433,7 @@ public:
             }
         }
         
-        if (folderParentTrack_ != nullptr)
+        if (folderParentTrack_ != NULL)
             for (int i = 0; i < folderDictionary_.Get(folderParentTrack_)->GetSize(); ++i)
                 folderSpillTracks_.Add(folderDictionary_.Get(folderParentTrack_)->Get(i));
     }
@@ -4899,7 +4899,7 @@ public:
     
     void Speak(string phrase)
     {
-        const void (*osara_outputMessage)(const char *message) = nullptr;
+        const void (*osara_outputMessage)(const char *message) = NULL;
     
         osara_outputMessage = (decltype(osara_outputMessage))plugin_getapi("osara_outputMessage");
 

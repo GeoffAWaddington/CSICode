@@ -212,9 +212,9 @@ public:
                     }
                 }
                 else if (inDec == false)
-                    incValues.push_back(strtol(strVal.c_str(), nullptr, 16));
+                    incValues.push_back(strtol(strVal.c_str(), NULL, 16));
                 else
-                    decValues.push_back(strtol(strVal.c_str(), nullptr, 16));
+                    decValues.push_back(strtol(strVal.c_str(), NULL, 16));
             }
             
             if (incValues.size() > 0)

@@ -111,9 +111,9 @@ public:
     
     static void MarkProjectDirty(ReaProject *proj) { ::MarkProjectDirty(proj); }
     
-    static int IsProjectDirty() { return ::IsProjectDirty(nullptr); }
+    static int IsProjectDirty() { return ::IsProjectDirty(NULL); }
     
-    static void SaveProject() { ::Main_SaveProject(nullptr, false); }
+    static void SaveProject() { ::Main_SaveProject(NULL, false); }
     
     static const char *get_ini_file() { return ::get_ini_file(); }
 
@@ -216,7 +216,7 @@ public:
     
     static bool CanUndo()
     {
-        if (::Undo_CanUndo2(nullptr))
+        if (::Undo_CanUndo2(NULL))
            return true;
         else
             return false;
@@ -224,7 +224,7 @@ public:
     
     static bool CanRedo()
     {
-        if (::Undo_CanRedo2(nullptr))
+        if (::Undo_CanRedo2(NULL))
            return true;
         else
             return false;
@@ -233,13 +233,13 @@ public:
     static void Undo()
     {
         if (CanUndo())
-            ::Undo_DoUndo2(nullptr);
+            ::Undo_DoUndo2(NULL);
     }
     
     static void Redo()
     {
         if (CanRedo())
-            ::Undo_DoRedo2(nullptr);
+            ::Undo_DoRedo2(NULL);
     }
     
     static void Undo_BeginBlock()
@@ -273,7 +273,7 @@ public:
     static int CountTCPFXParms(MediaTrack *track)
     {
         if (ValidateTrackPtr(track))
-            return ::CountTCPFXParms(nullptr, track);
+            return ::CountTCPFXParms(NULL, track);
         else
             return 0;
     }   
@@ -281,7 +281,7 @@ public:
     static bool GetTCPFXParm(MediaTrack *track, int index, int *fxindexOut, int *parmidxOut)
     {
         if (ValidateTrackPtr(track))
-            return ::GetTCPFXParm(nullptr, track, index, fxindexOut, parmidxOut);
+            return ::GetTCPFXParm(NULL, track, index, fxindexOut, parmidxOut);
         else
             return false;
     }
@@ -464,7 +464,7 @@ public:
         if (ValidateTrackPtr(track))
             return ::GetSetTrackSendInfo(track, category, send_index, parmname, setNewValue);
         else
-            return nullptr;
+            return NULL;
     }
     
     static void *GetSetMediaTrackInfo(MediaTrack *track, const char *parmname, void *setNewValue)
@@ -472,7 +472,7 @@ public:
         if (ValidateTrackPtr(track))
             return ::GetSetMediaTrackInfo(track, parmname, setNewValue);
         else
-            return nullptr;
+            return NULL;
     }
     
     static unsigned int GetTrackGroupMembership(MediaTrack *track, const char *groupname)
@@ -698,7 +698,7 @@ public:
         if (ValidateTrackPtr(leftmosttrack))
             return ::SetMixerScroll(leftmosttrack);
         else
-            return nullptr;
+            return NULL;
     }
 };
 
