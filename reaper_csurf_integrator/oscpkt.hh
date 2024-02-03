@@ -376,15 +376,15 @@ public:
       OSCPKT_SET_ERR(MALFORMED_TYPE_TAGS); return; 
     } else type_tags.assign(type_tags_beg+1, type_tags_end); // we do not copy the initial ','
 
-    const char *arg = ceil4(type_tags_end+1); assert(arg <= storage.end()); 
+    const char *argp = ceil4(type_tags_end+1); assert(argp <= storage.end()); 
     size_t iarg = 0;
     while (isOk() && iarg < type_tags.size()) {
-      assert(arg <= storage.end()); 
-      size_t len = getArgSize(type_tags[iarg], arg);
-      if (isOk()) arguments.push_back(std::make_pair(arg - storage.begin(), len));
-      arg += ceil4(len); ++iarg;
+      assert(argp <= storage.end()); 
+      size_t len = getArgSize(type_tags[iarg], argp);
+      if (isOk()) arguments.push_back(std::make_pair(argp - storage.begin(), len));
+      argp += ceil4(len); ++iarg;
     }
-    if (iarg < type_tags.size() || arg != storage.end()) {
+    if (iarg < type_tags.size() || argp != storage.end()) {
       OSCPKT_SET_ERR(MALFORMED_ARGUMENTS);
     }
   }
