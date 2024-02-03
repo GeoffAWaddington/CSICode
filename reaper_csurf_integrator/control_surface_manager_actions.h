@@ -120,12 +120,27 @@ public:
         if (tokens.size() != 2)
             return;
         
-        if (regex_match(tokens[1], regex("(\\+|-)?[[:digit:]]+")))
-            context->GetSurface()->SendOSCMessage(tokens[0], stoi(tokens[1]));
-        else if (regex_match(tokens[1], regex("[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)")))
-            context->GetSurface()->SendOSCMessage(tokens[0], stod(tokens[1]));
-        else
-            context->GetSurface()->SendOSCMessage(tokens[0], tokens[1]);
+        const char *t1 = tokens[1].c_str(), *t1e = NULL;
+        if (strstr(t1,"."))
+        {
+            const double dv = strtod(t1, (char **)&t1e);
+            if (t1e && t1e != t1 && !*t1e)
+            {
+                context->GetSurface()->SendOSCMessage(tokens[0], dv);
+                return;
+            }
+        }
+        else if (*t1)
+        {
+            const int v = (int)strtol(t1, (char **)&t1e, 10);
+            if (t1e && *t1e)
+            {
+                context->GetSurface()->SendOSCMessage(tokens[0], v);
+                return;
+            }
+        }
+
+        context->GetSurface()->SendOSCMessage(tokens[0], tokens[1]);
     }
 };
 
