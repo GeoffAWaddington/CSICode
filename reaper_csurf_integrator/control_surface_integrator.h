@@ -23,7 +23,6 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
-#include <regex>
 
 #ifdef _WIN32
 #include "oscpkt.hh"

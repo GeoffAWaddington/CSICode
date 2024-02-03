@@ -985,16 +985,12 @@ void ActionContext::SetColor(vector<string> &params, bool &supportsColor, bool &
                 supportsTrackColor = true;
                 break;
             }
-            else
+            else if (strVal.size() > 0)
             {
-                if (regex_match(strVal, regex("[0-9]+")))
-                {
-                    int value = stoi(strVal);
-                    value = value < 0 ? 0 : value;
-                    value = value > 255 ? 255 : value;
-                    
-                    rawValues.push_back(value);
-                }
+                char *ep = NULL;
+                const int value = strtol(strVal.c_str(), &ep, 10);
+                if (ep && !*ep)
+                    rawValues.push_back(wdl_clamp(value, 0, 255));
             }
         }
         
