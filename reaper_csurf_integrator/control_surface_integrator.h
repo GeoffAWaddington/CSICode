@@ -23,6 +23,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <math.h>
 
 #ifdef _WIN32
 #include "oscpkt.hh"
@@ -663,9 +664,9 @@ public:
         double delta = 100000000.0;
         
         for (int i = 0; i < steppedValues_.size(); i++)
-            if (abs(steppedValues_[i] - value) < delta)
+            if (fabs(steppedValues_[i] - value) < delta)
             {
-                delta = abs(steppedValues_[i] - value);
+                delta = fabs(steppedValues_[i] - value);
                 index = i;
             }
         
