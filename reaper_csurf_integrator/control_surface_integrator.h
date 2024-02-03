@@ -2335,8 +2335,7 @@ public:
         
         for (string line; getline(autoFXFile, line) ; )
         {
-            while (line.size() > 0 && (line.back() == '\r' || line.back() == '\n'))
-                line.pop_back();
+            ReplaceAllWith(line, "\r\n", "");
 
             if (inAutoZone && ! pastAutoZone)
             {
