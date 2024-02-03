@@ -47,7 +47,7 @@
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
 extern void TrimLine(string &line);
-extern string ReplaceAllWith(const string &line, string replaceWith, string replacement);
+extern void ReplaceAllWith(string &output, const string &input, string replaceWith, string replacement);
 extern void GetTokens(vector<string> &tokens, const string &line);
 extern int strToHex(const string &valueStr);
 
@@ -2335,7 +2335,7 @@ public:
         
         for (string line; getline(autoFXFile, line) ; )
         {
-            line = ReplaceAllWith(line, s_CRLFChars, "");
+            ReplaceAllWith(line, line, s_CRLFChars, "");
 
             if (inAutoZone && ! pastAutoZone)
             {
@@ -3166,17 +3166,17 @@ public:
             
             restrictedText = restrictedText.substr(1, restrictedText.length() - 1);
             
-            restrictedText = ReplaceAllWith(restrictedText, "\\s", "");
+            ReplaceAllWith(restrictedText, restrictedText, "\\s", "");
 
             if (restrictedText.length() <= restrictedTextLength_ - 1)
                 return firstLetter + restrictedText;
             
-            restrictedText = ReplaceAllWith(restrictedText, "`~!@#$%^&*:()_|=?;:'\",", "");
+            ReplaceAllWith(restrictedText, restrictedText, "`~!@#$%^&*:()_|=?;:'\",", "");
 
             if (restrictedText.length() <= restrictedTextLength_ - 1)
                 return firstLetter + restrictedText;
             
-            restrictedText = ReplaceAllWith(restrictedText, "aeiou", "");
+            ReplaceAllWith(restrictedText, restrictedText, "aeiou", "");
 
             restrictedText = firstLetter + restrictedText;
             
@@ -5047,7 +5047,7 @@ public:
                 if (fxParamsWrite_)
                 {
                     string fxNameNoBadChars(fxName);
-                    fxNameNoBadChars = ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
+                    ReplaceAllWith(fxNameNoBadChars, fxNameNoBadChars, s_BadFileChars, "_");
 
                     fxFile.open(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt");
                     
