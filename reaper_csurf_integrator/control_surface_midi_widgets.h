@@ -177,49 +177,37 @@ public:
             {
                 string strVal = *(it);
                 
+                int firstVal = 0, lastVal = 0;
                 if (strVal == "<")
                     inDec = true;
                 else if (strVal == ">")
                     inDec = false;
-                else if (regex_match(strVal, regex("[0-9A-Fa-f]+[-][0-9A-Fa-f]+")))
+                else if (sscanf(strVal.c_str(), "%x-%x", &firstVal, &lastVal) == 2)
                 {
-                    istringstream range(strVal);
-                    vector<string> range_tokens;
-                    string range_token;
-                    
-                    while (getline(range, range_token, '-'))
-                        range_tokens.push_back(range_token);
-                    
-                    if (range_tokens.size() == 2)
+                    if (firstVal < lastVal)
                     {
-                        int firstVal = strtol(range_tokens[0].c_str(), nullptr, 16);
-                        int lastVal = strtol(range_tokens[1].c_str(), nullptr, 16);
-
-                        if (firstVal < lastVal)
+                        if (inDec == false)
                         {
-                            if (inDec == false)
-                            {
-                                for (int i = firstVal; i <= lastVal; i++)
-                                    incValues.push_back(i);
-                            }
-                            else
-                            {
-                                for (int i = firstVal; i <= lastVal; i++)
-                                    decValues.push_back(i);
-                            }
+                            for (int i = firstVal; i <= lastVal; i++)
+                                incValues.push_back(i);
                         }
                         else
                         {
-                            if (inDec == false)
-                            {
-                                for (int i = firstVal; i >= lastVal; i--)
-                                    incValues.push_back(i);
-                            }
-                            else
-                            {
-                                for (int i = firstVal; i >= lastVal; i--)
-                                    decValues.push_back(i);
-                            }
+                            for (int i = firstVal; i <= lastVal; i++)
+                                decValues.push_back(i);
+                        }
+                    }
+                    else
+                    {
+                        if (inDec == false)
+                        {
+                            for (int i = firstVal; i >= lastVal; i--)
+                                incValues.push_back(i);
+                        }
+                        else
+                        {
+                            for (int i = firstVal; i >= lastVal; i--)
+                                decValues.push_back(i);
                         }
                     }
                 }
