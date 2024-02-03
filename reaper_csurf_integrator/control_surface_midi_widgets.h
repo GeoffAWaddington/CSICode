@@ -954,7 +954,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
             
             GetColorValue(rangeDefs[2], color.ringColor);
 
-            for (int i = stoi(rangeDefs[0]); i <= stoi(rangeDefs[1]); i++)
+            for (int i = atoi(rangeDefs[0].c_str()); i <= atoi(rangeDefs[1].c_str()); i++)
             {
                 if (i < 7)
                     color.ringRangeLow += 1 << i;

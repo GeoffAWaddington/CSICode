@@ -1167,7 +1167,7 @@ public:
                
             index++;
             
-            channelNumber_ = stoi(name.substr(index, name.length() - index));
+            channelNumber_ = atoi(name.substr(index, name.length() - index).c_str());
         }
     }
     ~Widget()

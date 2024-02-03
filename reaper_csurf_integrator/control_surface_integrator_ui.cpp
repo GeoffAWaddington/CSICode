@@ -116,7 +116,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                             vector<string> ticks;
                             GetTokens(ticks, buf);
                             for (int i = 0; i < (int)ticks.size(); ++i)
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(stoi(ticks[i]));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(atoi(ticks[i].c_str()));
                         }
 
                         s_dlgResult = IDOK;
@@ -638,7 +638,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 vector<string> steps;
                                 GetTokens(steps, buf);
                                 for (int j = 0; j< (int)steps.size(); ++j)
-                                    s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(stoi(steps[j]));
+                                    s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(atoi(steps[j].c_str()));
                             }
 
                             if (s_hasFonts)
