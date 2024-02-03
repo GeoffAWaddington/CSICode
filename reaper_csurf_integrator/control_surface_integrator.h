@@ -46,6 +46,7 @@
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
+extern string int_to_string(int value);
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
 extern void GetTokens(vector<string> &tokens, const string &line);
@@ -2297,7 +2298,7 @@ public:
                 FXParamLayoutTemplate layoutTemplate;
                 
                 layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + to_string(i + 1);
+                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + int_to_string(i + 1);
                 
                 layoutTemplate.widgetAction = widgetAction;
                 layoutTemplate.aliasDisplayAction = aliasDisplayAction;
@@ -2538,7 +2539,7 @@ public:
                                 for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].ticks.size(); ++k)
                                 {
                                     if (k) fxFile << ",";
-                                    fxFile << to_string(zoneDef.paramDefs[i].definitions[j].ticks[k]);
+                                    fxFile << int_to_string(zoneDef.paramDefs[i].definitions[j].ticks[k]);
                                 }
                                 fxFile << ") ";
                             }
@@ -5001,7 +5002,7 @@ public:
         {
             pages_.Get(currentPageIndex_)->LeavePage();
             currentPageIndex_ = currentPageIndex_ == pages_.GetSize() - 1 ? 0 : (currentPageIndex_+1);
-            DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
+            //DAW::SetProjExtState(0, "CSI", "PageIndex", int_to_string(currentPageIndex_).c_str());
             if (WDL_NORMALLY(pages_.Get(currentPageIndex_)))
                 pages_.Get(currentPageIndex_)->EnterPage();
         }
@@ -5018,7 +5019,7 @@ public:
                 currentPageIndex_ = i;
                 if (WDL_NORMALLY(pages_.Get(currentPageIndex_)))
                 {
-                    DAW::SetProjExtState(0, "CSI", "PageIndex", to_string(currentPageIndex_).c_str());
+                    //DAW::SetProjExtState(0, "CSI", "PageIndex", int_to_string(currentPageIndex_).c_str());
                     pages_.Get(currentPageIndex_)->EnterPage();
                 }
                 break;
@@ -5066,7 +5067,7 @@ public:
                     DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
  
                     if (fxParamsWrite_ && fxFile.is_open())
-                        fxFile <<  "\tFXParam " + to_string(j) + " \"" + string(fxParamName)+ "\"\n";
+                        fxFile <<  "\tFXParam " + int_to_string(j) + " \"" + string(fxParamName)+ "\"\n";
                         
                     /* step sizes
                     double stepOut = 0;

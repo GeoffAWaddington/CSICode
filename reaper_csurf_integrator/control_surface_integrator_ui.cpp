@@ -37,7 +37,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, ("Advanced Edit Group " + to_string(s_groupIndex + 1)).c_str());
+            SetWindowText(hwndDlg, ("Advanced Edit Group " + int_to_string(s_groupIndex + 1)).c_str());
 
             s_dlgResult = IDCANCEL;
                
@@ -70,7 +70,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 string ticks = "";
                 
                 for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size(); ++i)
-                    ticks += to_string(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i]) + " ";
+                    ticks += int_to_string(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i]) + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
@@ -381,7 +381,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
                 for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
-                    SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)to_string(j).c_str());
+                    SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
             }
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
@@ -656,22 +656,22 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 char tmp[32];
                                 
                                 DAW::ColorFromNative(GetButtonColorForID(s_widgetRingColors[i]), &color.r, &color.g, &color.b);
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.set_prop(PropertyType_LEDRingColor, color.to_string(tmp));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.set_prop(PropertyType_LEDRingColor, color.rgba_to_string(tmp));
                                 
                                 DAW::ColorFromNative(GetButtonColorForID(s_widgetRingIndicators[i]), &color.r, &color.g, &color.b);
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.set_prop(PropertyType_PushColor, color.to_string(tmp));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.set_prop(PropertyType_PushColor, color.rgba_to_string(tmp));
 
                                 DAW::ColorFromNative(GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.set_prop(PropertyType_Foreground, color.to_string(tmp));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.set_prop(PropertyType_Foreground, color.rgba_to_string(tmp));
 
                                 DAW::ColorFromNative(GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.set_prop(PropertyType_Background, color.to_string(tmp));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.set_prop(PropertyType_Background, color.rgba_to_string(tmp));
 
                                 DAW::ColorFromNative(GetButtonColorForID(s_fxParamDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.set_prop(PropertyType_Foreground, color.to_string(tmp));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.set_prop(PropertyType_Foreground, color.rgba_to_string(tmp));
 
                                 DAW::ColorFromNative(GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.set_prop(PropertyType_Background, color.to_string(tmp));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.set_prop(PropertyType_Background, color.rgba_to_string(tmp));
                             }
                         }
                        
@@ -2882,8 +2882,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 {
                     line = s_surfaces.Get(i)->type + " ";
                     line += "\"" + s_surfaces.Get(i)->name + "\" ";
-                    line += to_string(s_surfaces.Get(i)->inPort) + " ";
-                    line += to_string(s_surfaces.Get(i)->outPort) + " ";
+                    line += int_to_string(s_surfaces.Get(i)->inPort) + " ";
+                    line += int_to_string(s_surfaces.Get(i)->outPort) + " ";
 
                     if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
                         line += s_surfaces.Get(i)->remoteDeviceIP;
@@ -2918,8 +2918,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     {
                         line = "\t";
                         line += "\"" + s_pages.Get(i)->surfaces.Get(j)->pageSurfaceName + "\" ";
-                        line += to_string(s_pages.Get(i)->surfaces.Get(j)->numChannels) + " " ;
-                        line += to_string(s_pages.Get(i)->surfaces.Get(j)->channelOffset) + " " ;
+                        line += int_to_string(s_pages.Get(i)->surfaces.Get(j)->numChannels) + " " ;
+                        line += int_to_string(s_pages.Get(i)->surfaces.Get(j)->channelOffset) + " " ;
                         line += "\"" + s_pages.Get(i)->surfaces.Get(j)->templateFilename + "\" ";
                         line += "\"" + s_pages.Get(i)->surfaces.Get(j)->zoneTemplateFolder + "\" ";
                         line += "\"" + s_pages.Get(i)->surfaces.Get(j)->fxZoneTemplateFolder + "\" ";

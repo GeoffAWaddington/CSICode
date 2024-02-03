@@ -146,6 +146,14 @@ void TrimLine(string &line)
     }
 }
 
+string int_to_string(int value)
+{
+    char buf[64];
+    sprintf(buf, "%d", value);
+    
+    return string(buf);
+}
+
 void ReplaceAllWith(string &output, const char *charsToReplace, const char *replacement)
 {
     // replace all occurences of
@@ -807,7 +815,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                 {
                     for (int i = 0; i < navigators.GetSize(); i++)
                     {
-                        string numStr = to_string(i + 1);
+                        string numStr = int_to_string(i + 1);
                                                 
                         Zone *zone;
                         
@@ -833,10 +841,10 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             string surfaceWidgetName = widgetName;
                             
                             if (navigators.GetSize() > 1)
-                                ReplaceAllWith(surfaceWidgetName, "|", to_string(i + 1).c_str());
+                                ReplaceAllWith(surfaceWidgetName, "|", int_to_string(i + 1).c_str());
                             
                             if (enclosingZone != NULL && enclosingZone->GetChannelNumber() != 0)
-                                ReplaceAllWith(surfaceWidgetName, "|", to_string(enclosingZone->GetChannelNumber()).c_str());
+                                ReplaceAllWith(surfaceWidgetName, "|", int_to_string(enclosingZone->GetChannelNumber()).c_str());
                             
                             Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName);
                                                         
@@ -3074,7 +3082,7 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color &color)
             if (surface_->IsX32())
                 X32SetColorValue(color);
             else
-                surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.to_string(tmp));
+                surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.rgba_to_string(tmp));
         }
     }
 }
@@ -3097,7 +3105,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(rgba_color &color)
 
     string oscAddress = "/ch/";
     if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
-    oscAddress += to_string(widget_->GetChannelNumber()) + "/config/color";
+    oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
     surface_->SendOSCMessage(this, oscAddress, surfaceColor);
 }
 
@@ -3674,9 +3682,9 @@ void ZoneManager::SaveLearnedFXParams()
                             {
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tFXParam " + to_string(info->paramNumber) + " " + info->params + "\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tFXParam " + int_to_string(info->paramNumber) + " " + info->params + "\n";
                                 fxZone << "\t" + modifierStr + cell->fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
-                                fxZone << "\t" + modifierStr + cell->fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + to_string(info->paramNumber) + valueDisplayParams + "\n\n";
+                                fxZone << "\t" + modifierStr + cell->fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + int_to_string(info->paramNumber) + valueDisplayParams + "\n\n";
                             }
                             else if (i == cell->fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
                             {
@@ -3802,7 +3810,7 @@ void ZoneManager::InitializeNoMapZone()
                 
                 for (int j = 1; j <= fxLayouts_[i].channelCount_; j++)
                 {
-                    string cellAdress = fxLayouts_[i].suffix_ + to_string(j);
+                    string cellAdress = fxLayouts_[i].suffix_ + int_to_string(j);
                     
                     Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
                     if (widget == NULL || usedWidgets.Exists(widget))
@@ -4209,7 +4217,7 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                     while (getline(layoutLine, token, '|'))
                         lineTokens.push_back(token);
                     
-                    string replacementString = " " + to_string(fxParamNum) + " ";
+                    string replacementString = " " + int_to_string(fxParamNum) + " ";
                     
                     if (widget && lineTokens.size() > 1)
                     {
@@ -4574,11 +4582,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                                 modifiers = fxLayouts_[layoutIndex].modifiers_ + "+";
                             
                             if (widgetIdx == 0)
-                                fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIndex].suffix_ + to_string(channelIndex) + "\t";
+                                fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\t";
                             else
                             {
                                 if (lineIdx == 0)
-                                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + to_string(channelIndex) + "\t";
+                                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\t";
                                 else
                                     fxZone << "\t" + string("NullDisplay") + "\t";
                             }
@@ -4598,7 +4606,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                                 fxZone << "\"";
                             }
                             else if (widgetIdx == 0)
-                                fxZone << " " + to_string(paramIdx);
+                                fxZone << " " + int_to_string(paramIdx);
                             
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FXParam")
                             {
@@ -4650,11 +4658,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                     if (fxLayouts_[layoutIndex].modifiers_ != "")
                         modifiers = fxLayouts_[layoutIndex].modifiers_ + "+";
                     
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + to_string(channelIndex) + "\tNoAction\n";
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\tNoAction\n";
                     
                     if (widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix_ + to_string(channelIndex) + "\tNoAction";
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\tNoAction";
                         
                         if (surfaceFXLayout_.size() > 1)
                             for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
@@ -4662,7 +4670,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         
                         fxZone << "\n";
                         
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix_ + to_string(channelIndex) + "\tNoAction";
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\tNoAction";
                         
                         if (surfaceFXLayout_.size() > 2)
                             for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
@@ -4697,11 +4705,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                     if (fxLayouts_[layoutIndex].modifiers_ != "")
                         modifiers = fxLayouts_[layoutIndex].modifiers_ + "+";
                     
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + to_string(index) + "\tNoAction\n";
+                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(index) + "\tNoAction\n";
                     
                     if (widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix_ + to_string(index) + "\tNoAction";
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(index) + "\tNoAction";
                         
                         if (surfaceFXLayout_.size() > 1)
                             for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
@@ -4709,7 +4717,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         
                         fxZone << "\n";
                         
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix_ + to_string(index) + "\tNoAction";
+                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(index) + "\tNoAction";
                         
                         if (surfaceFXLayout_.size() > 2)
                             for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
@@ -5519,7 +5527,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const str
                         string x32Select = message->addressPattern() + '/';
                         if (value < 10)
                             x32Select += '0';
-                        x32Select += to_string(value);
+                        x32Select += int_to_string(value);
                         surface->ProcessOSCMessage(x32Select, 1.0);
                     }
                     else
@@ -5573,7 +5581,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, int value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, double value)
@@ -5581,7 +5589,7 @@ void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, double value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, const string &value)
@@ -5597,7 +5605,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, int value)
@@ -5605,7 +5613,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + to_string(value) + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, const string &value)

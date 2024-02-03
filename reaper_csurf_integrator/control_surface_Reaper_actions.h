@@ -2548,7 +2548,7 @@ public:
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if (destTrack)
                 sendTrackName = (const char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
-            context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
+            context->GetCSI()->Speak("Track " + int_to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
         }
     }
 };
@@ -2691,7 +2691,7 @@ public:
             if (srcTrack)
             {
                 const char *receiveTrackName = (const char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                context->GetCSI()->Speak("Track " + to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + string(receiveTrackName));
+                context->GetCSI()->Speak("Track " + int_to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + string(receiveTrackName));
             }
             else
                 context->GetCSI()->Speak("No Receive Track");

@@ -34,7 +34,7 @@ struct rgba_color
         return r != other.r || g != other.g || b != other.b || a != other.a;
     }
     
-    const char *to_string(char *buf) // buf must be at least 10 bytes
+    const char *rgba_to_string(char *buf) // buf must be at least 10 bytes
     {
       snprintf(buf,10,"#%02x%02x%02x%02x",r,g,b,a);
       return buf;
