@@ -131,7 +131,8 @@ void TrimLine(string &line)
         while (*p > 0 && isspace(*p))
             p++;
 
-        if (!*p || (p[0] == '/' && p[1] == '/')) return;
+        // a single / at the beginning of a line indicates a comment
+        if (!*p || p[0] == '/') return;
 
         if (line.length())
             line.append(" ",1);
