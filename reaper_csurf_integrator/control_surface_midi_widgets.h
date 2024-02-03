@@ -521,9 +521,9 @@ public:
         rgba_color color;
 
         if (value == 0 && properties.get_prop(PropertyType_OffColor))
-            color = GetColorValue(properties.get_prop(PropertyType_OffColor));
+            GetColorValue(properties.get_prop(PropertyType_OffColor), color);
         else if (value == 1 && properties.get_prop(PropertyType_OnColor))
-            color = GetColorValue(properties.get_prop(PropertyType_OnColor));
+            GetColorValue(properties.get_prop(PropertyType_OnColor), color);
 
         struct
         {
@@ -717,11 +717,11 @@ public:
         {
             const char *col = properties.get_prop(PropertyType_BackgroundColorOff);
             if (col)
-                backgroundColor = GetColorValue(col);
+                GetColorValue(col, backgroundColor);
 
             col = properties.get_prop(PropertyType_TextColorOff);
             if (col)
-                textColor = GetColorValue(col);
+                GetColorValue(col, textColor);
             
             if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
@@ -735,10 +735,10 @@ public:
         {
             const char *col = properties.get_prop(PropertyType_BackgroundColorOn);
             if (col)
-                backgroundColor = GetColorValue(col);
+                GetColorValue(col, backgroundColor);
             col = properties.get_prop(PropertyType_TextColorOn);
             if (col)
-                textColor = GetColorValue(col);
+                GetColorValue(col, textColor);
             
             if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
                 return;
@@ -880,10 +880,10 @@ public:
 
         const char *col = properties.get_prop(PropertyType_BackgroundColor);
         if (col)
-            backgroundColor = GetColorValue(col);
+            GetColorValue(col, backgroundColor);
         col = properties.get_prop(PropertyType_TextColor);
         if (col)
-            textColor = GetColorValue(col);
+            GetColorValue(col, textColor);
 
         struct
         {
@@ -963,7 +963,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
         {
             LEDRingRangeColor color;
             
-            color.ringColor = GetColorValue(rangeDefs[2]);
+            GetColorValue(rangeDefs[2], color.ringColor);
 
             for (int i = stoi(rangeDefs[0]); i <= stoi(rangeDefs[1]); i++)
             {
@@ -1091,7 +1091,7 @@ public:
         {
             LEDRingRangeColor color;
             
-            color.ringColor = GetColorValue(pushcolor);
+            GetColorValue(pushcolor, color.ringColor);
             color.ringRangeLow = 7;
             color.ringRangeMedium = 0;
             color.ringRangeHigh = 0;
@@ -1111,7 +1111,7 @@ public:
         {
             LEDRingRangeColor color;
             
-            color.ringColor = GetColorValue(ledringcolor);
+            GetColorValue(ledringcolor, color.ringColor);
 
             color.ringRangeLow = 120;
             color.ringRangeMedium = 127;

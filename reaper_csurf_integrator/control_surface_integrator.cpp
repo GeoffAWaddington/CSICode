@@ -929,26 +929,8 @@ void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector
     {
         rgba_color colorValue;
         
-        if (colors[i].length() == 7)
-        {
-            regex pattern("#([0-9a-fA-F]{6})");
-            smatch match;
-            if (regex_match(colors[i], match, pattern))
-            {
-                sscanf(match.str(1).c_str(), "%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b);
-                colorValues.push_back(colorValue);
-            }
-        }
-        else if (colors[i].length() == 9)
-        {
-            regex pattern("#([0-9a-fA-F]{8})");
-            smatch match;
-            if (regex_match(colors[i], match, pattern))
-            {
-                sscanf(match.str(1).c_str(), "%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a);
-                colorValues.push_back(colorValue);
-            }
-        }
+        if(GetColorValue(colors[i], colorValue))
+            colorValues.push_back(colorValue);
     }
 }
 

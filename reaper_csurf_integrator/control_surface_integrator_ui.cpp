@@ -460,7 +460,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (ringcolor)
                 {
                     s_hasColors = true;
-                    rgba_color color = GetColorValue(ringcolor);
+                    rgba_color color;
+                    GetColorValue(ringcolor, color);
                     GetButtonColorForID(s_widgetRingColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
@@ -468,7 +469,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (pushcolor)
                 {
                     s_hasColors = true;
-                    rgba_color color = GetColorValue(pushcolor);
+                    rgba_color color;
+                    GetColorValue(pushcolor, color);
                     GetButtonColorForID(s_widgetRingIndicators[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
@@ -476,7 +478,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (foreground)
                 {
                     s_hasColors = true;
-                    rgba_color color = GetColorValue(foreground);
+                    rgba_color color;
+                    GetColorValue(foreground, color);
                     GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
@@ -484,7 +487,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (background)
                 {
                     s_hasColors = true;
-                    rgba_color color = GetColorValue(background);
+                    rgba_color color;
+                    GetColorValue(background, color);
                     GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
@@ -492,7 +496,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (foreground)
                 {
                     s_hasColors = true;
-                    rgba_color color = GetColorValue(foreground);
+                    rgba_color color;
+                    GetColorValue(foreground, color);
                     GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
@@ -500,7 +505,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (background)
                 {
                     s_hasColors = true;
-                    rgba_color color = GetColorValue(background);
+                    rgba_color color;
+                    GetColorValue(background, color);
                     GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
