@@ -2862,7 +2862,7 @@ public:
 
 
 // Color maps are stored in Blue Green Red format
-static int s_colorMap7[128][3] = { {0, 0, 0},    // 0
+static unsigned char s_colorMap7[128][3] = { {0, 0, 0},    // 0
     {255, 0, 0},    // 1 - Blue
     {255, 21, 0},    // 2 - Blue (Green Rising)
     {255, 34, 0},
