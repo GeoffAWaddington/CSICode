@@ -8,6 +8,7 @@
 #define control_surface_integrator_Reaper_h
 
 #define WDL_NO_DEFINE_MINMAX
+#include "WDL/wdlcstring.h"
 
 #include "reaper_plugin_functions.h"
 
