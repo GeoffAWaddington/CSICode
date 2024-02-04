@@ -843,12 +843,12 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
     }
 
-    virtual void SetValue(const PropertyList &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
         ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
         const char *rowname = properties.get_prop(PropertyType_Row);
         if (!rowname) return;
@@ -856,7 +856,8 @@ public:
         RowInfo *row = rows_.Get(rowname);
         if (!row) return;
 
-        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+        char tmp[BUFSZ];
+        const char *displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
         
         if (row->lastStringSent == displayText)
             return;
@@ -900,7 +901,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
-        for (int i = 0; i < displayText.length(); i++)
+        for (int i = 0; i < displayText[i]; i++)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -1944,23 +1945,23 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(const PropertyList &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
         lastStringSent_ = inputText;
         
-        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+        char tmp[BUFSZ];
+        const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (displayText == "" || displayText == "-150.00")
-            displayText = "       ";
+        if (text[0] == 0 || !strcmp(text,"-150.00"))
+            text = "       ";
 
         int pad = 7;
-        const char *text = displayText.c_str();
         
         struct
         {
@@ -1979,7 +1980,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
-        if (pad < l)
+        if (pad < l) // todo JF> this is not right, limits text length to 7 always!
             l = pad;
         if (l > 200)
             l = 200;
@@ -2026,27 +2027,26 @@ public:
         ForceValue(properties, "");
     }
 
-    virtual void SetValue(const PropertyList &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const char * const  &inputText) override
     {
         lastStringSent_ = inputText;
         
-        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+        char tmp[BUFSZ];
+        const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (displayText == "" || displayText == "-150.00")
-            displayText = "       ";
+        if (text[0] == 0 || !strcmp(text,"-150.00"))
+            text = "       ";
 
         int pad = 12;
         
         if (displayRow_ == 3)
             pad = 8;
-        
-        const char *text = displayText.c_str();
         
         struct
         {
@@ -2071,7 +2071,7 @@ public:
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *8;
 
         int l = (int)strlen(text);
-        if (pad < l)
+        if (pad < l) // todo JF> not right, limits output to 8/12 always? 
             l = pad;
         if (l > 200)
             l = 200;
@@ -2164,7 +2164,7 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetXTouchDisplayColors(const string &zoneName, const string &colors) override
+    virtual void SetXTouchDisplayColors(const char *zoneName, const char *colors) override
     {
         preventUpdateTrackColors_ = true;
         
@@ -2196,7 +2196,7 @@ public:
             else if (currentColors.size() == 8 && availableColors_.Exists(currentColors[i].c_str()))
                 surfaceColor = availableColors_.Get(currentColors[i].c_str());
 
-            if (zoneName == "Track" && surfaceColor < availableRGBColors_.GetSize())
+            if (!strcmp(zoneName,"Track") && surfaceColor < availableRGBColors_.GetSize())
                 trackColors.push_back(availableRGBColors_.Get()[surfaceColor]);
             
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
@@ -2215,23 +2215,23 @@ public:
         preventUpdateTrackColors_ = false;
     }
     
-    virtual void SetValue(const PropertyList &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
         lastStringSent_ = inputText;
         
-        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+        char tmp[BUFSZ];
+        const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (displayText == "" || displayText == "-150.00")
-            displayText = "       ";
+        if (text[0] == 0 || !strcmp(text, "-150.00"))
+            text = "       ";
 
         int pad = 7;
-        const char *text = displayText.c_str();
         
         struct
         {
@@ -2250,7 +2250,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
-        if (pad < l)
+        if (pad < l) // JF> todo not right limits text
             l = pad;
         if (l > 200)
             l = 200;
@@ -2411,23 +2411,22 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(const PropertyList &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
         lastStringSent_ = inputText;
         
-        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+        char tmp[BUFSZ];
+        const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (displayText == "")
-            displayText = "                            ";
+        if (text[0] == 0)
+            text = "                            ";
         
-        const char *text = displayText.c_str();
-    
         int invert = lastStringSent_ == "" ? 0 : GetTextInvert(properties); // prevent empty inverted lines
         int align = 0x0000000 + invert + GetTextAlign(properties);
 
@@ -2571,23 +2570,23 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetValue(const PropertyList &properties, const string &inputText) override
+    virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
         if (inputText != lastStringSent_) // changes since last send
             ForceValue(properties, inputText);
     }
     
-    virtual void ForceValue(const PropertyList &properties, const string &inputText) override
+    virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
         lastStringSent_ = inputText;
         
-        string displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText);
+        char tmp[BUFSZ];
+        const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (displayText == "")
-            displayText = "       ";
+        if (text[0] == 0)
+            text = "       ";
         
         int pad = 7;
-        const char *text = displayText.c_str();
         
         struct
         {
@@ -2606,7 +2605,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
-        if (pad < l)
+        if (pad < l) // JF> todo incorrect shortening
             l = pad;
         if (l > 200)
             l = 200;

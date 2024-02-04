@@ -126,7 +126,7 @@ public:
             const double dv = strtod(t1, (char **)&t1e);
             if (t1e && t1e != t1 && !*t1e)
             {
-                context->GetSurface()->SendOSCMessage(tokens[0], dv);
+                context->GetSurface()->SendOSCMessage(tokens[0].c_str(), dv);
                 return;
             }
         }
@@ -135,12 +135,12 @@ public:
             const int v = (int)strtol(t1, (char **)&t1e, 10);
             if (t1e && *t1e)
             {
-                context->GetSurface()->SendOSCMessage(tokens[0], v);
+                context->GetSurface()->SendOSCMessage(tokens[0].c_str(), v);
                 return;
             }
         }
 
-        context->GetSurface()->SendOSCMessage(tokens[0], tokens[1]);
+        context->GetSurface()->SendOSCMessage(tokens[0].c_str(), tokens[1].c_str());
     }
 };
 

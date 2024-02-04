@@ -574,7 +574,7 @@ private:
     
     void UpdateTrackColor();
     void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
-    void SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
+    void SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
     void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors);
     void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
 public:
@@ -590,7 +590,7 @@ public:
     int GetSlotIndex();
     const char *GetName();
 
-    vector<string> &GetParameters() { return parameters_; }
+    const vector<string> &GetParameters() { return parameters_; }
     
     int GetIntParam() { return intParam_; }
     const char *GetStringParam() { return stringParam_.c_str(); }
@@ -635,22 +635,22 @@ public:
     void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateColorValue(double value);
 
-    void   SetAccelerationValues(vector<double> acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
+    void   SetAccelerationValues(const vector<double> &acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
     void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
     double GetStepSize() { return deltaValue_; }
-    void   SetStepValues(vector<double> steppedValues) { steppedValues_ = steppedValues; }
+    void   SetStepValues(const vector<double> &steppedValues) { steppedValues_ = steppedValues; }
     int    GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
-    void   SetTickCounts(vector<int> acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
+    void   SetTickCounts(const vector<int> &acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     
-    double GetRangeMinimum() { return rangeMinimum_; }
-    double GetRangeMaximum() { return rangeMaximum_; }
+    double GetRangeMinimum() const { return rangeMinimum_; }
+    double GetRangeMaximum() const { return rangeMaximum_; }
     
     void DoTouch(double value)
     {
         action_->Touch(this, value);
     }
 
-    void SetRange(vector<double> range)
+    void SetRange(const vector<double> &range)
     {
         if (range.size() != 2)
             return;
@@ -674,7 +674,7 @@ public:
         steppedValuesIndex_ = index;
     }
 
-    char *GetPanValueString(double panVal, const char *dualPan, char *buf, int bufsz)
+    char *GetPanValueString(double panVal, const char *dualPan, char *buf, int bufsz) const
     {
         bool left = false;
         
@@ -725,7 +725,7 @@ public:
         return buf;
     }
     
-    char *GetPanWidthValueString(double widthVal, char *buf, int bufsz)
+    char *GetPanWidthValueString(double widthVal, char *buf, int bufsz) const
     {
         bool reversed = false;
         
@@ -801,8 +801,8 @@ public:
     void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
-    int GetParamIndex(const string &widgetName);
-    void SetXTouchDisplayColors(const string &color);
+    int GetParamIndex(const char *widgetName);
+    void SetXTouchDisplayColors(const char *color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
     const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget);
@@ -816,7 +816,7 @@ public:
 
     const string &GetSourceFilePath() { return sourceFilePath_; }
     
-    virtual string GetType() { return "Zone"; }
+    virtual const char *GetType() { return "Zone"; }
     
     const WDL_PointerKeyedArray<Widget*, bool> &GetWidgets() { return widgets_; }
 
@@ -865,9 +865,9 @@ public:
         return zones ? zones->Get(0) : NULL;
     }
        
-    Zone *GetFXLayoutZone(const string &name)
+    Zone *GetFXLayoutZone(const char *name)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Get(name.c_str());
+        WDL_PtrList<Zone> *zones = associatedZones_.Get(name);
         return zones ? zones->Get(0) : NULL;
     }
        
@@ -884,9 +884,9 @@ public:
         return true;
     }
     
-    bool GetIsAssociatedZoneActive(const string &zoneName)
+    bool GetIsAssociatedZoneActive(const char *zoneName)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Get(zoneName.c_str());
+        WDL_PtrList<Zone> *zones = associatedZones_.Get(zoneName);
         if (zones)
             for (int i = 0; i < zones->GetSize(); ++i)
                 if (zones->Get(i)->GetIsActive())
@@ -908,24 +908,24 @@ public:
         return name_.c_str();
     }
     
-    const string &GetNameOrAlias()
+    const char *GetNameOrAlias()
     {
-        if (alias_ != "")
-            return alias_;
+        if (alias_.size()>0)
+            return alias_.c_str();
         else
-            return name_;
+            return name_.c_str();
     }
     
-    void AddWidget(Widget *widget, const string &name)
+    void AddWidget(Widget *widget, const char *name)
     {
         thisZoneWidgets_.Add(widget);
         widgets_.Insert(widget, true);
-        widgetsByName_.Insert(name.c_str(), widget);
+        widgetsByName_.Insert(name, widget);
     }
     
-    Widget *GetWidgetByName(const string &name)
+    Widget *GetWidgetByName(const char *name)
     {
-        return widgetsByName_.Get(name.c_str());
+        return widgetsByName_.Get(name);
     }
     
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
@@ -957,9 +957,9 @@ public:
         return empty;
     }
     
-    virtual void GoSubZone(const string &subZoneName)
+    virtual void GoSubZone(const char *subZoneName)
     {
-        WDL_PtrList<Zone> *zones = subZones_.Get(subZoneName.c_str());
+        WDL_PtrList<Zone> *zones = subZones_.Get(subZoneName);
         if (zones != NULL)
         {
             for (int i = 0; i < zones->GetSize(); ++i)
@@ -1073,7 +1073,7 @@ public:
         }
     }
 
-    void DoTouch(Widget *widget, string widgetName, bool &isUsed, double value)
+    void DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value)
     {
         if (! isActive_ || isUsed)
             return;
@@ -1123,9 +1123,9 @@ public:
 
     virtual ~SubZone() {}
     
-    virtual string GetType() override { return "SubZone"; }
+    virtual const char *GetType() override { return "SubZone"; }
 
-    virtual void GoSubZone(const string &subZoneName) override
+    virtual void GoSubZone(const char *subZoneName) override
     {
         Deactivate();
         enclosingZone_->GoSubZone(subZoneName);
@@ -1187,18 +1187,18 @@ public:
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
     double GetStepSize() { return stepSize_; }
     
-    void SetAccelerationValues( vector<double> accelerationValues) { accelerationValues_ = accelerationValues; }
-    vector<double> &GetAccelerationValues() { return accelerationValues_; }
+    void SetAccelerationValues( const vector<double> &accelerationValues) { accelerationValues_ = accelerationValues; }
+    const vector<double> &GetAccelerationValues() { return accelerationValues_; }
     
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
     double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
     void Configure(const WDL_PtrList<ActionContext> &contexts);
     void UpdateValue(const PropertyList &properties, double value);
-    void UpdateValue(const PropertyList &properties, string value);
+    void UpdateValue(const PropertyList &properties, const char * const &value);
     void RunDeferredActions();
     void UpdateColorValue(rgba_color);
-    void SetXTouchDisplayColors(const string &zoneName, const string &colors);
+    void SetXTouchDisplayColors(const char *zoneName, const char *colors);
     void RestoreXTouchDisplayColors();
     void ForceClear();
     void LogInput(double value);
@@ -1238,17 +1238,16 @@ struct CSILayoutInfo
         channelCount_ = 0;
     }
     
-    vector<string> GetModifierTokens()
+    vector<string> &GetModifierTokens(vector<string> &modifiers)
     {
         istringstream modifierStr(modifiers_);
         string modifier;
-        vector<string> modifiers;
         
+        modifiers.clear();
         while (getline(modifierStr, modifier, '+'))
             modifiers.push_back(modifier);
          
         modifiers.push_back("");
-
         return modifiers;
     }
 };
@@ -1684,7 +1683,7 @@ private:
         }
     }
 
-    void GetProperties(int start, int finish, vector<string> &tokens, PropertyList &properties) 
+    void GetProperties(int start, int finish, const vector<string> &tokens, PropertyList &properties) 
     {
         for (int i = start; i < finish; i++)
         {
@@ -1838,7 +1837,7 @@ public:
 
     void DoLearn(ActionContext *context, double value);
     LearnInfo *GetLearnInfo(Widget *widget);
-    LearnInfo *GetLearnInfo(Widget*, int modifier);
+    LearnInfo *GetLearnInfo(Widget *widget, int modifier);
 
     void DoTouch(Widget *widget, double value);
     
@@ -1849,9 +1848,9 @@ public:
     void EraseLastTouchedControl();
     
     const string &GetZoneFolder() { return zoneFolder_; }
-    WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
-    vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    vector<vector<string> > &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+    const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
+    const vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
+    const vector<vector<string> > &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -1896,12 +1895,12 @@ public:
                 listeners_.Get(i)->ListenToClearFXSlot(zone);
     }
                 
-    void RemoveZone(string zoneName)
+    void RemoveZone(const char *zoneName)
     {
-        if (zoneFilePaths_.Exists(zoneName.c_str()))
+        if (zoneFilePaths_.Exists(zoneName))
         {
-            remove(zoneFilePaths_.Get(zoneName.c_str())->filePath.c_str());
-            zoneFilePaths_.Delete(zoneName.c_str());
+            remove(zoneFilePaths_.Get(zoneName)->filePath.c_str());
+            zoneFilePaths_.Delete(zoneName);
         }
     }
       
@@ -2073,7 +2072,7 @@ public:
             return false;
     }
     
-    bool GetIsAssociatedZoneActive(const string &zoneName)
+    bool GetIsAssociatedZoneActive(const char *zoneName)
     {
         if (homeZone_ !=  NULL)
             return homeZone_->GetIsAssociatedZoneActive(zoneName);
@@ -2090,33 +2089,33 @@ public:
         needGarbageCollect_ = true;
     }
         
-    void AdjustBank(const string &zoneName, int amount)
+    void AdjustBank(const char *zoneName, int amount)
     {
-        if (zoneName == "TrackSend")
+        if (!strcmp(zoneName, "TrackSend"))
             AdjustBank(trackSendOffset_, amount);
-        else if (zoneName == "TrackReceive")
+        else if (!strcmp(zoneName, "TrackReceive"))
             AdjustBank(trackReceiveOffset_, amount);
-        else if (zoneName == "TrackFXMenu")
+        else if (!strcmp(zoneName, "TrackFXMenu"))
             AdjustBank(trackFXMenuOffset_, amount);
-        else if (zoneName == "SelectedTrackSend")
+        else if (!strcmp(zoneName, "SelectedTrackSend"))
             AdjustBank(selectedTrackSendOffset_, amount);
-        else if (zoneName == "SelectedTrackReceive")
+        else if (!strcmp(zoneName, "SelectedTrackReceive"))
             AdjustBank(selectedTrackReceiveOffset_, amount);
-        else if (zoneName == "SelectedTrackFXMenu")
+        else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
             AdjustBank(selectedTrackFXMenuOffset_, amount);
-        else if (zoneName == "MasterTrackFXMenu")
+        else if (!strcmp(zoneName, "MasterTrackFXMenu"))
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
                 
-    void AddZoneFilePath(const string &name, CSIZoneInfo *info)
+    void AddZoneFilePath(const char *name, CSIZoneInfo *info)
     {
-        if (name != "")
-            zoneFilePaths_.Insert(name.c_str(), info);
+        if (name && *name)
+            zoneFilePaths_.Insert(name, info);
     }
         
-    void AddZoneFilePath(const string &fxZoneFolder, const string &name, CSIZoneInfo *info)
+    void AddZoneFilePath(const char *fxZoneFolder, const char *name, CSIZoneInfo *info)
     {
-        if (fxZoneFolder == fxZoneFolder_)
+        if (!strcmp(fxZoneFolder, fxZoneFolder_.c_str()))
             AddZoneFilePath(name, info);
     }
                
@@ -2266,10 +2265,10 @@ public:
         return  numGroups;
     }
     
-    vector<FXParamLayoutTemplate> GetFXLayoutTemplates()
+    void GetFXLayoutTemplates(vector<FXParamLayoutTemplate> &layoutTemplates)
     {
-        vector<FXParamLayoutTemplate> layoutTemplates;
-        
+        layoutTemplates.clear();
+
         string widgetAction = "";
         string aliasDisplayAction = "";
         string valueDisplayAction = "";
@@ -2307,8 +2306,6 @@ public:
                 layoutTemplates.push_back(layoutTemplate);
             }
         }
-
-        return layoutTemplates;
     }
     
     void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
@@ -2796,9 +2793,9 @@ public:
     bool GetZoom() { return modifiers_[Zoom].isEngaged; }
     bool GetScrub() { return modifiers_[Scrub].isEngaged; }
 
-    void ClearModifier(const string &modifierString)
+    void ClearModifier(const char *modifierString)
     {
-        Modifiers m = modifierFromString(modifierString.c_str());
+        Modifiers m = modifierFromString(modifierString);
         if (m != ErrorModifier)
         {
             modifiers_[m].isEngaged = false;
@@ -2806,17 +2803,14 @@ public:
         }
     }
 
-    static string GetModifierString(int modifierValue)
+    static char *GetModifierString(int modifierValue, char *buf, int bufsz)
     {
-        string modifierString = "";
+        buf[0]=0;
         for (int x = 0; x < MaxModifiers; x++)
             if (modifierValue & maskFromModifier((Modifiers)x))
-            {
-                modifierString += stringFromModifier((Modifiers)x);
-                modifierString += "+";
-            }
+                snprintf_append(buf, bufsz, "%s+",stringFromModifier((Modifiers)x));
 
-        return modifierString;
+        return buf;
     }
 
     int GetModifierValue(const vector<string> &tokens)
@@ -3081,10 +3075,10 @@ public:
     void ForceUpdateTrackColors();
     void OnTrackSelection(MediaTrack *track);
     virtual void SetHasMCUMeters(int displayType) {}
-    virtual void SendOSCMessage(const string &zoneName) {}
-    virtual void SendOSCMessage(const string &zoneName, int value) {}
-    virtual void SendOSCMessage(const string &zoneName, double value) {}
-    virtual void SendOSCMessage(const string &zoneName, const string &value) {}
+    virtual void SendOSCMessage(const char *zoneName) {}
+    virtual void SendOSCMessage(const char *zoneName, int value) {}
+    virtual void SendOSCMessage(const char *zoneName, double value) {}
+    virtual void SendOSCMessage(const char *zoneName, const char *value) {}
 
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
@@ -3156,35 +3150,34 @@ public:
         restrictedTextLength_ = length;
     }
     
-    string GetRestrictedLengthText(const string &text)
+    const char *GetRestrictedLengthText(const char *textc, char *buf, int bufsz) // may return textc if not restricted
     {
-        string restrictedText = text;
-
-        if (isTextLengthRestricted_ && text.length() > restrictedTextLength_)
+        if (isTextLengthRestricted_ && strlen(textc) > restrictedTextLength_ && WDL_NORMALLY(restrictedTextLength_ >= 0))
         {
-            string firstLetter = restrictedText.substr(0, 1);
-            
-            restrictedText = restrictedText.substr(1, restrictedText.length() - 1);
-            
-            ReplaceAllWith(restrictedText, "\t\r\n ", "");
+            static const char * const filter_lists[3] = {
+              " \t\r\n",
+              " \t\r\n`~!@#$%^&*:()_|=?;:'\",",
+              " \t\r\n`~!@#$%^&*:()_|=?;:'\",aeiou"
+            };
 
-            if (restrictedText.length() <= restrictedTextLength_ - 1)
-                return firstLetter + restrictedText;
-            
-            ReplaceAllWith(restrictedText, "`~!@#$%^&*:()_|=?;:'\",", "");
+            for (int pass = 0; pass < 3; pass ++)
+            {
+                const char *rd = textc;
+                int l = 0;
+                while (*rd && l < bufsz-1 && l <= restrictedTextLength_)
+                {
+                     if (!l || !strchr(filter_lists[pass], *rd))
+                         buf[l++] = *rd;
+                     rd++;
+                }
+                if (pass < 2 && l > restrictedTextLength_) continue; // keep filtering
 
-            if (restrictedText.length() <= restrictedTextLength_ - 1)
-                return firstLetter + restrictedText;
-            
-            ReplaceAllWith(restrictedText, "aeiou", "");
-
-            restrictedText = firstLetter + restrictedText;
-            
-            if (restrictedText.length() > restrictedTextLength_)
-                restrictedText = restrictedText.substr(0, restrictedTextLength_);
+                buf[wdl_min(restrictedTextLength_, l)] = 0;
+                return buf;
+            }
         }
+        return textc;
 
-        return restrictedText;
     }
            
     void AddTrackColorFeedbackProcessor(FeedbackProcessor *feedbackProcessor) // does not own this pointer
@@ -3291,9 +3284,9 @@ public:
         CSIMessageGeneratorsByMessage_.Insert(message.c_str(), messageGenerator);
     }
 
-    Widget *GetWidgetByName(const string &name)
+    Widget *GetWidgetByName(const char *name)
     {
-      return widgetsByName_.Get(name.c_str());
+      return widgetsByName_.Get(name);
     }
     
     void OnPageEnter()
@@ -3340,7 +3333,7 @@ public:
     
     const WDL_TypedBuf<int> &GetModifiers();
     void ClearModifiers();
-    void ClearModifier(const string &modifier);
+    void ClearModifier(const char *modifier);
 
     void UpdateCurrentActionContextModifiers()
     {
@@ -3375,11 +3368,11 @@ public:
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
     virtual void ForceValue(const PropertyList &properties, double value) {}
     virtual void ForceColorValue(const rgba_color &color) {}
-    virtual void ForceValue(const PropertyList &properties, const string &value) {}
+    virtual void ForceValue(const PropertyList &properties, const char * const &value) {}
     virtual void RunDeferredActions() {}
     virtual void UpdateTrackColors() {}
     virtual void ForceUpdateTrackColors() {}
-    virtual void SetXTouchDisplayColors(const string &zoneName, const string &colors) {}
+    virtual void SetXTouchDisplayColors(const char *zoneName, const char *colors) {}
     virtual void RestoreXTouchDisplayColors() {}
     virtual void ForceClear() {}
     
@@ -3392,7 +3385,7 @@ public:
         }
     }
     
-    virtual void SetValue(const PropertyList &properties, const string &value)
+    virtual void SetValue(const PropertyList &properties, const char * const & value)
     {
         if (lastStringValue_ != value)
         {
@@ -3474,7 +3467,7 @@ public:
         if (midiOutput_) ReleaseMidiOutput(midiOutput_);
     }
     
-    const string &GetName() { return name_; }
+    const char *GetName() { return name_.c_str(); }
     
     void HandleExternalInput(Midi_ControlSurface *surface);
     
@@ -3569,7 +3562,7 @@ public:
     virtual void SetColorValue(rgba_color &color) override;
     virtual void X32SetColorValue(rgba_color &color);
     virtual void ForceValue(const PropertyList &properties, double value) override;
-    virtual void ForceValue(const PropertyList &properties, const string &value) override;
+    virtual void ForceValue(const PropertyList &properties, const char * const &value) override;
     virtual void ForceClear() override;
 };
 
@@ -3604,11 +3597,11 @@ protected:
 public:
     OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const string &name, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress);
 
-    const string &GetName() { return name_; }
+    const char *GetName() { return name_.c_str(); }
 
     void HandleExternalInput(OSC_ControlSurface *surface);
     
-    void SendOSCMessage(const string &oscAddress, double value)
+    void SendOSCMessage(const char *oscAddress, double value)
     {
         if (outSocket_ != NULL && outSocket_->isOk())
         {
@@ -3619,7 +3612,7 @@ public:
         }
     }
     
-    void SendOSCMessage(const string &oscAddress, int value)
+    void SendOSCMessage(const char *oscAddress, int value)
     {
         if (outSocket_ != NULL && outSocket_->isOk())
         {
@@ -3630,23 +3623,23 @@ public:
         }
     }
     
-    void SendOSCMessage(const string &oscAddress, string value)
+    void SendOSCMessage(const char *oscAddress, const char *value)
     {
         if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
-            message.init(oscAddress).pushStr(value);
+            message.init(oscAddress).pushStr(string(value) /* no pushCStr? tsk */ );
             packetWriter_.init().addMessage(message);
             outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
         }
     }
     
-    void SendOSCMessage(const string &value)
+    void SendOSCMessage(const char *value)
     {
         if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
-            message.init(value);
+            message.init(string(value)); /* no C-string support? */
             packetWriter_.init().addMessage(message);
             outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
         }
@@ -3680,13 +3673,13 @@ public:
     virtual ~OSC_ControlSurface() {}
     
     void ProcessOSCMessage(const string &message, double value);
-    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, double value);
-    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, int value);
-    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, const string &value);
-    virtual void SendOSCMessage(const string &zoneName) override;
-    virtual void SendOSCMessage(const string &zoneName, int value) override;
-    virtual void SendOSCMessage(const string &zoneName, double value) override;
-    virtual void SendOSCMessage(const string &zoneName, const string &value) override;
+    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, double value);
+    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, int value);
+    void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, const char *value);
+    virtual void SendOSCMessage(const char *zoneName) override;
+    virtual void SendOSCMessage(const char *zoneName, int value) override;
+    virtual void SendOSCMessage(const char *zoneName, double value) override;
+    virtual void SendOSCMessage(const char *zoneName, const char *value) override;
 
     bool IsX32()
     {
@@ -4610,24 +4603,24 @@ public:
             surfaces_.Get(i)->GetZoneManager()->GoAssociatedZone(name);
     }
     
-    void AdjustBank(const string &zoneName, int amount)
+    void AdjustBank(const char *zoneName, int amount)
     {
-        if (zoneName == "Track")
+        if (!strcmp(zoneName, "Track"))
             trackNavigationManager_->AdjustTrackBank(amount);
-        else if (zoneName == "VCA")
+        else if (!strcmp(zoneName, "VCA"))
             trackNavigationManager_->AdjustVCABank(amount);
-        else if (zoneName == "Folder")
+        else if (!strcmp(zoneName, "Folder"))
             trackNavigationManager_->AdjustFolderBank(amount);
-        else if (zoneName == "SelectedTracks")
+        else if (!strcmp(zoneName, "SelectedTracks"))
             trackNavigationManager_->AdjustSelectedTracksBank(amount);
-        else if (zoneName == "SelectedTrack")
+        else if (!strcmp(zoneName, "SelectedTrack"))
             trackNavigationManager_->AdjustSelectedTrackBank(amount);
         else
             for (int i = 0; i < (int)surfaces_.GetSize(); ++i)
                 surfaces_.Get(i)->GetZoneManager()->AdjustBank(zoneName, amount);
     }
     
-    void AddZoneFilePath(ControlSurface *originatingSurface, const string &zoneFolder, const string &name, CSIZoneInfo *info)
+    void AddZoneFilePath(ControlSurface *originatingSurface, const char *zoneFolder, const char *name, CSIZoneInfo *info)
     {
         for (int i = 0; i < surfaces_.GetSize(); ++i)
             if (surfaces_.Get(i) != originatingSurface)
@@ -4977,7 +4970,7 @@ public:
             pages_.Get(currentPageIndex_)->SetTrackOffset(offset);
     }
     
-    void AdjustBank(Page *sendingPage, string zoneName, int amount)
+    void AdjustBank(Page *sendingPage, const char *zoneName, int amount)
     {
         if (! sendingPage->GetSynchPages())
             sendingPage->AdjustBank(zoneName, amount);

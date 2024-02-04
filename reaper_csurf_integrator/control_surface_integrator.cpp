@@ -452,8 +452,6 @@ static void listFilesOfType(const string &path, vector<string> &results, const c
 
 static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
 {
-    string zoneName = "";
-    
     try
     {
         ifstream file(filePath.c_str());
@@ -473,9 +471,8 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
 
             if (tokens[0] == "Zone" && tokens.size() > 1)
             {
-                zoneName = tokens[1];
-                info->alias = tokens.size() > 2 ? tokens[2] : zoneName;
-                zoneManager->AddZoneFilePath(zoneName, info);
+                info->alias = tokens.size() > 2 ? tokens[2] : tokens[1];
+                zoneManager->AddZoneFilePath(tokens[1].c_str(), info);
             }
 
             break;
@@ -846,7 +843,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                             if (enclosingZone != NULL && enclosingZone->GetChannelNumber() != 0)
                                 ReplaceAllWith(surfaceWidgetName, "|", int_to_string(enclosingZone->GetChannelNumber()).c_str());
                             
-                            Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName);
+                            Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName.c_str());
                                                         
                             if (widget == NULL)
                                 continue;
@@ -968,17 +965,17 @@ void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector
     }
 }
 
-void ActionContext::SetColor(vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+void ActionContext::SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
     vector<string> hexColors;
     
-    vector<string>::iterator openCurlyBrace = find(params.begin(), params.end(), "{");
-    vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "}");
+    vector<const string>::iterator openCurlyBrace = find(params.begin(), params.end(), "{");
+    vector<const string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "}");
     
     if (openCurlyBrace != params.end() && closeCurlyBrace != params.end())
     {
-        for (vector<string>::iterator it = openCurlyBrace + 1; it != closeCurlyBrace; ++it)
+        for (vector<const string>::iterator it = openCurlyBrace + 1; it != closeCurlyBrace; ++it)
         {
             string strVal = *(it);
             
@@ -2145,7 +2142,7 @@ int ActionContext::GetSlotIndex()
 
 const char *ActionContext::GetName()
 {
-    return zone_->GetNameOrAlias().c_str();
+    return zone_->GetNameOrAlias();
 }
 
 void ActionContext::RunDeferredActions()
@@ -2477,9 +2474,9 @@ int Zone::GetSlotIndex()
     else return slotIndex_;
 }
 
-int Zone::GetParamIndex(const string &widgetName)
+int Zone::GetParamIndex(const char *widgetName)
 {
-    Widget *w = widgetsByName_.Get(widgetName.c_str());
+    Widget *w = widgetsByName_.Get(widgetName);
     if (w)
     {
         const WDL_PtrList<ActionContext> &contexts = GetActionContexts(w);
@@ -2841,13 +2838,13 @@ void Zone::AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &
         navigators.Add(zoneManager_->GetSelectedTrackNavigator());
 }
 
-void Zone::SetXTouchDisplayColors(const string &color)
+void Zone::SetXTouchDisplayColors(const char *color)
 {
     for (int wi = 0; wi < widgets_.GetSize(); wi ++)
     {
         Widget *widget = NULL;
         if (WDL_NOT_NORMALLY(!widgets_.EnumeratePtr(wi,&widget) || !widget)) break;
-        widget->SetXTouchDisplayColors(name_, color);
+        widget->SetXTouchDisplayColors(name_.c_str(), color);
     }
 }
 
@@ -2999,7 +2996,7 @@ void  Widget::UpdateValue(const PropertyList &properties, double value)
         feedbackProcessors_.Get(i)->SetValue(properties, value);
 }
 
-void  Widget::UpdateValue(const PropertyList &properties, string value)
+void  Widget::UpdateValue(const PropertyList &properties, const char * const &value)
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->SetValue(properties, value);
@@ -3017,7 +3014,7 @@ void  Widget::UpdateColorValue(rgba_color color)
         feedbackProcessors_.Get(i)->SetColorValue(color);
 }
 
-void Widget::SetXTouchDisplayColors(const string &zoneName, const string &colors)
+void Widget::SetXTouchDisplayColors(const char *zoneName, const char *colors)
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->SetXTouchDisplayColors(zoneName, colors);
@@ -3082,7 +3079,7 @@ void OSC_FeedbackProcessor::SetColorValue(rgba_color &color)
             if (surface_->IsX32())
                 X32SetColorValue(color);
             else
-                surface_->SendOSCMessage(this, oscAddress_ + "/Color", color.rgba_to_string(tmp));
+                surface_->SendOSCMessage(this, (oscAddress_ + "/Color").c_str(), color.rgba_to_string(tmp));
         }
     }
 }
@@ -3106,7 +3103,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(rgba_color &color)
     string oscAddress = "/ch/";
     if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
     oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
-    surface_->SendOSCMessage(this, oscAddress, surfaceColor);
+    surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
 }
 
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
@@ -3115,22 +3112,23 @@ void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double va
         return;
 
     lastDoubleValue_ = value;
-    surface_->SendOSCMessage(this, oscAddress_, value);
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), value);
 }
 
-void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, const string &value)
+void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, const char * const &value)
 {
     lastStringValue_ = value;
-    surface_->SendOSCMessage(this, oscAddress_, GetWidget()->GetSurface()->GetRestrictedLengthText(value));
+    char tmp[BUFSZ];
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), GetWidget()->GetSurface()->GetRestrictedLengthText(value,tmp,sizeof(tmp)));
 }
 
 void OSC_FeedbackProcessor::ForceClear()
 {
     lastDoubleValue_ = 0.0;
-    surface_->SendOSCMessage(this, oscAddress_, 0.0);
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), 0.0);
     
     lastStringValue_ = "";
-    surface_->SendOSCMessage(this, oscAddress_, "");
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), "");
 }
 
 void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double value)
@@ -3143,13 +3141,13 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
             surface_->SendOSCMessage(this, "/-stat/selidx", widget_->GetChannelNumber() -1);
     }
     else
-        surface_->SendOSCMessage(this, oscAddress_, (int)value);
+        surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
 }
 
 void OSC_IntFeedbackProcessor::ForceClear()
 {
     lastDoubleValue_ = 0.0;
-    surface_->SendOSCMessage(this, oscAddress_, 0.0);
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), 0.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3561,8 +3559,8 @@ void ZoneManager::SaveTemplatedFXParams()
             info->filePath = path;
             info->alias = alias;
             
-            AddZoneFilePath(learnFXName_, info);
-            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
+            AddZoneFilePath(learnFXName_.c_str(), info);
+            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
         }
         
         ofstream fxZone(path.c_str());
@@ -3624,8 +3622,8 @@ void ZoneManager::SaveLearnedFXParams()
             info->filePath = path;
             info->alias = alias;
             
-            AddZoneFilePath(learnFXName_, info);
-            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
+            AddZoneFilePath(learnFXName_.c_str(), info);
+            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
         }
         
         string nameDisplayParams = "";
@@ -3663,7 +3661,8 @@ void ZoneManager::SaveLearnedFXParams()
                     const WDL_StringKeyedArray<LearnFXCell *> * const widgetCells = lc.Enumerate(wc,&modifier);
                     if (WDL_NOT_NORMALLY(widgetCells == NULL)) continue;
 
-                    string modifierStr = ModifierManager::GetModifierString(modifier);
+                    char modStr[256];
+                    ModifierManager::GetModifierString(modifier, modStr, sizeof(modStr));
                     
                     for (int ci = 0; ci < widgetCells->GetSize(); ci ++)
                     {
@@ -3682,19 +3681,19 @@ void ZoneManager::SaveLearnedFXParams()
                             {
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tFXParam " + int_to_string(info->paramNumber) + " " + info->params + "\n";
-                                fxZone << "\t" + modifierStr + cell->fxParamNameDisplayWidget->GetName() + "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
-                                fxZone << "\t" + modifierStr + cell->fxParamValueDisplayWidget->GetName() + "\tFXParamValueDisplay " + int_to_string(info->paramNumber) + valueDisplayParams + "\n\n";
+                                fxZone << "\t" << modStr << cell->fxParamWidgets.Get(i)->GetName() << "\tFXParam " + int_to_string(info->paramNumber) + " " + info->params + "\n";
+                                fxZone << "\t" << modStr << cell->fxParamNameDisplayWidget->GetName() << "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
+                                fxZone << "\t" << modStr << cell->fxParamValueDisplayWidget->GetName() << "\tFXParamValueDisplay " + int_to_string(info->paramNumber) + valueDisplayParams + "\n\n";
                             }
                             else if (i == cell->fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
                             {
-                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
-                                fxZone << "\t" + modifierStr + cell->fxParamNameDisplayWidget->GetName() + "\tNoAction\n";
-                                fxZone << "\t" + modifierStr + cell->fxParamValueDisplayWidget->GetName() + "\tNoAction\n\n";
+                                fxZone << "\t" << modStr << cell->fxParamWidgets.Get(i)->GetName() << "\tNoAction\n";
+                                fxZone << "\t" << modStr << cell->fxParamNameDisplayWidget->GetName() << "\tNoAction\n";
+                                fxZone << "\t" << modStr << cell->fxParamValueDisplayWidget->GetName() << "\tNoAction\n\n";
                             }
                             else
                             {
-                                fxZone << "\t" + modifierStr + cell->fxParamWidgets.Get(i)->GetName() + "\tNoAction\n";
+                                fxZone << "\t" << modStr << cell->fxParamWidgets.Get(i)->GetName() << "\tNoAction\n";
                                 fxZone << "\tNullDisplay\tNoAction\n";
                                 fxZone << "\tNullDisplay\tNoAction\n\n";
                             }
@@ -3801,9 +3800,10 @@ void ZoneManager::InitializeNoMapZone()
             if (surfaceFXLayout_[2].size() > 0)
                 valueDisplayWidget = surfaceFXLayout_[2][0];
 
+            vector<string> mods;
             for (int i = 0; i < (int)fxLayouts_.size(); ++i)
             {
-                int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens());
+                int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens(mods));
                 
                 if (modifier != 0)
                     continue;
@@ -3812,7 +3812,7 @@ void ZoneManager::InitializeNoMapZone()
                 {
                     string cellAdress = fxLayouts_[i].suffix_ + int_to_string(j);
                     
-                    Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAdress);
+                    Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAdress).c_str());
                     if (widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
@@ -3820,7 +3820,7 @@ void ZoneManager::InitializeNoMapZone()
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
 
-                    widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAdress);
+                    widget = GetSurface()->GetWidgetByName((valueDisplayWidget + cellAdress).c_str());
                     if (widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
@@ -3830,7 +3830,7 @@ void ZoneManager::InitializeNoMapZone()
                     
                     for (int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
-                        widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAdress);
+                        widget = GetSurface()->GetWidgetByName((paramWidgets[k] + cellAdress).c_str());
                         if (widget == NULL || usedWidgets.Exists(widget))
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
@@ -3889,9 +3889,10 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
             if (paramWidgets.size() > 0)
             {
+                vector<string> mods;
                 for (int i = 0; i < (int)fxLayouts_.size(); ++i)
                 {
-                    int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens());
+                    int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens(mods));
                     
                     for (int j = 1; j <= fxLayouts_[i].channelCount_; j++)
                     {
@@ -3900,7 +3901,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         char cellAddress[BUFSZ];
                         snprintf(cellAddress, sizeof(cellAddress), "%s%d",fxLayouts_[i].suffix_.c_str(),j);
                         
-                        Widget *widget = GetSurface()->GetWidgetByName(nameDisplayWidget + cellAddress);
+                        Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAddress).c_str());
                         if (widget == NULL)
                             continue;
                         cell.fxParamNameDisplayWidget = widget;
@@ -3910,7 +3911,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         context->SetCellAddress(cellAddress);
                         zone->AddActionContext(widget, modifier, context);
 
-                        widget = GetSurface()->GetWidgetByName(valueDisplayWidget + cellAddress);
+                        widget = GetSurface()->GetWidgetByName((valueDisplayWidget + cellAddress).c_str());
                         if (widget == NULL)
                             continue;
                         cell.fxParamValueDisplayWidget = widget;
@@ -3922,7 +3923,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         
                         for (int k = 0; k < (int)paramWidgets.size(); ++k)
                         {
-                            widget = GetSurface()->GetWidgetByName(paramWidgets[k] + cellAddress);
+                            widget = GetSurface()->GetWidgetByName((paramWidgets[k] + cellAddress).c_str());
                             if (widget == NULL)
                                 continue;
                             cell.fxParamWidgets.Add(widget);
@@ -3952,7 +3953,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
 void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
 {
     zoneDef_.fullPath = zoneFilePaths_.Get(fxName.c_str())->filePath;
-    vector<FXParamLayoutTemplate> layoutTemplates = GetFXLayoutTemplates();
+    vector<FXParamLayoutTemplate> layoutTemplates;
+    GetFXLayoutTemplates(layoutTemplates);
         
     UnpackZone(zoneDef_, layoutTemplates);
     
@@ -3960,7 +3962,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
     {
         for (int j = 0; j < (int)zoneDef_.paramDefs[i].definitions.size(); ++j)
         {
-            Widget *widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName);
+            Widget *widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName.c_str());
             if (widget)
             {
                 if (LearnInfo *info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
@@ -4056,7 +4058,7 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
                                 
                                 int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
 
-                                Widget *controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
+                                Widget *controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
                                 
                                 istringstream displayModifiersAndWidgetName(tokens[0]);
 
@@ -4065,7 +4067,7 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
                                 while (getline(displayModifiersAndWidgetName, modifierToken, '+'))
                                     modifierTokens.push_back(modifierToken);
 
-                                Widget *displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1]);
+                                Widget *displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
 
                                 if (controlWidget && displayWidget)
                                 {
@@ -4537,8 +4539,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     for (int i = 0; i < (int)fxLayouts_.size(); ++i)
         totalAvailableChannels += fxLayouts_[i].channelCount_;
         
-    AddZoneFilePath(fxName, info);
-    surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, fxName, info);
+    AddZoneFilePath(fxName.c_str(), info);
+    surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), fxName.c_str(), info);
 
     ofstream fxZone(path.c_str());
 
@@ -5333,7 +5335,7 @@ const WDL_TypedBuf<int> &ControlSurface::GetModifiers()
         return page_->GetModifierManager()->GetModifiers();
 }
 
-void ControlSurface::ClearModifier(const string &modifier)
+void ControlSurface::ClearModifier(const char *modifier)
 {
     if (zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
     {
@@ -5564,43 +5566,43 @@ void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
     }
 }
 
-void OSC_ControlSurface::SendOSCMessage(const string &zoneName)
+void OSC_ControlSurface::SendOSCMessage(const char *zoneName)
 {
     string oscAddress(zoneName);
     ReplaceAllWith(oscAddress, s_BadFileChars, "_");
     oscAddress = "/" + oscAddress;
 
-    surfaceIO_->SendOSCMessage(oscAddress);
+    surfaceIO_->SendOSCMessage(oscAddress.c_str());
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg((zoneName + "->" + "LoadingZone---->" + name_ + "\n").c_str());
+        DAW::ShowConsoleMsg((string(zoneName) + "->LoadingZone---->" + name_ + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, int value)
+void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, double value)
+void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(const string &oscAddress, const string &value)
+void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + oscAddress + " " + value + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, double value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
@@ -5608,7 +5610,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, int value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
@@ -5616,12 +5618,12 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
         DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
-void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const string &oscAddress, const string &value)
+void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, const char *value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + value + "\n").c_str());
+        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + string(value) + "\n").c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

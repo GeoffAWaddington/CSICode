@@ -885,7 +885,7 @@ static bool DeleteZone()
     if (MessageBox(NULL, (string("This will permanently delete\n\n") + s_zoneDef.fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + s_zoneDef.fxAlias).c_str(), MB_YESNO) == IDNO)
        return false;
     
-    s_zoneManager->RemoveZone(s_zoneDef.fxName);
+    s_zoneManager->RemoveZone(s_zoneDef.fxName.c_str());
     
     return true;
 }
@@ -1226,7 +1226,7 @@ bool RemapAutoZoneDialog(ZoneManager *aZoneManager, string fullFilePath)
     s_zoneManager = aZoneManager;
     s_zoneDef.fullPath = fullFilePath;
     s_numGroups = s_zoneManager->GetNumGroups();
-    s_layoutTemplates = s_zoneManager->GetFXLayoutTemplates();
+    s_zoneManager->GetFXLayoutTemplates(s_layoutTemplates);
     s_surfaceLayoutTemplate = s_zoneManager->GetSurfaceFXLayoutTemplate();
     
     s_zoneManager->UnpackZone(s_zoneDef, s_layoutTemplates);
