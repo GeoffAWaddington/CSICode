@@ -28,7 +28,6 @@
 #ifdef _WIN32
 #include "oscpkt.hh"
 #include "udp.hh"
-#include <bitset>
 #endif
 
 #include "control_surface_integrator_Reaper.h"
@@ -4344,8 +4343,8 @@ public:
         vcaTopLeadTracks_.Empty();
         vcaSpillTracks_.Empty();
         
-        bitset<32> leadTrackVCALeaderGroup;
-        bitset<32> leadTrackVCALeaderGroupHigh;
+        unsigned int leadTrackVCALeaderGroup = 0;
+        unsigned int leadTrackVCALeaderGroupHigh = 0;
         
         if (vcaLeadTrack_ != NULL)
         {
@@ -4369,17 +4368,13 @@ public:
             {
                 bool isFollower = false;
                 
-                bitset<32> leadTrackVCAFollowerGroup(DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW"));
-                bitset<32> leadTrackVCAFollowerGroupHigh(DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW"));
+                unsigned int leadTrackVCAFollowerGroup = DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW");
+                unsigned int leadTrackVCAFollowerGroupHigh = DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW");
 
-                for (int i = 0; i < 32; i++)
+                if ((leadTrackVCALeaderGroup     & leadTrackVCAFollowerGroup) ||
+                    (leadTrackVCALeaderGroupHigh & leadTrackVCAFollowerGroupHigh))
                 {
-                    if ((leadTrackVCALeaderGroup[i] == 1 && leadTrackVCAFollowerGroup[i] == 1)
-                       || (leadTrackVCALeaderGroupHigh[i] == 1 && leadTrackVCAFollowerGroupHigh[i] == 1))
-                    {
-                        isFollower = true;
-                        break;
-                    }
+                    isFollower = true;
                 }
                 
                 if (isFollower)
