@@ -106,7 +106,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                             vector<string> deltas;
                             GetTokens(deltas, buf);
                             for (int i = 0; i < (int)deltas.size(); ++i)
-                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(stof(deltas[i]));
+                                s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(atof(deltas[i].c_str()));
                         }
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
