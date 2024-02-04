@@ -4764,6 +4764,11 @@ public:
 static const int s_stepSizes_[]  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
 static const int s_tickCounts_[] = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
 
+static bool s_surfaceRawInDisplay = false;
+static bool s_surfaceInDisplay = false;
+static bool s_surfaceOutDisplay = false;
+static bool s_fxParamsWrite = false;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CSurfIntegrator : public IReaperControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4781,11 +4786,7 @@ private:
     WDL_PtrList<Page> pages_;
 
     int currentPageIndex_;
-    bool surfaceRawInDisplay_;
-    bool surfaceInDisplay_;
-    bool surfaceOutDisplay_;
-    bool fxParamsWrite_;
-
+    
     bool shouldRun_;
     
     // these are offsets to be passed to projectconfig_var_addr() when needed in order to get the actual pointers
@@ -4827,11 +4828,6 @@ public:
 
     void Shutdown()
     {
-        surfaceRawInDisplay_ = false;
-        surfaceInDisplay_ = false;
-        surfaceOutDisplay_ = false;
-        fxParamsWrite_ = false;
-        
         // GAW -- IMPORTANT
         
         // We want to stop polling
@@ -4844,15 +4840,15 @@ public:
     
     void Init();
     
-    void SetSurfaceRawInDisplay(bool isEnabled) { surfaceRawInDisplay_ = isEnabled;  }
-    void SetSurfaceInDisplay(bool isEnabled) { surfaceInDisplay_ = isEnabled;  }
-    void SetSurfaceOutDisplay(bool isEnabled) { surfaceOutDisplay_ = isEnabled;  }
-    void SetFXParamsWrite(bool isEnabled) { fxParamsWrite_ = isEnabled;  }
+    void SetSurfaceRawInDisplay(bool isEnabled) { s_surfaceRawInDisplay = isEnabled;  }
+    void SetSurfaceInDisplay(bool isEnabled) { s_surfaceInDisplay = isEnabled;  }
+    void SetSurfaceOutDisplay(bool isEnabled) { s_surfaceOutDisplay = isEnabled;  }
+    void SetFXParamsWrite(bool isEnabled) { s_fxParamsWrite = isEnabled;  }
 
-    bool GetSurfaceRawInDisplay() { return surfaceRawInDisplay_;  }
-    bool GetSurfaceInDisplay() { return surfaceInDisplay_;  }
-    bool GetSurfaceOutDisplay() { return surfaceOutDisplay_;  }
-    bool GetFXParamsWrite() { return fxParamsWrite_;  }
+    bool GetSurfaceRawInDisplay() { return s_surfaceRawInDisplay;  }
+    bool GetSurfaceInDisplay() { return s_surfaceInDisplay;  }
+    bool GetSurfaceOutDisplay() { return s_surfaceOutDisplay;  }
+    bool GetFXParamsWrite() { return s_fxParamsWrite;  }
 
     double GetFaderMaxDB() { return GetPrivateProfileDouble("slidermaxv"); }
     double GetFaderMinDB() { return GetPrivateProfileDouble("sliderminv"); }
@@ -5035,7 +5031,7 @@ public:
         for (int i = 0; i < pages_.GetSize(); ++i)
             pages_.Get(i)->TrackFXListChanged(track);
         
-        if (fxParamsWrite_)
+        if (s_fxParamsWrite)
         {
             char fxName[BUFSZ];
             
@@ -5045,7 +5041,7 @@ public:
             {
                 DAW::TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
                                 
-                if (fxParamsWrite_)
+                if (s_fxParamsWrite)
                 {
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
@@ -5061,7 +5057,7 @@ public:
                     char fxParamName[BUFSZ];
                     DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
  
-                    if (fxParamsWrite_ && fxFile.is_open())
+                    if (s_fxParamsWrite && fxFile.is_open())
                         fxFile <<  "\tFXParam " + int_to_string(j) + " \"" + string(fxParamName)+ "\"\n";
                         
                     /* step sizes
@@ -5075,7 +5071,7 @@ public:
                     */
                 }
                 
-                if (fxParamsWrite_ && fxFile.is_open())
+                if (s_fxParamsWrite && fxFile.is_open())
                 {
                     fxFile << "ZoneEnd";
                     fxFile.close();

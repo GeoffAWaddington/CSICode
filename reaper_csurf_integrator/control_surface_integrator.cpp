@@ -5716,10 +5716,10 @@ CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActio
     
     // private:
     currentPageIndex_ = 0;
-    surfaceRawInDisplay_ = false;
-    surfaceInDisplay_ = false;
-    surfaceOutDisplay_ = false;
-    fxParamsWrite_ = false;
+    s_surfaceRawInDisplay = false;
+    s_surfaceInDisplay = false;
+    s_surfaceOutDisplay = false;
+    s_fxParamsWrite = false;
 
     shouldRun_ = true;
     
