@@ -448,19 +448,21 @@ public:
         active_ = (bool)active;
     }
     
-    virtual void SetColorValue(rgba_color &color) override
+    virtual void SetColorValue(const rgba_color &color) override
     {
         int RGBIndexDivider = 1  *2;
         
         if (active_ == false)
             RGBIndexDivider = 9  *2;
         
-        color.r = color.r / RGBIndexDivider;
-        color.g = color.g / RGBIndexDivider;
-        color.b = color.b / RGBIndexDivider;
+        rgba_color c;
+        c.r = color.r / RGBIndexDivider;
+        c.g = color.g / RGBIndexDivider;
+        c.b = color.b / RGBIndexDivider;
+        c.a = color.a;
         
-        if (color != lastColor_)
-            ForceColorValue(color);
+        if (c != lastColor_)
+            ForceColorValue(c);
     }
 
     virtual void ForceColorValue(const rgba_color &color) override
@@ -1179,7 +1181,7 @@ public:
         ForceColorValue(color);
     }
 
-    virtual void SetColorValue(rgba_color &color) override
+    virtual void SetColorValue(const rgba_color &color) override
     {
         if (color != lastColor_)
             ForceColorValue(color);
@@ -1233,7 +1235,7 @@ public:
         ForceColorValue(color);
     }
 
-    virtual void SetColorValue(rgba_color &color) override
+    virtual void SetColorValue(const rgba_color &color) override
     {
         if (color != lastColor_)
             ForceColorValue(color);
@@ -1272,7 +1274,7 @@ public:
         ForceColorValue(color);
     }
 
-    virtual void SetColorValue(rgba_color &color) override
+    virtual void SetColorValue(const rgba_color &color) override
     {
         if (color != lastColor_)
             ForceColorValue(color);
@@ -2994,7 +2996,7 @@ public:
         ForceColorValue(color);
     }
     
-    virtual void SetColorValue(rgba_color &color) override
+    virtual void SetColorValue(const rgba_color &color) override
     {
         if (color != lastColor_)
             ForceColorValue(color);

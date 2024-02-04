@@ -1197,7 +1197,7 @@ public:
     void UpdateValue(const PropertyList &properties, double value);
     void UpdateValue(const PropertyList &properties, const char * const &value);
     void RunDeferredActions();
-    void UpdateColorValue(rgba_color);
+    void UpdateColorValue(const rgba_color &color);
     void SetXTouchDisplayColors(const char *zoneName, const char *colors);
     void RestoreXTouchDisplayColors();
     void ForceClear();
@@ -1396,7 +1396,7 @@ private:
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates);
+    void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const vector<string> &modifiers);
     void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string> > &surfaceFXLayout,  vector<vector<string> > &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
@@ -1718,7 +1718,7 @@ private:
         }
     }
 
-    void GetAlias(const char *fxName, string &alias)
+    void GetAlias(const char *fxName, char *alias, int aliassz)
     {
         static const char  *const prefixes[] =
         {
@@ -1763,9 +1763,9 @@ private:
             }
         }
 
-        alias = fxName;
-        const int ml = alias.find(" (");
-        if (ml > 0) alias.resize(ml);
+        lstrcpyn_safe(alias, fxName, aliassz);
+        char *p = strstr(alias," (");
+        if (p) *p = 0;
     }
 
 public:
@@ -1904,15 +1904,15 @@ public:
         }
     }
       
-    void GetName(MediaTrack *track, int fxIndex, string &name)
+    void GetName(MediaTrack *track, int fxIndex, char *name, int namesz)
     {
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
         if (zoneFilePaths_.Exists(fxName))
-            name = zoneFilePaths_.Get(fxName)->alias;
+            lstrcpyn_safe(name, zoneFilePaths_.Get(fxName)->alias.c_str(), namesz);
         else
-            GetAlias(fxName,name);
+            GetAlias(fxName, name, namesz);
     }
         
     void ClearLearnedFXParams()
@@ -2308,7 +2308,7 @@ public:
         }
     }
     
-    void UnpackZone(AutoZoneDefinition &zoneDef, vector<FXParamLayoutTemplate> &layoutTemplates)
+    void UnpackZone(AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
     {
         zoneDef.paramDefs.clear();
         zoneDef.prologue.clear();
@@ -3188,10 +3188,7 @@ public:
     
     void SetFixedTrackColors(const vector<rgba_color> &colors)
     {
-        fixedTrackColors_.clear();
-        
-        for (int i = 0; i < (int)colors.size(); ++i)
-            fixedTrackColors_.push_back(colors[i]);
+        fixedTrackColors_ = colors;
     }
         
     void ForceClear()
@@ -3364,7 +3361,7 @@ public:
     virtual ~FeedbackProcessor() {}
     virtual const char *GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
-    virtual void SetColorValue(rgba_color &color) {}
+    virtual void SetColorValue(const rgba_color &color) {}
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
     virtual void ForceValue(const PropertyList &properties, double value) {}
     virtual void ForceColorValue(const rgba_color &color) {}
@@ -3459,7 +3456,7 @@ protected:
     midi_Output *const midiOutput_;
     
 public:
-    Midi_ControlSurfaceIO(CSurfIntegrator *csi, string name, midi_Input *midiInput, midi_Output *midiOutput) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
+    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const string &name, midi_Input *midiInput, midi_Output *midiOutput) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
 
     ~Midi_ControlSurfaceIO()
     {
@@ -3519,7 +3516,7 @@ private:
     void SendSysexInitData(int line[], int numElem);
     
 public:
-    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
+    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3554,13 +3551,13 @@ protected:
     string const oscAddress_;
     
 public:
-    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, string oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_FeedbackProcessor"; }
 
-    virtual void SetColorValue(rgba_color &color) override;
-    virtual void X32SetColorValue(rgba_color &color);
+    virtual void SetColorValue(const rgba_color &color) override;
+    virtual void X32SetColorValue(const rgba_color &color);
     virtual void ForceValue(const PropertyList &properties, double value) override;
     virtual void ForceValue(const PropertyList &properties, const char * const &value) override;
     virtual void ForceClear() override;
@@ -3571,7 +3568,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, string oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_IntFeedbackProcessor"; }
@@ -3668,7 +3665,7 @@ private:
     void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
-    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
+    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     
@@ -3958,7 +3955,7 @@ public:
             return "";
     }
     
-    WDL_PtrList<MediaTrack> &GetSelectedTracks()
+    const WDL_PtrList<MediaTrack> &GetSelectedTracks()
     {
         selectedTracks_.Empty();
         
@@ -4487,7 +4484,7 @@ public:
     
     ModifierManager *GetModifierManager() { return modifierManager_; }
     
-    WDL_PtrList<ControlSurface> &GetSurfaces() { return surfaces_; }
+    const WDL_PtrList<ControlSurface> &GetSurfaces() { return surfaces_; }
     
     void AddSurface(ControlSurface *surface)
     {
@@ -4799,12 +4796,12 @@ private:
     
     void InitFXParamStepValues();
 
-    double GetPrivateProfileDouble(string key)
+    double GetPrivateProfileDouble(const char *key)
     {
         char tmp[512];
         memset(tmp, 0, sizeof(tmp));
         
-        DAW::GetPrivateProfileString("REAPER", key.c_str() , "", tmp, sizeof(tmp), DAW::get_ini_file());
+        DAW::GetPrivateProfileString("REAPER", key, "", tmp, sizeof(tmp), DAW::get_ini_file());
         
         return strtod (tmp, NULL);
     }
@@ -4883,7 +4880,7 @@ public:
             return s_tickCounts_[NUM_ELEM(s_tickCounts_) - 1];
     }
     
-    void Speak(string phrase)
+    void Speak(const char *phrase)
     {
         static void (*osara_outputMessage)(const char *message);
         static bool chk;
@@ -4895,7 +4892,7 @@ public:
         }
 
         if (osara_outputMessage)
-            osara_outputMessage(phrase.c_str());
+            osara_outputMessage(phrase);
     }
     
     ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
@@ -4992,7 +4989,7 @@ public:
         }
     }
     
-    void GoToPage(string pageName)
+    void GoToPage(const char *pageName)
     {
         for (int i = 0; i < pages_.GetSize(); i++)
         {
@@ -5087,20 +5084,18 @@ public:
             fxParamSteppedValueCounts_.Get(fxName.c_str())->Insert(paramIndex, steppedValuecount);
     }
     
-    bool HaveFXSteppedValuesBeenCalculated(string fxName)
+    bool HaveFXSteppedValuesBeenCalculated(const char *fxName)
     {
-        if (fxParamSteppedValueCounts_.Exists(fxName.c_str()))
+        if (fxParamSteppedValueCounts_.Exists(fxName))
             return true;
         else
             return false;
     }
     
-    int GetSteppedValueCount(const string &fxName, int paramIndex)
+    int GetSteppedValueCount(const char *fxName, int paramIndex)
     {
-        if (fxParamSteppedValueCounts_.Exists(fxName.c_str()) && fxParamSteppedValueCounts_.Get(fxName.c_str())->Exists(paramIndex))
-            return fxParamSteppedValueCounts_.Get(fxName.c_str())->Get(paramIndex);
-        else
-            return  0;
+        WDL_IntKeyedArray<int> *r = fxParamSteppedValueCounts_.Get(fxName);
+        return r ? r->Get(paramIndex, 0) : 0;
     }
     
     //int repeats = 0;

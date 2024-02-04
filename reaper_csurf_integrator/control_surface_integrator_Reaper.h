@@ -25,17 +25,17 @@ struct rgba_color
     int b;
     int a;
         
-    bool operator == (rgba_color &other)
+    bool operator == (const rgba_color &other) const
     {
         return r == other.r && g == other.g && b == other.b && a == other.a ;
     }
     
-    bool operator != (rgba_color &other)
+    bool operator != (const rgba_color &other) const
     {
         return r != other.r || g != other.g || b != other.b || a != other.a;
     }
     
-    const char *rgba_to_string(char *buf) // buf must be at least 10 bytes
+    const char *rgba_to_string(char *buf) const // buf must be at least 10 bytes
     {
       snprintf(buf,10,"#%02x%02x%02x%02x",r,g,b,a);
       return buf;

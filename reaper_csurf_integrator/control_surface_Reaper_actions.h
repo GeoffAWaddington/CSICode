@@ -2314,12 +2314,13 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            string name = "";
+            char name[BUFSZ];
+            name[0] = 0;
             
             if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
-                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
+                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), name, sizeof(name));
             
-            context->UpdateWidgetValue(name.c_str());
+            context->UpdateWidgetValue(name);
         }
         else
             context->ClearWidget();
@@ -2339,12 +2340,14 @@ public:
 
         if (MediaTrack *track = context->GetTrack())
         {
-            string name = "";
+            char name[1024];
+            name[0]=0;
             
             if (context->GetSlotIndex() < DAW::TrackFX_GetCount(track))
-                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(),name);
+                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), name, sizeof(name));
 
-            context->GetCSI()->Speak(name);
+            if (name[0])
+                context->GetCSI()->Speak(name);
         }
     }
 };
@@ -2544,11 +2547,19 @@ public:
 
         if (MediaTrack *track = context->GetTrack())
         {
-            const char *sendTrackName = "No Send Track";
             MediaTrack *destTrack = (MediaTrack *)DAW::GetSetTrackSendInfo(track, 0, context->GetSlotIndex(), "P_DESTTRACK", 0);;
             if (destTrack)
-                sendTrackName = (const char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
-            context->GetCSI()->Speak("Track " + int_to_string(context->GetPage()->GetIdFromTrack(destTrack)) + " " + string(sendTrackName));
+            {
+                const char *sendTrackName = (const char *)DAW::GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
+                char tmp[BUFSZ];
+                snprintf(tmp, sizeof(tmp), "Track %d%s%s",
+                    context->GetPage()->GetIdFromTrack(destTrack),
+                    sendTrackName && *sendTrackName ? " " : "",
+                    sendTrackName ? sendTrackName : "");
+                context->GetCSI()->Speak(tmp);
+            }
+            else
+                context->GetCSI()->Speak("No Send Track");
         }
     }
 };
@@ -2691,7 +2702,11 @@ public:
             if (srcTrack)
             {
                 const char *receiveTrackName = (const char *)DAW::GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                context->GetCSI()->Speak("Track " + int_to_string(context->GetPage()->GetIdFromTrack(srcTrack)) + " " + string(receiveTrackName));
+                char tmp[BUFSZ];
+                snprintf(tmp, sizeof(tmp), "Track %d%s%s", context->GetPage()->GetIdFromTrack(srcTrack),
+                    receiveTrackName && *receiveTrackName ? " " : "",
+                    receiveTrackName ? receiveTrackName : "");
+                context->GetCSI()->Speak(tmp);
             }
             else
                 context->GetCSI()->Speak("No Receive Track");
@@ -3339,9 +3354,10 @@ public:
     {
         double retVal = 0.0;
         
-        for (int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
+        const WDL_PtrList<MediaTrack> &list = context->GetPage()->GetSelectedTracks();
+        for (int i = 0; i < list.GetSize(); ++i)
         {
-            if (context->GetIntParam() == DAW::GetMediaTrackInfo_Value(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE"))
+            if (context->GetIntParam() == DAW::GetMediaTrackInfo_Value(list.Get(i), "I_AUTOMODE"))
             {
                 retVal = 1.0;
                 break;
@@ -3363,8 +3379,9 @@ public:
         
         int mode = context->GetIntParam();
         
-        for (int i = 0; i < context->GetPage()->GetSelectedTracks().GetSize(); ++i)
-            DAW::GetSetMediaTrackInfo(context->GetPage()->GetSelectedTracks().Get(i), "I_AUTOMODE", &mode);
+        const WDL_PtrList<MediaTrack> &list = context->GetPage()->GetSelectedTracks();
+        for (int i = 0; i < list.GetSize(); ++i)
+            DAW::GetSetMediaTrackInfo(list.Get(i), "I_AUTOMODE", &mode);
     }
 };
 

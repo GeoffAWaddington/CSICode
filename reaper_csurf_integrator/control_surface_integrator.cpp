@@ -1838,12 +1838,13 @@ void CSurfIntegrator::Init()
                     ControlSurface *broadcaster = NULL;
                     ControlSurface *listener = NULL;
 
-                    for (int i = 0; i < currentPage->GetSurfaces().GetSize(); ++i)
+                    const WDL_PtrList<ControlSurface> &list = currentPage->GetSurfaces();
+                    for (int i = 0; i < list.GetSize(); ++i)
                     {
-                        if (currentPage->GetSurfaces().Get(i)->GetName() == currentBroadcaster)
-                            broadcaster = currentPage->GetSurfaces().Get(i);
-                        if (currentPage->GetSurfaces().Get(i)->GetName() == tokens[1])
-                            listener = currentPage->GetSurfaces().Get(i);
+                        if (list.Get(i)->GetName() == currentBroadcaster)
+                            broadcaster = list.Get(i);
+                        if (list.Get(i)->GetName() == tokens[1])
+                            listener = list.Get(i);
                     }
                     
                     if (broadcaster != NULL && listener != NULL)
@@ -3008,7 +3009,7 @@ void Widget::RunDeferredActions()
         feedbackProcessors_.Get(i)->RunDeferredActions();
 }
 
-void  Widget::UpdateColorValue(rgba_color color)
+void  Widget::UpdateColorValue(const rgba_color &color)
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->SetColorValue(color);
@@ -3067,24 +3068,21 @@ void Midi_FeedbackProcessor::ForceMidiMessage(int first, int second, int third)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_FeedbackProcessor
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OSC_FeedbackProcessor::SetColorValue(rgba_color &color)
+void OSC_FeedbackProcessor::SetColorValue(const rgba_color &color)
 {
     if (lastColor_ != color)
     {
-        if (lastColor_ != color)
-        {
-            lastColor_ = color;
+        lastColor_ = color;
 
-            char tmp[32];
-            if (surface_->IsX32())
-                X32SetColorValue(color);
-            else
-                surface_->SendOSCMessage(this, (oscAddress_ + "/Color").c_str(), color.rgba_to_string(tmp));
-        }
+        char tmp[32];
+        if (surface_->IsX32())
+            X32SetColorValue(color);
+        else
+            surface_->SendOSCMessage(this, (oscAddress_ + "/Color").c_str(), color.rgba_to_string(tmp));
     }
 }
 
-void OSC_FeedbackProcessor::X32SetColorValue(rgba_color &color)
+void OSC_FeedbackProcessor::X32SetColorValue(const rgba_color &color)
 {
     int surfaceColor = 0;
     int r = color.r;
@@ -3201,10 +3199,10 @@ void ZoneManager::CheckFocusedFXState()
 
         if (learnFXName_ != "" && learnFXName_ != fxName)
         {
-            string alias, learnalias;
-            GetAlias(fxName,alias);
-            GetAlias(learnFXName_.c_str(),learnalias);
-            if (MessageBox(NULL, (string("You have now shifted focus to ") + alias + "\n\n" + learnalias + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+            char alias[256], learnalias[256];
+            GetAlias(fxName, alias, sizeof(alias));
+            GetAlias(learnFXName_.c_str(), learnalias, sizeof(learnalias));
+            if (MessageBox(NULL, (string("You have now shifted focus to ") + string(alias) + "\n\n" + string(learnalias) + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
             {
                 SaveLearnedFXParams();
             }
@@ -3530,17 +3528,19 @@ void ZoneManager::SaveTemplatedFXParams()
             pos += learnFXName_.length();
         }
         
-        string alias;
-        GetAlias(learnFXName_.c_str(), alias);
+        char alias[256];
+        GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
 
-        fxLayoutFileLines_[0] += " \"" + alias + "\" \n\n";
+        fxLayoutFileLines_[0] += " \"";
+        fxLayoutFileLines_[0] += alias;
+        fxLayoutFileLines_[0] += "\" \n\n";
         
         string path = "";
          
         if (zoneFilePaths_.Exists(learnFXName_.c_str()))
         {
             path = zoneFilePaths_.Get(learnFXName_.c_str())->filePath;
-            alias = zoneFilePaths_.Get(learnFXName_.c_str())->alias;
+            lstrcpyn_safe(alias, zoneFilePaths_.Get(learnFXName_.c_str())->alias.c_str(), sizeof(alias));
         }
         else
         {
@@ -3548,7 +3548,7 @@ void ZoneManager::SaveTemplatedFXParams()
             
             RecursiveCreateDirectory(path.c_str(),0);
 
-            GetAlias(learnFXName_.c_str(),alias);
+            GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
             
             string fxName = learnFXName_;
             ReplaceAllWith(fxName, s_BadFileChars, "_");
@@ -3598,12 +3598,12 @@ void ZoneManager::SaveLearnedFXParams()
     if (learnFXName_ != "")
     {
         string path = "";
-        string alias = "";
+        char alias[1024];
         
         if (zoneFilePaths_.Exists(learnFXName_.c_str()))
         {
             path = zoneFilePaths_.Get(learnFXName_.c_str())->filePath;
-            alias = zoneFilePaths_.Get(learnFXName_.c_str())->alias;
+            lstrcpyn_safe(alias, zoneFilePaths_.Get(learnFXName_.c_str())->alias.c_str(), sizeof(alias));;
         }
         else
         {
@@ -3611,7 +3611,7 @@ void ZoneManager::SaveLearnedFXParams()
             
             RecursiveCreateDirectory(path.c_str(),0);
 
-            GetAlias(learnFXName_.c_str(),alias);
+            GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
             
             string fxName = learnFXName_;
             ReplaceAllWith(fxName, s_BadFileChars, "_");
@@ -3644,7 +3644,7 @@ void ZoneManager::SaveLearnedFXParams()
 
         if (fxZone.is_open())
         {
-            fxZone << "Zone \"" + learnFXName_ + "\" \"" + alias + "\" \"" + s_GeneratedByLearn + "\"\n";
+            fxZone << "Zone \"" + learnFXName_ + "\" \"" + string(alias) + "\" \"" + s_GeneratedByLearn + "\"\n";
             
             for (int i = 0; i < (int)fxPrologue_.size(); ++i)
                 fxZone << "\t" + fxPrologue_[i] + "\n";
@@ -3738,7 +3738,7 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
     return modifiers ? modifiers->Get(modifier) : NULL;
 }
 
-void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, vector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates)
 {
     istringstream modifiersAndWidgetName(line);
     string modifiersAndWidgetNameToken;
@@ -4522,8 +4522,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     
     path += "/" + trimmedFXName + ".zon";
 
-    string alias;
-    GetAlias(fxName.c_str(),alias);
+    char alias[256];
+    GetAlias(fxName.c_str(), alias, sizeof(alias));
 
     string paramAction = " FXParam ";
     
@@ -4546,7 +4546,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
 
     if (fxZone.is_open())
     {
-        fxZone << "Zone \"" + fxName + "\" \"" + alias + "\"\n";
+        fxZone << "Zone \"" + fxName + "\" \"" + string(alias) + "\"\n";
         
         for (int i = 0; i < (int)fxPrologue_.size(); ++i)
             fxZone << "\t" + fxPrologue_[i] + "\n";
@@ -4612,7 +4612,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                             
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FXParam")
                             {
-                                int steppedValueCount =  csi_->GetSteppedValueCount(fxName, paramIdx);
+                                int steppedValueCount =  csi_->GetSteppedValueCount(fxName.c_str(), paramIdx);
                                 
                                 if (steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
                                 {
@@ -4857,7 +4857,7 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
             if (value == 0 && modifiers_[modifier].isEngaged)
             {
                 char tmp[256];
-                snprintf(tmp,sizeof(tmp), "%s Unlock", stringFromModifier(modifier));
+                snprintf(tmp, sizeof(tmp), "%s Unlock", stringFromModifier(modifier));
                 csi_->Speak(tmp);
             }
 
@@ -4866,7 +4866,7 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
         else
         {
             char tmp[256];
-            snprintf(tmp,sizeof(tmp), "%s Lock", stringFromModifier(modifier));
+            snprintf(tmp, sizeof(tmp), "%s Lock", stringFromModifier(modifier));
             csi_->Speak(tmp);
         }
     }
@@ -5386,7 +5386,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
+Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
 : ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
@@ -5543,7 +5543,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const str
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, string templateFilename, string zoneFolder, string fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
 {
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
