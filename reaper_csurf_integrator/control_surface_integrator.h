@@ -23,6 +23,7 @@
 #include <sstream>
 #include <iomanip>
 #include <fstream>
+#include <algorithm>
 #include <math.h>
 
 #ifdef _WIN32
