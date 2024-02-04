@@ -2326,7 +2326,7 @@ public:
         bool inAutoZone = false;
         bool pastAutoZone = false;
         
-        ifstream autoFXFile(zoneDef.fullPath);
+        ifstream autoFXFile(zoneDef.fullPath.c_str());
         
         int listSlotIndex = 0;
         
@@ -2474,7 +2474,7 @@ public:
 
     void SaveAutoZone(const AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
     {
-        ofstream fxFile(zoneDef.fullPath);
+        ofstream fxFile(zoneDef.fullPath.c_str());
         
         if (fxFile.is_open())
         {
@@ -5054,7 +5054,7 @@ public:
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
 
-                    fxFile.open(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt");
+                    fxFile.open((string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str());
                     
                     if (fxFile.is_open())
                         fxFile << "Zone \"" + string(fxName) + "\"\n";

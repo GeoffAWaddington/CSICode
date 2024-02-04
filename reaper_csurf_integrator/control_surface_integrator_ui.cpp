@@ -2692,7 +2692,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
             string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
             
-            ifstream iniFile(iniFilePath);
+            ifstream iniFile(iniFilePath.c_str());
             
             int lineNumber = 0;
             
@@ -2868,7 +2868,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         case WM_USER+1024:
         {
-            ofstream iniFile(string(DAW::GetResourcePath()) + "/CSI/CSI.ini");
+            ofstream iniFile((string(DAW::GetResourcePath()) + "/CSI/CSI.ini").c_str());
 
             if (iniFile.is_open())
             {

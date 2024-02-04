@@ -456,7 +456,7 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
     
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
         
         CSIZoneInfo *info = new CSIZoneInfo();
         info->filePath = filePath;
@@ -579,7 +579,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<s
 {
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -645,7 +645,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo>
 {
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -684,7 +684,7 @@ void ZoneManager::ProcessFXBoilerplate(const string &filePath, vector<string> &f
 {
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
             
         for (string line; getline(file, line) ; )
         {
@@ -787,7 +787,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
    
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -1489,7 +1489,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -1536,7 +1536,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 
     try
     {
-        ifstream file(filePath);
+        ifstream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -1769,7 +1769,7 @@ void CSurfIntegrator::Init()
     
     try
     {
-        ifstream iniFile(iniFilePath);
+        ifstream iniFile(iniFilePath.c_str());
                
         for (string line; getline(iniFile, line) ; )
         {
@@ -3404,7 +3404,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
         
         if (zoneFilePaths_.Exists(fxName))
         {
-            ifstream file(zoneFilePaths_.Get(fxName)->filePath);
+            ifstream file(zoneFilePaths_.Get(fxName)->filePath.c_str());
              
             string line = "";
             
@@ -3565,7 +3565,7 @@ void ZoneManager::SaveTemplatedFXParams()
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, learnFXName_, info);
         }
         
-        ofstream fxZone(path);
+        ofstream fxZone(path.c_str());
 
         if (fxZone.is_open())
         {
@@ -3642,7 +3642,7 @@ void ZoneManager::SaveLearnedFXParams()
                     valueDisplayParams += " " + surfaceFXLayout_[2][i];
         }
         
-        ofstream fxZone(path);
+        ofstream fxZone(path.c_str());
 
         if (fxZone.is_open())
         {
@@ -4029,7 +4029,7 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
         
         if (zoneFilePaths_.Exists(zoneName) && fxLayout_ != NULL)
         {
-            ifstream file(zoneFilePaths_.Get(zoneName)->filePath);
+            ifstream file(zoneFilePaths_.Get(zoneName)->filePath.c_str());
             
             for (string line; getline(file, line) ; )
             {
@@ -4540,7 +4540,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     AddZoneFilePath(fxName, info);
     surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_, fxName, info);
 
-    ofstream fxZone(path);
+    ofstream fxZone(path.c_str());
 
     if (fxZone.is_open())
     {
