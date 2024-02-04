@@ -1958,11 +1958,8 @@ public:
         char tmp[BUFSZ];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (text[0] == 0 || !strcmp(text,"-150.00"))
-            text = "       ";
+        if (!strcmp(text,"-150.00")) text="";
 
-        int pad = 7;
-        
         struct
         {
             MIDI_event_ex_t evt;
@@ -1979,19 +1976,9 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
-        int l = (int)strlen(text);
-        if (pad < l) // Clamp text length to device limit
-            l = pad;
-        
         int cnt = 0;
-        while (cnt < l)
-        {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
-            cnt++;
-        }
-        
-        while (cnt++ < pad)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        while (cnt++ < 7)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text ? *text++ : ' ';
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
@@ -2038,14 +2025,8 @@ public:
         char tmp[BUFSZ];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (text[0] == 0 || !strcmp(text,"-150.00"))
-            text = "       ";
+        if (!strcmp(text,"-150.00")) text = "";
 
-        int pad = 12;
-        
-        if (displayRow_ == 3)
-            pad = 8;
-        
         struct
         {
             MIDI_event_ex_t evt;
@@ -2068,19 +2049,10 @@ public:
         else
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *8;
 
-        int l = (int)strlen(text);
-        if (pad < l) // Clamp text length to device limit for this display row
-            l = pad;
-        
+        const int linelen = displayRow_ == 3 ? 8 : 12;
         int cnt = 0;
-        while (cnt < l)
-        {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
-            cnt++;
-        }
-        
-        while (cnt++ < pad)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        while (cnt++ < linelen)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text ? *text++ : ' ';
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
@@ -2224,11 +2196,8 @@ public:
         char tmp[BUFSZ];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (text[0] == 0 || !strcmp(text, "-150.00"))
-            text = "       ";
+        if (!strcmp(text, "-150.00")) text = "";
 
-        int pad = 7;
-        
         struct
         {
             MIDI_event_ex_t evt;
@@ -2245,19 +2214,9 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
-        int l = (int)strlen(text);
-        if (pad < l) // Clamp text length to device limit
-            l = pad;
-        
         int cnt = 0;
-        while (cnt < l)
-        {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
-            cnt++;
-        }
-        
-        while (cnt++ < pad)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        while (cnt++ < 7)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text ? *text++ : ' ';
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
@@ -2577,11 +2536,6 @@ public:
         char tmp[BUFSZ];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
-        if (text[0] == 0)
-            text = "       ";
-        
-        int pad = 7;
-        
         struct
         {
             MIDI_event_ex_t evt;
@@ -2598,19 +2552,9 @@ public:
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
-        int l = (int)strlen(text);
-        if (pad < l) // Clamp text length to device limit
-            l = pad;
-        
         int cnt = 0;
-        while (cnt < l)
-        {
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text++;
-            cnt++;
-        }
-        
-        while (cnt++ < pad)
-            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = ' ';
+        while (cnt++ < 7)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = *text ? *text++ : ' ';
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
