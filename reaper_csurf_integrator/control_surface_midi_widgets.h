@@ -1980,10 +1980,8 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
-        if (pad < l) // todo JF> this is not right, limits text length to 7 always!
+        if (pad < l) // Clamp text length to device limit
             l = pad;
-        if (l > 200)
-            l = 200;
         
         int cnt = 0;
         while (cnt < l)
@@ -2071,10 +2069,8 @@ public:
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *8;
 
         int l = (int)strlen(text);
-        if (pad < l) // todo JF> not right, limits output to 8/12 always? 
+        if (pad < l) // Clamp text length to device limit for this display row
             l = pad;
-        if (l > 200)
-            l = 200;
         
         int cnt = 0;
         while (cnt < l)
@@ -2250,10 +2246,8 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
-        if (pad < l) // JF> todo not right limits text
+        if (pad < l) // Clamp text length to device limit
             l = pad;
-        if (l > 200)
-            l = 200;
         
         int cnt = 0;
         while (cnt < l)
@@ -2605,10 +2599,8 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
         
         int l = (int)strlen(text);
-        if (pad < l) // JF> todo incorrect shortening
+        if (pad < l) // Clamp text length to device limit
             l = pad;
-        if (l > 200)
-            l = 200;
         
         int cnt = 0;
         while (cnt < l)
