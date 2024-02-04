@@ -1909,8 +1909,8 @@ public:
         char fxName[BUFSZ];
         DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
-        if (zoneFilePaths_.Exists(name.c_str()))
-            name = zoneFilePaths_.Get(name.c_str())->alias;
+        if (zoneFilePaths_.Exists(fxName))
+            name = zoneFilePaths_.Get(fxName)->alias;
         else
             GetAlias(fxName,name);
     }
