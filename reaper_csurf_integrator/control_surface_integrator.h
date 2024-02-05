@@ -16,14 +16,11 @@
 #endif
 
 #ifdef _WIN32
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define _CRT_NONSTDC_NO_DEPRECATE // for later Visual Studio versions that want _strdup instead of strdup
+#define _CRT_NONSTDC_NO_DEPRECATE // for Visual Studio versions that want _strdup instead of strdup
 #endif
 
 #include <sstream>
 #include <iomanip>
-#include <fstream>
-#include <algorithm>
 #include <math.h>
 
 #ifdef _WIN32
@@ -37,7 +34,6 @@
 #include "WDL/wdlstring.h"
 
 #ifdef _WIN32
-#include <functional>
 #include "commctrl.h"
 #else
 #include "oscpkt.hh"

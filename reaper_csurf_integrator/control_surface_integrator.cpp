@@ -26,14 +26,23 @@ int g_maxNumParamSteps = 30;
 
 void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
-    vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
-    vector<string>::iterator closeSquareBrace = find(params.begin(), params.end(), "]");
-
-    if (openSquareBrace != params.end() && closeSquareBrace != params.end())
+    int openSquareIndex = 0;
+    int closeSquareIndex = 0;
+    
+    for (int i = 0; i < params.size(); ++i)
     {
-        for (vector<string>::iterator it = openSquareBrace + 1; it != closeSquareBrace; ++it)
+        if (params[i] == "[")
+            openSquareIndex = i;
+        
+        if (params[i] == "]")
+            closeSquareIndex = i;
+    }
+    
+    if (openSquareIndex != 0 && closeSquareIndex != 0)
+    {
+        for (int i = openSquareIndex + 1; i < closeSquareIndex; ++i)
         {
-            const char *str = it->c_str();
+            const char *str = params[i].c_str();
 
             if (str[0] == '(' && str[strlen(str)-1] == ')')
             {
@@ -993,15 +1002,24 @@ void ActionContext::SetColor(const vector<string> &params, bool &supportsColor, 
 {
     vector<int> rawValues;
     vector<string> hexColors;
+
+    int openCurlyIndex = 0;
+    int closeCurlyIndex = 0;
     
-    vector<const string>::iterator openCurlyBrace = find(params.begin(), params.end(), "{");
-    vector<const string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "}");
-    
-    if (openCurlyBrace != params.end() && closeCurlyBrace != params.end())
+    for (int i = 0; i < params.size(); ++i)
     {
-        for (vector<const string>::iterator it = openCurlyBrace + 1; it != closeCurlyBrace; ++it)
+        if (params[i] == "{")
+            openCurlyIndex = i;
+        
+        if (params[i] == "}")
+            closeCurlyIndex = i;
+    }
+    
+    if (openCurlyIndex != 0 && closeCurlyIndex != 0)
+    {
+        for (int i = openCurlyIndex + 1; i < closeCurlyIndex; ++i)
         {
-            string strVal = *(it);
+            string strVal = params[i];
             
             if (strVal.length() > 0 && strVal[0] == '#')
             {
