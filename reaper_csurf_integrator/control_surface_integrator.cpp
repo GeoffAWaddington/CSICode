@@ -3563,9 +3563,9 @@ void ZoneManager::SaveTemplatedFXParams()
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
         }
         
-        ofstream fxZone(path.c_str());
+        FILE *fxZone = fopen(path.c_str(),"wb");
 
-        if (fxZone.is_open())
+        if (fxZone)
         {
             for (int i = 0; i < (int)fxLayoutFileLines_.size(); ++i)
             {
@@ -3582,10 +3582,10 @@ void ZoneManager::SaveTemplatedFXParams()
                 if (ending != lineEnding)
                     fxLayoutFileLines_[i] += "\n";
                 
-                fxZone << fxLayoutFileLines_[i];
+                fprintf(fxZone, "%s", fxLayoutFileLines_[i].c_str());;
             }
             
-            fxZone.close();
+            fclose(fxZone);
         }
 
         ClearLearnedFXParams();
