@@ -385,57 +385,62 @@ public:
 class FocusedFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-private:
-    int trackNum_;
-    int fxSlotNum_;
-    int fxParamNum_;
-    
 public:
-    FocusedFXParam()
-    {
-        trackNum_ = 0;
-        fxSlotNum_ = 0;
-        fxParamNum_ = 0;
-    }
-    
     virtual const char *GetName() override { return "FocusedFXParam"; }
    
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
-        if (MediaTrack *track = DAW::GetTrack(trackNum_))
-        {
-            double min = 0.0;
-            double max = 0.0;
-            return DAW::TrackFX_GetParam(track, fxSlotNum_, fxParamNum_, &min, &max);
-        }
+        double min = 0.0;
+        double max = 0.0;
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+        
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+            if (MediaTrack *track = DAW::GetTrack(trackNum))
+                return DAW::TrackFX_GetParam(track, fxSlotNum, fxParamNum, &min, &max);
         
         return 0.0;
     }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if (DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
-            if (DAW::GetTrack(trackNum_))
-                context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
+        double min = 0.0;
+        double max = 0.0;
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+            if (MediaTrack *track = DAW::GetTrack(trackNum))
+                context->UpdateWidgetValue(DAW::TrackFX_GetParam(track, fxSlotNum, fxParamNum, &min, &max));
     }
     
     virtual void Do(ActionContext *context, double value) override
     {
-        if (DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
-            if (MediaTrack *track = DAW::GetTrack(trackNum_))
-                DAW::TrackFX_SetParam(track, fxSlotNum_, fxParamNum_, value);
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+            if (MediaTrack *track = DAW::GetTrack(trackNum))
+                DAW::TrackFX_SetParam(track, fxSlotNum, fxParamNum, value);
     }
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        if (DAW::GetLastTouchedFX(&trackNum_, &fxSlotNum_, &fxParamNum_))
+        int trackNum = 0;
+        int fxSlotNum = 0;
+        int fxParamNum = 0;
+
+        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
-            if (MediaTrack *track =  DAW::GetTrack(trackNum_))
+            if (MediaTrack *track =  DAW::GetTrack(trackNum))
             {
                 if (value == 0)
-                    DAW::TrackFX_EndParamEdit(track, fxSlotNum_, fxParamNum_);
+                    DAW::TrackFX_EndParamEdit(track, fxSlotNum, fxParamNum);
                 else
-                    DAW::TrackFX_SetParam(track, fxSlotNum_, fxParamNum_, GetCurrentNormalizedValue(context));
+                    DAW::TrackFX_SetParam(track, fxSlotNum, fxParamNum, GetCurrentNormalizedValue(context));
             }
         }
     }
