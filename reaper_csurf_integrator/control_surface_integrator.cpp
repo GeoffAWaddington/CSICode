@@ -30,13 +30,18 @@ void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double>
     int closeSquareIndex = 0;
     
     for (int i = 0; i < params.size(); ++i)
-    {
         if (params[i] == "[")
+        {
             openSquareIndex = i;
-        
+            break;
+        }
+    
+    for (int i = 0; i < params.size(); ++i)
         if (params[i] == "]")
+        {
             closeSquareIndex = i;
-    }
+            break;
+        }
     
     if (openSquareIndex != 0 && closeSquareIndex != 0)
     {
@@ -1007,14 +1012,19 @@ void ActionContext::SetColor(const vector<string> &params, bool &supportsColor, 
     int closeCurlyIndex = 0;
     
     for (int i = 0; i < params.size(); ++i)
-    {
         if (params[i] == "{")
+        {
             openCurlyIndex = i;
-        
-        if (params[i] == "}")
-            closeCurlyIndex = i;
-    }
+            break;
+        }
     
+    for (int i = 0; i < params.size(); ++i)
+        if (params[i] == "}")
+        {
+            closeCurlyIndex = i;
+            break;
+        }
+   
     if (openCurlyIndex != 0 && closeCurlyIndex != 0)
     {
         for (int i = openCurlyIndex + 1; i < closeCurlyIndex; ++i)
