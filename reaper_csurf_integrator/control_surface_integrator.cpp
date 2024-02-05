@@ -10,9 +10,6 @@
 #include "control_surface_manager_actions.h"
 
 #include "WDL/dirscan.h"
-#include "WDL/ptrlist.h"
-#include "WDL/wdlcstring.h"
-
 #include "resource.h"
 
 CSurfIntegrator *g_csiForGui = NULL;
