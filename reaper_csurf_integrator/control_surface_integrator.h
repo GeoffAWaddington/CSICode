@@ -151,7 +151,10 @@ class PropertyList
     void set_prop(PropertyType prop, const char *val)
     {
         int x;
-        for (x = 0; x < nprops_ && props_[x] != prop; x ++);
+        if (prop == PropertyType_Unknown)
+            x = nprops_;
+        else
+            for (x = 0; x < nprops_ && props_[x] != prop; x ++);
 
         if (WDL_NOT_NORMALLY(x >= MAX_PROP)) return;
 
@@ -1712,11 +1715,8 @@ private:
                     }
                     else
                     {
-                        WDL_FastString fs;
-                        fs.Set(kvp[0].c_str());
-                        fs.Append("=");
-                        fs.Append(kvp[1].c_str());
-                        properties.set_prop(prop, fs.Get());
+                        properties.set_prop(prop, tokens[i].c_str()); // unknown properties are preserved as Unknown, key=value pair
+
                         // preserve unknown properties
                         WDL_ASSERT(false);
                     }

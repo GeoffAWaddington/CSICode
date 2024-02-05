@@ -2067,11 +2067,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
                 }
                 else
                 {
-                    WDL_FastString fs;
-                    fs.Set(kvp[0].c_str());
-                    fs.Append("=");
-                    fs.Append(kvp[1].c_str());
-                    widgetProperties_.set_prop(prop, fs.Get());
+                    widgetProperties_.set_prop(prop, (*paramsAndProperties)[i].c_str()); // unknown properties are preserved as Unknown, key=value pair
                     // cerr << "unknown property" << str;
                     //WDL_ASSERT(false);
                 }
