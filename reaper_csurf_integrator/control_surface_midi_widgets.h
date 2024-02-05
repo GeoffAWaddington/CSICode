@@ -75,7 +75,7 @@ class Fader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader14Bit_Midi_CSIMessageGenerator() {}
-    Fader14Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
+    Fader14Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -113,7 +113,7 @@ class Fader7Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Fader7Bit_Midi_CSIMessageGenerator() {}
-    Fader7Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
+    Fader7Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -131,13 +131,13 @@ private:
     
 public:
     virtual ~AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, double stepSize, WDL_IntKeyedArray<int> *accelerationValuesForDecrement, WDL_IntKeyedArray<int> *accelerationValuesForIncrement, vector<double> *accelerationValues) :  Midi_CSIMessageGenerator(csi, widget)
+    AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) :  Midi_CSIMessageGenerator(csi, widget)
     {
-        accelerationValuesForDecrement_ = accelerationValuesForDecrement;
-        accelerationValuesForIncrement_ = accelerationValuesForIncrement;
-        
-        widget->SetStepSize(stepSize);
-        widget->SetAccelerationValues(*accelerationValues);
+        const char * const widgetClass = "RotaryWidgetClass";
+        accelerationValuesForDecrement_ = widget->GetSurface()->GetAccelerationValuesForIncrement(widgetClass);
+        accelerationValuesForIncrement_ = widget->GetSurface()->GetAccelerationValuesForDecrement(widgetClass);
+        widget->SetStepSize(widget->GetSurface()->GetStepSize(widgetClass));
+        widget->SetAccelerationValues(widget->GetSurface()->GetAccelerationValues(widgetClass));
     }
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
@@ -152,110 +152,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class AcceleratedEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-private:
-    WDL_IntKeyedArray<int> accelerationValuesForIncrement_;
-    WDL_IntKeyedArray<int> accelerationValuesForDecrement_;
-
-public:
-    virtual ~AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
-    {       
-        vector<string>::iterator openSquareBrace = find(params.begin(), params.end(), "[");
-        vector<string>::iterator closeCurlyBrace = find(params.begin(), params.end(), "]");
-        
-        if (openSquareBrace != params.end() && closeCurlyBrace != params.end())
-        {
-            vector<int> incValues;
-            vector<int> decValues;
-
-            bool inDec = false;
-            
-            for (vector<string>::iterator it = openSquareBrace + 1; it != closeCurlyBrace; ++it)
-            {
-                string strVal = *(it);
-                
-                int firstVal = 0, lastVal = 0;
-                if (strVal == "<")
-                    inDec = true;
-                else if (strVal == ">")
-                    inDec = false;
-                else if (sscanf(strVal.c_str(), "%x-%x", &firstVal, &lastVal) == 2)
-                {
-                    if (firstVal < lastVal)
-                    {
-                        if (inDec == false)
-                        {
-                            for (int i = firstVal; i <= lastVal; i++)
-                                incValues.push_back(i);
-                        }
-                        else
-                        {
-                            for (int i = firstVal; i <= lastVal; i++)
-                                decValues.push_back(i);
-                        }
-                    }
-                    else
-                    {
-                        if (inDec == false)
-                        {
-                            for (int i = firstVal; i >= lastVal; i--)
-                                incValues.push_back(i);
-                        }
-                        else
-                        {
-                            for (int i = firstVal; i >= lastVal; i--)
-                                decValues.push_back(i);
-                        }
-                    }
-                }
-                else if (inDec == false)
-                    incValues.push_back(strtol(strVal.c_str(), NULL, 16));
-                else
-                    decValues.push_back(strtol(strVal.c_str(), NULL, 16));
-            }
-            
-            if (incValues.size() > 0)
-            {
-                if (incValues.size() == 1)
-                    accelerationValuesForIncrement_.Insert(incValues[0], 0);
-                else
-                    for (int i = 0; i < incValues.size(); i++)
-                        accelerationValuesForIncrement_.Insert(incValues[i], i);
-            }
-            
-            if (decValues.size() > 0)
-            {
-                if (decValues.size() == 1)
-                    accelerationValuesForDecrement_.Insert(decValues[0], 0);
-                else
-                    for (int i = 0; i < decValues.size(); i++)
-                        accelerationValuesForDecrement_.Insert(decValues[i], i);
-            }
-        }
-    }
-    
-    virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
-    {
-        int val = midiMessage->midi_message[2];
-
-        double delta = (midiMessage->midi_message[2] & 0x3f) / 63.0;
-        
-        if (midiMessage->midi_message[2] & 0x40)
-            delta = -delta;
-        
-        delta = delta / 2.0;
-
-        if (accelerationValuesForIncrement_.Exists(val))
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_.Get(val), delta);
-        else if (accelerationValuesForDecrement_.Exists(val))
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_.Get(val), delta);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class MFT_AcceleratedEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -266,7 +162,7 @@ private:
     
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
+    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
     {
         accelerationIndicesForDecrement_.Insert(0x3f, 0);
         accelerationIndicesForDecrement_.Insert(0x3e, 1);
@@ -310,7 +206,7 @@ class Encoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~Encoder_Midi_CSIMessageGenerator() {}
-    Encoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
+    Encoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -331,7 +227,7 @@ class EncoderPlain_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 {
 public:
     virtual ~EncoderPlain_Midi_CSIMessageGenerator() {}
-    EncoderPlain_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget) {}
+    EncoderPlain_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) : Midi_CSIMessageGenerator(csi, widget) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -353,7 +249,7 @@ private:
     
 public:
     virtual ~Encoder7Bit_Midi_CSIMessageGenerator() {}
-    Encoder7Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *message) : Midi_CSIMessageGenerator(csi, widget)
+    Encoder7Bit_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) : Midi_CSIMessageGenerator(csi, widget)
     {
         lastMessage = -1;
     }

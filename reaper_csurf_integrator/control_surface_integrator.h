@@ -1161,7 +1161,7 @@ private:
     bool hasBeenUsedByUpdate_;
     
 public:
-    // all Widges are owned by their ControlSurface!
+    // all Widgets are owned by their ControlSurface!
     Widget(CSurfIntegrator *const csi,  ControlSurface *surface, const string &name) : csi_(csi), surface_(surface), name_(name)
     {
         // private:
@@ -1198,7 +1198,7 @@ public:
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
     double GetStepSize() { return stepSize_; }
     
-    void SetAccelerationValues( const vector<double> &accelerationValues) { accelerationValues_ = accelerationValues; }
+    void SetAccelerationValues(const vector<double> *accelerationValues) { accelerationValues_ = *accelerationValues; }
     const vector<double> &GetAccelerationValues() { return accelerationValues_; }
     
     void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
@@ -2979,6 +2979,8 @@ protected:
     WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > accelerationValuesForIncrement_;
     static void disposeIncDecAccelValues(WDL_IntKeyedArray<int> *accelValues) { delete  accelValues; }
     WDL_StringKeyedArray<vector<double>* > accelerationValues_;
+    vector<double> emptyAccelerationValues_;
+    
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
     
     void ProcessValues(const vector<vector<string> > &lines);
@@ -3125,6 +3127,38 @@ public:
     void SetLatchTime(int latchTime) { latchTime_ = latchTime; }
     int GetLatchTime() { return latchTime_; }
 
+    double GetStepSize(const char * const widgetClass)
+    {
+        if (stepSize_.Exists(widgetClass))
+            return stepSize_.Get(widgetClass);
+        else
+            return 0;
+    }
+
+    const vector<double> *GetAccelerationValues(const char * const  widgetClass)
+    {
+        if (accelerationValues_.Exists(widgetClass))
+            return accelerationValues_.Get(widgetClass);
+        else
+            return &emptyAccelerationValues_;
+    }
+
+    WDL_IntKeyedArray<int> *GetAccelerationValuesForDecrement(const char * const  widgetClass)
+    {
+         if (accelerationValuesForDecrement_.Exists(widgetClass))
+             return accelerationValuesForDecrement_.Get(widgetClass);
+        else
+            return NULL;
+    }
+    
+    WDL_IntKeyedArray<int> *GetAccelerationValuesForIncrement(const char * const  widgetClass)
+    {
+        if (accelerationValuesForIncrement_.Exists(widgetClass))
+            return accelerationValuesForIncrement_.Get(widgetClass);
+       else
+           return NULL;
+    }
+    
     void TouchChannel(int channelNum, bool isTouched)
     {
         for (int i = 0; i < channelTouches_.GetSize(); ++i)

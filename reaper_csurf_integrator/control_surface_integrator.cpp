@@ -1156,27 +1156,22 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
             AddCSIMessageGenerator(threeByteKey, new PressRelease_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
             AddCSIMessageGenerator(threeByteKeyMsg2, new PressRelease_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
         }
-        else if (widgetType == "Fader14Bit" && size == 4 && message1)
-            AddCSIMessageGenerator(oneByteKey, new Fader14Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
+        else if (widgetType == "Fader14Bit" && size == 4)
+            AddCSIMessageGenerator(oneByteKey, new Fader14Bit_Midi_CSIMessageGenerator(csi_, widget));
         else if (widgetType == "FaderportClassicFader14Bit" && size == 7 && message1 && message2)
             AddCSIMessageGenerator(oneByteKey, new FaderportClassicFader14Bit_Midi_CSIMessageGenerator(csi_, widget, message1, message2));
-        else if (widgetType == "Fader7Bit" && size== 4 && message1)
-            AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
-        else if (widgetType == "Encoder" && size == 4 && widgetClass == "RotaryWidgetClass"  && message1)
-        {
-            if (stepSize_.Exists(widgetClass.c_str()) && accelerationValuesForDecrement_.Exists(widgetClass.c_str()) && accelerationValuesForIncrement_.Exists(widgetClass.c_str()) && accelerationValues_.Exists(widgetClass.c_str()))
-                AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, stepSize_.Get(widgetClass.c_str()), accelerationValuesForDecrement_.Get(widgetClass.c_str()), accelerationValuesForIncrement_.Get(widgetClass.c_str()), accelerationValues_.Get(widgetClass.c_str())));
-        }
-        else if (widgetType == "Encoder" && size == 4 && message1)
-            AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(csi_, widget, message1));
-        else if (widgetType == "Encoder" && size > 4 && message1)
-            AddCSIMessageGenerator(twoByteKey, new AcceleratedEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, tokenLines[i]));
-        else if (widgetType == "MFTEncoder" && size > 4 && message1)
-            AddCSIMessageGenerator(twoByteKey, new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(csi_, widget, message1, tokenLines[i]));
-        else if (widgetType == "EncoderPlain" && size == 4 && message1)
-            AddCSIMessageGenerator(twoByteKey, new EncoderPlain_Midi_CSIMessageGenerator(csi_, widget, message1));
-        else if (widgetType == "Encoder7Bit" && size == 4 && message1)
-            AddCSIMessageGenerator(twoByteKey, new Encoder7Bit_Midi_CSIMessageGenerator(csi_, widget, message1));
+        else if (widgetType == "Fader7Bit" && size== 4)
+            AddCSIMessageGenerator(twoByteKey, new Fader7Bit_Midi_CSIMessageGenerator(csi_, widget));
+        else if (widgetType == "Encoder" && widgetClass == "RotaryWidgetClass")
+            AddCSIMessageGenerator(twoByteKey, new AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(csi_, widget));
+        else if (widgetType == "Encoder" && size == 4)
+            AddCSIMessageGenerator(twoByteKey, new Encoder_Midi_CSIMessageGenerator(csi_, widget));
+        else if (widgetType == "MFTEncoder" && size > 4)
+            AddCSIMessageGenerator(twoByteKey, new MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(csi_, widget, tokenLines[i]));
+        else if (widgetType == "EncoderPlain" && size == 4)
+            AddCSIMessageGenerator(twoByteKey, new EncoderPlain_Midi_CSIMessageGenerator(csi_, widget));
+        else if (widgetType == "Encoder7Bit" && size == 4)
+            AddCSIMessageGenerator(twoByteKey, new Encoder7Bit_Midi_CSIMessageGenerator(csi_, widget));
         else if (widgetType == "Touch" && size == 7 && message1  && message2)
         {
             AddCSIMessageGenerator(threeByteKey, new Touch_Midi_CSIMessageGenerator(csi_, widget, message1, message2));

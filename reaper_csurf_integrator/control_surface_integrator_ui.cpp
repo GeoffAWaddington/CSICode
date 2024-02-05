@@ -2692,7 +2692,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         {
             string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
             
-            ifstream iniFile(iniFilePath.c_str());
+            fpistream iniFile(iniFilePath.c_str());
             
             int lineNumber = 0;
             
