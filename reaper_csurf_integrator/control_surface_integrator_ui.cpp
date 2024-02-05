@@ -2868,107 +2868,101 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         case WM_USER+1024:
         {
-            ofstream iniFile((string(DAW::GetResourcePath()) + "/CSI/CSI.ini").c_str());
+            FILE *iniFile = fopen((string(DAW::GetResourcePath()) + "/CSI/CSI.ini").c_str(), "wb");
 
-            if (iniFile.is_open())
+            if (iniFile)
             {
-                iniFile << string(s_MajorVersionToken) + "\n";
+                fprintf(iniFile, "%s\n", s_MajorVersionToken);
                 
-                iniFile << "\n";
-                
-                string line = "";
+                fprintf(iniFile, "\n");
                 
                 for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 {
-                    line = s_surfaces.Get(i)->type + " ";
-                    line += "\"" + s_surfaces.Get(i)->name + "\" ";
-                    line += int_to_string(s_surfaces.Get(i)->inPort) + " ";
-                    line += int_to_string(s_surfaces.Get(i)->outPort) + " ";
+                    fprintf(iniFile, "%s \"%s\" %d %d ", 
+                        s_surfaces.Get(i)->type.c_str(),
+                        s_surfaces.Get(i)->name.c_str(),
+                        s_surfaces.Get(i)->inPort,
+                        s_surfaces.Get(i)->outPort);
 
                     if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
-                        line += s_surfaces.Get(i)->remoteDeviceIP;
+                        fprintf(iniFile, "%s ", s_surfaces.Get(i)->remoteDeviceIP.c_str());
                     
-                    iniFile << line + "\n";
+                    fprintf(iniFile, "\n");
                 }
                 
-                iniFile << "\n";
+                fprintf(iniFile, "\n");
                 
                 for (int i = 0; i < s_pages.GetSize(); ++i)
                 {
-                    line = string(s_PageToken) + " ";
-                    line += "\"" + s_pages.Get(i)->name + "\"";
+                    fprintf(iniFile, "%s \"%s\"", s_PageToken, s_pages.Get(i)->name.c_str());
                     
                     if (s_pages.Get(i)->followMCP == false)
-                        line += " FollowTCP";
+                        fprintf(iniFile, " FollowTCP");
                                         
                     if (s_pages.Get(i)->synchPages == false)
-                        line += " NoSynchPages";
+                        fprintf(iniFile, " NoSynchPages");
                     
                     if (s_pages.Get(i)->isScrollLinkEnabled == true)
-                        line += " UseScrollLink";
+                        fprintf(iniFile, " UseScrollLink");
                     
                     if (s_pages.Get(i)->scrollSynch == true)
-                        line += " UseScrollSynch";
+                        fprintf(iniFile, " UseScrollSynch");
 
-                    line += "\n";
-                    
-                    iniFile << line;
+                    fprintf(iniFile, "\n");
 
                     for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
-                        line = "\t";
-                        line += "\"" + s_pages.Get(i)->surfaces.Get(j)->pageSurfaceName + "\" ";
-                        line += int_to_string(s_pages.Get(i)->surfaces.Get(j)->numChannels) + " " ;
-                        line += int_to_string(s_pages.Get(i)->surfaces.Get(j)->channelOffset) + " " ;
-                        line += "\"" + s_pages.Get(i)->surfaces.Get(j)->templateFilename + "\" ";
-                        line += "\"" + s_pages.Get(i)->surfaces.Get(j)->zoneTemplateFolder + "\" ";
-                        line += "\"" + s_pages.Get(i)->surfaces.Get(j)->fxZoneTemplateFolder + "\" ";
-
-                        iniFile << line + "\n";
+                        fprintf(iniFile, "\t\"%s\" %d %d \"%s\" \"%s\" \"%s\"\n",
+                            s_pages.Get(i)->surfaces.Get(j)->pageSurfaceName.c_str(),
+                            s_pages.Get(i)->surfaces.Get(j)->numChannels,
+                            s_pages.Get(i)->surfaces.Get(j)->channelOffset,
+                            s_pages.Get(i)->surfaces.Get(j)->templateFilename.c_str(),
+                            s_pages.Get(i)->surfaces.Get(j)->zoneTemplateFolder.c_str(),
+                            s_pages.Get(i)->surfaces.Get(j)->fxZoneTemplateFolder.c_str());
                     }
                     
-                    iniFile << "\n";
+                    fprintf(iniFile, "\n");
                     
                     for (int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
                     {
                         if (s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize() == 0)
                             continue;
                         
-                        iniFile << string("\tBroadcaster ") + "\"" + s_pages.Get(i)->broadcasters.Get(j)->name + "\"\n";
+                        fprintf(iniFile, "\tBroadcaster \"%s\"\n", s_pages.Get(i)->broadcasters.Get(j)->name.c_str());
                         
                         for (int k = 0; k < s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize(); ++k)
                         {
-                            string listenerCategories = "";
+                            fprintf(iniFile, "\t\tListener \"%s\" \"", s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->name.c_str());
                             
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->goHome)
-                                listenerCategories += "GoHome ";
+                                fprintf(iniFile, "GoHome ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->sends)
-                                listenerCategories += "Sends ";
+                                fprintf(iniFile, "Sends ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->receives)
-                                listenerCategories += "Receives ";
+                                fprintf(iniFile, "Receives ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFX)
-                                listenerCategories += "FocusedFX ";
+                                fprintf(iniFile, "FocusedFX ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFXParam)
-                                listenerCategories += "FocusedFXParam ";
+                                fprintf(iniFile, "FocusedFXParam ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->fxMenu)
-                                listenerCategories += "FXMenu ";
+                                fprintf(iniFile, "FXMenu ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->localFXSlot)
-                                listenerCategories += "LocalFXSlot ";
+                                fprintf(iniFile, "LocalFXSlot ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->modifiers)
-                                listenerCategories += "Modifiers ";
+                                fprintf(iniFile, "Modifiers ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->selectedTrackFX)
-                                listenerCategories += "SelectedTrackFX ";
+                                fprintf(iniFile, "SelectedTrackFX ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->custom)
-                                listenerCategories += "Custom ";
+                                fprintf(iniFile, "Custom ");
 
-                            iniFile << string("\t\tListener ") + "\"" + s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->name + "\" \"" + listenerCategories + "\"\n";
+                            fprintf(iniFile, "\"\n");
                         }
                         
-                        iniFile << "\n";
+                        fprintf(iniFile, "\n");
                     }
                 }
 
-                iniFile.close();
+                fclose(iniFile);
             }
         }
         break;

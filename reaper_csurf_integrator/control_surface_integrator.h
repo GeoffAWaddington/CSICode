@@ -206,17 +206,17 @@ class PropertyList
         return NULL;
     }
 
-    void save_list(ofstream &fxFile) const
+    void save_list(FILE *fxFile) const
     {
         for (int x = 0; x < nprops_; x ++)
         {
             const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
             if (key != NULL)
-                fxFile << " " << key << "=" << value ;
+                fprintf(fxFile, " %s=%s", key, value);
             else if (WDL_NORMALLY(props_[x] == PropertyType_Unknown && value && strstr(value,"=")))
-                fxFile << " " << value;
+                fprintf(fxFile, " %s", value);
         }
-        fxFile << "\n";
+        fprintf(fxFile,"\n");
     }
 
 };
@@ -2471,16 +2471,16 @@ public:
 
     void SaveAutoZone(const AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
     {
-        ofstream fxFile(zoneDef.fullPath.c_str());
+        FILE *fxFile = fopen(zoneDef.fullPath.c_str(),"wb");
         
-        if (fxFile.is_open())
+        if (fxFile)
         {
-            fxFile << "Zone \"" + zoneDef.fxName + "\" \"" + zoneDef.fxAlias + "\"\n";
+            fprintf(fxFile, "Zone \"%s\" \"%s\"\n", zoneDef.fxName.c_str(), zoneDef.fxAlias.c_str());
             
             for (int i = 0; i < (int)zoneDef.prologue.size(); ++i)
-                fxFile << zoneDef.prologue[i] + "\n";
+                fprintf(fxFile, "%s\n", zoneDef.prologue[i].c_str());
             
-            fxFile << s_BeginAutoSection + "\n\n";
+            fprintf(fxFile, "%s\n\n", s_BeginAutoSection.c_str());
             
             for (int i = 0; i < zoneDef.paramDefs.size(); i++)
             {
@@ -2488,15 +2488,15 @@ public:
                 
                 for (int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
                 {
-                    fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramWidget + layoutTemplates[i].suffix + "\t";
+                    fprintf(fxFile, "\t%s%s%s\t",layoutTemplates[i].modifiers.c_str(), zoneDef.paramDefs[i].definitions[j].paramWidget.c_str(), layoutTemplates[i].suffix.c_str());
                     
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "")
                     {
-                        fxFile << "NoAction\n";
+                        fprintf(fxFile,"NoAction\n");
                     }
                     else
                     {
-                        fxFile << layoutTemplates[i].widgetAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber + " ";
+                        fprintf(fxFile, "%s %s ",layoutTemplates[i].widgetAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
                         
                         if (zoneDef.paramDefs[i].definitions[j].delta != 0.0 ||
                             zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
@@ -2505,45 +2505,45 @@ public:
                             zoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
                             zoneDef.paramDefs[i].definitions[j].steps.size() > 0)
                         {
-                            fxFile << "[ ";
+                            fprintf(fxFile, "[ ");
                             
                             char tmp[128];
                             if (zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
                                 zoneDef.paramDefs[i].definitions[j].rangeMaximum != 0.0)
-                                fxFile << " " << format_number(zoneDef.paramDefs[i].definitions[j].rangeMinimum, tmp, sizeof(tmp)) << ">" << format_number(zoneDef.paramDefs[i].definitions[j].rangeMaximum, tmp, sizeof(tmp)) << " ";
+                                fprintf(fxFile, " %s>%s ", format_number(zoneDef.paramDefs[i].definitions[j].rangeMinimum, tmp, sizeof(tmp)), format_number(zoneDef.paramDefs[i].definitions[j].rangeMaximum, tmp, sizeof(tmp)));
                             
                             if (zoneDef.paramDefs[i].definitions[j].delta != 0.0)
-                                fxFile << " (" << format_number(zoneDef.paramDefs[i].definitions[j].delta, tmp, sizeof(tmp)) << ") ";
+                                fprintf(fxFile, " (%s) ", format_number(zoneDef.paramDefs[i].definitions[j].delta, tmp, sizeof(tmp)));
                             
                             if (zoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
                             {
-                                fxFile << " (";
+                                fprintf(fxFile, " (");
                                 
                                 for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].deltas.size(); ++k)
                                 {
-                                    if (k) fxFile << ",";
-                                    fxFile << format_number(zoneDef.paramDefs[i].definitions[j].deltas[k], tmp, sizeof(tmp));
+                                    if (k) fprintf(fxFile, ",");
+                                    fprintf(fxFile, "%s", format_number(zoneDef.paramDefs[i].definitions[j].deltas[k], tmp, sizeof(tmp)));
                                 }
                                 
-                                fxFile << ") ";
+                                fprintf(fxFile, ") ");
                             }
                             
                             if (zoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
                             {
-                                fxFile << " (";
+                                fprintf(fxFile, " (");
                                 
                                 for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].ticks.size(); ++k)
                                 {
-                                    if (k) fxFile << ",";
-                                    fxFile << int_to_string(zoneDef.paramDefs[i].definitions[j].ticks[k]);
+                                    if (k) fprintf(fxFile, ",");
+                                    fprintf(fxFile, "%d", zoneDef.paramDefs[i].definitions[j].ticks[k]);
                                 }
-                                fxFile << ") ";
+                                fprintf(fxFile, ") ");
                             }
                             
                             for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].steps.size(); ++k)
-                                fxFile << format_number(zoneDef.paramDefs[i].definitions[j].steps[k], tmp, sizeof(tmp)) << " " ;
+                                fprintf(fxFile, "%s ", format_number(zoneDef.paramDefs[i].definitions[j].steps[k], tmp, sizeof(tmp)));
 
-                            fxFile << "]";
+                            fprintf(fxFile, "]");
                         }
                         
                         zoneDef.paramDefs[i].definitions[j].paramWidgetProperties.save_list(fxFile);
@@ -2552,17 +2552,21 @@ public:
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
                     {
                         if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[1][0] + layoutTemplates[i].suffix + "\tNoAction\n";
+                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
+                                surfaceFXLayout_[1][0].c_str(),
+                                layoutTemplates[i].suffix.c_str());
                         else
-                            fxFile << "\tNullDisplay\tNoAction\n";
+                            fprintf(fxFile, "\tNullDisplay\tNoAction\n");
                     }
                     else
                     {
                         cellHasDisplayWidgetsDefined = true;
                         
-                        fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates[i].modifiers.c_str(),
+                            zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget.c_str(),
+                            layoutTemplates[i].suffix.c_str());
                         
-                        fxFile << layoutTemplates[i].aliasDisplayAction + " \"" + zoneDef.paramDefs[i].definitions[j].paramName + "\" ";
+                        fprintf(fxFile, "%s \"%s\" ", layoutTemplates[i].aliasDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramName.c_str());
                         
                         zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties.save_list(fxFile);
                     }
@@ -2570,38 +2574,42 @@ public:
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
                     {
                         if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
-                            fxFile << "\t" + layoutTemplates[i].modifiers + surfaceFXLayout_[2][0] + layoutTemplates[i].suffix + "\tNoAction\n";
+                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
+                                surfaceFXLayout_[2][0].c_str(),
+                                layoutTemplates[i].suffix.c_str());
                         else
-                            fxFile << "\tNullDisplay\tNoAction\n";
+                            fprintf(fxFile, "\tNullDisplay\tNoAction\n");
                     }
                     else
                     {
                         cellHasDisplayWidgetsDefined = true;
 
-                        fxFile << "\t" + layoutTemplates[i].modifiers + zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget + layoutTemplates[i].suffix + "\t";
+                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates[i].modifiers.c_str(),
+                            zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget.c_str(),
+                            layoutTemplates[i].suffix.c_str());
                         
-                        fxFile << layoutTemplates[i].valueDisplayAction + " " + zoneDef.paramDefs[i].definitions[j].paramNumber;
+                        fprintf(fxFile, "%s %s", layoutTemplates[i].valueDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
                         
                         zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties.save_list(fxFile);
                     }
                     
-                    fxFile << "\n";
+                    fprintf(fxFile, "\n");
                 }
                 
-                fxFile << "\n";
+                fprintf(fxFile, "\n");
             }
             
-            fxFile <<  s_EndAutoSection + "\n";
+            fprintf(fxFile, "%s\n", s_EndAutoSection.c_str());
             
             for (int i = 0; i < (int)zoneDef.epilogue.size(); ++i)
-                fxFile << zoneDef.epilogue[i] + "\n";
+                fprintf(fxFile, "%s\n", zoneDef.epilogue[i].c_str());
             
-            fxFile << "ZoneEnd\n";
+            fprintf(fxFile, "ZoneEnd\n");
             
             for (int i = 0; i < (int)zoneDef.rawParams.size(); ++i)
-                fxFile << zoneDef.rawParams[i] + "\n";
+                fprintf(fxFile, "%s\n", zoneDef.rawParams[i].c_str());
             
-            fxFile.close();
+            fclose(fxFile);
         }
     }
 
@@ -5025,21 +5033,20 @@ public:
         {
             char fxName[BUFSZ];
             
-            ofstream fxFile;
-            
             for (int i = 0; i < DAW::TrackFX_GetCount(track); i++)
             {
                 DAW::TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
+                FILE *fxFile = NULL;
                                 
                 if (s_fxParamsWrite)
                 {
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
 
-                    fxFile.open((string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str());
+                    fxFile = fopen((string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
                     
-                    if (fxFile.is_open())
-                        fxFile << "Zone \"" + string(fxName) + "\"\n";
+                    if (fxFile)
+                        fprintf(fxFile, "Zone \"%s\"\n", fxName);
                 }
 
                 for (int j = 0; j < DAW::TrackFX_GetNumParams(track, i); j++)
@@ -5047,8 +5054,8 @@ public:
                     char fxParamName[BUFSZ];
                     DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
  
-                    if (s_fxParamsWrite && fxFile.is_open())
-                        fxFile <<  "\tFXParam " + int_to_string(j) + " \"" + string(fxParamName)+ "\"\n";
+                    if (fxFile)
+                        fprintf(fxFile, "\tFXParam %d \"%s\"\n", j, fxParamName);
                         
                     /* step sizes
                     double stepOut = 0;
@@ -5061,10 +5068,10 @@ public:
                     */
                 }
                 
-                if (s_fxParamsWrite && fxFile.is_open())
+                if (fxFile)
                 {
-                    fxFile << "ZoneEnd";
-                    fxFile.close();
+                    fprintf(fxFile,"ZoneEnd"); // do we want a newline on this? probably
+                    fclose(fxFile);
                 }
             }
         }
