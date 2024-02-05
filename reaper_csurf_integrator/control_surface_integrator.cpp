@@ -3640,16 +3640,19 @@ void ZoneManager::SaveLearnedFXParams()
                     valueDisplayParams += " " + surfaceFXLayout_[2][i];
         }
         
-        ofstream fxZone(path.c_str());
+        FILE *fxZone = fopen(path.c_str(),"wb");
 
-        if (fxZone.is_open())
+        if (fxZone != NULL)
         {
-            fxZone << "Zone \"" + learnFXName_ + "\" \"" + string(alias) + "\" \"" + s_GeneratedByLearn + "\"\n";
+            fprintf(fxZone, "Zone \"%s\" \"%s\" \"%s\"\n",
+                learnFXName_.c_str(),
+                alias,
+                s_GeneratedByLearn.c_str());
             
             for (int i = 0; i < (int)fxPrologue_.size(); ++i)
-                fxZone << "\t" + fxPrologue_[i] + "\n";
+                fprintf(fxZone, "\t%s\n",fxPrologue_[i].c_str());
                    
-            fxZone << "\n" + s_BeginAutoSection + "\n";
+            fprintf(fxZone, "\n%s\n",s_BeginAutoSection.c_str());
 
             if (homeZone_->GetLearnFXParamsZone())
             {
@@ -3681,40 +3684,40 @@ void ZoneManager::SaveLearnedFXParams()
                             {
                                 cellHasDisplayWidgetsDefined = true;
                                 
-                                fxZone << "\t" << modStr << cell->fxParamWidgets.Get(i)->GetName() << "\tFXParam " + int_to_string(info->paramNumber) + " " + info->params + "\n";
-                                fxZone << "\t" << modStr << cell->fxParamNameDisplayWidget->GetName() << "\tFixedTextDisplay \"" + info->paramName + "\"" + nameDisplayParams + "\n";
-                                fxZone << "\t" << modStr << cell->fxParamValueDisplayWidget->GetName() << "\tFXParamValueDisplay " + int_to_string(info->paramNumber) + valueDisplayParams + "\n\n";
+                                fprintf(fxZone, "\t%s%s\tFXParam %d %s\n", modStr, cell->fxParamWidgets.Get(i)->GetName(), info->paramNumber, info->params.c_str());
+                                fprintf(fxZone, "\t%s%s\tFixedTextDisplay \"%s\"%s\n", modStr, cell->fxParamNameDisplayWidget->GetName(), info->paramName.c_str(), nameDisplayParams.c_str());
+                                fprintf(fxZone, "\t%s%s\ttFXParamValueDisplay %d%s\n\n", modStr, cell->fxParamValueDisplayWidget->GetName(), info->paramNumber, valueDisplayParams.c_str());
                             }
                             else if (i == cell->fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
                             {
-                                fxZone << "\t" << modStr << cell->fxParamWidgets.Get(i)->GetName() << "\tNoAction\n";
-                                fxZone << "\t" << modStr << cell->fxParamNameDisplayWidget->GetName() << "\tNoAction\n";
-                                fxZone << "\t" << modStr << cell->fxParamValueDisplayWidget->GetName() << "\tNoAction\n\n";
+                                fprintf(fxZone, "\t%s%s\tNoAction\n", modStr, cell->fxParamWidgets.Get(i)->GetName());
+                                fprintf(fxZone, "\t%s%s\tNoAction\n", modStr, cell->fxParamNameDisplayWidget->GetName());
+                                fprintf(fxZone, "\t%s%s\tNoAction\n\n", modStr, cell->fxParamValueDisplayWidget->GetName());
                             }
                             else
                             {
-                                fxZone << "\t" << modStr << cell->fxParamWidgets.Get(i)->GetName() << "\tNoAction\n";
-                                fxZone << "\tNullDisplay\tNoAction\n";
-                                fxZone << "\tNullDisplay\tNoAction\n\n";
+                                fprintf(fxZone, "\t%s%s\tNoAction\n", modStr, cell->fxParamWidgets.Get(i)->GetName());
+                                fprintf(fxZone, "\tNullDisplay\tNoAction\n");
+                                fprintf(fxZone, "\tNullDisplay\tNoAction\n\n");
                             }
                         }
                         
-                        fxZone << "\n";
+                        fprintf(fxZone, "\n");
                     }
                 }
             }
             
-            fxZone << s_EndAutoSection + "\n";
+            fprintf(fxZone, "%s\n", s_EndAutoSection.c_str());
                     
             for (int i = 0; i < (int)fxEpilogue_.size(); ++i)
-                fxZone << "\t" + fxEpilogue_[i] + "\n";
+                fprintf(fxZone, "\t%s\n", fxEpilogue_[i].c_str());
 
-            fxZone << "ZoneEnd\n\n";
+            fprintf(fxZone, "ZoneEnd\n\n");
             
             for (int i = 0; i < (int)paramList_.size(); ++i)
-                fxZone << paramList_[i] + "\n";
+                fprintf(fxZone, "%s\n", paramList_[i].c_str());
             
-            fxZone.close();
+            fclose(fxZone);
         }
         
         ClearLearnedFXParams();
