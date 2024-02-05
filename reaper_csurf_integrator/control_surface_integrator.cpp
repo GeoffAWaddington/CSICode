@@ -4545,16 +4545,16 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     AddZoneFilePath(fxName.c_str(), info);
     surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), fxName.c_str(), info);
 
-    ofstream fxZone(path.c_str());
+    FILE *fxZone = fopen(path.c_str(),"wb");
 
-    if (fxZone.is_open())
+    if (fxZone)
     {
-        fxZone << "Zone \"" + fxName + "\" \"" + string(alias) + "\"\n";
+        fprintf(fxZone, "Zone \"%s\" \"%s\"\n", fxName.c_str(), alias);
         
         for (int i = 0; i < (int)fxPrologue_.size(); ++i)
-            fxZone << "\t" + fxPrologue_[i] + "\n";
+            fprintf(fxZone, "\t%s\n", fxPrologue_[i].c_str());
                
-        fxZone << "\n" + s_BeginAutoSection + "\n";
+        fprintf(fxZone, "\n%s\n", s_BeginAutoSection.c_str());
         
         int layoutIndex = 0;
         int channelIndex = 1;
@@ -4581,37 +4581,38 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                     {
                         if (tokenIdx == 0)
                         {
-                            string modifiers = "";
-                            
-                            if (fxLayouts_[layoutIndex].modifiers_ != "")
-                                modifiers = fxLayouts_[layoutIndex].modifiers_ + "+";
+                            const char *mod = fxLayouts_[layoutIndex].modifiers_.c_str();
                             
                             if (widgetIdx == 0)
-                                fxZone << "\t" + modifiers + surfaceFXLayout_[lineIdx][tokenIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\t";
+                                fprintf(fxZone, "\t%s%s%s%s%d\t", mod, *mod ? "+" : "", 
+                                    surfaceFXLayout_[lineIdx][tokenIdx].c_str(),
+                                    fxLayouts_[layoutIndex].suffix_.c_str(),
+                                    channelIndex);
                             else
                             {
                                 if (lineIdx == 0)
-                                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\t";
+                                    fprintf(fxZone, "\t%s%s%s%s%d\t",mod, *mod? "+" : "",
+                                        actionWidgets[widgetIdx].c_str(),
+                                        fxLayouts_[layoutIndex].suffix_.c_str(),
+                                        channelIndex);
                                 else
-                                    fxZone << "\t" + string("NullDisplay") + "\t";
+                                    fprintf(fxZone, "\tNullDisplay\t");
                             }
                         }
                         else if (tokenIdx == 1)
                         {
                             if (widgetIdx == 0)
-                                fxZone <<  surfaceFXLayout_[lineIdx][tokenIdx];
+                                fprintf(fxZone, "%s", surfaceFXLayout_[lineIdx][tokenIdx].c_str());
                             else
-                                fxZone <<  string("NoAction");
+                                fprintf(fxZone, "NoAction");
                             
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
                             {
                                 char tmp[BUFSZ];
-                                fxZone << " \"";
-                                fxZone << DAW::TrackFX_GetParamName(track, fxIndex, paramIdx, tmp, sizeof(tmp));
-                                fxZone << "\"";
+                                fprintf(fxZone, " \"%s\"",DAW::TrackFX_GetParamName(track, fxIndex, paramIdx, tmp, sizeof(tmp)));
                             }
                             else if (widgetIdx == 0)
-                                fxZone << " " + int_to_string(paramIdx);
+                                fprintf(fxZone, " %d",paramIdx);
                             
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FXParam")
                             {
@@ -4621,24 +4622,23 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                                 {
                                     string steps;
                                     GetParamStepsString(steps, steppedValueCount);
-                                    steps = " [ " + steps + "]";
-                                    fxZone << steps;
+                                    fprintf(fxZone," [ %s]",steps.c_str());
                                 }
                             }
                         }
                         else if (widgetIdx == 0)
-                            fxZone << " " + surfaceFXLayout_[lineIdx][tokenIdx];
+                            fprintf(fxZone, " %s", surfaceFXLayout_[lineIdx][tokenIdx].c_str());
                     }
                     
-                    fxZone << "\n";
+                    fprintf(fxZone, "\n");
                 }
                 
-                fxZone << "\n";
+                fprintf(fxZone, "\n");
             }
             
             channelIndex++;
             
-            fxZone << "\n";
+            fprintf(fxZone, "\n");
             
             if (channelIndex > fxLayouts_[layoutIndex].channelCount_)
             {
@@ -4658,39 +4658,43 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
             {
                 for (int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    string modifiers = "";
-                    
-                    if (fxLayouts_[layoutIndex].modifiers_ != "")
-                        modifiers = fxLayouts_[layoutIndex].modifiers_ + "+";
-                    
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\tNoAction\n";
+                    const char *mod = fxLayouts_[layoutIndex].modifiers_.c_str();
+                    fprintf(fxZone, "\t%s%s%s%s%d\tNoAction\n", mod, *mod ? "+" : "",
+                        actionWidgets[widgetIdx].c_str(),
+                        fxLayouts_[layoutIndex].suffix_.c_str(),
+                        channelIndex);
                     
                     if (widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\tNoAction";
+                        fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "",
+                            surfaceFXLayout_[1][0].c_str(),
+                            fxLayouts_[layoutIndex].suffix_.c_str(),
+                            channelIndex);
                         
                         if (surfaceFXLayout_.size() > 1)
                             for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
-                                fxZone << " " + surfaceFXLayout_[1][i];
+                                fprintf(fxZone, " %s", surfaceFXLayout_[1][i].c_str());
                         
-                        fxZone << "\n";
+                        fprintf(fxZone, "\n");
                         
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(channelIndex) + "\tNoAction";
+                        fprintf(fxZone, "\t%s%s%s%s\tNoAction", mod, *mod ? "+" : "",
+                            surfaceFXLayout_[2][0].c_str(),
+                            fxLayouts_[layoutIndex].suffix_.c_str());
                         
                         if (surfaceFXLayout_.size() > 2)
                             for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
-                                fxZone << " " + surfaceFXLayout_[2][i];
+                                fprintf(fxZone, " %s", surfaceFXLayout_[2][i].c_str());
                         
-                        fxZone << "\n\n";
+                        fprintf(fxZone,"\n\n");
                     }
                     else
                     {
-                        fxZone << "\tNullDisplay\tNoAction\n";
-                        fxZone << "\tNullDisplay\tNoAction\n\n";
+                        fprintf(fxZone, "\tNullDisplay\tNoAction\n");
+                        fprintf(fxZone, "\tNullDisplay\tNoAction\n\n");
                     }
                 }
                 
-                fxZone << "\n";
+                fprintf(fxZone, "\n");
                 
                 channelIndex++;
             }
@@ -4705,59 +4709,63 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
             {
                 for (int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    string modifiers = "";
+                    const char *mod = fxLayouts_[layoutIndex].modifiers_.c_str();
                     
-                    if (fxLayouts_[layoutIndex].modifiers_ != "")
-                        modifiers = fxLayouts_[layoutIndex].modifiers_ + "+";
-                    
-                    fxZone << "\t" + modifiers + actionWidgets[widgetIdx] + fxLayouts_[layoutIndex].suffix_ + int_to_string(index) + "\tNoAction\n";
+                    fprintf(fxZone, "\t%s%s%s%s%d\tNoAction\n", mod, *mod ? "+" : "",
+                        actionWidgets[widgetIdx].c_str(), 
+                        fxLayouts_[layoutIndex].suffix_.c_str(),
+                        index);
                     
                     if (widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
                     {
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[1][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(index) + "\tNoAction";
+                        fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "", 
+                            surfaceFXLayout_[1][0].c_str(),
+                            fxLayouts_[layoutIndex].suffix_.c_str(),
+                            index);
                         
                         if (surfaceFXLayout_.size() > 1)
                             for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
-                                fxZone << " " + surfaceFXLayout_[1][i];
+                                fprintf(fxZone, " %s", surfaceFXLayout_[1][i].c_str());;
                         
-                        fxZone << "\n";
-                        
-                        fxZone << "\t" + modifiers + surfaceFXLayout_[2][0] + fxLayouts_[layoutIndex].suffix_ + int_to_string(index) + "\tNoAction";
+                        fprintf(fxZone, "\n");
+                        fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "",
+                            surfaceFXLayout_[2][0].c_str(),
+                            fxLayouts_[layoutIndex].suffix_.c_str(),
+                            index);
                         
                         if (surfaceFXLayout_.size() > 2)
                             for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
-                                fxZone << " " + surfaceFXLayout_[2][i];
+                                fprintf(fxZone, " %s", surfaceFXLayout_[2][i].c_str());
                         
-                        fxZone << "\n\n";
+                        fprintf(fxZone, "\n\n");
                     }
                     else
                     {
-                        fxZone << "\tNullDisplay\tNoAction\n";
-                        fxZone << "\tNullDisplay\tNoAction\n\n";
+                        fprintf(fxZone, "\tNullDisplay\tNoAction\n");
+                        fprintf(fxZone, "\tNullDisplay\tNoAction\n\n");
                     }
                 }
                 
-                fxZone << "\n";
+                fprintf(fxZone, "\n");
             }
             
             layoutIndex++;
         }
         
-        fxZone << s_EndAutoSection + "\n";
+        fprintf(fxZone, "%s\n", s_EndAutoSection.c_str());
                 
         for (int i = 0; i < (int)fxEpilogue_.size(); ++i)
-            fxZone << "\t" + fxEpilogue_[i] + "\n";
+            fprintf(fxZone, "\t%s\n", fxEpilogue_[i].c_str());
 
-        fxZone << "ZoneEnd\n\n";
+        fprintf(fxZone, "ZoneEnd\n\n");
         
         for (int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
         {
-            char tmp[BUFSZ], tmp2[BUFSZ];
-            snprintf(tmp2, sizeof(tmp2), "%d %s\n", i, DAW::TrackFX_GetParamName(track, fxIndex, i, tmp, sizeof(tmp)));
-            fxZone << tmp2;
+            char tmp[BUFSZ];
+            fprintf(fxZone, "%d %s\n", i, DAW::TrackFX_GetParamName(track, fxIndex, i, tmp, sizeof(tmp)));
         }
         
-        fxZone.close();
+        fclose(fxZone);
     }
     
     if (zoneFilePaths_.Exists(fxName.c_str()))
