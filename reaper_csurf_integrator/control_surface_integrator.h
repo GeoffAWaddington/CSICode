@@ -151,7 +151,10 @@ class PropertyList
     void set_prop(PropertyType prop, const char *val)
     {
         int x;
-        for (x = 0; x < nprops_ && props_[x] != prop; x ++);
+        if (prop == PropertyType_Unknown)
+            x = nprops_;
+        else
+            for (x = 0; x < nprops_ && props_[x] != prop; x ++);
 
         if (WDL_NOT_NORMALLY(x >= MAX_PROP)) return;
 
@@ -1288,6 +1291,8 @@ struct LearnInfo
 
 void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
 
+void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens, PropertyList &properties);
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
@@ -1686,41 +1691,6 @@ private:
                     homeZone_->ReactivateFXMenuZone();
                 needGarbageCollect_ = true;
                 break;
-            }
-        }
-    }
-
-    void GetProperties(int start, int finish, const vector<string> &tokens, PropertyList &properties) 
-    {
-        for (int i = start; i < finish; i++)
-        {
-            if (tokens[i].find("=") != string::npos)
-            {
-                istringstream property(tokens[i]);
-                vector<string> kvp;
-                string token;
-                
-                while (getline(property, token, '='))
-                    kvp.push_back(token);
-
-                if (kvp.size() == 2)
-                {
-                    PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
-                    if (prop != PropertyType_Unknown)
-                    {
-                        properties.set_prop(prop, kvp[1].c_str());
-                    }
-                    else
-                    {
-                        WDL_FastString fs;
-                        fs.Set(kvp[0].c_str());
-                        fs.Append("=");
-                        fs.Append(kvp[1].c_str());
-                        properties.set_prop(prop, fs.Get());
-                        // preserve unknown properties
-                        WDL_ASSERT(false);
-                    }
-                }
             }
         }
     }
@@ -2431,7 +2401,7 @@ public:
                 }
                                        
                 if (ltokens.size() > propertiesOffset)
-                    GetProperties(propertiesOffset, (int)ltokens.size(), ltokens, def.paramWidgetProperties);
+                    GetPropertiesFromTokens(propertiesOffset, (int)ltokens.size(), ltokens, def.paramWidgetProperties);
                 
                 if (getline(autoFXFile, line))
                 {
@@ -2447,7 +2417,7 @@ public:
                         def.paramName = tokens[2];
                         
                         if (tokens.size() > 3)
-                            GetProperties(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
+                            GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
                     }
                 }
                 else
@@ -2465,7 +2435,7 @@ public:
                         GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         if (tokens.size() > 3)
-                            GetProperties(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
+                            GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
                     }
                 }
                 else
