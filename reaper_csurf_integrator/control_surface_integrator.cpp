@@ -25,29 +25,26 @@ void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens
 {
     for (int i = start; i < finish; i++)
     {
-        if (tokens[i].find("=") != string::npos)
+        const char *tok = tokens[i].c_str();
+        const char *eq = strstr(tok,"=");
+        if (eq != NULL && strstr(eq+1, "=") == NULL /* legacy behavior, don't allow = in value */)
         {
-            istringstream property(tokens[i]);
-            vector<string> kvp;
-            string token;
+            char tmp[128];
+            int pnlen = (int) (eq-tok) + 1; // +1 is for the null character to be added to tmp
+            if (WDL_NOT_NORMALLY(pnlen > sizeof(tmp))) // if this asserts on a valid property name, increase tmp size
+                pnlen = sizeof(tmp);
+            lstrcpyn_safe(tmp, tok, pnlen);
 
-            while (getline(property, token, '='))
-                kvp.push_back(token);
-
-            if (kvp.size() == 2)
+            PropertyType prop = PropertyList::prop_from_string(tmp);
+            if (prop != PropertyType_Unknown)
             {
-                PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
-                if (prop != PropertyType_Unknown)
-                {
-                    properties.set_prop(prop, kvp[1].c_str());
-                }
-                else
-                {
-                    properties.set_prop(prop, tokens[i].c_str()); // unknown properties are preserved as Unknown, key=value pair
+                properties.set_prop(prop, eq+1);
+            }
+            else
+            {
+                properties.set_prop(prop, tok); // unknown properties are preserved as Unknown, key=value pair
 
-                    // preserve unknown properties
-                    WDL_ASSERT(false);
-                }
+                WDL_ASSERT(false);
             }
         }
     }
