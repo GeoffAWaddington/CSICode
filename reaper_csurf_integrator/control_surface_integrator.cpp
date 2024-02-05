@@ -154,6 +154,30 @@ string int_to_string(int value)
     return string(buf);
 }
 
+bool getline(fpistream &fp, string &str) // mimic C++ getline()
+{
+    str.clear();
+    if (WDL_NOT_NORMALLY(!fp.handle)) return false;
+    for (;;)
+    {
+        char buf[512];
+        if (!fgets(buf, sizeof(buf), fp.handle) || WDL_NOT_NORMALLY(!buf[0]))
+            return str.length()>0;
+        str.append(buf);
+
+        const size_t sz = str.length();
+        if (WDL_NORMALLY(sz>0) && str.c_str()[sz-1] == '\n')
+        {
+            if (sz>1 && str.c_str()[sz-2] == '\r')
+                str.resize(sz - 2);
+            else
+                str.resize(sz - 1);
+            return true;
+        }
+    }
+}
+
+
 void ReplaceAllWith(string &output, const char *charsToReplace, const char *replacement)
 {
     // replace all occurences of
@@ -454,7 +478,7 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
 {
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
         
         CSIZoneInfo *info = new CSIZoneInfo();
         info->filePath = filePath;
@@ -576,7 +600,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<s
 {
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -642,7 +666,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo>
 {
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -681,7 +705,7 @@ void ZoneManager::ProcessFXBoilerplate(const string &filePath, vector<string> &f
 {
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
             
         for (string line; getline(file, line) ; )
         {
@@ -784,7 +808,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
    
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -1050,7 +1074,7 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1357,7 +1381,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
     }
 }
 
-void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens)
+void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1486,7 +1510,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -1533,7 +1557,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 
     try
     {
-        ifstream file(filePath.c_str());
+        fpistream file(filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -1766,7 +1790,7 @@ void CSurfIntegrator::Init()
     
     try
     {
-        ifstream iniFile(iniFilePath.c_str());
+        fpistream iniFile(iniFilePath.c_str());
                
         for (string line; getline(iniFile, line) ; )
         {
@@ -3400,7 +3424,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
         
         if (zoneFilePaths_.Exists(fxName))
         {
-            ifstream file(zoneFilePaths_.Get(fxName)->filePath.c_str());
+            fpistream file(zoneFilePaths_.Get(fxName)->filePath.c_str());
              
             string line = "";
             
@@ -4034,7 +4058,7 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
         
         if (zoneFilePaths_.Exists(zoneName) && fxLayout_ != NULL)
         {
-            ifstream file(zoneFilePaths_.Get(zoneName)->filePath.c_str());
+            fpistream file(zoneFilePaths_.Get(zoneName)->filePath.c_str());
             
             for (string line; getline(file, line) ; )
             {

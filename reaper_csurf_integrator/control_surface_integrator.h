@@ -70,6 +70,17 @@ class CSurfIntegrator;
 class ZoneManager;
 class Widget;
 
+class fpistream 
+{
+  public:
+    FILE *handle;
+
+    fpistream(const char *fn) { handle = fopen(fn, "rb"); }
+    ~fpistream() { close(); }
+    void close() { if (handle) { fclose(handle); handle = NULL; } }
+};
+bool getline(fpistream &fp, string &str); // mimic C++ getline()
+
 static char *format_number(double v, char *buf, int bufsz)
 {
   snprintf(buf,bufsz,"%.12f", v);
@@ -2323,7 +2334,7 @@ public:
         bool inAutoZone = false;
         bool pastAutoZone = false;
         
-        ifstream autoFXFile(zoneDef.fullPath.c_str());
+        fpistream autoFXFile(zoneDef.fullPath.c_str());
         
         int listSlotIndex = 0;
         
@@ -3499,7 +3510,7 @@ private:
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
 
-    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens);
+    void ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     
@@ -3670,7 +3681,7 @@ private:
     string const templateFilename_;
     OSC_ControlSurfaceIO *const surfaceIO_;
 
-    void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens);
+    void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
     OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
