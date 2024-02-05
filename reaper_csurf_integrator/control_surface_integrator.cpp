@@ -21,6 +21,38 @@ extern reaper_plugin_info_t *g_reaper_plugin_info;
 int g_minNumParamSteps = 2;
 int g_maxNumParamSteps = 30;
 
+void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens, PropertyList &properties)
+{
+    for (int i = start; i < finish; i++)
+    {
+        if (tokens[i].find("=") != string::npos)
+        {
+            istringstream property(tokens[i]);
+            vector<string> kvp;
+            string token;
+
+            while (getline(property, token, '='))
+                kvp.push_back(token);
+
+            if (kvp.size() == 2)
+            {
+                PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
+                if (prop != PropertyType_Unknown)
+                {
+                    properties.set_prop(prop, kvp[1].c_str());
+                }
+                else
+                {
+                    properties.set_prop(prop, tokens[i].c_str()); // unknown properties are preserved as Unknown, key=value pair
+
+                    // preserve unknown properties
+                    WDL_ASSERT(false);
+                }
+            }
+        }
+    }
+}
+
 void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     int openSquareIndex = 0;
@@ -2047,36 +2079,16 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     
     vector<string> params;
     
-    if (paramsAndProperties != NULL) for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
+    if (paramsAndProperties != NULL)
     {
-        if ((*paramsAndProperties)[i].find("=") != string::npos)
+        for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
         {
-            istringstream widgetProperty((*paramsAndProperties)[i]);
-            vector<string> kvp;
-            string token;
-            
-            while (getline(widgetProperty, token, '='))
-                kvp.push_back(token);
-
-            if (kvp.size() == 2)
-            {
-                PropertyType prop = PropertyList::prop_from_string(kvp[0].c_str());
-                if (prop != PropertyType_Unknown)
-                {
-                    widgetProperties_.set_prop(prop, kvp[1].c_str());;
-                }
-                else
-                {
-                    widgetProperties_.set_prop(prop, (*paramsAndProperties)[i].c_str()); // unknown properties are preserved as Unknown, key=value pair
-                    // cerr << "unknown property" << str;
-                    //WDL_ASSERT(false);
-                }
-            }
+            if ((*paramsAndProperties)[i].find("=") == string::npos)
+                params.push_back((*paramsAndProperties)[i]);
         }
-        else
-            params.push_back((*paramsAndProperties)[i]);
+        GetPropertiesFromTokens(0, (int)(*paramsAndProperties).size(), *paramsAndProperties, widgetProperties_);
     }
-    
+
     for (int i = 1; i < params.size(); i++)
         parameters_.push_back(params[i]);
     
