@@ -134,8 +134,8 @@ public:
     AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) :  Midi_CSIMessageGenerator(csi, widget)
     {
         const char * const widgetClass = "RotaryWidgetClass";
-        accelerationValuesForDecrement_ = widget->GetSurface()->GetAccelerationValuesForIncrement(widgetClass);
-        accelerationValuesForIncrement_ = widget->GetSurface()->GetAccelerationValuesForDecrement(widgetClass);
+        accelerationValuesForIncrement_ = widget->GetSurface()->GetAccelerationValuesForIncrement(widgetClass);
+        accelerationValuesForDecrement_ = widget->GetSurface()->GetAccelerationValuesForDecrement(widgetClass);
         widget->SetStepSize(widget->GetSurface()->GetStepSize(widgetClass));
         widget->SetAccelerationValues(widget->GetSurface()->GetAccelerationValues(widgetClass));
     }
