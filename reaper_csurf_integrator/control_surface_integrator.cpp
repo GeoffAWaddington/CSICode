@@ -3647,12 +3647,12 @@ void ZoneManager::SaveLearnedFXParams()
             fprintf(fxZone, "Zone \"%s\" \"%s\" \"%s\"\n",
                 learnFXName_.c_str(),
                 alias,
-                s_GeneratedByLearn.c_str());
+                s_GeneratedByLearn);
             
             for (int i = 0; i < (int)fxPrologue_.size(); ++i)
                 fprintf(fxZone, "\t%s\n",fxPrologue_[i].c_str());
                    
-            fprintf(fxZone, "\n%s\n",s_BeginAutoSection.c_str());
+            fprintf(fxZone, "\n%s\n",s_BeginAutoSection);
 
             if (homeZone_->GetLearnFXParamsZone())
             {
@@ -3707,7 +3707,7 @@ void ZoneManager::SaveLearnedFXParams()
                 }
             }
             
-            fprintf(fxZone, "%s\n", s_EndAutoSection.c_str());
+            fprintf(fxZone, "%s\n", s_EndAutoSection);
                     
             for (int i = 0; i < (int)fxEpilogue_.size(); ++i)
                 fprintf(fxZone, "\t%s\n", fxEpilogue_[i].c_str());
@@ -4554,7 +4554,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         for (int i = 0; i < (int)fxPrologue_.size(); ++i)
             fprintf(fxZone, "\t%s\n", fxPrologue_[i].c_str());
                
-        fprintf(fxZone, "\n%s\n", s_BeginAutoSection.c_str());
+        fprintf(fxZone, "\n%s\n", s_BeginAutoSection);
         
         int layoutIndex = 0;
         int channelIndex = 1;
@@ -4752,7 +4752,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
             layoutIndex++;
         }
         
-        fprintf(fxZone, "%s\n", s_EndAutoSection.c_str());
+        fprintf(fxZone, "%s\n", s_EndAutoSection);
                 
         for (int i = 0; i < (int)fxEpilogue_.size(); ++i)
             fprintf(fxZone, "\t%s\n", fxEpilogue_[i].c_str());
