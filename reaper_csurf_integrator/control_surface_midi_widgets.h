@@ -162,7 +162,7 @@ private:
     
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
-    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, vector<string> params) : Midi_CSIMessageGenerator(csi, widget)
+    MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, string_list params) : Midi_CSIMessageGenerator(csi, widget)
     {
         accelerationIndicesForDecrement_.Insert(0x3f, 0);
         accelerationIndicesForDecrement_.Insert(0x3e, 1);
@@ -834,13 +834,13 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
     
     istringstream isstop(property);
     string colorDef = "";
-    vector<string> colorDefs;
+    string_list colorDefs;
     while (getline(isstop, colorDef, '+'))
         colorDefs.push_back(colorDef);
 
     for (int defi = 0; defi < (int)colorDefs.size(); ++defi)
     {
-        vector<string> rangeDefs;
+        string_list rangeDefs;
         
         istringstream iss(colorDefs[defi]);
         string rangeDef;
@@ -2037,7 +2037,7 @@ public:
     {
         preventUpdateTrackColors_ = true;
         
-        vector<string> currentColors;
+        string_list currentColors;
         GetTokens(currentColors, colors);
         
         struct

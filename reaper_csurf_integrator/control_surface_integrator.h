@@ -45,7 +45,6 @@
 extern string int_to_string(int value);
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
-extern void GetTokens(vector<string> &tokens, const string &line);
 extern int strToHex(const string &valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
@@ -83,6 +82,79 @@ static char *format_number(double v, char *buf, int bufsz)
   WDL_remove_trailing_decimal_zeros(buf,2); // trim 1.0000 down to 1.0
   return buf;
 }
+
+class string_list
+{
+  public:
+
+     void clear()
+     {
+         buf_.Resize(0);
+         offsets_.Resize(0);
+     }
+
+     void push_back(const char *str)
+     {
+         offsets_.Add(buf_.GetSize());
+         buf_.Add(str, (int)strlen(str) + 1);
+     }
+     void push_back(const string &str) { push_back(str.c_str()); }
+
+     int size() const { return offsets_.GetSize(); }
+
+     int begin() const { return 0; }
+     void erase(int idx) { offsets_.Delete(idx); }
+
+     void update(int idx, const char *value)
+     {
+         string tmp;
+         if (value >= buf_.Get() && value < buf_.Get() + buf_.GetSize())
+         {
+             tmp = value;
+             value = tmp.c_str();
+         }
+         if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
+         {
+             const int o = offsets_.Get()[idx];
+             if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
+             {
+                 const int newl = (int) strlen(value) + 1, oldl = (int) strlen(buf_.Get() + o) + 1;
+                 if (newl != oldl)
+                 {
+                     const int trail = buf_.GetSize() - (o + oldl);
+                     const int dsize = newl - oldl;
+                     buf_.Resize(buf_.GetSize() + dsize, false);
+                     if (trail > 0) memmove(buf_.Get() + o + newl, buf_.Get() + o + oldl, trail);
+                     for (int i = 0; i < offsets_.GetSize(); i ++)
+                         if (offsets_.Get()[i] > o)
+                             offsets_.Get()[i] += dsize;
+                 }
+                 memcpy(buf_.Get() + o, value, newl + 1);
+             }
+         }
+     }
+
+     const char *get(int idx) const
+     {
+         if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
+         {
+             const int o = offsets_.Get()[idx];
+             if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
+                 return buf_.Get() + o;
+         }
+         return "";
+     }
+
+     // ugly inefficient wrapping
+     const string back() const { return string(get(size()-1)); }
+     const string operator[](const int idx) const { return string(get(idx)); }
+
+  private:
+      WDL_TypedBuf<int> offsets_;
+      WDL_TypedBuf<char> buf_;
+};
+
+extern void GetTokens(string_list &tokens, const string &line);
 
 extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
@@ -252,7 +324,7 @@ struct FXParamLayoutTemplate
 
 struct FXParamDefinition
 {
-    vector<string> modifiers;
+    string_list modifiers;
     int modifier;
     
     string cell;
@@ -307,11 +379,11 @@ struct FXParamDefinitions
 
 struct AutoZoneDefinition
 {
-    vector<string> prologue;
-    vector<string> epilogue;
+    string_list prologue;
+    string_list epilogue;
     vector<FXParamDefinitions> paramDefs;
     
-    vector<string> rawParams;
+    string_list rawParams;
     WDL_StringKeyedArray<string> rawParamsDictionary;
 
     string fxName;
@@ -370,7 +442,7 @@ struct ActionTemplate
     string widgetName;
     int modifier;
     string actionName;
-    vector<string> params;
+    string_list params;
     bool isValueInverted;
     bool isFeedbackInverted;
     double holdDelayAmount;
@@ -540,7 +612,7 @@ private:
     Widget  *const widget_;
     Zone  *const zone_;
 
-    vector<string> parameters_;
+    string_list parameters_;
     
     int intParam_;
     
@@ -583,12 +655,12 @@ private:
     WDL_FastString cellAddress_;
     
     void UpdateTrackColor();
-    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
-    void SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
-    void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors);
+    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+    void SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
+    void GetColorValues(vector<rgba_color> &colorValues, const string_list &colors);
     void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
 public:
-    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const vector<string> *params, const string *stringParam);
+    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const string_list *params, const string *stringParam);
 
     virtual ~ActionContext() {}
     
@@ -600,7 +672,7 @@ public:
     int GetSlotIndex();
     const char *GetName();
 
-    const vector<string> &GetParameters() { return parameters_; }
+    const string_list &GetParameters() { return parameters_; }
     
     int GetIntParam() { return intParam_; }
     const char *GetStringParam() { return stringParam_.c_str(); }
@@ -799,14 +871,14 @@ protected:
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones);
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones);
     
     virtual ~Zone()
     {
         thisZoneWidgets_.Empty();
     }
     
-    void InitSubZones(const vector<string> &subZones, Zone *enclosingZone);
+    void InitSubZones(const string_list &subZones, Zone *enclosingZone);
     void GoAssociatedZone(const char *associatedZoneName);
     void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
@@ -1129,7 +1201,7 @@ private:
     Zone  *const enclosingZone_;
     
 public:
-    SubZone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones, Zone *enclosingZone) : Zone(csi, zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones, Zone *enclosingZone) : Zone(csi, zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -1248,7 +1320,7 @@ struct CSILayoutInfo
         channelCount_ = 0;
     }
     
-    vector<string> &GetModifierTokens(vector<string> &modifiers)
+    string_list &GetModifierTokens(string_list &modifiers)
     {
         istringstream modifierStr(modifiers_);
         string modifier;
@@ -1289,9 +1361,9 @@ struct LearnInfo
 };
 
 
-void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+void GetSteppedValues(string_list &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
 
-void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens, PropertyList &properties);
+void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1322,14 +1394,14 @@ private:
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
     static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
 
-    vector<string> fxLayoutFileLines_;
-    vector<string> fxLayoutFileLinesOriginal_;
+    string_list fxLayoutFileLines_;
+    string_list fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
-    vector<vector<string> > surfaceFXLayout_;
-    vector<vector<string> > surfaceFXLayoutTemplate_;
+    vector<string_list > surfaceFXLayout_;
+    vector<string_list > surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
-    vector<string> fxPrologue_;
-    vector<string> fxEpilogue_;
+    string_list fxPrologue_;
+    string_list fxEpilogue_;
     
     WDL_PtrList<ZoneManager> listeners_;
     
@@ -1369,7 +1441,7 @@ private:
     LearnInfo *lastTouched_;
 
     AutoZoneDefinition zoneDef_;
-    vector<string> paramList_;
+    string_list paramList_;
 
     static void disposeLearnInfoArray(WDL_IntKeyedArray<LearnInfo*> *ar) { delete ar; }
     static void disposeLearnInfo(LearnInfo *inf) { delete inf; }
@@ -1408,13 +1480,13 @@ private:
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
-    int GetModifierValue(const vector<string> &modifiers);
-    void ProcessSurfaceFXLayout(const string &filePath, vector<vector<string> > &surfaceFXLayout,  vector<vector<string> > &surfaceFXLayoutTemplate);
+    void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
+    int GetModifierValue(const string_list &modifiers);
+    void ProcessSurfaceFXLayout(const string &filePath, vector<string_list > &surfaceFXLayout,  vector<string_list > &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
-    void ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate);
+    void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
-    void BuildActionTemplate(const vector<string> &tokens);
+    void BuildActionTemplate(const string_list &tokens);
     
     void GoLearnFXParams()
     {
@@ -1827,7 +1899,7 @@ public:
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
     const vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    const vector<vector<string> > &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+    const vector<string_list > &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -1939,7 +2011,7 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
     
-    const vector<vector<string> > &GetSurfaceFXLayout()
+    const vector<string_list > &GetSurfaceFXLayout()
     {
         return surfaceFXLayout_;
     }
@@ -2320,7 +2392,7 @@ public:
                     continue;
             }
 
-            vector<string> ltokens;
+            string_list ltokens;
             GetTokens(ltokens, line);
 
             if (line.substr(0, 5) == "Zone ")
@@ -2388,7 +2460,7 @@ public:
                 
                 if (ltokens.size() > 4 && ltokens[3] == "[")
                 {
-                    vector<string> params;
+                    string_list params;
 
                     for (int i = 3; i < ltokens.size() && ltokens[i] != "]"; i++)
                         params.push_back(ltokens[i]);
@@ -2405,12 +2477,12 @@ public:
                 
                 if (getline(autoFXFile, line))
                 {
-                    vector<string> tokens;
+                    string_list tokens;
                     GetTokens(tokens, line);
 
                     if (tokens.size() > 2)
                     {
-                        vector<string> modifers;
+                        string_list modifers;
                         
                         GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
@@ -2425,12 +2497,12 @@ public:
                 
                 if (getline(autoFXFile, line))
                 {
-                    vector<string> tokens;
+                    string_list tokens;
                     GetTokens(tokens, line);
 
                     if (tokens.size() > 2)
                     {
-                        vector<string> modifers;
+                        string_list modifers;
                         
                         GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
@@ -2798,7 +2870,7 @@ public:
         return buf;
     }
 
-    int GetModifierValue(const vector<string> &tokens)
+    int GetModifierValue(const string_list &tokens)
     {
         int modifierValue = 0;
         for (int i = 0; i < tokens.size() - 1; i++)
@@ -2949,7 +3021,7 @@ protected:
     
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
     
-    void ProcessValues(const vector<vector<string> > &lines);
+    void ProcessValues(const vector<string_list > &lines);
     
     CSurfIntegrator *const csi_;
     Page *const page_;
@@ -3510,7 +3582,7 @@ private:
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
 
-    void ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens);
+    void ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     
@@ -3681,7 +3753,7 @@ private:
     string const templateFilename_;
     OSC_ControlSurfaceIO *const surfaceIO_;
 
-    void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens);
+    void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
     OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
@@ -4914,7 +4986,7 @@ public:
             osara_outputMessage(phrase);
     }
     
-    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
+    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const string_list &params)
     {
         if (actions_.Exists(actionName.c_str()))
             return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
@@ -4938,7 +5010,7 @@ public:
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, NULL, &stringParam);
     }
 
-    ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const vector<string> &params)
+    ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const string_list &params)
     {
         if (learnFXActions_.Exists(actionName.c_str()))
             return new ActionContext(this, learnFXActions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
@@ -5144,10 +5216,10 @@ public:
     /*
     void GenerateX32SurfaceFile()
     {
-        vector<vector<string>> generalWidgets = {   {"MasterFader", "/main/st/mix/fader"},
+        vector<string_list> generalWidgets = {   {"MasterFader", "/main/st/mix/fader"},
                                                     {"OtherWidget", "other/widget/"} };
         
-        vector<vector<string>> channelWidgets = {   {"Fader", "/ch/|/mix/fader"},
+        vector<string_list> channelWidgets = {   {"Fader", "/ch/|/mix/fader"},
                                                     {"Mute", "/ch/|/mix/mute"},
                                                     {"Solo", "/ch/|/mix/solo"},
                                                     {"Select", "/ch/|/mix/select"} };

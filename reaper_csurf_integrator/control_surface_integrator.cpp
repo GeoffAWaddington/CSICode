@@ -21,11 +21,11 @@ extern reaper_plugin_info_t *g_reaper_plugin_info;
 int g_minNumParamSteps = 2;
 int g_maxNumParamSteps = 30;
 
-void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens, PropertyList &properties)
+void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties)
 {
     for (int i = start; i < finish; i++)
     {
-        const char *tok = tokens[i].c_str();
+        const char *tok = tokens.get(i);
         const char *eq = strstr(tok,"=");
         if (eq != NULL && strstr(eq+1, "=") == NULL /* legacy behavior, don't allow = in value */)
         {
@@ -50,7 +50,7 @@ void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens
     }
 }
 
-void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(string_list &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     int openSquareIndex = 0;
     int closeSquareIndex = 0;
@@ -73,7 +73,7 @@ void GetSteppedValues(vector<string> &params, double &deltaValue, vector<double>
     {
         for (int i = openSquareIndex + 1; i < closeSquareIndex; ++i)
         {
-            const char *str = params[i].c_str();
+            const char *str = params.get(i);
 
             if (str[0] == '(' && str[strlen(str)-1] == ')')
             {
@@ -239,7 +239,7 @@ void ReplaceAllWith(string &output, const char *charsToReplace, const char *repl
     }
 }
 
-void GetTokens(vector<string> &tokens, const string &line)
+void GetTokens(string_list &tokens, const string &line)
 {
     const char *rd = line.c_str();
     string token;
@@ -480,7 +480,7 @@ void ShutdownOSCIO()
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Parsing
 //////////////////////////////////////////////////////////////////////////////////////////////
-static void listFilesOfType(const string &path, vector<string> &results, const char *type)
+static void listFilesOfType(const string &path, string_list &results, const char *type)
 {
     WDL_PtrList<char> stack;
     WDL_FastString tmp;
@@ -530,7 +530,7 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
             if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
             
-            vector<string> tokens;
+            string_list tokens;
             GetTokens(tokens, line);
 
             if (tokens[0] == "Zone" && tokens.size() > 1)
@@ -553,7 +553,7 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
 void ZoneManager::GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate)
 {
     istringstream modifiersAndWidgetName(line);
-    vector<string> tokens;
+    string_list tokens;
     string token;
     
     ModifierManager modifierManager(NULL);
@@ -588,11 +588,11 @@ void ZoneManager::GetWidgetNameAndModifiers(const string &line, ActionTemplate *
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-void ZoneManager::BuildActionTemplate(const vector<string> &tokens)
+void ZoneManager::BuildActionTemplate(const string_list &tokens)
 {
     string feedbackIndicator = "";
     
-    vector<string> params;
+    string_list params;
     for (int i = 1; i < tokens.size(); i++)
     {
         if (tokens[i] == "Feedback=Yes" || tokens[i] == "Feedback=No")
@@ -636,7 +636,7 @@ void ZoneManager::BuildActionTemplate(const vector<string> &tokens)
     }
 }
 
-void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<string> > &surfaceFXLayout,  vector<vector<string> > &surfaceFXLayoutTemplate)
+void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<string_list > &surfaceFXLayout,  vector<string_list > &surfaceFXLayoutTemplate)
 {
     try
     {
@@ -649,14 +649,14 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<s
             if (line == "") // ignore blank lines
                 continue;
         
-            vector<string> tokens;
+            string_list tokens;
             GetTokens(tokens, line);
             
             if (tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
             {
                 if (tokens[0][0] == '#')
                 {
-                    tokens[0] = tokens[0].substr(1, tokens[0].length() - 1);
+                    tokens.update(0,tokens.get(0)+1);
                     surfaceFXLayoutTemplate.push_back(tokens);
                 }
                 else
@@ -665,7 +665,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<s
                     
                     if (tokens.size() > 1 && tokens[1] == "FXParam")
                     {
-                        vector<string> widgetAction;
+                        string_list widgetAction;
                         
                         widgetAction.push_back("WidgetAction");
                         widgetAction.push_back(tokens[1]);
@@ -674,7 +674,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<s
                     }
                     if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
                     {
-                        vector<string> widgetAction;
+                        string_list widgetAction;
                         
                         widgetAction.push_back("AliasDisplayAction");
                         widgetAction.push_back(tokens[1]);
@@ -683,7 +683,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<vector<s
                     }
                     if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
                     {
-                        vector<string> widgetAction;
+                        string_list widgetAction;
                         
                         widgetAction.push_back("ValueDisplayAction");
                         widgetAction.push_back(tokens[1]);
@@ -717,7 +717,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo>
         
             if (line.find("Zone") == string::npos)
             {
-                vector<string> tokens;
+                string_list tokens;
                 GetTokens(tokens, line);
 
                 CSILayoutInfo info;
@@ -741,7 +741,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo>
     }
 }
 
-void ZoneManager::ProcessFXBoilerplate(const string &filePath, vector<string> &fxBoilerplate)
+void ZoneManager::ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate)
 {
     try
     {
@@ -836,11 +836,11 @@ void ZoneManager::GarbageCollectZones()
 void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone)
 {
     bool isInIncludedZonesSection = false;
-    vector<string> includedZones;
+    string_list includedZones;
     bool isInSubZonesSection = false;
-    vector<string> subZones;
+    string_list subZones;
     bool isInAssociatedZonesSection = false;
-    vector<string> associatedZones;
+    string_list associatedZones;
     
     string zoneName = "";
     string zoneAlias = "";
@@ -862,7 +862,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
             if (line == s_BeginAutoSection || line == s_EndAutoSection)
                 continue;
             
-            vector<string> tokens;
+            string_list tokens;
             GetTokens(tokens, line);
 
             if (tokens.size() > 0)
@@ -924,7 +924,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
                                     string actionName = actionTemplates->Get(j)->actionName;
                                     ReplaceAllWith(actionName, "|", numStr.c_str());
 
-                                    vector<string> memberParams;
+                                    string_list memberParams;
                                     for (int k = 0; k < actionTemplates->Get(j)->params.size(); k++)
                                     {
                                         string params = actionTemplates->Get(j)->params[k];
@@ -1018,7 +1018,7 @@ void ZoneManager::LoadZoneFile(const string &filePath, const WDL_PtrList<Navigat
     }
 }
 
-void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
+void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string_list &colors)
 {
     for (int i = 0; i < (int)colors.size(); ++i)
     {
@@ -1029,10 +1029,10 @@ void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector
     }
 }
 
-void ActionContext::SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+void ActionContext::SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
-    vector<string> hexColors;
+    string_list hexColors;
 
     int openCurlyIndex = 0;
     int closeCurlyIndex = 0;
@@ -1101,7 +1101,7 @@ void ActionContext::SetColor(const vector<string> &params, bool &supportsColor, 
     }
 }
 
-void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     ::GetSteppedValues(params, deltaValue, acceleratedDeltaValues, rangeMinimum, rangeMaximum, steppedValues, acceleratedTickValues);
     
@@ -1128,7 +1128,7 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
 //////////////////////////////////////////////////////////////////////////////
 // Widgets
 //////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1144,7 +1144,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
        
     AddWidget(widget);
 
-    vector<vector<string> > tokenLines;
+    vector<string_list > tokenLines;
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -1155,7 +1155,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
         if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
             continue;
         
-        vector<string> tokens;
+        string_list tokens;
         GetTokens(tokens, line);
 
         if (tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
@@ -1430,7 +1430,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
     }
 }
 
-void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const vector<string> &in_tokens)
+void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1439,7 +1439,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
     
     AddWidget(widget);
 
-    vector<vector<string> > tokenLines;
+    vector<string_list > tokenLines;
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -1450,7 +1450,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
         if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
             continue;
         
-        vector<string> tokens;
+        string_list tokens;
         GetTokens(tokens, line);
 
         if (tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
@@ -1476,7 +1476,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
     }
 }
 
-void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
+void ControlSurface::ProcessValues(const vector<string_list > &lines)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -1508,7 +1508,7 @@ void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
 
             if (lines[i].size() > 1)
             {
-                const char *widgetClass = lines[i][0].c_str();
+                const char *widgetClass = lines[i].get(0);
                 
                 if (inStepSizes)
                     stepSize_.Insert(widgetClass, atof(lines[i][1].c_str()));
@@ -1550,7 +1550,7 @@ void ControlSurface::ProcessValues(const vector<vector<string> > &lines)
 void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
-    vector<vector<string> > valueLines;
+    vector<string_list > valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -1570,7 +1570,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
             if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            vector<string> tokens;
+            string_list tokens;
             GetTokens(tokens, line);
 
             if (filePath[filePath.length() - 3] == 'm')
@@ -1597,7 +1597,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
-    vector<vector<string> > valueLines;
+    vector<string_list > valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -1617,7 +1617,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
             if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            vector<string> tokens;
+            string_list tokens;
             GetTokens(tokens, line);
 
             if (filePath[filePath.length() - 3] == 'm')
@@ -1863,7 +1863,7 @@ void CSurfIntegrator::Init()
             if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            vector<string> tokens;
+            string_list tokens;
             GetTokens(tokens, line);
 
             if (tokens.size() > 1) // ignore comment lines and blank lines
@@ -2034,7 +2034,7 @@ MediaTrack *FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const vector<string> *paramsAndProperties, const string *stringParam): csi_(csi), action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const string_list *paramsAndProperties, const string *stringParam): csi_(csi), action_(action), widget_(widget), zone_(zone)
 {
     intParam_ = 0;
     supportsColor_ = false;
@@ -2074,7 +2074,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     // For Learn
     cellAddress_.Set("");
     
-    vector<string> params;
+    string_list params;
     
     if (paramsAndProperties != NULL)
     {
@@ -2434,7 +2434,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, vector<string> includedZones, vector<string> associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), learnFXCells_(destroyLearnFXCellList), actionContextDictionary_(destroyActionContextListArray)
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), learnFXCells_(destroyLearnFXCellList), actionContextDictionary_(destroyActionContextListArray)
 {
     //protected:
     isActive_ = false;
@@ -2477,7 +2477,7 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
     }
 }
 
-void Zone::InitSubZones(const vector<string> &subZones, Zone *enclosingZone)
+void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
@@ -3301,7 +3301,7 @@ void ZoneManager::AddListener(ControlSurface *surface)
 
 void ZoneManager::SetListenerCategories(const string &categoryList)
 {
-    vector<string> categoryTokens;
+    string_list categoryTokens;
     GetTokens(categoryTokens, categoryList);
     
     for (int i = 0; i < (int)categoryTokens.size(); ++i)
@@ -3455,7 +3455,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
             
             if (getline(file, line))
             {
-                vector<string> tokens;
+                string_list tokens;
                 GetTokens(tokens, line);
 
                 if (tokens.size() > 3 && tokens[3] == s_GeneratedByLearn)
@@ -3570,19 +3570,20 @@ void ZoneManager::SaveTemplatedFXParams()
 {
     if (learnFXName_ != "" && fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
     {
+        string line0 = fxLayoutFileLines_[0];
         size_t pos = 0;
-        while ((pos = fxLayoutFileLines_[0].find(fxLayout_->GetName(), pos)) != std::string::npos)
+        while ((pos = line0.find(fxLayout_->GetName(), pos)) != std::string::npos)
         {
-            fxLayoutFileLines_[0].replace(pos, (int)strlen(fxLayout_->GetName()), learnFXName_);
+            line0.replace(pos, (int)strlen(fxLayout_->GetName()), learnFXName_);
             pos += learnFXName_.length();
         }
         
         char alias[256];
         GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
 
-        fxLayoutFileLines_[0] += " \"";
-        fxLayoutFileLines_[0] += alias;
-        fxLayoutFileLines_[0] += "\" \n\n";
+        line0 += " \"";
+        line0 += alias;
+        line0 += "\" \n\n";
         
         string path = "";
          
@@ -3621,17 +3622,18 @@ void ZoneManager::SaveTemplatedFXParams()
                 string ending = "";
                 
                 string lineEnding = "\n";
+                string line = i ? fxLayoutFileLines_[i] : line0;
 
-                if (fxLayoutFileLines_[i].length() >= lineEnding.length())
-                    ending = fxLayoutFileLines_[i].substr(fxLayoutFileLines_[i].length() - lineEnding.length(), lineEnding.length());
+                if (line.length() >= lineEnding.length())
+                    ending = line.substr(line.length() - lineEnding.length(), lineEnding.length());
 
                 if (ending[ending.length() - 1] == '\r')
-                    fxLayoutFileLines_[i] = fxLayoutFileLines_[i].substr(0, fxLayoutFileLines_[i].length() - 1);
+                    line = line.substr(0, line.length() - 1);
                 
                 if (ending != lineEnding)
-                    fxLayoutFileLines_[i] += "\n";
+                    line += "\n";
                 
-                fprintf(fxZone, "%s", fxLayoutFileLines_[i].c_str());;
+                fprintf(fxZone, "%s", line.c_str());;
             }
             
             fclose(fxZone);
@@ -3790,7 +3792,7 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
     return modifiers ? modifiers->Get(modifier) : NULL;
 }
 
-void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, vector<string> &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates)
 {
     istringstream modifiersAndWidgetName(line);
     string modifiersAndWidgetNameToken;
@@ -3807,7 +3809,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotInde
     cell = layoutTemplates[listSlotIndex].suffix;
 }
 
-int ZoneManager::GetModifierValue(const vector<string> &modifierTokens)
+int ZoneManager::GetModifierValue(const string_list &modifierTokens)
 {
     ModifierManager modifierManager(csi_);
 
@@ -3837,7 +3839,7 @@ void ZoneManager::InitializeNoMapZone()
             WDL_PointerKeyedArray<Widget*, bool> usedWidgets;
             usedWidgets.CopyContents(wl); // since noMapZone_->GetWidgets() may change during this initialization, make a copy. making the copy might be unnecessary though
 
-            vector<string> paramWidgets;
+            string_list paramWidgets;
 
             for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
                 if (surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
@@ -3852,7 +3854,7 @@ void ZoneManager::InitializeNoMapZone()
             if (surfaceFXLayout_[2].size() > 0)
                 valueDisplayWidget = surfaceFXLayout_[2][0];
 
-            vector<string> mods;
+            string_list mods;
             for (int i = 0; i < (int)fxLayouts_.size(); ++i)
             {
                 int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens(mods));
@@ -3905,8 +3907,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
         Zone *zone = homeZone_->GetLearnFXParamsZone();
         if (zone)
         {
-            vector<string> paramWidgets;
-            vector<string> widgetParams;
+            string_list paramWidgets;
+            string_list widgetParams;
 
             for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
                 if (surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
@@ -3919,7 +3921,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
             
             
             string nameDisplayWidget = "";
-            vector<string> nameDisplayParams;
+            string_list nameDisplayParams;
 
             if (surfaceFXLayout_[1].size() > 0)
                 nameDisplayWidget = surfaceFXLayout_[1][0];
@@ -3930,7 +3932,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
             
             string valueDisplayWidget = "";
-            vector<string> valueDisplayParams;
+            string_list valueDisplayParams;
 
             if (surfaceFXLayout_[2].size() > 0)
                 valueDisplayWidget = surfaceFXLayout_[2][0];
@@ -3941,7 +3943,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
             if (paramWidgets.size() > 0)
             {
-                vector<string> mods;
+                string_list mods;
                 for (int i = 0; i < (int)fxLayouts_.size(); ++i)
                 {
                     int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens(mods));
@@ -4089,20 +4091,20 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
             {
                 if (line.find("|") != string::npos && fxLayoutFileLines_.size() > 0)
                 {
-                    vector<string> tokens;
+                    string_list tokens;
                     GetTokens(tokens, line);
 
                     if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay") // This line is a display definition
                     {
                         if (fxLayoutFileLines_.back().find("|") != string::npos)
                         {
-                            vector<string> previousLineTokens;
+                            string_list previousLineTokens;
                             GetTokens(previousLineTokens, fxLayoutFileLines_.back());
 
                             if (previousLineTokens.size() > 1 && previousLineTokens[1] == "FXParam") // The previous line was a control Widget definition
                             {
                                 istringstream ControlModifiersAndWidgetName(previousLineTokens[0]);
-                                vector<string> modifierTokens;
+                                string_list modifierTokens;
                                 string modifierToken;
                                 
                                 while (getline(ControlModifiersAndWidgetName, modifierToken, '+'))
@@ -4234,11 +4236,11 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
     
     for (int ln = 0; ln < (int)fxLayoutFileLines_.size(); ln ++ )
     {
-        string &line = fxLayoutFileLines_[ln];
+        const string line = fxLayoutFileLines_[ln];
         if (line.find(widget->GetName()) != string::npos)
         {
             istringstream fullLine(line);
-            vector<string> tokens;
+            string_list tokens;
             string tltoken;
             
             while (getline(fullLine, tltoken, '+'))
@@ -4260,12 +4262,12 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
             {
                 if (line.find("|") == string::npos)
                 {
-                    line = fxLayoutFileLinesOriginal_[index];
+                    fxLayoutFileLines_.update(ln, fxLayoutFileLinesOriginal_[index].c_str());
                 }
                 else
                 {
                     istringstream layoutLine(line);
-                    vector<string> lineTokens;
+                    string_list lineTokens;
                     string token;
                     
                     while (getline(layoutLine, token, '|'))
@@ -4282,7 +4284,10 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                     }
                     
                     if (lineTokens.size() > 0)
-                        line = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
+                    {
+                        string nl = lineTokens[0] + replacementString + (lineTokens.size() > 1 ? lineTokens[1] : "");
+                        fxLayoutFileLines_.update(ln, nl.c_str());
+                    }
                 }
             }
         }
@@ -4432,7 +4437,7 @@ void ZoneManager::RemapAutoZone()
 
 void ZoneManager::PreProcessZones()
 {
-    vector<string> zoneFilesToProcess;
+    string_list zoneFilesToProcess;
     listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
        
     if (zoneFilesToProcess.size() == 0)
@@ -4608,7 +4613,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         int layoutIndex = 0;
         int channelIndex = 1;
              
-        vector<string> actionWidgets;
+        string_list actionWidgets;
         
         string actionWidget = surfaceFXLayout_[0][0];
      

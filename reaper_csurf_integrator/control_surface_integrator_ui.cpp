@@ -20,7 +20,7 @@ extern int g_maxNumParamSteps;
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
-static vector<vector<string> > s_surfaceLayoutTemplate;
+static vector<string_list > s_surfaceLayoutTemplate;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
 static vector<FXParamLayoutTemplate> s_layoutTemplates;
@@ -102,7 +102,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         if (buf[0])
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.clear();
-                            vector<string> deltas;
+                            string_list deltas;
                             GetTokens(deltas, buf);
                             for (int i = 0; i < (int)deltas.size(); ++i)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.push_back(atof(deltas[i].c_str()));
@@ -112,7 +112,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         if (buf[0])
                         {
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.clear();
-                            vector<string> ticks;
+                            string_list ticks;
                             GetTokens(ticks, buf);
                             for (int i = 0; i < (int)ticks.size(); ++i)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(atoi(ticks[i].c_str()));
@@ -634,7 +634,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             if (string(buf) != "")
                             {
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.clear();
-                                vector<string> steps;
+                                string_list steps;
                                 GetTokens(steps, buf);
                                 for (int j = 0; j< (int)steps.size(); ++j)
                                     s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.push_back(atoi(steps[j].c_str()));
@@ -754,9 +754,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
-vector<string> GetLineComponents(int index)
+string_list GetLineComponents(int index)
 {
-    vector<string> components;
+    string_list components;
     
     components.push_back(s_layoutTemplates[index].modifiers + s_layoutTemplates[index].suffix);
     
@@ -790,7 +790,7 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
     lvi.iSubItem  = 0;
     lvi.state     = 0;
 
-    vector<string> components = GetLineComponents(index);
+    string_list components = GetLineComponents(index);
     
     string preamble = components[0];
     
@@ -1246,9 +1246,9 @@ class FileSystem
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    static vector<string> GetDirectoryFilenames(const string &path)
+    static string_list GetDirectoryFilenames(const string &path)
     {
-        vector<string> filenames;
+        string_list filenames;
 
         WDL_DirScan scan;
         
@@ -1262,9 +1262,9 @@ public:
         return filenames;
     }
     
-    static vector<string> GetDirectoryFolderNames(const string &path)
+    static string_list GetDirectoryFolderNames(const string &path)
     {
-        vector<string> folderNames;
+        string_list folderNames;
 
         WDL_DirScan scan;
         
@@ -2715,7 +2715,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 if (line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
                 {
-                    vector<string> tokens;
+                    string_list tokens;
                     GetTokens(tokens, line);
                     
                     if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
@@ -2778,7 +2778,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         Listener *listener = new Listener();
                         listener->name = tokens[1];
 
-                        vector<string> categoryTokens;
+                        string_list categoryTokens;
                         GetTokens(categoryTokens, tokens[2]);
                         
                         for (int i = 0; i < (int)categoryTokens.size(); ++i)
