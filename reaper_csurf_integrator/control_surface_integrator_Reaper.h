@@ -50,15 +50,15 @@ struct rgba_color
     }
 };
 
-static bool GetColorValue(const string &hexColor, rgba_color &colorValue)
+static bool GetColorValue(const char *hexColor, rgba_color &colorValue)
 {
-    if (hexColor.length() == 7)
+    if (strlen(hexColor) == 7)
     {
-      return sscanf(hexColor.c_str(), "#%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b) == 3;
+      return sscanf(hexColor, "#%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b) == 3;
     }
-    if (hexColor.length() == 9)
+    if (strlen(hexColor) == 9)
     {
-      return sscanf(hexColor.c_str(), "#%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a) == 4;
+      return sscanf(hexColor, "#%2x%2x%2x%2x", &colorValue.r, &colorValue.g, &colorValue.b, &colorValue.a) == 4;
     }
     return false;
 }

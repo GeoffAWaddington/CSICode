@@ -283,19 +283,18 @@ static void PopulateParamListView(HWND hwndParamList)
     for (int i = 0; i < s_zoneDef.rawParams.size(); i++)
     {
         lvi.iItem = i;
-        lvi.pszText = (char *)s_zoneDef.rawParams[i].c_str();
+        const char *str = s_zoneDef.rawParams[i].c_str();
+        lvi.pszText = (char *)str;
         
         ListView_InsertItem(hwndParamList, &lvi);
         
         
-        int spaceBreak = (int)s_zoneDef.rawParams[i].find( " ");
-          
-        if (spaceBreak != -1)
+        const char *spaceBreak = strstr(str," ");
+        if (spaceBreak != NULL)
         {
-            string key = s_zoneDef.rawParams[i].substr(0, spaceBreak);
-            string value = s_zoneDef.rawParams[i].substr(spaceBreak + 1, s_zoneDef.rawParams[i].length() - spaceBreak - 1);
-            
-            s_zoneDef.rawParamsDictionary.Insert(key.c_str(), value);
+            char key[BUFSZ];
+            lstrcpyn_safe(key, str, (int) wdl_min(sizeof(key), (spaceBreak - str + 1)));
+            s_zoneDef.rawParamsDictionary.Insert(key, spaceBreak + 1);
         }
     }
 }
@@ -792,7 +791,7 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
 
     string_list components = GetLineComponents(index);
     
-    string preamble = components[0];
+    string preamble = string(components[0]);
     
 #ifdef _WIN32
     preamble += "                                                       ";
@@ -2716,7 +2715,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 if (line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
                 {
                     string_list tokens;
-                    GetTokens(tokens, line);
+                    GetTokens(tokens, line.c_str());
                     
                     if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
                     {

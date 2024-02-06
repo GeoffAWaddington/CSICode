@@ -45,7 +45,7 @@
 extern string int_to_string(int value);
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
-extern int strToHex(const string &valueStr);
+extern int strToHex(const char *valueStr);
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
@@ -145,18 +145,38 @@ class string_list
          return "";
      }
 
-     // ugly inefficient wrapping
-     const string back() const { return string(get(size()-1)); }
-     const string operator[](const int idx) const { return string(get(idx)); }
+     struct string_ref {
+         string_ref(const char *v) : v_(v) { }
+         const char *v_;
+
+         const char *c_str() const { return v_; }
+         operator const char *() const { return v_; }
+
+         size_t find(const char *s, size_t pos = 0) const
+         {
+             const char *sp = v_;
+             while (pos-- != 0 && *sp) sp++;
+             const char *f = strstr(sp,s);
+             return f ? (f - v_) : string::npos;
+         }
+         size_t find(const string &s, size_t pos = 0) const { return find(s.c_str(), pos); }
+
+         bool operator==(const char *str) const { return !strcmp(v_,str); }
+         bool operator!=(const char *str) const { return !!strcmp(v_,str); }
+         bool operator==(const string &str) const { return !strcmp(v_,str.c_str()); }
+         bool operator!=(const string &str) const { return !!strcmp(v_,str.c_str()); }
+     };
+
+     const string_ref operator[](const int idx) const { return string_ref(get(idx)); }
 
   private:
       WDL_TypedBuf<int> offsets_;
       WDL_TypedBuf<char> buf_;
 };
 
-extern void GetTokens(string_list &tokens, const string &line);
+extern void GetTokens(string_list &tokens, const char *line);
 
-extern void GetSubTokens(string_list &tokens, const string &line, char delim);
+extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
 extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
@@ -660,7 +680,7 @@ private:
     void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
     void SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
     void GetColorValues(vector<rgba_color> &colorValues, const string_list &colors);
-    void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
+    void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
 public:
     ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const string_list *params, const string *stringParam);
 
@@ -869,7 +889,7 @@ protected:
     WDL_StringKeyedArray<WDL_PtrList<Zone> *> subZones_;
     WDL_StringKeyedArray<WDL_PtrList<Zone> *> associatedZones_;
     
-    void AddNavigatorsForZone(const string &zoneName, WDL_PtrList<Navigator> &navigators);
+    void AddNavigatorsForZone(const char *zoneName, WDL_PtrList<Navigator> &navigators);
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
@@ -898,7 +918,7 @@ public:
     void RequestLearnFXUpdate();
     void SetFXParamNum(Widget *paramWidget, int paramIndex);
 
-    const string &GetSourceFilePath() { return sourceFilePath_; }
+    const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
     
     virtual const char *GetType() { return "Zone"; }
     
@@ -1235,7 +1255,7 @@ private:
     
 public:
     // all Widgets are owned by their ControlSurface!
-    Widget(CSurfIntegrator *const csi,  ControlSurface *surface, const string &name) : csi_(csi), surface_(surface), name_(name)
+    Widget(CSurfIntegrator *const csi,  ControlSurface *surface, const char *name) : csi_(csi), surface_(surface), name_(name)
     {
         // private:
         channelNumber_ = 0;
@@ -1243,15 +1263,15 @@ public:
         stepSize_ = 0.0;
         hasBeenUsedByUpdate_ = false;
 
-        int index = (int)name.length() - 1;
+        int index = (int)strlen(name) - 1;
         if (isdigit(name[index]))
         {
-            while (isdigit(name[index]))
+            while (index>=0 && isdigit(name[index]))
                 index--;
                
             index++;
             
-            channelNumber_ = atoi(name.substr(index, name.length() - index).c_str());
+            channelNumber_ = atoi(name + index);
         }
     }
     ~Widget()
@@ -1325,7 +1345,7 @@ struct CSILayoutInfo
     string_list &GetModifierTokens(string_list &modifiers)
     {
         modifiers.clear();
-        GetSubTokens(modifiers, modifiers_, '+');
+        GetSubTokens(modifiers, modifiers_.c_str(), '+');
 
         modifiers.push_back("");
         return modifiers;
@@ -1478,12 +1498,12 @@ private:
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
+    void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
     void ProcessSurfaceFXLayout(const string &filePath, vector<string_list > &surfaceFXLayout,  vector<string_list > &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
-    void GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate);
+    void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
     void BuildActionTemplate(const string_list &tokens);
     
     void GoLearnFXParams()
@@ -1867,7 +1887,7 @@ public:
     
     bool GetIsBroadcaster() { return  ! (listeners_.GetSize() == 0); }
     void AddListener(ControlSurface *surface);
-    void SetListenerCategories(const string &categoryList);
+    void SetListenerCategories(const char *categoryList);
     const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
@@ -2391,7 +2411,7 @@ public:
             }
 
             string_list ltokens;
-            GetTokens(ltokens, line);
+            GetTokens(ltokens, line.c_str());
 
             if (line.substr(0, 5) == "Zone ")
             {
@@ -2438,7 +2458,7 @@ public:
             else
             {
                 ltokens.clear();
-                GetTokens(ltokens, line);
+                GetTokens(ltokens, line.c_str());
                 
                 if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
@@ -2476,7 +2496,7 @@ public:
                 if (getline(autoFXFile, line))
                 {
                     string_list tokens;
-                    GetTokens(tokens, line);
+                    GetTokens(tokens, line.c_str());
 
                     if (tokens.size() > 2)
                     {
@@ -2496,7 +2516,7 @@ public:
                 if (getline(autoFXFile, line))
                 {
                     string_list tokens;
-                    GetTokens(tokens, line);
+                    GetTokens(tokens, line.c_str());
 
                     if (tokens.size() > 2)
                     {
@@ -2662,7 +2682,7 @@ public:
 
     WDL_PtrList<Zone> allZonesNeedFree_;
     void GarbageCollectZones();
-    void LoadZoneFile(const string &filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
+    void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3364,10 +3384,10 @@ public:
         widgetsByName_.Insert(widget->GetName(),widget);
     }
     
-    void AddCSIMessageGenerator(const string &message, CSIMessageGenerator *messageGenerator)
+    void AddCSIMessageGenerator(const char *message, CSIMessageGenerator *messageGenerator)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) { return; }
-        CSIMessageGeneratorsByMessage_.Insert(message.c_str(), messageGenerator);
+        CSIMessageGeneratorsByMessage_.Insert(message, messageGenerator);
     }
 
     Widget *GetWidgetByName(const char *name)
@@ -3545,7 +3565,7 @@ protected:
     midi_Output *const midiOutput_;
     
 public:
-    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const string &name, midi_Input *midiInput, midi_Output *midiOutput) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
+    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
 
     ~Midi_ControlSurfaceIO()
     {
@@ -3605,7 +3625,7 @@ private:
     void SendSysexInitData(int line[], int numElem);
     
 public:
-    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
+    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3640,7 +3660,7 @@ protected:
     string const oscAddress_;
     
 public:
-    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_FeedbackProcessor"; }
@@ -3657,7 +3677,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_IntFeedbackProcessor"; }
@@ -3681,7 +3701,7 @@ protected:
     double X32HeartBeatLastRefreshTime_;
     
 public:
-    OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const string &name, const string &receiveOnPort, const string &transmitToPort, const string &transmitToIpAddress);
+    OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress);
 
     const char *GetName() { return name_.c_str(); }
 
@@ -3754,7 +3774,7 @@ private:
     void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
-    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset, const string &templateFilename, const string &zoneFolder, const string &fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
+    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     
@@ -4556,7 +4576,7 @@ protected:
     WDL_PtrList<ControlSurface> surfaces_;
     
 public:
-    Page(CSurfIntegrator *const csi, const string &name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : csi_(csi), name_(name)
+    Page(CSurfIntegrator *const csi, const char *name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : csi_(csi), name_(name)
     {
         trackNavigationManager_ = new TrackNavigationManager(csi_, this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
         modifierManager_ = new ModifierManager(csi_, this, NULL);

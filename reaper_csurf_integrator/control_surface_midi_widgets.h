@@ -833,7 +833,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
     ReplaceAllWith(property, "\"", "");
     
     string_list colorDefs;
-    GetSubTokens(colorDefs, property, '+');
+    GetSubTokens(colorDefs, property.c_str(), '+');
 
     for (int defi = 0; defi < (int)colorDefs.size(); ++defi)
     {
