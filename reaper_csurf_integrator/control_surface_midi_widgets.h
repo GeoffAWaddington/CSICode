@@ -1970,7 +1970,18 @@ private:
     int preventUpdateTrackColors_;
     string lastStringSent_;
     WDL_TypedBuf<rgba_color> currentTrackColors_;
-    WDL_StringKeyedArray<int> availableColors_;
+    static int colorFromString(const char *str)
+    {
+        if (!strcmp(str, "Black")) return 0;
+        if (!strcmp(str, "Red")) return 1;
+        if (!strcmp(str, "Green")) return 2;
+        if (!strcmp(str, "Yellow")) return 3;
+        if (!strcmp(str, "Blue")) return 4;
+        // no color 5?
+        if (!strcmp(str, "Cyan")) return 6;
+        if (!strcmp(str, "White")) return 7;
+        return -1;
+    }
     WDL_TypedBuf<rgba_color> availableRGBColors_;
     
 public:
@@ -1980,14 +1991,6 @@ public:
         preventUpdateTrackColors_ = false;
         lastStringSent_ = "";
         
-        availableColors_.Insert("Black", 0);
-        availableColors_.Insert("Red", 1);
-        availableColors_.Insert("Green", 2);
-        availableColors_.Insert("Yellow", 3);
-        availableColors_.Insert("Blue", 4);
-        availableColors_.Insert("Cyan", 6);
-        availableColors_.Insert("White", 7);
-
         rgba_color color;
         
         for (int i = 0; i < surface_->GetNumChannels(); i++)
@@ -2057,10 +2060,11 @@ public:
         {
             int surfaceColor = 7; // White
             
-            if (currentColors.size() == 1 && availableColors_.Exists(currentColors[0].c_str()))
-                surfaceColor = availableColors_.Get(currentColors[0].c_str());
-            else if (currentColors.size() == 8 && availableColors_.Exists(currentColors[i].c_str()))
-                surfaceColor = availableColors_.Get(currentColors[i].c_str());
+            int c;
+            if (currentColors.size() == 1 && (c = colorFromString(currentColors[0].c_str())) >= 0)
+                surfaceColor = c;
+            else if (currentColors.size() == 8 && i < currentColors.size() && (c = colorFromString(currentColors[i].c_str())) >= 0)
+                surfaceColor = c;
 
             if (!strcmp(zoneName,"Track") && surfaceColor < availableRGBColors_.GetSize())
                 trackColors.push_back(availableRGBColors_.Get()[surfaceColor]);
