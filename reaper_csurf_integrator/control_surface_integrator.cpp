@@ -239,6 +239,16 @@ void ReplaceAllWith(string &output, const char *charsToReplace, const char *repl
     }
 }
 
+
+void GetSubTokens(string_list &tokens, const string &line, char delim)
+{
+    // eventually replace this with native parsing
+    istringstream iss(line);
+    string token;
+    while (getline(iss, token, delim))
+        tokens.push_back(token);
+}
+
 void GetTokens(string_list &tokens, const string &line)
 {
     const char *rd = line.c_str();
@@ -552,14 +562,9 @@ static void PreProcessZoneFile(const string &filePath, ZoneManager *zoneManager)
 
 void ZoneManager::GetWidgetNameAndModifiers(const string &line, ActionTemplate *actionTemplate)
 {
-    istringstream modifiersAndWidgetName(line);
     string_list tokens;
-    string token;
-    
+    GetSubTokens(tokens, line, '+');
     ModifierManager modifierManager(NULL);
-    
-    while (getline(modifiersAndWidgetName, token, '+'))
-        tokens.push_back(token);
     
     actionTemplate->widgetName = tokens[tokens.size() - 1];
        
@@ -3794,12 +3799,8 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
 
 void ZoneManager::GetWidgetNameAndModifiers(const string &line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates)
 {
-    istringstream modifiersAndWidgetName(line);
-    string modifiersAndWidgetNameToken;
-    
-    while (getline(modifiersAndWidgetName, modifiersAndWidgetNameToken, '+'))
-        modifiers.push_back(modifiersAndWidgetNameToken);
-        
+    GetSubTokens(modifiers, line, '+');
+
     modifier = GetModifierValue(modifiers);
     
     paramWidgetFullName = modifiers[modifiers.size() - 1];
@@ -4103,23 +4104,16 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 
                             if (previousLineTokens.size() > 1 && previousLineTokens[1] == "FXParam") // The previous line was a control Widget definition
                             {
-                                istringstream ControlModifiersAndWidgetName(previousLineTokens[0]);
                                 string_list modifierTokens;
-                                string modifierToken;
-                                
-                                while (getline(ControlModifiersAndWidgetName, modifierToken, '+'))
-                                    modifierTokens.push_back(modifierToken);
+                                GetSubTokens(modifierTokens, previousLineTokens[0], '+');
                                 
                                 int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
 
                                 Widget *controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
                                 
-                                istringstream displayModifiersAndWidgetName(tokens[0]);
-
                                 modifierTokens.clear();
                                 
-                                while (getline(displayModifiersAndWidgetName, modifierToken, '+'))
-                                    modifierTokens.push_back(modifierToken);
+                                GetSubTokens(modifierTokens, tokens[0], '+');
 
                                 Widget *displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
 
@@ -4239,22 +4233,16 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
         const string line = fxLayoutFileLines_[ln];
         if (line.find(widget->GetName()) != string::npos)
         {
-            istringstream fullLine(line);
             string_list tokens;
-            string tltoken;
+            GetSubTokens(tokens, line, '+');
             
-            while (getline(fullLine, tltoken, '+'))
-                tokens.push_back(tltoken);
-
             if (tokens.size() < 1)
                 continue;
             
-            istringstream modifiersAndWidgetName(tokens[0]);
+            const string tok0(tokens[0]);
             
             tokens.clear();
-
-            while (getline(modifiersAndWidgetName, tltoken, '+'))
-                tokens.push_back(tltoken);
+            GetSubTokens(tokens, tok0, '+'); // should always produce exactly one token, since it's already been tokenized?
 
             int lineModifier = surface_->GetModifierManager()->GetModifierValue(tokens);
 
@@ -4266,12 +4254,8 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
                 }
                 else
                 {
-                    istringstream layoutLine(line);
                     string_list lineTokens;
-                    string token;
-                    
-                    while (getline(layoutLine, token, '|'))
-                        lineTokens.push_back(token);
+                    GetSubTokens(lineTokens, line, '|');
                     
                     string replacementString = " " + int_to_string(fxParamNum) + " ";
                     

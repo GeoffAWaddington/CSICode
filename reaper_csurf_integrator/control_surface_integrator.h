@@ -156,6 +156,8 @@ class string_list
 
 extern void GetTokens(string_list &tokens, const string &line);
 
+extern void GetSubTokens(string_list &tokens, const string &line, char delim);
+
 extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1322,13 +1324,9 @@ struct CSILayoutInfo
     
     string_list &GetModifierTokens(string_list &modifiers)
     {
-        istringstream modifierStr(modifiers_);
-        string modifier;
-        
         modifiers.clear();
-        while (getline(modifierStr, modifier, '+'))
-            modifiers.push_back(modifier);
-         
+        GetSubTokens(modifiers, modifiers_, '+');
+
         modifiers.push_back("");
         return modifiers;
     }
