@@ -20,7 +20,7 @@ extern int g_maxNumParamSteps;
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
-static vector<string_list> s_surfaceLayoutTemplate;
+static ptrvector<string_list> s_surfaceLayoutTemplate;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
 static vector<FXParamLayoutTemplate> s_layoutTemplates;

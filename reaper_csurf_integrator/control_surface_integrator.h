@@ -128,6 +128,24 @@ class string_list
       WDL_TypedBuf<char> buf_;
 };
 
+template<class T> class ptrvector : public WDL_PtrList<T>
+{
+  public:
+    ~ptrvector() { WDL_PtrList<T>::Empty(true); }
+
+    int size() const { return WDL_PtrList<T>::GetSize(); }
+    const T &operator[](int idx) const {
+        T *p = WDL_PtrList<T>::Get(idx);
+        if (WDL_NORMALLY(p)) return *p;
+        static T tmp;
+        return tmp;
+    }
+    void push_back(const string_list &list) // if possible, use list = new string_list; Add(list); to avoid the copy
+    {
+        WDL_PtrList<T>::Add(new string_list(list));
+    }
+};
+
 extern void GetTokens(string_list &tokens, const char *line);
 
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
@@ -1369,8 +1387,8 @@ private:
     string_list fxLayoutFileLines_;
     string_list fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
-    vector<string_list> surfaceFXLayout_;
-    vector<string_list> surfaceFXLayoutTemplate_;
+    ptrvector<string_list> surfaceFXLayout_;
+    ptrvector<string_list> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
     string_list fxPrologue_;
     string_list fxEpilogue_;
@@ -1454,7 +1472,7 @@ private:
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
-    void ProcessSurfaceFXLayout(const string &filePath, vector<string_list> &surfaceFXLayout,  vector<string_list> &surfaceFXLayoutTemplate);
+    void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
@@ -1871,7 +1889,7 @@ public:
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
     const vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    const vector<string_list> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+    const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -1983,7 +2001,7 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
     
-    const vector<string_list> &GetSurfaceFXLayout()
+    const ptrvector<string_list> &GetSurfaceFXLayout()
     {
         return surfaceFXLayout_;
     }
@@ -2993,7 +3011,7 @@ protected:
     
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
     
-    void ProcessValues(const vector<string_list> &lines);
+    void ProcessValues(const ptrvector<string_list> &lines);
     
     CSurfIntegrator *const csi_;
     Page *const page_;
