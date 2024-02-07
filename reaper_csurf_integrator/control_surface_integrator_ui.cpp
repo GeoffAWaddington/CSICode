@@ -22,7 +22,7 @@ extern int g_maxNumParamSteps;
 static ZoneManager *s_zoneManager;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
-static WDL_PtrList<FXParamLayoutTemplate> s_layoutTemplates;
+static vector<FXParamLayoutTemplate> s_layoutTemplates;
 
 static int s_dlgResult = IDCANCEL;
 
@@ -371,7 +371,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             ShowFontControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
             ShowColorControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
 
-            SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + s_layoutTemplates.Get(s_fxListIndex)->modifiers + s_layoutTemplates.Get(s_fxListIndex)->suffix).c_str());
+            SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + s_layoutTemplates[s_fxListIndex].modifiers + s_layoutTemplates[s_fxListIndex].suffix).c_str());
 
             for (int i = 0; i <NUM_ELEM( s_stepPickers); i++)
             {
@@ -428,8 +428,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                         
                         for (int j = 0; j < NUM_ELEM(s_paramValueDisplayFontPickers); j++)
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
                     }
                 }
             }
@@ -758,7 +758,7 @@ string_list GetLineComponents(int index)
 {
     string_list components;
     
-    components.push_back(s_layoutTemplates.Get(index)->modifiers + s_layoutTemplates.Get(index)->suffix);
+    components.push_back(s_layoutTemplates[index].modifiers + s_layoutTemplates[index].suffix);
     
     for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
     {
@@ -1234,14 +1234,10 @@ bool RemapAutoZoneDialog(ZoneManager *aZoneManager, string fullFilePath)
     if (s_dlgResult == IDSAVE)
     {
         s_zoneManager->SaveAutoZone(s_zoneDef, s_layoutTemplates);
-        s_layoutTemplates.Empty(true);
         return true;
     }
     else
-    {
-        s_layoutTemplates.Empty(true);
         return false;
-    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
