@@ -20,7 +20,6 @@ extern int g_maxNumParamSteps;
 // Remap Auto FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
-static ptrvector<string_list> s_surfaceLayoutTemplate;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
 static ptrvector<FXParamLayoutTemplate> s_layoutTemplates;
@@ -384,51 +383,53 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
             
-            for (int i = 0; i < (int)s_surfaceLayoutTemplate.size(); ++i)
+            const ptrvector<string_list> &surfaceLayoutTemplate = s_zoneManager->GetSurfaceFXLayoutTemplate();
+
+            for (int i = 0; i < (int)surfaceLayoutTemplate.size(); ++i)
             {
-                if (s_surfaceLayoutTemplate[i].size() > 0 )
+                if (surfaceLayoutTemplate[i].size() > 0 )
                 {
-                    if (s_surfaceLayoutTemplate[i][0] == "WidgetTypes")
+                    if (surfaceLayoutTemplate[i][0] == "WidgetTypes")
                     {
                         for (int j = 0; j < NUM_ELEM(s_widgetTypePickers); j++)
-                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                     }
-                    else if (s_surfaceLayoutTemplate[i][0] == "RingStyles")
+                    else if (surfaceLayoutTemplate[i][0] == "RingStyles")
                     {
                         for (int j = 0; j < NUM_ELEM(s_ringStylePickers); j++)
-                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_ringStylePickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_ringStylePickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                     }
-                    else if (s_surfaceLayoutTemplate[i][0] == "DisplayRows")
+                    else if (surfaceLayoutTemplate[i][0] == "DisplayRows")
                     {
                         for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayRowPickers); j++)
                         {
                             SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
-                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                         }
                         
                         for (int j = 0; j < NUM_ELEM(s_paramValueDisplayRowPickers); j++)
                         {
                             SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
 
-                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                         }
                     }
-                    else if (s_surfaceLayoutTemplate[i][0] == "DisplayFonts")
+                    else if (surfaceLayoutTemplate[i][0] == "DisplayFonts")
                     {
                         s_hasFonts = true;
                         
                         for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayFontPickers); j++)
-                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                         
                         for (int j = 0; j < NUM_ELEM(s_paramValueDisplayFontPickers); j++)
-                            for (int k = 1; k < s_surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)s_surfaceLayoutTemplate[i][k].c_str());
+                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
+                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                     }
                 }
             }
@@ -1225,7 +1226,6 @@ bool RemapAutoZoneDialog(ZoneManager *aZoneManager, string fullFilePath)
     s_zoneDef.fullPath = fullFilePath;
     s_numGroups = s_zoneManager->GetNumGroups();
     s_zoneManager->GetFXLayoutTemplates(s_layoutTemplates);
-    s_surfaceLayoutTemplate = s_zoneManager->GetSurfaceFXLayoutTemplate();
     
     s_zoneManager->UnpackZone(s_zoneDef, s_layoutTemplates);
     
