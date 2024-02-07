@@ -44,7 +44,11 @@ void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, P
             {
                 properties.set_prop(prop, tok); // unknown properties are preserved as Unknown, key=value pair
 
-                WDL_ASSERT(false);
+                char buffer[250];
+                snprintf(buffer, sizeof(buffer), "CSI does not support property named %s\n", tok);
+                DAW::ShowConsoleMsg(buffer);
+                
+               // WDL_ASSERT(false);
             }
         }
     }
