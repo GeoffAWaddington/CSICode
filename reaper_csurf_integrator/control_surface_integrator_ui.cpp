@@ -1517,7 +1517,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
+static void PopulateSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
 {
     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_RESETCONTENT, 0, 0);
     
@@ -1544,12 +1544,11 @@ static void PopulateSurfaceTemplateCombo(HWND hwndDlg, string resourcePath)
 
 static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    string resourcePath(DAW::GetResourcePath());
-
     switch (uMsg)
     {
         case WM_INITDIALOG:
         {
+            const string resourcePath(DAW::GetResourcePath());
             if (s_editMode)
             {
                 AddComboEntry(hwndDlg, 0, (char *)s_pageSurfaceName.c_str(), IDC_COMBO_PageSurface);
@@ -1609,6 +1608,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     {
                         case CBN_SELCHANGE:
                         {
+                            const string resourcePath(DAW::GetResourcePath());
                             PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                         }
                     }
@@ -1747,7 +1747,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     currentIndex++;
                 }
             
-            string resourcePath(DAW::GetResourcePath());
+            const string resourcePath(DAW::GetResourcePath());
             
             if (s_editMode)
             {
