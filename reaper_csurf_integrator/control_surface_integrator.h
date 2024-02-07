@@ -131,18 +131,40 @@ class string_list
 template<class T> class ptrvector : public WDL_PtrList<T>
 {
   public:
+    ptrvector() { }
+    ptrvector(const ptrvector &cp)
+    {
+        for (int x = 0; x < cp.GetSize(); x ++)
+            push_back(cp[x]);
+    }
     ~ptrvector() { WDL_PtrList<T>::Empty(true); }
 
+    ptrvector &operator=(const ptrvector &cp)
+    {
+        WDL_PtrList<T>::Empty(true);
+        for (int x = 0; x < cp.GetSize(); x ++)
+            push_back(cp[x]);
+        return *this;
+    }
+
+    void clear() { WDL_PtrList<T>::Empty(true); }
     int size() const { return WDL_PtrList<T>::GetSize(); }
     const T &operator[](int idx) const {
+        const T *p = WDL_PtrList<T>::Get(idx);
+        if (WDL_NORMALLY(p)) return *p;
+        static T tmp;
+        return tmp;
+    }
+    T &operator[](int idx) {
         T *p = WDL_PtrList<T>::Get(idx);
         if (WDL_NORMALLY(p)) return *p;
         static T tmp;
         return tmp;
     }
-    void push_back(const string_list &list) // if possible, use list = new string_list; Add(list); to avoid the copy
+
+    void push_back(const T &list)
     {
-        WDL_PtrList<T>::Add(new string_list(list));
+        WDL_PtrList<T>::Add(new T(list));
     }
 };
 
