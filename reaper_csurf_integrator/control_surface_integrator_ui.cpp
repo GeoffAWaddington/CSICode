@@ -828,13 +828,12 @@ static void MoveUp(HWND hwndParamList)
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
     if (index > 0)
     {
-        FXParamDefinitions itemToMove;
-        
-        for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
-            itemToMove.definitions.push_back(s_zoneDef.paramDefs[index].definitions[i]);
-        
-        s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + index);
-        s_zoneDef.paramDefs.insert(s_zoneDef.paramDefs.begin() + index - 1, itemToMove);
+        FXParamDefinitions *itemToMove = s_zoneDef.paramDefs.Get(index);
+        if (WDL_NORMALLY(itemToMove != NULL))
+        {
+            s_zoneDef.paramDefs.Delete(index);
+            s_zoneDef.paramDefs.Insert(index - 1, itemToMove);
+        }
         
         SetListViewItem(hwndParamList, index, false);
         SetListViewItem(hwndParamList, index - 1, false);
@@ -848,13 +847,13 @@ static void MoveDown(HWND hwndParamList)
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
     if (index >= 0 && index < s_zoneDef.paramDefs.size() - 1)
     {
-        FXParamDefinitions itemToMove;
+        FXParamDefinitions *itemToMove = s_zoneDef.paramDefs.Get(index);
         
-        for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
-            itemToMove.definitions.push_back(s_zoneDef.paramDefs[index].definitions[i]);
-
-        s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + index);
-        s_zoneDef.paramDefs.insert(s_zoneDef.paramDefs.begin() + index + 1, itemToMove);
+        if (WDL_NORMALLY(itemToMove != NULL))
+        {
+            s_zoneDef.paramDefs.Delete(index);
+            s_zoneDef.paramDefs.Insert(index+1, itemToMove);
+        }
 
         SetListViewItem(hwndParamList, index, false);
         SetListViewItem(hwndParamList, index + 1, false);
@@ -1000,13 +999,12 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                           ((lvhti.flags & LVHT_ONITEMSTATEICON) == 0))
                     break;
                 
-                FXParamDefinitions itemToMove;
-                
-                for (int i = 0; i < (int)s_zoneDef.paramDefs[s_oldPosition].definitions.size(); ++i)
-                    itemToMove.definitions.push_back(s_zoneDef.paramDefs[s_oldPosition].definitions[i]);
-                
-                s_zoneDef.paramDefs.erase(s_zoneDef.paramDefs.begin() + s_oldPosition);
-                s_zoneDef.paramDefs.insert(s_zoneDef.paramDefs.begin() + lvhti.iItem, itemToMove);
+                FXParamDefinitions *itemToMove = s_zoneDef.paramDefs.Get(s_oldPosition);
+                if (WDL_NORMALLY(itemToMove != NULL))
+                {
+                    s_zoneDef.paramDefs.Delete(s_oldPosition);
+                    s_zoneDef.paramDefs.Insert(lvhti.iItem, itemToMove);
+                }
                 
                 PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                 

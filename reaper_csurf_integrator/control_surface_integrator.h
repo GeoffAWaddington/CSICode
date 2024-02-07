@@ -399,7 +399,7 @@ struct AutoZoneDefinition
 {
     string_list prologue;
     string_list epilogue;
-    vector<FXParamDefinitions> paramDefs;
+    ptrvector<FXParamDefinitions> paramDefs;
     
     string_list rawParams;
     WDL_StringKeyedArray<string> rawParamsDictionary;
@@ -2390,8 +2390,8 @@ public:
         
         int listSlotIndex = 0;
         
-        FXParamDefinitions definitions;
-        zoneDef.paramDefs.push_back(definitions);
+        FXParamDefinitions *curdef = new FXParamDefinitions;
+        zoneDef.paramDefs.Add(curdef);
         
         for (string line; getline(autoFXFile, line) ; )
         {
@@ -2459,8 +2459,8 @@ public:
                 if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
                     listSlotIndex++;
-                    FXParamDefinitions tmp;
-                    zoneDef.paramDefs.push_back(tmp);
+                    curdef = new FXParamDefinitions;
+                    zoneDef.paramDefs.Add(curdef);
                 }
                 
                 FXParamDefinition def;
@@ -2527,7 +2527,7 @@ public:
                 else
                     continue;
                
-                zoneDef.paramDefs.back().definitions.push_back(def);
+                curdef->definitions.push_back(def);
             }
         }
     }
