@@ -241,12 +241,15 @@ void ReplaceAllWith(string &output, const char *charsToReplace, const char *repl
 
 void GetSubTokens(string_list &tokens, const char *line, char delim)
 {
-    // eventually replace this with native parsing
-    const string l(line);
-    istringstream iss(l);
-    string token;
-    while (getline(iss, token, delim))
-        tokens.push_back(token);
+    while (*line)
+    {
+        const char *np = line;
+        while (*np && *np != delim) np++;
+
+        tokens.add_raw(line, (int) (np-line));
+        if (!*np) break;
+        line = np + 1;
+    }
 }
 
 void GetTokens(string_list &tokens, const char *line)
