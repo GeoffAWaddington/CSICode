@@ -288,6 +288,58 @@ void GetTokens(string_list &tokens, const char *line)
     }
 }
 
+
+void string_list::clear()
+{
+    buf_.Resize(0);
+    offsets_.Resize(0);
+}
+void string_list::push_back(const char *str)
+{
+    offsets_.Add(buf_.GetSize());
+    buf_.Add(str, (int)strlen(str) + 1);
+}
+
+void string_list::update(int idx, const char *value)
+{
+    string tmp;
+    if (value >= buf_.Get() && value < buf_.Get() + buf_.GetSize())
+    {
+        tmp = value;
+        value = tmp.c_str();
+    }
+    if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
+    {
+        const int o = offsets_.Get()[idx];
+        if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
+        {
+            const int newl = (int) strlen(value) + 1, oldl = (int) strlen(buf_.Get() + o) + 1;
+            if (newl != oldl)
+            {
+                const int trail = buf_.GetSize() - (o + oldl);
+                const int dsize = newl - oldl;
+                buf_.Resize(buf_.GetSize() + dsize, false);
+                if (trail > 0) memmove(buf_.Get() + o + newl, buf_.Get() + o + oldl, trail);
+                for (int i = 0; i < offsets_.GetSize(); i ++)
+                    if (offsets_.Get()[i] > o)
+                        offsets_.Get()[i] += dsize;
+            }
+            memcpy(buf_.Get() + o, value, newl + 1);
+        }
+    }
+}
+
+const char *string_list::get(int idx) const
+{
+    if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
+    {
+        const int o = offsets_.Get()[idx];
+        if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
+            return buf_.Get() + o;
+    }
+    return "";
+}
+
 int strToHex(const char *valueStr)
 {
     return strtol(valueStr, NULL, 16);

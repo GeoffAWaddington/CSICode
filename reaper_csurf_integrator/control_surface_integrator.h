@@ -87,63 +87,17 @@ class string_list
 {
   public:
 
-     void clear()
-     {
-         buf_.Resize(0);
-         offsets_.Resize(0);
-     }
-
-     void push_back(const char *str)
-     {
-         offsets_.Add(buf_.GetSize());
-         buf_.Add(str, (int)strlen(str) + 1);
-     }
+     void clear();
+     void push_back(const char *str);
      void push_back(const string &str) { push_back(str.c_str()); }
 
      int size() const { return offsets_.GetSize(); }
 
      int begin() const { return 0; }
      void erase(int idx) { offsets_.Delete(idx); }
+     void update(int idx, const char *value);
 
-     void update(int idx, const char *value)
-     {
-         string tmp;
-         if (value >= buf_.Get() && value < buf_.Get() + buf_.GetSize())
-         {
-             tmp = value;
-             value = tmp.c_str();
-         }
-         if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
-         {
-             const int o = offsets_.Get()[idx];
-             if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
-             {
-                 const int newl = (int) strlen(value) + 1, oldl = (int) strlen(buf_.Get() + o) + 1;
-                 if (newl != oldl)
-                 {
-                     const int trail = buf_.GetSize() - (o + oldl);
-                     const int dsize = newl - oldl;
-                     buf_.Resize(buf_.GetSize() + dsize, false);
-                     if (trail > 0) memmove(buf_.Get() + o + newl, buf_.Get() + o + oldl, trail);
-                     for (int i = 0; i < offsets_.GetSize(); i ++)
-                         if (offsets_.Get()[i] > o)
-                             offsets_.Get()[i] += dsize;
-                 }
-                 memcpy(buf_.Get() + o, value, newl + 1);
-             }
-         }
-     }
-
-     const char *get(int idx) const
-     {
-         if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
-         {
-             const int o = offsets_.Get()[idx];
-             if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
-                 return buf_.Get() + o;
-         }
-         return "";
-     }
+     const char *get(int idx) const;
 
      struct string_ref {
          string_ref(const char *v) : v_(v) { }
