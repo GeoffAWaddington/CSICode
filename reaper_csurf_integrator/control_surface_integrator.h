@@ -88,8 +88,10 @@ class string_list
   public:
 
      void clear();
-     void push_back(const char *str);
+     char *add_raw(const char *str, size_t len); // may pass NULL, adds all 0s of len (use trim_last after)
+     void push_back(const char *str) { add_raw(str, strlen(str)); }
      void push_back(const string &str) { push_back(str.c_str()); }
+     void trim_last(); // removes any extra trailing 0 bytes on last item
 
      int size() const { return offsets_.GetSize(); }
 

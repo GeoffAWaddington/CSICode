@@ -294,10 +294,25 @@ void string_list::clear()
     buf_.Resize(0);
     offsets_.Resize(0);
 }
-void string_list::push_back(const char *str)
+char *string_list::add_raw(const char *str, size_t len)
 {
     offsets_.Add(buf_.GetSize());
-    buf_.Add(str, (int)strlen(str) + 1);
+    char *ret = buf_.Add(str, (int)len + 1);
+    if (WDL_NORMALLY(ret)) ret[len]=0;
+    return ret;
+}
+
+void string_list::trim_last()
+{
+    if (WDL_NOT_NORMALLY(!offsets_.GetSize())) return;
+    const int lastidx = offsets_.Get()[offsets_.GetSize()-1];
+
+    int sz = buf_.GetSize();
+    if (WDL_NOT_NORMALLY(lastidx<0 || lastidx >= sz)) return;
+
+    while (sz > lastidx+1 && buf_.Get()[sz-1] == 0 && buf_.Get()[sz-2] == 0)
+        sz--;
+    buf_.Resize(sz);
 }
 
 void string_list::update(int idx, const char *value)
