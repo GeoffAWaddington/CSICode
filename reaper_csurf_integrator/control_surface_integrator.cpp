@@ -3864,7 +3864,7 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
     return modifiers ? modifiers->Get(modifier) : NULL;
 }
 
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const WDL_PtrList<FXParamLayoutTemplate> &layoutTemplates)
 {
     GetSubTokens(modifiers, line, '+');
 
@@ -3872,9 +3872,9 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex,
     
     paramWidgetFullName = modifiers[modifiers.size() - 1];
 
-    paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
+    paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates.Get(listSlotIndex)->suffix.length());
     
-    cell = layoutTemplates[listSlotIndex].suffix;
+    cell = layoutTemplates.Get(listSlotIndex)->suffix;
 }
 
 int ZoneManager::GetModifierValue(const string_list &modifierTokens)
@@ -4074,11 +4074,12 @@ void ZoneManager::InitializeFXParamsLearnZone()
 
 void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
 {
+    layoutTemplates_.Empty(true);
+
     zoneDef_.fullPath = zoneFilePaths_.Get(fxName.c_str())->filePath;
-    vector<FXParamLayoutTemplate> layoutTemplates;
-    GetFXLayoutTemplates(layoutTemplates);
+    GetFXLayoutTemplates(layoutTemplates_);
         
-    UnpackZone(zoneDef_, layoutTemplates);
+    UnpackZone(zoneDef_, layoutTemplates_);
     
     for (int i = 0; i < (int)zoneDef_.paramDefs.size(); ++i)
     {
@@ -5803,8 +5804,6 @@ void Midi_ControlSurface::InitializeMCU()
 
 void Midi_ControlSurface::InitializeMCUXT()
 {
-    vector<vector<int> > sysExLines;
-    
     int line1[] = { 0xF0, 0x7E, 0x00, 0x06, 0x01, 0xF7 };
     int line2[] = { 0xF0, 0x00, 0x00, 0x66, 0x15, 0x00, 0xF7 };
     int line3[] = { 0xF0, 0x00, 0x00, 0x66, 0x15, 0x21, 0x01, 0xF7 };

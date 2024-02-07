@@ -1384,6 +1384,8 @@ private:
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
     static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
 
+   WDL_PtrList<FXParamLayoutTemplate> layoutTemplates_;
+    
     string_list fxLayoutFileLines_;
     string_list fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
@@ -1470,7 +1472,7 @@ private:
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
+    void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const WDL_PtrList<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
     void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
@@ -1847,6 +1849,7 @@ public:
     ~ZoneManager()
     {
         allZonesNeedFree_.Empty(true);
+        layoutTemplates_.Empty(true);
     }
         
     void Initialize();
@@ -2304,9 +2307,9 @@ public:
         return  numGroups;
     }
     
-    void GetFXLayoutTemplates(vector<FXParamLayoutTemplate> &layoutTemplates)
+    void GetFXLayoutTemplates(WDL_PtrList<FXParamLayoutTemplate> &layoutTemplates)
     {
-        layoutTemplates.clear();
+        layoutTemplates.Empty(true);
 
         string widgetAction = "";
         string aliasDisplayAction = "";
@@ -2333,21 +2336,21 @@ public:
                 if (GetFXLayouts()[i].modifiers_ != "")
                     modifiers = GetFXLayouts()[i].modifiers_ + "+";
                 
-                FXParamLayoutTemplate layoutTemplate;
+                FXParamLayoutTemplate *layoutTemplate = new FXParamLayoutTemplate();
                 
-                layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + int_to_string(i + 1);
+                layoutTemplate->modifiers = modifiers;
+                layoutTemplate->suffix = GetFXLayouts()[i].suffix_ + int_to_string(i + 1);
                 
-                layoutTemplate.widgetAction = widgetAction;
-                layoutTemplate.aliasDisplayAction = aliasDisplayAction;
-                layoutTemplate.valueDisplayAction = valueDisplayAction;
+                layoutTemplate->widgetAction = widgetAction;
+                layoutTemplate->aliasDisplayAction = aliasDisplayAction;
+                layoutTemplate->valueDisplayAction = valueDisplayAction;
                 
-                layoutTemplates.push_back(layoutTemplate);
+                layoutTemplates.Add(layoutTemplate);
             }
         }
     }
     
-    void UnpackZone(AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
+    void UnpackZone(AutoZoneDefinition &zoneDef, const WDL_PtrList<FXParamLayoutTemplate> &layoutTemplates)
     {
         zoneDef.paramDefs.clear();
         zoneDef.prologue.clear();
@@ -2432,7 +2435,7 @@ public:
                 ltokens.clear();
                 GetTokens(ltokens, line.c_str());
                 
-                if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
+                if (ltokens[0].find(layoutTemplates.Get(listSlotIndex)->suffix) == string::npos)
                 {
                     listSlotIndex++;
                     FXParamDefinitions tmp;
@@ -2508,7 +2511,7 @@ public:
         }
     }
 
-    void SaveAutoZone(const AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
+    void SaveAutoZone(const AutoZoneDefinition &zoneDef, const WDL_PtrList<FXParamLayoutTemplate> &layoutTemplates)
     {
         FILE *fxFile = fopen(zoneDef.fullPath.c_str(),"wb");
         
@@ -2527,7 +2530,7 @@ public:
                 
                 for (int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
                 {
-                    fprintf(fxFile, "\t%s%s%s\t",layoutTemplates[i].modifiers.c_str(), zoneDef.paramDefs[i].definitions[j].paramWidget.c_str(), layoutTemplates[i].suffix.c_str());
+                    fprintf(fxFile, "\t%s%s%s\t",layoutTemplates.Get(i)->modifiers.c_str(), zoneDef.paramDefs[i].definitions[j].paramWidget.c_str(), layoutTemplates.Get(i)->suffix.c_str());
                     
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "")
                     {
@@ -2535,7 +2538,7 @@ public:
                     }
                     else
                     {
-                        fprintf(fxFile, "%s %s ",layoutTemplates[i].widgetAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
+                        fprintf(fxFile, "%s %s ",layoutTemplates.Get(i)->widgetAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
                         
                         if (zoneDef.paramDefs[i].definitions[j].delta != 0.0 ||
                             zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
@@ -2591,9 +2594,9 @@ public:
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
                     {
                         if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
-                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
+                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates.Get(i)->modifiers.c_str(),
                                 surfaceFXLayout_[1][0].c_str(),
-                                layoutTemplates[i].suffix.c_str());
+                                layoutTemplates.Get(i)->suffix.c_str());
                         else
                             fprintf(fxFile, "\tNullDisplay\tNoAction\n");
                     }
@@ -2601,11 +2604,11 @@ public:
                     {
                         cellHasDisplayWidgetsDefined = true;
                         
-                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates[i].modifiers.c_str(),
+                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates.Get(i)->modifiers.c_str(),
                             zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget.c_str(),
-                            layoutTemplates[i].suffix.c_str());
+                            layoutTemplates.Get(i)->suffix.c_str());
                         
-                        fprintf(fxFile, "%s \"%s\" ", layoutTemplates[i].aliasDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramName.c_str());
+                        fprintf(fxFile, "%s \"%s\" ", layoutTemplates.Get(i)->aliasDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramName.c_str());
                         
                         zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties.save_list(fxFile);
                     }
@@ -2613,9 +2616,9 @@ public:
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
                     {
                         if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
-                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
+                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates.Get(i)->modifiers.c_str(),
                                 surfaceFXLayout_[2][0].c_str(),
-                                layoutTemplates[i].suffix.c_str());
+                                layoutTemplates.Get(i)->suffix.c_str());
                         else
                             fprintf(fxFile, "\tNullDisplay\tNoAction\n");
                     }
@@ -2623,11 +2626,11 @@ public:
                     {
                         cellHasDisplayWidgetsDefined = true;
 
-                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates[i].modifiers.c_str(),
+                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates.Get(i)->modifiers.c_str(),
                             zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget.c_str(),
-                            layoutTemplates[i].suffix.c_str());
+                            layoutTemplates.Get(i)->suffix.c_str());
                         
-                        fprintf(fxFile, "%s %s", layoutTemplates[i].valueDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
+                        fprintf(fxFile, "%s %s", layoutTemplates.Get(i)->valueDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
                         
                         zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties.save_list(fxFile);
                     }
