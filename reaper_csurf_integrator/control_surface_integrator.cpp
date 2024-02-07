@@ -693,7 +693,7 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens)
     }
 }
 
-void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<string_list > &surfaceFXLayout,  vector<string_list > &surfaceFXLayoutTemplate)
+void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, vector<string_list> &surfaceFXLayout,  vector<string_list> &surfaceFXLayoutTemplate)
 {
     try
     {
@@ -1201,7 +1201,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
        
     AddWidget(widget);
 
-    vector<string_list > tokenLines;
+    vector<string_list> tokenLines;
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -1496,7 +1496,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
     
     AddWidget(widget);
 
-    vector<string_list > tokenLines;
+    vector<string_list> tokenLines;
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -1533,7 +1533,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
     }
 }
 
-void ControlSurface::ProcessValues(const vector<string_list > &lines)
+void ControlSurface::ProcessValues(const vector<string_list> &lines)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -1607,7 +1607,7 @@ void ControlSurface::ProcessValues(const vector<string_list > &lines)
 void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
-    vector<string_list > valueLines;
+    vector<string_list> valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -1654,7 +1654,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
-    vector<string_list > valueLines;
+    vector<string_list> valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();

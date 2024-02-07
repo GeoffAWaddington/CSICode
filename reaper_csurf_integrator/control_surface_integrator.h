@@ -1369,8 +1369,8 @@ private:
     string_list fxLayoutFileLines_;
     string_list fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
-    vector<string_list > surfaceFXLayout_;
-    vector<string_list > surfaceFXLayoutTemplate_;
+    vector<string_list> surfaceFXLayout_;
+    vector<string_list> surfaceFXLayoutTemplate_;
     vector<CSILayoutInfo> fxLayouts_;
     string_list fxPrologue_;
     string_list fxEpilogue_;
@@ -1454,7 +1454,7 @@ private:
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
-    void ProcessSurfaceFXLayout(const string &filePath, vector<string_list > &surfaceFXLayout,  vector<string_list > &surfaceFXLayoutTemplate);
+    void ProcessSurfaceFXLayout(const string &filePath, vector<string_list> &surfaceFXLayout,  vector<string_list> &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
@@ -1871,7 +1871,7 @@ public:
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
     const vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    const vector<string_list > &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+    const vector<string_list> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -1983,7 +1983,7 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
     
-    const vector<string_list > &GetSurfaceFXLayout()
+    const vector<string_list> &GetSurfaceFXLayout()
     {
         return surfaceFXLayout_;
     }
@@ -2993,7 +2993,7 @@ protected:
     
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
     
-    void ProcessValues(const vector<string_list > &lines);
+    void ProcessValues(const vector<string_list> &lines);
     
     CSurfIntegrator *const csi_;
     Page *const page_;
