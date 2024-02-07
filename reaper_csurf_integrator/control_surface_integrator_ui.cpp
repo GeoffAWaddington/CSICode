@@ -23,7 +23,7 @@ static ZoneManager *s_zoneManager;
 static ptrvector<string_list> s_surfaceLayoutTemplate;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
-static vector<FXParamLayoutTemplate> s_layoutTemplates;
+static ptrvector<FXParamLayoutTemplate> s_layoutTemplates;
 
 static int s_dlgResult = IDCANCEL;
 

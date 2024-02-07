@@ -3864,7 +3864,7 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
     return modifiers ? modifiers->Get(modifier) : NULL;
 }
 
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
 {
     GetSubTokens(modifiers, line, '+');
 
@@ -4075,7 +4075,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
 void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
 {
     zoneDef_.fullPath = zoneFilePaths_.Get(fxName.c_str())->filePath;
-    vector<FXParamLayoutTemplate> layoutTemplates;
+    ptrvector<FXParamLayoutTemplate> layoutTemplates;
     GetFXLayoutTemplates(layoutTemplates);
         
     UnpackZone(zoneDef_, layoutTemplates);

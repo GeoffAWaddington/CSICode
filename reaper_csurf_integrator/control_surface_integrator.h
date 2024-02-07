@@ -1492,7 +1492,7 @@ private:
     void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
-    void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const vector<FXParamLayoutTemplate> &layoutTemplates);
+    void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
     void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
     void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
@@ -2326,7 +2326,7 @@ public:
         return  numGroups;
     }
     
-    void GetFXLayoutTemplates(vector<FXParamLayoutTemplate> &layoutTemplates)
+    void GetFXLayoutTemplates(ptrvector<FXParamLayoutTemplate> &layoutTemplates)
     {
         layoutTemplates.clear();
 
@@ -2369,7 +2369,7 @@ public:
         }
     }
     
-    void UnpackZone(AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
+    void UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
     {
         zoneDef.paramDefs.clear();
         zoneDef.prologue.clear();
@@ -2530,7 +2530,7 @@ public:
         }
     }
 
-    void SaveAutoZone(const AutoZoneDefinition &zoneDef, const vector<FXParamLayoutTemplate> &layoutTemplates)
+    void SaveAutoZone(const AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
     {
         FILE *fxFile = fopen(zoneDef.fullPath.c_str(),"wb");
         
