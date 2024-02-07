@@ -255,7 +255,6 @@ void GetSubTokens(string_list &tokens, const char *line, char delim)
 void GetTokens(string_list &tokens, const char *line)
 {
     const char *rd = line;
-    string token;
     for (;;)
     {
         while (*rd > 0 && isspace(*rd)) rd++;
@@ -263,8 +262,10 @@ void GetTokens(string_list &tokens, const char *line)
 
         if (*rd == '\"')
         {
-            token.clear();
             rd++;
+            char *wr = tokens.add_raw(NULL, strlen(rd));
+            if (WDL_NOT_NORMALLY(!wr)) break;
+            // wr will be all 0 bytes
             while (*rd)
             {
                 if (*rd == '\"')
@@ -274,20 +275,16 @@ void GetTokens(string_list &tokens, const char *line)
                 }
                 if (*rd == '\\' && (rd[1] == '\\' || rd[1] == '\"')) // if \\ or \", passthrough second character
                     rd++;
-                token.append(rd,1);
-                rd++;
+                *wr++ = *rd++;
             }
+            tokens.trim_last(); // remove any trailing 0 bytes
         }
         else
         {
             const char *sp = rd;
             while (*rd && (*rd<0 || !isspace(*rd))) rd++;
-            if (rd > sp)
-                token.assign(sp, (int)(rd-sp));
-            else
-                token.clear();
+            tokens.add_raw(sp, rd-sp);
         }
-        tokens.push_back(token);
     }
 }
 
