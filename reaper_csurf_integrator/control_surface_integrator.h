@@ -392,7 +392,7 @@ struct FXParamDefinition
 
 struct FXParamDefinitions
 {
-    vector<FXParamDefinition> definitions;
+    ptrvector<FXParamDefinition> definitions;
 };
 
 struct AutoZoneDefinition
@@ -1413,7 +1413,7 @@ private:
     Zone *fxLayout_;
     ptrvector<string_list> surfaceFXLayout_;
     ptrvector<string_list> surfaceFXLayoutTemplate_;
-    vector<CSILayoutInfo> fxLayouts_;
+    ptrvector<CSILayoutInfo> fxLayouts_;
     string_list fxPrologue_;
     string_list fxEpilogue_;
     
@@ -1497,7 +1497,7 @@ private:
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
     void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
-    void ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts);
+    void ProcessFXLayouts(const string &filePath, ptrvector<CSILayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
     void BuildActionTemplate(const string_list &tokens);
@@ -1912,7 +1912,7 @@ public:
     
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
-    const vector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
+    const ptrvector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
     const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }

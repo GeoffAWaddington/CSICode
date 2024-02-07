@@ -774,7 +774,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, ptrvector<strin
     }
 }
 
-void ZoneManager::ProcessFXLayouts(const string &filePath, vector<CSILayoutInfo> &fxLayouts)
+void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<CSILayoutInfo> &fxLayouts)
 {
     try
     {
