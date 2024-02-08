@@ -52,7 +52,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
             if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size() > 0)
             {
-                string deltas = "";
+                string deltas;
                 
                 for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].deltas.size(); ++i)
                 {
@@ -65,7 +65,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
             if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size() > 0)
             {
-                string ticks = "";
+                string ticks;
                 
                 for (int i = 0; i < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.size(); ++i)
                     ticks += int_to_string(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks[i]) + " ";
@@ -509,7 +509,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
                 }
 
-                string steps = "";
+                string steps;
                 
                 char buf[BUFSZ];
                 for (int j = 0; j < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.size(); ++i)
@@ -1407,10 +1407,10 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
 
 static bool s_editMode = false;
 
-static string s_surfaceName = "";
+static string s_surfaceName;
 static int s_surfaceInPort = 0;
 static int s_surfaceOutPort = 0;
-static string s_surfaceRemoteDeviceIP = "";
+static string s_surfaceRemoteDeviceIP;
 
 static int s_pageIndex = 0;
 static bool s_followMCP = false;
@@ -1418,12 +1418,12 @@ static bool s_synchPages = true;
 static bool s_isScrollLinkEnabled = false;
 static bool s_scrollSynch = false;
 
-static string s_pageSurfaceName = "";
+static string s_pageSurfaceName;
 static int s_numChannels = 0;
 static int s_channelOffset = 0;
-static string s_templateFilename = "";
-static string s_zoneTemplateFolder = "";
-static string s_fxZoneTemplateFolder = "";
+static string s_templateFilename;
+static string s_zoneTemplateFolder;
+static string s_fxZoneTemplateFolder;
 
 static WDL_PtrList<PageLine> s_pages;
 
