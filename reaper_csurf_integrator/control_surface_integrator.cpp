@@ -2527,16 +2527,16 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
                 WDL_PtrList<Zone> *az = associatedZones_.Get(associatedZones[i].c_str());
                 if (WDL_NORMALLY(az == NULL))
                 {
-                  az = new WDL_PtrList<Zone>;
-                  associatedZones_.Insert(associatedZones[i].c_str(), az);
+                    az = new WDL_PtrList<Zone>;
+                    associatedZones_.Insert(associatedZones[i].c_str(), az);
+                    zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath.c_str(), navigators, *az, NULL);
                 }
                 else
                 {
-                  // how to handle duplicates?
-                  az->Empty();
+                    char buffer[250];
+                    snprintf(buffer, sizeof(buffer), "Duplicate definition of %s, it has already been loaded.\n", associatedZones[i].c_str());
+                    DAW::ShowConsoleMsg(buffer);
                 }
-                
-                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath.c_str(), navigators, *az, NULL);
             }
         }
     }
@@ -2567,14 +2567,14 @@ void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
             {
                 sz = new WDL_PtrList<Zone>;
                 subZones_.Insert(subZones[i].c_str(), sz);
+                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(subZones[i].c_str())->filePath.c_str(), navigators, *sz, enclosingZone);
             }
             else
             {
-                // how to handle duplicates?
-                sz->Empty();
+                char buffer[250];
+                snprintf(buffer, sizeof(buffer), "Duplicate definition of %s, it has already been loaded.\n", subZones[i].c_str());
+                DAW::ShowConsoleMsg(buffer);
             }
-        
-            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(subZones[i].c_str())->filePath.c_str(), navigators, *sz, enclosingZone);
         }
     }
 }
