@@ -2348,6 +2348,7 @@ public:
         FXParamDefinitions *curdef = new FXParamDefinitions;
         zoneDef.paramDefs.Add(curdef);
         
+        string_list tokens;
         for (string line; getline(autoFXFile, line) ; )
         {
             ReplaceAllWith(line, "\r\n", "");
@@ -2361,17 +2362,17 @@ public:
                     continue;
             }
 
-            string_list ltokens;
-            GetTokens(ltokens, line.c_str());
+            tokens.clear();
+            GetTokens(tokens, line.c_str());
 
             if (line.substr(0, 5) == "Zone ")
             {
                 inZone = true;
                 
-                if (ltokens.size() > 1)
-                    zoneDef.fxName = ltokens[1];
-                if (ltokens.size() > 2)
-                    zoneDef.fxAlias = ltokens[2];
+                if (tokens.size() > 1)
+                    zoneDef.fxName = tokens[1];
+                if (tokens.size() > 2)
+                    zoneDef.fxAlias = tokens[2];
                 
                 continue;
             }
@@ -2408,7 +2409,7 @@ public:
             }
             else
             {
-                if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
+                if (tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
                     listSlotIndex++;
                     curdef = new FXParamDefinitions;
@@ -2417,29 +2418,29 @@ public:
                 
                 FXParamDefinition def;
                 
-                GetWidgetNameAndModifiers(ltokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                 
-                if (ltokens.size() > 2)
-                    def.paramNumber = ltokens[2];
+                if (tokens.size() > 2)
+                    def.paramNumber = tokens[2];
                 
                 int propertiesOffset = 3;
                 
-                if (ltokens.size() > 4 && ltokens[3] == "[")
+                if (tokens.size() > 4 && tokens[3] == "[")
                 {
-                    for (int i = 3; i < ltokens.size() && ltokens[i] != "]"; i++)
+                    for (int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
                         propertiesOffset++;
 
                     propertiesOffset++; // skip ]
                     
-                    GetSteppedValues(ltokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+                    GetSteppedValues(tokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
                 }
                                        
-                if (ltokens.size() > propertiesOffset)
-                    GetPropertiesFromTokens(propertiesOffset, (int)ltokens.size(), ltokens, def.paramWidgetProperties);
+                if (tokens.size() > propertiesOffset)
+                    GetPropertiesFromTokens(propertiesOffset, (int)tokens.size(), tokens, def.paramWidgetProperties);
                 
                 if (getline(autoFXFile, line))
                 {
-                    string_list tokens;
+                    tokens.clear();
                     GetTokens(tokens, line.c_str());
 
                     if (tokens.size() > 2)
@@ -2457,7 +2458,7 @@ public:
                 
                 if (getline(autoFXFile, line))
                 {
-                    string_list tokens;
+                    tokens.clear();
                     GetTokens(tokens, line.c_str());
 
                     if (tokens.size() > 2)
