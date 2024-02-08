@@ -1331,7 +1331,7 @@ struct LearnInfo
 };
 
 
-void GetSteppedValues(const string_list &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+void GetSteppedValues(const string_list &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
 
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
 
@@ -2429,16 +2429,12 @@ public:
                 
                 if (ltokens.size() > 4 && ltokens[3] == "[")
                 {
-                    string_list params;
-
                     for (int i = 3; i < ltokens.size() && ltokens[i] != "]"; i++)
-                        params.push_back(ltokens[i]);
+                        propertiesOffset++;
+
+                    propertiesOffset++; // skip ]
                     
-                    params.push_back("]");
-                 
-                    propertiesOffset += (int)params.size();
-                    
-                    GetSteppedValues(params, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+                    GetSteppedValues(ltokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
                 }
                                        
                 if (ltokens.size() > propertiesOffset)

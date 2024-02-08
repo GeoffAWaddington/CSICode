@@ -54,26 +54,27 @@ void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, P
     }
 }
 
-void GetSteppedValues(const string_list &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(const string_list &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
-    int openSquareIndex = 0;
-    int closeSquareIndex = 0;
+    int openSquareIndex = -1, closeSquareIndex = -1;
     
-    for (int i = 0; i < params.size(); ++i)
+    for (int i = start_idx; i < params.size(); ++i)
         if (params[i] == "[")
         {
             openSquareIndex = i;
             break;
         }
+
+    if (openSquareIndex < 0) return;
     
-    for (int i = 0; i < params.size(); ++i)
+    for (int i = openSquareIndex + 1; i < params.size(); ++i)
         if (params[i] == "]")
         {
             closeSquareIndex = i;
             break;
         }
     
-    if (openSquareIndex != 0 && closeSquareIndex != 0)
+    if (closeSquareIndex > 0)
     {
         for (int i = openSquareIndex + 1; i < closeSquareIndex; ++i)
         {
@@ -1178,7 +1179,7 @@ void ActionContext::SetColor(const string_list &params, bool &supportsColor, boo
 
 void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
-    ::GetSteppedValues(params, deltaValue, acceleratedDeltaValues, rangeMinimum, rangeMaximum, steppedValues, acceleratedTickValues);
+    ::GetSteppedValues(params, 0, deltaValue, acceleratedDeltaValues, rangeMinimum, rangeMaximum, steppedValues, acceleratedTickValues);
     
     if (deltaValue == 0.0 && widget->GetStepSize() != 0.0)
         deltaValue = widget->GetStepSize();
