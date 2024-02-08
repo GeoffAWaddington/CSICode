@@ -1290,11 +1290,8 @@ struct SurfaceLine
     
     SurfaceLine()
     {
-        type = "";
-        name = "";
         inPort = 0;
         outPort = 0;
-        remoteDeviceIP = "";
     }
 };
 
@@ -1311,12 +1308,8 @@ struct PageSurfaceLine
     
     PageSurfaceLine()
     {
-        pageSurfaceName = "";
         numChannels = 0;
         channelOffset = 0;
-        templateFilename = "";
-        zoneTemplateFolder = "";
-        fxZoneTemplateFolder = "";
     }
 };
 
@@ -1337,7 +1330,6 @@ struct Listener
     
     Listener()
     {
-        name = "";
         goHome = false;
         sends = false;
         receives = false;
@@ -1354,12 +1346,7 @@ struct Listener
 struct Broadcaster
 {
     string name;
-    WDL_PtrList<Listener> listeners;
-    
-    Broadcaster()
-    {
-        name = "";
-    }
+    WDL_PtrList<Listener> listeners;    
 };
 
 struct PageLine
@@ -1374,7 +1361,6 @@ struct PageLine
     
     PageLine()
     {
-        name = "";
         followMCP = true;
         synchPages = true;
         isScrollLinkEnabled = false;
