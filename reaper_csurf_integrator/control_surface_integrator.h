@@ -2447,8 +2447,6 @@ public:
 
                     if (tokens.size() > 2)
                     {
-                        string_list modifers;
-                        
                         GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         def.paramName = tokens[2];
@@ -2467,8 +2465,6 @@ public:
 
                     if (tokens.size() > 2)
                     {
-                        string_list modifers;
-                        
                         GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
                         
                         if (tokens.size() > 3)
