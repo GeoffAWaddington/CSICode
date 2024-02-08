@@ -29,9 +29,9 @@
 #endif
 
 #include "control_surface_integrator_Reaper.h"
-#include "WDL/ptrlist.h"
-#include "WDL/assocarray.h"
-#include "WDL/wdlstring.h"
+#include "../WDL/ptrlist.h"
+#include "../WDL/assocarray.h"
+#include "../WDL/wdlstring.h"
 
 #ifdef _WIN32
 #include "commctrl.h"

@@ -7,7 +7,7 @@
 #ifndef handy_functions_h
 #define handy_functions_h
 
-#include "WDL/db2val.h"
+#include "../WDL/db2val.h"
 
 static double int14ToNormalized(unsigned char msb, unsigned char lsb)
 {

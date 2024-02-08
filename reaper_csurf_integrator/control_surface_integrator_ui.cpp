@@ -5,7 +5,7 @@
 //
 
 #include "control_surface_integrator.h"
-#include "WDL/dirscan.h"
+#include "../WDL/dirscan.h"
 #include "resource.h"
 
 extern CSurfIntegrator *g_csiForGui;
