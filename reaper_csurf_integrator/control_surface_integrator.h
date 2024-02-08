@@ -2011,15 +2011,38 @@ public:
         }
     }
 
+    void HideAllFXWindows()
+    {
+        Undo_BeginBlock();
+        for (int i = -1; i < GetNumTracks(); i++)
+        {
+            MediaTrack *tr = i < 0 ? GetMasterTrack(NULL) : GetTrack(NULL, i);
+            if (WDL_NOT_NORMALLY(tr == NULL)) continue;
+
+            for (int j = TrackFX_GetCount(tr) - 1; j >= -1; j --)
+                TrackFX_Show(tr, j, j < 0 ? 0 : 2);
+
+            for (int j = CountTrackMediaItems(tr) - 1; j >= 0; j --)
+            {
+                MediaItem *item = GetTrackMediaItem(tr, j);
+                for (int k = CountTakes(item)-1; k >= 0; k --)
+                {
+                    MediaItem_Take *take = GetMediaItemTake(item, k);
+                    if (take)
+                    {
+                        for (int l = TakeFX_GetCount(take) - 1; l >= -1; l --)
+                            TakeFX_Show(take, l, l < 0 ? 0 : 2);
+                    }
+                }
+            }
+        }
+        Undo_EndBlock("Close all FX windows", -1);
+    }
+
+
     void GoHome()
     {
-        int commandId = DAW::NamedCommandLookup("_S&M_WNCLS4"); // Close FX chain windows
-        if (commandId)
-            DAW::SendCommandMessage(commandId);
-        
-        commandId = DAW::NamedCommandLookup("_S&M_WNCLS3"); // Close floating FX windows
-        if (commandId)
-            DAW::SendCommandMessage(commandId);
+        HideAllFXWindows();
         
         ClearLearnedFXParams();
 
