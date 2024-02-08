@@ -2145,19 +2145,20 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         
     provideFeedback_ = false;
     
-    string_list params;
+    string_list params_wr;
+    const string_list &params = params_wr;
     
     if (paramsAndProperties != NULL)
     {
         for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
         {
             if ((*paramsAndProperties)[i].find("=") == string::npos)
-                params.push_back((*paramsAndProperties)[i]);
+                params_wr.push_back((*paramsAndProperties)[i]);
         }
         GetPropertiesFromTokens(0, (int)(*paramsAndProperties).size(), *paramsAndProperties, widgetProperties_);
     }
 
-    string actionName;
+    const char *actionName = "";
     
     if (params.size() > 0)
         actionName = params[0];
@@ -2168,7 +2169,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         intParam_= atol(params[1].c_str());
     }
     
-    if (actionName == "Bank" && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 11 says empty strings can be queried without catastrophe :)
+    if (!strcmp(actionName, "Bank") && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 11 says empty strings can be queried without catastrophe :)
     {
         stringParam_ = params[1];
         intParam_= atol(params[2].c_str());
@@ -2184,19 +2185,24 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     if (params.size() > 1)
         stringParam_ = params[1];
     
-    if (actionName == "TrackVolumeDB" || actionName == "TrackSendVolumeDB")
+    if (!strcmp(actionName, "TrackVolumeDB") || !strcmp(actionName, "TrackSendVolumeDB"))
     {
         rangeMinimum_ = -144.0;
         rangeMaximum_ = 24.0;
     }
     
-    if (actionName == "TrackPanPercent" || actionName == "TrackPanWidthPercent" || actionName == "TrackPanLPercent" || actionName == "TrackPanRPercent")
+    if (!strcmp(actionName, "TrackPanPercent") ||
+        !strcmp(actionName, "TrackPanWidthPercent") ||
+        !strcmp(actionName, "TrackPanLPercent") ||
+        !strcmp(actionName, "TrackPanRPercent"))
     {
         rangeMinimum_ = -100.0;
         rangeMaximum_ = 100.0;
     }
    
-    if ((actionName == "Reaper" || actionName == "ReaperDec" || actionName == "ReaperInc") && params.size() > 1)
+    if ((!strcmp(actionName, "Reaper") ||
+         !strcmp(actionName, "ReaperDec") ||
+         !strcmp(actionName, "ReaperInc")) && params.size() > 1)
     {
         if (isdigit(params[1][0]))
         {
@@ -2211,17 +2217,18 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         }
     }
         
-    if ((actionName == "FXParam" || actionName == "JSFXParam") && params.size() > 1 && isdigit(params[1][0])) // C++ 11 says empty strings can be queried without catastrophe :)
+    if ((!strcmp(actionName, "FXParam") || !strcmp(actionName, "JSFXParam")) &&
+          params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
     }
     
-    if (actionName == "FXParamValueDisplay" && params.size() > 1 && isdigit(params[1][0]))
+    if (!strcmp(actionName, "FXParamValueDisplay") && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
     }
     
-    if (actionName == "FXParamNameDisplay" && params.size() > 1 && isdigit(params[1][0]))
+    if (!strcmp(actionName, "FXParamNameDisplay") && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
         
