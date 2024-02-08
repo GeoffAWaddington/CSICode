@@ -673,7 +673,7 @@ private:
     WDL_FastString cellAddress_;
     
     void UpdateTrackColor();
-    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
     void SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
     void GetColorValues(vector<rgba_color> &colorValues, const string_list &colors);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
@@ -1375,7 +1375,7 @@ struct LearnInfo
 };
 
 
-void GetSteppedValues(string_list &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+void GetSteppedValues(const string_list &params, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
 
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
 
