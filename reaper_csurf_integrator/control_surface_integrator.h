@@ -600,8 +600,6 @@ private:
     Widget  *const widget_;
     Zone  *const zone_;
 
-    string_list parameters_;
-    
     int intParam_;
     
     string stringParam_;
@@ -660,8 +658,6 @@ public:
     int GetSlotIndex();
     const char *GetName();
 
-    const string_list &GetParameters() { return parameters_; }
-    
     int GetIntParam() { return intParam_; }
     const char *GetStringParam() { return stringParam_.c_str(); }
     int GetCommandId() { return commandId_; }

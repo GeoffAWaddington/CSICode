@@ -2157,9 +2157,6 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         GetPropertiesFromTokens(0, (int)(*paramsAndProperties).size(), *paramsAndProperties, widgetProperties_);
     }
 
-    for (int i = 1; i < params.size(); i++)
-        parameters_.push_back(params[i]);
-    
     string actionName;
     
     if (params.size() > 0)
