@@ -450,7 +450,6 @@ struct RowInfo
         topMargin = 0;
         bottomMargin = 0;
         fontSize = 0;
-        lastStringSent = "";
     }
     
     static void dispose(RowInfo *r) { delete r; }
@@ -1826,7 +1825,6 @@ public:
     virtual ~MCUDisplay_Midi_FeedbackProcessor() {}
     MCUDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(csi,surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
-        lastStringSent_ = "";
     }
     
     virtual const char *GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
@@ -1893,7 +1891,6 @@ public:
     virtual ~AsparionDisplay_Midi_FeedbackProcessor() {}
     AsparionDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayRow, int displayType, int displayTextType, int channel) : Midi_FeedbackProcessor(csi, surface, widget), displayRow_(displayRow), displayType_(displayType), displayTextType_(displayTextType), channel_(channel)
     {
-        lastStringSent_ = "";
     }
     
     virtual const char *GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
@@ -1983,7 +1980,6 @@ public:
     XTouchDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(csi, surface, widget), offset_(displayUpperLower  *56), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
         preventUpdateTrackColors_ = false;
-        lastStringSent_ = "";
         
         rgba_color color;
         
@@ -2408,7 +2404,6 @@ public:
     virtual ~QConLiteDisplay_Midi_FeedbackProcessor() {}
     QConLiteDisplay_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, int displayUpperLower, int displayType, int displayRow, int channel) : Midi_FeedbackProcessor(csi, surface, widget), offset_(displayUpperLower  *28), displayType_(displayType), displayRow_(displayRow), channel_(channel)
     {
-        lastStringSent_ = "";
     }
     
     virtual const char *GetName() override { return "QConLiteDisplay_Midi_FeedbackProcessor"; }

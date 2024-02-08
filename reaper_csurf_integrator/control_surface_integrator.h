@@ -328,16 +328,7 @@ struct FXParamLayoutTemplate
     string suffix;
     string widgetAction;
     string aliasDisplayAction;
-    string valueDisplayAction ;
-    
-    FXParamLayoutTemplate()
-    {
-        modifiers = "";
-        suffix = "";
-        widgetAction = "";
-        aliasDisplayAction = "";
-        valueDisplayAction = "";
-    }
+    string valueDisplayAction;
 };
 
 struct FXParamDefinition
@@ -371,19 +362,7 @@ struct FXParamDefinition
     FXParamDefinition()
     {
         modifier = 0;
-        cell = "";
         
-        paramWidget = "";
-        paramWidgetFullName = "";
-        paramNumber = "";
-
-        paramNameDisplayWidget = "";
-        paramNameDisplayWidgetFullName = "";
-        paramName = "";
-        
-        paramValueDisplayWidget = "";
-        paramValueDisplayWidgetFullName = "";
- 
         delta = 0.0;
         rangeMinimum = 1.0;
         rangeMaximum = 0.0;
@@ -407,13 +386,6 @@ struct AutoZoneDefinition
     string fxName;
     string fxAlias;
     string fullPath;
-    
-    AutoZoneDefinition()
-    {
-        fxName = "";
-        fxAlias = "";
-        fullPath = "";
-    }
     
     void Clear()
     {
@@ -470,9 +442,7 @@ struct ActionTemplate
     
     ActionTemplate()
     {
-        widgetName = "";
         modifier = 0;
-        actionName = "";
         isValueInverted = false;
         isFeedbackInverted = false;
         holdDelayAmount = 0.0;
@@ -792,7 +762,7 @@ public:
             if (panIntVal == 100)
                 prefix = "";
             else if (panIntVal < 100 && panIntVal > 9)
-                prefix  =" ";
+                prefix = " ";
             else
                 prefix = "  ";
             
@@ -1315,12 +1285,6 @@ struct CSIZoneInfo
 {
     string filePath;
     string alias;
-    
-    CSIZoneInfo()
-    {
-        filePath = "";
-        alias = "";
-    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1333,8 +1297,6 @@ struct CSILayoutInfo
     
     CSILayoutInfo()
     {
-        modifiers_ = "";
-        suffix_ = "";
         channelCount_ = 0;
     }
     
@@ -1366,8 +1328,6 @@ struct LearnInfo
     {
         isLearned = false;
         paramNumber = 0;
-        paramName = "";
-        params = "";
         track = NULL;
         fxSlotNum = 0;
 
@@ -1864,7 +1824,6 @@ public:
         selectedTrackFXMenuOffset_ = 0;
         masterTrackFXMenuOffset_ = 0;
         
-        learnFXName_ = "";
         lastTouched_ = NULL;
     }
 
@@ -2332,9 +2291,9 @@ public:
     {
         layoutTemplates.clear();
 
-        string widgetAction = "";
-        string aliasDisplayAction = "";
-        string valueDisplayAction = "";
+        string widgetAction;
+        string aliasDisplayAction;
+        string valueDisplayAction;
 
         for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
         {
@@ -2353,7 +2312,7 @@ public:
         {
             for (int i = 0; i < GetFXLayouts()[j].channelCount_; i++)
             {
-                string modifiers = "";
+                string modifiers;
                 if (GetFXLayouts()[i].modifiers_ != "")
                     modifiers = GetFXLayouts()[i].modifiers_ + "+";
                 
@@ -3459,9 +3418,7 @@ protected:
 public:
     FeedbackProcessor(CSurfIntegrator *const csi, Widget *widget) : csi_(csi), widget_(widget)
     {
-        // protected:
         lastDoubleValue_ = 0.0;
-        lastStringValue_ = "";
     }
     virtual ~FeedbackProcessor() {}
     virtual const char *GetName()  { return "FeedbackProcessor"; }

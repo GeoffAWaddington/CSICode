@@ -458,7 +458,6 @@ struct OSCSurfaceSocket
     
     OSCSurfaceSocket()
     {
-        surfaceName = "";
         socket = NULL;
     }
 };
@@ -666,7 +665,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *ac
 
 void ZoneManager::BuildActionTemplate(const string_list &tokens)
 {
-    string feedbackIndicator = "";
+    string feedbackIndicator;
     
     string_list params;
     for (int i = 1; i < tokens.size(); i++)
@@ -918,8 +917,8 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
     bool isInAssociatedZonesSection = false;
     string_list associatedZones;
     
-    string zoneName = "";
-    string zoneAlias = "";
+    string zoneName;
+    string zoneAlias;
     int lineNumber = 0;
    
     try
@@ -1211,7 +1210,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
     
     const char *widgetName = in_tokens[1];
     
-    string widgetClass = "";
+    string widgetClass;
     
     if (in_tokens.size() > 2)
         widgetClass = in_tokens[2];
@@ -1896,7 +1895,7 @@ void CSurfIntegrator::Init()
 {
     pages_.Empty(true);
     
-    string currentBroadcaster = "";
+    string currentBroadcaster;
     
     Page *currentPage = NULL;
     
@@ -2121,7 +2120,6 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         stringParam_ = *stringParam;
     
     paramIndex_ = paramIndex;
-    fxParamDisplayName_ = "";
     
     commandId_ = 0;
     
@@ -2147,9 +2145,6 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         
     provideFeedback_ = false;
     
-    // For Learn
-    cellAddress_.Set("");
-    
     string_list params;
     
     if (paramsAndProperties != NULL)
@@ -2165,7 +2160,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     for (int i = 1; i < params.size(); i++)
         parameters_.push_back(params[i]);
     
-    string actionName = "";
+    string actionName;
     
     if (params.size() > 0)
         actionName = params[0];
@@ -3536,7 +3531,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
         {
             fpistream file(zoneFilePaths_.Get(fxName)->filePath.c_str());
              
-            string line = "";
+            string line;
             
             if (getline(file, line))
             {
@@ -3670,7 +3665,7 @@ void ZoneManager::SaveTemplatedFXParams()
         line0 += alias;
         line0 += "\" \n\n";
         
-        string path = "";
+        string path;
          
         if (zoneFilePaths_.Exists(learnFXName_.c_str()))
         {
@@ -3704,7 +3699,7 @@ void ZoneManager::SaveTemplatedFXParams()
         {
             for (int i = 0; i < (int)fxLayoutFileLines_.size(); ++i)
             {
-                string ending = "";
+                string ending;
                 
                 string lineEnding = "\n";
                 string line(i ? (const char *)fxLayoutFileLines_[i] : line0.c_str());
@@ -3733,7 +3728,7 @@ void ZoneManager::SaveLearnedFXParams()
 {
     if (learnFXName_ != "")
     {
-        string path = "";
+        string path;
         char alias[1024];
         
         if (zoneFilePaths_.Exists(learnFXName_.c_str()))
@@ -3762,8 +3757,8 @@ void ZoneManager::SaveLearnedFXParams()
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
         }
         
-        string nameDisplayParams = "";
-        string valueDisplayParams = "";
+        string nameDisplayParams;
+        string valueDisplayParams;
 
         if (surfaceFXLayout_.size() > 2)
         {
@@ -3933,11 +3928,11 @@ void ZoneManager::InitializeNoMapZone()
                     for (int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
                         paramWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
             
-            string nameDisplayWidget = "";
+            string nameDisplayWidget;
             if (surfaceFXLayout_[1].size() > 0)
                 nameDisplayWidget = surfaceFXLayout_[1][0];
             
-            string valueDisplayWidget = "";
+            string valueDisplayWidget;
             if (surfaceFXLayout_[2].size() > 0)
                 valueDisplayWidget = surfaceFXLayout_[2][0];
 
@@ -4007,7 +4002,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                     widgetParams.push_back(surfaceFXLayout_[0][i]);
             
             
-            string nameDisplayWidget = "";
+            string nameDisplayWidget;
             string_list nameDisplayParams;
 
             if (surfaceFXLayout_[1].size() > 0)
@@ -4018,7 +4013,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                     nameDisplayParams.push_back(surfaceFXLayout_[1][i]);
 
             
-            string valueDisplayWidget = "";
+            string valueDisplayWidget;
             string_list valueDisplayParams;
 
             if (surfaceFXLayout_[2].size() > 0)
@@ -4259,7 +4254,7 @@ void ZoneManager::WidgetMoved(ActionContext *context)
             DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             learnFXName_ = fxName;
                                                                     
-            string paramStr = "";
+            string paramStr;
             
             if (strstr(context->GetWidget()->GetName(), "Fader") == NULL)
             {
@@ -4403,7 +4398,7 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                     paramList_.push_back(tmp2);
                 }
                                             
-            string paramStr = "";
+            string paramStr;
             
             if (strstr(context->GetWidget()->GetName(), "Fader") == NULL)
             {
