@@ -2408,9 +2408,6 @@ public:
             }
             else
             {
-                ltokens.clear();
-                GetTokens(ltokens, line.c_str());
-                
                 if (ltokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
                 {
                     listSlotIndex++;
