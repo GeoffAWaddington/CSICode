@@ -156,13 +156,6 @@ public:
         return ::GetTrack(NULL, trackidx) ;
     }
     
-    static const char *TrackFX_GetParamName(MediaTrack *track, int fxIndex, int paramIndex, char *buf, int bufsz)
-    {
-        buf[0]=0;
-        ::TrackFX_GetParamName(track, fxIndex, paramIndex, buf, bufsz);
-        return buf;
-    }
-
     static rgba_color GetTrackColor(MediaTrack *track)
     {
         rgba_color color;
