@@ -60,6 +60,12 @@
 #include "../assocarray.h"
 #include "../wdlcstring.h"
 
+void (*SWELL_DDrop_onDragLeave)();
+void (*SWELL_DDrop_onDragOver)(POINT pt);
+void (*SWELL_DDrop_onDragEnter)(void *hGlobal, POINT pt);
+const char* (*SWELL_DDrop_getDroppedFileTargetPath)(const char* extension);
+
+
 void Sleep(int ms)
 {
   usleep(ms?ms*1000:100);
@@ -188,8 +194,6 @@ BOOL CloseHandle(HANDLE hand)
       case INTERNAL_OBJECT_THREAD:
         {
           SWELL_InternalObjectHeader_Thread *thr = (SWELL_InternalObjectHeader_Thread*)hdr;
-          void *tmp;
-          pthread_join(thr->pt,&tmp);
           pthread_detach(thr->pt);
         }
       break;
@@ -350,19 +354,16 @@ DWORD WaitForSingleObject(HANDLE hand, DWORD msTO)
     case INTERNAL_OBJECT_THREAD:
       {
         SWELL_InternalObjectHeader_Thread *thr = (SWELL_InternalObjectHeader_Thread*)hdr;
-        void *tmp;
-        if (!thr->done) 
+        if (thr->done) return WAIT_OBJECT_0;
+        if (!msTO) return WAIT_TIMEOUT;
+
+        const DWORD d=GetTickCount();
+        for (;;)
         {
-          if (!msTO) return WAIT_TIMEOUT;
-          if (msTO != INFINITE)
-          {
-            const DWORD d=GetTickCount();
-            while ((GetTickCount()-d)<msTO && !thr->done) Sleep(1);
-            if (!thr->done) return WAIT_TIMEOUT;
-          }
+          Sleep(1);
+          if (thr->done) return WAIT_OBJECT_0;
+          if (msTO != INFINITE && (GetTickCount()-d)>=msTO) return WAIT_TIMEOUT;
         }
-    
-        if (!pthread_join(thr->pt,&tmp)) return WAIT_OBJECT_0;      
       }
     break;
     case INTERNAL_OBJECT_EXTERNALSOCKET:
@@ -808,9 +809,9 @@ HINSTANCE LoadLibraryGlobals(const char *fn, bool symbolsAsGlobals)
   
   void *inst = NULL, *bundleinst=NULL;
 
-#ifdef SWELL_TARGET_OSX
   struct stat ss;
-  if (stat(fn,&ss) || (ss.st_mode&S_IFDIR))
+#ifdef SWELL_TARGET_OSX
+  if (stat(fn,&ss) || (ss.st_mode&S_IFMT) == S_IFDIR)
   {
     CFStringRef str=(CFStringRef)SWELL_CStringToCFString(fn); 
     CFURLRef r=CFURLCreateWithFileSystemPath(NULL,str,kCFURLPOSIXPathStyle,true);
@@ -837,14 +838,11 @@ HINSTANCE LoadLibraryGlobals(const char *fn, bool symbolsAsGlobals)
     inst=dlopen(fn,RTLD_NOW|(symbolsAsGlobals?RTLD_GLOBAL:RTLD_LOCAL));
     if (!inst) 
     {
-#ifndef SWELL_TARGET_OSX
-      struct stat ss;
-      if (fn[0] == '/' && !stat(fn,&ss) && !(ss.st_mode&S_IFDIR))
+      if (fn[0] == '/' && !stat(fn,&ss) && (ss.st_mode&S_IFMT) != S_IFDIR)
       {
         const char *err = dlerror();
-        printf("swell: dlopen() failed: %s\n",err ? err : fn);
+        fprintf(stderr,"swell: dlopen() failed: %s\n",err ? err : fn);
       }
-#endif
       return 0;
     }
   }
@@ -1198,6 +1196,10 @@ void *SWELL_ExtendedAPI(const char *key, void *v)
     swell_gdk_reactivate_app();
   }
 #endif
+  else if (!strcmp(key,"SWELL_DDrop_onDragLeave")) { *(void **)&SWELL_DDrop_onDragLeave = v; return v; }
+  else if (!strcmp(key,"SWELL_DDrop_onDragOver")) { *(void **)&SWELL_DDrop_onDragOver = v; return v; }
+  else if (!strcmp(key,"SWELL_DDrop_onDragEnter")) { *(void **)&SWELL_DDrop_onDragEnter = v; return v; }
+  else if (!strcmp(key,"SWELL_DDrop_getDroppedFileTargetPath")) { *(void **)&SWELL_DDrop_getDroppedFileTargetPath = v; return v; }
   return NULL;
 }
 

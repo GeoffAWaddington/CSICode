@@ -185,6 +185,8 @@ class WDL_VirtualStaticText : public WDL_VWnd
     int m_didalign; // the actual alignment used on the last paint
 
   public:
+    int m_scale_for_text;
+
     void (*calculate_text)(WDL_VirtualStaticText *ctl, void *ctx, WDL_FastString *fs); // if set, this will be called from paint
     void *calculate_text_ctx;
 };
@@ -325,6 +327,7 @@ class WDL_VirtualListBox : public WDL_VWnd
 
     void SetFont(LICE_IFont *font, int lsadj=-1000) { m_font=font; m_lsadj=lsadj; }
     LICE_IFont *GetFont() { return m_font; }
+    int GetLineSpacingAdjust() const { return m_lsadj; }
     void SetAlign(int align) { m_align=align; } // -1=left,0=center,1=right
     void SetRowHeight(int rh) { m_rh=rh; }
     void SetMaxColWidth(int cw) { m_maxcolwidth=cw; } // 0 = default = allow any sized columns

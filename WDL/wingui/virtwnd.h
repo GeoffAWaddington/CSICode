@@ -144,6 +144,9 @@ public:
 
   virtual bool GetAccessValueDesc(char *buf, int bufsz) { return false; } // allow control to format value string
 
+  virtual bool PrepareToDrawChild(WDL_VWnd *child, int stage) { return true; } // stage=0 for onPaint, 1=onPaintOver, the rest are reserved
+  virtual bool DoNotHitTest() { return false; }
+
   static void ScaleRect(RECT *r, int sc)
   {
     if (sc != WDL_VWND_SCALEBASE)
@@ -215,6 +218,7 @@ public:
   void GetPaintInfo(RECT *rclip, int *xoffsdraw, int *yoffsdraw);
   void SetRenderScale(int render_scale, int advisory_scale=WDL_VWND_SCALEBASE) { m_render_scale = render_scale; m_advisory_scale = advisory_scale; }
   int GetRenderScale() const { return m_render_scale; }
+  int GetAdvisoryScale() const { return m_advisory_scale; }
 
   void RenderScaleRect(RECT *r) const
   {

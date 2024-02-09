@@ -28,7 +28,7 @@
 #include "denormal.h"
 
 #if !defined(WDL_RESAMPLE_NO_SSE) && !defined(WDL_RESAMPLE_USE_SSE)
-  #if defined(__SSE2__) || _M_IX86_FP >= 2 || (defined(_WIN64) && (_MSC_VER > 1400 || __INTEL_COMPILER > 0))
+  #if defined(__SSE2__) || _M_IX86_FP >= 2 || (defined(_M_X64) && (_MSC_VER > 1400 || __INTEL_COMPILER > 0))
     #define WDL_RESAMPLE_USE_SSE
   #endif
 #endif
@@ -44,7 +44,7 @@
 class WDL_Resampler::WDL_Resampler_Filter // pre/post filter
 {
 public:
-  WDL_Resampler_Filter() : m_fpos(-1.0), m_state(-1), m_filtsz(0) { }
+  WDL_Resampler_Filter() : m_fpos(-1.0), m_filtsz(0), m_state(-1) { }
 
   void Reset() 
   { 
