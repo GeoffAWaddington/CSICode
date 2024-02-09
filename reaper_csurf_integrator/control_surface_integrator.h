@@ -4739,51 +4739,51 @@ public:
         trackNavigationManager_->RebuildVCASpill();
         trackNavigationManager_->RebuildFolderTracks();
      
-        for (auto surface : surfaces_)
-            surface->HandleExternalInput();
+        for (int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->HandleExternalInput();
+     
+        for (int i = 0; i < surfaces_.GetSize(); ++i)
+            surfaces_.Get(i)->RequestUpdate();
         
-        for (auto surface : surfaces_)
-            surface->RequestUpdate();
-        
-         repeats++;
+        repeats++;
          
-         if (repeats > 50)
-         {
-             repeats = 0;
-             
-             int totalDuration = 0;
+        if (repeats > 50)
+        {
+            repeats = 0;
+            
+            int totalDuration = 0;
 
-             start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-             trackNavigationManager_->RebuildTracks();
-             trackNavigationManager_->RebuildVCASpill();
-             trackNavigationManager_->RebuildFolderTracks();
-             int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-             totalDuration += duration;
-             ShowDuration("Rebuild Track/VCA/Folder List", duration);
-             
-             for (auto surface : surfaces_)
-             {
-                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-                 surface->HandleExternalInput();
-                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-                 totalDuration += duration;
-                 ShowDuration(surface->GetName(), "HandleExternalInput", duration);
-             }
-             
-             for (auto surface : surfaces_)
-             {
-                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-                 surface->RequestUpdate();
-                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
-                 totalDuration += duration;
-                 ShowDuration(surface->GetName(), "Request Update", duration);
-             }
-             
-             char msgBuffer[250];
-             
-             sprintf(msgBuffer, "Total duration = %d\n\n\n", totalDuration);
-             ShowConsoleMsg(msgBuffer);
-         }
+            start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+            trackNavigationManager_->RebuildTracks();
+            trackNavigationManager_->RebuildVCASpill();
+            trackNavigationManager_->RebuildFolderTracks();
+            int duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+            totalDuration += duration;
+            ShowDuration("Rebuild Track/VCA/Folder List", duration);
+            
+            for (int i = 0; i < surfaces_.GetSize(); ++i)
+            {
+                start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+                surfaces_.Get(i)->HandleExternalInput();
+                duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+                totalDuration += duration;
+                ShowDuration(surfaces_.Get(i)->GetName(), "HandleExternalInput", duration);
+            }
+            
+            for (int i = 0; i < surfaces_.GetSize(); ++i)
+            {
+                start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+                surfaces_.Get(i)->RequestUpdate();
+                duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
+                totalDuration += duration;
+                ShowDuration(surfaces_.Get(i)->GetName(), "Request Update", duration);
+            }
+            
+            char msgBuffer[250];
+            
+            sprintf(msgBuffer, "Total duration = %d\n\n\n", totalDuration);
+            ShowConsoleMsg(msgBuffer);
+        }
     }
     
     
