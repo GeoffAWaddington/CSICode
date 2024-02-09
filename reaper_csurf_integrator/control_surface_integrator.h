@@ -4734,17 +4734,7 @@ public:
     void Run()
     {
         int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-        
-        trackNavigationManager_->RebuildTracks();
-        trackNavigationManager_->RebuildVCASpill();
-        trackNavigationManager_->RebuildFolderTracks();
-     
-        for (int i = 0; i < surfaces_.GetSize(); ++i)
-            surfaces_.Get(i)->HandleExternalInput();
-     
-        for (int i = 0; i < surfaces_.GetSize(); ++i)
-            surfaces_.Get(i)->RequestUpdate();
-        
+                
         repeats++;
          
         if (repeats > 50)
