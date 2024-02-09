@@ -2326,9 +2326,9 @@ public:
             }
         }
         
-        for (int j = 0; j < (int)GetFXLayouts().size(); ++j)
+        for (int i = 0; i < (int)GetFXLayouts().size(); ++i)
         {
-            for (int i = 0; i < GetFXLayouts()[j].channelCount_; i++)
+            for (int j = 0; j < GetFXLayouts()[i].channelCount_; j++)
             {
                 string modifiers;
                 if (GetFXLayouts()[i].modifiers_ != "")
@@ -2337,7 +2337,7 @@ public:
                 FXParamLayoutTemplate layoutTemplate;
                 
                 layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + int_to_string(i + 1);
+                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + int_to_string(j + 1);
                 
                 layoutTemplate.widgetAction = widgetAction;
                 layoutTemplate.aliasDisplayAction = aliasDisplayAction;
