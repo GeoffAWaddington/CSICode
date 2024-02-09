@@ -46,7 +46,7 @@ void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, P
 
                 char buffer[250];
                 snprintf(buffer, sizeof(buffer), "CSI does not support property named %s\n", tok);
-                DAW::ShowConsoleMsg(buffer);
+                ShowConsoleMsg(buffer);
                 
                // WDL_ASSERT(false);
             }
