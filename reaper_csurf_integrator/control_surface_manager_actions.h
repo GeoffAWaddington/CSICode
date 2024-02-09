@@ -17,8 +17,8 @@ public:
 
     void Do(ActionContext *context, double value) override
     {
-        string binFilePath = string(DAW::GetResourcePath()) + "/CSI/EncoderModule.bin";
-        string hexFilePath = string(DAW::GetResourcePath()) + "/CSI/EncoderModuleFirmware.h";
+        string binFilePath = string(GetResourcePath()) + "/CSI/EncoderModule.bin";
+        string hexFilePath = string(GetResourcePath()) + "/CSI/EncoderModuleFirmware.h";
 
         // open the file:
         streampos fileSize;
@@ -203,7 +203,7 @@ public:
     
     void RequestUpdate(ActionContext *context) override
     {
-        if (DAW::IsProjectDirty())
+        if (IsProjectDirty(NULL))
             context->UpdateWidgetValue(1);
         else
             context->UpdateWidgetValue(0.0);
@@ -213,8 +213,8 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        if (DAW::IsProjectDirty())
-            DAW::SaveProject();
+        if (IsProjectDirty(NULL))
+            Main_SaveProject(NULL, false);
     }
 };
 
@@ -548,7 +548,7 @@ public:
         if (value == 0.0) return; // ignore button releases
         
         if (MediaTrack *track = context->GetTrack())
-            DAW::TrackFX_SetOpen(track, context->GetSlotIndex(), true);
+            TrackFX_SetOpen(track, context->GetSlotIndex(), true);
     }
 };
 
@@ -564,7 +564,7 @@ public:
         if (value == 0.0) return; // ignore button releases
         
         if (MediaTrack *track = context->GetTrack())
-            DAW::TrackFX_SetOpen(track, context->GetSlotIndex(), false);
+            TrackFX_SetOpen(track, context->GetSlotIndex(), false);
     }
 };
 
@@ -670,7 +670,7 @@ public:
             int slotIndex = context->GetZone()->GetSlotIndex();
             
             char fxName[BUFSZ];
-            DAW::TrackFX_GetFXName(track, slotIndex, fxName, sizeof(fxName));
+            TrackFX_GetFXName(track, slotIndex, fxName, sizeof(fxName));
 
             context->GetSurface()->GetZoneManager()->AutoMapFX(fxName, track, slotIndex);
         }

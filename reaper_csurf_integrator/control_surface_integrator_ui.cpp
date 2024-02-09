@@ -461,7 +461,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     s_hasColors = true;
                     rgba_color color;
                     GetColorValue(ringcolor, color);
-                    GetButtonColorForID(s_widgetRingColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_widgetRingColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
                 const char *pushcolor = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.get_prop(PropertyType_PushColor);
@@ -470,7 +470,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     s_hasColors = true;
                     rgba_color color;
                     GetColorValue(pushcolor, color);
-                    GetButtonColorForID(s_widgetRingIndicators[i]) = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_widgetRingIndicators[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
                 const char *foreground = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.get_prop(PropertyType_Foreground);
@@ -479,7 +479,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     s_hasColors = true;
                     rgba_color color;
                     GetColorValue(foreground, color);
-                    GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
                 const char *background = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.get_prop(PropertyType_Background);
@@ -488,7 +488,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     s_hasColors = true;
                     rgba_color color;
                     GetColorValue(background, color);
-                    GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
                 foreground = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.get_prop(PropertyType_Foreground);
@@ -497,7 +497,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     s_hasColors = true;
                     rgba_color color;
                     GetColorValue(foreground, color);
-                    GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
                 background = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.get_prop(PropertyType_Background);
@@ -506,7 +506,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     s_hasColors = true;
                     rgba_color color;
                     GetColorValue(background, color);
-                    GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = DAW::ColorToNative(color.r, color.g, color.b);
+                    GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
                 string steps;
@@ -567,7 +567,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDC_FXParamDisplayBackgroundColor2:
                 case IDC_FXParamDisplayBackgroundColor3:
                     {
-                        DAW::GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
@@ -654,22 +654,22 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 rgba_color color;
                                 char tmp[32];
                                 
-                                DAW::ColorFromNative(GetButtonColorForID(s_widgetRingColors[i]), &color.r, &color.g, &color.b);
+                                ColorFromNative(GetButtonColorForID(s_widgetRingColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.set_prop(PropertyType_LEDRingColor, color.rgba_to_string(tmp));
                                 
-                                DAW::ColorFromNative(GetButtonColorForID(s_widgetRingIndicators[i]), &color.r, &color.g, &color.b);
+                                ColorFromNative(GetButtonColorForID(s_widgetRingIndicators[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.set_prop(PropertyType_PushColor, color.rgba_to_string(tmp));
 
-                                DAW::ColorFromNative(GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
+                                ColorFromNative(GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.set_prop(PropertyType_Foreground, color.rgba_to_string(tmp));
 
-                                DAW::ColorFromNative(GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
+                                ColorFromNative(GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.set_prop(PropertyType_Background, color.rgba_to_string(tmp));
 
-                                DAW::ColorFromNative(GetButtonColorForID(s_fxParamDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
+                                ColorFromNative(GetButtonColorForID(s_fxParamDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.set_prop(PropertyType_Foreground, color.rgba_to_string(tmp));
 
-                                DAW::ColorFromNative(GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
+                                ColorFromNative(GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.set_prop(PropertyType_Background, color.rgba_to_string(tmp));
                             }
                         }
@@ -1534,7 +1534,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            const string resourcePath(DAW::GetResourcePath());
+            const string resourcePath(GetResourcePath());
             if (s_editMode)
             {
                 AddComboEntry(hwndDlg, 0, (char *)s_pageSurfaceName.c_str(), IDC_COMBO_PageSurface);
@@ -1594,7 +1594,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     {
                         case CBN_SELCHANGE:
                         {
-                            const string resourcePath(DAW::GetResourcePath());
+                            const string resourcePath(GetResourcePath());
                             PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
                         }
                     }
@@ -1713,8 +1713,8 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             char buf[BUFSZ];
             int currentIndex = 0;
             
-            for (int i = 0; i < DAW::GetNumMIDIInputs(); i++)
-                if (DAW::GetMIDIInputName(i, buf, sizeof(buf)))
+            for (int i = 0; i < GetNumMIDIInputs(); i++)
+                if (GetMIDIInputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiIn);
                     if (s_editMode && s_surfaceInPort == i)
@@ -1724,8 +1724,8 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             currentIndex = 0;
             
-            for (int i = 0; i < DAW::GetNumMIDIOutputs(); i++)
-                if (DAW::GetMIDIOutputName(i, buf, sizeof(buf)))
+            for (int i = 0; i < GetNumMIDIOutputs(); i++)
+                if (GetMIDIOutputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiOut);
                     if (s_editMode && s_surfaceOutPort == i)
@@ -1733,7 +1733,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     currentIndex++;
                 }
             
-            const string resourcePath(DAW::GetResourcePath());
+            const string resourcePath(GetResourcePath());
             
             if (s_editMode)
             {
@@ -1829,7 +1829,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     {
         case WM_INITDIALOG:
         {
-            string resourcePath(DAW::GetResourcePath());
+            string resourcePath(GetResourcePath());
             
             int i = 0;
             for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
@@ -2672,7 +2672,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
             
         case WM_INITDIALOG:
         {
-            string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
+            string iniFilePath = string(GetResourcePath()) + "/CSI/CSI.ini";
             
             fpistream iniFile(iniFilePath.c_str());
             
@@ -2850,7 +2850,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         case WM_USER+1024:
         {
-            FILE *iniFile = fopen((string(DAW::GetResourcePath()) + "/CSI/CSI.ini").c_str(), "wb");
+            FILE *iniFile = fopen((string(GetResourcePath()) + "/CSI/CSI.ini").c_str(), "wb");
 
             if (iniFile)
             {

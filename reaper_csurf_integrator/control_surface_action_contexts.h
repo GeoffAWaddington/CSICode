@@ -30,7 +30,7 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        int state = DAW::GetToggleCommandState(context->GetCommandId());
+        int state = GetToggleCommandState(context->GetCommandId());
         
         if (state == -1) // this Action does not report state
             state = 0;
@@ -62,7 +62,7 @@ public:
         {
             double min, max = 0.0;
             
-            return DAW::TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
+            return TrackFX_GetParam(track, context->GetSlotIndex(), context->GetParamIndex(), &min, &max);
         }
         else
             return 0.0;

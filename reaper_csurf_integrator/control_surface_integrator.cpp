@@ -418,7 +418,7 @@ static midi_Input *GetMidiInputForPort(int inputPort)
             return (midi_Input *)s_midiInputs.Get()[i].dev;
         }
     
-    midi_Input *newInput = DAW::CreateMIDIInput(inputPort);
+    midi_Input *newInput = CreateMIDIInput(inputPort);
     
     if (newInput)
     {
@@ -439,7 +439,7 @@ static midi_Output *GetMidiOutputForPort(int outputPort)
             return (midi_Output *)s_midiOutputs.Get()[i].dev;
         }
     
-    midi_Output *newOutput = DAW::CreateMIDIOutput(outputPort, false, NULL);
+    midi_Output *newOutput = CreateMIDIOutput(outputPort, false, NULL);
     
     if (newOutput)
     {
@@ -627,7 +627,7 @@ static void PreProcessZoneFile(const char *filePath, ZoneManager *zoneManager)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, 1);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -774,7 +774,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, ptrvector<strin
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -813,7 +813,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<CSILayoutIn
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -838,7 +838,7 @@ void ZoneManager::ProcessFXBoilerplate(const string &filePath, string_list &fxBo
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -1090,7 +1090,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, lineNumber);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -1666,7 +1666,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -1713,7 +1713,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -1900,7 +1900,7 @@ void CSurfIntegrator::Init()
     
     Page *currentPage = NULL;
     
-    string CSIFolderPath = string(DAW::GetResourcePath()) + "/CSI";
+    string CSIFolderPath = string(GetResourcePath()) + "/CSI";
     
     WDL_DirScan ds;
     if (ds.First(CSIFolderPath.c_str()))
@@ -1910,7 +1910,7 @@ void CSurfIntegrator::Init()
         return;
     }
     
-    string iniFilePath = string(DAW::GetResourcePath()) + "/CSI/CSI.ini";
+    string iniFilePath = string(GetResourcePath()) + "/CSI/CSI.ini";
     int lineNumber = 0;
     
     try
@@ -2050,7 +2050,7 @@ void CSurfIntegrator::Init()
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", iniFilePath.c_str(), lineNumber);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
     
     for (int i = 0; i < pages_.GetSize(); ++i)
@@ -2081,7 +2081,7 @@ MediaTrack *TrackNavigator::GetTrack()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MediaTrack *MasterTrackNavigator::GetTrack()
 {
-    return DAW::GetMasterTrack();
+    return GetMasterTrack(NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2101,7 +2101,7 @@ MediaTrack *FocusedFXNavigator::GetTrack()
     int itemNumber = 0;
     int fxIndex = 0;
     
-    if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex) == 1) // Track FX
+    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex) == 1) // Track FX
         return DAW::GetTrack(trackNumber);
     else
         return NULL;
@@ -2211,7 +2211,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         }
         else // look up by string
         {
-            commandId_ = DAW::NamedCommandLookup(params[1].c_str());
+            commandId_ = NamedCommandLookup(params[1].c_str());
             
             if (commandId_ == 0) // can't find it
                 commandId_ = 65535; // no-op
@@ -2535,7 +2535,7 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
                 {
                     char buffer[250];
                     snprintf(buffer, sizeof(buffer), "Duplicate definition of %s, it has already been loaded.\n", associatedZones[i].c_str());
-                    DAW::ShowConsoleMsg(buffer);
+                    ShowConsoleMsg(buffer);
                 }
             }
         }
@@ -2573,7 +2573,7 @@ void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
             {
                 char buffer[250];
                 snprintf(buffer, sizeof(buffer), "Duplicate definition of %s, it has already been loaded.\n", subZones[i].c_str());
-                DAW::ShowConsoleMsg(buffer);
+                ShowConsoleMsg(buffer);
             }
         }
     }
@@ -3021,7 +3021,7 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
         {
             char buffer[250];
             snprintf(buffer, sizeof(buffer), "Zone -- %s\n", sourceFilePath_.c_str());
-            DAW::ShowConsoleMsg(buffer);
+            ShowConsoleMsg(buffer);
         }
 
         isUsed = true;
@@ -3173,7 +3173,7 @@ void Widget::LogInput(double value)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName(), GetName(), value);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -3322,14 +3322,14 @@ void ZoneManager::CheckFocusedFXState()
     int itemNumber = 0;
     int fxIndex = 0;
     
-    int retval = DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
+    int retval = GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
 
     if ((retval & 1) && (fxIndex > -1))
     {
         MediaTrack *track = DAW::GetTrack(trackNumber);
         
         char fxName[BUFSZ];
-        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+        TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
         if (learnFXName_ != "" && learnFXName_ != fxName)
         {
@@ -3425,7 +3425,7 @@ void ZoneManager::GoFocusedFX()
     int fxSlot = 0;
     MediaTrack *focusedTrack = NULL;
     
-    if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
     {
         if (trackNumber > 0)
             focusedTrack = DAW::GetTrack(trackNumber);
@@ -3436,7 +3436,7 @@ void ZoneManager::GoFocusedFX()
     if (focusedTrack)
     {
         char FXName[BUFSZ];
-        DAW::TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
+        TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
         
         if (zoneFilePaths_.Exists(FXName))
         {
@@ -3474,11 +3474,11 @@ void ZoneManager::GoSelectedTrackFX()
     
     if (MediaTrack *selectedTrack = surface_->GetPage()->GetSelectedTrack())
     {
-        for (int i = 0; i < DAW::TrackFX_GetCount(selectedTrack); i++)
+        for (int i = 0; i < TrackFX_GetCount(selectedTrack); i++)
         {
             char FXName[BUFSZ];
             
-            DAW::TrackFX_GetFXName(selectedTrack, i, FXName, sizeof(FXName));
+            TrackFX_GetFXName(selectedTrack, i, FXName, sizeof(FXName));
             
             if (zoneFilePaths_.Exists(FXName))
             {
@@ -3501,7 +3501,7 @@ void ZoneManager::AutoMapFocusedFX()
     int fxSlot = 0;
     MediaTrack *track = NULL;
     
-    if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
     {
         if (trackNumber > 0)
             track = DAW::GetTrack(trackNumber);
@@ -3509,7 +3509,7 @@ void ZoneManager::AutoMapFocusedFX()
         if (track)
         {
             char fxName[BUFSZ];
-            DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+            TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
             if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
                 CalculateSteppedValues(fxName, track, fxSlot);
             AutoMapFX(fxName, track, fxSlot);
@@ -3530,7 +3530,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
     if (track)
     {
         char fxName[BUFSZ];
-        DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+        TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
         
         if (zoneFilePaths_.Exists(fxName))
         {
@@ -3570,12 +3570,12 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
 
 void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 {
-    if (fxSlot > DAW::TrackFX_GetCount(track) - 1)
+    if (fxSlot > TrackFX_GetCount(track) - 1)
         return;
     
     char fxName[BUFSZ];
     
-    DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+    TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
     
     if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
         CalculateSteppedValues(fxName, track, fxSlot);
@@ -3595,7 +3595,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     }
     else if (noMapZone_ != NULL)
     {
-        DAW::TrackFX_SetOpen(track, fxSlot, true);
+        TrackFX_SetOpen(track, fxSlot, true);
         
         noMapZone_->SetSlotIndex(fxSlot);
         noMapZone_->Activate();
@@ -3679,7 +3679,7 @@ void ZoneManager::SaveTemplatedFXParams()
         }
         else
         {
-            path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/TemplatedFXZones";
+            path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/TemplatedFXZones";
             
             RecursiveCreateDirectory(path.c_str(),0);
 
@@ -3743,7 +3743,7 @@ void ZoneManager::SaveLearnedFXParams()
         }
         else
         {
-            path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
+            path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
             
             RecursiveCreateDirectory(path.c_str(),0);
 
@@ -4248,7 +4248,7 @@ void ZoneManager::WidgetMoved(ActionContext *context)
         int fxSlotNum = 0;
         int fxParamNum = 0;
 
-        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if (GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             track = DAW::GetTrack(trackNum);
             
@@ -4256,7 +4256,7 @@ void ZoneManager::WidgetMoved(ActionContext *context)
                 return;
             
             char fxName[BUFSZ];
-            DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             learnFXName_ = fxName;
                                                                     
             string paramStr;
@@ -4298,7 +4298,7 @@ void ZoneManager::WidgetMoved(ActionContext *context)
             info->isLearned = true;
             info->paramNumber = fxParamNum;
             char tmp[BUFSZ];
-            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
+            info->paramName = TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
             info->params = paramStr;
             info->track = DAW::GetTrack(trackNum);
             info->fxSlotNum = fxSlotNum;
@@ -4388,18 +4388,18 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
     
     if (! info->isLearned)
     {
-        if (DAW::GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        if (GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
         {
             track = DAW::GetTrack(trackNum);
             
             char fxName[BUFSZ];
-            DAW::TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
             
             if (paramList_.size() == 0)
-                for (int i = 0; i < DAW::TrackFX_GetNumParams(track, fxSlotNum); i++)
+                for (int i = 0; i < TrackFX_GetNumParams(track, fxSlotNum); i++)
                 {
                     char tmp[BUFSZ], tmp2[BUFSZ];
-                    snprintf(tmp2,sizeof(tmp2),"%d %s",i,DAW::TrackFX_GetParamName(track, fxSlotNum, i, tmp, sizeof(tmp)));
+                    snprintf(tmp2,sizeof(tmp2),"%d %s",i,TrackFX_GetParamName(track, fxSlotNum, i, tmp, sizeof(tmp)));
                     paramList_.push_back(tmp2);
                 }
                                             
@@ -4466,7 +4466,7 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
             info->isLearned = true;
             info->paramNumber = fxParamNum;
             char tmp[BUFSZ];
-            info->paramName = DAW::TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
+            info->paramName = TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
             info->params = paramStr;
             info->track = DAW::GetTrack(trackNum);
             info->fxSlotNum = fxSlotNum;
@@ -4476,7 +4476,7 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
     {
         lastTouched_ = info;
                        
-        DAW::TrackFX_SetParam(info->track, info->fxSlotNum, info->paramNumber, value);
+        TrackFX_SetParam(info->track, info->fxSlotNum, info->paramNumber, value);
     }
 }
 
@@ -4515,11 +4515,11 @@ void ZoneManager::RemapAutoZone()
 void ZoneManager::PreProcessZones()
 {
     string_list zoneFilesToProcess;
-    listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
+    listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
        
     if (zoneFilesToProcess.size() == 0)
     {
-        MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + DAW::GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (string(GetSurface()->GetName()) + " Zone folder is missing or empty").c_str(), MB_OK);
+        MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (string(GetSurface()->GetName()) + " Zone folder is missing or empty").c_str(), MB_OK);
 
         return;
     }
@@ -4531,7 +4531,7 @@ void ZoneManager::PreProcessZones()
     {
         zoneFilesToProcess.clear();
         
-        listFilesOfType(DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
+        listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
          
         for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
             PreProcessZoneFile(zoneFilesToProcess[i], this);
@@ -4545,26 +4545,26 @@ void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track,
         return;
     
     bool wasMuted = false;
-    DAW::GetTrackUIMute(track, &wasMuted);
+    GetTrackUIMute(track, &wasMuted);
     
     if ( ! wasMuted)
-        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, true), NULL);
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
 
     double minvalOut = 0.0;
     double maxvalOut = 0.0;
 
     double currentValue;
 
-    currentValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+    currentValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
     
         int stepCount = 1;
         double stepValue = 0.0;
         
         for (double value = 0.0; value < 1.01; value += .01)
         {
-            DAW::TrackFX_SetParam(track, fxIndex, paramIndex, value);
+            TrackFX_SetParam(track, fxIndex, paramIndex, value);
             
-            double fxValue = DAW::TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+            double fxValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
             
             if (stepValue != fxValue)
             {
@@ -4576,10 +4576,10 @@ void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track,
     if (stepCount > 1 && stepCount < 31)
         csi_->SetSteppedValueCount(fxName, paramIndex, stepCount);
 
-    DAW::TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
+    TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
     
     if ( ! wasMuted)
-        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
 }
 
 void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
@@ -4595,20 +4595,20 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     for (int i = 0; i < (int)fxLayouts_.size(); ++i)
         totalLayoutCount += fxLayouts_[i].channelCount_;
     bool wasMuted = false;
-    DAW::GetTrackUIMute(track, &wasMuted);
+    GetTrackUIMute(track, &wasMuted);
     
     if ( ! wasMuted)
-        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, true), NULL);
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
 
     double minvalOut = 0.0;
     double maxvalOut = 0.0;
 
-    int numParams = DAW::TrackFX_GetNumParams(track, fxIndex);
+    int numParams = TrackFX_GetNumParams(track, fxIndex);
 
     vector<double> currentValues;
 
     for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
-        currentValues.push_back(DAW::TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
+        currentValues.push_back(TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
     
     for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
     {
@@ -4617,9 +4617,9 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
         
         for (double value = 0.0; value < 1.01; value += .01)
         {
-            DAW::TrackFX_SetParam(track, fxIndex, i, value);
+            TrackFX_SetParam(track, fxIndex, i, value);
             
-            double fxValue = DAW::TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
+            double fxValue = TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
             
             if (stepValue != fxValue)
             {
@@ -4633,10 +4633,10 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     }
     
     for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
-        DAW::TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
+        TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
     
     if ( ! wasMuted)
-        DAW::CSurf_SetSurfaceMute(track, DAW::CSurf_OnMuteChange(track, false), NULL);
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
 }
 
 void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex)
@@ -4647,7 +4647,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     if (surfaceFXLayout_.size() == 0)
         return;
             
-    string path = DAW::GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
+    string path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
     
     RecursiveCreateDirectory(path.c_str(),0);
     
@@ -4702,7 +4702,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                     if (surfaceFXLayoutTemplate_[i][j] != actionWidget)
                         actionWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
 
-        for (int paramIdx = 0; paramIdx < DAW::TrackFX_GetNumParams(track, fxIndex) && paramIdx < totalAvailableChannels; paramIdx++)
+        for (int paramIdx = 0; paramIdx < TrackFX_GetNumParams(track, fxIndex) && paramIdx < totalAvailableChannels; paramIdx++)
         {
             for (int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
             {
@@ -4740,7 +4740,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                             if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
                             {
                                 char tmp[BUFSZ];
-                                fprintf(fxZone, " \"%s\"",DAW::TrackFX_GetParamName(track, fxIndex, paramIdx, tmp, sizeof(tmp)));
+                                fprintf(fxZone, " \"%s\"",TrackFX_GetParamName(track, fxIndex, paramIdx, tmp, sizeof(tmp)));
                             }
                             else if (widgetIdx == 0)
                                 fprintf(fxZone, " %d",paramIdx);
@@ -4890,10 +4890,10 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
 
         fprintf(fxZone, "ZoneEnd\n\n");
         
-        for (int i = 0; i < DAW::TrackFX_GetNumParams(track, fxIndex); i++)
+        for (int i = 0; i < TrackFX_GetNumParams(track, fxIndex); i++)
         {
             char tmp[BUFSZ];
-            fprintf(fxZone, "%d %s\n", i, DAW::TrackFX_GetParamName(track, fxIndex, i, tmp, sizeof(tmp)));
+            fprintf(fxZone, "%d %s\n", i, TrackFX_GetParamName(track, fxIndex, i, tmp, sizeof(tmp)));
         }
         
         fclose(fxZone);
@@ -5027,8 +5027,8 @@ void TrackNavigationManager::RebuildTracks()
     
     for (int i = 1; i <= GetNumTracks(); i++)
     {
-        if (MediaTrack *track = DAW::CSurf_TrackFromID(i, followMCP_))
-            if (DAW::IsTrackVisible(track, followMCP_))
+        if (MediaTrack *track = CSurf_TrackFromID(i, followMCP_))
+            if (IsTrackVisible(track, followMCP_))
                 tracks_.Add(track);
     }
     
@@ -5051,7 +5051,7 @@ void TrackNavigationManager::RebuildSelectedTracks()
     
     selectedTracks_.Empty();
     
-    for (int i = 0; i < DAW::CountSelectedTracks(); i++)
+    for (int i = 0; i < CountSelectedTracks2(NULL, false); i++)
         selectedTracks_.Add(DAW::GetSelectedTrack(i));
 
     if (selectedTracks_.GetSize() < oldTracksSize)
@@ -5080,9 +5080,9 @@ void TrackNavigationManager::AdjustSelectedTrackBank(int amount)
         
         if (MediaTrack *trackToSelect = GetTrackFromId(trackNum))
         {
-            DAW::SetOnlyTrackSelected(trackToSelect);
+            SetOnlyTrackSelected(trackToSelect);
             if (GetScrollLink())
-                DAW::SetMixerScroll(trackToSelect);
+                SetMixerScroll(trackToSelect);
 
             page_->OnTrackSelection(trackToSelect);
         }
@@ -5095,25 +5095,25 @@ void TrackNavigationManager::AdjustSelectedTrackBank(int amount)
 void ControlSurface::Stop()
 {
     if (isRewinding_ || isFastForwarding_) // set the cursor to the Play position
-        DAW::CSurf_OnPlay();
+        CSurf_OnPlay();
  
     page_->SignalStop();
     CancelRewindAndFastForward();
-    DAW::CSurf_OnStop();
+    CSurf_OnStop();
 }
 
 void ControlSurface::Play()
 {
     page_->SignalPlay();
     CancelRewindAndFastForward();
-    DAW::CSurf_OnPlay();
+    CSurf_OnPlay();
 }
 
 void ControlSurface::Record()
 {
     page_->SignalRecord();
     CancelRewindAndFastForward();
-    DAW::CSurf_OnRecord();
+    CSurf_OnRecord();
 }
 
 void ControlSurface::OnTrackSelection(MediaTrack *track)
@@ -5121,7 +5121,7 @@ void ControlSurface::OnTrackSelection(MediaTrack *track)
     Widget *w = widgetsByName_.Get("OnTrackSelection");
     if (w)
     {
-        if (DAW::GetMediaTrackInfo_Value(track, "I_SELECTED"))
+        if (GetMediaTrackInfo_Value(track, "I_SELECTED"))
             zoneManager_->DoAction(w, 1.0);
         else
             zoneManager_->OnTrackDeselection();
@@ -5194,36 +5194,36 @@ void ControlSurface::RequestUpdate()
 
     if (isRewinding_)
     {
-        if (DAW::GetCursorPosition() == 0)
+        if (GetCursorPosition() == 0)
             StopRewinding();
         else
         {
-            DAW::CSurf_OnRew(0);
+            CSurf_OnRew(0);
 
             if (speedX5_ == true)
             {
-                DAW::CSurf_OnRew(0);
-                DAW::CSurf_OnRew(0);
-                DAW::CSurf_OnRew(0);
-                DAW::CSurf_OnRew(0);
+                CSurf_OnRew(0);
+                CSurf_OnRew(0);
+                CSurf_OnRew(0);
+                CSurf_OnRew(0);
             }
         }
     }
         
     else if (isFastForwarding_)
     {
-        if (DAW::GetCursorPosition() > DAW::GetProjectLength(NULL))
+        if (GetCursorPosition() > GetProjectLength(NULL))
             StopFastForwarding();
         else
         {
-            DAW::CSurf_OnFwd(0);
+            CSurf_OnFwd(0);
             
             if (speedX5_ == true)
             {
-                DAW::CSurf_OnFwd(0);
-                DAW::CSurf_OnFwd(0);
-                DAW::CSurf_OnFwd(0);
-                DAW::CSurf_OnFwd(0);
+                CSurf_OnFwd(0);
+                CSurf_OnFwd(0);
+                CSurf_OnFwd(0);
+                CSurf_OnFwd(0);
             }
         }
     }
@@ -5538,7 +5538,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
     
-    ProcessMIDIWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
+    ProcessMIDIWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
     InitHardwiredWidgets(this);
     InitializeMeters();
     zoneManager_->Initialize();
@@ -5573,7 +5573,7 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %02x  %02x  %02x \n", name_.c_str(), evt->midi_message[0], evt->midi_message[1], evt->midi_message[2]);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -5595,7 +5595,7 @@ void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
     output += "\n";
 
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(output.c_str());
+        ShowConsoleMsg(output.c_str());
 }
 
 void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
@@ -5606,7 +5606,7 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "%s  %02x  %02x  %02x \n", ("OUT->" + name_).c_str(), first, second, third);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -5690,7 +5690,7 @@ OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, c
 {
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 
-    ProcessOSCWidgetFile(string(DAW::GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
+    ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
     InitHardwiredWidgets(this);
     zoneManager_->Initialize();
 }
@@ -5704,7 +5704,7 @@ void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s  %f  \n", name_.c_str(), message.c_str(), value);
-        DAW::ShowConsoleMsg(buffer);
+        ShowConsoleMsg(buffer);
     }
 }
 
@@ -5717,7 +5717,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *zoneName)
     surfaceIO_->SendOSCMessage(oscAddress.c_str());
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg((string(zoneName) + "->LoadingZone---->" + name_ + "\n").c_str());
+        ShowConsoleMsg((string(zoneName) + "->LoadingZone---->" + name_ + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, int value)
@@ -5725,7 +5725,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, int value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
@@ -5733,7 +5733,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *value)
@@ -5741,7 +5741,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *valu
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, double value)
@@ -5749,7 +5749,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, int value)
@@ -5757,7 +5757,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, const char *value)
@@ -5765,7 +5765,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if (csi_->GetSurfaceOutDisplay())
-        DAW::ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + string(value) + "\n").c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -5943,7 +5943,7 @@ int CSurfIntegrator::Extended(int call, void *parm1, void *parm2, void *parm3)
     {
         MediaTrack *leftPtr = (MediaTrack *)parm1;
         
-        int offset = DAW::CSurf_TrackToID(leftPtr, true);
+        int offset = CSurf_TrackToID(leftPtr, true);
         
         offset--;
         

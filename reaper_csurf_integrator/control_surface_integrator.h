@@ -474,7 +474,7 @@ public:
     {
         double pan1, pan2 = 0.0;
         int panMode = 0;
-        DAW::GetTrackUIPan(track, &pan1, &pan2, &panMode);
+        GetTrackUIPan(track, &pan1, &pan2, &panMode);
         return panMode;
     }
 };
@@ -1465,7 +1465,7 @@ private:
         int fxSlot = 0;
         MediaTrack *track = NULL;
         
-        if (DAW::GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+        if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
         {
             if (trackNumber > 0)
                 track = DAW::GetTrack(trackNumber);
@@ -1473,7 +1473,7 @@ private:
             if (track)
             {
                 char fxName[BUFSZ];
-                DAW::TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+                TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
                 learnFXName_ = fxName;
                 
                 GoLearnFXParams(track, fxSlot);
@@ -1925,7 +1925,7 @@ public:
     void GetName(MediaTrack *track, int fxIndex, char *name, int namesz)
     {
         char fxName[BUFSZ];
-        DAW::TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+        TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
         if (zoneFilePaths_.Exists(fxName))
             lstrcpyn_safe(name, zoneFilePaths_.Get(fxName)->alias.c_str(), namesz);
@@ -2038,7 +2038,6 @@ public:
         }
         Undo_EndBlock("Close all FX windows", -1);
     }
-
 
     void GoHome()
     {
@@ -3308,11 +3307,11 @@ public:
             return;
         }
         
-        int playState = DAW::GetPlayState();
+        int playState = GetPlayState();
         if (playState == 1 || playState == 2 || playState == 5 || playState == 6) // playing or paused or recording or paused whilst recording
-            DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
+            SetEditCurPos(GetPlayPosition(), true, false);
 
-        DAW::CSurf_OnStop();
+        CSurf_OnStop();
         
         isRewinding_ = true;
         configScrubMode_ = *scrubModePtr_;
@@ -3330,11 +3329,11 @@ public:
             return;
         }
         
-        int playState = DAW::GetPlayState();
+        int playState = GetPlayState();
         if (playState == 1 || playState == 2 || playState == 5 || playState == 6) // playing or paused or recording or paused whilst recording
-            DAW::SetEditCurPos(DAW::GetPlayPosition(), true, false);
+            SetEditCurPos(GetPlayPosition(), true, false);
 
-        DAW::CSurf_OnStop();
+        CSurf_OnStop();
         
         isFastForwarding_ = true;
         configScrubMode_ = *scrubModePtr_;
@@ -3874,14 +3873,14 @@ public:
     void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
-    int  GetNumTracks() { return DAW::CSurf_NumTracks(followMCP_); }
+    int  GetNumTracks() { return CSurf_NumTracks(followMCP_); }
     Navigator *GetMasterTrackNavigator() { return masterTrackNavigator_; }
     Navigator *GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
     Navigator *GetFocusedFXNavigator() { return focusedFXNavigator_; }
     
     bool GetIsTrackVisible(MediaTrack *track)
     {
-        return DAW::IsTrackVisible(track, followMCP_);
+        return IsTrackVisible(track, followMCP_);
     }
     
     void VCAModeActivated()
@@ -3946,7 +3945,7 @@ public:
 
     const char *GetAutoModeDisplayName(int modeIndex)
     {
-        int globalOverride = DAW::GetGlobalAutomationOverride();
+        int globalOverride = GetGlobalAutomationOverride();
 
         if (globalOverride > -1) // -1=no override, 0=trim/read, 1=read, 2=touch, 3=write, 4=latch, 5=bypass
             return GetAutoModeDisplayNameNoOverride(globalOverride);
@@ -3956,7 +3955,7 @@ public:
 
     const char *GetGlobalAutoModeDisplayName()
     {
-        int globalOverride = DAW::GetGlobalAutomationOverride();
+        int globalOverride = GetGlobalAutomationOverride();
 
         if (globalOverride == -1)
             return "NoOverride";
@@ -3969,10 +3968,10 @@ public:
     void NextInputMonitorMode(MediaTrack *track)
     {
         // I_RECMON : int  *: record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
-        int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
+        int recMonitorMode = (int)GetMediaTrackInfo_Value(track,"I_RECMON");
 
         // I_RECMONITEMS : int  *: monitor items while recording (0=off, 1=on)
-        int recMonitorItemMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
+        int recMonitorItemMode = (int)GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
 
         if (recMonitorMode == 0)
         {
@@ -4000,17 +3999,17 @@ public:
             recMonitorItemMode = 0;
         }
 
-        DAW::GetSetMediaTrackInfo(track, "I_RECMON", &recMonitorMode);
-        DAW::GetSetMediaTrackInfo(track, "I_RECMONITEMS", &recMonitorItemMode);
+        GetSetMediaTrackInfo(track, "I_RECMON", &recMonitorMode);
+        GetSetMediaTrackInfo(track, "I_RECMONITEMS", &recMonitorItemMode);
     }
     
     const char *GetCurrentInputMonitorMode(MediaTrack *track)
     {
         // I_RECMON : int  *: record monitor (0=off, 1=normal, 2=not when playing (tapestyle))
-        int recMonitorMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMON");
+        int recMonitorMode = (int)GetMediaTrackInfo_Value(track,"I_RECMON");
 
         // I_RECMONITEMS : int  *: monitor items while recording (0=off, 1=on)
-        int recMonitorItemMode = (int)DAW::GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
+        int recMonitorItemMode = (int)GetMediaTrackInfo_Value(track,"I_RECMONITEMS");
 
         if (recMonitorMode == 0)
             return "Off";
@@ -4030,7 +4029,7 @@ public:
     {
         selectedTracks_.Empty();
         
-        for (int i = 0; i < DAW::CountSelectedTracks(); i++)
+        for (int i = 0; i < CountSelectedTracks2(NULL, false); i++)
             selectedTracks_.Add(DAW::GetSelectedTrack(i));
         
         return selectedTracks_;
@@ -4069,7 +4068,7 @@ public:
             offset++;
             
             if (MediaTrack *leftmostTrack = DAW::GetTrack(offset))
-                DAW::SetMixerScroll(leftmostTrack);
+                SetMixerScroll(leftmostTrack);
         }
     }
     
@@ -4220,14 +4219,14 @@ public:
     MediaTrack *GetTrackFromId(int trackNumber)
     {
         if (trackNumber <= GetNumTracks())
-            return DAW::CSurf_TrackFromID(trackNumber, followMCP_);
+            return CSurf_TrackFromID(trackNumber, followMCP_);
         else
             return NULL;
     }
     
     int GetIdFromTrack(MediaTrack *track)
     {
-        return DAW::CSurf_TrackToID(track, followMCP_);
+        return CSurf_TrackToID(track, followMCP_);
     }
     
     bool GetIsVCASpilled(MediaTrack *track)
@@ -4273,7 +4272,7 @@ public:
     {
         if (folderTopParentTracks_.Find(track) >= 0)
             return true;
-        else if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+        else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             return true;
         else
             return false;
@@ -4287,7 +4286,7 @@ public:
         if (folderTopParentTracks_.GetSize() == 0)
             return;
 
-        else if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") != 1)
+        else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") != 1)
             return;
         
         if (folderParentTrack_ == track)
@@ -4327,7 +4326,7 @@ public:
     
     MediaTrack *GetSelectedTrack()
     {
-        if (DAW::CountSelectedTracks() != 1)
+        if (CountSelectedTracks2(NULL, false) != 1)
             return NULL;
         else
             return DAW::GetSelectedTrack(0);
@@ -4351,10 +4350,10 @@ public:
     {
         if (isScrollLinkEnabled_)
         {
-            if (DAW::IsTrackVisible(track, true))
-                DAW::SetMixerScroll(track); // scroll selected MCP tracks into view
+            if (IsTrackVisible(track, true))
+                SetMixerScroll(track); // scroll selected MCP tracks into view
             
-            if (DAW::IsTrackVisible(track, false))
+            if (IsTrackVisible(track, false))
                 DAW::SendCommandMessage(40913); // scroll selected TCP tracks into view
         }
     }
@@ -4418,7 +4417,7 @@ public:
         // Get Visible Tracks
         for (int tidx = 1; tidx <= GetNumTracks(); tidx++)
         {
-            MediaTrack *track = DAW::CSurf_TrackFromID(tidx, followMCP_);
+            MediaTrack *track = CSurf_TrackFromID(tidx, followMCP_);
             
             if (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
                 vcaTopLeadTracks_.Add(track);
@@ -4459,9 +4458,9 @@ public:
         
         for (int i = 1; i <= GetNumTracks(); i++)
         {
-            MediaTrack *track = DAW::CSurf_TrackFromID(i, followMCP_);
+            MediaTrack *track = CSurf_TrackFromID(i, followMCP_);
 
-            if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+            if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             {
                 if (currentDepthTracks.size() == 0)
                     folderTopParentTracks_.Add(track);
@@ -4476,15 +4475,15 @@ public:
                 
                 currentDepthTracks.push_back(folderDictionary_.Get(track));
             }
-            else if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
+            else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
             {
                 currentDepthTracks.back()->Add(track);
             }
-            else if (DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0 && currentDepthTracks.size() > 0)
+            else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0 && currentDepthTracks.size() > 0)
             {
                 currentDepthTracks.back()->Add(track);
                 
-                int folderBackTrack = (int)-DAW::GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
+                int folderBackTrack = (int)-GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
                 for (int t = 0; t < folderBackTrack && currentDepthTracks.size() > 0; t++)
                     currentDepthTracks.pop_back();
@@ -4519,7 +4518,7 @@ public:
          for (auto *navigator : trackNavigators_)
          if (MediaTrack *track = DAW::GetTrackFromGUID(navigator->GetTrackGUID(), followMCP_))
          if (trackColors_.count(navigator->GetTrackGUID()) > 0)
-         DAW::GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", &trackColors_[navigator->GetTrackGUID()]);
+         GetSetMediaTrackInfo(track, "I_CUSTOMCOLOR", &trackColors_[navigator->GetTrackGUID()]);
          DAW::PreventUIRefresh(-1);
          }
          */
@@ -4783,7 +4782,7 @@ public:
              char msgBuffer[250];
              
              sprintf(msgBuffer, "Total duration = %d\n\n\n", totalDuration);
-             DAW::ShowConsoleMsg(msgBuffer);
+             ShowConsoleMsg(msgBuffer);
          }
     }
     
@@ -4793,7 +4792,7 @@ public:
         char msgBuffer[250];
         
         sprintf(msgBuffer, "%s - %d microseconds\n", item.c_str(), duration);
-        DAW::ShowConsoleMsg(msgBuffer);
+        ShowConsoleMsg(msgBuffer);
     }
     
     void ShowDuration(string surface, string item, int duration)
@@ -4801,7 +4800,7 @@ public:
         char msgBuffer[250];
         
         sprintf(msgBuffer, "%s - %s - %d microseconds\n", surface.c_str(), item.c_str(), duration);
-        DAW::ShowConsoleMsg(msgBuffer);
+        ShowConsoleMsg(msgBuffer);
     }
    */
 
@@ -4872,7 +4871,7 @@ private:
         char tmp[512];
         memset(tmp, 0, sizeof(tmp));
         
-        DAW::GetPrivateProfileString("REAPER", key, "", tmp, sizeof(tmp), DAW::get_ini_file());
+        GetPrivateProfileString("REAPER", key, "", tmp, sizeof(tmp), get_ini_file());
         
         return strtod (tmp, NULL);
     }
@@ -5096,9 +5095,9 @@ public:
         {
             char fxName[BUFSZ];
             
-            for (int i = 0; i < DAW::TrackFX_GetCount(track); i++)
+            for (int i = 0; i < TrackFX_GetCount(track); i++)
             {
-                DAW::TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
+                TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
                 FILE *fxFile = NULL;
                                 
                 if (s_fxParamsWrite)
@@ -5106,16 +5105,16 @@ public:
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
 
-                    fxFile = fopen((string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
+                    fxFile = fopen((string(GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
                     
                     if (fxFile)
                         fprintf(fxFile, "Zone \"%s\"\n", fxName);
                 }
 
-                for (int j = 0; j < DAW::TrackFX_GetNumParams(track, i); j++)
+                for (int j = 0; j < TrackFX_GetNumParams(track, i); j++)
                 {
                     char fxParamName[BUFSZ];
-                    DAW::TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
+                    TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
  
                     if (fxFile)
                         fprintf(fxFile, "\tFXParam %d \"%s\"\n", j, fxParamName);
@@ -5127,7 +5126,7 @@ public:
                     bool istoggleOut = false;
                     TrackFX_GetParameterStepSizes(track, i, j, &stepOut, &smallstepOut, &largestepOut, &istoggleOut);
 
-                    DAW::ShowConsoleMsg(("\n\n" + to_string(j) + " - \"" + string(fxParamName) + "\"\t\t\t\t Step = " +  to_string(stepOut) + " Small Step = " + to_string(smallstepOut)  + " LargeStep = " + to_string(largestepOut)  + " Toggle Out = " + (istoggleOut == 0 ? "false" : "true")).c_str());
+                    ShowConsoleMsg(("\n\n" + to_string(j) + " - \"" + string(fxParamName) + "\"\t\t\t\t Step = " +  to_string(stepOut) + " Small Step = " + to_string(smallstepOut)  + " LargeStep = " + to_string(largestepOut)  + " Toggle Out = " + (istoggleOut == 0 ? "false" : "true")).c_str());
                     */
                 }
                 
@@ -5142,7 +5141,9 @@ public:
     
     const char *GetTCPFXParamName(MediaTrack *track, int fxIndex, int paramIndex, char *buf, int bufsz)
     {
-        return DAW::TrackFX_GetParamName(track, fxIndex, paramIndex, buf, bufsz);
+        buf[0]=0;
+        TrackFX_GetParamName(track, fxIndex, paramIndex, buf, bufsz);
+        return buf;
     }
     
     void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValuecount)
@@ -5188,7 +5189,7 @@ public:
          char msgBuffer[250];
          
          sprintf(msgBuffer, "%d microseconds\n", duration);
-         DAW::ShowConsoleMsg(msgBuffer);
+         ShowConsoleMsg(msgBuffer);
          }
         */
     }
@@ -5204,7 +5205,7 @@ public:
                                                     {"Solo", "/ch/|/mix/solo"},
                                                     {"Select", "/ch/|/mix/select"} };
        
-        ofstream X32File(string(DAW::GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + "X32.ost");
+        ofstream X32File(string(GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + "X32.ost");
 
         if (X32File.is_open())
         {
@@ -5263,7 +5264,7 @@ public:
  char msgBuffer[250];
  
  sprintf(msgBuffer, "%d microseconds\n", duration);
- DAW::ShowConsoleMsg(msgBuffer);
+ ShowConsoleMsg(msgBuffer);
  
  */
 
