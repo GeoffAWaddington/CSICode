@@ -40,3 +40,5 @@ Windows/reaper_csurf_integrator/.vs/reaper_csurf_integrator/v17/ipch/AutoPCH/644
 Windows/reaper_csurf_integrator/reaper_csurf_integrator/reaper_csurf_integrator.vcxproj
 Windows/reaper_csurf_integrator/reaper_csurf_integrator/reaper_csurf_integrator.vcxproj
 Windows/reaper_csurf_integrator/reaper_csurf_integrator/reaper_csurf_integrator.vcxproj.filters
+reaper_csurf_integrator/res.rc_mac_dlg
+reaper_csurf_integrator/res.rc_mac_menu
