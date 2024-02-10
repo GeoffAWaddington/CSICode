@@ -31,7 +31,7 @@
 		0310E4C81EB5403C00040D1A /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		0310E4CA1EB5403C00040D1A /* reaper_plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reaper_plugin.h; sourceTree = "<group>"; };
 		0310E4CB1EB5403C00040D1A /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
-		0310E4CC1EB5403C00040D1A /* WDL */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../WDL; sourceTree = "<group>"; };
+		0310E4CC1EB5403C00040D1A /* ../WDL */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../WDL; sourceTree = "<group>"; };
 		0310E4D31EB5405900040D1A /* swell-modstub.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "swell-modstub.mm"; path = "../WDL/swell/swell-modstub.mm"; sourceTree = "<group>"; };
 		0326FA6B2122E6C3000D5794 /* udp.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = udp.hh; sourceTree = "<group>"; };
 		0326FA6C2122E6C3000D5794 /* oscpkt.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = oscpkt.hh; sourceTree = "<group>"; };
@@ -95,7 +95,7 @@
 				0310E4CA1EB5403C00040D1A /* reaper_plugin.h */,
 				0393E6B11F7501F100BC2E2E /* handy_functions.h */,
 				0310E4CB1EB5403C00040D1A /* resource.h */,
-				0310E4CC1EB5403C00040D1A /* WDL */,
+				0310E4CC1EB5403C00040D1A /* ../WDL */,
 			);
 			path = reaper_csurf_integrator;
 			sourceTree = "<group>";
