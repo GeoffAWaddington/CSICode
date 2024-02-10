@@ -13,11 +13,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
+#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -258,9 +260,10 @@ BEGIN
     EDITTEXT        IDC_EDIT_FXAlias,190,26,103,12,ES_CENTER | ES_AUTOHSCROLL
     PUSHBUTTON      "Up",IDC_BUTTONUP,415,24,29,14
     PUSHBUTTON      "Down",IDC_BUTTONDOWN,415,42,29,14
-    LTEXT           "Drag or use up/down buttons to reorder item",IDC_STATIC,159,44,145,8
+    LTEXT           "Drag or use up/down buttons to reorder item",IDC_WindowsHint,159,44,145,8
     CONTROL         "",IDC_PARAM_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,17,59,427,461
     PUSHBUTTON      "Delete",IDC_Delete,68,526,50,14
+    LTEXT           "Drag or use up/down buttons to reorder item",IDC_MacHint,21,44,145,8,NOT WS_VISIBLE
 END
 
 IDD_DIALOG_Advanced DIALOGEX 0, 0, 310, 91
@@ -325,7 +328,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_SURFACEEDIT_CSI, DIALOG
     BEGIN
@@ -403,52 +406,52 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_SURFACEEDIT_CSI AFX_DIALOG_LAYOUT
+IDD_SURFACEEDIT_CSI AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_Page AFX_DIALOG_LAYOUT
+IDD_DIALOG_Page AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_MidiSurface AFX_DIALOG_LAYOUT
+IDD_DIALOG_MidiSurface AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_OSCSurface AFX_DIALOG_LAYOUT
+IDD_DIALOG_OSCSurface AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_PageSurface AFX_DIALOG_LAYOUT
+IDD_DIALOG_PageSurface AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_EditFXParam AFX_DIALOG_LAYOUT
+IDD_DIALOG_EditFXParam AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_RemapAutoFX AFX_DIALOG_LAYOUT
+IDD_DIALOG_RemapAutoFX AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_Advanced AFX_DIALOG_LAYOUT
+IDD_DIALOG_Advanced AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-IDD_DIALOG_Broadcast AFX_DIALOG_LAYOUT
+IDD_DIALOG_Broadcast AFX_DIALOG_LAYOUT 
 BEGIN
-    0
+    0x0000
 END
 
-#endif    // English (United States) resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
