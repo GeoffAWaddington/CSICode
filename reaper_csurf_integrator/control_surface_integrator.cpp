@@ -3299,11 +3299,11 @@ void ZoneManager::Initialize()
     WDL_PtrList<Zone> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
     LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
-        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);    
-    if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("SurfaceFXLayout"))
+        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
+    if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("FXCellLayout"))
     {
         ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, fxLayouts_);
-        ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, surfaceFXLayout_, surfaceFXLayoutTemplate_);
+        ProcessSurfaceFXLayout(zoneFilePaths_.Get("FXCellLayout")->filePath, fxCellLayout_, fxCellLayoutTemplate_);
     }
     if (zoneFilePaths_.Exists("FXPrologue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
@@ -3765,20 +3765,20 @@ void ZoneManager::SaveLearnedFXParams()
         string nameDisplayParams;
         string valueDisplayParams;
 
-        if (surfaceFXLayout_.size() > 2)
+        if (fxCellLayout_.size() > 2)
         {
-            if (surfaceFXLayout_[1].size() > 2)
-                for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
+            if (fxCellLayout_[1].size() > 2)
+                for (int i = 2; i < fxCellLayout_[1].size(); i++)
                 {
                     nameDisplayParams += " ";
-                    nameDisplayParams += surfaceFXLayout_[1][i];
+                    nameDisplayParams += fxCellLayout_[1][i];
                 }
 
-            if (surfaceFXLayout_[2].size() > 2)
-                for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
+            if (fxCellLayout_[2].size() > 2)
+                for (int i = 2; i < fxCellLayout_[2].size(); i++)
                 {
                     valueDisplayParams += " ";
-                    valueDisplayParams += surfaceFXLayout_[2][i];
+                    valueDisplayParams += fxCellLayout_[2][i];
                 }
         }
         
@@ -3905,7 +3905,7 @@ int ZoneManager::GetModifierValue(const string_list &modifierTokens)
 
 void ZoneManager::InitializeNoMapZone()
 {
-    if (surfaceFXLayout_.size() != 3)
+    if (fxCellLayout_.size() != 3)
         return;
     
     if (GetZoneFilePaths().Exists("NoMap"))
@@ -3928,18 +3928,18 @@ void ZoneManager::InitializeNoMapZone()
 
             string_list paramWidgets;
 
-            for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
-                if (surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
-                    for (int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
-                        paramWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
+            for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
+                if (fxCellLayoutTemplate_[i].size() > 0 && fxCellLayoutTemplate_[i][0] == "WidgetTypes")
+                    for (int j = 1; j < fxCellLayoutTemplate_[i].size(); j++)
+                        paramWidgets.push_back(fxCellLayoutTemplate_[i][j]);
             
             string nameDisplayWidget;
-            if (surfaceFXLayout_[1].size() > 0)
-                nameDisplayWidget = surfaceFXLayout_[1][0];
+            if (fxCellLayout_[1].size() > 0)
+                nameDisplayWidget = fxCellLayout_[1][0];
             
             string valueDisplayWidget;
-            if (surfaceFXLayout_[2].size() > 0)
-                valueDisplayWidget = surfaceFXLayout_[2][0];
+            if (fxCellLayout_[2].size() > 0)
+                valueDisplayWidget = fxCellLayout_[2][0];
 
             string_list mods;
             for (int i = 0; i < (int)fxLayouts_.size(); ++i)
@@ -3986,7 +3986,7 @@ void ZoneManager::InitializeNoMapZone()
 
 void ZoneManager::InitializeFXParamsLearnZone()
 {
-    if (surfaceFXLayout_.size() != 3)
+    if (fxCellLayout_.size() != 3)
         return;
     
     if (homeZone_ != NULL)
@@ -3997,36 +3997,36 @@ void ZoneManager::InitializeFXParamsLearnZone()
             string_list paramWidgets;
             string_list widgetParams;
 
-            for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
-                if (surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
-                    for (int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
-                        paramWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
+            for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
+                if (fxCellLayoutTemplate_[i].size() > 0 && fxCellLayoutTemplate_[i][0] == "WidgetTypes")
+                    for (int j = 1; j < fxCellLayoutTemplate_[i].size(); j++)
+                        paramWidgets.push_back(fxCellLayoutTemplate_[i][j]);
 
-            if (surfaceFXLayout_[0].size() > 2)
-                for (int i = 2; i < surfaceFXLayout_[0].size(); i++)
-                    widgetParams.push_back(surfaceFXLayout_[0][i]);
+            if (fxCellLayout_[0].size() > 2)
+                for (int i = 2; i < fxCellLayout_[0].size(); i++)
+                    widgetParams.push_back(fxCellLayout_[0][i]);
             
             
             string nameDisplayWidget;
             string_list nameDisplayParams;
 
-            if (surfaceFXLayout_[1].size() > 0)
-                nameDisplayWidget = surfaceFXLayout_[1][0];
+            if (fxCellLayout_[1].size() > 0)
+                nameDisplayWidget = fxCellLayout_[1][0];
 
-            if (surfaceFXLayout_[1].size() > 2)
-                for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
-                    nameDisplayParams.push_back(surfaceFXLayout_[1][i]);
+            if (fxCellLayout_[1].size() > 2)
+                for (int i = 2; i < fxCellLayout_[1].size(); i++)
+                    nameDisplayParams.push_back(fxCellLayout_[1][i]);
 
             
             string valueDisplayWidget;
             string_list valueDisplayParams;
 
-            if (surfaceFXLayout_[2].size() > 0)
-                valueDisplayWidget = surfaceFXLayout_[2][0];
+            if (fxCellLayout_[2].size() > 0)
+                valueDisplayWidget = fxCellLayout_[2][0];
 
-            if (surfaceFXLayout_[2].size() > 2)
-                for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
-                    valueDisplayParams.push_back(surfaceFXLayout_[2][i]);
+            if (fxCellLayout_[2].size() > 2)
+                for (int i = 2; i < fxCellLayout_[2].size(); i++)
+                    valueDisplayParams.push_back(fxCellLayout_[2][i]);
 
             if (paramWidgets.size() > 0)
             {
@@ -4141,11 +4141,11 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
                         
                         if (zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Rotary") != string::npos && zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Push") == string::npos)
                         {
-                            if (surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
-                                for (int k = 2; k < surfaceFXLayout_[0].size(); k++)
+                            if (fxCellLayout_.size() > 0 && fxCellLayout_[0].size() > 2 && fxCellLayout_[0][0] == "Rotary")
+                                for (int k = 2; k < fxCellLayout_[0].size(); k++)
                                 {
                                     info->params += " ";
-                                    info->params += surfaceFXLayout_[0][k];
+                                    info->params += fxCellLayout_[0][k];
                                 }
                         }
                     }
@@ -4433,11 +4433,11 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                 
                 if (strstr(context->GetWidget()->GetName(), "Rotary") != NULL && strstr(context->GetWidget()->GetName(), "Push") == NULL)
                 {
-                    if (surfaceFXLayout_.size() > 0 && surfaceFXLayout_[0].size() > 2 && surfaceFXLayout_[0][0] == "Rotary")
-                        for (int i = 2; i < surfaceFXLayout_[0].size(); i++)
+                    if (fxCellLayout_.size() > 0 && fxCellLayout_[0].size() > 2 && fxCellLayout_[0][0] == "Rotary")
+                        for (int i = 2; i < fxCellLayout_[0].size(); i++)
                         {
                             paramStr += " ";
-                            paramStr += surfaceFXLayout_[0][i];
+                            paramStr += fxCellLayout_[0][i];
                         }
                 }
             }
@@ -4647,7 +4647,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     if (fxLayouts_.size() == 0)
         return;
 
-    if (surfaceFXLayout_.size() == 0)
+    if (fxCellLayout_.size() == 0)
         return;
             
     string path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
@@ -4695,23 +4695,23 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
              
         string_list actionWidgets;
         
-        string actionWidget(surfaceFXLayout_[0][0]);
+        string actionWidget(fxCellLayout_[0][0]);
      
         actionWidgets.push_back(actionWidget);
         
-        for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
-            if (surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
-                for (int j = 1; j < surfaceFXLayoutTemplate_[i].size(); j++)
-                    if (surfaceFXLayoutTemplate_[i][j] != actionWidget)
-                        actionWidgets.push_back(surfaceFXLayoutTemplate_[i][j]);
+        for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
+            if (fxCellLayoutTemplate_[i][0] == "WidgetTypes")
+                for (int j = 1; j < fxCellLayoutTemplate_[i].size(); j++)
+                    if (fxCellLayoutTemplate_[i][j] != actionWidget)
+                        actionWidgets.push_back(fxCellLayoutTemplate_[i][j]);
 
         for (int paramIdx = 0; paramIdx < TrackFX_GetNumParams(track, fxIndex) && paramIdx < totalAvailableChannels; paramIdx++)
         {
             for (int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
             {
-                for (int lineIdx = 0; lineIdx < surfaceFXLayout_.size(); lineIdx++)
+                for (int lineIdx = 0; lineIdx < fxCellLayout_.size(); lineIdx++)
                 {
-                    for (int tokenIdx = 0; tokenIdx < surfaceFXLayout_[lineIdx].size(); tokenIdx++)
+                    for (int tokenIdx = 0; tokenIdx < fxCellLayout_[lineIdx].size(); tokenIdx++)
                     {
                         if (tokenIdx == 0)
                         {
@@ -4719,7 +4719,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                             
                             if (widgetIdx == 0)
                                 fprintf(fxZone, "\t%s%s%s%s%d\t", mod, *mod ? "+" : "", 
-                                    surfaceFXLayout_[lineIdx][tokenIdx].c_str(),
+                                    fxCellLayout_[lineIdx][tokenIdx].c_str(),
                                     fxLayouts_[layoutIndex].suffix_.c_str(),
                                     channelIndex);
                             else
@@ -4736,11 +4736,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         else if (tokenIdx == 1)
                         {
                             if (widgetIdx == 0)
-                                fprintf(fxZone, "%s", surfaceFXLayout_[lineIdx][tokenIdx].c_str());
+                                fprintf(fxZone, "%s", fxCellLayout_[lineIdx][tokenIdx].c_str());
                             else
                                 fprintf(fxZone, "NoAction");
                             
-                            if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
+                            if (widgetIdx == 0 && fxCellLayout_[lineIdx][tokenIdx] == "FixedTextDisplay")
                             {
                                 char tmp[BUFSZ];
                                 TrackFX_GetParamName(track, fxIndex, paramIdx, tmp, sizeof(tmp));
@@ -4749,7 +4749,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                             else if (widgetIdx == 0)
                                 fprintf(fxZone, " %d",paramIdx);
                             
-                            if (widgetIdx == 0 && surfaceFXLayout_[lineIdx][tokenIdx] == "FXParam")
+                            if (widgetIdx == 0 && fxCellLayout_[lineIdx][tokenIdx] == "FXParam")
                             {
                                 int steppedValueCount =  csi_->GetSteppedValueCount(fxName.c_str(), paramIdx);
                                 
@@ -4762,7 +4762,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                             }
                         }
                         else if (widgetIdx == 0)
-                            fprintf(fxZone, " %s", surfaceFXLayout_[lineIdx][tokenIdx].c_str());
+                            fprintf(fxZone, " %s", fxCellLayout_[lineIdx][tokenIdx].c_str());
                     }
                     
                     fprintf(fxZone, "\n");
@@ -4799,26 +4799,26 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         fxLayouts_[layoutIndex].suffix_.c_str(),
                         channelIndex);
                     
-                    if (widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
+                    if (widgetIdx == 0 && fxCellLayout_.size() > 2 && fxCellLayout_[1].size() > 0 && fxCellLayout_[2].size() > 0)
                     {
                         fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "",
-                            surfaceFXLayout_[1][0].c_str(),
+                            fxCellLayout_[1][0].c_str(),
                             fxLayouts_[layoutIndex].suffix_.c_str(),
                             channelIndex);
                         
-                        if (surfaceFXLayout_.size() > 1)
-                            for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
-                                fprintf(fxZone, " %s", surfaceFXLayout_[1][i].c_str());
+                        if (fxCellLayout_.size() > 1)
+                            for (int i = 2; i < fxCellLayout_[1].size(); i++)
+                                fprintf(fxZone, " %s", fxCellLayout_[1][i].c_str());
                         
                         fprintf(fxZone, "\n");
                         
                         fprintf(fxZone, "\t%s%s%s%s\tNoAction", mod, *mod ? "+" : "",
-                            surfaceFXLayout_[2][0].c_str(),
+                            fxCellLayout_[2][0].c_str(),
                             fxLayouts_[layoutIndex].suffix_.c_str());
                         
-                        if (surfaceFXLayout_.size() > 2)
-                            for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
-                                fprintf(fxZone, " %s", surfaceFXLayout_[2][i].c_str());
+                        if (fxCellLayout_.size() > 2)
+                            for (int i = 2; i < fxCellLayout_[2].size(); i++)
+                                fprintf(fxZone, " %s", fxCellLayout_[2][i].c_str());
                         
                         fprintf(fxZone,"\n\n");
                     }
@@ -4851,26 +4851,26 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         fxLayouts_[layoutIndex].suffix_.c_str(),
                         index);
                     
-                    if (widgetIdx == 0 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[1].size() > 0 && surfaceFXLayout_[2].size() > 0)
+                    if (widgetIdx == 0 && fxCellLayout_.size() > 2 && fxCellLayout_[1].size() > 0 && fxCellLayout_[2].size() > 0)
                     {
                         fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "", 
-                            surfaceFXLayout_[1][0].c_str(),
+                            fxCellLayout_[1][0].c_str(),
                             fxLayouts_[layoutIndex].suffix_.c_str(),
                             index);
                         
-                        if (surfaceFXLayout_.size() > 1)
-                            for (int i = 2; i < surfaceFXLayout_[1].size(); i++)
-                                fprintf(fxZone, " %s", surfaceFXLayout_[1][i].c_str());;
+                        if (fxCellLayout_.size() > 1)
+                            for (int i = 2; i < fxCellLayout_[1].size(); i++)
+                                fprintf(fxZone, " %s", fxCellLayout_[1][i].c_str());;
                         
                         fprintf(fxZone, "\n");
                         fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "",
-                            surfaceFXLayout_[2][0].c_str(),
+                            fxCellLayout_[2][0].c_str(),
                             fxLayouts_[layoutIndex].suffix_.c_str(),
                             index);
                         
-                        if (surfaceFXLayout_.size() > 2)
-                            for (int i = 2; i < surfaceFXLayout_[2].size(); i++)
-                                fprintf(fxZone, " %s", surfaceFXLayout_[2][i].c_str());
+                        if (fxCellLayout_.size() > 2)
+                            for (int i = 2; i < fxCellLayout_[2].size(); i++)
+                                fprintf(fxZone, " %s", fxCellLayout_[2][i].c_str());
                         
                         fprintf(fxZone, "\n\n");
                     }

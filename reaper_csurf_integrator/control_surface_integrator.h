@@ -1367,8 +1367,8 @@ private:
     string_list fxLayoutFileLines_;
     string_list fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
-    ptrvector<string_list> surfaceFXLayout_;
-    ptrvector<string_list> surfaceFXLayoutTemplate_;
+    ptrvector<string_list> fxCellLayout_;
+    ptrvector<string_list> fxCellLayoutTemplate_;
     ptrvector<CSILayoutInfo> fxLayouts_;
     string_list fxPrologue_;
     string_list fxEpilogue_;
@@ -1868,7 +1868,7 @@ public:
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
     const ptrvector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return surfaceFXLayoutTemplate_;}
+    const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplate_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -1982,7 +1982,7 @@ public:
     
     const ptrvector<string_list> &GetSurfaceFXLayout()
     {
-        return surfaceFXLayout_;
+        return fxCellLayout_;
     }
               
     void GoAssociatedZone(const char *zoneName)
@@ -2293,11 +2293,11 @@ public:
     {
         int numGroups = 0;
         
-        for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
+        for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
         {
-            if (surfaceFXLayoutTemplate_[i].size() > 0 && surfaceFXLayoutTemplate_[i][0] == "WidgetTypes")
+            if (fxCellLayoutTemplate_[i].size() > 0 && fxCellLayoutTemplate_[i][0] == "WidgetTypes")
             {
-                numGroups = (int)surfaceFXLayoutTemplate_[i].size() - 1;
+                numGroups = (int)fxCellLayoutTemplate_[i].size() - 1;
                 break;
             }
         }
@@ -2313,16 +2313,16 @@ public:
         string aliasDisplayAction;
         string valueDisplayAction;
 
-        for (int i = 0; i < (int)surfaceFXLayoutTemplate_.size(); ++i)
+        for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
         {
-            if (surfaceFXLayoutTemplate_[i].size() > 1)
+            if (fxCellLayoutTemplate_[i].size() > 1)
             {
-                if (surfaceFXLayoutTemplate_[i][0] == "WidgetAction")
-                    widgetAction = surfaceFXLayoutTemplate_[i][1];
-                else if (surfaceFXLayoutTemplate_[i][0] == "AliasDisplayAction")
-                    aliasDisplayAction = surfaceFXLayoutTemplate_[i][1];
-                else if (surfaceFXLayoutTemplate_[i][0] == "ValueDisplayAction")
-                    valueDisplayAction = surfaceFXLayoutTemplate_[i][1];
+                if (fxCellLayoutTemplate_[i][0] == "WidgetAction")
+                    widgetAction = fxCellLayoutTemplate_[i][1];
+                else if (fxCellLayoutTemplate_[i][0] == "AliasDisplayAction")
+                    aliasDisplayAction = fxCellLayoutTemplate_[i][1];
+                else if (fxCellLayoutTemplate_[i][0] == "ValueDisplayAction")
+                    valueDisplayAction = fxCellLayoutTemplate_[i][1];
             }
         }
         
@@ -2581,9 +2581,9 @@ public:
                     
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
                     {
-                        if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 1 && surfaceFXLayout_[1].size() > 0)
+                        if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && fxCellLayout_.size() > 1 && fxCellLayout_[1].size() > 0)
                             fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
-                                surfaceFXLayout_[1][0].c_str(),
+                                fxCellLayout_[1][0].c_str(),
                                 layoutTemplates[i].suffix.c_str());
                         else
                             fprintf(fxFile, "\tNullDisplay\tNoAction\n");
@@ -2603,9 +2603,9 @@ public:
                     
                     if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
                     {
-                        if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && surfaceFXLayout_.size() > 2 && surfaceFXLayout_[2].size() > 0)
+                        if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && fxCellLayout_.size() > 2 && fxCellLayout_[2].size() > 0)
                             fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
-                                surfaceFXLayout_[2][0].c_str(),
+                                fxCellLayout_[2][0].c_str(),
                                 layoutTemplates[i].suffix.c_str());
                         else
                             fprintf(fxFile, "\tNullDisplay\tNoAction\n");
