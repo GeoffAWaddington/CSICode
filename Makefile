@@ -55,6 +55,8 @@ OBJS += $(SWELL_OBJS)
 $(RESINTER): $(SRC_PATH)/res.rc
 	perl WDL/swell/swell_resgen.pl --quiet $(SRC_PATH)/res.rc
 
+$(RESINTER2): $(SRC_PATH)/res.rc $(RESINTER)
+
 .PHONY: clean
 	
 $(APPNAME): $(OBJS)
