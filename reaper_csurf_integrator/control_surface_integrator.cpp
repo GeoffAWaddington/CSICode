@@ -140,9 +140,8 @@ static double EnumSteppedValues(int numSteps, int stepNumber)
     return floor(stepNumber / (double)(numSteps - 1)  *100.0 + 0.5)  *0.01;
 }
 
-void GetParamStepsString(string &outputString, int numSteps)
+void GetParamStepsString(string &outputString, int numSteps) // appends to string
 {
-    outputString = "";
     for (int i = 0; i < numSteps; i++)
     {
         char tmp[128];
@@ -4280,9 +4279,9 @@ void ZoneManager::WidgetMoved(ActionContext *context)
                     GetParamStepsValues(stepValues, numSteps);
                     context->SetStepValues(stepValues);
 
-                    string steps;
-                    GetParamStepsString(steps, numSteps);
-                    paramStr = "[ " + steps + "]";
+                    paramStr = "[ ";
+                    GetParamStepsString(paramStr, numSteps);
+                    paramStr += "]";
                 }
             }
            
@@ -4426,9 +4425,9 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                     GetParamStepsValues(stepValues, numSteps);
                     context->SetStepValues(stepValues);
 
-                    string steps;
-                    GetParamStepsString(steps, numSteps);
-                    paramStr = "[ " + steps + "]";
+                    paramStr = "[ ";
+                    GetParamStepsString(paramStr, numSteps);
+                    paramStr += "]";
                 }
                 
                 if (strstr(context->GetWidget()->GetName(), "Rotary") != NULL && strstr(context->GetWidget()->GetName(), "Push") == NULL)
