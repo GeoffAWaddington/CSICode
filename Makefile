@@ -45,9 +45,15 @@ endif
 
 CXXFLAGS = $(CFLAGS) -std=c++03
 
-$(OBJS): $(SRC_PATH)/*.h
+RESINTER = $(SRC_PATH)/res.rc_mac_dlg
+RESINTER2 = $(SRC_PATH)/res.rc_mac_menu
+
+$(OBJS): $(SRC_PATH)/*.h $(RESINTER) $(RESINTER2)
 
 OBJS += $(SWELL_OBJS)
+
+$(RESINTER): $(SRC_PATH)/res.rc
+	perl WDL/swell/swell_resgen.pl --quiet $(SRC_PATH)/res.rc
 
 .PHONY: clean
 	
@@ -55,4 +61,4 @@ $(APPNAME): $(OBJS)
 	$(CXX) -o $@ -shared $(CFLAGS) $(OBJS) $(LINKEXTRA)
 
 clean:
-	-rm $(OBJS) $(APPNAME)
+	-rm $(OBJS) $(APPNAME) $(RESINTER) $(RESINTER2)

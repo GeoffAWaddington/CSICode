@@ -38,8 +38,6 @@
 		03464AE01EB53E7A00EAD095 /* reaper_csurf_integrator.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = reaper_csurf_integrator.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		0352CFFE1FD95CDE002AE18C /* res.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = res.rc; sourceTree = "<group>"; };
 		0355636A1F814C0600583062 /* reaper_plugin_functions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reaper_plugin_functions.h; sourceTree = "<group>"; };
-		0362B03B1FD80DD500E37C2F /* res.rc_mac_menu */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = res.rc_mac_menu; sourceTree = "<group>"; };
-		0362B03D1FD80DD500E37C2F /* res.rc_mac_dlg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = res.rc_mac_dlg; sourceTree = "<group>"; };
 		03644D1D1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = control_surface_integrator_ui.cpp; sourceTree = "<group>"; };
 		03719C611F8FC43E009C8F2E /* control_surface_integrator_Reaper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = control_surface_integrator_Reaper.h; sourceTree = "<group>"; };
 		037FB6761EB8C96C0012F4C1 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
@@ -83,8 +81,6 @@
 				0326FA6C2122E6C3000D5794 /* oscpkt.hh */,
 				0326FA6B2122E6C3000D5794 /* udp.hh */,
 				0352CFFE1FD95CDE002AE18C /* res.rc */,
-				0362B03D1FD80DD500E37C2F /* res.rc_mac_dlg */,
-				0362B03B1FD80DD500E37C2F /* res.rc_mac_menu */,
 				0310E4D31EB5405900040D1A /* swell-modstub.mm */,
 				03719C611F8FC43E009C8F2E /* control_surface_integrator_Reaper.h */,
 				0310E4C61EB5403C00040D1A /* control_surface_integrator.cpp */,
@@ -136,6 +132,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 03464AE91EB53E7A00EAD095 /* Build configuration list for PBXNativeTarget "reaper_csurf_integrator" */;
 			buildPhases = (
+				3338EAB12B771163004A7DB1 /* ShellScript */,
 				03464ADC1EB53E7A00EAD095 /* Sources */,
 				03464ADD1EB53E7A00EAD095 /* Frameworks */,
 				03464ADE1EB53E7A00EAD095 /* Headers */,
@@ -183,6 +180,28 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3338EAB12B771163004A7DB1 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/perl WDL/swell/swell_resgen.pl --quiet reaper_csurf_integrator/res.rc\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		03464ADC1EB53E7A00EAD095 /* Sources */ = {
