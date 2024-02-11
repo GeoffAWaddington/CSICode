@@ -777,7 +777,7 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, ptrvector<strin
     }
 }
 
-void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<CSILayoutInfo> &fxLayouts)
+void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<SurfaceFXLayoutInfo> &fxLayouts)
 {
     try
     {
@@ -795,7 +795,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<CSILayoutIn
                 string_list tokens;
                 GetTokens(tokens, line.c_str());
 
-                CSILayoutInfo info;
+                SurfaceFXLayoutInfo info;
 
                 if (tokens.size() == 3)
                 {
@@ -3302,8 +3302,8 @@ void ZoneManager::Initialize()
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("FXCellLayout"))
     {
-        ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, fxLayouts_);
-        ProcessSurfaceFXLayout(zoneFilePaths_.Get("FXCellLayout")->filePath, fxCellLayout_, fxCellLayoutTemplate_);
+        ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, surfaceFXLayouts_);
+        ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, fxCellLayout_, fxCellLayoutTemplateOld_);
     }
     if (zoneFilePaths_.Exists("FXPrologue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
@@ -3928,10 +3928,10 @@ void ZoneManager::InitializeNoMapZone()
 
             string_list paramWidgets;
 
-            for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
-                if (fxCellLayoutTemplate_[i].size() > 0 && fxCellLayoutTemplate_[i][0] == "WidgetTypes")
-                    for (int j = 1; j < fxCellLayoutTemplate_[i].size(); j++)
-                        paramWidgets.push_back(fxCellLayoutTemplate_[i][j]);
+            for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
+                if (fxCellLayoutTemplateOld_[i].size() > 0 && fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
+                    for (int j = 1; j < fxCellLayoutTemplateOld_[i].size(); j++)
+                        paramWidgets.push_back(fxCellLayoutTemplateOld_[i][j]);
             
             string nameDisplayWidget;
             if (fxCellLayout_[1].size() > 0)
@@ -3942,16 +3942,16 @@ void ZoneManager::InitializeNoMapZone()
                 valueDisplayWidget = fxCellLayout_[2][0];
 
             string_list mods;
-            for (int i = 0; i < (int)fxLayouts_.size(); ++i)
+            for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
             {
-                int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens(mods));
+                int modifier = GetModifierValue(surfaceFXLayouts_[i].GetModifierTokens(mods));
                 
                 if (modifier != 0)
                     continue;
                 
-                for (int j = 1; j <= fxLayouts_[i].channelCount_; j++)
+                for (int j = 1; j <= surfaceFXLayouts_[i].channelCount_; j++)
                 {
-                    string cellAdress = fxLayouts_[i].suffix_ + int_to_string(j);
+                    string cellAdress = surfaceFXLayouts_[i].suffix_ + int_to_string(j);
                     
                     Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAdress).c_str());
                     if (widget == NULL || usedWidgets.Exists(widget))
@@ -3997,10 +3997,10 @@ void ZoneManager::InitializeFXParamsLearnZone()
             string_list paramWidgets;
             string_list widgetParams;
 
-            for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
-                if (fxCellLayoutTemplate_[i].size() > 0 && fxCellLayoutTemplate_[i][0] == "WidgetTypes")
-                    for (int j = 1; j < fxCellLayoutTemplate_[i].size(); j++)
-                        paramWidgets.push_back(fxCellLayoutTemplate_[i][j]);
+            for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
+                if (fxCellLayoutTemplateOld_[i].size() > 0 && fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
+                    for (int j = 1; j < fxCellLayoutTemplateOld_[i].size(); j++)
+                        paramWidgets.push_back(fxCellLayoutTemplateOld_[i][j]);
 
             if (fxCellLayout_[0].size() > 2)
                 for (int i = 2; i < fxCellLayout_[0].size(); i++)
@@ -4031,16 +4031,16 @@ void ZoneManager::InitializeFXParamsLearnZone()
             if (paramWidgets.size() > 0)
             {
                 string_list mods;
-                for (int i = 0; i < (int)fxLayouts_.size(); ++i)
+                for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
                 {
-                    int modifier = GetModifierValue(fxLayouts_[i].GetModifierTokens(mods));
+                    int modifier = GetModifierValue(surfaceFXLayouts_[i].GetModifierTokens(mods));
                     
-                    for (int j = 1; j <= fxLayouts_[i].channelCount_; j++)
+                    for (int j = 1; j <= surfaceFXLayouts_[i].channelCount_; j++)
                     {
                         LearnFXCell cell;
                         
                         char cellAddress[BUFSZ];
-                        snprintf(cellAddress, sizeof(cellAddress), "%s%d",fxLayouts_[i].suffix_.c_str(),j);
+                        snprintf(cellAddress, sizeof(cellAddress), "%s%d",surfaceFXLayouts_[i].suffix_.c_str(),j);
                         
                         Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAddress).c_str());
                         if (widget == NULL)
@@ -4595,8 +4595,8 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     
     int totalLayoutCount = 0;
     
-    for (int i = 0; i < (int)fxLayouts_.size(); ++i)
-        totalLayoutCount += fxLayouts_[i].channelCount_;
+    for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
+        totalLayoutCount += surfaceFXLayouts_[i].channelCount_;
     bool wasMuted = false;
     GetTrackUIMute(track, &wasMuted);
     
@@ -4644,7 +4644,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
 
 void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex)
 {    
-    if (fxLayouts_.size() == 0)
+    if (surfaceFXLayouts_.size() == 0)
         return;
 
     if (fxCellLayout_.size() == 0)
@@ -4673,8 +4673,8 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
 
     int totalAvailableChannels = 0;
     
-    for (int i = 0; i < (int)fxLayouts_.size(); ++i)
-        totalAvailableChannels += fxLayouts_[i].channelCount_;
+    for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
+        totalAvailableChannels += surfaceFXLayouts_[i].channelCount_;
         
     AddZoneFilePath(fxName.c_str(), info);
     surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), fxName.c_str(), info);
@@ -4699,11 +4699,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
      
         actionWidgets.push_back(actionWidget);
         
-        for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
-            if (fxCellLayoutTemplate_[i][0] == "WidgetTypes")
-                for (int j = 1; j < fxCellLayoutTemplate_[i].size(); j++)
-                    if (fxCellLayoutTemplate_[i][j] != actionWidget)
-                        actionWidgets.push_back(fxCellLayoutTemplate_[i][j]);
+        for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
+            if (fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
+                for (int j = 1; j < fxCellLayoutTemplateOld_[i].size(); j++)
+                    if (fxCellLayoutTemplateOld_[i][j] != actionWidget)
+                        actionWidgets.push_back(fxCellLayoutTemplateOld_[i][j]);
 
         for (int paramIdx = 0; paramIdx < TrackFX_GetNumParams(track, fxIndex) && paramIdx < totalAvailableChannels; paramIdx++)
         {
@@ -4715,19 +4715,19 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                     {
                         if (tokenIdx == 0)
                         {
-                            const char *mod = fxLayouts_[layoutIndex].modifiers_.c_str();
+                            const char *mod = surfaceFXLayouts_[layoutIndex].modifiers_.c_str();
                             
                             if (widgetIdx == 0)
                                 fprintf(fxZone, "\t%s%s%s%s%d\t", mod, *mod ? "+" : "", 
                                     fxCellLayout_[lineIdx][tokenIdx].c_str(),
-                                    fxLayouts_[layoutIndex].suffix_.c_str(),
+                                    surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                                     channelIndex);
                             else
                             {
                                 if (lineIdx == 0)
                                     fprintf(fxZone, "\t%s%s%s%s%d\t",mod, *mod? "+" : "",
                                         actionWidgets[widgetIdx].c_str(),
-                                        fxLayouts_[layoutIndex].suffix_.c_str(),
+                                        surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                                         channelIndex);
                                 else
                                     fprintf(fxZone, "\tNullDisplay\t");
@@ -4775,11 +4775,11 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
             
             fprintf(fxZone, "\n");
             
-            if (channelIndex > fxLayouts_[layoutIndex].channelCount_)
+            if (channelIndex > surfaceFXLayouts_[layoutIndex].channelCount_)
             {
                 channelIndex = 1;
                 
-                if (layoutIndex < fxLayouts_.size() - 1)
+                if (layoutIndex < surfaceFXLayouts_.size() - 1)
                     layoutIndex++;
                 else
                     break;
@@ -4787,23 +4787,23 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         }
                 
         // GAW -- pad partial rows
-        if (channelIndex != 1 && channelIndex <= fxLayouts_[layoutIndex].channelCount_)
+        if (channelIndex != 1 && channelIndex <= surfaceFXLayouts_[layoutIndex].channelCount_)
         {
-            while (channelIndex <= fxLayouts_[layoutIndex].channelCount_)
+            while (channelIndex <= surfaceFXLayouts_[layoutIndex].channelCount_)
             {
                 for (int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    const char *mod = fxLayouts_[layoutIndex].modifiers_.c_str();
+                    const char *mod = surfaceFXLayouts_[layoutIndex].modifiers_.c_str();
                     fprintf(fxZone, "\t%s%s%s%s%d\tNoAction\n", mod, *mod ? "+" : "",
                         actionWidgets[widgetIdx].c_str(),
-                        fxLayouts_[layoutIndex].suffix_.c_str(),
+                        surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                         channelIndex);
                     
                     if (widgetIdx == 0 && fxCellLayout_.size() > 2 && fxCellLayout_[1].size() > 0 && fxCellLayout_[2].size() > 0)
                     {
                         fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "",
                             fxCellLayout_[1][0].c_str(),
-                            fxLayouts_[layoutIndex].suffix_.c_str(),
+                            surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                             channelIndex);
                         
                         if (fxCellLayout_.size() > 1)
@@ -4814,7 +4814,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         
                         fprintf(fxZone, "\t%s%s%s%s\tNoAction", mod, *mod ? "+" : "",
                             fxCellLayout_[2][0].c_str(),
-                            fxLayouts_[layoutIndex].suffix_.c_str());
+                            surfaceFXLayouts_[layoutIndex].suffix_.c_str());
                         
                         if (fxCellLayout_.size() > 2)
                             for (int i = 2; i < fxCellLayout_[2].size(); i++)
@@ -4838,24 +4838,24 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         layoutIndex++;
         
         // GAW --pad the remaining rows
-        while (layoutIndex < fxLayouts_.size())
+        while (layoutIndex < surfaceFXLayouts_.size())
         {
-            for (int index = 1; index <= fxLayouts_[layoutIndex].channelCount_; index++)
+            for (int index = 1; index <= surfaceFXLayouts_[layoutIndex].channelCount_; index++)
             {
                 for (int widgetIdx = 0; widgetIdx < actionWidgets.size(); widgetIdx++)
                 {
-                    const char *mod = fxLayouts_[layoutIndex].modifiers_.c_str();
+                    const char *mod = surfaceFXLayouts_[layoutIndex].modifiers_.c_str();
                     
                     fprintf(fxZone, "\t%s%s%s%s%d\tNoAction\n", mod, *mod ? "+" : "",
                         actionWidgets[widgetIdx].c_str(), 
-                        fxLayouts_[layoutIndex].suffix_.c_str(),
+                        surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                         index);
                     
                     if (widgetIdx == 0 && fxCellLayout_.size() > 2 && fxCellLayout_[1].size() > 0 && fxCellLayout_[2].size() > 0)
                     {
                         fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "", 
                             fxCellLayout_[1][0].c_str(),
-                            fxLayouts_[layoutIndex].suffix_.c_str(),
+                            surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                             index);
                         
                         if (fxCellLayout_.size() > 1)
@@ -4865,7 +4865,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                         fprintf(fxZone, "\n");
                         fprintf(fxZone, "\t%s%s%s%s%d\tNoAction", mod, *mod ? "+" : "",
                             fxCellLayout_[2][0].c_str(),
-                            fxLayouts_[layoutIndex].suffix_.c_str(),
+                            surfaceFXLayouts_[layoutIndex].suffix_.c_str(),
                             index);
                         
                         if (fxCellLayout_.size() > 2)

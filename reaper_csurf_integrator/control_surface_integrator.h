@@ -1284,14 +1284,14 @@ struct CSIZoneInfo
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct CSILayoutInfo
+struct SurfaceFXLayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string modifiers_;
     string suffix_;
     int channelCount_;
     
-    CSILayoutInfo()
+    SurfaceFXLayoutInfo()
     {
         channelCount_ = 0;
     }
@@ -1368,8 +1368,8 @@ private:
     string_list fxLayoutFileLinesOriginal_;
     Zone *fxLayout_;
     ptrvector<string_list> fxCellLayout_;
-    ptrvector<string_list> fxCellLayoutTemplate_;
-    ptrvector<CSILayoutInfo> fxLayouts_;
+    ptrvector<string_list> fxCellLayoutTemplateOld_;
+    ptrvector<SurfaceFXLayoutInfo> surfaceFXLayouts_;
     string_list fxPrologue_;
     string_list fxEpilogue_;
     
@@ -1453,7 +1453,7 @@ private:
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
     void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
-    void ProcessFXLayouts(const string &filePath, ptrvector<CSILayoutInfo> &fxLayouts);
+    void ProcessFXLayouts(const string &filePath, ptrvector<SurfaceFXLayoutInfo> &fxLayouts);
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
     void BuildActionTemplate(const string_list &tokens);
@@ -1867,8 +1867,8 @@ public:
     
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
-    const ptrvector<CSILayoutInfo> &GetFXLayouts() { return fxLayouts_; }
-    const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplate_;}
+    const ptrvector<SurfaceFXLayoutInfo> &GetFXLayouts() { return surfaceFXLayouts_; }
+    const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplateOld_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -2293,11 +2293,11 @@ public:
     {
         int numGroups = 0;
         
-        for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
+        for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
         {
-            if (fxCellLayoutTemplate_[i].size() > 0 && fxCellLayoutTemplate_[i][0] == "WidgetTypes")
+            if (fxCellLayoutTemplateOld_[i].size() > 0 && fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
             {
-                numGroups = (int)fxCellLayoutTemplate_[i].size() - 1;
+                numGroups = (int)fxCellLayoutTemplateOld_[i].size() - 1;
                 break;
             }
         }
@@ -2313,16 +2313,16 @@ public:
         string aliasDisplayAction;
         string valueDisplayAction;
 
-        for (int i = 0; i < (int)fxCellLayoutTemplate_.size(); ++i)
+        for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
         {
-            if (fxCellLayoutTemplate_[i].size() > 1)
+            if (fxCellLayoutTemplateOld_[i].size() > 1)
             {
-                if (fxCellLayoutTemplate_[i][0] == "WidgetAction")
-                    widgetAction = fxCellLayoutTemplate_[i][1];
-                else if (fxCellLayoutTemplate_[i][0] == "AliasDisplayAction")
-                    aliasDisplayAction = fxCellLayoutTemplate_[i][1];
-                else if (fxCellLayoutTemplate_[i][0] == "ValueDisplayAction")
-                    valueDisplayAction = fxCellLayoutTemplate_[i][1];
+                if (fxCellLayoutTemplateOld_[i][0] == "WidgetAction")
+                    widgetAction = fxCellLayoutTemplateOld_[i][1];
+                else if (fxCellLayoutTemplateOld_[i][0] == "AliasDisplayAction")
+                    aliasDisplayAction = fxCellLayoutTemplateOld_[i][1];
+                else if (fxCellLayoutTemplateOld_[i][0] == "ValueDisplayAction")
+                    valueDisplayAction = fxCellLayoutTemplateOld_[i][1];
             }
         }
         
