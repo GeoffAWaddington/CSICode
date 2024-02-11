@@ -1284,14 +1284,14 @@ struct CSIZoneInfo
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct SurfaceFXLayoutInfo
+struct FXCellLayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string modifiers_;
     string suffix_;
     int channelCount_;
     
-    SurfaceFXLayoutInfo()
+    FXCellLayoutInfo()
     {
         channelCount_ = 0;
     }
@@ -1335,6 +1335,77 @@ void GetSteppedValues(const string_list &params, int start_idx, double &deltaVal
 
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
 
+struct FXParamTemplate
+{
+    int paramNum;
+    string modifiers;
+    string suffix;
+    
+    Widget *control;
+    string controlAction;
+    vector<string> controlParams;
+    
+    Widget *nameDisplay;
+    string nameDisplayAction;
+    vector<string> nameDisplayParams;
+
+    Widget *valueDisplay;
+    string valueDisplayAction;
+    vector<string> valueDisplayParams;
+
+    FXParamTemplate()
+    {
+        paramNum = -1;
+        
+        control = NULL;
+        nameDisplay = NULL;
+        valueDisplay = NULL;
+        
+        controlAction = "NoAction";
+        nameDisplayAction = "NoAction";
+        valueDisplayAction = "NoAction";
+    }
+    
+    void WriteToFile(FILE *fxFile)
+    {
+        if (control)
+        {
+            if (modifiers != "")
+            {
+                fprintf(fxFile, "\t%s+%s %s \n", modifiers.c_str(),  control->GetName(), controlAction.c_str());
+
+                if (nameDisplay)
+                    fprintf(fxFile, "\t%s+t%s %s \n", modifiers.c_str(),  nameDisplay->GetName(), nameDisplayAction.c_str());
+                else
+                    fprintf(fxFile, "\tNullDisplay %s \n", nameDisplayAction.c_str());
+
+                if (valueDisplay)
+                    fprintf(fxFile, "\t%s+%s %s \n\n", modifiers.c_str(),  valueDisplay->GetName(), valueDisplayAction.c_str());
+                else
+                    fprintf(fxFile, "\tNullDisplay %s \n\n", valueDisplayAction.c_str());
+            }
+            else
+            {
+                fprintf(fxFile, "\t%s %s \n", control->GetName(), controlAction.c_str());
+
+                if (nameDisplay)
+                    fprintf(fxFile, "\t%s %s \n", nameDisplay->GetName(), nameDisplayAction.c_str());
+                else
+                    fprintf(fxFile, "\tNullDisplay %s \n", nameDisplayAction.c_str());
+
+                if (valueDisplay)
+                    fprintf(fxFile, "\t%s %s \n\n", valueDisplay->GetName(), valueDisplayAction.c_str());
+                else
+                    fprintf(fxFile, "\tNullDisplay %s \n\n", valueDisplayAction.c_str());
+            }
+        }
+    }
+};
+
+struct FXCellTemplate
+{
+   vector<FXParamTemplate> paramTemplates;
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
@@ -1364,12 +1435,22 @@ private:
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
     static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
 
+    vector<FXParamTemplate> fxParamTemplates_;
+
+    Zone *fxLayout_;
+
+    
     string_list fxLayoutFileLines_;
     string_list fxLayoutFileLinesOriginal_;
-    Zone *fxLayout_;
     ptrvector<string_list> fxCellLayout_;
     ptrvector<string_list> fxCellLayoutTemplateOld_;
-    ptrvector<SurfaceFXLayoutInfo> surfaceFXLayouts_;
+    ptrvector<FXCellLayoutInfo> surfaceFXLayouts_;
+    
+    
+    
+    
+    
+    
     string_list fxPrologue_;
     string_list fxEpilogue_;
     
@@ -1452,8 +1533,12 @@ private:
     void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
+    
     void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
-    void ProcessFXLayouts(const string &filePath, ptrvector<SurfaceFXLayoutInfo> &fxLayouts);
+    void ProcessFXLayouts(const string &filePath, ptrvector<FXCellLayoutInfo> &fxLayouts);
+    
+    void BuildFXTemplate(const string &layoutPath, const string &cellPath);
+    
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
     void BuildActionTemplate(const string_list &tokens);
@@ -1867,7 +1952,7 @@ public:
     
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
-    const ptrvector<SurfaceFXLayoutInfo> &GetFXLayouts() { return surfaceFXLayouts_; }
+    const ptrvector<FXCellLayoutInfo> &GetFXLayouts() { return surfaceFXLayouts_; }
     const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplateOld_;}
 
     ControlSurface *GetSurface() { return surface_; }

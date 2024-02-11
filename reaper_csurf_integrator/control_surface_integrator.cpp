@@ -711,11 +711,11 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens)
     }
 }
 
-void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate)
+void ZoneManager::ProcessSurfaceFXLayout(const string &cellPath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate)
 {
     try
     {
-        fpistream file(filePath.c_str());
+        fpistream file(cellPath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -772,16 +772,16 @@ void ZoneManager::ProcessSurfaceFXLayout(const string &filePath, ptrvector<strin
     catch (exception &e)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", cellPath.c_str(), 1);
         ShowConsoleMsg(buffer);
     }
 }
 
-void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<SurfaceFXLayoutInfo> &fxLayouts)
+void ZoneManager::ProcessFXLayouts(const string &layoutPath, ptrvector<FXCellLayoutInfo> &fxLayouts)
 {
     try
     {
-        fpistream file(filePath.c_str());
+        fpistream file(layoutPath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -795,7 +795,7 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<SurfaceFXLa
                 string_list tokens;
                 GetTokens(tokens, line.c_str());
 
-                SurfaceFXLayoutInfo info;
+                FXCellLayoutInfo info;
 
                 if (tokens.size() == 3)
                 {
@@ -811,8 +811,193 @@ void ZoneManager::ProcessFXLayouts(const string &filePath, ptrvector<SurfaceFXLa
     catch (exception &e)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", layoutPath.c_str(), 1);
         ShowConsoleMsg(buffer);
+    }
+}
+
+void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
+{
+    vector<FXCellLayoutInfo> fxLayouts;
+    
+    try
+    {
+        fpistream file(layoutPath.c_str());
+        
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        
+            if (line.find("Zone") == string::npos)
+            {
+                string_list tokens;
+                GetTokens(tokens, line.c_str());
+
+
+                if (tokens.size() == 3)
+                {
+                    
+                    int channelCount = atoi(tokens[2].c_str());
+                    for(int i = 1; i <= channelCount; ++i )
+                    {
+                        FXCellLayoutInfo info;
+
+                        info.modifiers_ = tokens[0];
+                        info.suffix_ = tokens[1];
+                        info.suffix_ += int_to_string(i);
+                        fxLayouts.push_back(info);
+                    }
+                }
+            }
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", layoutPath.c_str(), 1);
+        ShowConsoleMsg(buffer);
+    }
+
+    if(fxLayouts.size() == 0) // didn't find any layouts
+        return;
+    
+    vector<string> paramWidgets;
+    vector<string> displayRows;
+    vector<string> ringStyles;
+    vector<string> fonts;
+    string paramWidget;
+    string nameWidget;
+    string valueWidget;
+    vector<string> widgetParams;
+    vector<string> nameParams;
+    vector<string> valueParams;
+    
+    try
+    {
+        fpistream file(cellPath.c_str());
+        
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            if (line == "") // ignore blank lines
+                continue;
+        
+            string_list tokens;
+            GetTokens(tokens, line.c_str());
+
+            if (tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
+            {
+                if (tokens[0][0] == '#')
+                {
+                    if (tokens[0] == "#WidgetTypes")
+                    {
+                        for (int i = 1; i < tokens.size(); ++i)
+                            paramWidgets.push_back(string(tokens[i]));
+                    }
+                    else if (tokens[0] == "#DisplayRows")
+                    {
+                        for (int i = 1; i < tokens.size(); ++i)
+                            displayRows.push_back(string(tokens[i]));
+                    }
+
+                    else if (tokens[0] == "#RingStyles")
+                    {
+                        for (int i = 1; i < tokens.size(); ++i)
+                            ringStyles.push_back(string(tokens[i]));
+                    }
+
+                    else if (tokens[0] == "#DisplayFonts")
+                    {
+                        for (int i = 1; i < tokens.size(); ++i)
+                            fonts.push_back(string(tokens[i]));
+                    }
+                }
+                else
+                {
+                    //surfaceFXLayout.push_back(tokens);
+                    
+                    if (tokens.size() > 1 && tokens[1] == "FXParam")
+                    {
+                        paramWidget = tokens[0];
+                        if (tokens.size() > 2)
+                            for (int i = 2; i < tokens.size(); ++i)
+                                widgetParams.push_back(string(tokens[i]));
+                    }
+                    if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
+                    {
+                        nameWidget = tokens[0];
+                        if (tokens.size() > 2)
+                            for (int i = 2; i < tokens.size(); ++i)
+                                nameParams.push_back(string(tokens[i]));
+                    }
+                    if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
+                    {
+                        valueWidget = tokens[0];
+                        if (tokens.size() > 2)
+                            for (int i = 2; i < tokens.size(); ++i)
+                                valueParams.push_back(string(tokens[i]));
+                    }
+                }
+            }
+        }
+    }
+    catch (exception &e)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", cellPath.c_str(), 1);
+        ShowConsoleMsg(buffer);
+    }
+
+    
+    fxParamTemplates_.clear();
+    
+    for (int i = 0; i < fxLayouts.size(); ++i)
+    {
+        FXParamTemplate t;
+        
+        t.modifiers = fxLayouts[i].modifiers_;
+        t.suffix = fxLayouts[i].suffix_;
+        t.control = surface_->GetWidgetByName((paramWidget + t.suffix).c_str());
+        t.controlParams = widgetParams;
+        t.nameDisplay = surface_->GetWidgetByName((nameWidget + t.suffix).c_str());
+        t.nameDisplayParams = nameParams;
+        t.valueDisplay = surface_->GetWidgetByName((valueWidget + t.suffix).c_str());
+        t.valueDisplayParams = valueParams;
+
+        fxParamTemplates_.push_back(t);
+        
+        for (int j = 0; j < paramWidgets.size(); ++j)
+        {
+            if (paramWidgets[j] != paramWidget)
+            {
+                FXParamTemplate t;
+                
+                t.modifiers = fxLayouts[i].modifiers_;
+                t.suffix = fxLayouts[i].suffix_;
+                t.control = surface_->GetWidgetByName((paramWidgets[j] + t.suffix).c_str());
+                
+                fxParamTemplates_.push_back(t);
+            }
+        }
+    }
+
+    
+    string outFile = cellPath;
+    
+    outFile[outFile.length() - 1] = 'd';
+    
+    FILE *fxFile = fopen(outFile.c_str(),"wb");
+    
+    if (fxFile)
+    {
+        for (int i = 0; i < fxParamTemplates_.size(); ++i)
+            fxParamTemplates_[i].WriteToFile(fxFile);
+        
+        fclose(fxFile);
     }
 }
 
@@ -3300,10 +3485,12 @@ void ZoneManager::Initialize()
     LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
-    if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("FXCellLayout"))
+    if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("SurfaceFXLayout"))
     {
         ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, surfaceFXLayouts_);
         ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, fxCellLayout_, fxCellLayoutTemplateOld_);
+        
+        BuildFXTemplate(zoneFilePaths_.Get("FXLayouts")->filePath, zoneFilePaths_.Get("SurfaceFXLayout")->filePath);
     }
     if (zoneFilePaths_.Exists("FXPrologue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
