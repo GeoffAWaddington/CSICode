@@ -1352,10 +1352,20 @@ struct FXParamTemplate
     string valueDisplayAction;
     vector<string> valueDisplayParams;
 
+    double delta;
+    vector<double> deltas;
+    double rangeMinimum;
+    double rangeMaximum;
+    vector<double> steps;
+    vector<int> ticks;
+        
     FXParamTemplate()
     {
         modifierValue = 0;
-        
+        delta = 0.0;
+        rangeMinimum = 1.0;
+        rangeMaximum = 0.0;
+
         control = NULL;
         nameDisplay = NULL;
         valueDisplay = NULL;
@@ -1503,7 +1513,7 @@ private:
     static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
    
     vector<SurfaceCell> surfaceCells_;
-
+        
     Zone *fxLayout_;
 
     
@@ -1979,7 +1989,18 @@ public:
     {
         allZonesNeedFree_.Empty(true);
     }
-        
+     
+    vector<string> paramWidgets_;
+    vector<string> displayRows_;
+    vector<string> ringStyles_;
+    vector<string> fonts_;
+    string paramWidget_;
+    string nameWidget_;
+    string valueWidget_;
+    vector<string> widgetParams_;
+    vector<string> nameParams_;
+    vector<string> valueParams_;
+
     void Initialize();
     
     void PreProcessZones();

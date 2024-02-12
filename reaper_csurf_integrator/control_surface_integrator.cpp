@@ -866,16 +866,17 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
     if(fxLayouts.size() == 0) // didn't find any layouts
         return;
     
-    vector<string> paramWidgets;
-    vector<string> displayRows;
-    vector<string> ringStyles;
-    vector<string> fonts;
-    string paramWidget;
-    string nameWidget;
-    string valueWidget;
-    vector<string> widgetParams;
-    vector<string> nameParams;
-    vector<string> valueParams;
+    paramWidgets_.clear();
+    displayRows_.clear();
+    ringStyles_.clear();
+    fonts_.clear();
+    
+    paramWidget_= "";
+    nameWidget_ = "";
+    valueWidget_ = "";
+    widgetParams_.clear();
+    nameParams_.clear();
+    valueParams_.clear();
     
     try
     {
@@ -898,48 +899,48 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                     if (tokens[0] == "#WidgetTypes")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            paramWidgets.push_back(string(tokens[i]));
+                            paramWidgets_.push_back(string(tokens[i]));
                     }
                     else if (tokens[0] == "#DisplayRows")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            displayRows.push_back(string(tokens[i]));
+                            displayRows_.push_back(string(tokens[i]));
                     }
 
                     else if (tokens[0] == "#RingStyles")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            ringStyles.push_back(string(tokens[i]));
+                            ringStyles_.push_back(string(tokens[i]));
                     }
 
                     else if (tokens[0] == "#DisplayFonts")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            fonts.push_back(string(tokens[i]));
+                            fonts_.push_back(string(tokens[i]));
                     }
                 }
                 else
                 {
                     if (tokens.size() > 1 && tokens[1] == "FXParam")
                     {
-                        paramWidget = tokens[0];
+                        paramWidget_ = tokens[0];
                         if (tokens.size() > 2)
                             for (int i = 2; i < tokens.size(); ++i)
-                                widgetParams.push_back(string(tokens[i]));
+                                widgetParams_.push_back(string(tokens[i]));
                     }
                     if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
                     {
-                        nameWidget = tokens[0];
+                        nameWidget_ = tokens[0];
                         if (tokens.size() > 2)
                             for (int i = 2; i < tokens.size(); ++i)
-                                nameParams.push_back(string(tokens[i]));
+                                nameParams_.push_back(string(tokens[i]));
                     }
                     if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
                     {
-                        valueWidget = tokens[0];
+                        valueWidget_ = tokens[0];
                         if (tokens.size() > 2)
                             for (int i = 2; i < tokens.size(); ++i)
-                                valueParams.push_back(string(tokens[i]));
+                                valueParams_.push_back(string(tokens[i]));
                     }
                 }
             }
@@ -972,25 +973,25 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         t.modifierValue = modifierValue;
         
         t.suffix = fxLayouts[i].suffix;
-        t.control = surface_->GetWidgetByName((paramWidget + t.suffix).c_str());
-        t.controlParams = widgetParams;
-        t.nameDisplay = surface_->GetWidgetByName((nameWidget + t.suffix).c_str());
-        t.nameDisplayParams = nameParams;
-        t.valueDisplay = surface_->GetWidgetByName((valueWidget + t.suffix).c_str());
-        t.valueDisplayParams = valueParams;
+        t.control = surface_->GetWidgetByName((paramWidget_ + t.suffix).c_str());
+        t.controlParams = widgetParams_;
+        t.nameDisplay = surface_->GetWidgetByName((nameWidget_ + t.suffix).c_str());
+        t.nameDisplayParams = nameParams_;
+        t.valueDisplay = surface_->GetWidgetByName((valueWidget_ + t.suffix).c_str());
+        t.valueDisplayParams = valueParams_;
 
         cell.paramTemplates.push_back(t);
         
-        for (int j = 0; j < paramWidgets.size(); ++j)
+        for (int j = 0; j < paramWidgets_.size(); ++j)
         {
-            if (paramWidgets[j] != paramWidget)
+            if (paramWidgets_[j] != paramWidget_)
             {
                 FXParamTemplate t;
                 
                 t.modifiers = fxLayouts[i].modifiers;
                 t.modifierValue = modifierValue;
                 t.suffix = fxLayouts[i].suffix;
-                t.control = surface_->GetWidgetByName((paramWidgets[j] + t.suffix).c_str());
+                t.control = surface_->GetWidgetByName((paramWidgets_[j] + t.suffix).c_str());
                 
                 cell.paramTemplates.push_back(t);
             }

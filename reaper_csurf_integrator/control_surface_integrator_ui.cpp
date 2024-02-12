@@ -385,51 +385,77 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             const ptrvector<string_list> &surfaceLayoutTemplate = s_zoneManager->GetSurfaceFXLayoutTemplate();
 
+            for (int i = 0; i < NUM_ELEM(s_widgetTypePickers); i++)
+            {
+                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+
+                for (int j = 0; j < s_zoneManager->paramWidgets_.size(); j++)
+                    SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->paramWidgets_[j].c_str());
+            }
+            
+            for (int i = 0; i < NUM_ELEM(s_ringStylePickers); i++)
+            {
+                for (int j = 0; j < s_zoneManager->ringStyles_.size(); j++)
+                    SendDlgItemMessage(hwndDlg, s_ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->ringStyles_[j].c_str());
+            }
+            
+            for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
+            {
+                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+
+                for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
+                    SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->displayRows_[j].c_str());
+            }
+
+            for (int i = 0; i < NUM_ELEM(s_paramValueDisplayRowPickers); i++)
+            {
+                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+
+                for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
+                    SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->displayRows_[j].c_str());
+            }
+
+            for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayFontPickers); i++)
+            {
+                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+
+                for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
+                    SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->fonts_[j].c_str());
+            }
+
+            for (int i = 0; i < NUM_ELEM(s_paramValueDisplayFontPickers); i++)
+            {
+                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+
+                for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
+                    SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->fonts_[j].c_str());
+            }
+
+
+            
+            
             for (int i = 0; i < (int)surfaceLayoutTemplate.size(); ++i)
             {
                 if (surfaceLayoutTemplate[i].size() > 0 )
                 {
                     if (surfaceLayoutTemplate[i][0] == "WidgetTypes")
                     {
-                        for (int j = 0; j < NUM_ELEM(s_widgetTypePickers); j++)
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                     }
                     else if (surfaceLayoutTemplate[i][0] == "RingStyles")
                     {
-                        for (int j = 0; j < NUM_ELEM(s_ringStylePickers); j++)
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_ringStylePickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                     }
                     else if (surfaceLayoutTemplate[i][0] == "DisplayRows")
                     {
                         for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayRowPickers); j++)
                         {
-                            SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
-
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                         }
                         
                         for (int j = 0; j < NUM_ELEM(s_paramValueDisplayRowPickers); j++)
                         {
-                            SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)"");
-
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                         }
                     }
                     else if (surfaceLayoutTemplate[i][0] == "DisplayFonts")
                     {
-                        s_hasFonts = true;
-                        
-                        for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayFontPickers); j++)
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
-                        
-                        for (int j = 0; j < NUM_ELEM(s_paramValueDisplayFontPickers); j++)
-                            for (int k = 1; k < surfaceLayoutTemplate[i].size(); k++)
-                                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[j], CB_ADDSTRING, 0, (LPARAM)surfaceLayoutTemplate[i][k].c_str());
                     }
                 }
             }
@@ -1221,10 +1247,10 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(ZoneManager *aZoneManager, string fullFilePath)
+bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
 {
     s_zoneDef.Clear();
-    s_zoneManager = aZoneManager;
+    s_zoneManager = zoneManager;
     s_zoneDef.fullPath = fullFilePath;
     s_numGroups = s_zoneManager->GetNumGroups();
     s_zoneManager->GetFXLayoutTemplates(s_layoutTemplates);
