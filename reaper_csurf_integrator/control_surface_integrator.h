@@ -1365,7 +1365,7 @@ struct FXParamTemplate
         valueDisplayAction = "NoAction";
     }
     
-    void WriteToFile(FILE *fxFile, int paramNum, const string &paramName)
+    void WriteToFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
     {
         if ( ! fxFile)
             return;
@@ -1373,7 +1373,10 @@ struct FXParamTemplate
         if ( ! control)
             return;
         
-        fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  control->GetName(), "FXParam", paramNum);
+        if (steps != "")
+            fprintf(fxFile, "\t%s%s %s %d [ %s ]", modifiers.c_str(),  control->GetName(), "FXParam", paramNum, steps.c_str());
+        else
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  control->GetName(), "FXParam", paramNum);
 
         for (int i = 0; i < controlParams.size(); ++i)
             fprintf(fxFile, " %s", controlParams[i].c_str());
@@ -1382,7 +1385,7 @@ struct FXParamTemplate
         
         if (nameDisplay)
         {
-            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(),  control->GetName(), "FixedTextDisplay", paramName.c_str());
+            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(),  nameDisplay->GetName(), "FixedTextDisplay", paramName.c_str());
 
             for (int i = 0; i < nameDisplayParams.size(); ++i)
                 fprintf(fxFile, " %s", nameDisplayParams[i].c_str());
@@ -1394,7 +1397,7 @@ struct FXParamTemplate
             
         if (valueDisplay)
         {
-            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  control->GetName(), "FXParamValueDisplay", paramNum);
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  valueDisplay->GetName(), "FXParamValueDisplay", paramNum);
 
             for (int i = 0; i < valueDisplayParams.size(); ++i)
                 fprintf(fxFile, " %s", valueDisplayParams[i].c_str());
@@ -1439,7 +1442,7 @@ struct SurfaceCell
         modifierValue = 0;
     }
     
-    void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName)
+    void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
     {
         if ( ! fxFile)
             return;
@@ -1449,7 +1452,7 @@ struct SurfaceCell
         for (int i = 0; i <paramTemplates.size(); ++i)
         {
             if (i == 0) // Auto Map only maps the first control/display
-                paramTemplates[i].WriteToFile(fxFile, paramNum, paramName);
+                paramTemplates[i].WriteToFile(fxFile, paramNum, paramName, steps);
             else
                 paramTemplates[i].WriteToFile(fxFile);
         }

@@ -4874,7 +4874,15 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
             {
                 char tmp[BUFSZ];
                 TrackFX_GetParamName(track, fxIndex, i, tmp, sizeof(tmp));
-                surfaceCells_[i].WriteToAutoMapFile(fxZone, i, tmp);
+                
+                int steppedValueCount =  csi_->GetSteppedValueCount(fxName.c_str(), i);
+                
+                string steps;
+                
+                if (steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
+                    GetParamStepsString(steps, steppedValueCount);
+                
+                surfaceCells_[i].WriteToAutoMapFile(fxZone, i, tmp, steps);
             }
             else
                 surfaceCells_[i].WriteToFile(fxZone);
