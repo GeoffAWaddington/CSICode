@@ -1287,22 +1287,22 @@ struct CSIZoneInfo
 struct FXCellLayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string modifiers_;
-    string suffix_;
-    int channelCount_;
+    string modifiers;
+    string suffix;
+    int channelCount;
     
     FXCellLayoutInfo()
     {
-        channelCount_ = 0;
+        channelCount = 0;
     }
     
-    string_list &GetModifierTokens(string_list &modifiers)
+    string_list &GetModifierTokens(string_list &modifierList)
     {
-        modifiers.clear();
-        GetSubTokens(modifiers, modifiers_.c_str(), '+');
+        modifierList.clear();
+        GetSubTokens(modifierList, modifiers.c_str(), '+');
 
-        modifiers.push_back("");
-        return modifiers;
+        modifierList.push_back("");
+        return modifierList;
     }
 };
 
@@ -1339,6 +1339,7 @@ struct FXParamTemplate
 {
     int paramNum;
     string modifiers;
+    int modifierValue;
     string suffix;
     
     Widget *control;
@@ -1347,6 +1348,7 @@ struct FXParamTemplate
     
     Widget *nameDisplay;
     string nameDisplayAction;
+    string paramName;
     vector<string> nameDisplayParams;
 
     Widget *valueDisplay;
@@ -1356,6 +1358,7 @@ struct FXParamTemplate
     FXParamTemplate()
     {
         paramNum = -1;
+        modifierValue = 0;
         
         control = NULL;
         nameDisplay = NULL;
@@ -1368,6 +1371,9 @@ struct FXParamTemplate
     
     void WriteToFile(FILE *fxFile)
     {
+        if ( ! fxFile)
+            return;
+        
         if (control)
         {
             if (modifiers != "")
@@ -1402,9 +1408,30 @@ struct FXParamTemplate
     }
 };
 
-struct FXCellTemplate
+struct SurfaceCell
 {
-   vector<FXParamTemplate> paramTemplates;
+    string modifiers;
+    int modifierValue;
+    string suffix;
+    vector<FXParamTemplate> paramTemplates;
+    
+    SurfaceCell()
+    {
+        modifierValue = 0;
+    }
+    
+    void WriteToFile(FILE *fxFile)
+    {
+        if ( ! fxFile)
+            return;
+        
+        fprintf(fxFile, "\t// Cell %s %s \n", modifiers.c_str(), suffix.c_str());
+
+        for (int i = 0; i <paramTemplates.size(); ++i)
+            paramTemplates[i].WriteToFile(fxFile);
+            
+        fprintf(fxFile, "\n");
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1434,8 +1461,8 @@ private:
         
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
     static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
-
-    vector<FXParamTemplate> fxParamTemplates_;
+   
+    vector<SurfaceCell> surfaceCells_;
 
     Zone *fxLayout_;
 
@@ -2413,16 +2440,16 @@ public:
         
         for (int i = 0; i < (int)GetFXLayouts().size(); ++i)
         {
-            for (int j = 0; j < GetFXLayouts()[i].channelCount_; j++)
+            for (int j = 0; j < GetFXLayouts()[i].channelCount; j++)
             {
                 string modifiers;
-                if (GetFXLayouts()[i].modifiers_ != "")
-                    modifiers = GetFXLayouts()[i].modifiers_ + "+";
+                if (GetFXLayouts()[i].modifiers != "")
+                    modifiers = GetFXLayouts()[i].modifiers + "+";
                 
                 FXParamLayoutTemplate layoutTemplate;
                 
                 layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].suffix_ + int_to_string(j + 1);
+                layoutTemplate.suffix = GetFXLayouts()[i].suffix + int_to_string(j + 1);
                 
                 layoutTemplate.widgetAction = widgetAction;
                 layoutTemplate.aliasDisplayAction = aliasDisplayAction;
