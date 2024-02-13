@@ -382,21 +382,19 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             }
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
-            
-            const ptrvector<string_list> &surfaceLayoutTemplate = s_zoneManager->GetSurfaceFXLayoutTemplate();
 
             for (int i = 0; i < NUM_ELEM(s_widgetTypePickers); i++)
             {
                 SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->paramWidgets_.size(); j++)
-                    SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->paramWidgets_[j].c_str());
+                    SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->paramWidgets_[j].c_str());
             }
             
             for (int i = 0; i < NUM_ELEM(s_ringStylePickers); i++)
             {
                 for (int j = 0; j < s_zoneManager->ringStyles_.size(); j++)
-                    SendDlgItemMessage(hwndDlg, s_ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->ringStyles_[j].c_str());
+                    SendDlgItemMessage(hwndDlg, s_ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->ringStyles_[j].c_str());
             }
             
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
@@ -404,7 +402,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
-                    SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->displayRows_[j].c_str());
+                    SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
             }
 
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayRowPickers); i++)
@@ -412,7 +410,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
-                    SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->displayRows_[j].c_str());
+                    SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
             }
 
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayFontPickers); i++)
@@ -420,7 +418,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
-                    SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->fonts_[j].c_str());
+                    SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
 
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayFontPickers); i++)
@@ -428,36 +426,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
-                    SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM) s_zoneManager->fonts_[j].c_str());
-            }
-
-
-            
-            
-            for (int i = 0; i < (int)surfaceLayoutTemplate.size(); ++i)
-            {
-                if (surfaceLayoutTemplate[i].size() > 0 )
-                {
-                    if (surfaceLayoutTemplate[i][0] == "WidgetTypes")
-                    {
-                    }
-                    else if (surfaceLayoutTemplate[i][0] == "RingStyles")
-                    {
-                    }
-                    else if (surfaceLayoutTemplate[i][0] == "DisplayRows")
-                    {
-                        for (int j = 0; j < NUM_ELEM(s_fixedTextDisplayRowPickers); j++)
-                        {
-                        }
-                        
-                        for (int j = 0; j < NUM_ELEM(s_paramValueDisplayRowPickers); j++)
-                        {
-                        }
-                    }
-                    else if (surfaceLayoutTemplate[i][0] == "DisplayFonts")
-                    {
-                    }
-                }
+                    SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
 
             for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
