@@ -322,6 +322,10 @@ class PropertyList
 };
 
 
+
+
+
+
 struct FXParamLayoutTemplate
 {
     string modifiers;
@@ -373,6 +377,14 @@ struct FXParamDefinitions
 {
     ptrvector<FXParamDefinition> definitions;
 };
+
+
+
+
+
+
+
+
 
 struct AutoZoneDefinition
 {
@@ -1342,15 +1354,15 @@ struct FXParamTemplate
     
     Widget *control;
     string controlAction;
-    vector<string> controlParams;
+    ptrvector<string> controlParams;
     
     Widget *nameDisplay;
     string nameDisplayAction;
-    vector<string> nameDisplayParams;
+    ptrvector<string> nameDisplayParams;
 
     Widget *valueDisplay;
     string valueDisplayAction;
-    vector<string> valueDisplayParams;
+    ptrvector<string> valueDisplayParams;
 
     double delta;
     vector<double> deltas;
@@ -1990,16 +2002,16 @@ public:
         allZonesNeedFree_.Empty(true);
     }
      
-    vector<string> paramWidgets_;
-    vector<string> displayRows_;
-    vector<string> ringStyles_;
-    vector<string> fonts_;
+    ptrvector<string> paramWidgets_;
+    ptrvector<string> displayRows_;
+    ptrvector<string> ringStyles_;
+    ptrvector<string> fonts_;
     string paramWidget_;
     string nameWidget_;
     string valueWidget_;
-    vector<string> widgetParams_;
-    vector<string> nameParams_;
-    vector<string> valueParams_;
+    ptrvector<string> widgetParams_;
+    ptrvector<string> nameParams_;
+    ptrvector<string> valueParams_;
 
     void Initialize();
     
