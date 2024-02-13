@@ -42,3 +42,7 @@ Windows/reaper_csurf_integrator/reaper_csurf_integrator/reaper_csurf_integrator.
 Windows/reaper_csurf_integrator/reaper_csurf_integrator/reaper_csurf_integrator.vcxproj.filters
 reaper_csurf_integrator/res.rc_mac_dlg
 reaper_csurf_integrator/res.rc_mac_menu
+Windows/VS2005/reaper_csurf_integrator.ncb
+Windows/VS2005/reaper_csurf_integrator.suo
+Windows/VS2005/reaper_csurf_integrator.vcproj.GEOFFWADDIN1F32.geoffwaddington.user
+Windows/VS2005/reaper_csurf_integrator.vcproj.user
