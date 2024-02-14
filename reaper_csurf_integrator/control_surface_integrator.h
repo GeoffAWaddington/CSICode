@@ -1456,7 +1456,7 @@ struct SurfaceCell
 {
     string modifiers;
     int modifierValue;
-    string suffix;
+    string address;
     vector<FXParamTemplate> paramTemplates;
     
     SurfaceCell()
@@ -1469,7 +1469,7 @@ struct SurfaceCell
         if ( ! fxFile)
             return;
         
-        fprintf(fxFile, "\t// Cell %s %s \n", modifiers.c_str(), suffix.c_str());
+        fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i <paramTemplates.size(); ++i)
         {
@@ -1487,7 +1487,7 @@ struct SurfaceCell
         if ( ! fxFile)
             return;
         
-        fprintf(fxFile, "\t// Cell %s %s \n", modifiers.c_str(), suffix.c_str());
+        fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i <paramTemplates.size(); ++i)
             paramTemplates[i].WriteToFile(fxFile);
@@ -2030,6 +2030,8 @@ public:
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
+    void UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
+    
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
@@ -2533,157 +2535,6 @@ public:
         }
     }
     
-    void UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
-    {
-        zoneDef.paramDefs.clear();
-        zoneDef.prologue.clear();
-        zoneDef.epilogue.clear();
-        zoneDef.rawParams.clear();
-        zoneDef.rawParamsDictionary.DeleteAll();
-
-        zoneDef.fxName = "";
-        zoneDef.fxAlias = "";
-
-        bool inZone = false;
-        bool inAutoZone = false;
-        bool pastAutoZone = false;
-        
-        fpistream autoFXFile(zoneDef.fullPath.c_str());
-        
-        int listSlotIndex = 0;
-        
-        FXParamDefinitions *curdef = new FXParamDefinitions;
-        zoneDef.paramDefs.Add(curdef);
-        
-        string_list tokens;
-        for (string line; getline(autoFXFile, line) ; )
-        {
-            ReplaceAllWith(line, "\r\n", "");
-
-            if (inAutoZone && ! pastAutoZone)
-            {
-                // Trim leading and trailing spaces
-                TrimLine(line);
-                
-                if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                    continue;
-            }
-
-            tokens.clear();
-            GetTokens(tokens, line.c_str());
-
-            if (line.substr(0, 5) == "Zone ")
-            {
-                inZone = true;
-                
-                if (tokens.size() > 1)
-                    zoneDef.fxName = tokens[1];
-                if (tokens.size() > 2)
-                    zoneDef.fxAlias = tokens[2];
-                
-                continue;
-            }
-            else if (line == s_BeginAutoSection)
-            {
-                inAutoZone = true;
-                continue;
-            }
-            else if (inZone && ! inAutoZone)
-            {
-                zoneDef.prologue.push_back(line);
-                continue;
-            }
-            else if (line == s_EndAutoSection)
-            {
-                pastAutoZone = true;
-                continue;
-            }
-            else if (line == "ZoneEnd")
-            {
-                inZone = false;
-                continue;
-            }
-            else if (inZone && pastAutoZone)
-            {
-                zoneDef.epilogue.push_back(line);
-                continue;
-            }
-            else if (! inZone && pastAutoZone)
-            {
-                if (line != "")
-                    zoneDef.rawParams.push_back(line);
-                continue;
-            }
-            else
-            {
-                if (tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
-                {
-                    listSlotIndex++;
-                    curdef = new FXParamDefinitions;
-                    zoneDef.paramDefs.Add(curdef);
-                }
-                
-                FXParamDefinition def;
-                
-                GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
-                
-                if (tokens.size() > 2)
-                    def.paramNumber = tokens[2];
-                
-                int propertiesOffset = 3;
-                
-                if (tokens.size() > 4 && tokens[3] == "[")
-                {
-                    for (int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
-                        propertiesOffset++;
-
-                    propertiesOffset++; // skip ]
-                    
-                    GetSteppedValues(tokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
-                }
-                                       
-                if (tokens.size() > propertiesOffset)
-                    GetPropertiesFromTokens(propertiesOffset, (int)tokens.size(), tokens, def.paramWidgetProperties);
-                
-                if (getline(autoFXFile, line))
-                {
-                    tokens.clear();
-                    GetTokens(tokens, line.c_str());
-
-                    if (tokens.size() > 2)
-                    {
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
-                        
-                        def.paramName = tokens[2];
-                        
-                        if (tokens.size() > 3)
-                            GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
-                    }
-                }
-                else
-                    continue;
-                
-                if (getline(autoFXFile, line))
-                {
-                    tokens.clear();
-                    GetTokens(tokens, line.c_str());
-
-                    if (tokens.size() > 2)
-                    {
-                        GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
-                        
-                        if (tokens.size() > 3)
-                            GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
-                    }
-                }
-                else
-                    continue;
-               
-                curdef->definitions.push_back(def);
-            }
-        }
-    }
-
     void SaveAutoZone(const AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
     {
         FILE *fxFile = fopen(zoneDef.fullPath.c_str(),"wb");
@@ -3039,7 +2890,7 @@ public:
     int GetModifierValue(const string_list &tokens)
     {
         int modifierValue = 0;
-        for (int i = 0; i < tokens.size() - 1; i++)
+        for (int i = 0; i < tokens.size(); i++)
         {
             Modifiers m = modifierFromString(tokens[i].c_str());
             if (m != ErrorModifier)

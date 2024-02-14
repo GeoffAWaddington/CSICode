@@ -660,6 +660,8 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *ac
         }
     }
     
+    tokens.erase(tokens.size() - 1);
+    
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
@@ -965,7 +967,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         
         cell.modifiers = fxLayouts[i].modifiers;
         cell.modifierValue = modifierValue;
-        cell.suffix = fxLayouts[i].suffix;
+        cell.address = fxLayouts[i].suffix;
         
         FXParamTemplate t;
         
@@ -4286,6 +4288,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
         
     UnpackZone(zoneDef_, layoutTemplates);
     
+    return;
+    
     for (int i = 0; i < (int)zoneDef_.paramDefs.size(); ++i)
     {
         for (int j = 0; j < (int)zoneDef_.paramDefs[i].definitions.size(); ++j)
@@ -4384,7 +4388,8 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
                                 string_list modifierTokens;
                                 GetSubTokens(modifierTokens, previousLineTokens[0], '+');
                                 
-                                int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
+                                //int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
+                                int modifier = 0;
 
                                 Widget *controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
                                 
@@ -4522,7 +4527,8 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
             tokens.clear();
             GetSubTokens(tokens, tok0.c_str(), '+'); // should always produce exactly one token, since it's already been tokenized?
 
-            int lineModifier = surface_->GetModifierManager()->GetModifierValue(tokens);
+            //int lineModifier = surface_->GetModifierManager()->GetModifierValue(tokens);
+            int lineModifier = 0;
 
             if (modifier == lineModifier)
             {
@@ -4920,6 +4926,180 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         }
         needGarbageCollect_ = true;
     }
+}
+
+void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
+{
+    zoneDef.paramDefs.clear();
+    zoneDef.prologue.clear();
+    zoneDef.epilogue.clear();
+    zoneDef.rawParams.clear();
+    zoneDef.rawParamsDictionary.DeleteAll();
+
+    zoneDef.fxName = "";
+    zoneDef.fxAlias = "";
+
+    bool inZone = false;
+    bool inAutoZone = false;
+    bool pastAutoZone = false;
+    
+    vector<SurfaceCell> cells;
+    
+    fpistream autoFXFile(zoneDef.fullPath.c_str());
+    
+    int listSlotIndex = 0;
+    
+    FXParamDefinitions *curdef = new FXParamDefinitions;
+    zoneDef.paramDefs.Add(curdef);
+    
+    string_list tokens;
+    for (string line; getline(autoFXFile, line) ; )
+    {
+        ReplaceAllWith(line, "\r\n", "");
+
+        if (inAutoZone && ! pastAutoZone)
+        {
+            // Trim leading and trailing spaces
+            TrimLine(line);
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+        }
+
+        tokens.clear();
+        GetTokens(tokens, line.c_str());
+
+        if (line.substr(0, 5) == "Zone ")
+        {
+            inZone = true;
+            
+            if (tokens.size() > 1)
+                zoneDef.fxName = tokens[1];
+            if (tokens.size() > 2)
+                zoneDef.fxAlias = tokens[2];
+            
+            continue;
+        }
+        else if (line == s_BeginAutoSection)
+        {
+            inAutoZone = true;
+            continue;
+        }
+        else if (inZone && ! inAutoZone)
+        {
+            zoneDef.prologue.push_back(line);
+            continue;
+        }
+        else if (line == s_EndAutoSection)
+        {
+            pastAutoZone = true;
+            continue;
+        }
+        else if (line == "ZoneEnd")
+        {
+            inZone = false;
+            continue;
+        }
+        else if (inZone && pastAutoZone)
+        {
+            zoneDef.epilogue.push_back(line);
+            continue;
+        }
+        else if (! inZone && pastAutoZone)
+        {
+            if (line != "")
+                zoneDef.rawParams.push_back(line);
+            continue;
+        }
+        else if (tokens.size() > 0)
+        {
+            if (tokens[0] == "#Cell" && tokens.size() > 1)
+            {
+                SurfaceCell cell;
+                
+                cell.address = string(tokens[1]);
+                cell.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
+                if (cell.modifiers.length() > 0)
+                {
+                    string_list mods;
+                    GetSubTokens(mods, cell.modifiers.c_str(), '+');
+                    cell.modifierValue = surface_->GetModifierManager()->GetModifierValue(mods);
+                }
+                
+                cells.push_back(cell);
+                
+            }
+            
+            /*
+            if (tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
+            {
+                listSlotIndex++;
+                curdef = new FXParamDefinitions;
+                zoneDef.paramDefs.Add(curdef);
+            }
+            
+            FXParamDefinition def;
+            
+            GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+            
+            if (tokens.size() > 2)
+                def.paramNumber = tokens[2];
+            
+            int propertiesOffset = 3;
+            
+            if (tokens.size() > 4 && tokens[3] == "[")
+            {
+                for (int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
+                    propertiesOffset++;
+
+                propertiesOffset++; // skip ]
+                
+                GetSteppedValues(tokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+            }
+                                   
+            if (tokens.size() > propertiesOffset)
+                GetPropertiesFromTokens(propertiesOffset, (int)tokens.size(), tokens, def.paramWidgetProperties);
+            
+            if (getline(autoFXFile, line))
+            {
+                tokens.clear();
+                GetTokens(tokens, line.c_str());
+
+                if (tokens.size() > 2)
+                {
+                    GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                    
+                    def.paramName = tokens[2];
+                    
+                    if (tokens.size() > 3)
+                        GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
+                }
+            }
+            else
+                continue;
+            
+            if (getline(autoFXFile, line))
+            {
+                tokens.clear();
+                GetTokens(tokens, line.c_str());
+
+                if (tokens.size() > 2)
+                {
+                    GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                    
+                    if (tokens.size() > 3)
+                        GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
+                }
+            }
+            else
+                continue;
+           
+            curdef->definitions.push_back(def);
+             */
+        }
+    }
+    
+    int blah = 0;
 }
 
 void ZoneManager::DoTouch(Widget *widget, double value)

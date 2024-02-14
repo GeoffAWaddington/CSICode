@@ -1226,6 +1226,8 @@ bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
     
     s_zoneManager->UnpackZone(s_zoneDef, s_layoutTemplates);
     
+    return false;
+    
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
     if (s_dlgResult == IDSAVE)
