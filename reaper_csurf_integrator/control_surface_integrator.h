@@ -43,6 +43,12 @@
 
 #include "control_surface_integrator_Reaper.h"
 
+#ifdef INCLUDE_LOCALIZE_IMPORT_H
+#define LOCALIZE_IMPORT_PREFIX "csi_"
+#include "../WDL/localize/localize-import.h"
+#endif
+#include "../WDL/localize/localize.h"
+
 #ifdef _WIN32
 #include "commctrl.h"
 #else

@@ -4,6 +4,7 @@
 //
 //
 
+#define INCLUDE_LOCALIZE_IMPORT_H
 #include "control_surface_integrator.h"
 #include "control_surface_midi_widgets.h"
 #include "control_surface_Reaper_actions.h"
@@ -6144,3 +6145,10 @@ reaper_csurf_reg_t csurf_integrator_reg =
 };
 
 
+void localize_init(void * (*GetFunc)(const char *name))
+{
+    *(void **)&importedLocalizeFunc = GetFunc("__localizeFunc");
+    *(void **)&importedLocalizeMenu = GetFunc("__localizeMenu");
+    *(void **)&importedLocalizeInitializeDialog = GetFunc("__localizeInitializeDialog");
+    *(void **)&importedLocalizePrepareDialog = GetFunc("__localizePrepareDialog");
+}

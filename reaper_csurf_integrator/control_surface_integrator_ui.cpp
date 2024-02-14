@@ -35,7 +35,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, ("Advanced Edit Group " + int_to_string(s_groupIndex + 1)).c_str());
+            SetWindowText(hwndDlg, (__LOCALIZE("Advanced Edit Group ","csi_adv") + int_to_string(s_groupIndex + 1)).c_str());
 
             s_dlgResult = IDCANCEL;
                
@@ -378,7 +378,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i <NUM_ELEM( s_stepPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_stepPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
+                SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("Custom","csi_fxparm"));
                 
                 for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
                     SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
@@ -389,7 +389,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_widgetTypePickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_widgetTypePickers[i]));
-                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+                SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->paramWidgets_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->paramWidgets_[j].c_str());
@@ -405,7 +405,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayRowPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
@@ -414,7 +414,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayRowPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayRowPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
@@ -423,7 +423,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayFontPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayFontPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
@@ -432,7 +432,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayFontPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayFontPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
+                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
@@ -889,7 +889,10 @@ static void EditItem(HWND hwndParamList)
 
 static bool DeleteZone()
 {
-    if (MessageBox(NULL, (string("This will permanently delete\n\n") + s_zoneDef.fxName + string(".zon\n\n Are you sure you want to permanently delete this file from disk? \n\nIf you delerte the file the RemapAutoZone dialog will close.")).c_str(), string("Delete " + s_zoneDef.fxAlias).c_str(), MB_YESNO) == IDNO)
+    char buf[2048], buf2[2048];
+    snprintf(buf, sizeof(buf), __LOCALIZE_VERFMT("This will permanently delete\n\n%s.zon\n\nAre you sure you want to permanently delete this file from disk?\n\nIf you delete the file the RemapAutoZone dialog will close.","csi_mbox"), s_zoneDef.fxName.c_str());
+    snprintf(buf2, sizeof(buf2), __LOCALIZE_VERFMT("Delete %s","csi_mbox"), s_zoneDef.fxAlias.c_str());
+    if (MessageBox(GetMainHwnd(), buf, buf2, MB_YESNO) == IDNO)
        return false;
     
     s_zoneManager->RemoveZone(s_zoneDef.fxName.c_str());

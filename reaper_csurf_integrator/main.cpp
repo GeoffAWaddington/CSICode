@@ -7,6 +7,7 @@
 extern void ShutdownOSCIO();
 
 extern reaper_csurf_reg_t csurf_integrator_reg;
+extern void localize_init(void * (*GetFunc)(const char *name));
 
 REAPER_PLUGIN_HINSTANCE g_hInst; // used for dialogs, if any
 HWND g_hwnd;
@@ -37,7 +38,9 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
         {
             return 0;
         }
-      
+
+        localize_init(reaper_plugin_info->GetFunc);
+     
         reaper_plugin_info->Register("csurf",&csurf_integrator_reg);
 
         // plugin registered
