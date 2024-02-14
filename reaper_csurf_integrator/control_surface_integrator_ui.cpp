@@ -1959,7 +1959,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
 {
-    SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string(listener->name + " Listens to").c_str());
+    SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, string(listener->name + " Listens to").c_str());
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -1975,7 +1975,7 @@ static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
 
 static void ClearCheckBoxes(HWND hwndDlg)
 {
-    SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), "Surface Listens to");
+    SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, "Surface Listens to");
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
@@ -2114,7 +2114,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
 
-                                SetWindowText(GetDlgItem(hwndDlg, IDC_ListenCheckboxes), string( s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name + " Listens to").c_str());
+                                SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, string( s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name + " Listens to").c_str());
                             }
                         }
                     }
