@@ -959,27 +959,18 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
     
     for (int i = 0; i < fxLayouts.size(); ++i)
     {
-        string_list modifierTokens;
-        fxLayouts[i].GetModifierTokens(modifierTokens);
-        int modifierValue = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
-
         SurfaceCell cell;
         
         cell.modifiers = fxLayouts[i].modifiers;
-        cell.modifierValue = modifierValue;
         cell.address = fxLayouts[i].address;
         
         FXParamTemplate t;
-        
-        t.modifiers = fxLayouts[i].modifiers;
-        t.modifierValue = modifierValue;
-        
-        t.address = fxLayouts[i].address;
-        t.control = surface_->GetWidgetByName((paramWidget_ + t.address).c_str());
+
+        t.control = paramWidget_;
         t.controlParams = widgetParams_;
-        t.nameDisplay = surface_->GetWidgetByName((nameWidget_ + t.address).c_str());
+        t.nameDisplay = nameWidget_;
         t.nameDisplayParams = nameParams_;
-        t.valueDisplay = surface_->GetWidgetByName((valueWidget_ + t.address).c_str());
+        t.valueDisplay = valueWidget_;
         t.valueDisplayParams = valueParams_;
 
         cell.paramTemplates.push_back(t);
@@ -990,10 +981,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
             {
                 FXParamTemplate t;
                 
-                t.modifiers = fxLayouts[i].modifiers;
-                t.modifierValue = modifierValue;
-                t.address = fxLayouts[i].address;
-                t.control = surface_->GetWidgetByName((paramWidgets_[j] + t.address).c_str());
+                t.control =paramWidgets_[j];
                 
                 cell.paramTemplates.push_back(t);
             }
@@ -5019,15 +5007,82 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
                 
                 cell.address = string(tokens[1]);
                 cell.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
-                if (cell.modifiers.length() > 0)
-                {
-                    string_list mods;
-                    GetSubTokens(mods, cell.modifiers.c_str(), '+');
-                    cell.modifierValue = surface_->GetModifierManager()->GetModifierValue(mods);
-                }
                 
                 cells.push_back(cell);
                 
+            }
+            else
+            {
+                if (cells.size()== 0)
+                    continue;
+
+                SurfaceCell lastCell = cells[cells.size() - 1];
+                
+                 
+                string line2;
+                string line3;
+                
+                if (getline(autoFXFile, line2) && getline(autoFXFile, line3))
+                {
+                    vector<string> lines;
+                    lines.push_back(line);
+                    lines.push_back(line2);
+                    lines.push_back(line3);
+
+                    string_list cellTokens;
+                    
+                    FXParamTemplate t;
+                    
+                    for (int i = 0; i < lines.size(); ++i)
+                    {
+                        cellTokens.clear();
+                        GetTokens(cellTokens, lines[i].c_str());
+                        
+                        if (cellTokens.size() < 2)
+                            continue;
+                        
+                        //GetWidgetNameAndModifiers
+                        
+                        
+                        
+                        if (cellTokens[1] == "FXParam")
+                        {
+                           
+                            
+                            
+                            
+                            t.control = tokens[0];
+                            
+                            if (tokens.size() > 2)
+                            {
+                                t.controlAction = "FXParam";
+                                
+                                
+                            }
+                        }
+                        else if (cellTokens[1] == "FixedTextDisplay")
+                        {
+                            int blah = 0;
+                        }
+                        else if (cellTokens[1] == "FXParamValueDisplay")
+                        {
+                            int blah = 0;
+                        }
+                        
+                        
+                        
+     
+                    }
+                   
+                    
+                    
+                }
+                
+                 
+                
+                string_list lst;
+                GetTokens(lst, line.c_str());
+
             }
             
             /*
@@ -5098,8 +5153,6 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
              */
         }
     }
-    
-    int blah = 0;
 }
 
 void ZoneManager::DoTouch(Widget *widget, double value)

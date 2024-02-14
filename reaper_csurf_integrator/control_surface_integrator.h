@@ -1348,22 +1348,21 @@ void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, P
 
 struct FXParamTemplate
 {
-    string modifiers;
-    int modifierValue;
-    string address;
-    
-    Widget *control;
+    string control;
     string controlAction;
     ptrvector<string> controlParams;
     
-    Widget *nameDisplay;
+    string nameDisplay;
     string nameDisplayAction;
     ptrvector<string> nameDisplayParams;
 
-    Widget *valueDisplay;
+    string valueDisplay;
     string valueDisplayAction;
     ptrvector<string> valueDisplayParams;
 
+    string paramNum;
+    string paramName;
+    
     double delta;
     vector<double> deltas;
     double rangeMinimum;
@@ -1373,41 +1372,36 @@ struct FXParamTemplate
         
     FXParamTemplate()
     {
-        modifierValue = 0;
         delta = 0.0;
         rangeMinimum = 1.0;
         rangeMaximum = 0.0;
-
-        control = NULL;
-        nameDisplay = NULL;
-        valueDisplay = NULL;
         
         controlAction = "NoAction";
         nameDisplayAction = "NoAction";
         valueDisplayAction = "NoAction";
     }
     
-    void WriteToFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
+    void WriteToFile(FILE *fxFile, string &modifiers, string &address, int paramNum, const string &paramName, const string &steps)
     {
         if ( ! fxFile)
             return;
         
-        if ( ! control)
+        if ( control == "")
             return;
         
         if (steps != "")
-            fprintf(fxFile, "\t%s%s %s %d [ %s ]", modifiers.c_str(),  control->GetName(), "FXParam", paramNum, steps.c_str());
+            fprintf(fxFile, "\t%s%s %s %d [ %s ]", modifiers.c_str(),  (control + address).c_str(), "FXParam", paramNum, steps.c_str());
         else
-            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  control->GetName(), "FXParam", paramNum);
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  (control + address).c_str(), "FXParam", paramNum);
 
         for (int i = 0; i < controlParams.size(); ++i)
             fprintf(fxFile, " %s", controlParams[i].c_str());
         
         fprintf(fxFile, "\n");
         
-        if (nameDisplay)
+        if (nameDisplay != "")
         {
-            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(),  nameDisplay->GetName(), "FixedTextDisplay", paramName.c_str());
+            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(),  (nameDisplay + address).c_str(), "FixedTextDisplay", paramName.c_str());
 
             for (int i = 0; i < nameDisplayParams.size(); ++i)
                 fprintf(fxFile, " %s", nameDisplayParams[i].c_str());
@@ -1417,9 +1411,9 @@ struct FXParamTemplate
         else
             fprintf(fxFile, "\tNullDisplay %s\n", nameDisplayAction.c_str());
             
-        if (valueDisplay)
+        if (valueDisplay != "")
         {
-            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  valueDisplay->GetName(), "FXParamValueDisplay", paramNum);
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  (valueDisplay + address).c_str(), "FXParamValueDisplay", paramNum);
 
             for (int i = 0; i < valueDisplayParams.size(); ++i)
                 fprintf(fxFile, " %s", valueDisplayParams[i].c_str());
@@ -1430,23 +1424,23 @@ struct FXParamTemplate
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
     
-    void WriteToFile(FILE *fxFile)
+    void WriteToFile(FILE *fxFile, string &modifiers, string &address)
     {
         if ( ! fxFile)
             return;
         
-        if ( ! control)
+        if (control == "")
             return;
         
-        fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(),  control->GetName(), controlAction.c_str());
+        fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(),  (control + address).c_str(), controlAction.c_str());
 
-        if (nameDisplay)
-            fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(),  nameDisplay->GetName(), nameDisplayAction.c_str());
+        if (nameDisplay != "")
+            fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(),  (nameDisplay + address).c_str(), nameDisplayAction.c_str());
         else
             fprintf(fxFile, "\tNullDisplay %s\n", nameDisplayAction.c_str());
 
-        if (valueDisplay)
-            fprintf(fxFile, "\t%s%s %s\n\n", modifiers.c_str(),  valueDisplay->GetName(), valueDisplayAction.c_str());
+        if (valueDisplay != "")
+            fprintf(fxFile, "\t%s%s %s\n\n", modifiers.c_str(),  (valueDisplay + address).c_str(), valueDisplayAction.c_str());
         else
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
@@ -1455,15 +1449,9 @@ struct FXParamTemplate
 struct SurfaceCell
 {
     string modifiers;
-    int modifierValue;
     string address;
     vector<FXParamTemplate> paramTemplates;
-    
-    SurfaceCell()
-    {
-        modifierValue = 0;
-    }
-    
+        
     void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
     {
         if ( ! fxFile)
@@ -1474,9 +1462,9 @@ struct SurfaceCell
         for (int i = 0; i <paramTemplates.size(); ++i)
         {
             if (i == 0) // Auto Map only maps the first control/display
-                paramTemplates[i].WriteToFile(fxFile, paramNum, paramName, steps);
+                paramTemplates[i].WriteToFile(fxFile, modifiers, address, paramNum, paramName, steps);
             else
-                paramTemplates[i].WriteToFile(fxFile);
+                paramTemplates[i].WriteToFile(fxFile, modifiers, address);
         }
         
         fprintf(fxFile, "\n");
@@ -1490,7 +1478,7 @@ struct SurfaceCell
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i <paramTemplates.size(); ++i)
-            paramTemplates[i].WriteToFile(fxFile);
+            paramTemplates[i].WriteToFile(fxFile, modifiers, address);
             
         fprintf(fxFile, "\n");
     }
