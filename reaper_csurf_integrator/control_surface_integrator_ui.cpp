@@ -950,8 +950,6 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, "Remap Auto Zone");
-
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             WDL_UTF8_HookListView(paramList);
             
@@ -1117,7 +1115,6 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             ShowWindow(GetDlgItem(hwndDlg, IDC_WindowsHint), false);
             ShowWindow(GetDlgItem(hwndDlg, IDC_BUTTONUP), false);
             ShowWindow(GetDlgItem(hwndDlg, IDC_BUTTONDOWN), false);
-            SetWindowText(hwndDlg, "Remap Auto Zone");
 
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
