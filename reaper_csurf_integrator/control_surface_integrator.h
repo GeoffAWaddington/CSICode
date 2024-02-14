@@ -386,33 +386,6 @@ struct FXParamDefinitions
 
 
 
-struct AutoZoneDefinition
-{
-    string_list prologue;
-    string_list epilogue;
-    ptrvector<FXParamDefinitions> paramDefs;
-    
-    string_list rawParams;
-    WDL_StringKeyedArray<string> rawParamsDictionary;
-
-    string fxName;
-    string fxAlias;
-    string fullPath;
-    
-    void Clear()
-    {
-        prologue.clear();
-        epilogue.clear();
-        paramDefs.clear();
-        
-        rawParams.clear();
-        rawParamsDictionary.DeleteAll();
-
-        fxName = "";
-        fxAlias = "";
-        fullPath = "";
-    }
-};
 
 struct LearnFXCell
 {
@@ -1470,6 +1443,40 @@ struct SurfaceCell
     }
 };
 
+struct AutoZoneDefinition
+{
+    string fxName;
+    string fxAlias;
+    string fullPath;
+
+    string_list prologue;
+    string_list epilogue;
+    
+    vector<SurfaceCell> cells;
+
+    ptrvector<FXParamDefinitions> paramDefs;
+    
+    string_list rawParams;
+    WDL_StringKeyedArray<string> rawParamsDictionary;
+
+    
+    void Clear()
+    {
+        prologue.clear();
+        epilogue.clear();
+        cells.clear();
+        paramDefs.clear();
+        
+        rawParams.clear();
+        rawParamsDictionary.DeleteAll();
+
+        fxName = "";
+        fxAlias = "";
+        fullPath = "";
+    }
+};
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1998,7 +2005,7 @@ public:
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
-    void UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
+    void UnpackZone(AutoZoneDefinition &zoneDef);
     
     void RemapAutoZone();
     void UpdateCurrentActionContextModifiers();

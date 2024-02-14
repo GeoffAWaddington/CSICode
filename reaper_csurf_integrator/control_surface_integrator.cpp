@@ -4274,7 +4274,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
     ptrvector<FXParamLayoutTemplate> layoutTemplates;
     GetFXLayoutTemplates(layoutTemplates);
         
-    UnpackZone(zoneDef_, layoutTemplates);
+    UnpackZone(zoneDef_);
     
     return;
     
@@ -4916,24 +4916,23 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     }
 }
 
-void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
+void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
 {
-    zoneDef.paramDefs.clear();
-    zoneDef.prologue.clear();
-    zoneDef.epilogue.clear();
-    zoneDef.rawParams.clear();
-    zoneDef.rawParamsDictionary.DeleteAll();
+    zd.paramDefs.clear();
+    zd.prologue.clear();
+    zd.epilogue.clear();
+    zd.rawParams.clear();
+    zd.rawParamsDictionary.DeleteAll();
 
-    zoneDef.fxName = "";
-    zoneDef.fxAlias = "";
+    zd.fxName = "";
+    zd.fxAlias = "";
 
     bool inZone = false;
     bool inAutoZone = false;
     bool pastAutoZone = false;
     
-    vector<SurfaceCell> cells;
     
-    fpistream autoFXFile(zoneDef.fullPath.c_str());
+    fpistream autoFXFile(zd.fullPath.c_str());
         
     string_list tokens;
     for (string line; getline(autoFXFile, line) ; )
@@ -4957,9 +4956,9 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
             inZone = true;
             
             if (tokens.size() > 1)
-                zoneDef.fxName = tokens[1];
+                zd.fxName = tokens[1];
             if (tokens.size() > 2)
-                zoneDef.fxAlias = tokens[2];
+                zd.fxAlias = tokens[2];
             
             continue;
         }
@@ -4970,7 +4969,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
         }
         else if (inZone && ! inAutoZone)
         {
-            zoneDef.prologue.push_back(line);
+            zd.prologue.push_back(line);
             continue;
         }
         else if (line == s_EndAutoSection)
@@ -4985,13 +4984,13 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
         }
         else if (inZone && pastAutoZone)
         {
-            zoneDef.epilogue.push_back(line);
+            zd.epilogue.push_back(line);
             continue;
         }
         else if (! inZone && pastAutoZone)
         {
             if (line != "")
-                zoneDef.rawParams.push_back(line);
+                zd.rawParams.push_back(line);
             continue;
         }
         else if (tokens.size() > 0)
@@ -5003,15 +5002,15 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
                 cell.address = string(tokens[1]);
                 cell.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
                 
-                cells.push_back(cell);
+                zd.cells.push_back(cell);
                 
             }
             else
             {
-                if (cells.size()== 0)
+                if (zd.cells.size()== 0)
                     continue;
 
-                SurfaceCell &lastCell = cells[cells.size() - 1];
+                SurfaceCell &lastCell = zd.cells[zd.cells.size() - 1];
                 
                 string line2;
                 string line3;

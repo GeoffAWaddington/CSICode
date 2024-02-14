@@ -753,27 +753,32 @@ string_list GetLineComponents(int index)
 {
     string_list components;
     
-    components.push_back(s_layoutTemplates[index].modifiers + s_layoutTemplates[index].suffix);
+    SurfaceCell &cell = s_zoneDef.cells[index];
     
-    for (int i = 0; i < (int)s_zoneDef.paramDefs[index].definitions.size(); ++i)
-    {
-        string widgetName = s_zoneDef.paramDefs[index].definitions[i].paramWidget;
-        
-        if (widgetName == "RotaryPush")
-            widgetName = "Push";
-        
-        components.push_back(widgetName);
-        
-        string alias = s_zoneDef.paramDefs[index].definitions[i].paramName;
+    components.push_back(cell.modifiers + cell.address);
 
-        if (s_zoneDef.paramDefs[index].definitions[i].paramName == "" && s_zoneDef.paramDefs[index].definitions[i].paramNumber != "" && s_zoneDef.rawParamsDictionary.Exists(s_zoneDef.paramDefs[index].definitions[i].paramNumber.c_str()))
-            alias = s_zoneDef.rawParamsDictionary.Get(s_zoneDef.paramDefs[index].definitions[i].paramNumber.c_str());
-        else if (s_zoneDef.paramDefs[index].definitions[i].paramNumber == "")
-            alias = "NoAction";
+    for (int i = 0; i < cell.paramTemplates.size(); ++i)
+    {
+        FXParamTemplate &t = cell.paramTemplates[i];
         
-        components.push_back(alias);
+        string_list tokens;
+        GetSubTokens(tokens, t.control.c_str(), '+');
+        
+        string controlName = string(tokens[tokens.size() - 1]);
+        
+        controlName = controlName.substr(0, controlName.find(cell.address));
+        
+        if (controlName == "RotaryPush")
+            controlName = "Push";
+        
+        components.push_back(controlName);
+        
+        if (t.paramName != "")
+            components.push_back(t.paramName);
+        else
+            components.push_back("NoAction");
     }
-        
+
     return components;
 }
 
@@ -814,7 +819,7 @@ static void PopulateListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
         
-    for (int i = 0; i < s_zoneDef.paramDefs.size(); i++)
+    for (int i = 0; i < s_zoneDef.cells.size(); i++)
         SetListViewItem(hwndParamList, i, true);
 }
 
@@ -1115,7 +1120,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for (int i = 1; i <= s_numGroups  *2; i++)
+            for (int i = 1; i <= s_numGroups * 2; i++)
             {
                 columnDescriptor.cx = columnSizes[i];
                 ListView_InsertColumn(paramList, i, &columnDescriptor);
@@ -1224,9 +1229,7 @@ bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
     s_numGroups = s_zoneManager->GetNumGroups();
     s_zoneManager->GetFXLayoutTemplates(s_layoutTemplates);
     
-    s_zoneManager->UnpackZone(s_zoneDef, s_layoutTemplates);
-    
-    return false;
+    s_zoneManager->UnpackZone(s_zoneDef);
     
     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
     
