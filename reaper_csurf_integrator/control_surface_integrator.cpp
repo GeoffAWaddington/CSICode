@@ -5033,8 +5033,10 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
 
                     FXParamTemplate t;
 
-                    t.control = cellTokens[0];
-                    
+                    string_list widgetTokens;
+                    GetSubTokens(widgetTokens, cellTokens[0], '+');
+
+                    t.control = widgetTokens[widgetTokens.size() - 1];
                     t.control = t.control.substr(0, t.control.find(lastCell.address));
 
                     if (cellTokens.size() > 2)
@@ -5046,10 +5048,13 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     }
                     
                     cellTokens.clear();
+                    widgetTokens.clear ();
                     
                     GetTokens(cellTokens, line2.c_str());
 
-                    t.nameDisplay = cellTokens[0];
+                    GetSubTokens(widgetTokens, cellTokens[0], '+');
+
+                    t.nameDisplay = widgetTokens[widgetTokens.size() - 1];
 
                     t.nameDisplay = t.nameDisplay.substr(0, t.nameDisplay.find(lastCell.address));
 
@@ -5062,10 +5067,13 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     }
 
                     cellTokens.clear();
+                    widgetTokens.clear ();
 
                     GetTokens(cellTokens, line3.c_str());
 
-                    t.valueDisplay = cellTokens[0];
+                    GetSubTokens(widgetTokens, cellTokens[0], '+');
+
+                    t.valueDisplay = widgetTokens[widgetTokens.size() - 1];
 
                     t.valueDisplay = t.valueDisplay.substr(0, t.valueDisplay.find(lastCell.address));
 
@@ -5077,6 +5085,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     }
                     
                     cellTokens.clear();
+                    widgetTokens.clear ();
 
                     lastCell.paramTemplates.push_back(t);
 

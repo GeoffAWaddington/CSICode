@@ -1376,7 +1376,7 @@ struct FXParamTemplate
         
         fprintf(fxFile, "\n");
         
-        if (nameDisplay != "")
+        if (paramName != "")
         {
             fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(), (nameDisplay + address).c_str(), "FixedTextDisplay", paramName.c_str());
 
@@ -1428,14 +1428,17 @@ struct FXParamTemplate
         if (control == "")
             return;
         
-        fprintf(fxFile, "\t%s%s %s %s %s\n", modifiers.c_str(), (control + address).c_str(), controlAction.c_str(), paramNum.c_str(), controlParams.c_str());
+        if (paramNum != "")
+            fprintf(fxFile, "\t%s%s %s %s %s\n", modifiers.c_str(), (control + address).c_str(), controlAction.c_str(), paramNum.c_str(), controlParams.c_str());
+        else
+            fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(), (control + address).c_str(), "NoAction");
 
-        if (nameDisplay != "")
+        if (paramName != "")
             fprintf(fxFile, "\t%s%s %s \"%s\" %s\n", modifiers.c_str(), (nameDisplay + address).c_str(), nameDisplayAction.c_str(), paramName.c_str(), nameDisplayParams.c_str());
         else
             fprintf(fxFile, "\tNullDisplay %s\n", nameDisplayAction.c_str());
 
-        if (valueDisplay != "")
+        if (paramNum != "")
             fprintf(fxFile, "\t%s%s %s %s %s\n\n", modifiers.c_str(), (valueDisplay + address).c_str(), valueDisplayAction.c_str(), paramNum.c_str(), valueDisplayParams.c_str());
         else
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
@@ -1462,7 +1465,7 @@ struct SurfaceCell
         
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
-        for (int i = 0; i <paramTemplates.size(); ++i)
+        for (int i = 0; i < paramTemplates.size(); ++i)
         {
             if (i == 0) // Auto Map only maps the first control/display
                 paramTemplates[i].WriteToFile(fxFile, modifiers, address, paramNum, paramName, steps);
