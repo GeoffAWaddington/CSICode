@@ -12,13 +12,18 @@
 #define control_surface_integrator
 
 #if __cplusplus < 201100
+#if !defined(_MSC_VER) || _MSC_VER < 1400
 #define override
+#endif
 #endif
 
 #ifdef _WIN32
 #define _CRT_NONSTDC_NO_DEPRECATE // for Visual Studio versions that want _strdup instead of strdup
 #if _MSC_VER <= 1400
 #define _CRT_SECURE_NO_DEPRECATE
+#endif
+#if _MSC_VER >= 1800
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #endif
 #endif
 
