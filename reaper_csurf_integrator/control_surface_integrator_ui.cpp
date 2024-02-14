@@ -892,7 +892,7 @@ static void EditItem(HWND hwndParamList)
 static bool DeleteZone()
 {
     char buf[2048], buf2[2048];
-    snprintf(buf, sizeof(buf), __LOCALIZE_VERFMT("This will permanently delete\n\n%s.zon\n\nAre you sure you want to permanently delete this file from disk?\n\nIf you delete the file the RemapAutoZone dialog will close.","csi_mbox"), s_zoneDef.fxName.c_str());
+    snprintf(buf, sizeof(buf), __LOCALIZE_VERFMT("This will permanently delete\r\n\r\n%s.zon\r\n\r\nAre you sure you want to permanently delete this file from disk?\n\nIf you delete the file the RemapAutoZone dialog will close.","csi_mbox"), s_zoneDef.fxName.c_str());
     snprintf(buf2, sizeof(buf2), __LOCALIZE_VERFMT("Delete %s","csi_mbox"), s_zoneDef.fxAlias.c_str());
     if (MessageBox(GetMainHwnd(), buf, buf2, MB_YESNO) == IDNO)
        return false;
@@ -1959,7 +1959,9 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
 {
-    SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, string(listener->name + " Listens to").c_str());
+    char tmp[BUFSZ];
+    snprintf(tmp,sizeof(tmp), __LOCALIZE_VERFMT("%s Listens to","csi_osc"), listener->name.c_str());
+    SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, tmp);
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -1975,7 +1977,7 @@ static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
 
 static void ClearCheckBoxes(HWND hwndDlg)
 {
-    SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, "Surface Listens to");
+    SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, __LOCALIZE("Surface Listens to", "csi_osc"));
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
@@ -2114,7 +2116,10 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
 
-                                SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, string( s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name + " Listens to").c_str());
+                                char tmp[BUFSZ];
+                                snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s Listens to","csi_osc"), 
+                                   s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name.c_str());
+                                SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, tmp);
                             }
                         }
                     }
@@ -2714,7 +2719,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 {
                     if (line != s_MajorVersionToken)
                     {
-                        MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + string(s_MajorVersionToken)).c_str(), ("This is CSI " + string(s_MajorVersionToken)).c_str(), MB_OK);
+                        char tmp[BUFSZ];
+                        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not version %s.","csi_mbox"), s_MajorVersionToken);
+                        MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
                         iniFile.close();
                         break;
                     }

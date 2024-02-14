@@ -2089,7 +2089,9 @@ void CSurfIntegrator::Init()
     WDL_DirScan ds;
     if (ds.First(CSIFolderPath.c_str()))
     {       
-        MessageBox(g_hwnd, ("Please check your installation, cannot find " + CSIFolderPath).c_str(), "Missing CSI Folder", MB_OK);
+        char tmp[BUFSZ];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), CSIFolderPath.c_str());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("Missing CSI Folder","csi_mbox"), MB_OK);
         
         return;
     }
@@ -2109,7 +2111,10 @@ void CSurfIntegrator::Init()
             {
                 if (line != s_MajorVersionToken)
                 {
-                    MessageBox(g_hwnd, ("Version mismatch -- Your CSI.ini file is not " + string(s_MajorVersionToken)).c_str(), ("This is CSI " + string(s_MajorVersionToken)).c_str(), MB_OK);
+                    char tmp[BUFSZ];
+                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not version %s.","csi_mbox"), s_MajorVersionToken);
+                    MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
+
                     iniFile.close();
                     return;
                 }
@@ -3475,7 +3480,9 @@ void ZoneManager::Initialize()
 
     if ( ! zoneFilePaths_.Exists("Home"))
     {
-        MessageBox(g_hwnd, (string(surface_->GetName()) + " needs a Home Zone to operate, please recheck your installation").c_str(), ("CSI cannot find Home Zone for " + string(surface_->GetName())).c_str(), MB_OK);
+        char tmp[BUFSZ];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s needs a Home Zone to operate, please recheck your installation", "csi_mbox"), surface_->GetName());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("CSI Missing Home Zone", "csi_mbox"), MB_OK);
         return;
     }
         
@@ -3523,7 +3530,10 @@ void ZoneManager::CheckFocusedFXState()
             char alias[256], learnalias[256];
             GetAlias(fxName, alias, sizeof(alias));
             GetAlias(learnFXName_.c_str(), learnalias, sizeof(learnalias));
-            if (MessageBox(NULL, (string("You have now shifted focus to ") + string(alias) + "\n\n" + string(learnalias) + string(" has parameters that have not been saved\n\n Do you want to save them now ?")).c_str(), "Unsaved Learn FX Params", MB_YESNO) == IDYES)
+
+            char tmp[2048];
+            snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("You have now shifted focus to %s.\r\n\r\n%s has parameters that have not been saved.\r\n\r\nDo you want to save them now?","csi_mbox"), alias, learnalias);
+            if (MessageBox(g_hwnd, tmp, __LOCALIZE("Unsaved Learn FX Params","csi_mbox"), MB_YESNO) == IDYES)
             {
                 SaveLearnedFXParams();
             }
@@ -3740,7 +3750,9 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
                 {
                     file.close();
                     
-                    if (MessageBox(NULL, (zoneFilePaths_.Get(fxName)->alias + " already exists\n\n Do you want to delete it permanently and go into LearnMode ?").c_str(), "Zone Already Exists", MB_YESNO) == IDYES)
+                    char tmp[BUFSZ];
+                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s already exists.\r\n\r\nDo you want to delete it permanently and go into LearnMode?","csi_mbox"), zoneFilePaths_.Get(fxName)->alias.c_str());
+                    if (MessageBox(g_hwnd, tmp, __LOCALIZE("Zone Already Exists","csi_mbox"), MB_YESNO) == IDYES)
                     {
                         ClearLearnedFXParams();
                         RemoveZone(fxName);
@@ -4715,7 +4727,9 @@ void ZoneManager::PreProcessZones()
        
     if (zoneFilesToProcess.size() == 0)
     {
-        MessageBox(g_hwnd, (string("Please check your installation, cannot find Zone files in ") + GetResourcePath() + string("/CSI/Zones/") + zoneFolder_).c_str(), (string(GetSurface()->GetName()) + " Zone folder is missing or empty").c_str(), MB_OK);
+        char tmp[2048];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find Zone files for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder is missing or empty","csi_mbox"), MB_OK);
 
         return;
     }
