@@ -2740,7 +2740,7 @@ void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
-        if (zoneManager_->GetZoneFilePaths().Exists(subZones[i].c_str()) > 0)
+        if (zoneManager_->GetZoneFilePaths().Exists(subZones[i].c_str()))
         {
             WDL_PtrList<Navigator> navigators;
             navigators.Add(GetNavigator());

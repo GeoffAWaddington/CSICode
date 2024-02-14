@@ -1488,9 +1488,9 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         else if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_MCP))
                            s_followMCP = true;
                         
-                        s_synchPages = IsDlgButtonChecked(hwndDlg, IDC_CHECK_SynchPages);
-                        s_isScrollLinkEnabled = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollLink);
-                        s_scrollSynch = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollSynch);
+                        s_synchPages = !! IsDlgButtonChecked(hwndDlg, IDC_CHECK_SynchPages);
+                        s_isScrollLinkEnabled = !! IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollLink);
+                        s_scrollSynch = !! IsDlgButtonChecked(hwndDlg, IDC_CHECK_ScrollSynch);
                         
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -2343,10 +2343,10 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                     {
                         if (g_csiForGui)
                         {
-                            g_csiForGui->SetSurfaceRawInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowRawInput));
-                            g_csiForGui->SetSurfaceInDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowInput));
-                            g_csiForGui->SetSurfaceOutDisplay(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowOutput));
-                            g_csiForGui->SetFXParamsWrite(IsDlgButtonChecked(hwndDlg, IDC_CHECK_WriteFXParams));
+                            g_csiForGui->SetSurfaceRawInDisplay(!! IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowRawInput));
+                            g_csiForGui->SetSurfaceInDisplay(!! IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowInput));
+                            g_csiForGui->SetSurfaceOutDisplay(!! IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowOutput));
+                            g_csiForGui->SetFXParamsWrite(!! IsDlgButtonChecked(hwndDlg, IDC_CHECK_WriteFXParams));
                         }
                         
                         TransferBroadcasters(s_broadcasters, s_pages.Get(s_pageIndex)->broadcasters);
