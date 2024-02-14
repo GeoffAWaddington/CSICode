@@ -1300,7 +1300,7 @@ struct FXCellLayoutInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string modifiers;
-    string suffix;
+    string address;
     int channelCount;
     
     FXCellLayoutInfo()
@@ -1350,7 +1350,7 @@ struct FXParamTemplate
 {
     string modifiers;
     int modifierValue;
-    string suffix;
+    string address;
     
     Widget *control;
     string controlAction;
@@ -2524,7 +2524,7 @@ public:
                 FXParamLayoutTemplate layoutTemplate;
                 
                 layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].suffix + int_to_string(j + 1);
+                layoutTemplate.suffix = GetFXLayouts()[i].address + int_to_string(j + 1);
                 
                 layoutTemplate.widgetAction = widgetAction;
                 layoutTemplate.aliasDisplayAction = aliasDisplayAction;

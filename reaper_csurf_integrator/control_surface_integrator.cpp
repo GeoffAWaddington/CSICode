@@ -802,7 +802,7 @@ void ZoneManager::ProcessFXLayouts(const string &layoutPath, ptrvector<FXCellLay
                 if (tokens.size() == 3)
                 {
                     info.modifiers = tokens[0];
-                    info.suffix = tokens[1];
+                    info.address = tokens[1];
                     info.channelCount = atoi(tokens[2].c_str());
                 }
 
@@ -850,8 +850,8 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                         info.modifiers = tokens[0];
                         if (info.modifiers != "")
                             info.modifiers += "+";
-                        info.suffix = tokens[1];
-                        info.suffix += int_to_string(i);
+                        info.address = tokens[1];
+                        info.address += int_to_string(i);
                         fxLayouts.push_back(info);
                     }
                 }
@@ -967,19 +967,19 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         
         cell.modifiers = fxLayouts[i].modifiers;
         cell.modifierValue = modifierValue;
-        cell.address = fxLayouts[i].suffix;
+        cell.address = fxLayouts[i].address;
         
         FXParamTemplate t;
         
         t.modifiers = fxLayouts[i].modifiers;
         t.modifierValue = modifierValue;
         
-        t.suffix = fxLayouts[i].suffix;
-        t.control = surface_->GetWidgetByName((paramWidget_ + t.suffix).c_str());
+        t.address = fxLayouts[i].address;
+        t.control = surface_->GetWidgetByName((paramWidget_ + t.address).c_str());
         t.controlParams = widgetParams_;
-        t.nameDisplay = surface_->GetWidgetByName((nameWidget_ + t.suffix).c_str());
+        t.nameDisplay = surface_->GetWidgetByName((nameWidget_ + t.address).c_str());
         t.nameDisplayParams = nameParams_;
-        t.valueDisplay = surface_->GetWidgetByName((valueWidget_ + t.suffix).c_str());
+        t.valueDisplay = surface_->GetWidgetByName((valueWidget_ + t.address).c_str());
         t.valueDisplayParams = valueParams_;
 
         cell.paramTemplates.push_back(t);
@@ -992,8 +992,8 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 
                 t.modifiers = fxLayouts[i].modifiers;
                 t.modifierValue = modifierValue;
-                t.suffix = fxLayouts[i].suffix;
-                t.control = surface_->GetWidgetByName((paramWidgets_[j] + t.suffix).c_str());
+                t.address = fxLayouts[i].address;
+                t.control = surface_->GetWidgetByName((paramWidgets_[j] + t.address).c_str());
                 
                 cell.paramTemplates.push_back(t);
             }
@@ -4140,9 +4140,9 @@ void ZoneManager::InitializeNoMapZone()
                 
                 for (int j = 1; j <= surfaceFXLayouts_[i].channelCount; j++)
                 {
-                    string cellAdress = surfaceFXLayouts_[i].suffix + int_to_string(j);
+                    string cellAddress = surfaceFXLayouts_[i].address + int_to_string(j);
                     
-                    Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAdress).c_str());
+                    Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAddress).c_str());
                     if (widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
@@ -4150,7 +4150,7 @@ void ZoneManager::InitializeNoMapZone()
                     context->SetProvideFeedback(true);
                     noMapZone_->AddActionContext(widget, modifier, context);
 
-                    widget = GetSurface()->GetWidgetByName((valueDisplayWidget + cellAdress).c_str());
+                    widget = GetSurface()->GetWidgetByName((valueDisplayWidget + cellAddress).c_str());
                     if (widget == NULL || usedWidgets.Exists(widget))
                         continue;
                     noMapZone_->AddWidget(widget, widget->GetName());
@@ -4160,7 +4160,7 @@ void ZoneManager::InitializeNoMapZone()
                     
                     for (int k = 0; k < (int)paramWidgets.size(); ++k)
                     {
-                        widget = GetSurface()->GetWidgetByName((string(paramWidgets[k]) + cellAdress).c_str());
+                        widget = GetSurface()->GetWidgetByName((string(paramWidgets[k]) + cellAddress).c_str());
                         if (widget == NULL || usedWidgets.Exists(widget))
                             continue;
                         noMapZone_->AddWidget(widget, widget->GetName());
@@ -4229,7 +4229,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
                         LearnFXCell cell;
                         
                         char cellAddress[BUFSZ];
-                        snprintf(cellAddress, sizeof(cellAddress), "%s%d",surfaceFXLayouts_[i].suffix.c_str(),j);
+                        snprintf(cellAddress, sizeof(cellAddress), "%s%d",surfaceFXLayouts_[i].address.c_str(),j);
                         
                         Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAddress).c_str());
                         if (widget == NULL)
