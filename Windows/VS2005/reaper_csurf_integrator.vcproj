@@ -391,6 +391,14 @@
 				RelativePath="..\..\reaper_csurf_integrator\main.cpp"
 				>
 			</File>
+			<Filter
+				Name="WDL"
+				>
+				<File
+					RelativePath="..\..\WDL\win32_utf8.c"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath="..\..\reaper_csurf_integrator\oscpkt.hh"

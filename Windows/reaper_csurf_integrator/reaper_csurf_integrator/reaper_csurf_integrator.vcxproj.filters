@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\WDL">
+      <UniqueIdentifier>{66cb0380-c66e-4a13-a477-23e058a0ea04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\reaper_csurf_integrator\control_surface_integrator.cpp">
@@ -23,6 +26,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\reaper_csurf_integrator\control_surface_integrator_ui.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\WDL\win32_utf8.c">
+      <Filter>Source Files\WDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

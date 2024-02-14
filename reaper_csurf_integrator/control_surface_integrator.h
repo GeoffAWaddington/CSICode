@@ -36,10 +36,12 @@
 #include "udp.hh"
 #endif
 
-#include "control_surface_integrator_Reaper.h"
+#include "../WDL/win32_utf8.h"
 #include "../WDL/ptrlist.h"
 #include "../WDL/assocarray.h"
 #include "../WDL/wdlstring.h"
+
+#include "control_surface_integrator_Reaper.h"
 
 #ifdef _WIN32
 #include "commctrl.h"
@@ -78,7 +80,7 @@ class fpistream
   public:
     FILE *handle;
 
-    fpistream(const char *fn) { handle = fopen(fn, "rb"); }
+    fpistream(const char *fn) { handle = fopenUTF8(fn, "rb"); }
     ~fpistream() { close(); }
     void close() { if (handle) { fclose(handle); handle = NULL; } }
 };
@@ -2520,7 +2522,7 @@ public:
     
     void SaveAutoZone(const AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
     {
-        FILE *fxFile = fopen(zoneDef.fullPath.c_str(),"wb");
+        FILE *fxFile = fopenUTF8(zoneDef.fullPath.c_str(),"wb");
         
         if (fxFile)
         {
@@ -5114,7 +5116,7 @@ public:
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
 
-                    fxFile = fopen((string(GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
+                    fxFile = fopenUTF8((string(GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
                     
                     if (fxFile)
                         fprintf(fxFile, "Zone \"%s\"\n", fxName);

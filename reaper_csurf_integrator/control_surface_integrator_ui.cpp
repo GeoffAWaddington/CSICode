@@ -367,6 +367,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             s_hasFonts = false;
             s_hasColors = false;
             
+            WDL_UTF8_HookListView(GetDlgItem(hwndDlg, IDC_AllParams));
+
             ShowBaseControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false );
             ShowFontControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
             ShowColorControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
@@ -375,6 +377,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i <NUM_ELEM( s_stepPickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_stepPickers[i]));
                 SendDlgItemMessage(hwndDlg, s_stepPickers[i], CB_ADDSTRING, 0, (LPARAM)"Custom");
                 
                 for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
@@ -385,6 +388,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i < NUM_ELEM(s_widgetTypePickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_widgetTypePickers[i]));
                 SendDlgItemMessage(hwndDlg, s_widgetTypePickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->paramWidgets_.size(); j++)
@@ -393,12 +397,14 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             for (int i = 0; i < NUM_ELEM(s_ringStylePickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_ringStylePickers[i]));
                 for (int j = 0; j < s_zoneManager->ringStyles_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->ringStyles_[j].c_str());
             }
             
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayRowPickers[i]));
                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
@@ -407,6 +413,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayRowPickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayRowPickers[i]));
                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
@@ -415,6 +422,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayFontPickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayFontPickers[i]));
                 SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
@@ -423,6 +431,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayFontPickers); i++)
             {
+                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayFontPickers[i]));
                 SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"None");
 
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
@@ -939,6 +948,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             SetWindowText(hwndDlg, "Remap Auto Zone");
 
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+            WDL_UTF8_HookListView(paramList);
             
             vector<int> columnSizes;
             columnSizes.push_back(160);
@@ -1539,6 +1549,10 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         case WM_INITDIALOG:
         {
             const string resourcePath(GetResourcePath());
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates));
             if (s_editMode)
             {
                 AddComboEntry(hwndDlg, 0, (char *)s_pageSurfaceName.c_str(), IDC_COMBO_PageSurface);
@@ -1716,6 +1730,8 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             char buf[BUFSZ];
             int currentIndex = 0;
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut));
             
             for (int i = 0; i < GetNumMIDIInputs(); i++)
                 if (GetMIDIInputName(i, buf, sizeof(buf)))
@@ -1834,6 +1850,8 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         case WM_INITDIALOG:
         {
             string resourcePath(GetResourcePath());
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates));
             
             int i = 0;
             for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
@@ -1975,6 +1993,8 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
     {
         case WM_INITDIALOG:
         {
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_AddBroadcaster));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_AddListener));
             for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddBroadcaster);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddBroadcaster), CB_SETCURSEL, 0, 0);
@@ -2854,7 +2874,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         case WM_USER+1024:
         {
-            FILE *iniFile = fopen((string(GetResourcePath()) + "/CSI/CSI.ini").c_str(), "wb");
+            FILE *iniFile = fopenUTF8((string(GetResourcePath()) + "/CSI/CSI.ini").c_str(), "wb");
 
             if (iniFile)
             {

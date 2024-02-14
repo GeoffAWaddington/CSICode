@@ -3884,7 +3884,7 @@ void ZoneManager::SaveTemplatedFXParams()
             surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
         }
         
-        FILE *fxZone = fopen(path.c_str(),"wb");
+        FILE *fxZone = fopenUTF8(path.c_str(),"wb");
 
         if (fxZone)
         {
@@ -3968,7 +3968,7 @@ void ZoneManager::SaveLearnedFXParams()
                 }
         }
         
-        FILE *fxZone = fopen(path.c_str(),"wb");
+        FILE *fxZone = fopenUTF8(path.c_str(),"wb");
 
         if (fxZone != NULL)
         {
@@ -4859,7 +4859,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     AddZoneFilePath(fxName.c_str(), info);
     surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), fxName.c_str(), info);
     
-    FILE *fxZone = fopen(path.c_str(),"wb");
+    FILE *fxZone = fopenUTF8(path.c_str(),"wb");
     
     if (fxZone)
     {

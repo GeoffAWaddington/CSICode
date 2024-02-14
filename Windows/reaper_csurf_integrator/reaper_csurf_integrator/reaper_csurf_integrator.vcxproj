@@ -122,6 +122,7 @@
     <ClCompile Include="..\..\..\reaper_csurf_integrator\control_surface_integrator.cpp" />
     <ClCompile Include="..\..\..\reaper_csurf_integrator\control_surface_integrator_ui.cpp" />
     <ClCompile Include="..\..\..\reaper_csurf_integrator\main.cpp" />
+    <ClCompile Include="..\..\..\WDL\win32_utf8.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\reaper_csurf_integrator\control_surface_action_contexts.h" />
