@@ -198,6 +198,15 @@ string int_to_string(int value)
     return string(buf);
 }
 
+string double_to_string(double value)
+{
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%f", value);
+    
+    return string(buf);
+}
+
+
 bool getline(fpistream &fp, string &str) // mimic C++ getline()
 {
     str.clear();
@@ -5893,7 +5902,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (csi_->GetSurfaceOutDisplay())
-        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + double_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *value)
@@ -5909,7 +5918,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
     if (csi_->GetSurfaceOutDisplay())
-        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
+        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + double_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, int value)
