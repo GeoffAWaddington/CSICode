@@ -4286,7 +4286,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
         
     UnpackZone(zoneDef_);
     
-    return;
+    /*
     
     for (int i = 0; i < (int)zoneDef_.paramDefs.size(); ++i)
     {
@@ -4342,6 +4342,8 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
             }
         }
     }
+    
+    */
 }
 
 void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
@@ -4928,7 +4930,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
 
 void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
 {
-    zd.paramDefs.clear();
+    zd.cells.clear();
     zd.prologue.clear();
     zd.epilogue.clear();
     zd.rawParams.clear();
@@ -4940,7 +4942,6 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
     bool inZone = false;
     bool inAutoZone = false;
     bool pastAutoZone = false;
-    
     
     fpistream autoFXFile(zd.fullPath.c_str());
         

@@ -38,7 +38,10 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             SetWindowText(hwndDlg, (__LOCALIZE("Advanced Edit Group ","csi_adv") + int_to_string(s_groupIndex + 1)).c_str());
 
             s_dlgResult = IDCANCEL;
-               
+            
+            
+            
+            /*
             char tmp[BUFSZ];
             if (s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta != 0.0)
                 SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta, tmp, sizeof(tmp)));
@@ -72,6 +75,9 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
+            */
+            
+            
         }
             break;
             
@@ -83,8 +89,9 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+/*
                         char buf[BUFSZ];
-                        
+
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
                         if (buf[0])
                             s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].delta = atof(buf);
@@ -116,7 +123,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                             for (int i = 0; i < (int)ticks.size(); ++i)
                                 s_zoneDef.paramDefs[s_fxListIndex].definitions[s_groupIndex].ticks.push_back(atoi(ticks[i].c_str()));
                         }
-
+*/
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }
@@ -437,7 +444,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
-
+/*
             for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
                 SetDlgItemText(hwndDlg, s_paramNumEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNumber.c_str());
@@ -534,6 +541,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 }
             }
             
+            */
+            
+            
             ShowBaseControls(hwndDlg, 0, s_numGroups, true);
             
             if (s_hasFonts)
@@ -611,6 +621,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
+                        /*
                         for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size(); i++)
                         {
                             char buf[BUFSZ];
@@ -678,6 +689,8 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             }
                         }
                        
+                        */
+                        
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }

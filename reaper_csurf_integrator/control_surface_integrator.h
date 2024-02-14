@@ -1514,18 +1514,17 @@ struct AutoZoneDefinition
     
     ptrvector<SurfaceCell> cells;
 
-    ptrvector<FXParamDefinitions> paramDefs;
+    //ptrvector<FXParamDefinitions> paramDefs;
     
     string_list rawParams;
     WDL_StringKeyedArray<string> rawParamsDictionary;
 
-    
     void Clear()
     {
         prologue.clear();
         epilogue.clear();
         cells.clear();
-        paramDefs.clear();
+        //paramDefs.clear();
         
         rawParams.clear();
         rawParamsDictionary.DeleteAll();
