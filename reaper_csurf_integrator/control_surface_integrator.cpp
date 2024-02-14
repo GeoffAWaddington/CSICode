@@ -147,7 +147,7 @@ void GetParamStepsString(string &outputString, int numSteps) // appends to strin
         char tmp[128];
         snprintf(tmp,sizeof(tmp), "%.2f", EnumSteppedValues(numSteps, i));
         WDL_remove_trailing_decimal_zeros(tmp, 0);
-        lstrcatn(tmp, "  ", sizeof(tmp));
+        lstrcatn(tmp, " ", sizeof(tmp));
         outputString += tmp;
     }
 }
@@ -873,12 +873,12 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
     ringStyles_.clear();
     fonts_.clear();
     
-    paramWidget_= "";
-    nameWidget_ = "";
-    valueWidget_ = "";
-    widgetParams_.clear();
-    nameParams_.clear();
-    valueParams_.clear();
+    string paramWidget = "";
+    string nameWidget = "";
+    string valueWidget = "";
+    string widgetParams = "";
+    string nameParams = "";
+    string valueParams = "";
     
     try
     {
@@ -925,24 +925,24 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 {
                     if (tokens.size() > 1 && tokens[1] == "FXParam")
                     {
-                        paramWidget_ = tokens[0];
+                        paramWidget = tokens[0];
+                        
                         if (tokens.size() > 2)
-                            for (int i = 2; i < tokens.size(); ++i)
-                                widgetParams_.push_back(string(tokens[i]));
+                            widgetParams = line.substr(line.find(tokens[2]), line.length() - 1);
                     }
                     if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
                     {
-                        nameWidget_ = tokens[0];
+                        nameWidget = tokens[0];
+                        
                         if (tokens.size() > 2)
-                            for (int i = 2; i < tokens.size(); ++i)
-                                nameParams_.push_back(string(tokens[i]));
+                            nameParams = line.substr(line.find(tokens[2]), line.length() - 1);
                     }
                     if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
                     {
-                        valueWidget_ = tokens[0];
+                        valueWidget = tokens[0];
+                        
                         if (tokens.size() > 2)
-                            for (int i = 2; i < tokens.size(); ++i)
-                                valueParams_.push_back(string(tokens[i]));
+                            valueParams = line.substr(line.find(tokens[2]), line.length() - 1);
                     }
                 }
             }
@@ -966,18 +966,18 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         
         FXParamTemplate t;
 
-        t.control = paramWidget_;
-        t.controlParams = widgetParams_;
-        t.nameDisplay = nameWidget_;
-        t.nameDisplayParams = nameParams_;
-        t.valueDisplay = valueWidget_;
-        t.valueDisplayParams = valueParams_;
+        t.control = paramWidget;
+        t.controlParams = widgetParams;
+        t.nameDisplay = nameWidget;
+        t.nameDisplayParams = nameParams;
+        t.valueDisplay = valueWidget;
+        t.valueDisplayParams = valueParams;
 
         cell.paramTemplates.push_back(t);
         
         for (int j = 0; j < paramWidgets_.size(); ++j)
         {
-            if (paramWidgets_[j] != paramWidget_)
+            if (paramWidgets_[j] != paramWidget)
             {
                 FXParamTemplate t;
                 
@@ -4934,12 +4934,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
     vector<SurfaceCell> cells;
     
     fpistream autoFXFile(zoneDef.fullPath.c_str());
-    
-    int listSlotIndex = 0;
-    
-    FXParamDefinitions *curdef = new FXParamDefinitions;
-    zoneDef.paramDefs.Add(curdef);
-    
+        
     string_list tokens;
     for (string line; getline(autoFXFile, line) ; )
     {
@@ -5016,141 +5011,67 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zoneDef, const ptrvector<FXPara
                 if (cells.size()== 0)
                     continue;
 
-                SurfaceCell lastCell = cells[cells.size() - 1];
+                SurfaceCell &lastCell = cells[cells.size() - 1];
                 
-                 
                 string line2;
                 string line3;
                 
                 if (getline(autoFXFile, line2) && getline(autoFXFile, line3))
                 {
-                    vector<string> lines;
-                    lines.push_back(line);
-                    lines.push_back(line2);
-                    lines.push_back(line3);
-
                     string_list cellTokens;
                     
+                    GetTokens(cellTokens, line.c_str());
+
                     FXParamTemplate t;
-                    
-                    for (int i = 0; i < lines.size(); ++i)
+
+                    t.control = cellTokens[0];
+
+                    if (cellTokens.size() > 2)
                     {
-                        cellTokens.clear();
-                        GetTokens(cellTokens, lines[i].c_str());
-                        
-                        if (cellTokens.size() < 2)
-                            continue;
-                        
-                        //GetWidgetNameAndModifiers
-                        
-                        
-                        
-                        if (cellTokens[1] == "FXParam")
-                        {
-                           
-                            
-                            
-                            
-                            t.control = tokens[0];
-                            
-                            if (tokens.size() > 2)
-                            {
-                                t.controlAction = "FXParam";
-                                
-                                
-                            }
-                        }
-                        else if (cellTokens[1] == "FixedTextDisplay")
-                        {
-                            int blah = 0;
-                        }
-                        else if (cellTokens[1] == "FXParamValueDisplay")
-                        {
-                            int blah = 0;
-                        }
-                        
-                        
-                        
-     
+                        t.controlAction = cellTokens[1];
+                        t.paramNum = cellTokens[2];
+                        if (cellTokens.size() > 3)
+                            t.controlParams = line.substr(line.find(tokens[3]), line.length() - 1);
                     }
-                   
                     
+                    cellTokens.clear();
                     
-                }
-                
-                 
-                
-                string_list lst;
-                GetTokens(lst, line.c_str());
+                    GetTokens(cellTokens, line2.c_str());
 
-            }
-            
-            /*
-            if (tokens[0].find(layoutTemplates[listSlotIndex].suffix) == string::npos)
-            {
-                listSlotIndex++;
-                curdef = new FXParamDefinitions;
-                zoneDef.paramDefs.Add(curdef);
-            }
-            
-            FXParamDefinition def;
-            
-            GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
-            
-            if (tokens.size() > 2)
-                def.paramNumber = tokens[2];
-            
-            int propertiesOffset = 3;
-            
-            if (tokens.size() > 4 && tokens[3] == "[")
-            {
-                for (int i = 3; i < tokens.size() && tokens[i] != "]"; i++)
-                    propertiesOffset++;
+                    t.nameDisplay = cellTokens[0];
 
-                propertiesOffset++; // skip ]
-                
-                GetSteppedValues(tokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
-            }
-                                   
-            if (tokens.size() > propertiesOffset)
-                GetPropertiesFromTokens(propertiesOffset, (int)tokens.size(), tokens, def.paramWidgetProperties);
-            
-            if (getline(autoFXFile, line))
-            {
-                tokens.clear();
-                GetTokens(tokens, line.c_str());
+                    if (cellTokens.size() > 2)
+                    {
+                        t.nameDisplayAction = cellTokens[1];
+                        t.paramName = cellTokens[2];
+                        if (cellTokens.size() > 3)
+                            t.nameDisplayParams = line2.substr(line2.find(tokens[3]), line2.length() - 1);
+                    }
 
-                if (tokens.size() > 2)
-                {
-                    GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramNameDisplayWidget, def.paramNameDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+                    cellTokens.clear();
+
+                    GetTokens(cellTokens, line3.c_str());
+
+                    t.valueDisplay = cellTokens[0];
+
+                    if (cellTokens.size() > 2)
+                    {
+                        t.valueDisplayAction = cellTokens[1];
+                        if (cellTokens.size() > 3)
+                            t.valueDisplayParams = line3.substr(line3.find(tokens[3]), line3.length() - 1);
+                    }
                     
-                    def.paramName = tokens[2];
-                    
-                    if (tokens.size() > 3)
-                        GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
+                    cellTokens.clear();
+
+                    lastCell.paramTemplates.push_back(t);
+
                 }
             }
-            else
-                continue;
             
-            if (getline(autoFXFile, line))
-            {
-                tokens.clear();
-                GetTokens(tokens, line.c_str());
+            //  GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
+            //  GetSteppedValues(tokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
+            //  GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
 
-                if (tokens.size() > 2)
-                {
-                    GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell, def.paramValueDisplayWidget, def.paramValueDisplayWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
-                    
-                    if (tokens.size() > 3)
-                        GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramValueDisplayWidgetProperties);
-                }
-            }
-            else
-                continue;
-           
-            curdef->definitions.push_back(def);
-             */
         }
     }
 }

@@ -1350,32 +1350,21 @@ struct FXParamTemplate
 {
     string control;
     string controlAction;
-    ptrvector<string> controlParams;
+    string controlParams;
     
     string nameDisplay;
     string nameDisplayAction;
-    ptrvector<string> nameDisplayParams;
+    string nameDisplayParams;
 
     string valueDisplay;
     string valueDisplayAction;
-    ptrvector<string> valueDisplayParams;
+    string valueDisplayParams;
 
     string paramNum;
     string paramName;
-    
-    double delta;
-    vector<double> deltas;
-    double rangeMinimum;
-    double rangeMaximum;
-    vector<double> steps;
-    vector<int> ticks;
         
     FXParamTemplate()
     {
-        delta = 0.0;
-        rangeMinimum = 1.0;
-        rangeMaximum = 0.0;
-        
         controlAction = "NoAction";
         nameDisplayAction = "NoAction";
         valueDisplayAction = "NoAction";
@@ -1390,21 +1379,19 @@ struct FXParamTemplate
             return;
         
         if (steps != "")
-            fprintf(fxFile, "\t%s%s %s %d [ %s ]", modifiers.c_str(),  (control + address).c_str(), "FXParam", paramNum, steps.c_str());
+            fprintf(fxFile, "\t%s%s %s %d [ %s]", modifiers.c_str(), (control + address).c_str(), "FXParam", paramNum, steps.c_str());
         else
             fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  (control + address).c_str(), "FXParam", paramNum);
 
-        for (int i = 0; i < controlParams.size(); ++i)
-            fprintf(fxFile, " %s", controlParams[i].c_str());
+        fprintf(fxFile, " %s", controlParams.c_str());
         
         fprintf(fxFile, "\n");
         
         if (nameDisplay != "")
         {
-            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(),  (nameDisplay + address).c_str(), "FixedTextDisplay", paramName.c_str());
+            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(), (nameDisplay + address).c_str(), "FixedTextDisplay", paramName.c_str());
 
-            for (int i = 0; i < nameDisplayParams.size(); ++i)
-                fprintf(fxFile, " %s", nameDisplayParams[i].c_str());
+            fprintf(fxFile, " %s", nameDisplayParams.c_str());
             
             fprintf(fxFile, "\n");
         }
@@ -1413,10 +1400,9 @@ struct FXParamTemplate
             
         if (valueDisplay != "")
         {
-            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  (valueDisplay + address).c_str(), "FXParamValueDisplay", paramNum);
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(), (valueDisplay + address).c_str(), "FXParamValueDisplay", paramNum);
 
-            for (int i = 0; i < valueDisplayParams.size(); ++i)
-                fprintf(fxFile, " %s", valueDisplayParams[i].c_str());
+            fprintf(fxFile, " %s", valueDisplayParams.c_str());
             
             fprintf(fxFile, "\n\n");
         }
@@ -1432,15 +1418,15 @@ struct FXParamTemplate
         if (control == "")
             return;
         
-        fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(),  (control + address).c_str(), controlAction.c_str());
+        fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(), (control + address).c_str(), controlAction.c_str());
 
         if (nameDisplay != "")
-            fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(),  (nameDisplay + address).c_str(), nameDisplayAction.c_str());
+            fprintf(fxFile, "\t%s%s %s\n", modifiers.c_str(), (nameDisplay + address).c_str(), nameDisplayAction.c_str());
         else
             fprintf(fxFile, "\tNullDisplay %s\n", nameDisplayAction.c_str());
 
         if (valueDisplay != "")
-            fprintf(fxFile, "\t%s%s %s\n\n", modifiers.c_str(),  (valueDisplay + address).c_str(), valueDisplayAction.c_str());
+            fprintf(fxFile, "\t%s%s %s\n\n", modifiers.c_str(), (valueDisplay + address).c_str(), valueDisplayAction.c_str());
         else
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
@@ -1994,12 +1980,6 @@ public:
     ptrvector<string> displayRows_;
     ptrvector<string> ringStyles_;
     ptrvector<string> fonts_;
-    string paramWidget_;
-    string nameWidget_;
-    string valueWidget_;
-    ptrvector<string> widgetParams_;
-    ptrvector<string> nameParams_;
-    ptrvector<string> valueParams_;
 
     void Initialize();
     
