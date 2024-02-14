@@ -4890,7 +4890,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                 surfaceCells_[i].WriteToAutoMapFile(fxZone, i, tmp, steps);
             }
             else
-                surfaceCells_[i].WriteToFile(fxZone);
+                surfaceCells_[i].WriteRawTemplateToFile(fxZone);
         }
         
         fprintf(fxZone, "%s\n", s_EndAutoSection);
@@ -5034,6 +5034,8 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     FXParamTemplate t;
 
                     t.control = cellTokens[0];
+                    
+                    t.control = t.control.substr(0, t.control.find(lastCell.address));
 
                     if (cellTokens.size() > 2)
                     {
@@ -5049,6 +5051,8 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
 
                     t.nameDisplay = cellTokens[0];
 
+                    t.nameDisplay = t.nameDisplay.substr(0, t.nameDisplay.find(lastCell.address));
+
                     if (cellTokens.size() > 2)
                     {
                         t.nameDisplayAction = cellTokens[1];
@@ -5062,6 +5066,8 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     GetTokens(cellTokens, line3.c_str());
 
                     t.valueDisplay = cellTokens[0];
+
+                    t.valueDisplay = t.valueDisplay.substr(0, t.valueDisplay.find(lastCell.address));
 
                     if (cellTokens.size() > 2)
                     {

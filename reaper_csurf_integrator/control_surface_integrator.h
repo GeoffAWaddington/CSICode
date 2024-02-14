@@ -1399,7 +1399,7 @@ struct FXParamTemplate
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
     
-    void WriteToFile(FILE *fxFile, string &modifiers, string &address)
+    void WriteRawTemplateToFile(FILE *fxFile, string &modifiers, string &address)
     {
         if ( ! fxFile)
             return;
@@ -1419,6 +1419,27 @@ struct FXParamTemplate
         else
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
+    
+    void WriteTemplateToFile(FILE *fxFile, string &modifiers, string &address)
+    {
+        if ( ! fxFile)
+            return;
+        
+        if (control == "")
+            return;
+        
+        fprintf(fxFile, "\t%s%s %s %s %s\n", modifiers.c_str(), (control + address).c_str(), controlAction.c_str(), paramNum.c_str(), controlParams.c_str());
+
+        if (nameDisplay != "")
+            fprintf(fxFile, "\t%s%s %s \"%s\" %s\n", modifiers.c_str(), (nameDisplay + address).c_str(), nameDisplayAction.c_str(), paramName.c_str(), nameDisplayParams.c_str());
+        else
+            fprintf(fxFile, "\tNullDisplay %s\n", nameDisplayAction.c_str());
+
+        if (valueDisplay != "")
+            fprintf(fxFile, "\t%s%s %s %s %s\n\n", modifiers.c_str(), (valueDisplay + address).c_str(), valueDisplayAction.c_str(), paramNum.c_str(), valueDisplayParams.c_str());
+        else
+            fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
+    }
 };
 
 struct SurfaceCell
@@ -1426,7 +1447,14 @@ struct SurfaceCell
     string modifiers;
     string address;
     vector<FXParamTemplate> paramTemplates;
-        
+     
+    void ExchangeParamTemplates(SurfaceCell &other)
+    {
+        vector<FXParamTemplate> otherTemplates = other.paramTemplates;
+        other.paramTemplates = paramTemplates;
+        paramTemplates = otherTemplates;
+    }
+    
     void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
     {
         if ( ! fxFile)
@@ -1439,13 +1467,13 @@ struct SurfaceCell
             if (i == 0) // Auto Map only maps the first control/display
                 paramTemplates[i].WriteToFile(fxFile, modifiers, address, paramNum, paramName, steps);
             else
-                paramTemplates[i].WriteToFile(fxFile, modifiers, address);
+                paramTemplates[i].WriteRawTemplateToFile(fxFile, modifiers, address);
         }
         
         fprintf(fxFile, "\n");
     }
     
-    void WriteToFile(FILE *fxFile)
+    void WriteRawTemplateToFile(FILE *fxFile)
     {
         if ( ! fxFile)
             return;
@@ -1453,7 +1481,20 @@ struct SurfaceCell
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i <paramTemplates.size(); ++i)
-            paramTemplates[i].WriteToFile(fxFile, modifiers, address);
+            paramTemplates[i].WriteRawTemplateToFile(fxFile, modifiers, address);
+            
+        fprintf(fxFile, "\n");
+    }
+    
+    void WriteTemplateToFile(FILE *fxFile)
+    {
+        if ( ! fxFile)
+            return;
+        
+        fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
+
+        for (int i = 0; i <paramTemplates.size(); ++i)
+            paramTemplates[i].WriteTemplateToFile(fxFile, modifiers, address);
             
         fprintf(fxFile, "\n");
     }
@@ -1468,7 +1509,7 @@ struct AutoZoneDefinition
     string_list prologue;
     string_list epilogue;
     
-    vector<SurfaceCell> cells;
+    ptrvector<SurfaceCell> cells;
 
     ptrvector<FXParamDefinitions> paramDefs;
     
@@ -2539,122 +2580,8 @@ public:
             
             fprintf(fxFile, "%s\n\n", s_BeginAutoSection);
             
-            for (int i = 0; i < zoneDef.paramDefs.size(); i++)
-            {
-                bool cellHasDisplayWidgetsDefined = false;
-                
-                for (int j = 0; j < zoneDef.paramDefs[i].definitions.size(); j++)
-                {
-                    fprintf(fxFile, "\t%s%s%s\t",layoutTemplates[i].modifiers.c_str(), zoneDef.paramDefs[i].definitions[j].paramWidget.c_str(), layoutTemplates[i].suffix.c_str());
-                    
-                    if (zoneDef.paramDefs[i].definitions[j].paramNumber == "")
-                    {
-                        fprintf(fxFile,"NoAction\n");
-                    }
-                    else
-                    {
-                        fprintf(fxFile, "%s %s ",layoutTemplates[i].widgetAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
-                        
-                        if (zoneDef.paramDefs[i].definitions[j].delta != 0.0 ||
-                            zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
-                            zoneDef.paramDefs[i].definitions[j].rangeMaximum != 0.0 ||
-                            zoneDef.paramDefs[i].definitions[j].deltas.size() > 0 ||
-                            zoneDef.paramDefs[i].definitions[j].ticks.size() > 0 ||
-                            zoneDef.paramDefs[i].definitions[j].steps.size() > 0)
-                        {
-                            fprintf(fxFile, "[ ");
-                            
-                            char tmp[128];
-                            if (zoneDef.paramDefs[i].definitions[j].rangeMinimum != 1.0 ||
-                                zoneDef.paramDefs[i].definitions[j].rangeMaximum != 0.0)
-                                fprintf(fxFile, " %s>%s ", format_number(zoneDef.paramDefs[i].definitions[j].rangeMinimum, tmp, sizeof(tmp)), format_number(zoneDef.paramDefs[i].definitions[j].rangeMaximum, tmp, sizeof(tmp)));
-                            
-                            if (zoneDef.paramDefs[i].definitions[j].delta != 0.0)
-                                fprintf(fxFile, " (%s) ", format_number(zoneDef.paramDefs[i].definitions[j].delta, tmp, sizeof(tmp)));
-                            
-                            if (zoneDef.paramDefs[i].definitions[j].deltas.size() > 0)
-                            {
-                                fprintf(fxFile, " (");
-                                
-                                for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].deltas.size(); ++k)
-                                {
-                                    if (k) fprintf(fxFile, ",");
-                                    fprintf(fxFile, "%s", format_number(zoneDef.paramDefs[i].definitions[j].deltas[k], tmp, sizeof(tmp)));
-                                }
-                                
-                                fprintf(fxFile, ") ");
-                            }
-                            
-                            if (zoneDef.paramDefs[i].definitions[j].ticks.size() > 0)
-                            {
-                                fprintf(fxFile, " (");
-                                
-                                for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].ticks.size(); ++k)
-                                {
-                                    if (k) fprintf(fxFile, ",");
-                                    fprintf(fxFile, "%d", zoneDef.paramDefs[i].definitions[j].ticks[k]);
-                                }
-                                fprintf(fxFile, ") ");
-                            }
-                            
-                            for (int k = 0; k < (int)zoneDef.paramDefs[i].definitions[j].steps.size(); ++k)
-                                fprintf(fxFile, "%s ", format_number(zoneDef.paramDefs[i].definitions[j].steps[k], tmp, sizeof(tmp)));
-
-                            fprintf(fxFile, "]");
-                        }
-                        
-                        zoneDef.paramDefs[i].definitions[j].paramWidgetProperties.save_list(fxFile);
-                    }
-                    
-                    if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget == "")
-                    {
-                        if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && fxCellLayout_.size() > 1 && fxCellLayout_[1].size() > 0)
-                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
-                                fxCellLayout_[1][0].c_str(),
-                                layoutTemplates[i].suffix.c_str());
-                        else
-                            fprintf(fxFile, "\tNullDisplay\tNoAction\n");
-                    }
-                    else
-                    {
-                        cellHasDisplayWidgetsDefined = true;
-                        
-                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates[i].modifiers.c_str(),
-                            zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidget.c_str(),
-                            layoutTemplates[i].suffix.c_str());
-                        
-                        fprintf(fxFile, "%s \"%s\" ", layoutTemplates[i].aliasDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramName.c_str());
-                        
-                        zoneDef.paramDefs[i].definitions[j].paramNameDisplayWidgetProperties.save_list(fxFile);
-                    }
-                    
-                    if (zoneDef.paramDefs[i].definitions[j].paramNumber == "" || zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget == "")
-                    {
-                        if (! cellHasDisplayWidgetsDefined && j == zoneDef.paramDefs[i].definitions.size() - 1 && fxCellLayout_.size() > 2 && fxCellLayout_[2].size() > 0)
-                            fprintf(fxFile, "\t%s%s%s\tNoAction\n", layoutTemplates[i].modifiers.c_str(),
-                                fxCellLayout_[2][0].c_str(),
-                                layoutTemplates[i].suffix.c_str());
-                        else
-                            fprintf(fxFile, "\tNullDisplay\tNoAction\n");
-                    }
-                    else
-                    {
-                        cellHasDisplayWidgetsDefined = true;
-
-                        fprintf(fxFile, "\t%s%s%s\t", layoutTemplates[i].modifiers.c_str(),
-                            zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidget.c_str(),
-                            layoutTemplates[i].suffix.c_str());
-                        
-                        fprintf(fxFile, "%s %s", layoutTemplates[i].valueDisplayAction.c_str(), zoneDef.paramDefs[i].definitions[j].paramNumber.c_str());
-                        
-                        zoneDef.paramDefs[i].definitions[j].paramValueDisplayWidgetProperties.save_list(fxFile);
-                    }
-                    
-                    fprintf(fxFile, "\n");
-                }
-                
-                fprintf(fxFile, "\n");
-            }
+            for (int i = 0; i < zoneDef.cells.size(); ++i)
+                zoneDef.cells.Get(i)->WriteTemplateToFile(fxFile);
             
             fprintf(fxFile, "%s\n", s_EndAutoSection);
             

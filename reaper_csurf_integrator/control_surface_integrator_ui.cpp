@@ -775,8 +775,6 @@ string_list GetLineComponents(int index)
         
         string controlName = string(tokens[tokens.size() - 1]);
         
-        controlName = controlName.substr(0, controlName.find(cell.address));
-        
         if (controlName == "RotaryPush")
             controlName = "Push";
         
@@ -835,15 +833,11 @@ static void PopulateListView(HWND hwndParamList)
 static void MoveUp(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
+    
     if (index > 0)
     {
-        FXParamDefinitions *itemToMove = s_zoneDef.paramDefs.Get(index);
-        if (WDL_NORMALLY(itemToMove != NULL))
-        {
-            s_zoneDef.paramDefs.Delete(index);
-            s_zoneDef.paramDefs.Insert(index - 1, itemToMove);
-        }
-        
+        s_zoneDef.cells[index].ExchangeParamTemplates(s_zoneDef.cells[index - 1]);
+
         SetListViewItem(hwndParamList, index, false);
         SetListViewItem(hwndParamList, index - 1, false);
 
@@ -854,15 +848,10 @@ static void MoveUp(HWND hwndParamList)
 static void MoveDown(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    if (index >= 0 && index < s_zoneDef.paramDefs.size() - 1)
+    
+    if (index >= 0 && index < s_zoneDef.cells.size() - 1)
     {
-        FXParamDefinitions *itemToMove = s_zoneDef.paramDefs.Get(index);
-        
-        if (WDL_NORMALLY(itemToMove != NULL))
-        {
-            s_zoneDef.paramDefs.Delete(index);
-            s_zoneDef.paramDefs.Insert(index+1, itemToMove);
-        }
+        s_zoneDef.cells[index].ExchangeParamTemplates(s_zoneDef.cells[index + 1]);
 
         SetListViewItem(hwndParamList, index, false);
         SetListViewItem(hwndParamList, index + 1, false);
