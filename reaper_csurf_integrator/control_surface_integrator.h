@@ -17,6 +17,9 @@
 
 #ifdef _WIN32
 #define _CRT_NONSTDC_NO_DEPRECATE // for Visual Studio versions that want _strdup instead of strdup
+#if _MSC_VER <= 1400
+#define _CRT_SECURE_NO_DEPRECATE
+#endif
 #endif
 
 #include <sstream>
