@@ -1594,17 +1594,17 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
         {
             feedbackProcessor = new SCE24TwoStateLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
         }
-        else if (widgetType == "FB_SCE24OLEDButton" && size == 4)
+        else if (widgetType == "FB_SCE24OLEDButton" && size == 7)
         {
-            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])));
+            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])), atoi(tokenLines[i][4]), atoi(tokenLines[i][5]), atoi(tokenLines[i][6]));
         }
         else if (widgetType == "FB_SCE24Encoder" && size == 4 && message1)
         {
             feedbackProcessor = new SCE24Encoder_Midi_FeedbackProcessor(csi_, this, widget, message1);
         }
-        else if (widgetType == "FB_SCE24EncoderText" && size == 4 && message1)
+        else if (widgetType == "FB_SCE24EncoderText" && size == 7 && message1)
         {
-            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(csi_, this, widget, message1);
+            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(csi_, this, widget, message1, atoi(tokenLines[i][4]), atoi(tokenLines[i][5]), atoi(tokenLines[i][6]));
         }
         else if ((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
         {
@@ -5053,6 +5053,8 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     FXParamTemplate t;
 
                     string_list widgetTokens;
+                    string_list propertyTokens;
+
                     GetSubTokens(widgetTokens, cellTokens[0], '+');
 
                     t.control = widgetTokens[widgetTokens.size() - 1];
@@ -5063,11 +5065,16 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                         t.controlAction = cellTokens[1];
                         t.paramNum = cellTokens[2];
                         if (cellTokens.size() > 3)
+                        {
                             t.controlParams = line.substr(line.find(cellTokens[3]), line.length() - 1);
+                            GetTokens(propertyTokens, t.controlParams.c_str());
+                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.controlProperties);
+                        }
                     }
                     
                     cellTokens.clear();
                     widgetTokens.clear ();
+                    propertyTokens.clear();
                     
                     GetTokens(cellTokens, line2.c_str());
 
@@ -5082,11 +5089,16 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                         t.nameDisplayAction = cellTokens[1];
                         t.paramName = cellTokens[2];
                         if (cellTokens.size() > 3)
+                        {
                             t.nameDisplayParams = line2.substr(line2.find(cellTokens[3]), line2.length() - 1);
+                            GetTokens(propertyTokens, t.nameDisplayParams.c_str());
+                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.nameDisplayProperties);
+                        }
                     }
 
                     cellTokens.clear();
                     widgetTokens.clear ();
+                    propertyTokens.clear();
 
                     GetTokens(cellTokens, line3.c_str());
 
@@ -5100,11 +5112,16 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     {
                         t.valueDisplayAction = cellTokens[1];
                         if (cellTokens.size() > 3)
+                        {
                             t.valueDisplayParams = line3.substr(line3.find(cellTokens[3]), line3.length() - 1);
+                            GetTokens(propertyTokens, t.valueDisplayParams.c_str());
+                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.valueDisplayProperties);
+                        }
                     }
                     
                     cellTokens.clear();
                     widgetTokens.clear ();
+                    propertyTokens.clear();
 
                     lastCell.paramTemplates.push_back(t);
                 }

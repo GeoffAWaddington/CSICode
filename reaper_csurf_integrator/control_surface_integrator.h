@@ -1340,14 +1340,17 @@ struct FXParamTemplate
     string control;
     string controlAction;
     string controlParams;
+    PropertyList controlProperties;
     
     string nameDisplay;
     string nameDisplayAction;
     string nameDisplayParams;
+    PropertyList nameDisplayProperties;
 
     string valueDisplay;
     string valueDisplayAction;
     string valueDisplayParams;
+    PropertyList valueDisplayProperties;
 
     string paramNum;
     string paramName;

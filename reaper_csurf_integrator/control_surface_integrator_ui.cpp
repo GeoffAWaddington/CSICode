@@ -423,12 +423,16 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayFontPickers); i++)
             {
+                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"");
+
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
 
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayFontPickers); i++)
             {
+                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)"");
+
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
@@ -441,77 +445,76 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, s_widgetTypePickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].control.c_str());
                 SetDlgItemText(hwndDlg, s_fixedTextDisplayRowPickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplay.c_str());
                 SetDlgItemText(hwndDlg, s_paramValueDisplayRowPickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplay.c_str());
+                
+                const char *ringstyle = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].controlProperties.get_prop(PropertyType_RingStyle);
+                if (ringstyle)
+                    SetDlgItemText(hwndDlg, s_ringStylePickers[i], ringstyle);
+
+                const char *font = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_Font);
+                if (font)
+                    SetDlgItemText(hwndDlg, s_fixedTextDisplayFontPickers[i], font);
+
+                font = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_Font);
+                if (font)
+                    SetDlgItemText(hwndDlg, s_paramValueDisplayFontPickers[i], font);
+
+                const char *ringcolor = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].controlProperties.get_prop(PropertyType_LEDRingColor);
+                if (ringcolor)
+                {
+                    rgba_color color;
+                    GetColorValue(ringcolor, color);
+                    GetButtonColorForID(s_widgetRingColors[i]) = ColorToNative(color.r, color.g, color.b);
+                }
+                
+                const char *pushcolor = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].controlProperties.get_prop(PropertyType_PushColor);
+                if (pushcolor)
+                {
+                    rgba_color color;
+                    GetColorValue(pushcolor, color);
+                    GetButtonColorForID(s_widgetRingIndicators[i]) = ColorToNative(color.r, color.g, color.b);
+                }
+
+                const char *foreground = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_Foreground);
+                if (foreground)
+                {
+                    rgba_color color;
+                    GetColorValue(foreground, color);
+                    GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
+                }
+
+                const char *background = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_Background);
+                if (background)
+                {
+                    rgba_color color;
+                    GetColorValue(background, color);
+                    GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
+                }
+
+                foreground = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_Foreground);
+                if (foreground)
+                {
+                    rgba_color color;
+                    GetColorValue(foreground, color);
+                    GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
+                }
+
+                background = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_Background);
+                if (background)
+                {
+                    rgba_color color;
+                    GetColorValue(background, color);
+                    GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
+                }
+
             }
 
 /*
             for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
 
-                const char *ringstyle = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.get_prop(PropertyType_RingStyle);
-                if (ringstyle)
-                    SetDlgItemText(hwndDlg, s_ringStylePickers[i], ringstyle);
-                
-                const char *font = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.get_prop(PropertyType_Font);
-                if (font)
-                    SetDlgItemText(hwndDlg, s_fixedTextDisplayFontPickers[i], font);
+               
 
-                font = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.get_prop(PropertyType_Font);
-                if (font)
-                    SetDlgItemText(hwndDlg, s_paramValueDisplayFontPickers[i], font);
 
-                const char *ringcolor = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.get_prop(PropertyType_LEDRingColor);
-                if (ringcolor)
-                {
-                    s_hasColors = true;
-                    rgba_color color;
-                    GetColorValue(ringcolor, color);
-                    GetButtonColorForID(s_widgetRingColors[i]) = ColorToNative(color.r, color.g, color.b);
-                }
-
-                const char *pushcolor = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.get_prop(PropertyType_PushColor);
-                if (pushcolor)
-                {
-                    s_hasColors = true;
-                    rgba_color color;
-                    GetColorValue(pushcolor, color);
-                    GetButtonColorForID(s_widgetRingIndicators[i]) = ColorToNative(color.r, color.g, color.b);
-                }
-
-                const char *foreground = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.get_prop(PropertyType_Foreground);
-                if (foreground)
-                {
-                    s_hasColors = true;
-                    rgba_color color;
-                    GetColorValue(foreground, color);
-                    GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
-                }
-
-                const char *background = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidgetProperties.get_prop(PropertyType_Background);
-                if (background)
-                {
-                    s_hasColors = true;
-                    rgba_color color;
-                    GetColorValue(background, color);
-                    GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
-                }
-
-                foreground = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.get_prop(PropertyType_Foreground);
-                if (foreground)
-                {
-                    s_hasColors = true;
-                    rgba_color color;
-                    GetColorValue(foreground, color);
-                    GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
-                }
-
-                background = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidgetProperties.get_prop(PropertyType_Background);
-                if (background)
-                {
-                    s_hasColors = true;
-                    rgba_color color;
-                    GetColorValue(background, color);
-                    GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
-                }
 
                 string steps;
                 

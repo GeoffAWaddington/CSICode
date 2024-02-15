@@ -434,99 +434,24 @@ public:
     }
 };
 
-static int s_fontHeights[] = { 0, 13, 16, 18, 20, 24, 28, 32, 48, 60 };
-
-struct RowInfo
-{
-    int topMargin;
-    int bottomMargin;
-    int fontSize;
-    string lastStringSent;
-    rgba_color lastTextColorSent;
-    rgba_color lastBackgroundColorSent;
-    
-    RowInfo()
-    {
-        topMargin = 0;
-        bottomMargin = 0;
-        fontSize = 0;
-    }
-    
-    static void dispose(RowInfo *r) { delete r; }
-};
-
-static void CalculateRowInfo(const WDL_PtrList<ActionContext> &contexts, WDL_StringKeyedArray<RowInfo*> &rows)
-{
-    rows.DeleteAll();
-    
-    for (int i = 0; i < contexts.GetSize(); ++i)
-    {
-        const PropertyList &properties = contexts.Get(i)->GetWidgetProperties();
-        
-        const char *rowname = properties.get_prop(PropertyType_Row);
-        if (rowname)
-        {
-            RowInfo *row = rows.Get(rowname);
-            if (!row)
-                rows.Insert(rowname, row = new RowInfo);
-
-            const char *font = properties.get_prop(PropertyType_Font);
-            if (font)
-                row->fontSize = atoi(font);
-
-            contexts.Get(i)->SetProvideFeedback(true);
-        }
-    }
-
-    int totalFontHeight = 0;
-    
-    for (int i = 0; ; i ++)
-    {
-        RowInfo *row = rows.Enumerate(i);
-        if (!row) break;
-        
-        if (row->fontSize < NUM_ELEM(s_fontHeights))
-            totalFontHeight += s_fontHeights[row->fontSize];
-    }
-    
-    double factor = 64.0 / totalFontHeight;
-    
-    if (factor < 1.0)
-        factor = 1.0;
-    
-    int topMargin = 0;
-    
-    for (int i = 0; ; i ++)
-    {
-        RowInfo *row = rows.Enumerate(i);
-        if (!row) break;
-        
-        if (topMargin > 63)
-            topMargin = 63;
-        row->topMargin = topMargin;
-        
-        if (row->fontSize < NUM_ELEM(s_fontHeights))
-            row->bottomMargin = int(factor  * s_fontHeights[row->fontSize]) + topMargin;
-        
-        if (row->bottomMargin > 63)
-            row->bottomMargin = 63;
-        topMargin = row->bottomMargin + 1;
-    }
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SCE24OLED_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    WDL_StringKeyedArray<RowInfo*> rows_;
+    int topMargin_;
+    int bottomMargin_;
+    int font_;
+    string lastStringSent_;
+    rgba_color lastTextColorSent_;
+    rgba_color lastBackgroundColorSent_;
 
 public:
     virtual ~SCE24OLED_Midi_FeedbackProcessor() {}
-    SCE24OLED_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
-      Midi_FeedbackProcessor(csi, surface, widget, feedback1),
-      rows_(true, RowInfo::dispose)
+    SCE24OLED_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, int topMargin, int bottomMargin, int font) :
+      Midi_FeedbackProcessor(csi, surface, widget, feedback1), topMargin_(topMargin), bottomMargin_(bottomMargin), font_(font)
     {
+        lastStringSent_ = "";
     }
 
     virtual const char *GetName() override { return "SCE24OLED_Midi_FeedbackProcessor"; }
@@ -548,8 +473,6 @@ public:
     
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
     {
-        CalculateRowInfo(contexts,rows_);
-
         struct
         {
             MIDI_event_ex_t evt;
@@ -589,12 +512,6 @@ public:
         
     virtual void ForceValue(const PropertyList &properties, double value) override
     {
-        const char *rowname = properties.get_prop(PropertyType_Row);
-        if (!rowname) return;
-
-        RowInfo *row = rows_.Get(rowname);
-        if (!row) return;
-
         rgba_color backgroundColor;
         rgba_color textColor;
         
@@ -608,12 +525,12 @@ public:
             if (col)
                 GetColorValue(col, textColor);
             
-            if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
+            if (lastBackgroundColorSent_ == backgroundColor && lastTextColorSent_ == textColor)
                 return;
             else
             {
-                row->lastBackgroundColorSent = backgroundColor;
-                row->lastTextColorSent = textColor;
+                lastBackgroundColorSent_ = backgroundColor;
+                lastTextColorSent_ = textColor;
             }
         }
         else
@@ -625,12 +542,12 @@ public:
             if (col)
                 GetColorValue(col, textColor);
             
-            if (row->lastBackgroundColorSent == backgroundColor && row->lastTextColorSent == textColor)
+            if (lastBackgroundColorSent_ == backgroundColor && lastTextColorSent_ == textColor)
                 return;
             else
             {
-                row->lastBackgroundColorSent = backgroundColor;
-                row->lastTextColorSent = textColor;
+                lastBackgroundColorSent_ = backgroundColor;
+                lastTextColorSent_ = textColor;
             }
         }
         
@@ -652,9 +569,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->topMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->fontSize;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font_;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g / 2;
@@ -678,14 +595,17 @@ class SCE24Text_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    WDL_StringKeyedArray<RowInfo*> rows_;
+    int topMargin_;
+    int bottomMargin_;
+    int font_;
+    string lastStringSent_;
 
 public:
     virtual ~SCE24Text_Midi_FeedbackProcessor() {}
-    SCE24Text_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1) :
-      Midi_FeedbackProcessor(csi, surface, widget, feedback1),
-      rows_(true, RowInfo::dispose)
+    SCE24Text_Midi_FeedbackProcessor(CSurfIntegrator *const csi, Midi_ControlSurface *surface, Widget *widget, MIDI_event_ex_t *feedback1, int topMargin, int bottomMargin, int font) :
+      Midi_FeedbackProcessor(csi, surface, widget, feedback1),  topMargin_(topMargin), bottomMargin_(bottomMargin), font_(font)
     {
+        lastStringSent_ = "";
     }
     virtual const char *GetName() override { return "SCE24Text_Midi_FeedbackProcessor"; }
     
@@ -706,8 +626,6 @@ public:
 
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
     {
-        CalculateRowInfo(contexts,rows_);
-
         struct
         {
             MIDI_event_ex_t evt;
@@ -747,19 +665,13 @@ public:
     
     virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
-        const char *rowname = properties.get_prop(PropertyType_Row);
-        if (!rowname) return;
-
-        RowInfo *row = rows_.Get(rowname);
-        if (!row) return;
-
         char tmp[BUFSZ];
         const char *displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
         
-        if (row->lastStringSent == displayText)
+        if (lastStringSent_ == displayText)
             return;
         
-        row->lastStringSent = displayText;
+        lastStringSent_ = displayText;
                   
         rgba_color backgroundColor;
         rgba_color textColor;
@@ -786,9 +698,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->topMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->bottomMargin;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = row->fontSize;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font_;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.r / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = backgroundColor.g / 2;
