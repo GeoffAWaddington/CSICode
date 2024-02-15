@@ -368,7 +368,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             break;
             
         case WM_INITDIALOG:
-        {
+        {            
             s_dlgResult = IDCANCEL;
             
             s_hasFonts = false;
@@ -412,7 +412,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayRowPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
+                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("NullDisplay","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
@@ -421,7 +421,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayRowPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayRowPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
+                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("NullDisplay","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
@@ -429,30 +429,30 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayFontPickers); i++)
             {
-                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayFontPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
-
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_fixedTextDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
 
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayFontPickers); i++)
             {
-                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayFontPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
-
                 for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
+
+            for (int i = 0; i < s_zoneDef.cells[s_fxListIndex].paramTemplates.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
+            {
+                SetDlgItemText(hwndDlg, s_paramNumEditControls[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].paramNum.c_str());
+                SetDlgItemText(hwndDlg, s_fixedTextEditControls[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].paramName.c_str());
+
+                SetDlgItemText(hwndDlg, s_widgetTypePickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].control.c_str());
+                SetDlgItemText(hwndDlg, s_fixedTextDisplayRowPickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplay.c_str());
+                SetDlgItemText(hwndDlg, s_paramValueDisplayRowPickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplay.c_str());
+            }
+
+            
 /*
             for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
-                SetDlgItemText(hwndDlg, s_paramNumEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNumber.c_str());
-                SetDlgItemText(hwndDlg, s_fixedTextEditControls[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramName.c_str());
-
-                SetDlgItemText(hwndDlg, s_widgetTypePickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidget.c_str());
-                SetDlgItemText(hwndDlg, s_fixedTextDisplayRowPickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramNameDisplayWidget.c_str());
-                SetDlgItemText(hwndDlg, s_paramValueDisplayRowPickers[i], s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramValueDisplayWidget.c_str());
 
                 const char *ringstyle = s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidgetProperties.get_prop(PropertyType_RingStyle);
                 if (ringstyle)
@@ -1012,12 +1012,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                           ((lvhti.flags & LVHT_ONITEMSTATEICON) == 0))
                     break;
                 
-                FXParamDefinitions *itemToMove = s_zoneDef.paramDefs.Get(s_oldPosition);
-                if (WDL_NORMALLY(itemToMove != NULL))
-                {
-                    s_zoneDef.paramDefs.Delete(s_oldPosition);
-                    s_zoneDef.paramDefs.Insert(lvhti.iItem, itemToMove);
-                }
+                s_zoneDef.cells[s_oldPosition].ExchangeParamTemplates(s_zoneDef.cells[lvhti.iItem]);
                 
                 PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                 

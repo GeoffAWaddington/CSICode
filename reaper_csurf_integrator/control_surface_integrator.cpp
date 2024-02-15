@@ -5059,7 +5059,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                         t.controlAction = cellTokens[1];
                         t.paramNum = cellTokens[2];
                         if (cellTokens.size() > 3)
-                            t.controlParams = line.substr(line.find(tokens[3]), line.length() - 1);
+                            t.controlParams = line.substr(line.find(cellTokens[3]), line.length() - 1);
                     }
                     
                     cellTokens.clear();
@@ -5078,7 +5078,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                         t.nameDisplayAction = cellTokens[1];
                         t.paramName = cellTokens[2];
                         if (cellTokens.size() > 3)
-                            t.nameDisplayParams = line2.substr(line2.find(tokens[3]), line2.length() - 1);
+                            t.nameDisplayParams = line2.substr(line2.find(cellTokens[3]), line2.length() - 1);
                     }
 
                     cellTokens.clear();
@@ -5096,14 +5096,13 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     {
                         t.valueDisplayAction = cellTokens[1];
                         if (cellTokens.size() > 3)
-                            t.valueDisplayParams = line3.substr(line3.find(tokens[3]), line3.length() - 1);
+                            t.valueDisplayParams = line3.substr(line3.find(cellTokens[3]), line3.length() - 1);
                     }
                     
                     cellTokens.clear();
                     widgetTokens.clear ();
 
                     lastCell.paramTemplates.push_back(t);
-
                 }
             }
             
