@@ -305,9 +305,6 @@ static void PopulateParamListView(HWND hwndParamList)
     }
 }
 
-static bool s_hasFonts = false;
-static bool s_hasColors = false;
-
 static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -315,7 +312,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
         case WM_PAINT:
         {
-            if (s_hasColors)
+            if (s_zoneManager->hasColor_)
             {
                 PAINTSTRUCT ps;
                 HDC hdc = BeginPaint(hwndDlg, &ps);
@@ -370,10 +367,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         case WM_INITDIALOG:
         {            
             s_dlgResult = IDCANCEL;
-            
-            s_hasFonts = false;
-            s_hasColors = false;
-            
+                        
             WDL_UTF8_HookListView(GetDlgItem(hwndDlg, IDC_AllParams));
 
             ShowBaseControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false );
@@ -449,7 +443,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, s_paramValueDisplayRowPickers[i], s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplay.c_str());
             }
 
-            
 /*
             for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
@@ -546,10 +539,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             ShowBaseControls(hwndDlg, 0, s_numGroups, true);
             
-            if (s_hasFonts)
+            if (s_zoneManager->fonts_.size())
                 ShowFontControls(hwndDlg, 0, s_numGroups, true);
             
-            if (s_hasColors)
+            if (s_zoneManager->hasColor_)
             {
                 ShowColorControls(hwndDlg, 0, s_numGroups, true);
                 InvalidateRect(hwndDlg, NULL, true);

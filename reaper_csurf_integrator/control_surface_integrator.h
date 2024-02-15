@@ -2035,6 +2035,9 @@ public:
         masterTrackFXMenuOffset_ = 0;
         
         lastTouched_ = NULL;
+        
+        // public
+        hasColor_ = false;
     }
 
     ~ZoneManager()
@@ -2046,7 +2049,8 @@ public:
     ptrvector<string> displayRows_;
     ptrvector<string> ringStyles_;
     ptrvector<string> fonts_;
-
+    bool hasColor_;
+    
     void Initialize();
     
     void PreProcessZones();

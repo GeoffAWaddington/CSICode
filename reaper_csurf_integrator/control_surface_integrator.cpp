@@ -930,6 +930,10 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                         for (int i = 1; i < tokens.size(); ++i)
                             fonts_.push_back(string(tokens[i]));
                     }
+                    else if (tokens[0] == "#SupportsColor")
+                    {
+                        hasColor_ = true;
+                    }
                 }
                 else
                 {
