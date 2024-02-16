@@ -695,6 +695,7 @@ public:
         const char *col = properties.get_prop(PropertyType_BackgroundColor);
         if (col)
             GetColorValue(col, backgroundColor);
+        
         col = properties.get_prop(PropertyType_TextColor);
         if (col)
             GetColorValue(col, textColor);

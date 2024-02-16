@@ -223,24 +223,24 @@ BEGIN
     PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor3,525,346,56,12
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup2,20,248,328,8
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup3,20,386,328,8
-    LTEXT           "",IDC_FXParamRingColorBox1,146,53,16,8
-    LTEXT           "",IDC_FXParamRingColorBox2,146,192,16,8
-    LTEXT           "",IDC_FXParamRingColorBox3,146,331,16,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox1,146,70,16,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox2,146,209,16,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox3,146,348,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox1,345,53,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox2,345,192,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox3,345,330,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox1,345,70,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox2,345,208,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox3,345,347,16,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox1,500,70,16,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox2,500,208,16,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox3,500,347,16,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,500,53,16,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,500,191,16,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,500,330,16,8
+    LTEXT           "",IDC_FXParamRingColorBox1,146,53,22,8
+    LTEXT           "",IDC_FXParamRingColorBox2,146,192,22,8
+    LTEXT           "",IDC_FXParamRingColorBox3,146,331,22,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox1,146,70,22,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox2,146,209,22,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox3,146,348,22,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox1,345,53,22,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox2,345,192,22,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox3,345,330,22,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox1,345,70,22,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox2,345,208,22,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox3,345,347,22,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox1,500,70,22,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox2,500,208,22,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox3,500,347,22,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,500,53,22,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,500,191,22,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,500,330,22,8
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup1,594,91,44,14
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup2,594,232,44,14
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup3,594,370,44,14

@@ -150,14 +150,20 @@ static const int s_fixedTextEditControls[] = { IDC_FXParamNameEdit1, IDC_FXParam
 static const int s_fixedTextDisplayRowPickers[] = { IDC_FixedTextDisplayPickRow1 , IDC_FixedTextDisplayPickRow2, IDC_FixedTextDisplayPickRow3 };
 static const int s_fixedTextDisplayFontLabels[] = { IDC_FixedTextDisplayFontLabel1, IDC_FixedTextDisplayFontLabel2, IDC_FixedTextDisplayFontLabel3 };
 static const int s_fixedTextDisplayFontPickers[] = { IDC_FixedTextDisplayPickFont1, IDC_FixedTextDisplayPickFont2, IDC_FixedTextDisplayPickFont3 };
+static const int s_fixedTextDisplayTopMarginLabels[] = { IDC_FixedTextDisplayTopLabel1, IDC_FixedTextDisplayTopLabel2, IDC_FixedTextDisplayTopLabel3 };
+static const int s_fixedTextDisplayTopMarginEditControls[] = { IDC_Edit_FixedTextDisplayTop1, IDC_Edit_FixedTextDisplayTop2, IDC_Edit_FixedTextDisplayTop3 };
+static const int s_fixedTextDisplayBottomMarginLabels[] = { IDC_FixedTextDisplayBottomLabel1, IDC_FixedTextDisplayBottomLabel2, IDC_FixedTextDisplayBottomLabel3 };
+static const int s_fixedTextDisplayBottomMarginEditControls[] = { IDC_Edit_FixedTextDisplayBottom1, IDC_Edit_FixedTextDisplayBottom2, IDC_Edit_FixedTextDisplayBottom3 };
 static const int s_paramValueDisplayRowPickers[] = { IDC_FXParamValueDisplayPickRow1 , IDC_FXParamValueDisplayPickRow2, IDC_FXParamValueDisplayPickRow3 };
 static const int s_paramValueDisplayFontLabels[] = { IDC_FXParamValueDisplayFontLabel1, IDC_FXParamValueDisplayFontLabel2, IDC_FXParamValueDisplayFontLabel3 };
 static const int s_paramValueDisplayFontPickers[] = { IDC_FXParamValueDisplayPickFont1, IDC_FXParamValueDisplayPickFont2, IDC_FXParamValueDisplayPickFont3 };
-
+static const int s_paramValueDisplayTopMarginLabels[] = { IDC_ParamValueDisplayTopLabel1, IDC_ParamValueDisplayTopLabel2, IDC_ParamValueDisplayTopLabel3 };
+static const int s_paramValueDisplayTopMarginEditControls[] = { IDC_Edit_ParamValueDisplayTop1, IDC_Edit_ParamValueDisplayTop2, IDC_Edit_ParamValueDisplayTop3 };
+static const int s_paramValueDisplayBottomMarginLabels[] = { IDC_ParamValueDisplayBottomLabel1, IDC_ParamValueDisplayBottomLabel2, IDC_ParamValueDisplayBottomLabel3 };
+static const int s_paramValueDisplayBottomMarginEditControls[] = { IDC_Edit_ParamValueDisplayBottom1, IDC_Edit_ParamValueDisplayBottom2, IDC_Edit_ParamValueDisplayBottom3 };
 static const int s_stepPickers[] = { IDC_PickSteps1, IDC_PickSteps2, IDC_PickSteps3 };
 static const int s_stepEditControls[] = { IDC_EditSteps1, IDC_EditSteps2, IDC_EditSteps3 };
 static const int s_stepPrompts[] = { IDC_StepsPromptGroup1, IDC_StepsPromptGroup2, IDC_StepsPromptGroup3 };
-
 static const int s_widgetRingColorBoxes[] = { IDC_FXParamRingColorBox1, IDC_FXParamRingColorBox2, IDC_FXParamRingColorBox3 };
 static const int s_widgetRingColors[] = { IDC_FXParamRingColor1, IDC_FXParamRingColor2, IDC_FXParamRingColor3 };
 static const int s_widgetRingIndicatorColorBoxes[] = { IDC_FXParamIndicatorColorBox1, IDC_FXParamIndicatorColorBox2, IDC_FXParamIndicatorColorBox3 };
@@ -175,9 +181,9 @@ static const int s_fxParamDisplayBackgroundColorBoxes[] = { IDC_FXParamValueDisp
 // for hide
 static const int s_groupBoxes[] = { IDC_Group1, IDC_Group2, IDC_Group3 };
 static const int s_fxParamGroupBoxes[] = { IDC_GroupFXParam1, IDC_GroupFXParam2, IDC_GroupFXParam3 };
-static const int s_fixedTextDisplayGroupBoxes[] = { IDC_GroupFixedTextDisplay1 , IDC_GroupFixedTextDisplay2, IDC_GroupFixedTextDisplay3 };
-static const int s_fxParamDisplayGroupBoxes[] = { IDC_GroupFXParamValueDisplay1 , IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
-static const int s_advancedButtons[] = { IDC_AdvancedGroup1 , IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
+static const int s_fixedTextDisplayGroupBoxes[] = { IDC_GroupFixedTextDisplay1, IDC_GroupFixedTextDisplay2, IDC_GroupFixedTextDisplay3 };
+static const int s_fxParamDisplayGroupBoxes[] = { IDC_GroupFXParamValueDisplay1, IDC_GroupFXParamValueDisplay2, IDC_GroupFXParamValueDisplay3 };
+static const int s_advancedButtons[] = { IDC_AdvancedGroup1, IDC_AdvancedGroup2, IDC_AdvancedGroup3 };
 
 static const int  *const s_baseControls[] =
 {
@@ -205,8 +211,16 @@ static const int  *const s_fontControls[] =
 {
     s_fixedTextDisplayFontLabels,
     s_fixedTextDisplayFontPickers,
+    s_fixedTextDisplayTopMarginLabels,
+    s_fixedTextDisplayTopMarginEditControls,
+    s_fixedTextDisplayBottomMarginLabels,
+    s_fixedTextDisplayBottomMarginEditControls,
     s_paramValueDisplayFontLabels,
-    s_paramValueDisplayFontPickers
+    s_paramValueDisplayFontPickers,
+    s_paramValueDisplayTopMarginLabels,
+    s_paramValueDisplayTopMarginEditControls,
+    s_paramValueDisplayBottomMarginLabels,
+    s_paramValueDisplayBottomMarginEditControls
 };
 
 static const int  *const s_colorControls[] =
@@ -222,7 +236,7 @@ static const int  *const s_colorControls[] =
     s_fxParamDisplayForegroundColors,
     s_fxParamDisplayForegroundColorBoxes,
     s_fxParamDisplayBackgroundColors,
-    s_fxParamDisplayBackgroundColorBoxes,
+    s_fxParamDisplayBackgroundColorBoxes
 };
 
 static void ShowBaseControls(HWND hwndDlg, int startIndex, int endIndex, bool show)
@@ -454,9 +468,25 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 if (font)
                     SetDlgItemText(hwndDlg, s_fixedTextDisplayFontPickers[i], font);
 
+                const char *topMargin = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_TopMargin);
+                if (topMargin)
+                    SetDlgItemText(hwndDlg, s_fixedTextDisplayTopMarginEditControls[i], topMargin);
+
+                const char *bottomMargin = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_BottomMargin);
+                if (bottomMargin)
+                    SetDlgItemText(hwndDlg, s_fixedTextDisplayBottomMarginEditControls[i], bottomMargin);
+
                 font = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_Font);
                 if (font)
                     SetDlgItemText(hwndDlg, s_paramValueDisplayFontPickers[i], font);
+
+                topMargin = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_TopMargin);
+                if (topMargin)
+                    SetDlgItemText(hwndDlg, s_paramValueDisplayTopMarginEditControls[i], topMargin);
+
+                bottomMargin = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_BottomMargin);
+                if (bottomMargin)
+                    SetDlgItemText(hwndDlg, s_paramValueDisplayBottomMarginEditControls[i], bottomMargin);
 
                 const char *ringcolor = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].controlProperties.get_prop(PropertyType_LEDRingColor);
                 if (ringcolor)
@@ -474,15 +504,15 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     GetButtonColorForID(s_widgetRingIndicators[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
-                const char *foreground = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_Foreground);
+                const char *foreground = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_TextColor);
                 if (foreground)
                 {
                     rgba_color color;
                     GetColorValue(foreground, color);
                     GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
-
-                const char *background = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_Background);
+                
+                const char *background = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].nameDisplayProperties.get_prop(PropertyType_BackgroundColor);
                 if (background)
                 {
                     rgba_color color;
@@ -490,7 +520,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
-                foreground = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_Foreground);
+                foreground = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_TextColor);
                 if (foreground)
                 {
                     rgba_color color;
@@ -498,14 +528,13 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     GetButtonColorForID(s_fxParamDisplayForegroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
 
-                background = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_Background);
+                background = s_zoneDef.cells[s_fxListIndex].paramTemplates[i].valueDisplayProperties.get_prop(PropertyType_BackgroundColor);
                 if (background)
                 {
                     rgba_color color;
                     GetColorValue(background, color);
                     GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
-
             }
 
 /*
