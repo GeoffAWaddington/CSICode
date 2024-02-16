@@ -510,6 +510,18 @@ public:
     {
         rgba_color backgroundColor;
         rgba_color textColor;
+       
+        const char *top = properties.get_prop(PropertyType_TopMargin);
+        if (top)
+            topMargin_ = atoi(top);
+
+        const char *bottom = properties.get_prop(PropertyType_BottomMargin);
+        if (bottom)
+            bottomMargin_ = atoi(bottom);
+
+        const char *font = properties.get_prop(PropertyType_Font);
+        if (font)
+            font_ = atoi(font);
         
         if (value == 0)
         {
@@ -667,6 +679,18 @@ public:
                   
         rgba_color backgroundColor;
         rgba_color textColor;
+
+        const char *top = properties.get_prop(PropertyType_TopMargin);
+        if (top)
+            topMargin_ = atoi(top);
+
+        const char *bottom = properties.get_prop(PropertyType_BottomMargin);
+        if (bottom)
+            bottomMargin_ = atoi(bottom);
+
+        const char *font = properties.get_prop(PropertyType_Font);
+        if (font)
+            font_ = atoi(font);
 
         const char *col = properties.get_prop(PropertyType_BackgroundColor);
         if (col)
