@@ -1342,6 +1342,14 @@ struct FXParamTemplate
     string controlParams;
     PropertyList controlProperties;
     
+    int start_idx;
+    double deltaValue;
+    vector<double> acceleratedDeltaValues;
+    double rangeMinimum;
+    double rangeMaximum;
+    vector<double> steppedValues;
+    vector<int> acceleratedTickValues;
+      
     string nameDisplay;
     string nameDisplayAction;
     string nameDisplayParams;
@@ -1357,6 +1365,11 @@ struct FXParamTemplate
         
     FXParamTemplate()
     {
+        start_idx = 0;
+        deltaValue = 0.001;
+        rangeMinimum = 0.0;
+        rangeMaximum = 1.0;
+        
         controlAction = "NoAction";
         nameDisplayAction = "NoAction";
         valueDisplayAction = "NoAction";

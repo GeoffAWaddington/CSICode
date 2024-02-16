@@ -5054,6 +5054,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
 
                     string_list widgetTokens;
                     string_list propertyTokens;
+                    string_list paramTokens;
 
                     GetSubTokens(widgetTokens, cellTokens[0], '+');
 
@@ -5069,12 +5070,16 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                             t.controlParams = line.substr(line.find(cellTokens[3]), line.length() - 1);
                             GetTokens(propertyTokens, t.controlParams.c_str());
                             GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.controlProperties);
+                          
+                            GetTokens(paramTokens, t.controlParams.c_str());
+                            GetSteppedValues(paramTokens, 0, t.deltaValue, t.acceleratedDeltaValues, t.rangeMinimum, t.rangeMaximum, t.steppedValues, t.acceleratedTickValues);
                         }
                     }
                     
                     cellTokens.clear();
                     widgetTokens.clear ();
                     propertyTokens.clear();
+                    paramTokens.clear();
                     
                     GetTokens(cellTokens, line2.c_str());
 
@@ -5099,6 +5104,7 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     cellTokens.clear();
                     widgetTokens.clear ();
                     propertyTokens.clear();
+                    paramTokens.clear();
 
                     GetTokens(cellTokens, line3.c_str());
 
@@ -5122,15 +5128,11 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                     cellTokens.clear();
                     widgetTokens.clear ();
                     propertyTokens.clear();
+                    paramTokens.clear();
 
                     lastCell.paramTemplates.push_back(t);
                 }
             }
-            
-            //  GetWidgetNameAndModifiers(tokens[0], listSlotIndex, def.cell,  def.paramWidget, def.paramWidgetFullName, def.modifiers, def.modifier, layoutTemplates);
-            //  GetSteppedValues(tokens, 3, def.delta, def.deltas, def.rangeMinimum, def.rangeMaximum, def.steps, def.ticks);
-            //  GetPropertiesFromTokens(3, (int)tokens.size(), tokens, def.paramNameDisplayWidgetProperties);
-
         }
     }
 }

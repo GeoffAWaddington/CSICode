@@ -535,39 +535,24 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     GetColorValue(background, color);
                     GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]) = ColorToNative(color.r, color.g, color.b);
                 }
-            }
-
-/*
-            for (int i = 0; i < s_zoneDef.paramDefs[s_fxListIndex].definitions.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
-            {
-
-               
-
-
-
+                
                 string steps;
                 
                 char buf[BUFSZ];
-                for (int j = 0; j < (int)s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps.size(); ++i)
+                for (int j = 0; j < (int)s_zoneDef.cells[s_fxListIndex].paramTemplates[i].steppedValues.size(); ++j)
                 {
-                    steps += format_number(s_zoneDef.paramDefs[s_fxListIndex].definitions[i].steps[j], buf, sizeof(buf));
+                    steps += format_number(s_zoneDef.cells[s_fxListIndex].paramTemplates[i].steppedValues[j], buf, sizeof(buf));
                     steps += "  ";
                 }
                 
                 SetDlgItemText(hwndDlg, s_stepEditControls[i], steps.c_str());
                 
-                GetDlgItemText(hwndDlg, s_widgetTypePickers[i], buf, sizeof(buf));
-                s_zoneDef.paramDefs[s_fxListIndex].definitions[i].paramWidget = buf;
-
                 if (!strcmp(buf,"RotaryPush") && steps == "")
                 {
                     SetDlgItemText(hwndDlg, s_stepEditControls[i], "0  1");
                     SetDlgItemText(hwndDlg, s_stepPickers[i], "2");
                 }
             }
-            
-            */
-            
             
             ShowBaseControls(hwndDlg, 0, s_numGroups, true);
             
