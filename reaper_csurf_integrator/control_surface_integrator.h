@@ -1415,7 +1415,7 @@ struct FXParamTemplate
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
     
-    void WriteRawTemplateToFile(FILE *fxFile, string &modifiers, string &address)
+    void WriteDefaultTemplateToFile(FILE *fxFile, string &modifiers, string &address)
     {
         if ( ! fxFile)
             return;
@@ -1486,13 +1486,13 @@ struct SurfaceCell
             if (i == 0) // Auto Map only maps the first control/display
                 paramTemplates[i].WriteToFile(fxFile, modifiers, address, paramNum, paramName, steps);
             else
-                paramTemplates[i].WriteRawTemplateToFile(fxFile, modifiers, address);
+                paramTemplates[i].WriteDefaultTemplateToFile(fxFile, modifiers, address);
         }
         
         fprintf(fxFile, "\n");
     }
     
-    void WriteRawTemplateToFile(FILE *fxFile)
+    void WriteDefaultTemplateToFile(FILE *fxFile)
     {
         if ( ! fxFile)
             return;
@@ -1500,7 +1500,7 @@ struct SurfaceCell
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i <paramTemplates.size(); ++i)
-            paramTemplates[i].WriteRawTemplateToFile(fxFile, modifiers, address);
+            paramTemplates[i].WriteDefaultTemplateToFile(fxFile, modifiers, address);
             
         fprintf(fxFile, "\n");
     }
@@ -1574,17 +1574,19 @@ private:
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
     Zone *noMapZone_;
-    
     Zone *homeZone_;
-        
-    WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
-    static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
-   
     vector<SurfaceCell> surfaceCells_;
-        
-    Zone *fxLayout_;
 
     
+    
+    
+    
+    
+    Zone *fxLayout_;
+    
+    WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
+    static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
+
     string_list fxLayoutFileLines_;
     string_list fxLayoutFileLinesOriginal_;
     ptrvector<string_list> fxCellLayout_;

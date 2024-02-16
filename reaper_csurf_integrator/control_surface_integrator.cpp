@@ -4910,7 +4910,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
                 surfaceCells_[i].WriteToAutoMapFile(fxZone, i, tmp, steps);
             }
             else
-                surfaceCells_[i].WriteRawTemplateToFile(fxZone);
+                surfaceCells_[i].WriteDefaultTemplateToFile(fxZone);
         }
         
         fprintf(fxZone, "%s\n", s_EndAutoSection);
