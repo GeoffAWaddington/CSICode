@@ -154,7 +154,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,652,387,57,14
     PUSHBUTTON      "Cancel",IDCANCEL,719,387,57,14
-    EDITTEXT        IDC_EditSteps1,76,93,505,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EditSteps1,76,94,505,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps1,20,94,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup1,20,109,328,8
     GROUPBOX        "Group 1",IDC_Group1,14,9,631,114
@@ -203,48 +203,71 @@ BEGIN
     COMBOBOX        IDC_FixedTextDisplayPickFont2,453,172,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FixedTextDisplayPickFont3,453,311,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Font",IDC_FixedTextDisplayFontLabel3,436,313,15,8
-    PUSHBUTTON      "Ring Color",IDC_FXParamRingColor1,146,51,81,12
-    PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor1,146,68,81,12
-    PUSHBUTTON      "Ring Color",IDC_FXParamRingColor2,146,190,81,12
-    PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor2,146,207,81,12
-    PUSHBUTTON      "Ring Color",IDC_FXParamRingColor3,146,329,81,12
-    PUSHBUTTON      "Indicator Color",IDC_FXParamIndicatorColor3,146,346,81,12
-    PUSHBUTTON      "Foreground Color",IDC_FixedTextDisplayForegroundColor1,345,51,81,12
-    PUSHBUTTON      "Foreground Color",IDC_FixedTextDisplayForegroundColor2,345,190,81,12
-    PUSHBUTTON      "Foreground Color",IDC_FixedTextDisplayForegroundColor3,345,329,81,12
-    PUSHBUTTON      "Background Color",IDC_FixedTextDisplayBackgroundColor1,345,68,81,12
-    PUSHBUTTON      "Background Color",IDC_FixedTextDisplayBackgroundColor2,345,207,81,12
-    PUSHBUTTON      "Background Color",IDC_FixedTextDisplayBackgroundColor3,345,346,81,12
-    PUSHBUTTON      "Foreground Color",IDC_FXParamDisplayForegroundColor1,500,51,81,12
-    PUSHBUTTON      "Foreground Color",IDC_FXParamDisplayForegroundColor2,500,190,81,12
-    PUSHBUTTON      "Foreground Color",IDC_FXParamDisplayForegroundColor3,500,329,81,12
-    PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor1,500,68,81,12
-    PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor2,500,207,81,12
-    PUSHBUTTON      "Background Color",IDC_FXParamDisplayBackgroundColor3,500,346,81,12
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor1,171,51,56,12
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor1,171,68,56,12
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor2,171,190,56,12
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor2,171,207,56,12
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor3,171,329,56,12
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor3,171,346,56,12
+    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor1,370,51,56,12
+    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor2,370,190,56,12
+    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor3,370,329,56,12
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor1,370,68,56,12
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor2,370,207,56,12
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor3,370,346,56,12
+    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor1,525,51,56,12
+    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor2,525,190,56,12
+    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor3,525,329,56,12
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor1,525,68,56,12
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor2,525,207,56,12
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor3,525,346,56,12
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup2,20,248,328,8
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually in the large edit box above",IDC_StepsPromptGroup3,20,386,328,8
-    LTEXT           "",IDC_FXParamRingColorBox1,119,53,16,8
-    LTEXT           "",IDC_FXParamRingColorBox2,119,192,16,8
-    LTEXT           "",IDC_FXParamRingColorBox3,119,331,16,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox1,119,70,16,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox2,119,209,16,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox3,119,348,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox1,438,53,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox2,438,192,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox3,438,330,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox1,438,70,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox2,438,208,16,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox3,438,347,16,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox1,595,70,16,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox2,595,208,16,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox3,595,347,16,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,594,53,16,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,595,191,16,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,595,330,16,8
+    LTEXT           "",IDC_FXParamRingColorBox1,146,53,16,8
+    LTEXT           "",IDC_FXParamRingColorBox2,146,192,16,8
+    LTEXT           "",IDC_FXParamRingColorBox3,146,331,16,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox1,146,70,16,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox2,146,209,16,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox3,146,348,16,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox1,345,53,16,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox2,345,192,16,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox3,345,330,16,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox1,345,70,16,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox2,345,208,16,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox3,345,347,16,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox1,500,70,16,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox2,500,208,16,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox3,500,347,16,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox1,500,53,16,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox2,500,191,16,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox3,500,330,16,8
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup1,594,91,44,14
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup2,594,232,44,14
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup3,594,370,44,14
-    CONTROL         "",IDC_AllParams,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,652,12,123,369
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop1,462,51,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_FixedTextDisplayTopLabel1,436,53,13,8
+    LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel1,436,70,24,8
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom1,462,68,13,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop1,618,51,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_ParamValueDisplayTopLabel1,592,53,13,8
+    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel1,592,70,24,8
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom1,618,68,13,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop2,462,189,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_FixedTextDisplayTopLabel2,436,191,13,8
+    LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel2,436,208,24,8
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom2,462,206,13,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop2,618,189,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_ParamValueDisplayTopLabel2,592,191,13,8
+    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel2,592,208,24,8
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom2,618,206,13,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop3,462,329,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_FixedTextDisplayTopLabel3,436,331,13,8
+    LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel3,436,348,24,8
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom3,462,346,13,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop3,618,329,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_ParamValueDisplayTopLabel3,592,331,13,8
+    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel3,592,348,24,8
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom3,618,346,13,12,ES_CENTER | ES_NUMBER
 END
 
 IDD_DIALOG_RemapAutoFX DIALOGEX 0, 0, 464, 549

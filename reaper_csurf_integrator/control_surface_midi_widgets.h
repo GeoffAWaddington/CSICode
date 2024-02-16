@@ -460,15 +460,11 @@ public:
     {
         PropertyList properties;
         properties.set_prop(PropertyType_DisplayText, "");
-        properties.set_prop(PropertyType_TopMargin, "0");
-        properties.set_prop(PropertyType_BottomMargin, "63");
-        properties.set_prop(PropertyType_Font, "9");
+        properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
+        properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
+        properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
         
-        for (int x = 1; x <= 4; x ++)
-        {
-          properties.set_prop_int(PropertyType_Row,x);
-          ForceValue(properties, 0.0);
-        }
+        ForceValue(properties, 0.0);
     }
     
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
@@ -488,9 +484,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 5;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font_;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
@@ -613,15 +609,11 @@ public:
     {
         PropertyList properties;
         properties.set_prop(PropertyType_DisplayText, "");
-        properties.set_prop(PropertyType_TopMargin, "0");
-        properties.set_prop(PropertyType_BottomMargin, "63");
-        properties.set_prop(PropertyType_Font, "9");
+        properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
+        properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
+        properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
         
-        for (int x = 1; x <= 4; x ++)
-        {
-          properties.set_prop_int(PropertyType_Row,x);
-          ForceValue(properties, "");
-        }
+        FeedbackProcessor::ForceValue(properties, "");
     }
 
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
@@ -641,9 +633,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 5;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font_;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
