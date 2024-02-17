@@ -2539,67 +2539,8 @@ public:
         if (homeZone_ != NULL)
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
-    
-    int GetNumGroups()
-    {
-        int numGroups = 0;
-        
-        for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
-        {
-            if (fxCellLayoutTemplateOld_[i].size() > 0 && fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
-            {
-                numGroups = (int)fxCellLayoutTemplateOld_[i].size() - 1;
-                break;
-            }
-        }
-        
-        return  numGroups;
-    }
-    
-    void GetFXLayoutTemplates(ptrvector<FXParamLayoutTemplate> &layoutTemplates)
-    {
-        layoutTemplates.clear();
-
-        string widgetAction;
-        string aliasDisplayAction;
-        string valueDisplayAction;
-
-        for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
-        {
-            if (fxCellLayoutTemplateOld_[i].size() > 1)
-            {
-                if (fxCellLayoutTemplateOld_[i][0] == "WidgetAction")
-                    widgetAction = fxCellLayoutTemplateOld_[i][1];
-                else if (fxCellLayoutTemplateOld_[i][0] == "AliasDisplayAction")
-                    aliasDisplayAction = fxCellLayoutTemplateOld_[i][1];
-                else if (fxCellLayoutTemplateOld_[i][0] == "ValueDisplayAction")
-                    valueDisplayAction = fxCellLayoutTemplateOld_[i][1];
-            }
-        }
-        
-        for (int i = 0; i < (int)GetFXLayouts().size(); ++i)
-        {
-            for (int j = 0; j < GetFXLayouts()[i].channelCount; j++)
-            {
-                string modifiers;
-                if (GetFXLayouts()[i].modifiers != "")
-                    modifiers = GetFXLayouts()[i].modifiers + "+";
-                
-                FXParamLayoutTemplate layoutTemplate;
-                
-                layoutTemplate.modifiers = modifiers;
-                layoutTemplate.suffix = GetFXLayouts()[i].address + int_to_string(j + 1);
-                
-                layoutTemplate.widgetAction = widgetAction;
-                layoutTemplate.aliasDisplayAction = aliasDisplayAction;
-                layoutTemplate.valueDisplayAction = valueDisplayAction;
-                
-                layoutTemplates.push_back(layoutTemplate);
-            }
-        }
-    }
-    
-    void SaveAutoZone(const AutoZoneDefinition &zoneDef, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
+            
+    void SaveAutoZone(const AutoZoneDefinition &zoneDef)
     {
         FILE *fxFile = fopenUTF8(zoneDef.fullPath.c_str(),"wb");
         

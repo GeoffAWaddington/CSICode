@@ -4297,8 +4297,8 @@ void ZoneManager::InitializeFXParamsLearnZone()
 void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
 {
     zoneDef_.fullPath = zoneFilePaths_.Get(fxName.c_str())->filePath;
-    ptrvector<FXParamLayoutTemplate> layoutTemplates;
-    GetFXLayoutTemplates(layoutTemplates);
+    //ptrvector<FXParamLayoutTemplate> layoutTemplates;
+    //GetFXLayoutTemplates(layoutTemplates);
         
     UnpackZone(zoneDef_);
     
@@ -5032,7 +5032,6 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
                 cell.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
                 
                 zd.cells.push_back(cell);
-                
             }
             else
             {

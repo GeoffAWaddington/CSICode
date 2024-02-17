@@ -22,7 +22,6 @@ extern int g_maxNumParamSteps;
 static ZoneManager *s_zoneManager;
 static int s_numGroups = 0;
 static AutoZoneDefinition s_zoneDef;
-static ptrvector<FXParamLayoutTemplate> s_layoutTemplates;
 
 static int s_dlgResult = IDCANCEL;
 
@@ -385,7 +384,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             ShowFontControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
             ShowColorControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
 
-            SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + s_layoutTemplates[s_fxListIndex].modifiers + s_layoutTemplates[s_fxListIndex].suffix).c_str());
+            SurfaceCell &cell = s_zoneDef.cells[s_fxListIndex];
+            
+            SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + cell.modifiers + cell.address).c_str());
 
             for (int i = 0; i <NUM_ELEM( s_stepPickers); i++)
             {
@@ -633,8 +634,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         for (int i = 0; i < s_zoneDef.cells[s_fxListIndex].paramTemplates.size(); i++)
                         {
                             FXParamTemplate &t = s_zoneDef.cells[s_fxListIndex].paramTemplates[i];
-                            t.controlParams = "";
- 
+  
                             char buf[BUFSZ];
                             
                             GetDlgItemText(hwndDlg, s_paramNumEditControls[i], buf, sizeof(buf));
@@ -741,7 +741,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 t.nameDisplayProperties.print_to_buf(propBuf, PropertyType_BottomMargin);
                             }
                             
-                            if (IsWindowVisible(GetDlgItem(hwndDlg,s_widgetRingColors[i])))
+                            if (IsWindowVisible(GetDlgItem(hwndDlg,s_fixedTextDisplayForegroundColors[i])))
                             {
                                 rgba_color color;
                                 char tmp[32];
@@ -758,7 +758,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             t.nameDisplayParams = propBuf;
                             propBuf[0] = 0;
 
-                            if (IsWindowVisible(GetDlgItem(hwndDlg,s_fixedTextDisplayFontPickers[i])))
+                            if (IsWindowVisible(GetDlgItem(hwndDlg,s_paramValueDisplayFontPickers[i])))
                             {
                                 GetDlgItemText(hwndDlg, s_paramValueDisplayFontPickers[i], buf, sizeof(buf));
                                 t.valueDisplayProperties.set_prop(PropertyType_Font, buf);
@@ -773,7 +773,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 t.valueDisplayProperties.print_to_buf(propBuf, PropertyType_BottomMargin);
                             }
                             
-                            if (IsWindowVisible(GetDlgItem(hwndDlg,s_widgetRingColors[i])))
+                            if (IsWindowVisible(GetDlgItem(hwndDlg,s_fxParamDisplayForegroundColors[i])))
                             {
                                 rgba_color color;
                                 char tmp[32];
@@ -1334,8 +1334,7 @@ bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
     s_zoneDef.Clear();
     s_zoneManager = zoneManager;
     s_zoneDef.fullPath = fullFilePath;
-    s_numGroups = s_zoneManager->GetNumGroups();
-    s_zoneManager->GetFXLayoutTemplates(s_layoutTemplates);
+    s_numGroups = s_zoneManager->paramWidgets_.size();
     
     s_zoneManager->UnpackZone(s_zoneDef);
     
@@ -1343,7 +1342,7 @@ bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
     
     if (s_dlgResult == IDSAVE)
     {
-        s_zoneManager->SaveAutoZone(s_zoneDef, s_layoutTemplates);
+        s_zoneManager->SaveAutoZone(s_zoneDef);
         return true;
     }
     else
