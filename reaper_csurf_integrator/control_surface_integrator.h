@@ -1532,30 +1532,20 @@ struct AutoZoneDefinition
     string fxName;
     string fxAlias;
     string fullPath;
-
     string_list prologue;
     string_list epilogue;
-    
     ptrvector<SurfaceCell> cells;
-
-    //ptrvector<FXParamDefinitions> paramDefs;
-    
     string_list rawParams;
-    WDL_StringKeyedArray<string> rawParamsDictionary;
 
     void Clear()
     {
-        prologue.clear();
-        epilogue.clear();
-        cells.clear();
-        //paramDefs.clear();
-        
-        rawParams.clear();
-        rawParamsDictionary.DeleteAll();
-
         fxName = "";
         fxAlias = "";
         fullPath = "";
+        prologue.clear();
+        epilogue.clear();
+        cells.clear();
+        rawParams.clear();
     }
 };
 

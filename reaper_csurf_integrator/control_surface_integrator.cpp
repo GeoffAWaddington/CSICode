@@ -4952,7 +4952,6 @@ void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
     zd.prologue.clear();
     zd.epilogue.clear();
     zd.rawParams.clear();
-    zd.rawParamsDictionary.DeleteAll();
 
     zd.fxName = "";
     zd.fxAlias = "";

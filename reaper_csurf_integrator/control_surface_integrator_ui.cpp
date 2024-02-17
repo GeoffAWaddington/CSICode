@@ -302,16 +302,7 @@ static void PopulateParamListView(HWND hwndParamList)
         const char *str = s_zoneDef.rawParams[i].c_str();
         lvi.pszText = (char *)str;
         
-        ListView_InsertItem(hwndParamList, &lvi);
-        
-        
-        const char *spaceBreak = strstr(str," ");
-        if (spaceBreak != NULL)
-        {
-            char key[BUFSZ];
-            lstrcpyn_safe(key, str, (int) wdl_min(sizeof(key), (spaceBreak - str + 1)));
-            s_zoneDef.rawParamsDictionary.Insert(key, spaceBreak + 1);
-        }
+        ListView_InsertItem(hwndParamList, &lvi);        
     }
 }
 

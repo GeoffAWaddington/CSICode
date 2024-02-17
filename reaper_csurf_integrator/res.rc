@@ -244,6 +244,7 @@ BEGIN
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup1,594,91,44,14
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup2,594,232,44,14
     PUSHBUTTON      "Advanced",IDC_AdvancedGroup3,594,370,44,14
+    CONTROL         "",IDC_AllParams,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,652,12,123,369
     EDITTEXT        IDC_Edit_FixedTextDisplayTop1,462,51,13,12,ES_CENTER | ES_NUMBER
     LTEXT           "Top",IDC_FixedTextDisplayTopLabel1,436,53,13,8
     LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel1,436,70,24,8
