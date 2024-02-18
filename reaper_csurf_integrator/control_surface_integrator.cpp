@@ -2075,9 +2075,9 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TrackReceivePanDisplay", new TrackReceivePanDisplay());
     actions_.Insert("TrackReceivePrePostDisplay", new TrackReceivePrePostDisplay());
     
-    learnFXActions_.Insert("LearnFXParam", new LearnFXParam());
-    learnFXActions_.Insert("LearnFXParamNameDisplay", new LearnFXParamNameDisplay());
-    learnFXActions_.Insert("LearnFXParamValueDisplay", new LearnFXParamValueDisplay());
+    //learnFXActions_.Insert("LearnFXParam", new LearnFXParam());
+    //learnFXActions_.Insert("LearnFXParamNameDisplay", new LearnFXParamNameDisplay());
+    //learnFXActions_.Insert("LearnFXParamValueDisplay", new LearnFXParamValueDisplay());
 }
 
 void CSurfIntegrator::Init()

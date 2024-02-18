@@ -358,7 +358,7 @@ struct FXParamLayoutTemplate
     string aliasDisplayAction;
     string valueDisplayAction;
 };
-
+/*
 struct FXParamDefinition
 {
     string_list modifiers;
@@ -401,7 +401,7 @@ struct FXParamDefinitions
 {
     ptrvector<FXParamDefinition> definitions;
 };
-
+*/
 
 
 
@@ -1639,6 +1639,7 @@ private:
     int masterTrackFXMenuOffset_;
     
     string learnFXName_;
+    bool isLearnMode_;
     //LearnInfo *lastTouched_;
 
     AutoZoneDefinition zoneDef_;
@@ -1710,7 +1711,8 @@ private:
                 char fxName[BUFSZ];
                 TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
                 learnFXName_ = fxName;
-                
+                isLearnMode_ = true;
+
                 GoLearnFXParams(track, fxSlot);
             }
         }
@@ -2055,6 +2057,8 @@ public:
         selectedTrackFXMenuOffset_ = 0;
         masterTrackFXMenuOffset_ = 0;
         
+        isLearnMode_ = false;
+
         //lastTouched_ = NULL;
         
         // public
