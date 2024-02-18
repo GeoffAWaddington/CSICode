@@ -1073,7 +1073,7 @@ void ZoneManager::GarbageCollectZones()
 
     Zone::GCTagZone(noMapZone_);
     Zone::GCTagZone(homeZone_);
-    Zone::GCTagZone(fxLayout_);
+    //Zone::GCTagZone(fxLayout_);
     Zone::GCTagZone(focusedFXParamZone_);
 
     for (int x = 0; x < focusedFXZones_.GetSize(); x ++)
@@ -3047,6 +3047,7 @@ void Zone::RequestUpdate()
 
 void Zone::RequestLearnFXUpdate()
 {
+    /*
     const WDL_TypedBuf<int> &modifiers = zoneManager_->GetSurface()->GetModifiers();
     
     int modifier = 0;
@@ -3132,6 +3133,7 @@ void Zone::RequestLearnFXUpdate()
             }
         }
     }
+    */
 }
 
 void Zone::AddNavigatorsForZone(const char *zoneName, WDL_PtrList<Navigator> &navigators)
@@ -3498,8 +3500,8 @@ void ZoneManager::Initialize()
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("SurfaceFXLayout"))
     {
-        ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, surfaceFXLayouts_);
-        ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, fxCellLayout_, fxCellLayoutTemplateOld_);
+        //ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, surfaceFXLayouts_);
+        //ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, fxCellLayout_, fxCellLayoutTemplateOld_);
         
         BuildFXTemplate(zoneFilePaths_.Get("FXLayouts")->filePath, zoneFilePaths_.Get("SurfaceFXLayout")->filePath);
     }
@@ -3509,7 +3511,7 @@ void ZoneManager::Initialize()
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXEpilogue")->filePath, fxEpilogue_);
     
     InitializeNoMapZone();
-    InitializeFXParamsLearnZone();
+    //InitializeFXParamsLearnZone();
 
     GoHome();
 }
@@ -3720,6 +3722,7 @@ void ZoneManager::AutoMapFocusedFX()
 
 void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
 {
+    /*
     if (homeZone_ != NULL)
     {
         ClearFXMapping();
@@ -3769,6 +3772,7 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
             }
         }
     }
+     */
 }
 
 void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
@@ -3826,6 +3830,8 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
 
 void ZoneManager::EraseLastTouchedControl()
 {
+    /*
+    
     if (lastTouched_ != NULL)
     {
         if (fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
@@ -3852,10 +3858,13 @@ void ZoneManager::EraseLastTouchedControl()
         
         lastTouched_ = NULL;
     }
+    
+    */
 }
 
 void ZoneManager::SaveTemplatedFXParams()
 {
+    /*
     if (learnFXName_ != "" && fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
     {
         string line0 = string(fxLayoutFileLines_[0]);
@@ -3930,10 +3939,12 @@ void ZoneManager::SaveTemplatedFXParams()
         ClearLearnedFXParams();
         GoHome();
     }
+    */
 }
 
 void ZoneManager::SaveLearnedFXParams()
 {
+    /*
     if (learnFXName_ != "")
     {
         string path;
@@ -4068,8 +4079,9 @@ void ZoneManager::SaveLearnedFXParams()
         ClearLearnedFXParams();
         GoHome();
     }
+    */
 }
-
+/*
 LearnInfo *ZoneManager::GetLearnInfo(Widget *widget)
 {
     const WDL_TypedBuf<int> &modifiers = surface_->GetModifiers();
@@ -4085,7 +4097,7 @@ LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
     WDL_IntKeyedArray<LearnInfo *> *modifiers = learnedFXParams_.Get(widget);
     return modifiers ? modifiers->Get(modifier) : NULL;
 }
-
+*/
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
 {
     GetSubTokens(modifiers, line, '+');
@@ -4108,8 +4120,8 @@ int ZoneManager::GetModifierValue(const string_list &modifierTokens)
 
 void ZoneManager::InitializeNoMapZone()
 {
-    if (fxCellLayout_.size() != 3)
-        return;
+    //if (fxCellLayout_.size() != 3)
+        //return;
     
     if (GetZoneFilePaths().Exists("NoMap"))
     {
@@ -4123,6 +4135,8 @@ void ZoneManager::InitializeNoMapZone()
         if (zones.GetSize() > 0)
             noMapZone_ = zones.Get(0);
         
+        
+        /*
         if (noMapZone_ != NULL)
         {
             const WDL_PointerKeyedArray<Widget*, bool> &wl = noMapZone_->GetWidgets();
@@ -4184,11 +4198,13 @@ void ZoneManager::InitializeNoMapZone()
                 }
             }
         }
+        */
     }
 }
 
 void ZoneManager::InitializeFXParamsLearnZone()
 {
+    /*
     if (fxCellLayout_.size() != 3)
         return;
     
@@ -4292,6 +4308,7 @@ void ZoneManager::InitializeFXParamsLearnZone()
             }
         }
     }
+    */
 }
 
 void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
@@ -4364,6 +4381,7 @@ void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack
 
 void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 {
+    /*
     if (noMapZone_ != NULL)
         noMapZone_->Deactivate();
 
@@ -4433,10 +4451,12 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
             }
         }
     }
+    */
 }
 
 void ZoneManager::WidgetMoved(ActionContext *context)
 {
+    /*
     if (fxLayoutFileLines_.size() < 1)
         return;
     
@@ -4515,8 +4535,12 @@ void ZoneManager::WidgetMoved(ActionContext *context)
     }
     
     lastTouched_ = info;
+    */
 }
 
+
+
+/*
 void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
 {
     fxLayout_->SetFXParamNum(widget, fxParamNum);
@@ -4579,9 +4603,12 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
         index++;
     }
 }
+ */
+
 
 void ZoneManager::DoLearn(ActionContext *context, double value)
-{    
+{
+    /*
     if (value == 0.0)
         return;
     
@@ -4690,6 +4717,7 @@ void ZoneManager::DoLearn(ActionContext *context, double value)
                        
         TrackFX_SetParam(info->track, info->fxSlotNum, info->paramNumber, value);
     }
+    */
 }
 
 void ZoneManager::RemapAutoZone()
@@ -4804,10 +4832,10 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
         return;
     
-    int totalLayoutCount = 0;
+    int totalLayoutCount = surfaceCells_.size();
     
-    for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
-        totalLayoutCount += surfaceFXLayouts_[i].channelCount;
+    //for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
+        //totalLayoutCount += surfaceFXLayouts_[i].channelCount;
     bool wasMuted = false;
     GetTrackUIMute(track, &wasMuted);
     
@@ -4855,11 +4883,11 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
 
 void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex)
 {    
-    if (surfaceFXLayouts_.size() == 0)
-        return;
+    //if (surfaceFXLayouts_.size() == 0)
+        //return;
     
-    if (fxCellLayout_.size() == 0)
-        return;
+    //if (fxCellLayout_.size() == 0)
+        //return;
     
     string path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
     

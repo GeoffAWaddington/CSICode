@@ -1580,16 +1580,16 @@ private:
     
     
     
-    Zone *fxLayout_;
+    //Zone *fxLayout_;
     
-    WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
-    static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
+    //WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
+    //static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
 
-    string_list fxLayoutFileLines_;
-    string_list fxLayoutFileLinesOriginal_;
-    ptrvector<string_list> fxCellLayout_;
-    ptrvector<string_list> fxCellLayoutTemplateOld_;
-    ptrvector<FXCellLayoutInfo> surfaceFXLayouts_;
+    //string_list fxLayoutFileLines_;
+    //string_list fxLayoutFileLinesOriginal_;
+    //ptrvector<string_list> fxCellLayout_;
+    //ptrvector<string_list> fxCellLayoutTemplateOld_;
+    //ptrvector<FXCellLayoutInfo> surfaceFXLayouts_;
     
     
     
@@ -2018,12 +2018,12 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), controlDisplayAssociations_(disposeDisplayAssociations), focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates), learnedFXParams_(disposeLearnInfoArray)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), /* controlDisplayAssociations_(disposeDisplayAssociations),*/ focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates), learnedFXParams_(disposeLearnInfoArray)
     {
         //private:
         noMapZone_ = NULL;
         homeZone_ = NULL;
-        fxLayout_ = NULL;
+        //fxLayout_ = NULL;
         focusedFXParamZone_ = NULL;
         
         listensToGoHome_ = false;
@@ -2092,11 +2092,11 @@ public:
 
     void GoFXLayoutZone(const char *zoneName, int slotIndex);
     void WidgetMoved(ActionContext *context);
-    void SetParamNum(Widget *widget, int fxParamNum);
+    //void SetParamNum(Widget *widget, int fxParamNum);
 
     void DoLearn(ActionContext *context, double value);
-    LearnInfo *GetLearnInfo(Widget *widget);
-    LearnInfo *GetLearnInfo(Widget *widget, int modifier);
+    //LearnInfo *GetLearnInfo(Widget *widget);
+    //LearnInfo *GetLearnInfo(Widget *widget, int modifier);
 
     void DoTouch(Widget *widget, double value);
     
@@ -2108,8 +2108,8 @@ public:
     
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
-    const ptrvector<FXCellLayoutInfo> &GetFXLayouts() { return surfaceFXLayouts_; }
-    const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplateOld_;}
+    //const ptrvector<FXCellLayoutInfo> &GetFXLayouts() { return surfaceFXLayouts_; }
+    //const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplateOld_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -2176,9 +2176,9 @@ public:
         
     void ClearLearnedFXParams()
     {
-        fxLayout_ = NULL;
-        fxLayoutFileLines_.clear();
-        fxLayoutFileLinesOriginal_.clear();
+        //fxLayout_ = NULL;
+        //fxLayoutFileLines_.clear();
+        //fxLayoutFileLinesOriginal_.clear();
         paramList_.clear();
         learnFXName_ = "";
         
@@ -2220,12 +2220,12 @@ public:
             for (int i = 0; i < listeners_.GetSize(); ++i)
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
-    
+    /*
     const ptrvector<string_list> &GetSurfaceFXLayout()
     {
         return fxCellLayout_;
     }
-              
+     */
     void GoAssociatedZone(const char *zoneName)
     {
         if (noMapZone_ != NULL)

@@ -45,6 +45,7 @@ public:
     
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
+        /*
         double min, max = 0.0;
     
         LearnInfo *info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
@@ -59,10 +60,13 @@ public:
         GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum);
         
         return TrackFX_GetParam(DAW::GetTrack(trackNum), fxSlotNum, info->paramNumber, &min, &max);
+        */
+        return 0.0;
     }
 
     virtual void RequestUpdate(ActionContext *context) override
     {
+        /*
         LearnInfo *info = context->GetSurface()->GetZoneManager()->GetLearnInfo(context->GetWidget());
 
         if (info == NULL)
@@ -79,6 +83,7 @@ public:
         }
         else
             context->ClearWidget();
+        */
     }
     
     virtual void Do(ActionContext *context, double value) override
@@ -96,6 +101,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context, int paramNum) override
     {
+        /*
         int trackNum;
         int fxSlotNum;
         int fxParamNum;
@@ -131,6 +137,7 @@ public:
         }
         else
             context->ClearWidget();
+        */
     }
 };
 
@@ -143,6 +150,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context, int paramNum) override
     {
+        /*
         int trackNum;
         int fxSlotNum;
         int fxParamNum;
@@ -178,6 +186,7 @@ public:
         }
         else
             context->ClearWidget();
+         */
     }
 };
 
