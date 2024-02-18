@@ -722,7 +722,7 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens)
             ml->Get(i)->provideFeedback =  (i == ml->GetSize() - 1);
     }
 }
-
+/*
 void ZoneManager::ProcessSurfaceFXLayout(const string &cellPath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate)
 {
     try
@@ -827,7 +827,7 @@ void ZoneManager::ProcessFXLayouts(const string &layoutPath, ptrvector<FXCellLay
         ShowConsoleMsg(buffer);
     }
 }
-
+*/
 void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
 {
     vector<FXCellLayoutInfo> fxLayouts;

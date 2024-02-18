@@ -1284,6 +1284,39 @@ public:
     }
 };
 
+/*
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct LearnInfo
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    Widget  *const fxParamWidget;
+    string const cellAddress;
+    
+    bool isLearned;
+    int paramNumber;
+    string paramName;
+    string params;
+    MediaTrack *track;
+    int fxSlotNum;
+    
+    LearnInfo(Widget *paramWidget, string cellA) : fxParamWidget(paramWidget), cellAddress(cellA)
+    {
+        isLearned = false;
+        paramNumber = 0;
+        track = NULL;
+        fxSlotNum = 0;
+    }
+};
+*/
+
+////////////////////////////
+// For Zone Manager
+////////////////////////////
+
+void GetSteppedValues(const string_list &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+
+void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct CSIZoneInfo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1314,34 +1347,6 @@ struct FXCellLayoutInfo
         return modifierList;
     }
 };
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct LearnInfo
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    Widget  *const fxParamWidget;
-    string const cellAddress;
-    
-    bool isLearned;
-    int paramNumber;
-    string paramName;
-    string params;
-    MediaTrack *track;
-    int fxSlotNum;
-    
-    LearnInfo(Widget *paramWidget, string cellA) : fxParamWidget(paramWidget), cellAddress(cellA)
-    {
-        isLearned = false;
-        paramNumber = 0;
-        track = NULL;
-        fxSlotNum = 0;
-    }
-};
-
-
-void GetSteppedValues(const string_list &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
-
-void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
 
 struct FXParamTemplate
 {
@@ -1634,14 +1639,14 @@ private:
     int masterTrackFXMenuOffset_;
     
     string learnFXName_;
-    LearnInfo *lastTouched_;
+    //LearnInfo *lastTouched_;
 
     AutoZoneDefinition zoneDef_;
     string_list paramList_;
 
-    static void disposeLearnInfoArray(WDL_IntKeyedArray<LearnInfo*> *ar) { delete ar; }
-    static void disposeLearnInfo(LearnInfo *inf) { delete inf; }
-    WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<LearnInfo*> * > learnedFXParams_;
+    //static void disposeLearnInfoArray(WDL_IntKeyedArray<LearnInfo*> *ar) { delete ar; }
+    //static void disposeLearnInfo(LearnInfo *inf) { delete inf; }
+    //WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<LearnInfo*> * > learnedFXParams_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
 
@@ -1679,8 +1684,8 @@ private:
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
     
-    void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
-    void ProcessFXLayouts(const string &filePath, ptrvector<FXCellLayoutInfo> &fxLayouts);
+    //void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
+    //void ProcessFXLayouts(const string &filePath, ptrvector<FXCellLayoutInfo> &fxLayouts);
     
     void BuildFXTemplate(const string &layoutPath, const string &cellPath);
     
@@ -2018,7 +2023,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), /* controlDisplayAssociations_(disposeDisplayAssociations),*/ focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates), learnedFXParams_(disposeLearnInfoArray)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), /* controlDisplayAssociations_(disposeDisplayAssociations),*/ focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates) //, learnedFXParams_(disposeLearnInfoArray)
     {
         //private:
         noMapZone_ = NULL;
@@ -2050,7 +2055,7 @@ public:
         selectedTrackFXMenuOffset_ = 0;
         masterTrackFXMenuOffset_ = 0;
         
-        lastTouched_ = NULL;
+        //lastTouched_ = NULL;
         
         // public
         hasColor_ = false;
@@ -2176,6 +2181,7 @@ public:
         
     void ClearLearnedFXParams()
     {
+        /*
         //fxLayout_ = NULL;
         //fxLayoutFileLines_.clear();
         //fxLayoutFileLinesOriginal_.clear();
@@ -2201,6 +2207,7 @@ public:
         }
         
         lastTouched_ = NULL;
+        */
     }
         
     void DeclareClearFocusedFXParam()
