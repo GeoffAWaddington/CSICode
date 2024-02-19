@@ -396,15 +396,6 @@ struct FXParamDefinitions
 {
     ptrvector<FXParamDefinition> definitions;
 };
-*/
-
-
-
-
-
-
-
-
 
 struct LearnFXCell
 {
@@ -418,6 +409,7 @@ struct LearnFXCell
         fxParamValueDisplayWidget = NULL;
     }
 };
+ */
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Page;
@@ -845,9 +837,9 @@ protected:
     static void destroyActionContextList(WDL_PtrList<ActionContext> *l) { l->Empty(true); delete l; }
     WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
     
-    static void destroyLearnFXCellList(WDL_StringKeyedArray<LearnFXCell *> *l) { delete l; }
-    static void destroyLearnFXCell(LearnFXCell *l) { delete l; }
-    WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * > learnFXCells_;
+    //static void destroyLearnFXCellList(WDL_StringKeyedArray<LearnFXCell *> *l) { delete l; }
+    //static void destroyLearnFXCell(LearnFXCell *l) { delete l; }
+    //WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * > learnFXCells_;
     
     WDL_PtrList<Zone> includedZones_;
 
@@ -893,8 +885,6 @@ public:
     Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
-
-    const WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * >  &GetLearnFXCells() { return learnFXCells_; }
     
     int GetModifier(Widget *widget)
     {
@@ -905,7 +895,12 @@ public:
 
         return modifier;
     }
+  
+    /*
     
+    const WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * >  &GetLearnFXCells() { return learnFXCells_; }
+
+ 
     void AddLearnFXCell(int modifier, const char *cellAddress, const LearnFXCell &cell)
     {
         WDL_StringKeyedArray<LearnFXCell *> *m = learnFXCells_.Get(modifier);
@@ -928,19 +923,20 @@ public:
         static LearnFXCell empty;
         return empty;
     }
-    
+
     Zone *GetLearnFXParamsZone()
     {
         WDL_PtrList<Zone> *zones = associatedZones_.Get("LearnFXParams");
         return zones ? zones->Get(0) : NULL;
     }
-       
+    
     Zone *GetFXLayoutZone(const char *name)
     {
         WDL_PtrList<Zone> *zones = associatedZones_.Get(name);
         return zones ? zones->Get(0) : NULL;
     }
-       
+     */
+    
     bool GetIsMainZoneOnlyActive()
     {
         for (int j = 0; j < associatedZones_.GetSize(); j ++)
@@ -2416,7 +2412,7 @@ public:
         if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
         {
             homeZone_->RequestUpdate();
-            homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate();
+            //homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate();
         }
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)

@@ -2033,7 +2033,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayRow_;
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  *7 + offset_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = channel_  * 7 + offset_;
         
         int cnt = 0;
         while (cnt++ < 7)
