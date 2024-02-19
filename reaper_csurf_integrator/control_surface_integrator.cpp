@@ -2134,11 +2134,13 @@ void CSurfIntegrator::Init()
             
             string_list tokens;
             GetTokens(tokens, line.c_str());
-
+            
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
                 if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
-                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str()))));
+                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), 15));
+                else if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 5)
+                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4])));
                 else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
                     oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4]));
                 else if (tokens[0] == s_PageToken)
@@ -2466,7 +2468,7 @@ const char *ActionContext::GetName()
 
 void ActionContext::RunDeferredActions()
 {
-    if (holdDelayAmount_ != 0.0 && delayStartTime_ != 0.0 && DAW::GetCurrentNumberOfMilliseconds() > (delayStartTime_ + holdDelayAmount_))
+    if (holdDelayAmount_ != 0.0 && delayStartTime_ != 0.0 && timeGetTime() > (delayStartTime_ + holdDelayAmount_))
     {
         if (steppedValues_.size() > 0)
         {
@@ -2566,7 +2568,7 @@ void ActionContext::DoAction(double value)
         else
         {
             deferredValue_ = value;
-            delayStartTime_ =  DAW::GetCurrentNumberOfMilliseconds();
+            delayStartTime_ =  timeGetTime();
         }
     }
     else
@@ -3435,7 +3437,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(const rgba_color &color)
 
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
-    if (DAW::GetCurrentNumberOfMilliseconds() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
+    if (timeGetTime() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
         return;
 
     lastDoubleValue_ = value;
@@ -5236,11 +5238,11 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
     if (value && modifiers_[modifier].isEngaged == false)
     {
         modifiers_[modifier].isEngaged = value;
-        modifiers_[modifier].pressedTime = DAW::GetCurrentNumberOfMilliseconds();
+        modifiers_[modifier].pressedTime = timeGetTime();
     }
     else
     {
-        double keyReleasedTime = DAW::GetCurrentNumberOfMilliseconds();
+        double keyReleasedTime = timeGetTime();
         
         if (keyReleasedTime - modifiers_[modifier].pressedTime > latchTime)
         {
@@ -5783,6 +5785,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     // special processing for MCU meters
     hasMCUMeters_ = false;
     displayType_ = 0x14;
+    lastRun_ = 0.0;
     
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
     

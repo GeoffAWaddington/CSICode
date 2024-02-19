@@ -1388,6 +1388,7 @@ struct SurfaceLine
     string name;
     int inPort;
     int outPort;
+    int surfaceRefreshRate;
     string remoteDeviceIP;
     
     SurfaceLine()
@@ -1512,6 +1513,8 @@ static bool s_editMode = false;
 static string s_surfaceName;
 static int s_surfaceInPort = 0;
 static int s_surfaceOutPort = 0;
+static int s_surfaceRefreshRate = 0;
+static int s_surfaceDefaultRefreshRate = 15;
 static string s_surfaceRemoteDeviceIP;
 
 static int s_pageIndex = 0;
@@ -1846,9 +1849,11 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, s_surfaceName.c_str());
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceRefreshRate, true);
             }
             else
             {
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceDefaultRefreshRate, true);
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, "");
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn), CB_SETCURSEL, 0, 0);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut), CB_SETCURSEL, 0, 0);
@@ -1899,6 +1904,9 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
                         
+                        bool translated;
+                        s_surfaceRefreshRate = GetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, &translated, true);
+
                         int currentSelection = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiIn, CB_GETCURSEL, 0, 0);
                         if (currentSelection >= 0)
                             s_surfaceInPort = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiIn, CB_GETITEMDATA, currentSelection, 0);
@@ -2624,7 +2632,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_surfaceInPort = s_surfaces.Get(index)->inPort;
                                 s_surfaceOutPort = s_surfaces.Get(index)->outPort;
                                 s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
-
+                                s_surfaceRefreshRate = s_surfaces.Get(index)->surfaceRefreshRate;
+                                
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
@@ -2639,6 +2648,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_surfaces.Get(index)->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                     s_surfaces.Get(index)->inPort = s_surfaceInPort;
                                     s_surfaces.Get(index)->outPort = s_surfaceOutPort;
+                                    s_surfaces.Get(index)->surfaceRefreshRate = s_surfaceRefreshRate;
                                 }
                                 
                                 s_editMode = false;
@@ -2833,6 +2843,14 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             surface->outPort = atoi(tokens[3].c_str());
                             if (surface->type == s_OSCSurfaceToken && tokens.size() == 5)
                                 surface->remoteDeviceIP = tokens[4];
+                            
+                            if (surface->type == s_MidiSurfaceToken)
+                            {
+                                if (tokens.size() == 5)
+                                    surface->surfaceRefreshRate = atoi(tokens[4]);
+                                else
+                                    surface->surfaceRefreshRate = s_surfaceDefaultRefreshRate;
+                            }
                         }
                         
                         s_surfaces.Add(surface);
@@ -2987,6 +3005,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                     if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
                         fprintf(iniFile, "%s ", s_surfaces.Get(i)->remoteDeviceIP.c_str());
+                    
+                    int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
+                    
+                    if (s_surfaces.Get(i)->type == s_MidiSurfaceToken)
+                        fprintf(iniFile, "%d ", refreshRate);
                     
                     fprintf(iniFile, "\n");
                 }

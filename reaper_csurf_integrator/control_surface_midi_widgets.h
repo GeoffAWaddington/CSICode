@@ -1148,7 +1148,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if (shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && timeGetTime() - timeZeroValueReceived_ > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], 0x00, 0x00);
             shouldSetToZero_ = false;
@@ -1160,7 +1160,7 @@ public:
         if (value == 0.0)
         {
             shouldSetToZero_ = true;
-            timeZeroValueReceived_ = (int)DAW::GetCurrentNumberOfMilliseconds();
+            timeZeroValueReceived_ = timeGetTime();
             return;
         }
         else
@@ -1203,7 +1203,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if (shouldSetToZero_ && DAW::GetCurrentNumberOfMilliseconds() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && timeGetTime() - timeZeroValueReceived_ > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
             ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], 0x00);
@@ -1217,7 +1217,7 @@ public:
         if (value == 0.0)
         {
             shouldSetToZero_ = true;
-            timeZeroValueReceived_ = (int)DAW::GetCurrentNumberOfMilliseconds();
+            timeZeroValueReceived_ = timeGetTime();
             return;
         }
         else

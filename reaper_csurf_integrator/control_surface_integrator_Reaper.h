@@ -103,15 +103,6 @@ public:
     #endif
     }
     
-    static double GetCurrentNumberOfMilliseconds()
-    {
-    #ifndef timeGetTime
-            return GetTickCount();
-    #else
-            return timeGetTime();
-    #endif
-    }
-    
     static void SendCommandMessage(WPARAM wparam) { ::SendMessage(g_hwnd, WM_COMMAND, wparam, 0); }
     
     static MediaTrack *GetSelectedTrack(int seltrackidx) { return ::GetSelectedTrack(NULL, seltrackidx); }

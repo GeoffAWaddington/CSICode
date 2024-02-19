@@ -2609,7 +2609,7 @@ public:
     
     virtual void ProcessMessage(double value) override
     {
-        widget_->SetIncomingMessageTime(DAW::GetCurrentNumberOfMilliseconds());
+        widget_->SetIncomingMessageTime(timeGetTime());
         widget_->GetZoneManager()->DoAction(widget_, value);
     }
 };
@@ -2893,7 +2893,7 @@ class ControlSurface
 private:
     int *scrubModePtr_;
     int configScrubMode_;
-
+    
     bool isRewinding_;
     bool isFastForwarding_;
     
@@ -3445,13 +3445,16 @@ protected:
     midi_Output *const midiOutput_;
     
 public:
-    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput) {}
+    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput, int surfaceRefreshRate) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput), surfaceRefreshRate_(surfaceRefreshRate) {}
 
     ~Midi_ControlSurfaceIO()
     {
         if (midiInput_) ReleaseMidiInput(midiInput_);
         if (midiOutput_) ReleaseMidiOutput(midiOutput_);
     }
+    
+    int surfaceRefreshRate_;
+
     
     const char *GetName() { return name_.c_str(); }
     
@@ -3479,6 +3482,8 @@ private:
     Midi_ControlSurfaceIO *const surfaceIO_;
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
+    
+    DWORD lastRun_;
 
     void ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     
@@ -3529,6 +3534,16 @@ public:
         if (WDL_NOT_NORMALLY(!messageGenerator)) return;
         Midi_CSIMessageGeneratorsByMessage_.Insert(messageKey, messageGenerator);
     }
+    
+    virtual void RequestUpdate() override
+    {
+        const DWORD now = timeGetTime();
+        if ((now - lastRun_) < (1000/max((surfaceIO_->surfaceRefreshRate_),1))) return;
+        lastRun_=now;
+
+        ControlSurface::RequestUpdate();
+    }
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3633,7 +3648,7 @@ public:
     
     void SendX32HeartBeat()
     {
-        double currentTime = DAW::GetCurrentNumberOfMilliseconds();
+        double currentTime = timeGetTime();
 
         if (currentTime - X32HeartBeatLastRefreshTime_ > X32HeartBeatRefreshInterval_)
         {

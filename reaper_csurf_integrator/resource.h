@@ -25,6 +25,7 @@
 #define IDC_COMBO_MidiIn                1020
 #define IDC_COMBO_MidiOut               1021
 #define IDC_EDIT_MidiSurfaceName        1022
+#define IDC_EDIT_MidiSurfaceRefreshRate 1023
 #define IDC_LIST_Pages                  1024
 #define IDC_BUTTON_AddPage              1025
 #define IDC_BUTTON_EditPage             1026
