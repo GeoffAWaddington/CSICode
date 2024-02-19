@@ -643,12 +643,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             GetDlgItemText(hwndDlg, s_paramValueDisplayRowPickers[i], buf, sizeof(buf));
                             t.valueDisplay = buf;
 
-                            char propBuf[2048];
+                            char propBuf[4096];
                             propBuf[0] = 0;
 
                             GetDlgItemText(hwndDlg, s_ringStylePickers[i], buf, sizeof(buf));
                             t.controlProperties.set_prop(PropertyType_RingStyle, buf);
-                            t.controlProperties.print_to_buf(propBuf, PropertyType_RingStyle);
+                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
 
                             if (IsWindowVisible(GetDlgItem(hwndDlg,s_widgetRingColors[i])))
                             {
@@ -657,45 +657,45 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 
                                 ColorFromNative(GetButtonColorForID(s_widgetRingColors[i]), &color.r, &color.g, &color.b);
                                 t.controlProperties.set_prop(PropertyType_LEDRingColor, color.rgba_to_string(tmp));
-                                t.controlProperties.print_to_buf(propBuf, PropertyType_LEDRingColor);
+                                t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_LEDRingColor);
                                 
                                 ColorFromNative(GetButtonColorForID(s_widgetRingIndicators[i]), &color.r, &color.g, &color.b);
                                 t.controlProperties.set_prop(PropertyType_PushColor, color.rgba_to_string(tmp));
-                                t.controlProperties.print_to_buf(propBuf, PropertyType_PushColor);
+                                t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_PushColor);
                             }
                             
-                            sprintf(propBuf + strlen(propBuf), "[ ");
+                            snprintf_append(propBuf, sizeof(propBuf), "[ ");
 
                             if (t.rangeMinimum < t.rangeMaximum)
-                                sprintf(propBuf + strlen(propBuf), "%.2f>%.2f ", t.rangeMinimum, t.rangeMaximum);
+                                snprintf_append(propBuf, sizeof(propBuf), "%.2f>%.2f ", t.rangeMinimum, t.rangeMaximum);
                             
                             if (t.acceleratedDeltaValues.size())
                             {
-                                sprintf(propBuf + strlen(propBuf), "(");
+                                snprintf_append(propBuf, sizeof(propBuf), "(");
                                 for (int j = 0; j < t.acceleratedDeltaValues.size(); ++j)
                                 {
                                     if (j == t.acceleratedDeltaValues.size() - 1)
-                                        sprintf(propBuf + strlen(propBuf), "%.3f) ", t.acceleratedDeltaValues[j]);
+                                        snprintf_append(propBuf, sizeof(propBuf), "%.3f) ", t.acceleratedDeltaValues[j]);
                                     else
-                                        sprintf(propBuf + strlen(propBuf), "%.3f,", t.acceleratedDeltaValues[j]);
+                                        snprintf_append(propBuf, sizeof(propBuf), "%.3f,", t.acceleratedDeltaValues[j]);
                                 }
                             }
                             else
-                                sprintf(propBuf + strlen(propBuf), "(%.3f) ", t.deltaValue);
+                                snprintf_append(propBuf, sizeof(propBuf), "(%.3f) ", t.deltaValue);
 
                             if (t.acceleratedTickValues.size() > 1)
                             {
-                                sprintf(propBuf + strlen(propBuf), "(");
+                                snprintf_append(propBuf, sizeof(propBuf), "(");
                                 for (int j = 0; j < t.acceleratedTickValues.size(); ++j)
                                 {
                                     if (j == t.acceleratedTickValues.size() - 1)
-                                        sprintf(propBuf + strlen(propBuf), "%d) ", t.acceleratedTickValues[j]);
+                                        snprintf_append(propBuf, sizeof(propBuf), "%d) ", t.acceleratedTickValues[j]);
                                     else
-                                        sprintf(propBuf + strlen(propBuf), "%d,", t.acceleratedTickValues[j]);
+                                        snprintf_append(propBuf, sizeof(propBuf), "%d,", t.acceleratedTickValues[j]);
                                 }
                             }
                             else if (t.acceleratedTickValues.size() > 0)
-                                sprintf(propBuf + strlen(propBuf), "(%d) ", t.acceleratedTickValues[0]);
+                                snprintf_append(propBuf, sizeof(propBuf), "(%d) ", t.acceleratedTickValues[0]);
                             
                             
                             GetDlgItemText(hwndDlg, s_stepEditControls[i], buf, sizeof(buf));
@@ -708,12 +708,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 for (int j = 0; j < (int)steps.size(); ++j)
                                 {
                                     t.steppedValues.push_back(atoi(steps[j].c_str()));
-                                    sprintf(propBuf + strlen(propBuf), "%s ", steps[j].c_str());
+                                    snprintf_append(propBuf, sizeof(propBuf), "%s ", steps[j].c_str());
                                 }
                                 t.controlParams += buf;
                             }
                             
-                            sprintf(propBuf + strlen(propBuf), "]");
+                            snprintf_append(propBuf, sizeof(propBuf), "]");
                             t.controlParams = propBuf;
                             propBuf[0] = 0;
                         
@@ -721,15 +721,15 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             {
                                 GetDlgItemText(hwndDlg, s_fixedTextDisplayFontPickers[i], buf, sizeof(buf));
                                 t.nameDisplayProperties.set_prop(PropertyType_Font, buf);
-                                t.nameDisplayProperties.print_to_buf(propBuf, PropertyType_Font);
+                                t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_Font);
    
                                 GetDlgItemText(hwndDlg, s_fixedTextDisplayTopMarginEditControls[i], buf, sizeof(buf));
                                 t.nameDisplayProperties.set_prop(PropertyType_TopMargin, buf);
-                                t.nameDisplayProperties.print_to_buf(propBuf, PropertyType_TopMargin);
+                                t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TopMargin);
   
                                 GetDlgItemText(hwndDlg, s_fixedTextDisplayBottomMarginEditControls[i], buf, sizeof(buf));
                                 t.nameDisplayProperties.set_prop(PropertyType_BottomMargin, buf);
-                                t.nameDisplayProperties.print_to_buf(propBuf, PropertyType_BottomMargin);
+                                t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BottomMargin);
                             }
                             
                             if (IsWindowVisible(GetDlgItem(hwndDlg,s_fixedTextDisplayForegroundColors[i])))
@@ -739,11 +739,11 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 
                                 ColorFromNative(GetButtonColorForID(s_fixedTextDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
                                 t.nameDisplayProperties.set_prop(PropertyType_TextColor, color.rgba_to_string(tmp));
-                                t.nameDisplayProperties.print_to_buf(propBuf, PropertyType_TextColor);
+                                t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TextColor);
 
                                 ColorFromNative(GetButtonColorForID(s_fixedTextDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
                                 t.nameDisplayProperties.set_prop(PropertyType_BackgroundColor, color.rgba_to_string(tmp));
-                                t.nameDisplayProperties.print_to_buf(propBuf, PropertyType_BackgroundColor);
+                                t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BackgroundColor);
                             }
                             
                             t.nameDisplayParams = propBuf;
@@ -753,15 +753,15 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             {
                                 GetDlgItemText(hwndDlg, s_paramValueDisplayFontPickers[i], buf, sizeof(buf));
                                 t.valueDisplayProperties.set_prop(PropertyType_Font, buf);
-                                t.valueDisplayProperties.print_to_buf(propBuf, PropertyType_Font);
+                                t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_Font);
   
                                 GetDlgItemText(hwndDlg, s_paramValueDisplayTopMarginEditControls[i], buf, sizeof(buf));
                                 t.valueDisplayProperties.set_prop(PropertyType_TopMargin, buf);
-                                t.valueDisplayProperties.print_to_buf(propBuf, PropertyType_TopMargin);
+                                t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TopMargin);
   
                                 GetDlgItemText(hwndDlg, s_paramValueDisplayBottomMarginEditControls[i], buf, sizeof(buf));
                                 t.valueDisplayProperties.set_prop(PropertyType_BottomMargin, buf);
-                                t.valueDisplayProperties.print_to_buf(propBuf, PropertyType_BottomMargin);
+                                t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BottomMargin);
                             }
                             
                             if (IsWindowVisible(GetDlgItem(hwndDlg,s_fxParamDisplayForegroundColors[i])))
@@ -771,12 +771,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 
                                 ColorFromNative(GetButtonColorForID(s_fxParamDisplayForegroundColors[i]), &color.r, &color.g, &color.b);
                                 t.valueDisplayProperties.set_prop(PropertyType_TextColor, color.rgba_to_string(tmp));
-                                t.valueDisplayProperties.print_to_buf(propBuf, PropertyType_TextColor);
+                                t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TextColor);
 
                                 
                                 ColorFromNative(GetButtonColorForID(s_fxParamDisplayBackgroundColors[i]), &color.r, &color.g, &color.b);
                                 t.valueDisplayProperties.set_prop(PropertyType_BackgroundColor, color.rgba_to_string(tmp));
-                                t.valueDisplayProperties.print_to_buf(propBuf, PropertyType_BackgroundColor);
+                                t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BackgroundColor);
                             }
                             
                             t.valueDisplayParams = propBuf;

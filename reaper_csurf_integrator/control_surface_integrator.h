@@ -334,21 +334,16 @@ class PropertyList
         }
         fprintf(fxFile,"\n");
     }
-    
-    void print_to_buf(char * buf, PropertyType prop)
+
+    void print_to_buf(char * buf, int buf_size, PropertyType prop)
     {
         const char *key = string_from_prop(prop);
         const char *value = get_prop(prop);
 
         if(key && value)
-            sprintf(buf + strlen(buf), "%s=%s ", key, value);
+            snprintf_append(buf, buf_size, "%s=%s ", key, value);
     }
 };
-
-
-
-
-
 
 struct FXParamLayoutTemplate
 {
