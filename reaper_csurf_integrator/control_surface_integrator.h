@@ -56,6 +56,10 @@
 #include "udp.hh"
 #endif
 
+#ifndef timeGetTime
+#define timeGetTime() GetTickCount()
+#endif
+
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
 extern string int_to_string(int value);

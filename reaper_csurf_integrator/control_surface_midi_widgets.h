@@ -2452,13 +2452,8 @@ public:
     }
     
     virtual void SetValue(const PropertyList &properties, double value) override
-    {
-        
-#ifndef timeGetTime
-        DWORD now = GetTickCount();
-#else
+    {        
         DWORD now = timeGetTime();
-#endif
         
         double pp=(GetPlayState()&1) ? GetPlayPosition() : GetCursorPosition();
         unsigned char bla[10];
