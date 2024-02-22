@@ -911,24 +911,24 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                     if (tokens[0] == "#WidgetTypes")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            paramWidgets_.push_back(string(tokens[i]));
+                            paramWidgets_.push_back(tokens[i]);
                     }
                     else if (tokens[0] == "#DisplayRows")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            displayRows_.push_back(string(tokens[i]));
+                            displayRows_.push_back(tokens[i]);
                     }
 
                     else if (tokens[0] == "#RingStyles")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            ringStyles_.push_back(string(tokens[i]));
+                            ringStyles_.push_back(tokens[i]);
                     }
 
                     else if (tokens[0] == "#DisplayFonts")
                     {
                         for (int i = 1; i < tokens.size(); ++i)
-                            fonts_.push_back(string(tokens[i]));
+                            fonts_.push_back(tokens[i]);
                     }
                     else if (tokens[0] == "#SupportsColor")
                     {

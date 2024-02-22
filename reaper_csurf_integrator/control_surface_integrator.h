@@ -2065,10 +2065,10 @@ public:
         allZonesNeedFree_.Empty(true);
     }
      
-    ptrvector<string> paramWidgets_;
-    ptrvector<string> displayRows_;
-    ptrvector<string> ringStyles_;
-    ptrvector<string> fonts_;
+    string_list paramWidgets_;
+    string_list displayRows_;
+    string_list ringStyles_;
+    string_list fonts_;
     bool hasColor_;
     
     void Initialize();
