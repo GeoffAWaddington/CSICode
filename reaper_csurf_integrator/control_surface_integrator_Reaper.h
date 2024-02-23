@@ -94,15 +94,6 @@ class DAW
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    static void SwapBufsPrecise(midi_Input *midiInput)
-    {
-    #ifndef timeGetTime
-            midiInput->SwapBufsPrecise(GetTickCount(), GetTickCount());
-    #else
-            midiInput->SwapBufsPrecise(timeGetTime(), timeGetTime());
-    #endif
-    }
-    
     static void SendCommandMessage(WPARAM wparam) { ::SendMessage(g_hwnd, WM_COMMAND, wparam, 0); }
     
     static MediaTrack *GetSelectedTrack(int seltrackidx) { return ::GetSelectedTrack(NULL, seltrackidx); }

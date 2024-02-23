@@ -484,9 +484,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 9;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
@@ -495,7 +495,10 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
-               
+          
+        for (int i = 0; i < 5; ++i)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x20;
+
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
         SendMidiSysExMessage(&midiSysExData.evt);
@@ -645,9 +648,9 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = topMargin_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = bottomMargin_;
-        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = font_;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 9;
 
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
@@ -656,7 +659,10 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
-               
+            
+        for (int i = 0; i < 5; ++i)
+            midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x20;
+
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
          
         SendMidiSysExMessage(&midiSysExData.evt);
@@ -1148,7 +1154,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if (shouldSetToZero_ && timeGetTime() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && GetTickCount() - timeZeroValueReceived_ > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], 0x00, 0x00);
             shouldSetToZero_ = false;
@@ -1160,7 +1166,7 @@ public:
         if (value == 0.0)
         {
             shouldSetToZero_ = true;
-            timeZeroValueReceived_ = timeGetTime();
+            timeZeroValueReceived_ = GetTickCount();
             return;
         }
         else
@@ -1203,7 +1209,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if (shouldSetToZero_ && timeGetTime() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && GetTickCount() - timeZeroValueReceived_ > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
             ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], 0x00);
@@ -1217,7 +1223,7 @@ public:
         if (value == 0.0)
         {
             shouldSetToZero_ = true;
-            timeZeroValueReceived_ = timeGetTime();
+            timeZeroValueReceived_ = GetTickCount();
             return;
         }
         else
@@ -2453,8 +2459,11 @@ public:
     
     virtual void SetValue(const PropertyList &properties, double value) override
     {        
-        DWORD now = timeGetTime();
-        
+//#ifndef timeGetTime
+        DWORD now = GetTickCount();
+//#else
+        //DWORD now = timeGetTime();
+//#endif
         double pp=(GetPlayState()&1) ? GetPlayPosition() : GetCursorPosition();
         unsigned char bla[10];
         

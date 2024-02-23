@@ -56,10 +56,6 @@
 #include "udp.hh"
 #endif
 
-#ifndef timeGetTime
-#define timeGetTime() GetTickCount()
-#endif
-
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
 extern string int_to_string(int value);
@@ -872,6 +868,7 @@ public:
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
     const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget);
+    void AddWidget(Widget *widget);
     void Activate();
     void Deactivate();
     void DoAction(Widget *widget, bool &isUsed, double value);
@@ -985,14 +982,7 @@ public:
         else
             return name_.c_str();
     }
-    
-    void AddWidget(Widget *widget, const char *name)
-    {
-        thisZoneWidgets_.Add(widget);
-        widgets_.Insert(widget, true);
-        widgetsByName_.Insert(name, widget);
-    }
-    
+        
     Widget *GetWidgetByName(const char *name)
     {
         return widgetsByName_.Get(name);
@@ -1472,6 +1462,7 @@ struct FXParamTemplate
 struct SurfaceCell
 {
     string modifiers;
+    int modifier;
     string address;
     vector<FXParamTemplate> paramTemplates;
      
@@ -1549,7 +1540,6 @@ struct AutoZoneDefinition
     }
 };
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1575,8 +1565,9 @@ private:
     Zone *homeZone_;
     vector<SurfaceCell> surfaceCells_;
 
-    
-    
+    MediaTrack* learnFXTrack_;
+    ptrvector<Zone *> learnFXZones_;
+    WDL_PointerKeyedArray<Widget *, int> learnedWidgets_;
     
     
     
@@ -1598,6 +1589,8 @@ private:
     
     string_list fxPrologue_;
     string_list fxEpilogue_;
+    string_list emptyStringList_;
+    
     
     WDL_PtrList<ZoneManager> listeners_;
     
@@ -1633,8 +1626,8 @@ private:
     int selectedTrackFXMenuOffset_;
     int masterTrackFXMenuOffset_;
     
-    string learnFXName_;
-    bool isLearnMode_;
+    //string learnFXName_;
+    //bool isLearnMode_;
     //LearnInfo *lastTouched_;
 
     AutoZoneDefinition zoneDef_;
@@ -1672,6 +1665,8 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
       
+    void DoLearn(Widget *widget);
+
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
     void InitializeFXParamsLearnZone();
@@ -1688,31 +1683,7 @@ private:
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
     void BuildActionTemplate(const string_list &tokens);
-    
-    void GoLearnFXParams()
-    {
-        int trackNumber = 0;
-        int itemNumber = 0;
-        int fxSlot = 0;
-        MediaTrack *track = NULL;
         
-        if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
-        {
-            if (trackNumber > 0)
-                track = DAW::GetTrack(trackNumber);
-            
-            if (track)
-            {
-                char fxName[BUFSZ];
-                TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-                learnFXName_ = fxName;
-                isLearnMode_ = true;
-
-                GoLearnFXParams(track, fxSlot);
-            }
-        }
-    }
-    
     bool GetIsListener()
     {
         return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
@@ -2026,6 +1997,7 @@ public:
         noMapZone_ = NULL;
         homeZone_ = NULL;
         //fxLayout_ = NULL;
+        learnFXTrack_ = NULL;
         focusedFXParamZone_ = NULL;
         
         listensToGoHome_ = false;
@@ -2052,7 +2024,7 @@ public:
         selectedTrackFXMenuOffset_ = 0;
         masterTrackFXMenuOffset_ = 0;
         
-        isLearnMode_ = false;
+        //isLearnMode_ = false;
 
         //lastTouched_ = NULL;
         
@@ -2098,14 +2070,13 @@ public:
     void WidgetMoved(ActionContext *context);
     //void SetParamNum(Widget *widget, int fxParamNum);
 
-    void DoLearn(ActionContext *context, double value);
     //LearnInfo *GetLearnInfo(Widget *widget);
     //LearnInfo *GetLearnInfo(Widget *widget, int modifier);
 
     void DoTouch(Widget *widget, double value);
     
     void AutoMapFocusedFX();
-    void GoLearnFXParams(MediaTrack *track, int fxSlot);
+    void GoLearnFXParams();
     void SaveLearnedFXParams();
     void SaveTemplatedFXParams();
     void EraseLastTouchedControl();
@@ -2247,7 +2218,7 @@ public:
             DeclareGoSelectedTrackFXMenu(zoneName);
         else if (!strcmp(zoneName, "LearnFXParams"))
             GoLearnFXParams();
-        else if (!strncmp(zoneName, "Custom",6))
+        else if (!strncmp(zoneName, "Custom", 6))
             DeclareGoCustom(zoneName);
         else if (homeZone_ != NULL)
         {
@@ -2409,7 +2380,10 @@ public:
     void RequestUpdate()
     {
         CheckFocusedFXState();
-            
+          
+        for (int i = 0; i < learnFXZones_.GetSize(); ++i)
+            learnFXZones_[i]->RequestUpdate();
+
         if (noMapZone_ != NULL)
             noMapZone_->RequestUpdate();
         
@@ -2443,6 +2417,14 @@ public:
         widget->LogInput(value);
         
         bool isUsed = false;
+        
+        if (learnFXZones_.size() && value != 0.0)
+        {
+            DoLearn(widget);
+        }
+        
+        for (int i = 0; i < learnFXZones_.size(); ++i)
+            learnFXZones_[i]->DoAction(widget, isUsed, value);
         
         if (noMapZone_ != NULL && noMapZone_->GetIsActive())
             noMapZone_->DoAction(widget, isUsed, value);
@@ -2479,6 +2461,14 @@ public:
         
         bool isUsed = false;
         
+        if (learnFXZones_.size())
+        {
+            DoLearn(widget);
+        }
+        
+        for (int i = 0; i < learnFXZones_.size(); ++i)
+            learnFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
+
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
 
@@ -2510,7 +2500,15 @@ public:
         widget->LogInput(delta);
         
         bool isUsed = false;
-           
+        
+        if (learnFXZones_.size())
+        {
+            DoLearn(widget);
+        }
+        
+        for (int i = 0; i < learnFXZones_.size(); ++i)
+            learnFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
@@ -2613,7 +2611,7 @@ public:
     
     virtual void ProcessMessage(double value) override
     {
-        widget_->SetIncomingMessageTime(timeGetTime());
+        widget_->SetIncomingMessageTime(GetTickCount());
         widget_->GetZoneManager()->DoAction(widget_, value);
     }
 };
@@ -3541,7 +3539,7 @@ public:
     
     virtual void RequestUpdate() override
     {
-        const DWORD now = timeGetTime();
+        const DWORD now = GetTickCount();
         if ((now - lastRun_) < (1000/max((surfaceIO_->surfaceRefreshRate_),1))) return;
         lastRun_=now;
 
@@ -3652,7 +3650,7 @@ public:
     
     void SendX32HeartBeat()
     {
-        double currentTime = timeGetTime();
+        double currentTime = GetTickCount();
 
         if (currentTime - X32HeartBeatLastRefreshTime_ > X32HeartBeatRefreshInterval_)
         {

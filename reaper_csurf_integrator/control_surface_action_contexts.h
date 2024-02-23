@@ -41,6 +41,9 @@ public:
     
     virtual void Do(ActionContext *context, double value) override
     {
+        if(context->GetCommandId() == 41743) // ignore refresh all surfaces, it causes a crash -- CSI receives the surface control release message after this but no one is home :)
+            return;
+            
         // used for Increase/Decrease
         if (value < 0 && context->GetRangeMinimum() < 0)
             DAW::SendCommandMessage(context->GetCommandId());

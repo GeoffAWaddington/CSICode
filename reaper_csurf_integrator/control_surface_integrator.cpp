@@ -976,6 +976,10 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         SurfaceCell cell;
         
         cell.modifiers = fxLayouts[i].modifiers;
+        string_list modifierTokens;
+        GetSubTokens(modifierTokens, cell.modifiers.c_str(), '+');
+        cell.modifier = GetModifierValue(modifierTokens);
+
         cell.address = fxLayouts[i].address;
         
         FXParamTemplate t;
@@ -1176,7 +1180,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                             if (widget == NULL)
                                 continue;
  
-                            zone->AddWidget(widget, widget->GetName());
+                            zone->AddWidget(widget);
                                                         
                             for (int ti = 0; ti < modifiedActionTemplates->GetSize(); ti ++)
                             {
@@ -2468,7 +2472,7 @@ const char *ActionContext::GetName()
 
 void ActionContext::RunDeferredActions()
 {
-    if (holdDelayAmount_ != 0.0 && delayStartTime_ != 0.0 && timeGetTime() > (delayStartTime_ + holdDelayAmount_))
+    if (holdDelayAmount_ != 0.0 && delayStartTime_ != 0.0 && GetTickCount() > (delayStartTime_ + holdDelayAmount_))
     {
         if (steppedValues_.size() > 0)
         {
@@ -2568,7 +2572,7 @@ void ActionContext::DoAction(double value)
         else
         {
             deferredValue_ = value;
-            delayStartTime_ =  timeGetTime();
+            delayStartTime_ =  GetTickCount();
         }
     }
     else
@@ -2924,6 +2928,13 @@ void Zone::ReactivateFXMenuZone()
     else if (selfxmenu && selfxmenu->Get(0) && selfxmenu->Get(0)->GetIsActive())
         for (int i = 0; i < selfxmenu->GetSize(); ++i)
             selfxmenu->Get(i)->Activate();
+}
+
+void Zone::AddWidget(Widget *widget)
+{
+    thisZoneWidgets_.Add(widget);
+    widgets_.Insert(widget, true);
+    widgetsByName_.Insert(widget->GetName(), widget);
 }
 
 void Zone::Activate()
@@ -3437,7 +3448,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(const rgba_color &color)
 
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
-    if (timeGetTime() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
+    if (GetTickCount() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
         return;
 
     lastDoubleValue_ = value;
@@ -3520,6 +3531,9 @@ void ZoneManager::Initialize()
 
 void ZoneManager::CheckFocusedFXState()
 {
+    if (! isFocusedFXMappingEnabled_)
+        return;
+
     int trackNumber = 0;
     int itemNumber = 0;
     int fxIndex = 0;
@@ -3533,14 +3547,14 @@ void ZoneManager::CheckFocusedFXState()
         char fxName[BUFSZ];
         TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
-        if (learnFXName_ != "" && learnFXName_ != fxName)
+        if (learnFXTrack_ != NULL && track != NULL)
         {
-            char alias[256], learnalias[256];
-            GetAlias(fxName, alias, sizeof(alias));
-            GetAlias(learnFXName_.c_str(), learnalias, sizeof(learnalias));
+            char trackName[256], learnFXTrackName[256];
+            GetTrackName(track, trackName, sizeof(trackName));
+            GetTrackName(learnFXTrack_, learnFXTrackName, sizeof(learnFXTrackName));
 
             char tmp[2048];
-            snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("You have now shifted focus to %s.\r\n\r\n%s has parameters that have not been saved.\r\n\r\nDo you want to save them now?","csi_mbox"), alias, learnalias);
+            snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("You have now shifted focus to %s.\r\n\r\n%s has parameters that have not been saved.\r\n\r\nDo you want to save them now?","csi_mbox"), trackName, learnFXTrackName);
             if (MessageBox(g_hwnd, tmp, __LOCALIZE("Unsaved Learn FX Params","csi_mbox"), MB_YESNO) == IDYES)
             {
                 SaveLearnedFXParams();
@@ -3553,8 +3567,6 @@ void ZoneManager::CheckFocusedFXState()
         }
     }
     
-    if (! isFocusedFXMappingEnabled_)
-        return;
             
     if ((retval & 1) && (fxIndex > -1))
     {
@@ -3722,9 +3734,48 @@ void ZoneManager::AutoMapFocusedFX()
     }
 }
 
-void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
+void ZoneManager::GoLearnFXParams()
 {
-    /*
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int fxSlot = 0;
+    MediaTrack *track = NULL;
+    
+    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    {
+        if (trackNumber > 0)
+            track = DAW::GetTrack(trackNumber);
+        
+        if (! track)
+            return;
+    }
+    else
+        return;
+
+    if (learnFXTrack_ != NULL && track != NULL)
+    {
+        char trackName[256], learnFXTrackName[256];
+        GetTrackName(track, trackName, sizeof(trackName));
+        GetTrackName(learnFXTrack_, learnFXTrackName, sizeof(learnFXTrackName));
+
+        char tmp[2048];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("You have now shifted focus to %s.\r\n\r\n%s has parameters that have not been saved.\r\n\r\nDo you want to save them now?","csi_mbox"), trackName, learnFXTrackName);
+        if (MessageBox(g_hwnd, tmp, __LOCALIZE("Unsaved Learn FX Params","csi_mbox"), MB_YESNO) == IDYES)
+        {
+            SaveLearnedFXParams();
+        }
+        else
+        {
+            learnFXTrack_ = NULL;
+            
+            // GAW -- Check appaoch and syntax for this operation
+            learnFXZones_.clear();
+            GarbageCollectZones();
+            
+            GoHome();
+        }
+    }
+    
     if (homeZone_ != NULL)
     {
         ClearFXMapping();
@@ -3732,7 +3783,50 @@ void ZoneManager::GoLearnFXParams(MediaTrack *track, int fxSlot)
                 
         homeZone_->GoAssociatedZone("LearnFXParams");
     }
+
+    char fxName[BUFSZ];
+    TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+
+    bool foundIt = false;
     
+    for (int i = 0; i < learnFXZones_.size(); ++i)
+    {
+        if (learnFXZones_[i]->GetName() == fxName)
+        {
+            foundIt = true;
+            break;
+        }
+    }
+    
+    if ( ! foundIt)
+    {
+        string path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
+        
+        RecursiveCreateDirectory(path.c_str(),0);
+        
+        string trimmedFXName = fxName;
+        ReplaceAllWith(trimmedFXName, s_BadFileChars, "_");
+        
+        path += "/" + trimmedFXName + ".zon";
+        
+        char alias[256];
+        GetAlias(fxName, alias, sizeof(alias));
+        
+        Zone *z = new Zone(csi_, this, GetFocusedFXNavigator(), 0, fxName, alias, path, emptyStringList_, emptyStringList_);
+        
+        z->Activate();
+        
+        learnFXZones_.push_back(z);
+    }
+    
+
+    
+
+    
+    
+    
+    
+    /*
     if (track)
     {
         char fxName[BUFSZ];
@@ -4607,9 +4701,93 @@ void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
 }
  */
 
-
-void ZoneManager::DoLearn(ActionContext *context, double value)
+void ZoneManager::DoLearn(Widget *widget)
 {
+    if (learnedWidgets_.Exists(widget))
+        return;
+    
+    string address = "";
+    int modifier = surface_->GetModifiers().Get()[0];
+    string paramNameDisplay = "";
+    string paramValueDisplay = "";
+    
+    const char *controlName = widget->GetName();
+    
+    bool foundIt = false;
+    
+    for (int i = 0; i < surfaceCells_.size(); ++i)
+    {
+        if(foundIt)
+            break;
+        
+        if(surfaceCells_[i].modifier != surfaceCells_[i].modifier)
+            continue;
+                
+        for (int j = 0; j < surfaceCells_[i].paramTemplates.size(); ++j)
+        {
+            FXParamTemplate &t = surfaceCells_[i].paramTemplates[j];
+            
+            string widgetName = t.control + surfaceCells_[i].address;
+                        
+            if (controlName == widgetName)
+            {
+                address = surfaceCells_[i].address;
+                modifier = surfaceCells_[i].modifier;
+                paramNameDisplay = t.nameDisplay == "" ? surfaceCells_[i].paramTemplates[0].nameDisplay : t.nameDisplay;
+                paramNameDisplay += surfaceCells_[i].address;
+                paramValueDisplay = t.valueDisplay == "" ? surfaceCells_[i].paramTemplates[0].valueDisplay : t.valueDisplay;
+                paramValueDisplay +=  surfaceCells_[i].address;
+                foundIt = true;
+                break;
+            }
+        }
+    }
+    
+    if (address == "")
+        return;
+    
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int fxIndex = 0;
+    
+    int retval = GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
+
+    if ((retval & 1) && (fxIndex > -1))
+    {
+        MediaTrack *track = DAW::GetTrack(trackNumber);
+        
+        char fxName[BUFSZ];
+        TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+        
+        for (int i = 0; i < learnFXZones_.size(); ++i)
+        {
+            if ( ! strcmp(learnFXZones_[i]->GetName(), fxName))
+            {
+                int trackNum = 0;
+                int fxSlotNum = 0;
+                int fxParamNum = 0;
+                
+                if (GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+                {
+                    learnedWidgets_.Insert(widget, 0);
+                    learnFXZones_[i]->AddWidget(widget);
+
+                    ActionContext *context = csi_->GetActionContext("FXParam", widget, learnFXZones_[i], emptyStringList_);
+                    context->SetParamIndex(fxParamNum);
+                    context->SetProvideFeedback(true);
+                    learnFXZones_[i]->AddActionContext(widget, modifier, context);
+                    
+                    break;
+                }
+            }
+        }
+    }
+    
+    
+    // add ActionContexts (FXParam, FixedText, ParamValueDisplay) for Widgets to focused FX Zone and learnedWidgets_ (used for writing to disk and erase last touched)
+    
+    
+    
     /*
     if (value == 0.0)
         return;
@@ -5238,11 +5416,11 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
     if (value && modifiers_[modifier].isEngaged == false)
     {
         modifiers_[modifier].isEngaged = value;
-        modifiers_[modifier].pressedTime = timeGetTime();
+        modifiers_[modifier].pressedTime = GetTickCount();
     }
     else
     {
-        double keyReleasedTime = timeGetTime();
+        double keyReleasedTime = GetTickCount();
         
         if (keyReleasedTime - modifiers_[modifier].pressedTime > latchTime)
         {
@@ -5766,7 +5944,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 {
     if (midiInput_)
     {
-        DAW::SwapBufsPrecise(midiInput_);
+        midiInput_->SwapBufsPrecise(GetTickCount(), GetTickCount());
         MIDI_eventlist *list = midiInput_->GetReadBuf();
         int bpos = 0;
         MIDI_event_t *evt;
