@@ -1459,8 +1459,8 @@ private:
     Zone *homeZone_;
     ptrvector<SurfaceCell> surfaceCells_;
     
-    MediaTrack* learnFXTrack_;
-    
+    MediaTrack *learnFXTrack_;
+    Widget *lastTouchedControl_;
     static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
     
@@ -1866,6 +1866,7 @@ public:
         noMapZone_ = NULL;
         homeZone_ = NULL;
         learnFXTrack_ = NULL;
+        lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
         
         listensToGoHome_ = false;

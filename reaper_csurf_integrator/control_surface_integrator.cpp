@@ -3590,46 +3590,7 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
         homeZone_->UpdateCurrentActionContextModifiers();
 }
 
-void ZoneManager::EraseLastTouchedControl()
-{
-    /*
-    
-    if (lastTouched_ != NULL)
-    {
-        if (fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
-        {
-            Widget *widget = lastTouched_->fxParamWidget;
-            if (widget)
-            {
-                for (int i = 0; i < fxLayout_->GetActionContexts(widget).GetSize(); ++i)
-                    SetParamNum(widget, 1);
-                
-                int modifier = fxLayout_->GetModifier(widget);
-                
-                if (controlDisplayAssociations_.Exists(modifier) && controlDisplayAssociations_.Get(modifier)->Exists(widget))
-                    SetParamNum(controlDisplayAssociations_.Get(modifier)->Get(widget), 1);
-            }
-        }
-
-        lastTouched_->isLearned = false;
-        lastTouched_->paramNumber = 0;
-        lastTouched_->paramName = "";
-        lastTouched_->params = "";
-        lastTouched_->track = NULL;
-        lastTouched_->fxSlotNum = 0;
-        
-        lastTouched_ = NULL;
-    }
-    
-    */
-}
-
 void ZoneManager::SaveTemplatedFXParams()
-{
-
-}
-
-void ZoneManager::SaveLearnedFXParams()
 {
 
 }
@@ -3748,6 +3709,25 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 void ZoneManager::WidgetMoved(ActionContext *context)
 {
 
+}
+
+
+void ZoneManager::SaveLearnedFXParams()
+{
+
+}
+
+void ZoneManager::EraseLastTouchedControl()
+{
+    if (lastTouchedControl_ == NULL)
+        return;
+    
+    WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *widgetParams = learnedWidgets_.Get(surface_->GetModifiers().Get()[0]);
+    
+    if (widgetParams->Exists(lastTouchedControl_))
+        widgetParams->Delete(lastTouchedControl_);
+    
+    lastTouchedControl_ = NULL;
 }
 
 void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int slotNum, int paramNum)
@@ -3908,7 +3888,10 @@ void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
             
             LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
             if (lwp)
+            {
                 TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, GetNextSteppedValue(track, widget, lwp, value));
+                lastTouchedControl_ = widget;
+            }
             
             isUsed = true;
         }
