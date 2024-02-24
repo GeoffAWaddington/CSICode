@@ -722,112 +722,7 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens)
             ml->Get(i)->provideFeedback =  (i == ml->GetSize() - 1);
     }
 }
-/*
-void ZoneManager::ProcessSurfaceFXLayout(const string &cellPath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate)
-{
-    try
-    {
-        fpistream file(cellPath.c_str());
-        
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "") // ignore blank lines
-                continue;
-        
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
-            
-            if (tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
-            {
-                if (tokens[0][0] == '#')
-                {
-                    tokens.update(0,tokens.get(0)+1);
-                    surfaceFXLayoutTemplate.push_back(tokens);
-                }
-                else
-                {
-                    surfaceFXLayout.push_back(tokens);
-                    
-                    if (tokens.size() > 1 && tokens[1] == "FXParam")
-                    {
-                        string_list widgetAction;
-                        
-                        widgetAction.push_back("WidgetAction");
-                        widgetAction.push_back(tokens[1]);
 
-                        surfaceFXLayoutTemplate.push_back(widgetAction);
-                    }
-                    if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
-                    {
-                        string_list widgetAction;
-                        
-                        widgetAction.push_back("AliasDisplayAction");
-                        widgetAction.push_back(tokens[1]);
-
-                        surfaceFXLayoutTemplate.push_back(widgetAction);
-                    }
-                    if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
-                    {
-                        string_list widgetAction;
-                        
-                        widgetAction.push_back("ValueDisplayAction");
-                        widgetAction.push_back(tokens[1]);
-
-                        surfaceFXLayoutTemplate.push_back(widgetAction);
-                    }
-                }
-            }
-        }
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", cellPath.c_str(), 1);
-        ShowConsoleMsg(buffer);
-    }
-}
-
-void ZoneManager::ProcessFXLayouts(const string &layoutPath, ptrvector<FXCellLayoutInfo> &fxLayouts)
-{
-    try
-    {
-        fpistream file(layoutPath.c_str());
-        
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-        
-            if (line.find("Zone") == string::npos)
-            {
-                string_list tokens;
-                GetTokens(tokens, line.c_str());
-
-                FXCellLayoutInfo info;
-
-                if (tokens.size() == 3)
-                {
-                    info.modifiers = tokens[0];
-                    info.address = tokens[1];
-                    info.channelCount = atoi(tokens[2].c_str());
-                }
-
-                fxLayouts.push_back(info);
-            }
-        }
-    }
-    catch (exception &e)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", layoutPath.c_str(), 1);
-        ShowConsoleMsg(buffer);
-    }
-}
-*/
 void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
 {
     vector<FXCellLayoutInfo> fxLayouts;
@@ -2078,10 +1973,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TrackReceiveVolumeDisplay", new TrackReceiveVolumeDisplay());
     actions_.Insert("TrackReceivePanDisplay", new TrackReceivePanDisplay());
     actions_.Insert("TrackReceivePrePostDisplay", new TrackReceivePrePostDisplay());
-    
-    //learnFXActions_.Insert("LearnFXParam", new LearnFXParam());
-    //learnFXActions_.Insert("LearnFXParamNameDisplay", new LearnFXParamNameDisplay());
-    //learnFXActions_.Insert("LearnFXParamValueDisplay", new LearnFXParamValueDisplay());
 }
 
 void CSurfIntegrator::Init()
@@ -3057,98 +2948,6 @@ void Zone::RequestUpdate()
     }
 }
 
-
-void Zone::RequestLearnFXUpdate()
-{
-    /*
-    const WDL_TypedBuf<int> &modifiers = zoneManager_->GetSurface()->GetModifiers();
-    
-    int modifier = 0;
-    
-    if (modifiers.GetSize() > 0)
-        modifier = modifiers.Get()[0];
-    
-
-    WDL_StringKeyedArray<LearnFXCell *> *mlist = learnFXCells_.Get(modifier);
-    if (mlist)
-    {
-        for (int ci = 0; ci < mlist->GetSize(); ci ++)
-        {
-            const LearnFXCell * const cell = mlist->Enumerate(ci);
-            if (WDL_NOT_NORMALLY(!cell)) continue;
-            bool foundIt = false;
-            
-            for (int i = 0; i < cell->fxParamWidgets.GetSize(); ++i)
-            {
-                LearnInfo *info = zoneManager_->GetLearnInfo(cell->fxParamWidgets.Get(i), modifier);
-                                
-                if (info->isLearned)
-                {
-                    foundIt = true;
-
-                    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(cell->fxParamNameDisplayWidget);
-                    WDL_PtrList<ActionContext> *list = wl ? wl->Get(modifier) : NULL;
-                    if (list)
-                        for (int j = 0; j < list->GetSize(); ++j)
-                            list->Get(j)->RequestUpdate(info->paramNumber);
-
-                    wl = actionContextDictionary_.Get(cell->fxParamValueDisplayWidget);
-                    list = wl ? wl->Get(modifier) : NULL;
-                    if (list)
-                        for (int j = 0; j < list->GetSize(); ++j)
-                            list->Get(j)->RequestUpdate(info->paramNumber);
-                }
-                else
-                {
-                    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(cell->fxParamWidgets.Get(i));
-                    WDL_PtrList<ActionContext> *list = wl ? wl->Get(modifier) : NULL;
-
-                    if (list)
-                    {
-                        for (int j = 0; j < list->GetSize(); ++j)
-                        {
-                            list->Get(j)->UpdateWidgetValue(0.0);
-                            list->Get(j)->UpdateWidgetValue("");
-                        }
-                    }
-                }
-                
-                cell->fxParamWidgets.Get(i)->SetHasBeenUsedByUpdate();
-            }
-            
-            if (! foundIt)
-            {
-                WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(cell->fxParamNameDisplayWidget);
-                WDL_PtrList<ActionContext> *list = wl ? wl->Get(modifier) : NULL;
-                if (list)
-                {
-                    for (int i = 0; i < list->GetSize(); ++i)
-                    {
-                        list->Get(i)->UpdateWidgetValue(0.0);
-                        list->Get(i)->UpdateWidgetValue("");
-                    }
-                    
-                    cell->fxParamNameDisplayWidget->SetHasBeenUsedByUpdate();
-                }
-
-                wl = actionContextDictionary_.Get(cell->fxParamValueDisplayWidget);
-                list = wl ? wl->Get(modifier) : NULL;
-                if (list)
-                {
-                    for (int i = 0; i < list->GetSize(); ++i)
-                    {
-                        list->Get(i)->UpdateWidgetValue(0.0);
-                        list->Get(i)->UpdateWidgetValue("");
-                    }
-                    
-                    cell->fxParamValueDisplayWidget->SetHasBeenUsedByUpdate();
-                }
-            }
-        }
-    }
-    */
-}
-
 void Zone::AddNavigatorsForZone(const char *zoneName, WDL_PtrList<Navigator> &navigators)
 {
     if (!strcmp(zoneName, "MasterTrack"))
@@ -3512,19 +3311,13 @@ void ZoneManager::Initialize()
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("SurfaceFXLayout"))
-    {
-        //ProcessFXLayouts(zoneFilePaths_.Get("FXLayouts")->filePath, surfaceFXLayouts_);
-        //ProcessSurfaceFXLayout(zoneFilePaths_.Get("SurfaceFXLayout")->filePath, fxCellLayout_, fxCellLayoutTemplateOld_);
-        
         BuildFXTemplate(zoneFilePaths_.Get("FXLayouts")->filePath, zoneFilePaths_.Get("SurfaceFXLayout")->filePath);
-    }
     if (zoneFilePaths_.Exists("FXPrologue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
     if (zoneFilePaths_.Exists("FXEpilogue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXEpilogue")->filePath, fxEpilogue_);
     
     InitializeNoMapZone();
-    //InitializeFXParamsLearnZone();
 
     GoHome();
 }
@@ -3546,28 +3339,8 @@ void ZoneManager::CheckFocusedFXState()
         
         char fxName[BUFSZ];
         TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
-
-        if (learnFXTrack_ != NULL && track != NULL)
-        {
-            char trackName[256], learnFXTrackName[256];
-            GetTrackName(track, trackName, sizeof(trackName));
-            GetTrackName(learnFXTrack_, learnFXTrackName, sizeof(learnFXTrackName));
-
-            char tmp[2048];
-            snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("You have now shifted focus to %s.\r\n\r\n%s has parameters that have not been saved.\r\n\r\nDo you want to save them now?","csi_mbox"), trackName, learnFXTrackName);
-            if (MessageBox(g_hwnd, tmp, __LOCALIZE("Unsaved Learn FX Params","csi_mbox"), MB_YESNO) == IDYES)
-            {
-                SaveLearnedFXParams();
-            }
-            else
-            {
-                ClearLearnedFXParams();
-                GoHome();
-            }
-        }
     }
     
-            
     if ((retval & 1) && (fxIndex > -1))
     {
         int lastRetval = -1;
@@ -3752,29 +3525,8 @@ void ZoneManager::GoLearnFXParams()
     else
         return;
 
-    if (learnFXTrack_ != NULL && track != NULL)
-    {
-        char trackName[256], learnFXTrackName[256];
-        GetTrackName(track, trackName, sizeof(trackName));
-        GetTrackName(learnFXTrack_, learnFXTrackName, sizeof(learnFXTrackName));
-
-        char tmp[2048];
-        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("You have now shifted focus to %s.\r\n\r\n%s has parameters that have not been saved.\r\n\r\nDo you want to save them now?","csi_mbox"), trackName, learnFXTrackName);
-        if (MessageBox(g_hwnd, tmp, __LOCALIZE("Unsaved Learn FX Params","csi_mbox"), MB_YESNO) == IDYES)
-        {
-            SaveLearnedFXParams();
-        }
-        else
-        {
-            learnFXTrack_ = NULL;
-            
-            // GAW -- Check appaoch and syntax for this operation
-            learnFXZones_.clear();
-            GarbageCollectZones();
-            
-            GoHome();
-        }
-    }
+    if(track)
+        learnFXTrack_ = track;
     
     if (homeZone_ != NULL)
     {
@@ -3783,92 +3535,6 @@ void ZoneManager::GoLearnFXParams()
                 
         homeZone_->GoAssociatedZone("LearnFXParams");
     }
-
-    char fxName[BUFSZ];
-    TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-
-    bool foundIt = false;
-    
-    for (int i = 0; i < learnFXZones_.size(); ++i)
-    {
-        if (learnFXZones_[i]->GetName() == fxName)
-        {
-            foundIt = true;
-            break;
-        }
-    }
-    
-    if ( ! foundIt)
-    {
-        string path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
-        
-        RecursiveCreateDirectory(path.c_str(),0);
-        
-        string trimmedFXName = fxName;
-        ReplaceAllWith(trimmedFXName, s_BadFileChars, "_");
-        
-        path += "/" + trimmedFXName + ".zon";
-        
-        char alias[256];
-        GetAlias(fxName, alias, sizeof(alias));
-        
-        Zone *z = new Zone(csi_, this, GetFocusedFXNavigator(), 0, fxName, alias, path, emptyStringList_, emptyStringList_);
-        
-        z->Activate();
-        
-        learnFXZones_.push_back(z);
-    }
-    
-
-    
-
-    
-    
-    
-    
-    /*
-    if (track)
-    {
-        char fxName[BUFSZ];
-        TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-        
-        if (zoneFilePaths_.Exists(fxName))
-        {
-            fpistream file(zoneFilePaths_.Get(fxName)->filePath.c_str());
-             
-            string line;
-            
-            if (getline(file, line))
-            {
-                string_list tokens;
-                GetTokens(tokens, line.c_str());
-
-                if (tokens.size() > 3 && tokens[3] == s_GeneratedByLearn)
-                {
-                    learnFXName_ = fxName;
-                    GetExistingZoneParamsForLearn(fxName, track, fxSlot);
-                    file.close();
-                }
-                else
-                {
-                    file.close();
-                    
-                    char tmp[BUFSZ];
-                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s already exists.\r\n\r\nDo you want to delete it permanently and go into LearnMode?","csi_mbox"), zoneFilePaths_.Get(fxName)->alias.c_str());
-                    if (MessageBox(g_hwnd, tmp, __LOCALIZE("Zone Already Exists","csi_mbox"), MB_YESNO) == IDYES)
-                    {
-                        ClearLearnedFXParams();
-                        RemoveZone(fxName);
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-     */
 }
 
 void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
@@ -3960,240 +3626,14 @@ void ZoneManager::EraseLastTouchedControl()
 
 void ZoneManager::SaveTemplatedFXParams()
 {
-    /*
-    if (learnFXName_ != "" && fxLayout_ != NULL && fxLayoutFileLines_.size() > 0)
-    {
-        string line0 = string(fxLayoutFileLines_[0]);
-        size_t pos = 0;
-        while ((pos = line0.find(fxLayout_->GetName(), pos)) != std::string::npos)
-        {
-            line0.replace(pos, (int)strlen(fxLayout_->GetName()), learnFXName_);
-            pos += learnFXName_.length();
-        }
-        
-        char alias[256];
-        GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
 
-        line0 += " \"";
-        line0 += alias;
-        line0 += "\" \n\n";
-        
-        string path;
-         
-        if (zoneFilePaths_.Exists(learnFXName_.c_str()))
-        {
-            path = zoneFilePaths_.Get(learnFXName_.c_str())->filePath;
-            lstrcpyn_safe(alias, zoneFilePaths_.Get(learnFXName_.c_str())->alias.c_str(), sizeof(alias));
-        }
-        else
-        {
-            path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/TemplatedFXZones";
-            
-            RecursiveCreateDirectory(path.c_str(),0);
-
-            GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
-            
-            string fxName = learnFXName_;
-            ReplaceAllWith(fxName, s_BadFileChars, "_");
-            
-            path += "/" + fxName + ".zon";
-            
-            CSIZoneInfo *info = new CSIZoneInfo();
-            info->filePath = path;
-            info->alias = alias;
-            
-            AddZoneFilePath(learnFXName_.c_str(), info);
-            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
-        }
-        
-        FILE *fxZone = fopenUTF8(path.c_str(),"wb");
-
-        if (fxZone)
-        {
-            for (int i = 0; i < (int)fxLayoutFileLines_.size(); ++i)
-            {
-                string ending;
-                
-                string lineEnding = "\n";
-                string line(i ? (const char *)fxLayoutFileLines_[i] : line0.c_str());
-
-                if (line.length() >= lineEnding.length())
-                    ending = line.substr(line.length() - lineEnding.length(), lineEnding.length());
-
-                if (ending[ending.length() - 1] == '\r')
-                    line = line.substr(0, line.length() - 1);
-                
-                if (ending != lineEnding)
-                    line += "\n";
-                
-                fprintf(fxZone, "%s", line.c_str());;
-            }
-            
-            fclose(fxZone);
-        }
-
-        ClearLearnedFXParams();
-        GoHome();
-    }
-    */
 }
 
 void ZoneManager::SaveLearnedFXParams()
 {
-    /*
-    if (learnFXName_ != "")
-    {
-        string path;
-        char alias[1024];
-        
-        if (zoneFilePaths_.Exists(learnFXName_.c_str()))
-        {
-            path = zoneFilePaths_.Get(learnFXName_.c_str())->filePath;
-            lstrcpyn_safe(alias, zoneFilePaths_.Get(learnFXName_.c_str())->alias.c_str(), sizeof(alias));;
-        }
-        else
-        {
-            path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
-            
-            RecursiveCreateDirectory(path.c_str(),0);
 
-            GetAlias(learnFXName_.c_str(), alias, sizeof(alias));
-            
-            string fxName = learnFXName_;
-            ReplaceAllWith(fxName, s_BadFileChars, "_");
-            
-            path += "/" + fxName + ".zon";
-            
-            CSIZoneInfo *info = new CSIZoneInfo();
-            info->filePath = path;
-            info->alias = alias;
-            
-            AddZoneFilePath(learnFXName_.c_str(), info);
-            surface_->GetPage()->AddZoneFilePath(surface_, fxZoneFolder_.c_str(), learnFXName_.c_str(), info);
-        }
-        
-        string nameDisplayParams;
-        string valueDisplayParams;
-
-        if (fxCellLayout_.size() > 2)
-        {
-            if (fxCellLayout_[1].size() > 2)
-                for (int i = 2; i < fxCellLayout_[1].size(); i++)
-                {
-                    nameDisplayParams += " ";
-                    nameDisplayParams += fxCellLayout_[1][i];
-                }
-
-            if (fxCellLayout_[2].size() > 2)
-                for (int i = 2; i < fxCellLayout_[2].size(); i++)
-                {
-                    valueDisplayParams += " ";
-                    valueDisplayParams += fxCellLayout_[2][i];
-                }
-        }
-        
-        FILE *fxZone = fopenUTF8(path.c_str(),"wb");
-
-        if (fxZone != NULL)
-        {
-            fprintf(fxZone, "Zone \"%s\" \"%s\" \"%s\"\n",
-                learnFXName_.c_str(),
-                alias,
-                s_GeneratedByLearn);
-            
-            for (int i = 0; i < (int)fxPrologue_.size(); ++i)
-                fprintf(fxZone, "\t%s\n",fxPrologue_[i].c_str());
-                   
-            fprintf(fxZone, "\n%s\n",s_BeginAutoSection);
-
-            if (homeZone_->GetLearnFXParamsZone())
-            {
-                const WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * > &lc = homeZone_->GetLearnFXParamsZone()->GetLearnFXCells();
-
-                for (int wc = 0; wc < lc.GetSize(); wc++)
-                {
-                    int modifier = 0;
-                    const WDL_StringKeyedArray<LearnFXCell *> * const widgetCells = lc.Enumerate(wc,&modifier);
-                    if (WDL_NOT_NORMALLY(widgetCells == NULL)) continue;
-
-                    char modStr[256];
-                    ModifierManager::GetModifierString(modifier, modStr, sizeof(modStr));
-                    
-                    for (int ci = 0; ci < widgetCells->GetSize(); ci ++)
-                    {
-                        const LearnFXCell * const cell = widgetCells->Enumerate(ci);
-                        if (WDL_NOT_NORMALLY(cell == NULL)) continue;
-                        bool cellHasDisplayWidgetsDefined = false;
-                        
-                        for (int i = 0; i < cell->fxParamWidgets.GetSize(); i++)
-                        {
-                            LearnInfo *info = GetLearnInfo(cell->fxParamWidgets.Get(i), modifier);
-                            
-                            if (info == NULL)
-                                continue;
-                            
-                            if (info->isLearned)
-                            {
-                                cellHasDisplayWidgetsDefined = true;
-                                
-                                fprintf(fxZone, "\t%s%s\tFXParam %d %s\n", modStr, cell->fxParamWidgets.Get(i)->GetName(), info->paramNumber, info->params.c_str());
-                                fprintf(fxZone, "\t%s%s\tFixedTextDisplay \"%s\"%s\n", modStr, cell->fxParamNameDisplayWidget->GetName(), info->paramName.c_str(), nameDisplayParams.c_str());
-                                fprintf(fxZone, "\t%s%s\ttFXParamValueDisplay %d%s\n\n", modStr, cell->fxParamValueDisplayWidget->GetName(), info->paramNumber, valueDisplayParams.c_str());
-                            }
-                            else if (i == cell->fxParamWidgets.GetSize() - 1 && ! cellHasDisplayWidgetsDefined)
-                            {
-                                fprintf(fxZone, "\t%s%s\tNoAction\n", modStr, cell->fxParamWidgets.Get(i)->GetName());
-                                fprintf(fxZone, "\t%s%s\tNoAction\n", modStr, cell->fxParamNameDisplayWidget->GetName());
-                                fprintf(fxZone, "\t%s%s\tNoAction\n\n", modStr, cell->fxParamValueDisplayWidget->GetName());
-                            }
-                            else
-                            {
-                                fprintf(fxZone, "\t%s%s\tNoAction\n", modStr, cell->fxParamWidgets.Get(i)->GetName());
-                                fprintf(fxZone, "\tNullDisplay\tNoAction\n");
-                                fprintf(fxZone, "\tNullDisplay\tNoAction\n\n");
-                            }
-                        }
-                        
-                        fprintf(fxZone, "\n");
-                    }
-                }
-            }
-            
-            fprintf(fxZone, "%s\n", s_EndAutoSection);
-                    
-            for (int i = 0; i < (int)fxEpilogue_.size(); ++i)
-                fprintf(fxZone, "\t%s\n", fxEpilogue_[i].c_str());
-
-            fprintf(fxZone, "ZoneEnd\n\n");
-            
-            for (int i = 0; i < (int)paramList_.size(); ++i)
-                fprintf(fxZone, "%s\n", paramList_[i].c_str());
-            
-            fclose(fxZone);
-        }
-        
-        ClearLearnedFXParams();
-        GoHome();
-    }
-    */
-}
-/*
-LearnInfo *ZoneManager::GetLearnInfo(Widget *widget)
-{
-    const WDL_TypedBuf<int> &modifiers = surface_->GetModifiers();
-
-    if (modifiers.GetSize() > 0)
-        return GetLearnInfo(widget, modifiers.Get()[0]);
-    else
-        return NULL;
 }
 
-LearnInfo *ZoneManager::GetLearnInfo(Widget *widget, int modifier)
-{
-    WDL_IntKeyedArray<LearnInfo *> *modifiers = learnedFXParams_.Get(widget);
-    return modifiers ? modifiers->Get(modifier) : NULL;
-}
-*/
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
 {
     GetSubTokens(modifiers, line, '+');
@@ -4216,9 +3656,6 @@ int ZoneManager::GetModifierValue(const string_list &modifierTokens)
 
 void ZoneManager::InitializeNoMapZone()
 {
-    //if (fxCellLayout_.size() != 3)
-        //return;
-    
     if (GetZoneFilePaths().Exists("NoMap"))
     {
         WDL_PtrList<Navigator> navigators;
@@ -4230,250 +3667,10 @@ void ZoneManager::InitializeNoMapZone()
         
         if (zones.GetSize() > 0)
             noMapZone_ = zones.Get(0);
-        
-        
-        /*
-        if (noMapZone_ != NULL)
-        {
-            const WDL_PointerKeyedArray<Widget*, bool> &wl = noMapZone_->GetWidgets();
-            WDL_PointerKeyedArray<Widget*, bool> usedWidgets;
-            usedWidgets.CopyContents(wl); // since noMapZone_->GetWidgets() may change during this initialization, make a copy. making the copy might be unnecessary though
-
-            string_list paramWidgets;
-
-            for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
-                if (fxCellLayoutTemplateOld_[i].size() > 0 && fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
-                    for (int j = 1; j < fxCellLayoutTemplateOld_[i].size(); j++)
-                        paramWidgets.push_back(fxCellLayoutTemplateOld_[i][j]);
-            
-            string nameDisplayWidget;
-            if (fxCellLayout_[1].size() > 0)
-                nameDisplayWidget = fxCellLayout_[1][0];
-            
-            string valueDisplayWidget;
-            if (fxCellLayout_[2].size() > 0)
-                valueDisplayWidget = fxCellLayout_[2][0];
-
-            string_list mods;
-            for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
-            {
-                int modifier = GetModifierValue(surfaceFXLayouts_[i].GetModifierTokens(mods));
-                
-                if (modifier != 0)
-                    continue;
-                
-                for (int j = 1; j <= surfaceFXLayouts_[i].channelCount; j++)
-                {
-                    string cellAddress = surfaceFXLayouts_[i].address + int_to_string(j);
-                    
-                    Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAddress).c_str());
-                    if (widget == NULL || usedWidgets.Exists(widget))
-                        continue;
-                    noMapZone_->AddWidget(widget, widget->GetName());
-                    ActionContext *context = csi_->GetActionContext("NoAction", widget, noMapZone_, 0);
-                    context->SetProvideFeedback(true);
-                    noMapZone_->AddActionContext(widget, modifier, context);
-
-                    widget = GetSurface()->GetWidgetByName((valueDisplayWidget + cellAddress).c_str());
-                    if (widget == NULL || usedWidgets.Exists(widget))
-                        continue;
-                    noMapZone_->AddWidget(widget, widget->GetName());
-                    context = csi_->GetActionContext("NoAction", widget, noMapZone_, 0);
-                    context->SetProvideFeedback(true);
-                    noMapZone_->AddActionContext(widget, modifier, context);
-                    
-                    for (int k = 0; k < (int)paramWidgets.size(); ++k)
-                    {
-                        widget = GetSurface()->GetWidgetByName((string(paramWidgets[k]) + cellAddress).c_str());
-                        if (widget == NULL || usedWidgets.Exists(widget))
-                            continue;
-                        noMapZone_->AddWidget(widget, widget->GetName());
-                        context = csi_->GetActionContext("NoAction", widget, noMapZone_, 0);
-                        noMapZone_->AddActionContext(widget, modifier, context);
-                    }
-                }
-            }
-        }
-        */
     }
 }
 
-void ZoneManager::InitializeFXParamsLearnZone()
-{
-    /*
-    if (fxCellLayout_.size() != 3)
-        return;
-    
-    if (homeZone_ != NULL)
-    {
-        Zone *zone = homeZone_->GetLearnFXParamsZone();
-        if (zone)
-        {
-            string_list paramWidgets;
-            string_list widgetParams;
 
-            for (int i = 0; i < (int)fxCellLayoutTemplateOld_.size(); ++i)
-                if (fxCellLayoutTemplateOld_[i].size() > 0 && fxCellLayoutTemplateOld_[i][0] == "WidgetTypes")
-                    for (int j = 1; j < fxCellLayoutTemplateOld_[i].size(); j++)
-                        paramWidgets.push_back(fxCellLayoutTemplateOld_[i][j]);
-
-            if (fxCellLayout_[0].size() > 2)
-                for (int i = 2; i < fxCellLayout_[0].size(); i++)
-                    widgetParams.push_back(fxCellLayout_[0][i]);
-            
-            
-            string nameDisplayWidget;
-            string_list nameDisplayParams;
-
-            if (fxCellLayout_[1].size() > 0)
-                nameDisplayWidget = fxCellLayout_[1][0];
-
-            if (fxCellLayout_[1].size() > 2)
-                for (int i = 2; i < fxCellLayout_[1].size(); i++)
-                    nameDisplayParams.push_back(fxCellLayout_[1][i]);
-
-            
-            string valueDisplayWidget;
-            string_list valueDisplayParams;
-
-            if (fxCellLayout_[2].size() > 0)
-                valueDisplayWidget = fxCellLayout_[2][0];
-
-            if (fxCellLayout_[2].size() > 2)
-                for (int i = 2; i < fxCellLayout_[2].size(); i++)
-                    valueDisplayParams.push_back(fxCellLayout_[2][i]);
-
-            if (paramWidgets.size() > 0)
-            {
-                string_list mods;
-                for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
-                {
-                    int modifier = GetModifierValue(surfaceFXLayouts_[i].GetModifierTokens(mods));
-                    
-                    for (int j = 1; j <= surfaceFXLayouts_[i].channelCount; j++)
-                    {
-                        LearnFXCell cell;
-                        
-                        char cellAddress[BUFSZ];
-                        snprintf(cellAddress, sizeof(cellAddress), "%s%d",surfaceFXLayouts_[i].address.c_str(),j);
-                        
-                        Widget *widget = GetSurface()->GetWidgetByName((nameDisplayWidget + cellAddress).c_str());
-                        if (widget == NULL)
-                            continue;
-                        cell.fxParamNameDisplayWidget = widget;
-                        zone->AddWidget(widget, widget->GetName());
-                        ActionContext *context = csi_->GetLearnFXActionContext("LearnFXParamNameDisplay", widget, zone, nameDisplayParams);
-                        context->SetProvideFeedback(true);
-                        context->SetCellAddress(cellAddress);
-                        zone->AddActionContext(widget, modifier, context);
-
-                        widget = GetSurface()->GetWidgetByName((valueDisplayWidget + cellAddress).c_str());
-                        if (widget == NULL)
-                            continue;
-                        cell.fxParamValueDisplayWidget = widget;
-                        zone->AddWidget(widget, widget->GetName());
-                        context = csi_->GetLearnFXActionContext("LearnFXParamValueDisplay", widget, zone, valueDisplayParams);
-                        context->SetProvideFeedback(true);
-                        context->SetCellAddress(cellAddress);
-                        zone->AddActionContext(widget, modifier, context);
-                        
-                        for (int k = 0; k < (int)paramWidgets.size(); ++k)
-                        {
-                            widget = GetSurface()->GetWidgetByName((string(paramWidgets[k]) + cellAddress).c_str());
-                            if (widget == NULL)
-                                continue;
-                            cell.fxParamWidgets.Add(widget);
-                            zone->AddWidget(widget, widget->GetName());
-                            context = csi_->GetLearnFXActionContext("LearnFXParam", widget, zone, widgetParams);
-                            context->SetProvideFeedback(true);
-                            zone->AddActionContext(widget, modifier, context);
-
-                            LearnInfo *info = new LearnInfo(widget, cellAddress);
-                            WDL_IntKeyedArray<LearnInfo*> *modifiers = learnedFXParams_.Get(widget);
-                            if (modifiers == NULL)
-                            {
-                                modifiers = new WDL_IntKeyedArray<LearnInfo*>(disposeLearnInfo);
-                                learnedFXParams_.Insert(widget, modifiers);
-                            }
-                            modifiers->Insert(modifier,info);
-                        }
-                        
-                        zone->AddLearnFXCell(modifier, cellAddress, cell);
-                    }
-                }
-            }
-        }
-    }
-    */
-}
-
-void ZoneManager::GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum)
-{
-    zoneDef_.fullPath = zoneFilePaths_.Get(fxName.c_str())->filePath;
-    //ptrvector<FXParamLayoutTemplate> layoutTemplates;
-    //GetFXLayoutTemplates(layoutTemplates);
-        
-    UnpackZone(zoneDef_);
-    
-    /*
-    
-    for (int i = 0; i < (int)zoneDef_.paramDefs.size(); ++i)
-    {
-        for (int j = 0; j < (int)zoneDef_.paramDefs[i].definitions.size(); ++j)
-        {
-            Widget *widget = surface_->GetWidgetByName(zoneDef_.paramDefs[i].definitions[j].paramWidgetFullName.c_str());
-            if (widget)
-            {
-                if (LearnInfo *info = GetLearnInfo(widget, zoneDef_.paramDefs[i].definitions[j].modifier))
-                {
-                    if (zoneDef_.paramDefs[i].definitions[j].paramNumber != "" && zoneDef_.paramDefs[i].definitions[j].paramNameDisplayWidget != "NullDisplay")
-                    {
-                        info->isLearned = true;
-                        info->paramName = zoneDef_.paramDefs[i].definitions[j].paramName;
-                        info->track = track;
-                        info->fxSlotNum =fxSlotNum;
-                        info->paramNumber = atoi(zoneDef_.paramDefs[i].definitions[j].paramNumber.c_str());
-
-                        if (zoneDef_.paramDefs[i].definitions[j].steps.size() > 0)
-                        {
-                            info->params = "[ ";
-                            
-                            for (int k = 0; k < (int)zoneDef_.paramDefs[i].definitions[j].steps.size(); ++k)
-                            {
-                                char tmp[BUFSZ];
-                                info->params += format_number(zoneDef_.paramDefs[i].definitions[j].steps[k], tmp, sizeof(tmp));
-                                info->params += "  ";
-                            }
-                            
-                            info->params += "]";
-                            
-                            Zone *learnZone = homeZone_->GetLearnFXParamsZone();
-                            if (learnZone)
-                            {
-                                const vector<double> &steps = zoneDef_.paramDefs[i].definitions[j].steps;
-                                
-                                for (int k = 0; k < learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).GetSize(); ++k)
-                                    learnZone->GetActionContexts(widget, zoneDef_.paramDefs[i].definitions[j].modifier).Get(k)->SetStepValues(steps);
-                            }
-                        }
-                        
-                        if (zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Rotary") != string::npos && zoneDef_.paramDefs[i].definitions[j].paramWidget.find("Push") == string::npos)
-                        {
-                            if (fxCellLayout_.size() > 0 && fxCellLayout_[0].size() > 2 && fxCellLayout_[0][0] == "Rotary")
-                                for (int k = 2; k < fxCellLayout_[0].size(); k++)
-                                {
-                                    info->params += " ";
-                                    info->params += fxCellLayout_[0][k];
-                                }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    */
-}
 
 void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 {
@@ -4552,352 +3749,161 @@ void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 
 void ZoneManager::WidgetMoved(ActionContext *context)
 {
-    /*
-    if (fxLayoutFileLines_.size() < 1)
-        return;
-    
-    if (context->GetZone() != fxLayout_)
-        return;
-    
-    MediaTrack *track = NULL;
-    
-    LearnInfo *info = GetLearnInfo(context->GetWidget());
-    
-    if (info == NULL)
-        return;
-    
-    if (! info->isLearned)
-    {
-        int trackNum = 0;
-        int fxSlotNum = 0;
-        int fxParamNum = 0;
 
-        if (GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
-        {
-            track = DAW::GetTrack(trackNum);
-            
-            if (track == NULL)
-                return;
-            
-            char fxName[BUFSZ];
-            TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
-            learnFXName_ = fxName;
-                                                                    
-            string paramStr;
-            
-            if (strstr(context->GetWidget()->GetName(), "Fader") == NULL)
-            {
-                if (csi_->GetSteppedValueCount(fxName, fxParamNum) == 0)
-                    context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
-                
-                int numSteps = csi_->GetSteppedValueCount(fxName, fxParamNum);
-                
-                if (strstr(context->GetWidget()->GetName(), "Push") != NULL)
-                {
-                    if (numSteps == 0)
-                        numSteps = 2;
-                }
-                
-                if (numSteps > 1)
-                {
-                    vector<double> stepValues;
-                    GetParamStepsValues(stepValues, numSteps);
-                    context->SetStepValues(stepValues);
-
-                    paramStr = "[ ";
-                    GetParamStepsString(paramStr, numSteps);
-                    paramStr += "]";
-                }
-            }
-           
-            Widget *widget = context->GetWidget();
-            
-            SetParamNum(widget, fxParamNum);
-            
-            int modifier = fxLayout_->GetModifier(widget);
-            
-            if (controlDisplayAssociations_.Exists(modifier) && controlDisplayAssociations_.Get(modifier)->Exists(widget))
-                SetParamNum(controlDisplayAssociations_.Get(modifier)->Get(widget), fxParamNum);
-
-            info->isLearned = true;
-            info->paramNumber = fxParamNum;
-            char tmp[BUFSZ];
-            TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
-            info->paramName = tmp;
-            info->params = paramStr;
-            info->track = DAW::GetTrack(trackNum);
-            info->fxSlotNum = fxSlotNum;
-        }
-    }
-    
-    lastTouched_ = info;
-    */
 }
 
-
-
-/*
-void ZoneManager::SetParamNum(Widget *widget, int fxParamNum)
+void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int slotNum, int paramNum)
 {
-    fxLayout_->SetFXParamNum(widget, fxParamNum);
-
-    // Now modify the in memory file
+    if ( ! learnedWidgets_.Exists(modifier))
+        learnedWidgets_.Insert(modifier, new WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>());
     
-    int modifier = fxLayout_->GetModifier(widget);
-
-    int index = 0;
-    
-    for (int ln = 0; ln < (int)fxLayoutFileLines_.size(); ln ++ )
+    if ( ! learnedWidgets_.Get(modifier)->Exists(widget))
     {
-        const string line(fxLayoutFileLines_[ln]);
-        if (line.find(widget->GetName()) != string::npos)
-        {
-            string_list tokens;
-            GetSubTokens(tokens, line.c_str(), '+');
-            
-            if (tokens.size() < 1)
-                continue;
-            
-            const string tok0(tokens[0]);
-            
-            tokens.clear();
-            GetSubTokens(tokens, tok0.c_str(), '+'); // should always produce exactly one token, since it's already been tokenized?
+        LearnedWidgetParams lwp;
+        lwp.slotNum = slotNum;
+        lwp.paramNum = paramNum;
+        lwp.control = widget;
 
-            //int lineModifier = surface_->GetModifierManager()->GetModifierValue(tokens);
-            int lineModifier = 0;
-
-            if (modifier == lineModifier)
-            {
-                if (line.find("|") == string::npos)
-                {
-                    fxLayoutFileLines_.update(ln, fxLayoutFileLinesOriginal_[index].c_str());
-                }
-                else
-                {
-                    string_list lineTokens;
-                    GetSubTokens(lineTokens, line.c_str(), '|');
-                    
-                    string replacementString = " " + int_to_string(fxParamNum) + " ";
-                    
-                    if (widget && lineTokens.size() > 1)
-                    {
-                        LearnInfo *info = GetLearnInfo(widget);
-                        
-                        if (info != NULL && info->params.length() != 0 && lineTokens[1].find("[") == string::npos)
-                            replacementString += " " + info->params + " ";
-                    }
-                    
-                    if (lineTokens.size() > 0)
-                    {
-                        string nl = string(lineTokens[0]) + replacementString + string(lineTokens.size() > 1 ? lineTokens[1] : "");
-                        fxLayoutFileLines_.update(ln, nl.c_str());
-                    }
-                }
-            }
-        }
+        GetParamNameAndValueWidgets(widget->GetName(), modifier, &lwp);
         
-        index++;
+        if(lwp.nameDisplay != NULL && lwp.valueDisplay != NULL)
+            learnedWidgets_.Get(modifier)->Insert(widget, lwp);
     }
 }
- */
 
-void ZoneManager::DoLearn(Widget *widget)
+void ZoneManager::GetParamNameAndValueWidgets(string controlName, int modifier, LearnedWidgetParams *learnedWidgetParams)
 {
-    if (learnedWidgets_.Exists(widget))
-        return;
-    
-    string address = "";
-    int modifier = surface_->GetModifiers().Get()[0];
-    string paramNameDisplay = "";
-    string paramValueDisplay = "";
-    
-    const char *controlName = widget->GetName();
-    
-    bool foundIt = false;
-    
     for (int i = 0; i < surfaceCells_.size(); ++i)
     {
-        if(foundIt)
-            break;
-        
-        if(surfaceCells_[i].modifier != surfaceCells_[i].modifier)
-            continue;
-                
-        for (int j = 0; j < surfaceCells_[i].paramTemplates.size(); ++j)
+        if (surfaceCells_[i].modifier == modifier)
         {
-            FXParamTemplate &t = surfaceCells_[i].paramTemplates[j];
+            string address = surfaceCells_[i].address;
             
-            string widgetName = t.control + surfaceCells_[i].address;
-                        
-            if (controlName == widgetName)
+            for (int j = 0; j < surfaceCells_[i].paramTemplates.size(); ++j)
             {
-                address = surfaceCells_[i].address;
-                modifier = surfaceCells_[i].modifier;
-                paramNameDisplay = t.nameDisplay == "" ? surfaceCells_[i].paramTemplates[0].nameDisplay : t.nameDisplay;
-                paramNameDisplay += surfaceCells_[i].address;
-                paramValueDisplay = t.valueDisplay == "" ? surfaceCells_[i].paramTemplates[0].valueDisplay : t.valueDisplay;
-                paramValueDisplay +=  surfaceCells_[i].address;
-                foundIt = true;
-                break;
-            }
-        }
-    }
-    
-    if (address == "")
-        return;
-    
-    int trackNumber = 0;
-    int itemNumber = 0;
-    int fxIndex = 0;
-    
-    int retval = GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
-
-    if ((retval & 1) && (fxIndex > -1))
-    {
-        MediaTrack *track = DAW::GetTrack(trackNumber);
-        
-        char fxName[BUFSZ];
-        TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
-        
-        for (int i = 0; i < learnFXZones_.size(); ++i)
-        {
-            if ( ! strcmp(learnFXZones_[i]->GetName(), fxName))
-            {
-                int trackNum = 0;
-                int fxSlotNum = 0;
-                int fxParamNum = 0;
+                FXParamTemplate &t = surfaceCells_[i].paramTemplates[j];
                 
-                if (GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+                if (t.control + address == controlName)
                 {
-                    learnedWidgets_.Insert(widget, 0);
-                    learnFXZones_[i]->AddWidget(widget);
-
-                    ActionContext *context = csi_->GetActionContext("FXParam", widget, learnFXZones_[i], emptyStringList_);
-                    context->SetParamIndex(fxParamNum);
-                    context->SetProvideFeedback(true);
-                    learnFXZones_[i]->AddActionContext(widget, modifier, context);
+                    string nameDisplay = t.nameDisplay != "" ? t.nameDisplay : surfaceCells_[i].paramTemplates[0].nameDisplay;
+                    nameDisplay += address;
+                    learnedWidgetParams->nameDisplay = surface_->GetWidgetByName(nameDisplay.c_str());
                     
-                    break;
+                    string valueDisplay = t.valueDisplay != "" ? t.valueDisplay : surfaceCells_[i].paramTemplates[0].valueDisplay;
+                    valueDisplay += address;
+                    learnedWidgetParams->valueDisplay = surface_->GetWidgetByName(valueDisplay.c_str());
+                    return;
                 }
             }
         }
     }
+}
+
+void ZoneManager::UpdateLearnedParams()
+{
+    if ( ! learnFXTrack_)
+        return;
     
+    double min, max;
+
+    WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *widgetParams = learnedWidgets_.Get(surface_->GetModifiers().Get()[0]);
+
+    if ( ! widgetParams)
+        return;
     
-    // add ActionContexts (FXParam, FixedText, ParamValueDisplay) for Widgets to focused FX Zone and learnedWidgets_ (used for writing to disk and erase last touched)
-    
-    
-    
-    /*
+    for (int i = 0; i < widgetParams->GetSize(); ++i)
+    {
+        LearnedWidgetParams *lwp = widgetParams->EnumeratePtr(i);
+        
+        double currentValue = TrackFX_GetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, &min, &max);
+
+        PropertyList properties;
+        if(lwp->lastValueSent != currentValue)
+        {
+            lwp->lastValueSent = currentValue;
+            lwp->control->UpdateValue(properties, currentValue);
+        }
+
+        lwp->control->SetHasBeenUsedByUpdate();
+
+        char buf[BUFSZ];
+        buf[0] = 0;
+        TrackFX_GetParamName(learnFXTrack_, lwp->slotNum, lwp->paramNum, buf, sizeof(buf));
+        if (lwp->lastNameStringSent != buf)
+        {
+            lwp->lastNameStringSent = buf;
+            lwp->nameDisplay->UpdateValue(properties, buf);
+        }
+        
+        lwp->nameDisplay->SetHasBeenUsedByUpdate();
+
+        buf[0] = 0;
+        TrackFX_GetFormattedParamValue(learnFXTrack_, lwp->slotNum, lwp->paramNum, buf, sizeof(buf));
+        if ( lwp->lastValueStringSent != buf)
+        {
+            lwp->lastValueStringSent = buf;
+            lwp->valueDisplay->UpdateValue(properties, buf);
+        }
+        
+        lwp->valueDisplay->SetHasBeenUsedByUpdate();
+    }
+}
+
+void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
+{
     if (value == 0.0)
         return;
     
     int trackNum = 0;
-    int fxSlotNum = 0;
-    int fxParamNum = 0;
+    int slotNum = 0;
+    int paramNum = 0;
 
-    MediaTrack *track = NULL;
-    
-    LearnInfo *info = GetLearnInfo(context->GetWidget());
-    
-    if (info == NULL)
-        return;
-    
-    if (! info->isLearned)
+    if (GetLastTouchedFX(&trackNum, &slotNum, &paramNum))
     {
-        if (GetLastTouchedFX(&trackNum, &fxSlotNum, &fxParamNum))
+        MediaTrack *track = DAW::GetTrack(trackNum);
+        
+        if (track != NULL && track == learnFXTrack_)
         {
-            track = DAW::GetTrack(trackNum);
+            int modifier = surface_->GetModifiers().Get()[0];
+              
+            AddLearnedWidget(widget, modifier, slotNum, paramNum);
             
-            char fxName[BUFSZ];
-            TrackFX_GetFXName(track, fxSlotNum, fxName, sizeof(fxName));
+            LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
+            if (lwp)
+                TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, value);
             
-            if (paramList_.size() == 0)
-                for (int i = 0; i < TrackFX_GetNumParams(track, fxSlotNum); i++)
-                {
-                    char tmp[BUFSZ], tmp2[BUFSZ];
-                    TrackFX_GetParamName(track, fxSlotNum, i, tmp, sizeof(tmp));
-                    snprintf(tmp2,sizeof(tmp2),"%d %s",i,tmp);
-                    paramList_.push_back(tmp2);
-                }
-                                            
-            string paramStr;
-            
-            if (strstr(context->GetWidget()->GetName(), "Fader") == NULL)
-            {
-                if (csi_->GetSteppedValueCount(fxName, fxParamNum) == 0)
-                    context->GetSurface()->GetZoneManager()->CalculateSteppedValue(fxName, track, fxSlotNum, fxParamNum);
-                
-                int numSteps = csi_->GetSteppedValueCount(fxName, fxParamNum);
-                
-                if (strstr(context->GetWidget()->GetName(), "Push") != NULL)
-                {
-                    if (numSteps == 0)
-                        numSteps = 2;
-                }
-
-                if (numSteps > 1)
-                {
-                    vector<double> stepValues;
-                    GetParamStepsValues(stepValues, numSteps);
-                    context->SetStepValues(stepValues);
-
-                    paramStr = "[ ";
-                    GetParamStepsString(paramStr, numSteps);
-                    paramStr += "]";
-                }
-                
-                if (strstr(context->GetWidget()->GetName(), "Rotary") != NULL && strstr(context->GetWidget()->GetName(), "Push") == NULL)
-                {
-                    if (fxCellLayout_.size() > 0 && fxCellLayout_[0].size() > 2 && fxCellLayout_[0][0] == "Rotary")
-                        for (int i = 2; i < fxCellLayout_[0].size(); i++)
-                        {
-                            paramStr += " ";
-                            paramStr += fxCellLayout_[0][i];
-                        }
-                }
-            }
-           
-            int currentModifier = 0;
-            
-            if (surface_->GetModifiers().GetSize() > 0)
-                currentModifier = surface_->GetModifiers().Get()[0];
-
-            for (int i = 0; i < learnedFXParams_.GetSize(); i ++)
-            {
-                WDL_IntKeyedArray<LearnInfo *> *modifiers = learnedFXParams_.Enumerate(i);
-                if (WDL_NORMALLY(modifiers != NULL)) 
-                {
-                    LearnInfo *widgetInfo = modifiers->Get(currentModifier);
-                    if (widgetInfo && widgetInfo->cellAddress == info->cellAddress)
-                    {
-                        widgetInfo->isLearned = false;
-                        widgetInfo->paramNumber = 0;
-                        widgetInfo->paramName = "";
-                        widgetInfo->params = "";
-                        widgetInfo->track = NULL;
-                        widgetInfo->fxSlotNum = 0;
-                    }
-                }
-            }
-
-            info->isLearned = true;
-            info->paramNumber = fxParamNum;
-            char tmp[BUFSZ];
-            TrackFX_GetParamName(DAW::GetTrack(trackNum), fxSlotNum, fxParamNum, tmp, sizeof(tmp));
-            info->paramName = tmp;
-            info->params = paramStr;
-            info->track = DAW::GetTrack(trackNum);
-            info->fxSlotNum = fxSlotNum;
+            isUsed = true;
         }
     }
-    else
+}
+
+void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
+{
+    int trackNum = 0;
+    int slotNum = 0;
+    int paramNum = 0;
+    
+    if (GetLastTouchedFX(&trackNum, &slotNum, &paramNum))
     {
-        lastTouched_ = info;
-                       
-        TrackFX_SetParam(info->track, info->fxSlotNum, info->paramNumber, value);
+        MediaTrack *track = DAW::GetTrack(trackNum);
+        
+        if (track != NULL && track == learnFXTrack_)
+        {
+            int modifier = surface_->GetModifiers().Get()[0];
+            
+            AddLearnedWidget(widget, modifier, slotNum, paramNum);
+            
+            LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
+            
+            double min, max;
+            
+            double currentValue = TrackFX_GetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, &min, &max);
+            
+            TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, currentValue + delta);
+            
+            isUsed = true;
+        }
     }
-    */
 }
 
 void ZoneManager::RemapAutoZone()
@@ -5063,12 +4069,6 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
 
 void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex)
 {    
-    //if (surfaceFXLayouts_.size() == 0)
-        //return;
-    
-    //if (fxCellLayout_.size() == 0)
-        //return;
-    
     string path = GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/AutoGeneratedFXZones";
     
     RecursiveCreateDirectory(path.c_str(),0);

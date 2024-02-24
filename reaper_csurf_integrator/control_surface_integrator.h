@@ -353,63 +353,6 @@ struct FXParamLayoutTemplate
     string aliasDisplayAction;
     string valueDisplayAction;
 };
-/*
-struct FXParamDefinition
-{
-    string_list modifiers;
-    int modifier;
-    
-    string cell;
-    
-    string paramWidget;
-    string paramWidgetFullName;
-    string paramNumber;
-    PropertyList paramWidgetProperties;
-
-    string paramNameDisplayWidget;
-    string paramNameDisplayWidgetFullName;
-    string paramName;
-    PropertyList paramNameDisplayWidgetProperties;
-    
-    string paramValueDisplayWidget;
-    string paramValueDisplayWidgetFullName;
-    PropertyList paramValueDisplayWidgetProperties;
-
-    double delta;
-    vector<double> deltas;
-    double rangeMinimum;
-    double rangeMaximum;
-    vector<double> steps;
-    vector<int> ticks;
-    
-    FXParamDefinition()
-    {
-        modifier = 0;
-        
-        delta = 0.0;
-        rangeMinimum = 1.0;
-        rangeMaximum = 0.0;
-    }
-};
-
-struct FXParamDefinitions
-{
-    ptrvector<FXParamDefinition> definitions;
-};
-
-struct LearnFXCell
-{
-    WDL_PtrList<Widget> fxParamWidgets;
-    Widget *fxParamNameDisplayWidget;
-    Widget *fxParamValueDisplayWidget;
-    
-    LearnFXCell()
-    {
-        fxParamNameDisplayWidget = NULL;
-        fxParamValueDisplayWidget = NULL;
-    }
-};
- */
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Page;
@@ -836,11 +779,7 @@ protected:
     static void destroyActionContextListArray(WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *list) { delete list; }
     static void destroyActionContextList(WDL_PtrList<ActionContext> *l) { l->Empty(true); delete l; }
     WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
-    
-    //static void destroyLearnFXCellList(WDL_StringKeyedArray<LearnFXCell *> *l) { delete l; }
-    //static void destroyLearnFXCell(LearnFXCell *l) { delete l; }
-    //WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * > learnFXCells_;
-    
+        
     WDL_PtrList<Zone> includedZones_;
 
     static void disposeZoneRefList(WDL_PtrList<Zone> *l) { delete l; }  // does not dispose zones in list, these are not owned by us
@@ -874,7 +813,6 @@ public:
     void DoAction(Widget *widget, bool &isUsed, double value);
     int GetChannelNumber();
     void RequestUpdate();
-    void RequestLearnFXUpdate();
     void SetFXParamNum(Widget *paramWidget, int paramIndex);
 
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
@@ -896,48 +834,7 @@ public:
 
         return modifier;
     }
-  
-    /*
-    
-    const WDL_IntKeyedArray< WDL_StringKeyedArray<LearnFXCell *> * >  &GetLearnFXCells() { return learnFXCells_; }
-
- 
-    void AddLearnFXCell(int modifier, const char *cellAddress, const LearnFXCell &cell)
-    {
-        WDL_StringKeyedArray<LearnFXCell *> *m = learnFXCells_.Get(modifier);
-        if (!m)
-        {
-            m = new WDL_StringKeyedArray<LearnFXCell *>(true,destroyLearnFXCell);
-            learnFXCells_.Insert(modifier,m);
-        }
-        m->Insert(cellAddress, new LearnFXCell(cell));
-    }
-    
-    const LearnFXCell &GetLearnFXCell(int modifier, const char *cellAddress)
-    {
-        WDL_StringKeyedArray<LearnFXCell *> *m = learnFXCells_.Get(modifier);
-        if (m)
-        {
-            LearnFXCell *p = m->Get(cellAddress);
-            if (p) return *p;
-        }
-        static LearnFXCell empty;
-        return empty;
-    }
-
-    Zone *GetLearnFXParamsZone()
-    {
-        WDL_PtrList<Zone> *zones = associatedZones_.Get("LearnFXParams");
-        return zones ? zones->Get(0) : NULL;
-    }
-    
-    Zone *GetFXLayoutZone(const char *name)
-    {
-        WDL_PtrList<Zone> *zones = associatedZones_.Get(name);
-        return zones ? zones->Get(0) : NULL;
-    }
-     */
-    
+      
     bool GetIsMainZoneOnlyActive()
     {
         for (int j = 0; j < associatedZones_.GetSize(); j ++)
@@ -1269,31 +1166,6 @@ public:
     }
 };
 
-/*
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct LearnInfo
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    Widget  *const fxParamWidget;
-    string const cellAddress;
-    
-    bool isLearned;
-    int paramNumber;
-    string paramName;
-    string params;
-    MediaTrack *track;
-    int fxSlotNum;
-    
-    LearnInfo(Widget *paramWidget, string cellA) : fxParamWidget(paramWidget), cellAddress(cellA)
-    {
-        isLearned = false;
-        paramNumber = 0;
-        track = NULL;
-        fxSlotNum = 0;
-    }
-};
-*/
-
 ////////////////////////////
 // For Zone Manager
 ////////////////////////////
@@ -1540,6 +1412,28 @@ struct AutoZoneDefinition
     }
 };
 
+struct LearnedWidgetParams
+{
+    int slotNum;
+    int paramNum;
+    Widget *control;
+    Widget *nameDisplay;
+    Widget *valueDisplay;
+    double lastValueSent;
+    string lastNameStringSent;
+    string lastValueStringSent;
+
+    LearnedWidgetParams()
+    {
+        slotNum = 0;
+        paramNum = 0;
+        control = NULL;
+        nameDisplay = NULL;
+        valueDisplay = NULL;
+        lastValueSent = 0;
+    }
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1563,29 +1457,18 @@ private:
     
     Zone *noMapZone_;
     Zone *homeZone_;
-    vector<SurfaceCell> surfaceCells_;
-
+    ptrvector<SurfaceCell> surfaceCells_;
+    
     MediaTrack* learnFXTrack_;
-    ptrvector<Zone *> learnFXZones_;
-    WDL_PointerKeyedArray<Widget *, int> learnedWidgets_;
     
+    static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
+    WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
     
-    
-    //Zone *fxLayout_;
-    
-    //WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget*, Widget*>* > controlDisplayAssociations_;
-    //static void disposeDisplayAssociations(WDL_PointerKeyedArray<Widget*, Widget*> *associations) { delete associations; }
-
-    //string_list fxLayoutFileLines_;
-    //string_list fxLayoutFileLinesOriginal_;
-    //ptrvector<string_list> fxCellLayout_;
-    //ptrvector<string_list> fxCellLayoutTemplateOld_;
-    //ptrvector<FXCellLayoutInfo> surfaceFXLayouts_;
-    
-    
-    
-    
-    
+    void GetParamNameAndValueWidgets(string controlName, int modifier, LearnedWidgetParams *learnedWidgetParams);
+    void AddLearnedWidget(Widget* widget, int modifier, int slotNum, int paramNum);
+    void UpdateLearnedParams();
+    void DoLearn(Widget *widget, bool isUsed, double value);
+    void DoRelativeLearn(Widget *widget, bool isUsed, double delta);
     
     string_list fxPrologue_;
     string_list fxEpilogue_;
@@ -1626,16 +1509,8 @@ private:
     int selectedTrackFXMenuOffset_;
     int masterTrackFXMenuOffset_;
     
-    //string learnFXName_;
-    //bool isLearnMode_;
-    //LearnInfo *lastTouched_;
-
     AutoZoneDefinition zoneDef_;
     string_list paramList_;
-
-    //static void disposeLearnInfoArray(WDL_IntKeyedArray<LearnInfo*> *ar) { delete ar; }
-    //static void disposeLearnInfo(LearnInfo *inf) { delete inf; }
-    //WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<LearnInfo*> * > learnedFXParams_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
 
@@ -1665,19 +1540,12 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
       
-    void DoLearn(Widget *widget);
-
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
-    void InitializeFXParamsLearnZone();
     void InitializeNoMapZone();
-    void GetExistingZoneParamsForLearn(const string &fxName, MediaTrack *track, int fxSlotNum);
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
-    
-    //void ProcessSurfaceFXLayout(const string &filePath, ptrvector<string_list> &surfaceFXLayout,  ptrvector<string_list> &surfaceFXLayoutTemplate);
-    //void ProcessFXLayouts(const string &filePath, ptrvector<FXCellLayoutInfo> &fxLayouts);
-    
+        
     void BuildFXTemplate(const string &layoutPath, const string &cellPath);
     
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
@@ -1991,12 +1859,11 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), /* controlDisplayAssociations_(disposeDisplayAssociations),*/ focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates) //, learnedFXParams_(disposeLearnInfoArray)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), /* controlDisplayAssociations_(disposeDisplayAssociations),*/ focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates) //, learnedFXParams_(disposeLearnInfoArray)
     {
         //private:
         noMapZone_ = NULL;
         homeZone_ = NULL;
-        //fxLayout_ = NULL;
         learnFXTrack_ = NULL;
         focusedFXParamZone_ = NULL;
         
@@ -2023,11 +1890,7 @@ public:
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
         masterTrackFXMenuOffset_ = 0;
-        
-        //isLearnMode_ = false;
-
-        //lastTouched_ = NULL;
-        
+                
         // public
         hasColor_ = false;
     }
@@ -2068,11 +1931,6 @@ public:
 
     void GoFXLayoutZone(const char *zoneName, int slotIndex);
     void WidgetMoved(ActionContext *context);
-    //void SetParamNum(Widget *widget, int fxParamNum);
-
-    //LearnInfo *GetLearnInfo(Widget *widget);
-    //LearnInfo *GetLearnInfo(Widget *widget, int modifier);
-
     void DoTouch(Widget *widget, double value);
     
     void AutoMapFocusedFX();
@@ -2197,12 +2055,7 @@ public:
             for (int i = 0; i < listeners_.GetSize(); ++i)
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
-    /*
-    const ptrvector<string_list> &GetSurfaceFXLayout()
-    {
-        return fxCellLayout_;
-    }
-     */
+
     void GoAssociatedZone(const char *zoneName)
     {
         if (noMapZone_ != NULL)
@@ -2381,9 +2234,9 @@ public:
     {
         CheckFocusedFXState();
           
-        for (int i = 0; i < learnFXZones_.GetSize(); ++i)
-            learnFXZones_[i]->RequestUpdate();
-
+        if (learnFXTrack_)
+            UpdateLearnedParams();
+        
         if (noMapZone_ != NULL)
             noMapZone_->RequestUpdate();
         
@@ -2418,13 +2271,10 @@ public:
         
         bool isUsed = false;
         
-        if (learnFXZones_.size() && value != 0.0)
+        if (learnFXTrack_ != NULL)
         {
-            DoLearn(widget);
+            DoLearn(widget, isUsed, value);
         }
-        
-        for (int i = 0; i < learnFXZones_.size(); ++i)
-            learnFXZones_[i]->DoAction(widget, isUsed, value);
         
         if (noMapZone_ != NULL && noMapZone_->GetIsActive())
             noMapZone_->DoAction(widget, isUsed, value);
@@ -2461,13 +2311,10 @@ public:
         
         bool isUsed = false;
         
-        if (learnFXZones_.size())
+        if (learnFXTrack_ != NULL)
         {
-            DoLearn(widget);
+            DoRelativeLearn(widget, isUsed, delta);
         }
-        
-        for (int i = 0; i < learnFXZones_.size(); ++i)
-            learnFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
@@ -2501,13 +2348,10 @@ public:
         
         bool isUsed = false;
         
-        if (learnFXZones_.size())
+        if (learnFXTrack_ != NULL)
         {
-            DoLearn(widget);
+            DoRelativeLearn(widget, isUsed, delta);
         }
-        
-        for (int i = 0; i < learnFXZones_.size(); ++i)
-            learnFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
