@@ -1464,11 +1464,12 @@ private:
     static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
     
-    void GetParamNameAndValueWidgets(string controlName, int modifier, LearnedWidgetParams *learnedWidgetParams);
+    void GetParamDisplayWidgets(const char *controlName, int modifier, LearnedWidgetParams *learnedWidgetParams);
     void AddLearnedWidget(Widget* widget, int modifier, int slotNum, int paramNum);
     void UpdateLearnedParams();
     void DoLearn(Widget *widget, bool isUsed, double value);
     void DoRelativeLearn(Widget *widget, bool isUsed, double delta);
+    double GetNextSteppedValue(MediaTrack *track, Widget *widget, LearnedWidgetParams *lwp, double value);
     
     string_list fxPrologue_;
     string_list fxEpilogue_;

@@ -3670,8 +3670,6 @@ void ZoneManager::InitializeNoMapZone()
     }
 }
 
-
-
 void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
 {
     /*
@@ -3764,34 +3762,43 @@ void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int slotNum, in
         lwp.paramNum = paramNum;
         lwp.control = widget;
 
-        GetParamNameAndValueWidgets(widget->GetName(), modifier, &lwp);
+        GetParamDisplayWidgets(widget->GetName(), modifier, &lwp);
         
         if(lwp.nameDisplay != NULL && lwp.valueDisplay != NULL)
             learnedWidgets_.Get(modifier)->Insert(widget, lwp);
     }
 }
 
-void ZoneManager::GetParamNameAndValueWidgets(string controlName, int modifier, LearnedWidgetParams *learnedWidgetParams)
+void ZoneManager::GetParamDisplayWidgets(const char *controlName, int modifier, LearnedWidgetParams *learnedWidgetParams)
 {
     for (int i = 0; i < surfaceCells_.size(); ++i)
     {
         if (surfaceCells_[i].modifier == modifier)
         {
-            string address = surfaceCells_[i].address;
+            const char *address = surfaceCells_[i].address.c_str();
             
             for (int j = 0; j < surfaceCells_[i].paramTemplates.size(); ++j)
             {
                 FXParamTemplate &t = surfaceCells_[i].paramTemplates[j];
-                
-                if (t.control + address == controlName)
+
+                char buf[BUFSZ];
+                buf[0] = 0;
+
+                sprintf(buf, "%s%s", t.control.c_str(), address);
+
+                if ( ! strcmp(buf, controlName))
                 {
-                    string nameDisplay = t.nameDisplay != "" ? t.nameDisplay : surfaceCells_[i].paramTemplates[0].nameDisplay;
-                    nameDisplay += address;
-                    learnedWidgetParams->nameDisplay = surface_->GetWidgetByName(nameDisplay.c_str());
+                    buf[0] = 0;
                     
-                    string valueDisplay = t.valueDisplay != "" ? t.valueDisplay : surfaceCells_[i].paramTemplates[0].valueDisplay;
-                    valueDisplay += address;
-                    learnedWidgetParams->valueDisplay = surface_->GetWidgetByName(valueDisplay.c_str());
+                    const char *nameDisplay = t.nameDisplay != "" ? t.nameDisplay.c_str() : surfaceCells_[i].paramTemplates[0].nameDisplay.c_str();
+                    sprintf(buf, "%s%s", nameDisplay, address);
+                    learnedWidgetParams->nameDisplay = surface_->GetWidgetByName(buf);
+
+                    buf[0] = 0;
+                    
+                    const char *valueDisplay = t.valueDisplay != "" ? t.valueDisplay.c_str() : surfaceCells_[i].paramTemplates[0].valueDisplay.c_str();
+                    sprintf(buf, "%s%s", valueDisplay, address);
+                    learnedWidgetParams->valueDisplay = surface_->GetWidgetByName(buf);
                     return;
                 }
             }
@@ -3849,6 +3856,37 @@ void ZoneManager::UpdateLearnedParams()
     }
 }
 
+double ZoneManager::GetNextSteppedValue(MediaTrack *track, Widget *widget, LearnedWidgetParams *lwp, double value)
+{
+    char buf[BUFSZ];
+    TrackFX_GetFXName(track, lwp->slotNum, buf, sizeof(buf));
+    
+    int stepCount = csi_->GetSteppedValueCount(buf, lwp->paramNum);
+    
+    double nextVal = -1.0;
+
+    for (int i = 0; i < stepCount; ++i)
+    {
+        if (lwp->lastValueSent == EnumSteppedValues(stepCount, i))
+        {
+            if (i == stepCount - 1)
+                nextVal = EnumSteppedValues(stepCount, 0);
+            else
+                nextVal = EnumSteppedValues(stepCount, i + 1);
+
+            break;
+        }
+    }
+    
+    if (strstr(widget->GetName(), "Push") && stepCount == 0)
+        value = ! lwp->lastValueSent;
+
+    if(nextVal >= 0.0)
+        return nextVal;
+    else
+        return value;
+}
+
 void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
 {
     if (value == 0.0)
@@ -3870,7 +3908,7 @@ void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
             
             LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
             if (lwp)
-                TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, value);
+                TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, GetNextSteppedValue(track, widget, lwp, value));
             
             isUsed = true;
         }
@@ -3895,11 +3933,14 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
             
             LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
             
-            double min, max;
-            
-            double currentValue = TrackFX_GetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, &min, &max);
-            
-            TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, currentValue + delta);
+            if(lwp)
+            {
+                double min, max;
+
+                double currentValue = TrackFX_GetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, &min, &max);
+                
+                TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, currentValue + delta);
+            }
             
             isUsed = true;
         }
