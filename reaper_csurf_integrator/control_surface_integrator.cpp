@@ -302,7 +302,6 @@ void GetTokens(string_list &tokens, const char *line)
     }
 }
 
-
 void string_list::clear()
 {
     buf_.Resize(0);
@@ -2821,6 +2820,13 @@ void Zone::ReactivateFXMenuZone()
             selfxmenu->Get(i)->Activate();
 }
 
+void Zone::DeactivateLearnFXParamsZone()
+{
+    WDL_PtrList<Zone> *learnFXParams = associatedZones_.Get("LearnFXParams");
+    for (int i = 0; i < learnFXParams->GetSize(); ++i)
+        learnFXParams->Get(i)->Deactivate();
+}
+
 void Zone::AddWidget(Widget *widget)
 {
     thisZoneWidgets_.Add(widget);
@@ -3405,7 +3411,6 @@ void ZoneManager::SetListenerCategories(const char *categoryList)
     }
 }
 
-
 void ZoneManager::GoFocusedFX()
 {
     focusedFXZones_.Empty();
@@ -3509,6 +3514,9 @@ void ZoneManager::AutoMapFocusedFX()
 
 void ZoneManager::GoLearnFXParams()
 {
+    if (learnFXTrack_ != NULL)
+        return;
+    
     int trackNumber = 0;
     int itemNumber = 0;
     int fxSlot = 0;
@@ -3525,8 +3533,11 @@ void ZoneManager::GoLearnFXParams()
     else
         return;
 
-    if(track)
-        learnFXTrack_ = track;
+    if ( ! track)
+        return;
+    
+    learnFXTrack_ = track;
+    learnFXSlot_ = fxSlot;
     
     if (homeZone_ != NULL)
     {
@@ -3588,11 +3599,6 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     
     if (homeZone_ != NULL)
         homeZone_->UpdateCurrentActionContextModifiers();
-}
-
-void ZoneManager::SaveTemplatedFXParams()
-{
-
 }
 
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
@@ -3711,10 +3717,26 @@ void ZoneManager::WidgetMoved(ActionContext *context)
 
 }
 
+void ZoneManager::SaveTemplatedFXParams()
+{
+
+}
 
 void ZoneManager::SaveLearnedFXParams()
 {
+    
+    
+    
+    
+    
+    
+    
+    if(homeZone_ != NULL)
+    {
+        homeZone_->DeactivateLearnFXParamsZone();
+    }
 
+    ClearLearnedFXParams();
 }
 
 void ZoneManager::EraseLastTouchedControl()
@@ -3730,7 +3752,7 @@ void ZoneManager::EraseLastTouchedControl()
     lastTouchedControl_ = NULL;
 }
 
-void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int slotNum, int paramNum)
+void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int paramNum)
 {
     if ( ! learnedWidgets_.Exists(modifier))
         learnedWidgets_.Insert(modifier, new WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>());
@@ -3738,7 +3760,6 @@ void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int slotNum, in
     if ( ! learnedWidgets_.Get(modifier)->Exists(widget))
     {
         LearnedWidgetParams lwp;
-        lwp.slotNum = slotNum;
         lwp.paramNum = paramNum;
         lwp.control = widget;
 
@@ -3802,7 +3823,7 @@ void ZoneManager::UpdateLearnedParams()
     {
         LearnedWidgetParams *lwp = widgetParams->EnumeratePtr(i);
         
-        double currentValue = TrackFX_GetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, &min, &max);
+        double currentValue = TrackFX_GetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, &min, &max);
 
         PropertyList properties;
         if(lwp->lastValueSent != currentValue)
@@ -3815,7 +3836,7 @@ void ZoneManager::UpdateLearnedParams()
 
         char buf[BUFSZ];
         buf[0] = 0;
-        TrackFX_GetParamName(learnFXTrack_, lwp->slotNum, lwp->paramNum, buf, sizeof(buf));
+        TrackFX_GetParamName(learnFXTrack_, learnFXSlot_, lwp->paramNum, buf, sizeof(buf));
         if (lwp->lastNameStringSent != buf)
         {
             lwp->lastNameStringSent = buf;
@@ -3825,7 +3846,7 @@ void ZoneManager::UpdateLearnedParams()
         lwp->nameDisplay->SetHasBeenUsedByUpdate();
 
         buf[0] = 0;
-        TrackFX_GetFormattedParamValue(learnFXTrack_, lwp->slotNum, lwp->paramNum, buf, sizeof(buf));
+        TrackFX_GetFormattedParamValue(learnFXTrack_, learnFXSlot_, lwp->paramNum, buf, sizeof(buf));
         if ( lwp->lastValueStringSent != buf)
         {
             lwp->lastValueStringSent = buf;
@@ -3839,7 +3860,7 @@ void ZoneManager::UpdateLearnedParams()
 double ZoneManager::GetNextSteppedValue(MediaTrack *track, Widget *widget, LearnedWidgetParams *lwp, double value)
 {
     char buf[BUFSZ];
-    TrackFX_GetFXName(track, lwp->slotNum, buf, sizeof(buf));
+    TrackFX_GetFXName(track, learnFXSlot_, buf, sizeof(buf));
     
     int stepCount = csi_->GetSteppedValueCount(buf, lwp->paramNum);
     
@@ -3869,6 +3890,9 @@ double ZoneManager::GetNextSteppedValue(MediaTrack *track, Widget *widget, Learn
 
 void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
 {
+    if (learnFXTrack_ == NULL)
+        return;
+    
     if (value == 0.0)
         return;
     
@@ -3879,22 +3903,25 @@ void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
     if (GetLastTouchedFX(&trackNum, &slotNum, &paramNum))
     {
         MediaTrack *track = DAW::GetTrack(trackNum);
-        
-        if (track != NULL && track == learnFXTrack_)
+
+        if (track != learnFXTrack_ || slotNum != learnFXSlot_)
         {
-            int modifier = surface_->GetModifiers().Get()[0];
-              
-            AddLearnedWidget(widget, modifier, slotNum, paramNum);
-            
-            LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
-            if (lwp)
-            {
-                TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, GetNextSteppedValue(track, widget, lwp, value));
-                lastTouchedControl_ = widget;
-            }
-            
-            isUsed = true;
+            lastTouchedControl_ = NULL;
+            return;
         }
+        
+        int modifier = surface_->GetModifiers().Get()[0];
+          
+        AddLearnedWidget(widget, modifier, paramNum);
+        
+        LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
+        if (lwp)
+        {
+            TrackFX_SetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, GetNextSteppedValue(learnFXTrack_, widget, lwp, value));
+            lastTouchedControl_ = widget;
+        }
+        
+        isUsed = true;
     }
 }
 
@@ -3908,25 +3935,27 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
     {
         MediaTrack *track = DAW::GetTrack(trackNum);
         
-        if (track != NULL && track == learnFXTrack_)
+        if (track != learnFXTrack_ || slotNum != learnFXSlot_)
         {
-            int modifier = surface_->GetModifiers().Get()[0];
-            
-            AddLearnedWidget(widget, modifier, slotNum, paramNum);
-            
-            LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
-            
-            if(lwp)
-            {
-                double min, max;
-
-                double currentValue = TrackFX_GetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, &min, &max);
-                
-                TrackFX_SetParam(learnFXTrack_, lwp->slotNum, lwp->paramNum, currentValue + delta);
-            }
-            
-            isUsed = true;
+            lastTouchedControl_ = NULL;
+            return;
         }
+
+        int modifier = surface_->GetModifiers().Get()[0];
+        
+        AddLearnedWidget(widget, modifier, paramNum);
+        
+        LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
+        
+        if(lwp)
+        {
+            double min, max;
+            double currentValue = TrackFX_GetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, &min, &max);
+            TrackFX_SetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, GetNextSteppedValue(learnFXTrack_, widget, lwp, currentValue + delta));
+            lastTouchedControl_ = widget;
+        }
+        
+        isUsed = true;
     }
 }
 

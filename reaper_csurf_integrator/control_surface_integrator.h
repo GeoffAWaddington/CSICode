@@ -801,6 +801,7 @@ public:
     void GoAssociatedZone(const char *associatedZoneName);
     void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
+    void DeactivateLearnFXParamsZone();
     int GetSlotIndex();
     int GetParamIndex(const char *widgetName);
     void SetXTouchDisplayColors(const char *color);
@@ -1414,7 +1415,6 @@ struct AutoZoneDefinition
 
 struct LearnedWidgetParams
 {
-    int slotNum;
     int paramNum;
     Widget *control;
     Widget *nameDisplay;
@@ -1425,7 +1425,6 @@ struct LearnedWidgetParams
 
     LearnedWidgetParams()
     {
-        slotNum = 0;
         paramNum = 0;
         control = NULL;
         nameDisplay = NULL;
@@ -1460,12 +1459,13 @@ private:
     ptrvector<SurfaceCell> surfaceCells_;
     
     MediaTrack *learnFXTrack_;
+    int learnFXSlot_;
     Widget *lastTouchedControl_;
     static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
     
     void GetParamDisplayWidgets(const char *controlName, int modifier, LearnedWidgetParams *learnedWidgetParams);
-    void AddLearnedWidget(Widget* widget, int modifier, int slotNum, int paramNum);
+    void AddLearnedWidget(Widget* widget, int modifier, int paramNum);
     void UpdateLearnedParams();
     void DoLearn(Widget *widget, bool isUsed, double value);
     void DoRelativeLearn(Widget *widget, bool isUsed, double delta);
@@ -1866,6 +1866,7 @@ public:
         noMapZone_ = NULL;
         homeZone_ = NULL;
         learnFXTrack_ = NULL;
+        learnFXSlot_ = 0;
         lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
         
@@ -1943,8 +1944,6 @@ public:
     
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
-    //const ptrvector<FXCellLayoutInfo> &GetFXLayouts() { return surfaceFXLayouts_; }
-    //const ptrvector<string_list> &GetSurfaceFXLayoutTemplate() { return fxCellLayoutTemplateOld_;}
 
     ControlSurface *GetSurface() { return surface_; }
     
@@ -2011,33 +2010,10 @@ public:
         
     void ClearLearnedFXParams()
     {
-        /*
-        //fxLayout_ = NULL;
-        //fxLayoutFileLines_.clear();
-        //fxLayoutFileLinesOriginal_.clear();
-        paramList_.clear();
-        learnFXName_ = "";
-        
-        for (int x = 0; x < learnedFXParams_.GetSize(); x ++)
-        {
-            WDL_IntKeyedArray<LearnInfo*> *modifiers = learnedFXParams_.Enumerate(x);
-            if (WDL_NORMALLY(modifiers != NULL)) for (int i = 0; i < modifiers->GetSize(); i ++)
-            {
-                LearnInfo *info = modifiers->Enumerate(i);
-                if (WDL_NORMALLY(info!=NULL))
-                {
-                    info->isLearned = false;
-                    info->paramNumber = 0;
-                    info->paramName = "";
-                    info->params = "";
-                    info->track = NULL;
-                    info->fxSlotNum = 0;
-                }
-            }
-        }
-        
-        lastTouched_ = NULL;
-        */
+        learnedWidgets_.DeleteAll();
+        learnFXTrack_ = NULL;
+        learnFXSlot_ = 0;
+        lastTouchedControl_ = NULL;
     }
         
     void DeclareClearFocusedFXParam()
@@ -2236,7 +2212,7 @@ public:
     {
         CheckFocusedFXState();
           
-        if (learnFXTrack_)
+        if (learnFXTrack_ != NULL)
             UpdateLearnedParams();
         
         if (noMapZone_ != NULL)
