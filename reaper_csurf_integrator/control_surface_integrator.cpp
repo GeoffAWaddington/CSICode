@@ -4236,7 +4236,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
         for (int i = 0; i < (int)fxPrologue_.size(); ++i)
             fprintf(fxZone, "\t%s\n", fxPrologue_[i].c_str());
         
-        fprintf(fxZone, "\n%s\n", s_BeginAutoSection);
+        fprintf(fxZone, "\n%s\n\n", s_BeginAutoSection);
         
         int numParams = TrackFX_GetNumParams(track, fxIndex);
         
