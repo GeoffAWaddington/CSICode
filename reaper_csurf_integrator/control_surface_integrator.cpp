@@ -3925,32 +3925,21 @@ void ZoneManager::UpdateLearnedParams()
         double currentValue = TrackFX_GetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, &min, &max);
 
         PropertyList properties;
-        if(lwp->lastValueSent != currentValue)
-        {
-            lwp->lastValueSent = currentValue;
-            lwp->control->UpdateValue(properties, currentValue);
-        }
+        lwp->lastValueSent = currentValue;
+        lwp->control->UpdateValue(properties, currentValue);
 
         lwp->control->SetHasBeenUsedByUpdate();
 
         char buf[BUFSZ];
         buf[0] = 0;
         TrackFX_GetParamName(learnFXTrack_, learnFXSlot_, lwp->paramNum, buf, sizeof(buf));
-        if (lwp->lastNameStringSent != buf)
-        {
-            lwp->lastNameStringSent = buf;
-            lwp->nameDisplay->UpdateValue(properties, buf);
-        }
+        lwp->nameDisplay->UpdateValue(properties, buf);
         
         lwp->nameDisplay->SetHasBeenUsedByUpdate();
 
         buf[0] = 0;
         TrackFX_GetFormattedParamValue(learnFXTrack_, learnFXSlot_, lwp->paramNum, buf, sizeof(buf));
-        if ( lwp->lastValueStringSent != buf)
-        {
-            lwp->lastValueStringSent = buf;
-            lwp->valueDisplay->UpdateValue(properties, buf);
-        }
+        lwp->valueDisplay->UpdateValue(properties, buf);
         
         lwp->valueDisplay->SetHasBeenUsedByUpdate();
     }
@@ -4014,7 +4003,8 @@ void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
         LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
         if (lwp)
         {
-            TrackFX_SetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, GetNextSteppedValue(learnFXTrack_, widget, lwp, value));
+            lwp->lastValueSent = GetNextSteppedValue(learnFXTrack_, widget, lwp, value);
+            TrackFX_SetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, lwp->lastValueSent);
             lastTouchedControl_ = widget;
         }
         
@@ -4046,7 +4036,8 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
         {
             double min, max;
             double currentValue = TrackFX_GetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, &min, &max);
-            TrackFX_SetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, GetNextSteppedValue(learnFXTrack_, widget, lwp, currentValue + delta));
+            lwp->lastValueSent = GetNextSteppedValue(learnFXTrack_, widget, lwp, currentValue + delta);
+            TrackFX_SetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, lwp->lastValueSent);
             lastTouchedControl_ = widget;
         }
         

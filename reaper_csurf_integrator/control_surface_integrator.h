@@ -1447,8 +1447,6 @@ struct LearnedWidgetParams
     Widget *nameDisplay;
     Widget *valueDisplay;
     double lastValueSent;
-    string lastNameStringSent;
-    string lastValueStringSent;
 
     LearnedWidgetParams()
     {
