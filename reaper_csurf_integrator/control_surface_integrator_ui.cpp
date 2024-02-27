@@ -2523,25 +2523,21 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     case IDC_BUTTON_AddMidiSurface:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
-                            int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
-                            if (index >= 0)
+                            s_dlgResult = false;
+                            s_editMode = false;
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
+                            if (s_dlgResult == IDOK)
                             {
-                                s_dlgResult = false;
-                                s_editMode = false;
-                                DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                if (s_dlgResult == IDOK)
-                                {
-                                    SurfaceLine *surface = new SurfaceLine();
-                                    surface->type = s_MidiSurfaceToken;
-                                    surface->name = s_surfaceName;
-                                    surface->inPort = s_surfaceInPort;
-                                    surface->outPort = s_surfaceOutPort;
+                                SurfaceLine *surface = new SurfaceLine();
+                                surface->type = s_MidiSurfaceToken;
+                                surface->name = s_surfaceName;
+                                surface->inPort = s_surfaceInPort;
+                                surface->outPort = s_surfaceOutPort;
 
-                                    s_surfaces.Add(surface);
-                                    
-                                    AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
-                                }
+                                s_surfaces.Add(surface);
+                                
+                                AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
                             }
                         }
                         break ;
@@ -2549,26 +2545,22 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     case IDC_BUTTON_AddOSCSurface:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
-                            int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
-                            if (index >= 0)
+                            s_dlgResult = false;
+                            s_editMode = false;
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
+                            if (s_dlgResult == IDOK)
                             {
-                                s_dlgResult = false;
-                                s_editMode = false;
-                                DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
-                                if (s_dlgResult == IDOK)
-                                {
-                                    SurfaceLine *surface = new SurfaceLine();
-                                    surface->type = s_OSCSurfaceToken;
-                                    surface->name = s_surfaceName;
-                                    surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
-                                    surface->inPort = s_surfaceInPort;
-                                    surface->outPort = s_surfaceOutPort;
+                                SurfaceLine *surface = new SurfaceLine();
+                                surface->type = s_OSCSurfaceToken;
+                                surface->name = s_surfaceName;
+                                surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
+                                surface->inPort = s_surfaceInPort;
+                                surface->outPort = s_surfaceOutPort;
 
-                                    s_surfaces.Add(surface);
-                                    
-                                    AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
-                                }
+                                s_surfaces.Add(surface);
+                                
+                                AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
                             }
                         }
                         break ;
