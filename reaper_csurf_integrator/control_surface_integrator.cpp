@@ -2077,11 +2077,14 @@ void CSurfIntegrator::Init()
                     ControlSurface *listener = NULL;
 
                     const WDL_PtrList<ControlSurface> &list = currentPage->GetSurfaces();
+                    
+                    string currentSurface = string(tokens[1]);
+                    
                     for (int i = 0; i < list.GetSize(); ++i)
                     {
                         if (list.Get(i)->GetName() == currentBroadcaster)
                             broadcaster = list.Get(i);
-                        if (list.Get(i)->GetName() == tokens[1])
+                        if (list.Get(i)->GetName() == currentSurface)
                             listener = list.Get(i);
                     }
                     
