@@ -915,19 +915,6 @@ public:
         return empty;
     }
     
-    virtual void GoSubZone(const char *subZoneName)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Get(subZoneName);
-        if (zones != NULL)
-        {
-            for (int i = 0; i < zones->GetSize(); ++i)
-            {
-                zones->Get(i)->SetSlotIndex(GetSlotIndex());
-                zones->Get(i)->Activate();
-            }
-        }
-    }
-    
     void OnTrackDeselection()
     {
         isActive_ = true;
@@ -1066,6 +1053,26 @@ public:
                 includedZones_.Get(i)->DoTouch(widget, widgetName, isUsed, value);
         }
     }
+    
+    virtual void GoSubZone(const char *subZoneName)
+    {
+        for (int i = 0; i < subZones_.GetSize(); ++i)
+        {
+            WDL_PtrList<Zone> *zones = subZones_.Enumerate(i);
+            
+            for (int j = 0; j < zones->GetSize(); ++j)
+            {
+                if ( ! strcmp(zones->Get(j)->GetName(), subZoneName))
+                {
+                    zones->Get(j)->SetSlotIndex(GetSlotIndex());
+                    zones->Get(j)->Activate();
+                }
+                else
+                    zones->Get(j)->Deactivate();
+            }
+        }
+    }
+    
     static void GCTagZone(Zone *zone);
 };
 
@@ -1085,7 +1092,6 @@ public:
 
     virtual void GoSubZone(const char *subZoneName) override
     {
-        Deactivate();
         enclosingZone_->GoSubZone(subZoneName);
     }
 };
