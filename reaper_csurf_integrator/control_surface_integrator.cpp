@@ -891,11 +891,11 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         {
             if (paramWidgets_[j] != paramWidget)
             {
-                FXParamTemplate t;
+                FXParamTemplate t2;
                 
-                t.control =paramWidgets_[j];
+                t2.control = paramWidgets_[j];
                 
-                cell.paramTemplates.push_back(t);
+                cell.paramTemplates.push_back(t2);
             }
         }
         
@@ -3760,12 +3760,10 @@ void ZoneManager::SaveLearnedFXParams()
         
         fprintf(fxZone, "\n%s\n\n", s_BeginAutoSection);
         
-        for (int i = 0; i < learnedWidgets_.GetSize(); ++i)
+        for (int lwi = 0; lwi < learnedWidgets_.GetSize(); ++lwi)
         {
             int modifier = 0;
-            learnedWidgets_.Enumerate(i, &modifier);
-            
-            WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *widgetParams = learnedWidgets_.Get(modifier);
+            WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *widgetParams = learnedWidgets_.Enumerate(lwi, &modifier);
 
             if ( ! widgetParams)
                 continue;
