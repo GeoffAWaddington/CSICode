@@ -3800,7 +3800,7 @@ void ZoneManager::SaveLearnedFXParams()
                 t.paramNum = int_to_string(lwp->paramNum);
                 t.paramName = tmp;
                 
-                t.WriteToFile(fxZone, t, steps);
+                t.WriteToFile(fxZone, steps);
             }
         }
         

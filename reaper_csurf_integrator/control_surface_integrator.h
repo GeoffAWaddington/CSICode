@@ -1252,27 +1252,27 @@ struct FXParamTemplate
         valueDisplayAction = "NoAction";
     }
     
-    void WriteToFile(FILE *fxFile, FXParamTemplate t, string &steps)
+    void WriteToFile(FILE *fxFile, const string &steps) const
     {
         if ( ! fxFile)
             return;
 
         if (steps != "")
-            fprintf(fxFile, "\t%s %s %s [ %s]", t.control.c_str(), "FXParam", t.paramNum.c_str(), steps.c_str());
+            fprintf(fxFile, "\t%s %s %s [ %s]", control.c_str(), "FXParam", paramNum.c_str(), steps.c_str());
         else
-            fprintf(fxFile, "\t%s %s %s", t.control.c_str(), "FXParam", t.paramNum.c_str());
+            fprintf(fxFile, "\t%s %s %s", control.c_str(), "FXParam", paramNum.c_str());
 
         fprintf(fxFile, " %s", controlParams.c_str());
         
         fprintf(fxFile, "\n");
         
-        fprintf(fxFile, "\t%s %s \"%s\"", t.nameDisplay.c_str(), "FixedTextDisplay", t.paramName.c_str());
+        fprintf(fxFile, "\t%s %s \"%s\"", nameDisplay.c_str(), "FixedTextDisplay", paramName.c_str());
 
         fprintf(fxFile, " %s", nameDisplayParams.c_str());
         
         fprintf(fxFile, "\n");
             
-        fprintf(fxFile, "\t%s %s %s", t.valueDisplay.c_str(), "FXParamValueDisplay", t.paramNum.c_str());
+        fprintf(fxFile, "\t%s %s %s", valueDisplay.c_str(), "FXParamValueDisplay", paramNum.c_str());
 
         fprintf(fxFile, " %s", valueDisplayParams.c_str());
         
