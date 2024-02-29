@@ -1279,7 +1279,7 @@ struct FXParamTemplate
         fprintf(fxFile, "\n\n");
     }
     
-    void WriteToFile(FILE *fxFile, string &modifiers, string &address, int paramNum, const string &paramName, const string &steps)
+    void WriteToFile(FILE *fxFile, const string &modifiers, const string &address, int paramNumParm, const string &paramNameParm, const string &steps) const
     {
         if ( ! fxFile)
             return;
@@ -1288,17 +1288,17 @@ struct FXParamTemplate
             return;
         
         if (steps != "")
-            fprintf(fxFile, "\t%s%s %s %d [ %s]", modifiers.c_str(), (control + address).c_str(), "FXParam", paramNum, steps.c_str());
+            fprintf(fxFile, "\t%s%s %s %d [ %s]", modifiers.c_str(), (control + address).c_str(), "FXParam", paramNumParm, steps.c_str());
         else
-            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  (control + address).c_str(), "FXParam", paramNum);
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(),  (control + address).c_str(), "FXParam", paramNumParm);
 
         fprintf(fxFile, " %s", controlParams.c_str());
         
         fprintf(fxFile, "\n");
         
-        if (paramName != "")
+        if (paramNameParm != "")
         {
-            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(), (nameDisplay + address).c_str(), "FixedTextDisplay", paramName.c_str());
+            fprintf(fxFile, "\t%s%s %s \"%s\"", modifiers.c_str(), (nameDisplay + address).c_str(), "FixedTextDisplay", paramNameParm.c_str());
 
             fprintf(fxFile, " %s", nameDisplayParams.c_str());
             
@@ -1309,7 +1309,7 @@ struct FXParamTemplate
             
         if (valueDisplay != "")
         {
-            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(), (valueDisplay + address).c_str(), "FXParamValueDisplay", paramNum);
+            fprintf(fxFile, "\t%s%s %s %d", modifiers.c_str(), (valueDisplay + address).c_str(), "FXParamValueDisplay", paramNumParm);
 
             fprintf(fxFile, " %s", valueDisplayParams.c_str());
             
@@ -1319,7 +1319,7 @@ struct FXParamTemplate
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
     
-    void WriteDefaultTemplateToFile(FILE *fxFile, string &modifiers, string &address)
+    void WriteDefaultTemplateToFile(FILE *fxFile, const string &modifiers, const string &address) const
     {
         if ( ! fxFile)
             return;
@@ -1340,7 +1340,7 @@ struct FXParamTemplate
             fprintf(fxFile, "\tNullDisplay %s\n\n", valueDisplayAction.c_str());
     }
     
-    void WriteTemplateToFile(FILE *fxFile, string &modifiers, string &address)
+    void WriteTemplateToFile(FILE *fxFile, const string &modifiers, const string &address) const
     {
         if ( ! fxFile)
             return;
