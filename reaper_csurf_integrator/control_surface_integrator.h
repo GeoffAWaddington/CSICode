@@ -1370,13 +1370,19 @@ struct SurfaceCell
     string modifiers;
     int modifier;
     string address;
-    vector<FXParamTemplate> paramTemplates;
+    ptrvector<FXParamTemplate> paramTemplates;
      
     void ExchangeParamTemplates(SurfaceCell &other)
     {
-        vector<FXParamTemplate> otherTemplates = other.paramTemplates;
-        other.paramTemplates = paramTemplates;
-        paramTemplates = otherTemplates;
+        WDL_PtrList<FXParamTemplate> tmp = other.paramTemplates;
+        other.paramTemplates.Empty();
+
+        for (int x = 0; x < paramTemplates.GetSize(); x ++)
+            other.paramTemplates.Add(paramTemplates.Get(x));
+
+        paramTemplates.Empty();
+        for (int x = 0; x < tmp.GetSize(); x ++)
+            paramTemplates.Add(tmp.Get(x));
     }
     
     void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
