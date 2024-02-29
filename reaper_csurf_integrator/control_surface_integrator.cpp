@@ -724,7 +724,7 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyed
 
 void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
 {
-    vector<FXCellLayoutInfo> fxLayouts;
+    ptrvector<FXCellLayoutInfo> fxLayouts;
     
     try
     {
