@@ -1138,7 +1138,6 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                     subZones.clear();
                     associatedZones.clear();
                     actionTemplatesDictionary->DeleteAll();
-                    delete actionTemplatesDictionary;
                     
                     break;
                 }
@@ -1181,6 +1180,8 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, lineNumber);
         ShowConsoleMsg(buffer);
     }
+    
+    delete actionTemplatesDictionary;
 }
 
 void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string_list &colors)
