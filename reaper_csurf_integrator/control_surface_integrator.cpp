@@ -1134,10 +1134,6 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                         allZonesNeedFree_.Add(zone);
                     }
                                     
-                    includedZones.clear();
-                    subZones.clear();
-                    associatedZones.clear();
-                    
                     break;
                 }
                                 
