@@ -1581,7 +1581,7 @@ private:
     
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
-    void BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > *actionTemplatesDictionary);
+    void BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary);
         
     bool GetIsListener()
     {
