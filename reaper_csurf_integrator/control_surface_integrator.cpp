@@ -674,7 +674,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *ac
     actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
 }
 
-void ZoneManager::BuildActionTemplate(const string_list &tokens)
+void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > *actionTemplatesDictionary)
 {
     string feedbackIndicator;
     
@@ -694,11 +694,11 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens)
     
     GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
 
-    WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *wr = actionTemplatesDictionary_.Get(currentActionTemplate->widgetName.c_str());
+    WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *wr = actionTemplatesDictionary->Get(currentActionTemplate->widgetName.c_str());
     if (!wr)
     {
         wr = new WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >(disposeActionTemplateList);
-        actionTemplatesDictionary_.Insert(currentActionTemplate->widgetName.c_str(), wr);
+        actionTemplatesDictionary->Insert(currentActionTemplate->widgetName.c_str(), wr);
     }
 
     WDL_PtrList<ActionTemplate> *ml = wr->Get(currentActionTemplate->modifier);
@@ -997,6 +997,8 @@ void ZoneManager::GarbageCollectZones()
 
 void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone)
 {
+    WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > *actionTemplatesDictionary = new WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > (true, disposeActionTemplates);
+
     bool isInIncludedZonesSection = false;
     string_list includedZones;
     bool isInSubZonesSection = false;
@@ -1055,10 +1057,10 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                         
                         zones.Add(zone);
                         
-                        for (int tde = 0; tde < actionTemplatesDictionary_.GetSize(); tde++)
+                        for (int tde = 0; tde < actionTemplatesDictionary->GetSize(); tde++)
                         {
                             const char *widgetName = NULL;
-                            WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *modifiedActionTemplates = actionTemplatesDictionary_.Enumerate(tde,&widgetName);
+                            WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *modifiedActionTemplates = actionTemplatesDictionary->Enumerate(tde,&widgetName);
                             if (WDL_NOT_NORMALLY(modifiedActionTemplates == NULL || widgetName == NULL)) continue;
 
                             string surfaceWidgetName = widgetName;
@@ -1135,7 +1137,8 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                     includedZones.clear();
                     subZones.clear();
                     associatedZones.clear();
-                    actionTemplatesDictionary_.DeleteAll();
+                    actionTemplatesDictionary->DeleteAll();
+                    delete actionTemplatesDictionary;
                     
                     break;
                 }
@@ -1168,7 +1171,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                     associatedZones.push_back(tokens[0]);
                                
                 else if (tokens.size() > 1)
-                    BuildActionTemplate(tokens);
+                    BuildActionTemplate(tokens, actionTemplatesDictionary );
             }
         }
     }

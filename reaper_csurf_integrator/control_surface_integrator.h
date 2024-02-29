@@ -1477,7 +1477,6 @@ private:
     WDL_StringKeyedArray<CSIZoneInfo*> zoneFilePaths_;
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
 
-    WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > actionTemplatesDictionary_;
     static void disposeActionTemplateList(WDL_PtrList<ActionTemplate> *list)
     {
         list->Empty(true);
@@ -1582,7 +1581,7 @@ private:
     
     void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
-    void BuildActionTemplate(const string_list &tokens);
+    void BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > *actionTemplatesDictionary);
         
     bool GetIsListener()
     {
@@ -1891,7 +1890,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), /* controlDisplayAssociations_(disposeDisplayAssociations),*/ focusedFXDictionary_(disposeFocusedFX), actionTemplatesDictionary_(true, disposeActionTemplates) //, learnedFXParams_(disposeLearnInfoArray)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList),  focusedFXDictionary_(disposeFocusedFX)
     {
         //private:
         noMapZone_ = NULL;
