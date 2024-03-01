@@ -1602,8 +1602,6 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
-        TrimLine(line);
-        
         lineNumber++;
         
         if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
