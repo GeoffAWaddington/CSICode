@@ -3031,7 +3031,7 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
         if (csi_->GetSurfaceInDisplay())
         {
             char buffer[250];
-            snprintf(buffer, sizeof(buffer), "Zone -- %s\n", sourceFilePath_.c_str());
+            snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
             ShowConsoleMsg(buffer);
         }
 
@@ -3044,6 +3044,135 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     {
         for (int i = 0; i < includedZones_.GetSize(); ++i)
             includedZones_.Get(i)->DoAction(widget, isUsed, value);
+    }
+}
+
+void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
+{
+    if (! isActive_ || isUsed)
+        return;
+    
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
+    }
+
+    for (int j = 0; j < associatedZones_.GetSize(); j++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
+    }
+
+    if (isUsed)
+        return;
+
+    if (widgets_.Exists(widget))
+    {
+        if (csi_->GetSurfaceInDisplay())
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
+            ShowConsoleMsg(buffer);
+        }
+
+        isUsed = true;
+
+        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+            GetActionContexts(widget).Get(i)->DoRelativeAction(delta);
+    }
+    else
+    {
+        for (int i = 0; i < includedZones_.GetSize(); ++i)
+            includedZones_.Get(i)->DoRelativeAction(widget, isUsed, delta);
+    }
+}
+
+void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta)
+{
+    if (! isActive_ || isUsed)
+        return;
+
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    }
+    
+    for (int j = 0; j < associatedZones_.GetSize(); j++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    }
+
+    if (isUsed)
+        return;
+
+    if (widgets_.Exists(widget))
+    {
+        if (csi_->GetSurfaceInDisplay())
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
+            ShowConsoleMsg(buffer);
+        }
+
+        isUsed = true;
+
+        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+            GetActionContexts(widget).Get(i)->DoRelativeAction(accelerationIndex, delta);
+    }
+    else
+    {
+        for (int i = 0; i < includedZones_.GetSize(); ++i)
+            includedZones_.Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    }
+}
+
+void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value)
+{
+    if (! isActive_ || isUsed)
+        return;
+
+    for (int j = 0; j < subZones_.GetSize(); j ++)
+    {
+        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
+        for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
+    }
+    
+    for (int j = 0; j < associatedZones_.GetSize(); j++)
+    {
+        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        for (int i = 0; i < zones->GetSize(); ++i)
+            zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
+    }
+
+    if (isUsed)
+        return;
+
+    if (widgets_.Exists(widget))
+    {
+        if (csi_->GetSurfaceInDisplay())
+        {
+            char buffer[250];
+            snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
+            ShowConsoleMsg(buffer);
+        }
+
+        isUsed = true;
+
+        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+            GetActionContexts(widget).Get(i)->DoTouch(value);
+    }
+    else
+    {
+        for (int i = 0; i < includedZones_.GetSize(); ++i)
+            includedZones_.Get(i)->DoTouch(widget, widgetName, isUsed, value);
     }
 }
 
@@ -5110,35 +5239,24 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
 {
-    bool isMapped = false;
-    
+    if (csi_->GetSurfaceRawInDisplay())
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "IN <- %s %02x  %02x  %02x \n", name_.c_str(), evt->midi_message[0], evt->midi_message[1], evt->midi_message[2]);
+        ShowConsoleMsg(buffer);
+    }
+
     int threeByteKey = evt->midi_message[0]  * 0x10000 + evt->midi_message[1]  * 0x100 + evt->midi_message[2];
     int twoByteKey = evt->midi_message[0]  * 0x10000 + evt->midi_message[1]  * 0x100;
     int oneByteKey = evt->midi_message[0] * 0x10000;
 
     // At this point we don't know how much of the message comprises the key, so try all three
     if (Midi_CSIMessageGeneratorsByMessage_.Exists(threeByteKey))
-    {
-        isMapped = true;
         Midi_CSIMessageGeneratorsByMessage_.Get(threeByteKey)->ProcessMidiMessage(evt);
-    }
     else if (Midi_CSIMessageGeneratorsByMessage_.Exists(twoByteKey))
-    {
-        isMapped = true;
         Midi_CSIMessageGeneratorsByMessage_.Get(twoByteKey)->ProcessMidiMessage(evt);
-    }
     else if (Midi_CSIMessageGeneratorsByMessage_.Exists(oneByteKey))
-    {
-        isMapped = true;
         Midi_CSIMessageGeneratorsByMessage_.Get(oneByteKey)->ProcessMidiMessage(evt);
-    }
-    
-    if (csi_->GetSurfaceRawInDisplay() || (! isMapped && csi_->GetSurfaceInDisplay()))
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "IN <- %s %02x  %02x  %02x \n", name_.c_str(), evt->midi_message[0], evt->midi_message[1], evt->midi_message[2]);
-        ShowConsoleMsg(buffer);
-    }
 }
 
 void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
@@ -5422,10 +5540,6 @@ CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActio
     
     // private:
     currentPageIndex_ = 0;
-    s_surfaceRawInDisplay = false;
-    s_surfaceInDisplay = false;
-    s_surfaceOutDisplay = false;
-    s_fxParamsWrite = false;
 
     shouldRun_ = true;
     

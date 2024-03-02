@@ -812,6 +812,9 @@ public:
     void Activate();
     void Deactivate();
     void DoAction(Widget *widget, bool &isUsed, double value);
+    void DoRelativeAction(Widget *widget, bool &isUsed, double delta);
+    void DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta);
+    void DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value);
     int GetChannelNumber();
     void RequestUpdate();
     void SetFXParamNum(Widget *paramWidget, int paramIndex);
@@ -943,114 +946,6 @@ public:
         {
             GetActionContexts(widget).Get(i)->RunDeferredActions();
             GetActionContexts(widget).Get(i)->RequestUpdate();
-        }
-    }
-
-    void DoRelativeAction(Widget *widget, bool &isUsed, double delta)
-    {
-        if (! isActive_ || isUsed)
-            return;
-        
-        for (int j = 0; j < subZones_.GetSize(); j ++)
-        {
-            WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
-        }
-
-        for (int j = 0; j < associatedZones_.GetSize(); j++)
-        {
-            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
-            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
-        }
-
-        if (isUsed)
-            return;
-
-        if (widgets_.Exists(widget))
-        {
-            isUsed = true;
-
-            for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-                GetActionContexts(widget).Get(i)->DoRelativeAction(delta);
-        }
-        else
-        {
-            for (int i = 0; i < includedZones_.GetSize(); ++i)
-                includedZones_.Get(i)->DoRelativeAction(widget, isUsed, delta);
-        }
-    }
-
-    void DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta)
-    {
-        if (! isActive_ || isUsed)
-            return;
-
-        for (int j = 0; j < subZones_.GetSize(); j ++)
-        {
-            WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-            for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        }
-        
-        for (int j = 0; j < associatedZones_.GetSize(); j++)
-        {
-            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
-            for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        }
-
-        if (isUsed)
-            return;
-
-        if (widgets_.Exists(widget))
-        {
-            isUsed = true;
-
-            for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-                GetActionContexts(widget).Get(i)->DoRelativeAction(accelerationIndex, delta);
-        }
-        else
-        {
-            for (int i = 0; i < includedZones_.GetSize(); ++i)
-                includedZones_.Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        }
-    }
-
-    void DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value)
-    {
-        if (! isActive_ || isUsed)
-            return;
-
-        for (int j = 0; j < subZones_.GetSize(); j ++)
-        {
-            WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-            for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
-        }
-        
-        for (int j = 0; j < associatedZones_.GetSize(); j++)
-        {
-            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
-            for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
-        }
-
-        if (isUsed)
-            return;
-
-        if (widgets_.Exists(widget))
-        {
-            isUsed = true;
-
-            for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-                GetActionContexts(widget).Get(i)->DoTouch(value);
-        }
-        else
-        {
-            for (int i = 0; i < includedZones_.GetSize(); ++i)
-                includedZones_.Get(i)->DoTouch(widget, widgetName, isUsed, value);
         }
     }
     
