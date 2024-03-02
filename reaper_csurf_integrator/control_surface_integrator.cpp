@@ -13,14 +13,17 @@
 #include "../WDL/dirscan.h"
 #include "resource.h"
 
-CSurfIntegrator *g_csiForGui = NULL;
-
 WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
 
 int g_minNumParamSteps = 2;
 int g_maxNumParamSteps = 30;
+
+bool g_surfaceRawInDisplay;
+bool g_surfaceInDisplay;
+bool g_surfaceOutDisplay;
+bool g_fxParamsWrite;
 
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties)
 {
@@ -3028,7 +3031,7 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 
     if (widgets_.Exists(widget))
     {
-        if (csi_->GetSurfaceInDisplay())
+        if (g_surfaceInDisplay)
         {
             char buffer[250];
             snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
@@ -3071,7 +3074,7 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
 
     if (widgets_.Exists(widget))
     {
-        if (csi_->GetSurfaceInDisplay())
+        if (g_surfaceInDisplay)
         {
             char buffer[250];
             snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
@@ -3114,7 +3117,7 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
 
     if (widgets_.Exists(widget))
     {
-        if (csi_->GetSurfaceInDisplay())
+        if (g_surfaceInDisplay)
         {
             char buffer[250];
             snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
@@ -3157,7 +3160,7 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
 
     if (widgets_.Exists(widget))
     {
-        if (csi_->GetSurfaceInDisplay())
+        if (g_surfaceInDisplay)
         {
             char buffer[250];
             snprintf(buffer, sizeof(buffer), "Zone -- %s\n\n", sourceFilePath_.c_str());
@@ -3309,7 +3312,7 @@ void  Widget::ForceClear()
 
 void Widget::LogInput(double value)
 {
-    if (csi_->GetSurfaceInDisplay())
+    if (g_surfaceInDisplay)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s %f\n", GetSurface()->GetName(), GetName(), value);
@@ -5239,7 +5242,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
 {
-    if (csi_->GetSurfaceRawInDisplay())
+    if (g_surfaceRawInDisplay)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %02x  %02x  %02x \n", name_.c_str(), evt->midi_message[0], evt->midi_message[1], evt->midi_message[2]);
@@ -5276,7 +5279,7 @@ void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
     
     output += "\n";
 
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(output.c_str());
 }
 
@@ -5284,7 +5287,7 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
 {
     surfaceIO_->SendMidiMessage(first, second, third);
     
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "%s  %02x  %02x  %02x \n", ("OUT->" + name_).c_str(), first, second, third);
@@ -5382,7 +5385,7 @@ void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
     if (CSIMessageGeneratorsByMessage_.Exists(message.c_str()))
         CSIMessageGeneratorsByMessage_.Get(message.c_str())->ProcessMessage(value);
     
-    if (csi_->GetSurfaceInDisplay())
+    if (g_surfaceInDisplay)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "IN <- %s %s  %f  \n", name_.c_str(), message.c_str(), value);
@@ -5398,7 +5401,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *zoneName)
 
     surfaceIO_->SendOSCMessage(oscAddress.c_str());
         
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg((string(zoneName) + "->LoadingZone---->" + name_ + "\n").c_str());
 }
 
@@ -5406,7 +5409,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, int value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
 }
 
@@ -5414,7 +5417,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + double_to_string(value) + "\n").c_str());
 }
 
@@ -5422,7 +5425,7 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *valu
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + string(value) + "\n").c_str());
 }
 
@@ -5430,7 +5433,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + double_to_string(value) + "\n").c_str());
 }
 
@@ -5438,7 +5441,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
@@ -5446,7 +5449,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 {
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
-    if (csi_->GetSurfaceOutDisplay())
+    if (g_surfaceOutDisplay)
         ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + string(value) + "\n").c_str());
 }
 
@@ -5536,8 +5539,6 @@ static const char * const Control_Surface_Integrator = "Control Surface Integrat
 
 CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActions_(true, disposeAction), fxParamSteppedValueCounts_(true, disposeCounts)
 {
-    g_csiForGui = this;
-    
     // private:
     currentPageIndex_ = 0;
 

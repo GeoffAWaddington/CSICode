@@ -63,6 +63,11 @@ extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
 extern int strToHex(const char *valueStr);
 
+extern bool g_surfaceRawInDisplay;
+extern bool g_surfaceInDisplay;
+extern bool g_surfaceOutDisplay;
+extern bool g_fxParamsWrite;
+
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 static const char * const s_CSIName = "CSI";
@@ -4503,11 +4508,6 @@ public:
 static const int s_stepSizes_[]  = { 2,   3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
 static const int s_tickCounts_[] = { 250, 235, 220, 205, 190, 175, 160, 145, 130, 115, 100, 90, 80, 70, 60, 50, 45, 40, 35, 30, 25, 20, 20, 20 };
 
-static bool s_surfaceRawInDisplay = false;
-static bool s_surfaceInDisplay = false;
-static bool s_surfaceOutDisplay = false;
-static bool s_fxParamsWrite = false;
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CSurfIntegrator : public IReaperControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4578,16 +4578,6 @@ public:
     }
     
     void Init();
-    
-    void SetSurfaceRawInDisplay(bool isEnabled) { s_surfaceRawInDisplay = isEnabled;  }
-    void SetSurfaceInDisplay(bool isEnabled) { s_surfaceInDisplay = isEnabled;  }
-    void SetSurfaceOutDisplay(bool isEnabled) { s_surfaceOutDisplay = isEnabled;  }
-    void SetFXParamsWrite(bool isEnabled) { s_fxParamsWrite = isEnabled;  }
-
-    bool GetSurfaceRawInDisplay() { return s_surfaceRawInDisplay;  }
-    bool GetSurfaceInDisplay() { return s_surfaceInDisplay;  }
-    bool GetSurfaceOutDisplay() { return s_surfaceOutDisplay;  }
-    bool GetFXParamsWrite() { return s_fxParamsWrite;  }
 
     double GetFaderMaxDB() { return GetPrivateProfileDouble("slidermaxv"); }
     double GetFaderMinDB() { return GetPrivateProfileDouble("sliderminv"); }
@@ -4770,7 +4760,7 @@ public:
         for (int i = 0; i < pages_.GetSize(); ++i)
             pages_.Get(i)->TrackFXListChanged(track);
         
-        if (s_fxParamsWrite)
+        if (g_fxParamsWrite)
         {
             char fxName[BUFSZ];
             
@@ -4779,7 +4769,7 @@ public:
                 TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
                 FILE *fxFile = NULL;
                                 
-                if (s_fxParamsWrite)
+                if (g_fxParamsWrite)
                 {
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
