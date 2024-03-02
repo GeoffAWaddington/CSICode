@@ -1998,7 +1998,7 @@ public:
 
     void HideAllFXWindows()
     {
-        Undo_BeginBlock();
+        //Undo_BeginBlock();
         for (int i = -1; i < GetNumTracks(); i++)
         {
             MediaTrack *tr = i < 0 ? GetMasterTrack(NULL) : GetTrack(NULL, i);
@@ -2021,7 +2021,7 @@ public:
                 }
             }
         }
-        Undo_EndBlock("Close all FX windows", -1);
+        //Undo_EndBlock("Close all FX windows", -1);
     }
 
     void GoHome()
