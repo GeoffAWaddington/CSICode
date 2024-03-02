@@ -339,7 +339,7 @@ BEGIN
     CONTROL         "Custom",IDC_CHECK_Custom,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,69,40,10
     CONTROL         "LocalFXSlot",IDC_CHECK_LocalFXSlot,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,112,49,10
     CONTROL         "Modifiers",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,91,44,10
-    CONTROL         "Show raw input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,154,65,10
+    CONTROL         "Show MIDI input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,154,65,10
     CONTROL         "Show input",IDC_CHECK_ShowInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,77,154,52,10
     CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,133,154,53,10
     CONTROL         "Write params to /CSI/Zones/ZoneRawFXFiles when FX inserted",IDC_CHECK_WriteFXParams,
