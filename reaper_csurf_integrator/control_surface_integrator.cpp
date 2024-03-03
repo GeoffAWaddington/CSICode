@@ -213,6 +213,9 @@ string double_to_string(double value)
 
 bool getline(fpistream &fp, string &str) // mimic C++ getline()
 {
+    if (fp.handle == NULL)
+        return false;
+    
     str.clear();
     if (WDL_NOT_NORMALLY(!fp.handle)) return false;
     for (;;)
