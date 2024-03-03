@@ -1393,6 +1393,7 @@ struct SurfaceLine
     {
         inPort = 0;
         outPort = 0;
+        surfaceRefreshRate = 15;
     }
 };
 
