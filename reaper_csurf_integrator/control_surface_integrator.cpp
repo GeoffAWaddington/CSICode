@@ -480,15 +480,22 @@ struct OSCSurfaceSocket
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static WDL_TypedBuf<OSCSurfaceSocket> s_inputSockets;
-static WDL_TypedBuf<OSCSurfaceSocket> s_outputSockets;
+//static WDL_TypedBuf<OSCSurfaceSocket> s_inputSockets;
+//static WDL_TypedBuf<OSCSurfaceSocket> s_outputSockets;
+
+static vector<OSCSurfaceSocket> s_inputSockets;
+static vector<OSCSurfaceSocket> s_outputSockets;
 
 static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPort)
 {
-    for (int i = 0; i < s_inputSockets.GetSize(); ++i)
-        if (s_inputSockets.Get()[i].surfaceName == surfaceName)
-            return s_inputSockets.Get()[i].socket; // return existing
-    
+    //for (int i = 0; i < s_inputSockets.GetSize(); ++i)
+        //if (s_inputSockets.Get()[i].surfaceName == surfaceName)
+            //return s_inputSockets.Get()[i].socket; // return existing
+
+    for (int i = 0; i < s_inputSockets.size(); ++i)
+        if (s_inputSockets[i].surfaceName == surfaceName)
+            return s_inputSockets[i].socket; // return existing
+
     // otherwise make new
     oscpkt::UdpSocket *newInputSocket = new oscpkt::UdpSocket();
     
@@ -505,10 +512,14 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
         OSCSurfaceSocket surfaceSocket;
         surfaceSocket.surfaceName = surfaceName;
         surfaceSocket.socket = newInputSocket;
-        if (s_inputSockets.Add(surfaceSocket))
-            return newInputSocket;
-        else
-            return NULL;
+        
+        //if (s_inputSockets.Add(surfaceSocket))
+            //return newInputSocket;
+        //else
+            //return NULL;
+        
+        s_inputSockets.push_back(surfaceSocket);
+        return newInputSocket;
     }
     
     return NULL;
@@ -516,9 +527,13 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
 
 static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
-    for (int i = 0; i < s_outputSockets.GetSize(); ++i)
-        if (s_outputSockets.Get()[i].surfaceName == surfaceName)
-            return s_outputSockets.Get()[i].socket; // return existing
+    //for (int i = 0; i < s_outputSockets.GetSize(); ++i)
+        //if (s_outputSockets.Get()[i].surfaceName == surfaceName)
+            //return s_outputSockets.Get()[i].socket; // return existing
+    
+    for (int i = 0; i < s_outputSockets.size(); ++i)
+        if (s_outputSockets[i].surfaceName == surfaceName)
+            return s_outputSockets[i].socket; // return existing
     
     // otherwise make new
     oscpkt::UdpSocket *newOutputSocket = new oscpkt::UdpSocket();
@@ -540,10 +555,14 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
         OSCSurfaceSocket surfaceSocket;
         surfaceSocket.surfaceName = surfaceName;
         surfaceSocket.socket = newOutputSocket;
-        if (s_outputSockets.Add(surfaceSocket))
-            return newOutputSocket;
-        else
-            return NULL;
+        
+        //if (s_outputSockets.Add(surfaceSocket))
+            //return newOutputSocket;
+        //else
+            //return NULL;
+        
+        s_outputSockets.push_back(surfaceSocket);
+        return newOutputSocket;
     }
     
     return NULL;
@@ -551,15 +570,15 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
 
 void ShutdownOSCIO()
 {
-    for (int i = 0; i < s_inputSockets.GetSize(); ++i)
-        delete s_inputSockets.Get()[i].socket;
+    //for (int i = 0; i < s_inputSockets.GetSize(); ++i)
+        //delete s_inputSockets.Get()[i].socket;
     
-    s_inputSockets.Resize(0);
+    //s_inputSockets.Resize(0);
     
-    for (int i = 0; i < s_outputSockets.GetSize(); ++i)
-        delete s_outputSockets.Get()[i].socket;
+    //for (int i = 0; i < s_outputSockets.GetSize(); ++i)
+        //delete s_outputSockets.Get()[i].socket;
     
-    s_outputSockets.Resize(0);
+    //s_outputSockets.Resize(0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
