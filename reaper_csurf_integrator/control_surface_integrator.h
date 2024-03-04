@@ -345,7 +345,7 @@ class PropertyList
         const char *key = string_from_prop(prop);
         const char *value = get_prop(prop);
 
-        if(key && value)
+        if (key && value)
             snprintf_append(buf, buf_size, "%s=%s ", key, value);
     }
 };

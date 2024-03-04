@@ -772,7 +772,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 {
                     
                     int channelCount = atoi(tokens[2].c_str());
-                    for(int i = 1; i <= channelCount; ++i )
+                    for (int i = 1; i <= channelCount; ++i )
                     {
                         FXCellLayoutInfo info;
 
@@ -794,7 +794,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         ShowConsoleMsg(buffer);
     }
 
-    if(fxLayouts.size() == 0) // didn't find any layouts
+    if (fxLayouts.size() == 0) // didn't find any layouts
         return;
     
     paramWidgets_.clear();
@@ -1208,7 +1208,7 @@ void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string
     {
         rgba_color colorValue;
         
-        if(GetColorValue(colors[i], colorValue))
+        if (GetColorValue(colors[i], colorValue))
             colorValues.push_back(colorValue);
     }
 }
@@ -3876,7 +3876,7 @@ void ZoneManager::SaveTemplatedFXParams()
 
 void ZoneManager::SaveLearnedFXParams()
 {
-    if(learnFXTrack_ == NULL)
+    if (learnFXTrack_ == NULL)
         return;
     
     char fxName[BUFSZ];
@@ -3980,7 +3980,7 @@ void ZoneManager::SaveLearnedFXParams()
         //LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
     }
     
-    if(homeZone_ != NULL)
+    if (homeZone_ != NULL)
     {
         homeZone_->DeactivateLearnFXParamsZone();
     }
@@ -4014,7 +4014,7 @@ void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int paramNum)
 
         GetParamDisplayWidgets(widget->GetName(), modifier, &lwp);
         
-        if(lwp.nameDisplay != NULL && lwp.valueDisplay != NULL)
+        if (lwp.nameDisplay != NULL && lwp.valueDisplay != NULL)
             learnedWidgets_.Get(modifier)->Insert(widget, lwp);
     }
 }
@@ -4120,7 +4120,7 @@ double ZoneManager::GetNextSteppedValue(MediaTrack *track, Widget *widget, Learn
     if (strstr(widget->GetName(), "Push") && stepCount == 0)
         value = ! lwp->lastValueSent;
 
-    if(nextVal >= 0.0)
+    if (nextVal >= 0.0)
         return nextVal;
     else
         return value;
@@ -4182,7 +4182,7 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
         
         LearnedWidgetParams *lwp = learnedWidgets_.Get(modifier)->GetPtr(widget);
         
-        if(lwp)
+        if (lwp)
         {
             double min, max;
             double currentValue = TrackFX_GetParam(learnFXTrack_, learnFXSlot_, lwp->paramNum, &min, &max);
