@@ -1843,8 +1843,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     currentIndex++;
                 }
             
-            const string resourcePath(GetResourcePath());
-            
             if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, s_surfaceName.c_str());
@@ -1864,38 +1862,6 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             switch(LOWORD(wParam))
             {
-                case IDC_COMBO_SurfaceTemplate:
-                {
-                    switch (HIWORD(wParam))
-                    {
-                        case CBN_SELCHANGE:
-                        {
-                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
-                            if (index >= 0 && !s_editMode)
-                            {
-                                char buffer[BUFSZ];
-                                
-                                GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
-
-                                for (int i = 0; i < sizeof(buffer); i++)
-                                {
-                                    if (buffer[i] == '.')
-                                    {
-                                        buffer[i] = 0;
-                                        break;
-                                    }
-                                }
-                                
-                                index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
-                                if (index >= 0)
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
-                            }
-                        }
-                    }
-                    
-                    break;
-                }
-
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1944,17 +1910,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
     {
         case WM_INITDIALOG:
         {
-            string resourcePath(GetResourcePath());
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate));
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates));
-            
-            int i = 0;
-            for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
-                AddComboEntry(hwndDlg, i++, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
-            
-            for (int j = 0; j < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++j)
-                AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[j].c_str(), IDC_COMBO_ZoneTemplates);
-            
             if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, s_surfaceName.c_str());
@@ -1976,38 +1931,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         {
             switch(LOWORD(wParam))
             {
-                case IDC_COMBO_SurfaceTemplate:
-                {
-                    switch (HIWORD(wParam))
-                    {
-                        case CBN_SELCHANGE:
-                        {
-                            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
-                            if (index >= 0 && !s_editMode)
-                            {
-                                char buffer[BUFSZ];
-                                
-                                GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
-                                
-                                for (int i = 0; i < sizeof(buffer); i++)
-                                {
-                                    if (buffer[i] == '.')
-                                    {
-                                        buffer[i] = 0;
-                                        break;
-                                    }
-                                }
-                                
-                                index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)buffer);
-                                if (index >= 0)
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_SETCURSEL, index, 0);
-                            }
-                        }
-                    }
-                    
-                    break;
-                }
-                    
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
