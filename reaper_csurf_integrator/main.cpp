@@ -4,8 +4,6 @@
 #include "reaper_plugin_functions.h"
 #include "resource.h"
 
-extern void ShutdownOSCIO();
-
 extern reaper_csurf_reg_t csurf_integrator_reg;
 extern void localize_init(void * (*GetFunc)(const char *name));
 
@@ -21,7 +19,6 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hI
     
     if (! reaper_plugin_info)
     {
-        ShutdownOSCIO();
         return 0;
     }
     

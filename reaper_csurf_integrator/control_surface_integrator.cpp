@@ -470,24 +470,34 @@ struct OSCSurfaceSocket
 {
     string surfaceName;
     oscpkt::UdpSocket *socket;
+    int refcnt;
     
-    OSCSurfaceSocket()
+    OSCSurfaceSocket(const string &name, oscpkt::UdpSocket *s)
     {
-        socket = NULL;
+        surfaceName = name;
+        socket = s;
+        refcnt = 1;
+    }
+    ~OSCSurfaceSocket()
+    {
+      delete socket;
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static WDL_TypedBuf<OSCSurfaceSocket> s_inputSockets;
-static WDL_TypedBuf<OSCSurfaceSocket> s_outputSockets;
+static WDL_PtrList<OSCSurfaceSocket> s_inputSockets;
+static WDL_PtrList<OSCSurfaceSocket> s_outputSockets;
 
 static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPort)
 {
     for (int i = 0; i < s_inputSockets.GetSize(); ++i)
-        if (s_inputSockets.Get()[i].surfaceName == surfaceName)
-            return s_inputSockets.Get()[i].socket; // return existing
+        if (s_inputSockets.Get(i)->surfaceName == surfaceName)
+        {
+            s_inputSockets.Get(i)->refcnt++;
+            return s_inputSockets.Get(i)->socket; // return existing
+        }
     
     // otherwise make new
     oscpkt::UdpSocket *newInputSocket = new oscpkt::UdpSocket();
@@ -502,13 +512,8 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
             return NULL;
         }
         
-        OSCSurfaceSocket surfaceSocket;
-        surfaceSocket.surfaceName = surfaceName;
-        surfaceSocket.socket = newInputSocket;
-        if (s_inputSockets.Add(surfaceSocket))
-            return newInputSocket;
-        else
-            return NULL;
+        s_inputSockets.Add(new OSCSurfaceSocket(surfaceName, newInputSocket));
+        return newInputSocket;
     }
     
     return NULL;
@@ -517,8 +522,11 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
 static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
     for (int i = 0; i < s_outputSockets.GetSize(); ++i)
-        if (s_outputSockets.Get()[i].surfaceName == surfaceName)
-            return s_outputSockets.Get()[i].socket; // return existing
+        if (s_outputSockets.Get(i)->surfaceName == surfaceName)
+        {
+            s_outputSockets.Get(i)->refcnt++;
+            return s_outputSockets.Get(i)->socket; // return existing
+        }
     
     // otherwise make new
     oscpkt::UdpSocket *newOutputSocket = new oscpkt::UdpSocket();
@@ -537,29 +545,11 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
             return NULL;
         }
 
-        OSCSurfaceSocket surfaceSocket;
-        surfaceSocket.surfaceName = surfaceName;
-        surfaceSocket.socket = newOutputSocket;
-        if (s_outputSockets.Add(surfaceSocket))
-            return newOutputSocket;
-        else
-            return NULL;
+        s_outputSockets.Add(new OSCSurfaceSocket(surfaceName, newOutputSocket));
+        return newOutputSocket;
     }
     
     return NULL;
-}
-
-void ShutdownOSCIO()
-{
-    for (int i = 0; i < s_inputSockets.GetSize(); ++i)
-        delete s_inputSockets.Get()[i].socket;
-    
-    s_inputSockets.Resize(0);
-    
-    for (int i = 0; i < s_outputSockets.GetSize(); ++i)
-        delete s_outputSockets.Get()[i].socket;
-    
-    s_outputSockets.Resize(0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -5332,6 +5322,34 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const cha
     }
  }
 
+OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
+{
+    if (inSocket_)
+    {
+        for (int x = 0; x < s_inputSockets.GetSize(); x ++)
+        {
+            if (s_inputSockets.Get(x)->socket == inSocket_)
+            {
+                if (!--s_inputSockets.Get(x)->refcnt)
+                    s_inputSockets.Delete(x, true);
+                break;
+            }
+        }
+    }
+    if (outSocket_ && outSocket_ != inSocket_)
+    {
+        for (int x = 0; x < s_outputSockets.GetSize(); x ++)
+        {
+            if (s_outputSockets.Get(x)->socket == outSocket_)
+            {
+                if (!--s_outputSockets.Get(x)->refcnt)
+                    s_outputSockets.Delete(x, true);
+                break;
+            }
+        }
+    }
+}
+
  void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
  {
     if (inSocket_ != NULL && inSocket_->isOk())
@@ -5578,7 +5596,6 @@ CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActio
 CSurfIntegrator::~CSurfIntegrator()
 {
     Shutdown();
-    ShutdownOSCIO();
 
     midiSurfacesIO_.Empty(true);
     
