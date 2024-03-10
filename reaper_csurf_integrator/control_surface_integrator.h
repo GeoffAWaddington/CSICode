@@ -1796,7 +1796,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList),  focusedFXDictionary_(disposeFocusedFX)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList),  focusedFXDictionary_(disposeFocusedFX)
     {
         //private:
         noMapZone_ = NULL;

@@ -2022,7 +2022,7 @@ void CSurfIntegrator::Init()
             
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4)
+                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4) // This is to handle CSI.ini files that are missing refresh rate, it supplies 15 -- the default.
                     midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), 15));
                 else if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 5)
                     midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4])));
@@ -4200,6 +4200,15 @@ void ZoneManager::RemapAutoZone()
 
 void ZoneManager::PreProcessZones()
 {
+    if (zoneFolder_[0] == 0)
+    {
+        char tmp[2048];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your CSI.ini, cannot find Zone folder for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder definiton for surface is empty","csi_mbox"), MB_OK);
+
+        return;
+    }
+    
     string_list zoneFilesToProcess;
     listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
        
