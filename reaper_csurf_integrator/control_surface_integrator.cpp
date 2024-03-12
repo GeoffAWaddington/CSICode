@@ -2138,7 +2138,12 @@ void CSurfIntegrator::Init()
     }
     
     for (int i = 0; i < pages_.GetSize(); ++i)
+    {
+        for (int j = 0; j < pages_.Get(i)->GetSurfaces().GetSize(); ++j)
+            pages_.Get(i)->GetSurfaces().Get(j)->ForceClear();
+
         pages_.Get(i)->OnInitialization();
+    }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Parsing end
