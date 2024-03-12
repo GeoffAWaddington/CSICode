@@ -1396,6 +1396,7 @@ private:
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
+    bool isLearnFXSlotMode_;
     Widget *lastTouchedControl_;
     static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
@@ -1410,7 +1411,6 @@ private:
     string_list fxPrologue_;
     string_list fxEpilogue_;
     string_list emptyStringList_;
-    
     
     WDL_PtrList<ZoneManager> listeners_;
     
@@ -1477,6 +1477,7 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
       
+    void GoLearnFXParams();
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
     void InitializeNoMapZone();
@@ -1803,6 +1804,7 @@ public:
         homeZone_ = NULL;
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
+        isLearnFXSlotMode_ = true;
         lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
         
@@ -1873,7 +1875,6 @@ public:
     void DoTouch(Widget *widget, double value);
     
     void AutoMapFocusedFX();
-    void GoLearnFXParams();
     void SaveLearnedFXParams();
     void SaveTemplatedFXParams();
     void EraseLastTouchedControl();
@@ -1949,6 +1950,7 @@ public:
         learnedWidgets_.DeleteAll();
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
+        isLearnFXSlotMode_ = true;
         lastTouchedControl_ = NULL;
     }
         
@@ -1970,6 +1972,12 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
 
+    void LearnFocusedFXParams()
+    {
+        isLearnFXSlotMode_ = false;
+        GoAssociatedZone("LearnFXParams");
+    }
+    
     void GoAssociatedZone(const char *zoneName)
     {
         if (noMapZone_ != NULL)

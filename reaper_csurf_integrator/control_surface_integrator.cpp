@@ -1855,6 +1855,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("AutoMapSlotFX", new AutoMapSlotFX());
     actions_.Insert("AutoMapFocusedFX", new AutoMapFocusedFX());
     actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
+    actions_.Insert("LearnFocusedFXParams", new LearnFocusedFXParams());
     actions_.Insert("GoFXLayoutZone", new GoFXLayoutZone());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
@@ -3945,10 +3946,17 @@ void ZoneManager::SaveLearnedFXParams()
     if (zoneFilePaths_.Exists(fxName))
     {
         WDL_PtrList<Navigator> navigators;
-        navigators.Add(GetSelectedTrackNavigator());
         
-        // GAW TBD -- where to load this, focusesd FX Zones ?
-        //LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
+        if (isLearnFXSlotMode_)
+        {
+            navigators.Add(GetSelectedTrackNavigator());
+            LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
+        }
+        else
+        {
+            navigators.Add(GetFocusedFXNavigator());
+            LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, focusedFXZones_, NULL);
+        }
     }
     
     if (homeZone_ != NULL)
