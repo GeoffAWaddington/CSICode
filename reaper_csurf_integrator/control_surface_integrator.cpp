@@ -3459,8 +3459,8 @@ void ZoneManager::Initialize()
 
 void ZoneManager::CheckFocusedFXState()
 {
-    //if (! isFocusedFXMappingEnabled_)
-        //return;
+    if (! isFocusedFXMappingEnabled_)
+        return;
 
     int trackNumber = 0;
     int itemNumber = 0;
