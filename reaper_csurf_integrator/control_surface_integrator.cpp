@@ -3457,37 +3457,6 @@ void ZoneManager::Initialize()
     GoHome();
 }
 
-void ZoneManager::CheckFocusedFXState()
-{
-    if (! isFocusedFXMappingEnabled_)
-        return;
-
-    int trackNumber = 0;
-    int itemNumber = 0;
-    int takeNumber = 0;
-    int fxIndex = 0;
-    int paramIndex = 0;
-    
-    bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
-    
-    if ( ! retVal || (retVal && (paramIndex & 0x01)))
-    {
-        if( focusedFXZones_.GetSize() > 0)
-        {
-            focusedFXZones_.Empty();
-            needGarbageCollect_ = true;
-        }
-        
-        return;
-    }
-    
-    if (fxIndex > -1)
-    {
-        if (focusedFXZones_.GetSize() == 0)
-            GoFocusedFX();
-    }
-}
-
 void ZoneManager::AddListener(ControlSurface *surface)
 {
     if (WDL_NOT_NORMALLY(!surface)) { return; }
@@ -3522,6 +3491,40 @@ void ZoneManager::SetListenerCategories(const char *categoryList)
         
         if (categoryTokens[i] == "Modifiers")
             surface_->SetListensToModifiers();
+    }
+}
+
+void ZoneManager::CheckFocusedFXState()
+{
+    if (! isFocusedFXMappingEnabled_)
+        return;
+
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int takeNumber = 0;
+    int fxIndex = 0;
+    int paramIndex = 0;
+    
+    bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
+    
+    if ( ! retVal || (retVal && (paramIndex & 0x01)))
+    {
+        if( focusedFXZones_.GetSize() > 0)
+        {
+            for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
+                focusedFXZones_.Get(i)->RestoreXTouchDisplayColors();
+            
+            focusedFXZones_.Empty();
+            needGarbageCollect_ = true;
+        }
+        
+        return;
+    }
+    
+    if (fxIndex > -1)
+    {
+        if (focusedFXZones_.GetSize() == 0)
+            GoFocusedFX();
     }
 }
 
@@ -3562,9 +3565,6 @@ void ZoneManager::GoFocusedFX()
             }
         }
     }
-    else
-        for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-            focusedFXZones_.Get(i)->RestoreXTouchDisplayColors();
 
     needGarbageCollect_ = true;
 }
@@ -4166,15 +4166,7 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
 
 void ZoneManager::RemapAutoZone()
 {
-    if (focusedFXZones_.GetSize() == 1)
-    {
-        if (::RemapAutoZoneDialog(this, focusedFXZones_.Get(0)->GetSourceFilePath()))
-        {
-            PreProcessZoneFile(focusedFXZones_.Get(0)->GetSourceFilePath(), this);
-            GoFocusedFX();
-        }
-    }
-    else if (fxSlotZones_.GetSize() == 1)
+    if (fxSlotZones_.GetSize() == 1)
     {
         if (::RemapAutoZoneDialog(this, fxSlotZones_.Get(0)->GetSourceFilePath()))
         {
