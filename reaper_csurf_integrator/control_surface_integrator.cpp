@@ -3459,47 +3459,32 @@ void ZoneManager::Initialize()
 
 void ZoneManager::CheckFocusedFXState()
 {
-    if (! isFocusedFXMappingEnabled_)
-        return;
+    //if (! isFocusedFXMappingEnabled_)
+        //return;
 
     int trackNumber = 0;
     int itemNumber = 0;
+    int takeNumber = 0;
     int fxIndex = 0;
+    int paramIndex = 0;
     
-    int retval = GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex);
-
-    if ((retval & 1) && (fxIndex > -1))
+    bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
+    
+    if ( ! retVal || (retVal && (paramIndex & 0x01)))
     {
-        MediaTrack *track = DAW::GetTrack(trackNumber);
+        if( focusedFXZones_.GetSize() > 0)
+        {
+            focusedFXZones_.Empty();
+            needGarbageCollect_ = true;
+        }
         
-        char fxName[BUFSZ];
-        TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
+        return;
     }
     
-    if ((retval & 1) && (fxIndex > -1))
+    if (fxIndex > -1)
     {
-        int lastRetval = -1;
-
-        if (focusedFXDictionary_.Exists(trackNumber) && focusedFXDictionary_.Get(trackNumber)->Exists(fxIndex))
-            lastRetval = focusedFXDictionary_.Get(trackNumber)->Get(fxIndex);
-        
-        if (lastRetval != retval)
-        {
-            if (retval == 1)
-                GoFocusedFX();
-            
-            else if (retval & 4)
-            {
-                focusedFXZones_.Empty();
-                needGarbageCollect_ = true;
-            }
-            
-            if ( ! focusedFXDictionary_.Exists(trackNumber))
-                focusedFXDictionary_.Insert(trackNumber, new WDL_IntKeyedArray<int>());
-             
-            if (focusedFXDictionary_.Exists(trackNumber))
-                focusedFXDictionary_.Get(trackNumber)->Insert(fxIndex, retval);
-        }
+        if (focusedFXZones_.GetSize() == 0)
+            GoFocusedFX();
     }
 }
 

@@ -1429,8 +1429,6 @@ private:
     Zone *focusedFXParamZone_;
     bool isFocusedFXParamMappingEnabled_;
     
-    WDL_IntKeyedArray<WDL_IntKeyedArray<int>* > focusedFXDictionary_;
-    static void disposeFocusedFX(WDL_IntKeyedArray<int> *focusedFX) { delete focusedFX; }
     
     WDL_PtrList<Zone> focusedFXZones_;
     bool isFocusedFXMappingEnabled_;
@@ -1715,7 +1713,6 @@ private:
             focusedFXZones_.Get(i)->Deactivate();
         
         focusedFXZones_.Empty();
-        focusedFXDictionary_.DeleteAll();
 
         needGarbageCollect_ = true;
     }
@@ -1797,7 +1794,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList),  focusedFXDictionary_(disposeFocusedFX)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
     {
         //private:
         noMapZone_ = NULL;
