@@ -133,7 +133,7 @@ public:
         else if (*t1)
         {
             const int v = (int)strtol(t1, (char **)&t1e, 10);
-            if (t1e && *t1e)
+            if (t1e && t1e != t1 && !*t1e)
             {
                 context->GetSurface()->SendOSCMessage(tokens[0].c_str(), v);
                 return;
