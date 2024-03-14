@@ -2188,10 +2188,23 @@ MediaTrack *FocusedFXNavigator::GetTrack()
 {
     int trackNumber = 0;
     int itemNumber = 0;
+    int takeNumber = 0;
     int fxIndex = 0;
+    int paramIndex = 0;
     
-    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxIndex) == 1) // Track FX
-        return DAW::GetTrack(trackNumber);
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
+
+    trackNumber++;
+    
+    if (retVal && ! (paramIndex & 0x01)) // Track FX
+    {
+        if (trackNumber > 0)
+            return DAW::GetTrack(trackNumber);
+        else if (trackNumber == 0)
+            return GetMasterTrack(NULL);
+        else
+            return NULL;
+    }
     else
         return NULL;
 }
@@ -3534,15 +3547,22 @@ void ZoneManager::GoFocusedFX()
     
     int trackNumber = 0;
     int itemNumber = 0;
+    int takeNumber = 0;
     int fxSlot = 0;
+    int paramIndex = 0;
+
     MediaTrack *focusedTrack = NULL;
+
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
     
-    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    trackNumber++;
+    
+    if (retVal && ! (paramIndex & 0x01))
     {
         if (trackNumber > 0)
             focusedTrack = DAW::GetTrack(trackNumber);
         else if (trackNumber == 0)
-            focusedTrack = GetMasterTrackNavigator()->GetTrack();
+            focusedTrack = GetMasterTrack(NULL);
     }
     
     if (focusedTrack)
@@ -3607,14 +3627,23 @@ void ZoneManager::AutoMapFocusedFX()
 {
     int trackNumber = 0;
     int itemNumber = 0;
+    int takeNumber = 0;
     int fxSlot = 0;
+    int paramIndex = 0;
+    
     MediaTrack *track = NULL;
     
-    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+
+    trackNumber++;
+
+    if (retVal && ! (paramIndex & 0x01))
     {
         if (trackNumber > 0)
             track = DAW::GetTrack(trackNumber);
-        
+        else if (trackNumber == 0)
+            track = GetMasterTrack(NULL);
+
         if (track)
         {
             char fxName[BUFSZ];
@@ -3633,14 +3662,23 @@ void ZoneManager::GoLearnFXParams()
     
     int trackNumber = 0;
     int itemNumber = 0;
+    int takeNumber = 0;
     int fxSlot = 0;
+    int paramIndex = 0;
+    
     MediaTrack *track = NULL;
     
-    if (GetFocusedFX2(&trackNumber, &itemNumber, &fxSlot) == 1)
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+
+    trackNumber++;
+
+    if (retVal && ! (paramIndex & 0x01))
     {
         if (trackNumber > 0)
             track = DAW::GetTrack(trackNumber);
-        
+        else if (trackNumber == 0)
+            track = GetMasterTrack(NULL);
+
         if (! track)
             return;
     }
