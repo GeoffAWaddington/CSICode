@@ -407,7 +407,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayRowPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("NullDisplay","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_fixedTextDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
@@ -416,7 +415,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < NUM_ELEM(s_paramValueDisplayRowPickers); i++)
             {
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayRowPickers[i]));
-                SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("NullDisplay","csi_fxparm"));
 
                 for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayRowPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());

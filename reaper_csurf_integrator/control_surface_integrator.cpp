@@ -738,7 +738,6 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 string_list tokens;
                 GetTokens(tokens, line.c_str());
 
-
                 if (tokens.size() == 3)
                 {
                     
@@ -877,8 +876,10 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         t.control = paramWidget;
         t.controlParams = widgetParams;
         t.nameDisplay = nameWidget;
+        t.nameDisplayAction = "FixedTextDisplay";
         t.nameDisplayParams = nameParams;
         t.valueDisplay = valueWidget;
+        t.valueDisplayAction = "FXParamValueDisplay";
         t.valueDisplayParams = valueParams;
 
         cell.paramTemplates.push_back(t);
@@ -890,6 +891,14 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 FXParamTemplate t2;
                 
                 t2.control = paramWidgets_[j];
+
+                if (displayRows_.size() > 1)
+                {
+                    t2.nameDisplay = displayRows_[0];
+                    t2.nameDisplayAction = "NullDisplay";
+                    t2.valueDisplay = displayRows_[1];
+                    t2.valueDisplayAction = "NullDisplay";
+                }
                 
                 cell.paramTemplates.push_back(t2);
             }
@@ -1082,6 +1091,10 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                                 for (int j = 0; j < actionTemplates->GetSize(); ++j)
                                 {
                                     string actionName = actionTemplates->Get(j)->actionName;
+                                    
+                                    if (actionName == "NullDisplay")
+                                        continue;                                    
+                                    
                                     ReplaceAllWith(actionName, "|", numStr.c_str());
 
                                     string_list memberParams;
