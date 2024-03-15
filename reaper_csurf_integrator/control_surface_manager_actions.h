@@ -117,10 +117,17 @@ public:
         string_list tokens;
         GetTokens(tokens, context->GetStringParam());
 
+        if (tokens.size() == 1)
+        {
+            context->GetSurface()->SendOSCMessage(tokens[0].c_str());
+            return;
+        }
+        
         if (tokens.size() != 2)
             return;
         
         const char *t1 = tokens.get(1), *t1e = NULL;
+        
         if (strstr(t1,"."))
         {
             const double dv = strtod(t1, (char **)&t1e);
