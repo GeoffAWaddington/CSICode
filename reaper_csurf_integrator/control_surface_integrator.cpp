@@ -1869,7 +1869,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("AutoMapFocusedFX", new AutoMapFocusedFX());
     actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
     actions_.Insert("LearnFocusedFXParams", new LearnFocusedFXParams());
-    actions_.Insert("GoFXLayoutZone", new GoFXLayoutZone());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
     actions_.Insert("ClearSelectedTrackFX", new ClearSelectedTrackFX());
@@ -1933,7 +1932,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("FocusedFXParam", new FocusedFXParam());
     actions_.Insert("FXParam", new FXParam());
     actions_.Insert("SaveLearnedFXParams", new SaveLearnedFXParams());
-    actions_.Insert("SaveTemplatedFXParams", new SaveTemplatedFXParams());
     actions_.Insert("EraseLastTouchedControl", new EraseLastTouchedControl());
     actions_.Insert("JSFXParam", new JSFXParam());
     actions_.Insert("TCPFXParam", new TCPFXParam());
@@ -2541,8 +2539,6 @@ void ActionContext::DoRangeBoundAction(double value)
     
     if (isValueInverted_)
         value = 1.0 - value;
-    
-    widget_->GetZoneManager()->WidgetMoved(this);
     
     action_->Do(this, value);
 }
@@ -3802,91 +3798,6 @@ void ZoneManager::InitializeNoMapZone()
     }
 }
 
-void ZoneManager::GoFXLayoutZone(const char *zoneName, int slotIndex)
-{
-    /*
-    if (noMapZone_ != NULL)
-        noMapZone_->Deactivate();
-
-    if (homeZone_ != NULL)
-    {
-        ClearFXMapping();
-
-        fxLayoutFileLines_.clear();
-        fxLayoutFileLinesOriginal_.clear();
-
-        controlDisplayAssociations_.DeleteAll();
-
-        homeZone_->GoAssociatedZone(zoneName, slotIndex);
-        
-        fxLayout_ = homeZone_->GetFXLayoutZone(zoneName);
-        
-        if (zoneFilePaths_.Exists(zoneName) && fxLayout_ != NULL)
-        {
-            fpistream file(zoneFilePaths_.Get(zoneName)->filePath.c_str());
-            
-            for (string line; getline(file, line) ; )
-            {
-                if (line.find("|") != string::npos && fxLayoutFileLines_.size() > 0)
-                {
-                    string_list tokens;
-                    GetTokens(tokens, line.c_str());
-
-                    if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay") // This line is a display definition
-                    {
-                        const char *lastline = fxLayoutFileLines_[fxLayoutFileLines_.size()-1];
-                        if (strstr(lastline, "|"))
-                        {
-                            string_list previousLineTokens;
-                            GetTokens(previousLineTokens, lastline);
-
-                            if (previousLineTokens.size() > 1 && previousLineTokens[1] == "FXParam") // The previous line was a control Widget definition
-                            {
-                                string_list modifierTokens;
-                                GetSubTokens(modifierTokens, previousLineTokens[0], '+');
-                                
-                                //int modifier = surface_->GetModifierManager()->GetModifierValue(modifierTokens);
-                                int modifier = 0;
-
-                                Widget *controlWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
-                                
-                                modifierTokens.clear();
-                                
-                                GetSubTokens(modifierTokens, tokens[0], '+');
-
-                                Widget *displayWidget = surface_->GetWidgetByName(modifierTokens[modifierTokens.size() - 1].c_str());
-
-                                if (controlWidget && displayWidget)
-                                {
-                                    if ( ! controlDisplayAssociations_.Exists(modifier))
-                                        controlDisplayAssociations_.Insert(modifier, new WDL_PointerKeyedArray<Widget*, Widget*>());
-                                    
-                                    if (controlDisplayAssociations_.Exists(modifier))
-                                        controlDisplayAssociations_.Get(modifier)->Insert(controlWidget, displayWidget);
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                fxLayoutFileLines_.push_back(line);
-                fxLayoutFileLinesOriginal_.push_back(line);
-            }
-        }
-    }
-    */
-}
-
-void ZoneManager::WidgetMoved(ActionContext *context)
-{
-
-}
-
-void ZoneManager::SaveTemplatedFXParams()
-{
-
-}
-
 void ZoneManager::SaveLearnedFXParams()
 {
     if (learnFXTrack_ == NULL)
@@ -3925,46 +3836,99 @@ void ZoneManager::SaveLearnedFXParams()
         
         fprintf(fxZone, "\n%s\n\n", s_BeginAutoSection);
         
-        for (int lwi = 0; lwi < learnedWidgets_.GetSize(); ++lwi)
+        for (int i = 0; i < surfaceCells_.size(); ++i)
         {
-            int modifier = 0;
-            WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *widgetParams = learnedWidgets_.Enumerate(lwi, &modifier);
+            SurfaceCell &cell = surfaceCells_[i];
 
-            if ( ! widgetParams)
-                continue;
-            
-            for (int i = 0; i < widgetParams->GetSize(); ++i)
+            if (learnedWidgets_.Exists(cell.modifier))
             {
-                LearnedWidgetParams *lwp = widgetParams->EnumeratePtr(i);
-                                
-                int steppedValueCount =  csi_->GetSteppedValueCount(fxName, lwp->paramNum);
+                ptrvector<string> learnedWidgets;
                 
-                string steps;
-                
-                if (steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
-                    GetParamStepsString(steps, steppedValueCount);
-                
-                char buf[BUFSZ];
-                string modifierStr = surface_->GetModifierManager()->GetModifierString(modifier, buf, sizeof(buf));
-                
-                char tmp[BUFSZ];
-                TrackFX_GetParamName(learnFXTrack_, learnFXSlot_, lwp->paramNum, tmp, sizeof(tmp));
+                for (int j = 0; j < cell.paramTemplates.size(); ++j)
+                {
+                    Widget *learnedWidget = surface_->GetWidgetByName((cell.paramTemplates[j].control + cell.address).c_str());
 
-                FXParamTemplate t;
+                    if (learnedWidget && learnedWidgets_.Get(cell.modifier)->Exists(learnedWidget))
+                        learnedWidgets.push_back(cell.paramTemplates[j].control);
+                }
                 
-                t.control = modifierStr + lwp->control->GetName();
-                t.nameDisplay = modifierStr + lwp->nameDisplay->GetName();
-                t.valueDisplay = modifierStr + lwp->valueDisplay->GetName();
-                
-                t.controlAction = "FXParam";
-                t.nameDisplayAction = "FixedTextDisplay";
-                t.valueDisplayAction = "FXParamValueDisplay";
-                
-                t.paramNum = int_to_string(lwp->paramNum);
-                t.paramName = tmp;
-                
-                t.WriteToFile(fxZone, steps);
+                if (learnedWidgets.size() == 0)
+                    cell.WriteDefaultTemplateToFile(fxZone);
+                else
+                {
+                    fprintf(fxZone, "\t#Cell %s %s \n", cell.address.c_str(), cell.modifiers.c_str());
+
+                    int learnIdx = 0;
+                    
+                    for (int j = 0; j < paramWidgets_.size(); ++j)
+                    {
+                        FXParamTemplate fpt;
+                        
+                        string steps;
+
+                        if (learnIdx < learnedWidgets.size())
+                        {
+                            if (paramWidgets_[j] == learnedWidgets[learnIdx])
+                            {
+                                // Write params and steps
+                                Widget *learnedWidget = surface_->GetWidgetByName((cell.paramTemplates[j].control + cell.address).c_str());
+
+                                if (learnedWidget)
+                                {
+                                    fpt.control = cell.paramTemplates.Get(j)->control;
+                                    fpt.nameDisplay = cell.paramTemplates.Get(j)->nameDisplay;
+                                    fpt.valueDisplay = cell.paramTemplates.Get(j)->valueDisplay;
+
+                                    fpt.controlAction = "FXParam";
+                                    fpt.nameDisplayAction = "FixedTextDisplay";
+                                    fpt.valueDisplayAction = "FXParamValueDisplay";
+                                    
+                                    int paramNum = learnedWidgets_.Get(cell.modifier)->GetPtr(learnedWidget)->paramNum;
+                                    
+                                    fpt.paramNum = int_to_string(paramNum);
+
+                                    char tmp[BUFSZ];
+                                    TrackFX_GetParamName(learnFXTrack_, learnFXSlot_, paramNum, tmp, sizeof(tmp));
+
+                                    fpt.paramName = tmp;
+                                    
+                                    int steppedValueCount =  csi_->GetSteppedValueCount(fxName, paramNum);
+                                    
+                                    if (steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
+                                        GetParamStepsString(steps, steppedValueCount);
+
+                                    fpt.WriteToFile(fxZone, cell.modifiers.c_str(), cell.address.c_str(), steps.c_str());
+                                }
+                            }
+                            else
+                            {
+                                fpt.control = cell.paramTemplates.Get(j)->control;
+                                fpt.nameDisplay = cell.paramTemplates.Get(j)->nameDisplay;
+                                fpt.valueDisplay = cell.paramTemplates.Get(j)->valueDisplay;
+
+                                fpt.nameDisplayAction = "NullDisplay";
+                                fpt.valueDisplayAction = "NullDisplay";
+                                fpt.WriteToFile(fxZone, cell.modifiers.c_str(), cell.address.c_str(), steps.c_str());
+                            }
+                        }
+                        else
+                        {
+                            fpt.control = cell.paramTemplates.Get(j)->control;
+                            fpt.nameDisplay = cell.paramTemplates.Get(j)->nameDisplay;
+                            fpt.valueDisplay = cell.paramTemplates.Get(j)->valueDisplay;
+
+                            fpt.nameDisplayAction = "NullDisplay";
+                            fpt.valueDisplayAction = "NullDisplay";
+                            fpt.WriteToFile(fxZone, cell.modifiers.c_str(), cell.address.c_str(), steps.c_str());
+                        }
+                        
+                        if (j == paramWidgets_.size() - 1)
+                            fprintf(fxZone, "\n");
+                    }
+                }
             }
+            else
+                cell.WriteDefaultTemplateToFile(fxZone);
         }
         
         fprintf(fxZone, "%s\n", s_EndAutoSection);

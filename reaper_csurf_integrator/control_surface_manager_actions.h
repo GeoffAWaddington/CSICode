@@ -753,30 +753,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoFXLayoutZone : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "GoFXLayoutZone"; }
-    
-    virtual void RequestUpdate(ActionContext *context) override
-    {
-        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive(context->GetStringParam()))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0)
-            return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->GoFXLayoutZone(context->GetStringParam(), context->GetZone()->GetSlotIndex());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ClearFocusedFXParam : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
