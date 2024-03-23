@@ -646,17 +646,17 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class RemapAutoZone  : public Action
+class RemapZone  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "RemapAutoZone"; }
+    virtual const char *GetName() override { return "RemapZone"; }
     
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->RemapAutoZone();
+        context->GetSurface()->GetZoneManager()->RemapZone();
     }
 };
 

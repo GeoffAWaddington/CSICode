@@ -195,7 +195,7 @@ extern void GetTokens(string_list &tokens, const char *line);
 
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
-extern bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullPath);
+extern bool RemapZoneDialog(ZoneManager *zoneManager, string fullPath);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
@@ -1325,7 +1325,7 @@ struct SurfaceCell
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct AutoZoneDefinition
+struct FXZoneDefinition
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string fxName;
@@ -1442,7 +1442,7 @@ private:
     int selectedTrackFXMenuOffset_;
     int masterTrackFXMenuOffset_;
     
-    AutoZoneDefinition zoneDef_;
+    FXZoneDefinition zoneDef_;
     string_list paramList_;
 
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
@@ -1859,13 +1859,13 @@ public:
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
-    void UnpackZone(AutoZoneDefinition &zoneDef);
+    void UnpackZone(FXZoneDefinition &zoneDef);
         
     WDL_PtrList<Zone> allZonesNeedFree_;
     void GarbageCollectZones();
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
 
-    void RemapAutoZone();
+    void RemapZone();
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
@@ -2296,7 +2296,7 @@ public:
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
             
-    void SaveAutoZone(const AutoZoneDefinition &zoneDef)
+    void SaveRemappedZone(const FXZoneDefinition &zoneDef)
     {
         FILE *fxFile = fopenUTF8(zoneDef.fullPath.c_str(),"wb");
         

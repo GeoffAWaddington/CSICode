@@ -19,7 +19,7 @@ extern int g_maxNumParamSteps;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
 static int s_numGroups = 0;
-static AutoZoneDefinition s_zoneDef;
+static FXZoneDefinition s_zoneDef;
 
 static int s_dlgResult = IDCANCEL;
 
@@ -1316,7 +1316,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
+bool RemapZoneDialog(ZoneManager *zoneManager, string fullFilePath)
 {
     s_zoneDef.Clear();
     s_zoneManager = zoneManager;
@@ -1329,7 +1329,7 @@ bool RemapAutoZoneDialog(ZoneManager *zoneManager, string fullFilePath)
     
     if (s_dlgResult == IDSAVE)
     {
-        s_zoneManager->SaveAutoZone(s_zoneDef);
+        s_zoneManager->SaveRemappedZone(s_zoneDef);
         return true;
     }
     else

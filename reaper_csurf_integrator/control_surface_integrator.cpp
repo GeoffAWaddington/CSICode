@@ -1133,6 +1133,9 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                                         context->SetRange(range);
                                     }
                                    
+                                    if (learnFXTrack_ && ! (actionName == "NoAction" || actionName == "NullDisplay"))
+                                        AddLearnedWidget(widget, actionTemplates->Get(j)->modifier, context->GetParamIndex());
+                                    
                                     zone->AddActionContext(widget, modifier, context);
                                 }
                             }
@@ -1864,7 +1867,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("SetLatchTime", new SetLatchTime());
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
-    actions_.Insert("RemapAutoZone", new RemapAutoZone());
+    actions_.Insert("RemapZone", new RemapZone());
     actions_.Insert("AutoMapSlotFX", new AutoMapSlotFX());
     actions_.Insert("AutoMapFocusedFX", new AutoMapFocusedFX());
     actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
@@ -3703,9 +3706,22 @@ void ZoneManager::GoLearnFXParams()
     if (homeZone_ != NULL)
     {
         ClearFXMapping();
-        ResetOffsets();
+        ResetOffsets(); // GAW TBD -- do we really need this ?
                 
         homeZone_->GoAssociatedZone("LearnFXParams");
+    }
+    
+    char fxName[BUFSZ];
+    TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+    
+    if (zoneFilePaths_.Exists(fxName))
+    {
+        WDL_PtrList<Navigator> navs;
+        navs.Add(GetFocusedFXNavigator());
+        
+        WDL_PtrList<Zone> zones;
+        
+        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navs, zones, NULL);
     }
 }
 
@@ -4179,11 +4195,19 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
     }
 }
 
-void ZoneManager::RemapAutoZone()
+void ZoneManager::RemapZone()
 {
-    if (fxSlotZones_.GetSize() == 1)
+    if (focusedFXZones_.GetSize() == 1)
     {
-        if (::RemapAutoZoneDialog(this, fxSlotZones_.Get(0)->GetSourceFilePath()))
+        if (::RemapZoneDialog(this, focusedFXZones_.Get(0)->GetSourceFilePath()))
+        {
+            PreProcessZoneFile(focusedFXZones_.Get(0)->GetSourceFilePath(), this);
+            GoFocusedFX();
+        }
+    }
+    else if (fxSlotZones_.GetSize() == 1)
+    {
+        if (::RemapZoneDialog(this, fxSlotZones_.Get(0)->GetSourceFilePath()))
         {
             WDL_PtrList<Navigator> navigators;
             navigators.Add(fxSlotZones_.Get(0)->GetNavigator());
@@ -4428,7 +4452,7 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     }
 }
 
-void ZoneManager::UnpackZone(AutoZoneDefinition &zd)
+void ZoneManager::UnpackZone(FXZoneDefinition &zd)
 {
     zd.cells.clear();
     zd.prologue.clear();
