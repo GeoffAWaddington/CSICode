@@ -1316,7 +1316,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapZoneDialog(ZoneManager *zoneManager, string fullFilePath)
+bool RemapZoneDialog(ZoneManager *zoneManager, const char *fullFilePath)
 {
     s_zoneDef.Clear();
     s_zoneManager = zoneManager;

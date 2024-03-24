@@ -661,32 +661,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class AutoMapSlotFX : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "AutoMapFX"; }
-    
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0)
-            return; // ignore button releases
-        
-        if (MediaTrack *track = context->GetTrack())
-        {
-            int slotIndex = context->GetZone()->GetSlotIndex();
-            
-            char fxName[BUFSZ];
-            TrackFX_GetFXName(track, slotIndex, fxName, sizeof(fxName));
-
-            context->GetSurface()->GetZoneManager()->AutoMapFX(fxName, track, slotIndex);
-        }
-        
-        context->GetZone()->Deactivate();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AutoMapFocusedFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -733,22 +707,6 @@ public:
             context->GetPage()->GoAssociatedZone(name);
         else
             context->GetSurface()->GetZoneManager()->GoAssociatedZone(name);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class LearnFocusedFXParams : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "LearnFocusedFXParams"; }
-    
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0)
-            return; // ignore button releases
-       
-        context->GetSurface()->GetZoneManager()->LearnFocusedFXParams();
     }
 };
 

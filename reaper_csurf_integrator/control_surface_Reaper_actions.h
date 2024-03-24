@@ -60,7 +60,7 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFXParams"))
+        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFocusedFXParams"))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -70,7 +70,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        if (!strcmp(context->GetZone()->GetName(), "LearnFXParams"))
+        if (!strcmp(context->GetZone()->GetName(), "LearnFocusedFXParams"))
             context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
     }
 };
@@ -2157,10 +2157,20 @@ public:
             char name[BUFSZ];
             name[0] = 0;
             
-            if (context->GetSlotIndex() < TrackFX_GetCount(track))
-                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), name, sizeof(name));
+            char alias[BUFSZ];
+            name[0] = 0;
             
-            context->UpdateWidgetValue(name);
+            if (context->GetSlotIndex() < TrackFX_GetCount(track))
+            {
+                TrackFX_GetFXName(track, context->GetSlotIndex(), name, sizeof(name));
+                
+                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), alias, sizeof(alias));
+                
+                if (context->GetSurface()->GetZoneManager()->DoesZoneExist(name))
+                    context->UpdateWidgetValue(alias);
+                else
+                    context->UpdateWidgetValue("NoMap");
+            }
         }
         else
             context->ClearWidget();
@@ -2180,14 +2190,23 @@ public:
 
         if (MediaTrack *track = context->GetTrack())
         {
-            char name[1024];
-            name[0]=0;
+            char name[BUFSZ];
+            name[0] = 0;
+            
+            char alias[BUFSZ];
+            name[0] = 0;
             
             if (context->GetSlotIndex() < TrackFX_GetCount(track))
-                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), name, sizeof(name));
-
-            if (name[0])
-                context->GetCSI()->Speak(name);
+            {
+                TrackFX_GetFXName(track, context->GetSlotIndex(), name, sizeof(name));
+                
+                context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), alias, sizeof(alias));
+                
+                if (context->GetSurface()->GetZoneManager()->DoesZoneExist(name))
+                    context->GetCSI()->Speak(alias);
+                else
+                    context->GetCSI()->Speak("NoMap");
+            }
         }
     }
 };

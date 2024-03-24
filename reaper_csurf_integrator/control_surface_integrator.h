@@ -195,7 +195,7 @@ extern void GetTokens(string_list &tokens, const char *line);
 
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
-extern bool RemapZoneDialog(ZoneManager *zoneManager, string fullPath);
+extern bool RemapZoneDialog(ZoneManager *zoneManager, const char *fullPath);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
@@ -806,7 +806,7 @@ public:
     void GoAssociatedZone(const char *associatedZoneName);
     void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
-    void DeactivateLearnFXParamsZone();
+    void DeactivateLearnFocusedFXParamsZone();
     int GetSlotIndex();
     int GetParamIndex(const char *widgetName);
     void SetXTouchDisplayColors(const char *color);
@@ -1388,13 +1388,11 @@ private:
     }
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
-    Zone *noMapZone_;
     Zone *homeZone_;
     ptrvector<SurfaceCell> surfaceCells_;
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
-    bool isLearnFXSlotMode_;
     Widget *lastTouchedControl_;
     static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
@@ -1472,11 +1470,11 @@ private:
         selectedTrackReceiveOffset_ = 0;
         selectedTrackFXMenuOffset_ = 0;
     }
-      
-    void GoLearnFXParams();
+   
+    void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
+    void GoLearnFocusedFXParams();
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
-    void InitializeNoMapZone();
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
     int GetModifierValue(const string_list &modifiers);
         
@@ -1795,11 +1793,9 @@ public:
     ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
     {
         //private:
-        noMapZone_ = NULL;
         homeZone_ = NULL;
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
-        isLearnFXSlotMode_ = true;
         lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
         
@@ -1858,9 +1854,10 @@ public:
     int  GetNumChannels();
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
-    void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
     void UnpackZone(FXZoneDefinition &zoneDef);
         
+    bool DoesZoneExist(char *name) { return zoneFilePaths_.Exists(name); }
+    
     WDL_PtrList<Zone> allZonesNeedFree_;
     void GarbageCollectZones();
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
@@ -1946,7 +1943,6 @@ public:
         learnedWidgets_.DeleteAll();
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
-        isLearnFXSlotMode_ = true;
         lastTouchedControl_ = NULL;
     }
         
@@ -1968,17 +1964,8 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
 
-    void LearnFocusedFXParams()
-    {
-        isLearnFXSlotMode_ = false;
-        GoAssociatedZone("LearnFXParams");
-    }
-    
     void GoAssociatedZone(const char *zoneName)
     {
-        if (noMapZone_ != NULL)
-            noMapZone_->Deactivate();
-        
         if (!strcmp(zoneName, "SelectedTrackSend"))
             DeclareGoSelectedTrackSend(zoneName);
         else if (!strcmp(zoneName, "SelectedTrackReceive"))
@@ -1987,8 +1974,8 @@ public:
             DeclareGoSelectedTrackFX();
         else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
             DeclareGoSelectedTrackFXMenu(zoneName);
-        else if (!strcmp(zoneName, "LearnFXParams"))
-            GoLearnFXParams();
+        else if (!strcmp(zoneName, "LearnFocusedFXParams"))
+            GoLearnFocusedFXParams();
         else if (!strncmp(zoneName, "Custom", 6))
             DeclareGoCustom(zoneName);
         else if (homeZone_ != NULL)
@@ -2035,9 +2022,6 @@ public:
         ClearLearnedFXParams();
 
         ClearFXMapping();
-
-        if (noMapZone_ != NULL && noMapZone_->GetIsActive())
-            noMapZone_->Deactivate();
         
         if (homeZone_ != NULL)
         {
@@ -2141,7 +2125,7 @@ public:
         if (name && *name)
             zoneFilePaths_.Insert(name, info);
     }
-        
+    
     void AddZoneFilePath(const char *fxZoneFolder, const char *name, CSIZoneInfo *info)
     {
         if (!strcmp(fxZoneFolder, fxZoneFolder_.c_str()))
@@ -2155,14 +2139,8 @@ public:
         if (learnFXTrack_ != NULL)
             UpdateLearnedParams();
         
-        if (noMapZone_ != NULL)
-            noMapZone_->RequestUpdate();
-        
-        if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFXParams"))
-        {
+        if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFocusedFXParams"))
             homeZone_->RequestUpdate();
-            //homeZone_->GetLearnFXParamsZone()->RequestLearnFXUpdate();
-        }
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate();
@@ -2193,9 +2171,6 @@ public:
         {
             DoLearn(widget, isUsed, value);
         }
-        
-        if (noMapZone_ != NULL && noMapZone_->GetIsActive())
-            noMapZone_->DoAction(widget, isUsed, value);
         
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->DoAction(widget, isUsed, value);

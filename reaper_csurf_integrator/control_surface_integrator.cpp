@@ -974,9 +974,7 @@ void ZoneManager::GarbageCollectZones()
         }
     }
 
-    Zone::GCTagZone(noMapZone_);
     Zone::GCTagZone(homeZone_);
-    //Zone::GCTagZone(fxLayout_);
     Zone::GCTagZone(focusedFXParamZone_);
 
     for (int x = 0; x < focusedFXZones_.GetSize(); x ++)
@@ -1868,10 +1866,10 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
     actions_.Insert("RemapZone", new RemapZone());
-    actions_.Insert("AutoMapSlotFX", new AutoMapSlotFX());
+    //actions_.Insert("AutoMapSlotFX", new AutoMapSlotFX());
     actions_.Insert("AutoMapFocusedFX", new AutoMapFocusedFX());
     actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
-    actions_.Insert("LearnFocusedFXParams", new LearnFocusedFXParams());
+    //actions_.Insert("LearnFocusedFXParams", new LearnFocusedFXParams());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
     actions_.Insert("ClearSelectedTrackFX", new ClearSelectedTrackFX());
@@ -2845,9 +2843,9 @@ void Zone::ReactivateFXMenuZone()
             selfxmenu->Get(i)->Activate();
 }
 
-void Zone::DeactivateLearnFXParamsZone()
+void Zone::DeactivateLearnFocusedFXParamsZone()
 {
-    WDL_PtrList<Zone> *learnFXParams = associatedZones_.Get("LearnFXParams");
+    WDL_PtrList<Zone> *learnFXParams = associatedZones_.Get("LearnFocusedFXParams");
     for (int i = 0; i < learnFXParams->GetSize(); ++i)
         learnFXParams->Get(i)->Deactivate();
 }
@@ -3476,8 +3474,6 @@ void ZoneManager::Initialize()
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
     if (zoneFilePaths_.Exists("FXEpilogue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXEpilogue")->filePath, fxEpilogue_);
-    
-    InitializeNoMapZone();
 
     GoHome();
 }
@@ -3667,7 +3663,7 @@ void ZoneManager::AutoMapFocusedFX()
     }
 }
 
-void ZoneManager::GoLearnFXParams()
+void ZoneManager::GoLearnFocusedFXParams()
 {
     if (learnFXTrack_ != NULL)
         return;
@@ -3708,7 +3704,7 @@ void ZoneManager::GoLearnFXParams()
         ClearFXMapping();
         ResetOffsets(); // GAW TBD -- do we really need this ?
                 
-        homeZone_->GoAssociatedZone("LearnFXParams");
+        homeZone_->GoAssociatedZone("LearnFocusedFXParams");
     }
     
     char fxName[BUFSZ];
@@ -3750,13 +3746,9 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
             fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
         }
     }
-    else if (noMapZone_ != NULL)
-    {
+    else
         TrackFX_SetOpen(track, fxSlot, true);
-        
-        noMapZone_->SetSlotIndex(fxSlot);
-        noMapZone_->Activate();
-    }
+    
     needGarbageCollect_ = true;
 }
 
@@ -3796,22 +3788,6 @@ int ZoneManager::GetModifierValue(const string_list &modifierTokens)
     ModifierManager modifierManager(csi_);
 
     return modifierManager.GetModifierValue(modifierTokens);
-}
-
-void ZoneManager::InitializeNoMapZone()
-{
-    if (GetZoneFilePaths().Exists("NoMap"))
-    {
-        WDL_PtrList<Navigator> navigators;
-        navigators.Add(GetSelectedTrackNavigator());
-        
-        WDL_PtrList<Zone> zones;
-        
-        LoadZoneFile(GetZoneFilePaths().Get("NoMap")->filePath.c_str(), navigators, zones, NULL);
-        
-        if (zones.GetSize() > 0)
-            noMapZone_ = zones.Get(0);
-    }
 }
 
 void ZoneManager::SaveLearnedFXParams()
@@ -3967,22 +3943,14 @@ void ZoneManager::SaveLearnedFXParams()
     if (zoneFilePaths_.Exists(fxName))
     {
         WDL_PtrList<Navigator> navigators;
-        
-        if (isLearnFXSlotMode_)
-        {
-            navigators.Add(GetSelectedTrackNavigator());
-            LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
-        }
-        else
-        {
-            navigators.Add(GetFocusedFXNavigator());
-            LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, focusedFXZones_, NULL);
-        }
+
+        navigators.Add(GetFocusedFXNavigator());
+        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, focusedFXZones_, NULL);
     }
     
     if (homeZone_ != NULL)
     {
-        homeZone_->DeactivateLearnFXParamsZone();
+        homeZone_->DeactivateLearnFocusedFXParamsZone();
     }
 
     ClearLearnedFXParams();
@@ -4197,32 +4165,43 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
 
 void ZoneManager::RemapZone()
 {
-    if (focusedFXZones_.GetSize() == 1)
-    {
-        if (::RemapZoneDialog(this, focusedFXZones_.Get(0)->GetSourceFilePath()))
-        {
-            PreProcessZoneFile(focusedFXZones_.Get(0)->GetSourceFilePath(), this);
-            GoFocusedFX();
-        }
-    }
-    else if (fxSlotZones_.GetSize() == 1)
-    {
-        if (::RemapZoneDialog(this, fxSlotZones_.Get(0)->GetSourceFilePath()))
-        {
-            WDL_PtrList<Navigator> navigators;
-            navigators.Add(fxSlotZones_.Get(0)->GetNavigator());
-            
-            string filePath(fxSlotZones_.Get(0)->GetSourceFilePath());
-            int slotNumber = fxSlotZones_.Get(0)->GetSlotIndex();
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int takeNumber = 0;
+    int fxSlot = 0;
+    int paramIndex = 0;
 
-            fxSlotZones_.Empty();
+    MediaTrack *focusedTrack = NULL;
+
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+    
+    trackNumber++;
+    
+    if (retVal && ! (paramIndex & 0x01))
+    {
+        if (trackNumber > 0)
+            focusedTrack = DAW::GetTrack(trackNumber);
+        else if (trackNumber == 0)
+            focusedTrack = GetMasterTrack(NULL);
+    }
+    
+    if (focusedTrack)
+    {
+        char FXName[BUFSZ];
+        TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
+        
+        if (zoneFilePaths_.Exists(FXName))
+        {
+            const char *path = zoneFilePaths_.Get(FXName)->filePath.c_str();
             
-            PreProcessZoneFile(filePath.c_str(), this);
-            LoadZoneFile(filePath.c_str(), navigators, fxSlotZones_, NULL);
-            
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(slotNumber);
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
-            needGarbageCollect_ = true;
+            if (path[0] != 0)
+            {
+                if (::RemapZoneDialog(this, path))
+                {
+                    PreProcessZoneFile(path, this);
+                    GoFocusedFX();
+                }
+            }
         }
     }
 }
@@ -4439,15 +4418,13 @@ void ZoneManager::AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex
     if (zoneFilePaths_.Exists(fxName.c_str()))
     {
         WDL_PtrList<Navigator> navigators;
-        navigators.Add(GetSelectedTrackNavigator());
+        navigators.Add(GetFocusedFXNavigator());
         
-        LoadZoneFile(zoneFilePaths_.Get(fxName.c_str())->filePath.c_str(), navigators, fxSlotZones_, NULL);
+        LoadZoneFile(zoneFilePaths_.Get(fxName.c_str())->filePath.c_str(), navigators, focusedFXZones_, NULL);
         
-        if (fxSlotZones_.GetSize() > 0)
-        {
-            fxSlotZones_.Get(fxSlotZones_.GetSize() -1)->SetSlotIndex(fxIndex);
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
-        }
+        if (focusedFXZones_.GetSize() > 0)
+            focusedFXZones_.Get(focusedFXZones_.GetSize() - 1)->Activate();
+
         needGarbageCollect_ = true;
     }
 }
