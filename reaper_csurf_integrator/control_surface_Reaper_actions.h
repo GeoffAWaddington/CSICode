@@ -60,7 +60,7 @@ public:
    
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFocusedFXParams"))
+        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFocusedFX"))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -70,7 +70,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        if (!strcmp(context->GetZone()->GetName(), "LearnFocusedFXParams"))
+        if (!strcmp(context->GetZone()->GetName(), "LearnFocusedFX"))
             context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
     }
 };

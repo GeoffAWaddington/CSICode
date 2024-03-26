@@ -661,18 +661,18 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class AutoMapFocusedFX : public Action
+class AutoLearnFocusedFX : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "AutoMapFocusedFX"; }
+    virtual const char *GetName() override { return "AutoLearnFocusedFX"; }
     
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0)
             return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->AutoMapFocusedFX();
+        context->GetSurface()->GetZoneManager()->AutoLearnFocusedFX();
     }
 };
 

@@ -806,7 +806,7 @@ public:
     void GoAssociatedZone(const char *associatedZoneName);
     void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
-    void DeactivateLearnFocusedFXParamsZone();
+    void DeactivateLearnFocusedFXZone();
     int GetSlotIndex();
     int GetParamIndex(const char *widgetName);
     void SetXTouchDisplayColors(const char *color);
@@ -1471,8 +1471,8 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
    
-    void AutoMapFX(const string &fxName, MediaTrack *track, int fxIndex);
-    void GoLearnFocusedFXParams();
+    void AutoLearnFX(const string &fxName, MediaTrack *track, int fxIndex);
+    void GoLearnFocusedFX();
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
@@ -1868,7 +1868,7 @@ public:
 
     void DoTouch(Widget *widget, double value);
     
-    void AutoMapFocusedFX();
+    void AutoLearnFocusedFX();
     void SaveLearnedFXParams();
     void EraseLastTouchedControl();
     
@@ -1974,8 +1974,8 @@ public:
             DeclareGoSelectedTrackFX();
         else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
             DeclareGoSelectedTrackFXMenu(zoneName);
-        else if (!strcmp(zoneName, "LearnFocusedFXParams"))
-            GoLearnFocusedFXParams();
+        else if (!strcmp(zoneName, "LearnFocusedFX"))
+            GoLearnFocusedFX();
         else if (!strncmp(zoneName, "Custom", 6))
             DeclareGoCustom(zoneName);
         else if (homeZone_ != NULL)
@@ -2139,7 +2139,7 @@ public:
         if (learnFXTrack_ != NULL)
             UpdateLearnedParams();
         
-        if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFocusedFXParams"))
+        if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFocusedFX"))
             homeZone_->RequestUpdate();
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
