@@ -4351,7 +4351,10 @@ void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxInd
         // Add learned Widget
         if (surfaceCells_[i].paramTemplates.size())
         {
-            Widget *control = surface_->GetWidgetByName((surfaceCells_[i].paramTemplates[0].control + surfaceCells_[i].address).c_str());
+            char buf[BUFSZ];
+            sprintf(buf, "%s%s", surfaceCells_[i].paramTemplates[0].control.c_str(), surfaceCells_[i].address.c_str());
+            
+            Widget *control = surface_->GetWidgetByName(buf);
 
             if (control)
                 AddLearnedWidget(control, surfaceCells_[i].modifier, i);
