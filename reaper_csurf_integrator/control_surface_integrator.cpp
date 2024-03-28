@@ -4194,7 +4194,7 @@ void ZoneManager::RemapZone()
             
             if (path[0] != 0)
             {
-                if (::RemapZoneDialog(this, path))
+                if (::RemapFXDialog(this, path))
                 {
                     PreProcessZoneFile(path, this);
                     GoFocusedFX();
@@ -4362,7 +4362,7 @@ void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxInd
     }
 }
 
-void ZoneManager::UnpackZone(FXZoneDefinition &zd)
+void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 {
     zd.cells.clear();
     zd.prologue.clear();

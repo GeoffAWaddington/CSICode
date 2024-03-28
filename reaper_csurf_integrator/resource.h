@@ -11,7 +11,7 @@
 #define ID_BUTTON_AddListener           6
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
-#define IDD_DIALOG_RemapAutoFX          117
+#define IDD_DIALOG_RemapFX              117
 #define IDD_DIALOG_Advanced             119
 #define IDD_DIALOG_Broadcast            123
 #define IDD_SURFACEEDIT_CSI             265

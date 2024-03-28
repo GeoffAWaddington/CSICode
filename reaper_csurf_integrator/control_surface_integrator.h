@@ -195,7 +195,7 @@ extern void GetTokens(string_list &tokens, const char *line);
 
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
-extern bool RemapZoneDialog(ZoneManager *zoneManager, const char *fullPath);
+extern bool RemapFXDialog(ZoneManager *zoneManager, const char *fullPath);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
@@ -1854,7 +1854,7 @@ public:
     int  GetNumChannels();
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
-    void UnpackZone(FXZoneDefinition &zoneDef);
+    void UnpackFXZone(FXZoneDefinition &zoneDef);
         
     bool DoesZoneExist(char *name) { return zoneFilePaths_.Exists(name); }
     

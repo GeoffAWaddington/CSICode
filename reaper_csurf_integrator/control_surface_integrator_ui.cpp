@@ -15,7 +15,7 @@ extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Remap Auto FX
+// Remap FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
 static int s_numGroups = 0;
@@ -999,7 +999,7 @@ static bool s_isDragging = false;
 static HIMAGELIST   s_hDragImageList;
 static int          s_oldPosition;
 
-static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -1175,7 +1175,7 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 static POINT lastCursorPosition;
 
-static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -1316,16 +1316,16 @@ static WDL_DLGRET dlgProcRemapFXAutoZone(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 }
 #endif
 
-bool RemapZoneDialog(ZoneManager *zoneManager, const char *fullFilePath)
+bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
 {
     s_zoneDef.Clear();
     s_zoneManager = zoneManager;
     s_zoneDef.fullPath = fullFilePath;
     s_numGroups = s_zoneManager->paramWidgets_.size();
     
-    s_zoneManager->UnpackZone(s_zoneDef);
+    s_zoneManager->UnpackFXZone(s_zoneDef);
     
-    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapAutoFX), g_hwnd, dlgProcRemapFXAutoZone);
+    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapFX), g_hwnd, dlgProcRemapFX);
     
     if (s_dlgResult == IDSAVE)
     {
@@ -2103,6 +2103,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.GetSize() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             }
                         }
                     }
