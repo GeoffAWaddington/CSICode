@@ -1977,6 +1977,9 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
 {
+    if(listener == NULL)
+        return;
+    
     char tmp[BUFSZ];
     snprintf(tmp,sizeof(tmp), __LOCALIZE_VERFMT("%s Listens to","csi_osc"), listener->name.c_str());
     SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, tmp);
