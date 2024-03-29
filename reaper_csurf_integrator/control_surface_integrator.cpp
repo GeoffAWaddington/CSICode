@@ -3512,6 +3512,8 @@ void ZoneManager::SetListenerCategories(const char *categoryList)
             listensToSends_ = true;
         if (categoryTokens[i] == "Receives")
             listensToReceives_ = true;
+        if (categoryTokens[i] == "LearnFocusedFX")
+            listensToLearnFocusedFX_ = true;
         if (categoryTokens[i] == "FocusedFX")
             listensToFocusedFX_ = true;
         if (categoryTokens[i] == "FocusedFXParam")

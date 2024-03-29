@@ -1413,6 +1413,7 @@ private:
     bool listensToGoHome_;
     bool listensToSends_;
     bool listensToReceives_;
+    bool listensToLearnFocusedFX_;
     bool listensToFocusedFX_;
     bool listensToFocusedFXParam_;
     bool listensToFXMenu_;
@@ -1486,7 +1487,7 @@ private:
         
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToLearnFocusedFX_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
     }
 
     void DeclareGoSelectedTrackSend(const char *zoneName)
@@ -1597,6 +1598,27 @@ private:
         }
     }
         
+    void DeclareGoLearnFocusedFX(const char *zoneName)
+    {
+        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+            GoLearnFocusedFX();
+        else
+            for (int i = 0; i < (int)listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToGoLearnFocusedFX(zoneName);
+    }
+    
+    void ListenToGoLearnFocusedFX(const char *zoneName)
+    {
+        if (listensToLearnFocusedFX_)
+            GoLearnFocusedFX();
+    }
+        
+    void ListenToSaveLearnedFXParams()
+    {
+        if (listensToLearnFocusedFX_)
+            SaveLearnedFXParams();
+    }
+    
     void DeclareGoSelectedTrackFXMenu(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1802,6 +1824,7 @@ public:
         listensToGoHome_ = false;
         listensToSends_ = false;
         listensToReceives_ = false;
+        listensToLearnFocusedFX_ = false;
         listensToFocusedFX_ = false;
         listensToFocusedFXParam_ = false;
         listensToFXMenu_ = false;
@@ -1891,6 +1914,15 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
+    void DeclareSaveLearnedFXParams()
+    {
+        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+            SaveLearnedFXParams();
+        else
+            for (int i = 0; i < (int)listeners_.GetSize(); ++i)
+                listeners_.Get(i)->ListenToSaveLearnedFXParams();
+    }
+
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
@@ -1975,7 +2007,7 @@ public:
         else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
             DeclareGoSelectedTrackFXMenu(zoneName);
         else if (!strcmp(zoneName, "LearnFocusedFX"))
-            GoLearnFocusedFX();
+            DeclareGoLearnFocusedFX(zoneName);
         else if (!strncmp(zoneName, "Custom", 6))
             DeclareGoCustom(zoneName);
         else if (homeZone_ != NULL)

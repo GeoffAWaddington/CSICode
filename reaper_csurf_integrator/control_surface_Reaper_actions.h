@@ -71,7 +71,7 @@ public:
         if (value == 0.0) return; // ignore button releases
         
         if (!strcmp(context->GetZone()->GetName(), "LearnFocusedFX"))
-            context->GetSurface()->GetZoneManager()->SaveLearnedFXParams();
+            context->GetSurface()->GetZoneManager()->DeclareSaveLearnedFXParams();
     }
 };
 

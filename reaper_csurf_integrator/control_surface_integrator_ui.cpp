@@ -1420,6 +1420,7 @@ struct Listener
     bool goHome;
     bool sends;
     bool receives;
+    bool learnFocusedFX;
     bool focusedFX;
     bool focusedFXParam;
     bool fxMenu;
@@ -1433,6 +1434,7 @@ struct Listener
         goHome = false;
         sends = false;
         receives = false;
+        learnFocusedFX = false;
         focusedFX = false;
         focusedFXParam = false;
         fxMenu = false;
@@ -1490,6 +1492,7 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
             destinationListener->goHome = source.Get(i)->listeners.Get(j)->goHome;
             destinationListener->sends = source.Get(i)->listeners.Get(j)->sends;
             destinationListener->receives = source.Get(i)->listeners.Get(j)->receives;
+            destinationListener->learnFocusedFX = source.Get(i)->listeners.Get(j)->learnFocusedFX;
             destinationListener->focusedFX = source.Get(i)->listeners.Get(j)->focusedFX;
             destinationListener->focusedFXParam = source.Get(i)->listeners.Get(j)->focusedFXParam;
             destinationListener->fxMenu = source.Get(i)->listeners.Get(j)->fxMenu;
@@ -1987,6 +1990,7 @@ static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LearnFocusedFX), BM_SETCHECK, listener->learnFocusedFX ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, listener->focusedFX ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, listener->focusedFXParam ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, listener->fxMenu ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -2003,6 +2007,7 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, BST_UNCHECKED, 0);
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LearnFocusedFX), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, BST_UNCHECKED, 0);
@@ -2188,6 +2193,22 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = true;
                             else
                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = false;
+                        }
+                    }
+                    break;
+                    
+                case IDC_CHECK_LearnFocusedFX:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
+                        int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
+
+                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
+                        {
+                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LearnFocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->learnFocusedFX = true;
+                            else
+                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->learnFocusedFX = false;
                         }
                     }
                     break;
@@ -2823,6 +2844,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 listener->sends = true;
                             if (categoryTokens[i] == "Receives")
                                 listener->receives = true;
+                            if (categoryTokens[i] == "LearnFocusedFX")
+                                listener->learnFocusedFX = true;
                             if (categoryTokens[i] == "FocusedFX")
                                 listener->focusedFX = true;
                             if (categoryTokens[i] == "FocusedFXParam")
@@ -2978,6 +3001,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 fprintf(iniFile, "Sends ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->receives)
                                 fprintf(iniFile, "Receives ");
+                            if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->learnFocusedFX)
+                                fprintf(iniFile, "LearnFocusedFX ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFX)
                                 fprintf(iniFile, "FocusedFX ");
                             if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->focusedFXParam)

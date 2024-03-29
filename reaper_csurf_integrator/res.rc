@@ -345,6 +345,7 @@ BEGIN
     CONTROL         "Write params to /CSI/Zones/ZoneRawFXFiles when FX inserted",IDC_CHECK_WriteFXParams,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,154,247,10
     GROUPBOX        "Monitoring",IDC_STATIC,7,139,458,32
+    CONTROL         "LearnFX",IDC_CHECK_LearnFocusedFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,112,49,10
 END
 
 
