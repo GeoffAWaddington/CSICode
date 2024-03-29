@@ -2154,22 +2154,13 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            char name[BUFSZ];
-            name[0] = 0;
-            
             char alias[BUFSZ];
-            name[0] = 0;
+            alias[0] = 0;
             
             if (context->GetSlotIndex() < TrackFX_GetCount(track))
             {
-                TrackFX_GetFXName(track, context->GetSlotIndex(), name, sizeof(name));
-                
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), alias, sizeof(alias));
-                
-                if (context->GetSurface()->GetZoneManager()->DoesZoneExist(name))
-                    context->UpdateWidgetValue(alias);
-                else
-                    context->UpdateWidgetValue("NoMap");
+                context->UpdateWidgetValue(alias);
             }
         }
         else
@@ -2190,22 +2181,13 @@ public:
 
         if (MediaTrack *track = context->GetTrack())
         {
-            char name[BUFSZ];
-            name[0] = 0;
-            
             char alias[BUFSZ];
-            name[0] = 0;
+            alias[0] = 0;
             
             if (context->GetSlotIndex() < TrackFX_GetCount(track))
             {
-                TrackFX_GetFXName(track, context->GetSlotIndex(), name, sizeof(name));
-                
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), alias, sizeof(alias));
-                
-                if (context->GetSurface()->GetZoneManager()->DoesZoneExist(name))
-                    context->GetCSI()->Speak(alias);
-                else
-                    context->GetCSI()->Speak("NoMap");
+                context->GetCSI()->Speak(alias);
             }
         }
     }
