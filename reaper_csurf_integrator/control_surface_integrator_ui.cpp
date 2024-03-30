@@ -710,10 +710,13 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             
                             snprintf_append(propBuf, sizeof(propBuf), "] ");
                             
-                            GetDlgItemText(hwndDlg, s_ringStylePickers[i], buf, sizeof(buf));
-                            t.controlProperties.set_prop(PropertyType_RingStyle, buf);
-                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
-
+                            if (t.control == "Rotary")
+                            {
+                                GetDlgItemText(hwndDlg, s_ringStylePickers[i], buf, sizeof(buf));
+                                t.controlProperties.set_prop(PropertyType_RingStyle, buf);
+                                t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
+                            }
+                            
                             t.controlParams = propBuf;
                             propBuf[0] = 0;
                         
