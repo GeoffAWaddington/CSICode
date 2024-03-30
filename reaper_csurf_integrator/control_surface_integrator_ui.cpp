@@ -402,6 +402,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_ringStylePickers[i]));
                 for (int j = 0; j < s_zoneManager->ringStyles_.size(); j++)
                     SendDlgItemMessage(hwndDlg, s_ringStylePickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->ringStyles_[j].c_str());
+                
+                if (s_zoneManager->ringStyles_.size())
+                    SendMessage(GetDlgItem(hwndDlg, s_ringStylePickers[i]), CB_SETCURSEL, 0, 0);
             }
             
             for (int i = 0; i < NUM_ELEM(s_fixedTextDisplayRowPickers); i++)
@@ -642,10 +645,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             char propBuf[4096];
                             propBuf[0] = 0;
 
-                            GetDlgItemText(hwndDlg, s_ringStylePickers[i], buf, sizeof(buf));
-                            t.controlProperties.set_prop(PropertyType_RingStyle, buf);
-                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
-
                             if (IsWindowVisible(GetDlgItem(hwndDlg,s_widgetRingColors[i])))
                             {
                                 rgba_color color;
@@ -709,7 +708,12 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 t.controlParams += buf;
                             }
                             
-                            snprintf_append(propBuf, sizeof(propBuf), "]");
+                            snprintf_append(propBuf, sizeof(propBuf), "] ");
+                            
+                            GetDlgItemText(hwndDlg, s_ringStylePickers[i], buf, sizeof(buf));
+                            t.controlProperties.set_prop(PropertyType_RingStyle, buf);
+                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
+
                             t.controlParams = propBuf;
                             propBuf[0] = 0;
                         

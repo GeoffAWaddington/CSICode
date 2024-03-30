@@ -1164,6 +1164,9 @@ struct FXParamTemplate
         if (steps[0] != 0)
             fprintf(fxFile, " [ %s]", steps);
         
+        if (control == "Rotary")
+            fprintf(fxFile," %s", "RingStyle=Dot");
+            
         fprintf(fxFile, "\n");
         
         if (paramName != "")
