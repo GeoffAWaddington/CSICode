@@ -567,8 +567,9 @@ private:
     
     bool isValueInverted_;
     bool isFeedbackInverted_;
-    double holdDelayAmount_;
-    double delayStartTime_;
+    DWORD holdDelayAmount_;
+    DWORD delayStartTime_;
+    bool delayStartTimeValid_;
     double deferredValue_;
     
     bool supportsColor_;
@@ -624,7 +625,7 @@ public:
     
     void SetIsValueInverted() { isValueInverted_ = true; }
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
-    void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = holdDelayAmount  *1000.0; } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
+    void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = (DWORD) (holdDelayAmount * 1000.0 + 0.5); } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
     
     // For Learn
@@ -1006,7 +1007,7 @@ protected:
     string const name_;
     WDL_PtrList<FeedbackProcessor> feedbackProcessors_; // owns the objects
     int channelNumber_;
-    double lastIncomingMessageTime_;
+    DWORD lastIncomingMessageTime_;
        
     double stepSize_;
     vector<double> accelerationValues_;
@@ -1019,7 +1020,7 @@ public:
     {
         // private:
         channelNumber_ = 0;
-        lastIncomingMessageTime_ = 0.0;
+        lastIncomingMessageTime_ = GetTickCount()-30000;
         stepSize_ = 0.0;
         hasBeenUsedByUpdate_ = false;
 
@@ -1054,8 +1055,8 @@ public:
     void SetAccelerationValues(const vector<double> *accelerationValues) { accelerationValues_ = *accelerationValues; }
     const vector<double> &GetAccelerationValues() { return accelerationValues_; }
     
-    void SetIncomingMessageTime(double lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
-    double GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
+    void SetIncomingMessageTime(DWORD lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
+    DWORD GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
     void Configure(const WDL_PtrList<ActionContext> &contexts);
     void UpdateValue(const PropertyList &properties, double value);
@@ -2467,7 +2468,7 @@ private:
     struct ModifierState
     {
         bool isEngaged;
-        double pressedTime;
+        DWORD pressedTime;
     };
     ModifierState modifiers_[MaxModifiers];
     WDL_TypedBuf<int> modifierCombinations_;
@@ -3360,8 +3361,8 @@ protected:
     oscpkt::UdpSocket *outSocket_;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
-    double X32HeartBeatRefreshInterval_;
-    double X32HeartBeatLastRefreshTime_;
+    DWORD X32HeartBeatRefreshInterval_;
+    DWORD X32HeartBeatLastRefreshTime_;
     
 public:
     OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress);
@@ -3417,9 +3418,9 @@ public:
     
     void SendX32HeartBeat()
     {
-        double currentTime = GetTickCount();
+        DWORD currentTime = GetTickCount();
 
-        if (currentTime - X32HeartBeatLastRefreshTime_ > X32HeartBeatRefreshInterval_)
+        if ((currentTime - X32HeartBeatLastRefreshTime_) > X32HeartBeatRefreshInterval_)
         {
             X32HeartBeatLastRefreshTime_ = currentTime;
             SendOSCMessage("/xremote");

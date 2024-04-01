@@ -1134,7 +1134,7 @@ class Fader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 {
 private:
     bool shouldSetToZero_;
-    int timeZeroValueReceived_;
+    DWORD timeZeroValueReceived_;
     
 public:
     virtual ~Fader14Bit_Midi_FeedbackProcessor() {}
@@ -1154,7 +1154,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if (shouldSetToZero_ && GetTickCount() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && (GetTickCount() - timeZeroValueReceived_) > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], 0x00, 0x00);
             shouldSetToZero_ = false;
@@ -1189,7 +1189,7 @@ class FaderportClassicFader14Bit_Midi_FeedbackProcessor : public Midi_FeedbackPr
 {
 private:
     bool shouldSetToZero_;
-    int timeZeroValueReceived_;
+    DWORD timeZeroValueReceived_;
     
 public:
     virtual ~FaderportClassicFader14Bit_Midi_FeedbackProcessor() {}
@@ -1209,7 +1209,7 @@ public:
     
     virtual void RunDeferredActions() override
     {
-        if (shouldSetToZero_ && GetTickCount() - timeZeroValueReceived_ > 250)
+        if (shouldSetToZero_ && (GetTickCount() - timeZeroValueReceived_) > 250)
         {
             ForceMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
             ForceMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], 0x00);

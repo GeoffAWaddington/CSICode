@@ -2264,8 +2264,9 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     
     isValueInverted_ = false;
     isFeedbackInverted_ = false;
-    holdDelayAmount_ = 0.0;
-    delayStartTime_ = 0.0;
+    holdDelayAmount_ = 0;
+    delayStartTimeValid_ = false;
+    delayStartTime_ = 0;
     deferredValue_ = 0.0;
     
     supportsColor_ = false;
@@ -2402,7 +2403,7 @@ const char *ActionContext::GetName()
 
 void ActionContext::RunDeferredActions()
 {
-    if (holdDelayAmount_ != 0.0 && delayStartTime_ != 0.0 && GetTickCount() > (delayStartTime_ + holdDelayAmount_))
+    if (holdDelayAmount_ != 0 && delayStartTimeValid_ && (GetTickCount() - delayStartTime_) > holdDelayAmount_)
     {
         if (steppedValues_.size() > 0)
         {
@@ -2422,7 +2423,7 @@ void ActionContext::RunDeferredActions()
         else
             DoRangeBoundAction(deferredValue_);
 
-        delayStartTime_ = 0.0;
+        delayStartTimeValid_ = false;
         deferredValue_ = 0.0;
     }
 }
@@ -2492,17 +2493,18 @@ void ActionContext::UpdateWidgetValue(const char *value)
 
 void ActionContext::DoAction(double value)
 {
-    if (holdDelayAmount_ != 0.0)
+    if (holdDelayAmount_ != 0)
     {
         if (value == 0.0)
         {
             deferredValue_ = 0.0;
-            delayStartTime_ = 0.0;
+            delayStartTimeValid_ = false;
         }
         else
         {
             deferredValue_ = value;
-            delayStartTime_ =  GetTickCount();
+            delayStartTime_ = GetTickCount();
+            delayStartTimeValid_ = true;
         }
     }
     else
@@ -3420,7 +3422,7 @@ void OSC_FeedbackProcessor::X32SetColorValue(const rgba_color &color)
 
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
-    if (GetTickCount() - GetWidget()->GetLastIncomingMessageTime() < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
+    if ((GetTickCount() - GetWidget()->GetLastIncomingMessageTime()) < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
         return;
 
     lastDoubleValue_ = value;
@@ -4647,9 +4649,9 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
     }
     else
     {
-        double keyReleasedTime = GetTickCount();
+        DWORD keyReleasedTime = GetTickCount();
         
-        if (keyReleasedTime - modifiers_[modifier].pressedTime > latchTime)
+        if ((keyReleasedTime - modifiers_[modifier].pressedTime) > (DWORD)latchTime)
         {
             if (value == 0 && modifiers_[modifier].isEngaged)
             {
@@ -5264,7 +5266,7 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const cha
     inSocket_ = NULL;
     outSocket_ = NULL;
     X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
-    X32HeartBeatLastRefreshTime_ = 0.0;
+    X32HeartBeatLastRefreshTime_ = GetTickCount()-30000;
 
     if (strcmp(receiveOnPort, transmitToPort))
     {
