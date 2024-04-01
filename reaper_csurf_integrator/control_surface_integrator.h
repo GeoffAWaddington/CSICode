@@ -3361,8 +3361,10 @@ protected:
     oscpkt::UdpSocket *outSocket_;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
+    oscpkt::Storage storageTmp_;
     DWORD X32HeartBeatRefreshInterval_;
     DWORD X32HeartBeatLastRefreshTime_;
+    int maxBundleSize_; // 0 = no bundles (would only be useful if the destination doesn't support bundles)
     
 public:
     OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress);
@@ -3371,6 +3373,51 @@ public:
     const char *GetName() { return name_.c_str(); }
 
     void HandleExternalInput(OSC_ControlSurface *surface);
+
+    void SendOSCMessageInternal(oscpkt::Message *message) // NULL message flushes any latent bundles
+    {
+        if (outSocket_ != NULL && outSocket_->isOk())
+        {
+            if (maxBundleSize_ > 0 && packetWriter_.packetSize() > 0)
+            {
+                bool send_bundle;
+                if (message)
+                {
+                    // oscpkt lacks the ability to calculate the size of a Message?
+                    storageTmp_.clear();
+                    message->packMessage(storageTmp_, true);
+                    send_bundle = (packetWriter_.packetSize() + storageTmp_.size() > maxBundleSize_);
+                }
+                else
+                {
+                    send_bundle = true;
+                }
+
+                if (send_bundle)
+                {
+                    packetWriter_.endBundle();
+                    outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+                    packetWriter_.init();
+                }
+            }
+
+            if (message)
+            {
+                if (maxBundleSize_ > 0 && packetWriter_.packetSize() == 0)
+                {
+                    packetWriter_.startBundle();
+                }
+
+                packetWriter_.addMessage(*message);
+
+                if (maxBundleSize_ <= 0)
+                {
+                    outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+                    packetWriter_.init();
+                }
+            }
+        }
+    }
     
     void SendOSCMessage(const char *oscAddress, double value)
     {
@@ -3378,8 +3425,7 @@ public:
         {
             oscpkt::Message message;
             message.init(oscAddress).pushFloat((float)value);
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            SendOSCMessageInternal(&message);
         }
     }
     
@@ -3389,8 +3435,7 @@ public:
         {
             oscpkt::Message message;
             message.init(oscAddress).pushInt32(value);
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            SendOSCMessageInternal(&message);
         }
     }
     
@@ -3400,8 +3445,7 @@ public:
         {
             oscpkt::Message message;
             message.init(oscAddress).pushStr(string(value) /* no pushCStr? tsk */ );
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            SendOSCMessageInternal(&message);
         }
     }
     
@@ -3411,20 +3455,23 @@ public:
         {
             oscpkt::Message message;
             message.init(string(value)); /* no C-string support? */
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            SendOSCMessageInternal(&message);
         }
     }
     
-    void SendX32HeartBeat()
+    void Run(bool isX32)
     {
-        DWORD currentTime = GetTickCount();
-
-        if ((currentTime - X32HeartBeatLastRefreshTime_) > X32HeartBeatRefreshInterval_)
+        if (isX32)
         {
-            X32HeartBeatLastRefreshTime_ = currentTime;
-            SendOSCMessage("/xremote");
+          DWORD currentTime = GetTickCount();
+
+          if ((currentTime - X32HeartBeatLastRefreshTime_) > X32HeartBeatRefreshInterval_)
+          {
+              X32HeartBeatLastRefreshTime_ = currentTime;
+              SendOSCMessage("/xremote");
+          }
         }
+        SendOSCMessageInternal(NULL); // flush any latent bundles
     }
 };
 
@@ -3460,9 +3507,7 @@ public:
     virtual void RequestUpdate() override
     {
         ControlSurface::RequestUpdate();
-
-        if (IsX32())
-            surfaceIO_->SendX32HeartBeat();
+        surfaceIO_->Run(IsX32());
     }
 
     virtual void HandleExternalInput() override
