@@ -5267,7 +5267,6 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const cha
     outSocket_ = NULL;
     X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
     X32HeartBeatLastRefreshTime_ = GetTickCount()-30000;
-    maxBundleSize_ = 32768; // could be user configured, possible some networks might enforce a 1500 byte MTU or something
 
     if (strcmp(receiveOnPort, transmitToPort))
     {
