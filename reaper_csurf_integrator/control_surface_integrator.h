@@ -3378,8 +3378,7 @@ public:
         {
             oscpkt::Message message;
             message.init(oscAddress).pushFloat((float)value);
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            QueueOSCMessage(message);
         }
     }
     
@@ -3389,8 +3388,7 @@ public:
         {
             oscpkt::Message message;
             message.init(oscAddress).pushInt32(value);
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            QueueOSCMessage(message);
         }
     }
     
@@ -3399,9 +3397,8 @@ public:
         if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
-            message.init(oscAddress).pushStr(string(value) /* no pushCStr? tsk */ );
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            message.init(oscAddress).pushStr(value);
+            QueueOSCMessage(message);
         }
     }
     
@@ -3410,10 +3407,15 @@ public:
         if (outSocket_ != NULL && outSocket_->isOk())
         {
             oscpkt::Message message;
-            message.init(string(value)); /* no C-string support? */
-            packetWriter_.init().addMessage(message);
-            outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+            message.init(value);
+            QueueOSCMessage(message);
         }
+    }
+    
+    void QueueOSCMessage(oscpkt::Message &message)
+    {
+        packetWriter_.init().addMessage(message);
+        outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
     }
     
     void SendX32HeartBeat()

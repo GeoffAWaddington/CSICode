@@ -336,7 +336,14 @@ public:
   Message &init(const std::string &addr, TimeTag tt = TimeTag::immediate()) {
     clear();
     address = addr; time_tag = tt;
-    if (address.empty() || address[0] != '/') OSCPKT_SET_ERR(MALFORMED_ADDRESS_PATTERN);     
+    if (address.empty() || address[0] != '/') OSCPKT_SET_ERR(MALFORMED_ADDRESS_PATTERN);
+    return *this;
+  }
+
+  Message &init(const char *addr, TimeTag tt = TimeTag::immediate()) {
+    clear();
+    address = addr; time_tag = tt;
+    if (address.empty() || address[0] != '/') OSCPKT_SET_ERR(MALFORMED_ADDRESS_PATTERN);
     return *this;
   }
 
@@ -399,6 +406,7 @@ public:
   Message &pushInt64(int64_t h) { return pushPod(TYPE_TAG_INT64, h); }
   Message &pushFloat(float f) { return pushPod(TYPE_TAG_FLOAT, f); }
   Message &pushDouble(double d) { return pushPod(TYPE_TAG_DOUBLE, d); }
+    
   Message &pushStr(const std::string &s) {
     assert(s.size() < 2147483647); // insane values are not welcome
     type_tags += TYPE_TAG_STRING;
@@ -406,6 +414,16 @@ public:
     strcpy(storage.getBytes(s.size()+1), s.c_str());
     return *this;
   }
+    
+  Message &pushStr(const char *s) {
+    int sSize = strlen(s);
+    assert(sSize < 2147483647); // insane values are not welcome
+    type_tags += TYPE_TAG_STRING;
+    arguments.push_back(std::make_pair(storage.size(), sSize + 1));
+    strcpy(storage.getBytes(sSize +1), s);
+    return *this;
+  }
+      
   Message &pushBlob(void *ptr, size_t num_bytes) {
     assert(num_bytes < 2147483647); // insane values are not welcome
     type_tags += TYPE_TAG_BLOB; 
