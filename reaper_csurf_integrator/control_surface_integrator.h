@@ -40,6 +40,7 @@
 #include "../WDL/ptrlist.h"
 #include "../WDL/assocarray.h"
 #include "../WDL/wdlstring.h"
+#include "../WDL/queue.h"
 
 #include "control_surface_integrator_Reaper.h"
 
@@ -3365,6 +3366,9 @@ protected:
     DWORD X32HeartBeatRefreshInterval_;
     DWORD X32HeartBeatLastRefreshTime_;
     int maxBundleSize_; // 0 = no bundles (would only be useful if the destination doesn't support bundles)
+    int maxPacketsPerRun_; // 0 = no limit
+    int sentPacketCount_; // count of packets sent this Run() slice, after maxPacketsPerRun_ packtees go into packetQueue_
+    WDL_Queue packetQueue_;
     
 public:
     OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress);
@@ -3373,6 +3377,27 @@ public:
     const char *GetName() { return name_.c_str(); }
 
     void HandleExternalInput(OSC_ControlSurface *surface);
+
+    void QueuePacket(const void *p, int sz)
+    {
+        if (WDL_NOT_NORMALLY(!outSocket_)) return;
+        if (WDL_NOT_NORMALLY(!p || sz < 1)) return;
+        if (WDL_NOT_NORMALLY(packetQueue_.GetSize() > 32*1024*1024)) return; // drop packets after 32MB queued
+        if (maxPacketsPerRun_ != 0 && sentPacketCount_ >= maxPacketsPerRun_)
+        {
+            void *wr = packetQueue_.Add(NULL,sz + sizeof(int));
+            if (WDL_NORMALLY(wr != NULL))
+            {
+                memcpy(wr, &sz, sizeof(int));
+                memcpy((char *)wr + sizeof(int), p, sz);
+            }
+        }
+        else
+        {
+            outSocket_->sendPacket(p, sz);
+            sentPacketCount_++;
+        }
+    }
 
     void QueueOSCMessage(oscpkt::Message *message) // NULL message flushes any latent bundles
     {
@@ -3396,7 +3421,7 @@ public:
                 if (send_bundle)
                 {
                     packetWriter_.endBundle();
-                    outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+                    QueuePacket(packetWriter_.packetData(), packetWriter_.packetSize());
                     packetWriter_.init();
                 }
             }
@@ -3412,7 +3437,7 @@ public:
 
                 if (maxBundleSize_ <= 0)
                 {
-                    outSocket_->sendPacket(packetWriter_.packetData(), packetWriter_.packetSize());
+                    QueuePacket(packetWriter_.packetData(), packetWriter_.packetSize());
                     packetWriter_.init();
                 }
             }
@@ -3459,6 +3484,34 @@ public:
         }
     }
     
+    void BeginRun()
+    {
+        sentPacketCount_ = 0;
+        // send any latent packets first
+        while (packetQueue_.GetSize()>=sizeof(int))
+        {
+            int sza;
+            if (maxPacketsPerRun_ != 0 && sentPacketCount_ >= maxPacketsPerRun_) break;
+
+            memcpy(&sza, packetQueue_.Get(), sizeof(int));
+            packetQueue_.Advance(sizeof(int));
+            if (WDL_NOT_NORMALLY(sza < 0 || packetQueue_.GetSize() < sza))
+            {
+                packetQueue_.Clear();
+            }
+            else
+            {
+                if (WDL_NORMALLY(outSocket_ != NULL))
+                {
+                    outSocket_->sendPacket(packetQueue_.Get(), sza);
+                }
+                packetQueue_.Advance(sza);
+                sentPacketCount_++;
+            }
+        }
+        packetQueue_.Compact();
+    }
+
     void Run(bool isX32)
     {
         if (isX32)
@@ -3506,6 +3559,7 @@ public:
     
     virtual void RequestUpdate() override
     {
+        surfaceIO_->BeginRun();
         ControlSurface::RequestUpdate();
         surfaceIO_->Run(IsX32());
     }
