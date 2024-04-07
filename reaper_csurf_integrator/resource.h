@@ -43,6 +43,7 @@
 #define IDC_EDIT_OSCSurfaceName         1039
 #define IDC_EDIT_OSCRemoteDeviceIP      1041
 #define IDC_EDIT_OSCOutPort             1043
+#define IDC_EDIT_MaxPackets             1044
 #define IDC_EDIT_OSCInPort              1045
 #define IDC_EDIT_NumChannels            1085
 #define IDC_EDIT_ChannelOffset          1088

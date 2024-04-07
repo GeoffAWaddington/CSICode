@@ -2050,12 +2050,14 @@ void CSurfIntegrator::Init()
             
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4) // This is to handle CSI.ini files that are missing refresh rate, it supplies 15 -- the default.
+                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4) // If CSI.ini file is missing refresh rate, supply default -- 15
                     midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), 15));
                 else if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 5)
                     midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4])));
-                else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 5)
-                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4]));
+                else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 5) // If CSI.ini file is missing max packets per run, supply default -- 0 -- no max
+                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], 0));
+                else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 6)
+                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
                 else if (tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
@@ -5260,15 +5262,15 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress) : csi_(csi), name_(surfaceName)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : csi_(csi), name_(surfaceName)
 {
     // private:
     inSocket_ = NULL;
     outSocket_ = NULL;
     X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
     X32HeartBeatLastRefreshTime_ = GetTickCount()-30000;
-    maxBundleSize_ = 32768; // could be user configured, possible some networks might enforce a 1500 byte MTU or something
-    maxPacketsPerRun_ = 2;
+    maxBundleSize_ = 0; // could be user configured, possible some networks might enforce a 1500 byte MTU or something
+    maxPacketsPerRun_ = maxPacketsPerRun < 0 ? 0 : maxPacketsPerRun;
     sentPacketCount_ = 0;
 
     if (strcmp(receiveOnPort, transmitToPort))

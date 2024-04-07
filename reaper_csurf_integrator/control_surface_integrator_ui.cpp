@@ -1382,6 +1382,30 @@ public:
     }
 };
 
+static bool s_editMode = false;
+
+static string s_surfaceName;
+static int s_surfaceInPort = 0;
+static int s_surfaceOutPort = 0;
+static int s_surfaceRefreshRate = 0;
+static int s_surfaceDefaultRefreshRate = 15;
+static int s_surfaceMaxPacketsPerRun = 0;
+static int s_surfaceDefaultMaxPacketsPerRun = 0;  // No restriction, send all queued packets
+static string s_surfaceRemoteDeviceIP;
+
+static int s_pageIndex = 0;
+static bool s_followMCP = false;
+static bool s_synchPages = true;
+static bool s_isScrollLinkEnabled = false;
+static bool s_scrollSynch = false;
+
+static string s_pageSurfaceName;
+static int s_numChannels = 0;
+static int s_channelOffset = 0;
+static string s_templateFilename;
+static string s_zoneTemplateFolder;
+static string s_fxZoneTemplateFolder;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // structs
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1392,13 +1416,15 @@ struct SurfaceLine
     int inPort;
     int outPort;
     int surfaceRefreshRate;
+    int surfaceMaxPacketsPerRun;
     string remoteDeviceIP;
     
     SurfaceLine()
     {
         inPort = 0;
         outPort = 0;
-        surfaceRefreshRate = 15;
+        surfaceRefreshRate = s_surfaceDefaultRefreshRate;
+        surfaceMaxPacketsPerRun = s_surfaceDefaultMaxPacketsPerRun;
     }
 };
 
@@ -1514,28 +1540,6 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
         destination.Add(destinationBroadcaster);
     }
 }
-
-static bool s_editMode = false;
-
-static string s_surfaceName;
-static int s_surfaceInPort = 0;
-static int s_surfaceOutPort = 0;
-static int s_surfaceRefreshRate = 0;
-static int s_surfaceDefaultRefreshRate = 15;
-static string s_surfaceRemoteDeviceIP;
-
-static int s_pageIndex = 0;
-static bool s_followMCP = false;
-static bool s_synchPages = true;
-static bool s_isScrollLinkEnabled = false;
-static bool s_scrollSynch = false;
-
-static string s_pageSurfaceName;
-static int s_numChannels = 0;
-static int s_channelOffset = 0;
-static string s_templateFilename;
-static string s_zoneTemplateFolder;
-static string s_fxZoneTemplateFolder;
 
 static WDL_PtrList<PageLine> s_pages;
 
@@ -1928,6 +1932,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, s_surfaceRemoteDeviceIP.c_str());
                 SetDlgItemInt(hwndDlg, IDC_EDIT_OSCInPort, s_surfaceInPort, false);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_OSCOutPort, s_surfaceOutPort, false);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MaxPackets, s_surfaceMaxPacketsPerRun, false);
             }
             else
             {
@@ -1935,6 +1940,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, "");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCInPort, "");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, "");
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MaxPackets, s_surfaceDefaultMaxPacketsPerRun, false);
             }
         }
             break;
@@ -1960,6 +1966,9 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, buf, sizeof(buf));
                         s_surfaceOutPort = atoi(buf);
                         
+                        GetDlgItemText(hwndDlg, IDC_EDIT_MaxPackets, buf, sizeof(buf));
+                        s_surfaceMaxPacketsPerRun = atoi(buf);
+
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }
@@ -2506,6 +2515,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                 surface->inPort = s_surfaceInPort;
                                 surface->outPort = s_surfaceOutPort;
+                                surface->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
 
                                 s_surfaces.Add(surface);
                                 
@@ -2575,7 +2585,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_surfaceOutPort = s_surfaces.Get(index)->outPort;
                                 s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
                                 s_surfaceRefreshRate = s_surfaces.Get(index)->surfaceRefreshRate;
-                                
+                                s_surfaceMaxPacketsPerRun = s_surfaces.Get(index)->surfaceMaxPacketsPerRun;
+
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
@@ -2591,6 +2602,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_surfaces.Get(index)->inPort = s_surfaceInPort;
                                     s_surfaces.Get(index)->outPort = s_surfaceOutPort;
                                     s_surfaces.Get(index)->surfaceRefreshRate = s_surfaceRefreshRate;
+                                    s_surfaces.Get(index)->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
                                 }
                                 
                                 s_editMode = false;
@@ -2779,11 +2791,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
-                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5))
+                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5 || tokens.size() == 6))
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
-                            if (surface->type == s_OSCSurfaceToken && tokens.size() == 5)
+                            if (surface->type == s_OSCSurfaceToken && tokens.size() > 4)
                                 surface->remoteDeviceIP = tokens[4];
                             
                             if (surface->type == s_MidiSurfaceToken)
@@ -2792,6 +2804,13 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     surface->surfaceRefreshRate = atoi(tokens[4]);
                                 else
                                     surface->surfaceRefreshRate = s_surfaceDefaultRefreshRate;
+                            }
+                            else if (surface->type == s_OSCSurfaceToken)
+                            {
+                                if (tokens.size() == 6)
+                                    surface->surfaceMaxPacketsPerRun = atoi(tokens[5]);
+                                else
+                                    surface->surfaceMaxPacketsPerRun = s_surfaceDefaultMaxPacketsPerRun;
                             }
                         }
                         
@@ -2947,14 +2966,21 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         s_surfaces.Get(i)->inPort,
                         s_surfaces.Get(i)->outPort);
 
-                    if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
-                        fprintf(iniFile, "%s ", s_surfaces.Get(i)->remoteDeviceIP.c_str());
-                    
-                    int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
-                    
                     if (s_surfaces.Get(i)->type == s_MidiSurfaceToken)
+                    {
+                        int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
                         fprintf(iniFile, "%d ", refreshRate);
+                    }
                     
+                    else if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
+                    {
+                        fprintf(iniFile, "%s ", s_surfaces.Get(i)->remoteDeviceIP.c_str());
+                        
+                        int maxPacketsPerRun = s_surfaces.Get(i)->surfaceMaxPacketsPerRun < 0 ? 0 : s_surfaces.Get(i)->surfaceMaxPacketsPerRun;
+                        
+                        fprintf(iniFile, "%d ", maxPacketsPerRun);
+                    }
+
                     fprintf(iniFile, "\n");
                 }
                 

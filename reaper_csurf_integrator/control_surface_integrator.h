@@ -3371,7 +3371,7 @@ protected:
     WDL_Queue packetQueue_;
     
 public:
-    OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress);
+    OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
     ~OSC_ControlSurfaceIO();
 
     const char *GetName() { return name_.c_str(); }
