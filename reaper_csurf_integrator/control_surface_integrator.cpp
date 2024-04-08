@@ -1920,6 +1920,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TrackSolo", new TrackSolo());
     actions_.Insert("ClearAllSolo", new ClearAllSolo());
     actions_.Insert("TrackInvertPolarity", new TrackInvertPolarity());
+    actions_.Insert("TrackInvertPolarityDisplay", new TrackInvertPolarityDisplay());
     actions_.Insert("TrackPan", new TrackPan());
     actions_.Insert("TrackPanPercent", new TrackPanPercent());
     actions_.Insert("TrackPanWidth", new TrackPanWidth());

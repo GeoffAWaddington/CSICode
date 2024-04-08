@@ -2976,7 +2976,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     {
                         fprintf(iniFile, "%s ", s_surfaces.Get(i)->remoteDeviceIP.c_str());
                         
-                        int maxPacketsPerRun = s_surfaces.Get(i)->surfaceMaxPacketsPerRun < 0 ? 0 : s_surfaces.Get(i)->surfaceMaxPacketsPerRun;
+                        int maxPacketsPerRun = s_surfaces.Get(i)->surfaceMaxPacketsPerRun < 0 ? s_surfaceDefaultMaxPacketsPerRun : s_surfaces.Get(i)->surfaceMaxPacketsPerRun;
                         
                         fprintf(iniFile, "%d ", maxPacketsPerRun);
                     }
