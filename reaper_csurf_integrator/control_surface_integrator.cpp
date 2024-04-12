@@ -1539,15 +1539,15 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
             else if (widgetType == "FB_MCUXTDisplayLower")
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x15, 0x12, atoi(tokenLines[i][1].c_str()));
         }
-        else if ((widgetType == "FB_IconDisplayLine1Upper" || widgetType == "FB_IconDisplayLine1Lower" || widgetType == "FB_IconDisplayLine2Upper" || widgetType == "FB_IconDisplayLine2Lower") && size == 2)
+        else if ((widgetType == "FB_IconDisplay1Upper" || widgetType == "FB_IconDisplay1Lower" || widgetType == "FB_IconDisplay2Upper" || widgetType == "FB_IconDisplay2Lower") && size == 2)
         {
-            if (widgetType == "FB_IconDisplayLine1Upper")
+            if (widgetType == "FB_IconDisplay1Upper")
                 feedbackProcessor = new IconDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66);
-            else if (widgetType == "FB_IconDisplayLine1Lower")
+            else if (widgetType == "FB_IconDisplay1Lower")
                 feedbackProcessor = new IconDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66);
-            else if (widgetType == "FB_IconDisplayLine2Upper")
+            else if (widgetType == "FB_IconDisplay2Upper")
                 feedbackProcessor = new IconDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e);
-            else if (widgetType == "FB_IconDisplayLine2Lower")
+            else if (widgetType == "FB_IconDisplay2Lower")
                 feedbackProcessor = new IconDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e);
         }
         else if ((widgetType == "FB_AsparionDisplayUpper" || widgetType == "FB_AsparionDisplayLower" || widgetType == "FB_AsparionDisplayEncoder") && size == 2)
