@@ -627,7 +627,7 @@ static void PreProcessZoneFile(const char *filePath, ZoneManager *zoneManager)
             break;
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, 1);
@@ -764,7 +764,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
             }
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", layoutPath.c_str(), 1);
@@ -858,7 +858,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
             }
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", cellPath.c_str(), 1);
@@ -932,7 +932,7 @@ void ZoneManager::ProcessFXBoilerplate(const string &filePath, string_list &fxBo
                 fxBoilerplate.push_back(line);
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
@@ -1196,7 +1196,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
             }
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, lineNumber);
@@ -1781,7 +1781,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
                 ProcessMidiWidget(lineNumber, file, tokens);
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
@@ -1828,7 +1828,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
                 ProcessOSCWidget(lineNumber, file, tokens);
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), lineNumber);
@@ -2171,7 +2171,7 @@ void CSurfIntegrator::Init()
             lineNumber++;
         }
     }
-    catch (exception &e)
+    catch (exception)
     {
         char buffer[250];
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", iniFilePath.c_str(), lineNumber);
@@ -4588,7 +4588,7 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 
 void ZoneManager::DoTouch(Widget *widget, double value)
 {
-    surface_->TouchChannel(widget->GetChannelNumber(), value);
+    surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
     
     widget->LogInput(value);
     
@@ -5206,7 +5206,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     // special processing for MCU meters
     hasMCUMeters_ = false;
     displayType_ = 0x14;
-    lastRun_ = 0.0;
+    lastRun_ = 0;
     
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
     

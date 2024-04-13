@@ -341,7 +341,7 @@ public:
 
     virtual void SetValue(const PropertyList &properties, double active) override
     {
-        active_ = (bool)active;
+        active_ = active != 0;
     }
     
     virtual void SetColorValue(const rgba_color &color) override

@@ -814,7 +814,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetShift(value);
+        context->GetSurface()->SetShift(value != 0);
     }
 };
 
@@ -837,7 +837,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetOption(value);
+        context->GetSurface()->SetOption(value != 0);
     }
 };
 
@@ -860,7 +860,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetControl(value);
+        context->GetSurface()->SetControl(value != 0);
     }
 };
 
@@ -883,7 +883,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetAlt(value);
+        context->GetSurface()->SetAlt(value != 0);
     }
 };
 
@@ -906,7 +906,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetFlip(value);
+        context->GetSurface()->SetFlip(value != 0);
     }
 };
 
@@ -929,7 +929,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetGlobal(value);
+        context->GetSurface()->SetGlobal(value != 0);
     }
 };
 
@@ -952,7 +952,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetMarker(value);
+        context->GetSurface()->SetMarker(value != 0);
     }
 };
 
@@ -975,7 +975,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetNudge(value);
+        context->GetSurface()->SetNudge(value != 0);
     }
 };
 
@@ -998,7 +998,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetZoom(value);
+        context->GetSurface()->SetZoom(value != 0);
     }
 };
 
@@ -1021,7 +1021,7 @@ public:
     
     void Do(ActionContext *context, double value) override
     {
-        context->GetSurface()->SetScrub(value);
+        context->GetSurface()->SetScrub(value != 0);
     }
 };
 

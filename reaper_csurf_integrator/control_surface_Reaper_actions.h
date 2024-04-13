@@ -442,7 +442,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
             CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
@@ -470,7 +470,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value != 0);
     }
 };
 
@@ -496,7 +496,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value != 0);
     }
 };
 
@@ -535,7 +535,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
             CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, DB2VAL(GetCurrentDBValue(context)), false), NULL);
     }
@@ -582,7 +582,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) != 6)
@@ -622,7 +622,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) != 6)
@@ -670,7 +670,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
             if (GetPanMode(track) != 6)
                 CSurf_OnWidthChange(track, normalizedToPan(GetCurrentNormalizedValue(context)), false);
@@ -704,7 +704,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) != 6)
@@ -753,7 +753,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value != 0);
     }
 };
 
@@ -789,7 +789,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) == 6)
@@ -841,7 +841,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanRightTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanRightTouched(value != 0);
     }
 };
 
@@ -877,7 +877,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsPanRightTouched(value);
+        context->GetZone()->GetNavigator()->SetIsPanRightTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) == 6)
@@ -945,10 +945,10 @@ public:
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) == 6)
-                context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value);
+                context->GetZone()->GetNavigator()->SetIsPanLeftTouched(value != 0);
             else
             {
-                context->GetZone()->GetNavigator()->SetIsPanTouched(value);
+                context->GetZone()->GetNavigator()->SetIsPanTouched(value != 0);
                 CSurf_SetSurfacePan(track, CSurf_OnPanChange(track, normalizedToPan(GetCurrentNormalizedValue(context)), false), NULL);
             }
         }
@@ -1007,10 +1007,10 @@ public:
         if (MediaTrack *track = context->GetTrack())
         {
             if (GetPanMode(track) == 6)
-                context->GetZone()->GetNavigator()->SetIsPanRightTouched(value);
+                context->GetZone()->GetNavigator()->SetIsPanRightTouched(value != 0);
             else
             {
-                context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value);
+                context->GetZone()->GetNavigator()->SetIsPanWidthTouched(value != 0);
                 CSurf_OnWidthChange(track, normalizedToPan(GetCurrentNormalizedValue(context)), false);
 
             }
@@ -2788,9 +2788,7 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            bool inverted = GetMediaTrackInfo_Value(track, "B_PHASE");
-
-            if ( ! inverted)
+            if (GetMediaTrackInfo_Value(track, "B_PHASE") == 0)
                 context->UpdateWidgetValue("Normal");
             else
                 context->UpdateWidgetValue("Invert");
@@ -3611,7 +3609,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
             CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
@@ -3700,7 +3698,7 @@ public:
     
     virtual void Touch(ActionContext *context, double value) override
     {
-        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value);
+        context->GetZone()->GetNavigator()->SetIsVolumeTouched(value != 0);
         if (MediaTrack *track = context->GetTrack())
             CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, normalizedToVol(GetCurrentNormalizedValue(context)), false), NULL);
     }
