@@ -1384,7 +1384,11 @@ public:
 
 static bool s_editMode = false;
 
+static char *s_genericOSCSurface = (char *)"Generic OSC Surface";
+static char *s_BehringerX32Surface = (char *)"Behringer X32 Surface";
+
 static string s_surfaceName;
+static string s_surfaceType;
 static int s_surfaceInPort = 0;
 static int s_surfaceOutPort = 0;
 static int s_surfaceRefreshRate = 0;
@@ -1631,11 +1635,13 @@ static void PopulateSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePat
     {
         if (s_surfaces.Get(i)->name == string(buf))
         {
-            if (s_surfaces.Get(i)->type == s_MidiSurfaceToken)
+            string type = s_surfaces.Get(i)->type;
+            
+            if (type == s_MidiSurfaceToken)
                 for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/").size(); ++j)
                     AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
 
-            if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
+            if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)
                 for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
                     AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
             
@@ -1919,16 +1925,25 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     
     return 0;
 }
-
 static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
         case WM_INITDIALOG:
         {
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_Type));
+            AddComboEntry(hwndDlg, 0, s_genericOSCSurface, IDC_COMBO_Type);
+            AddComboEntry(hwndDlg, 1, s_BehringerX32Surface, IDC_COMBO_Type);
+
             if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, s_surfaceName.c_str());
+
+                if (s_surfaceType == s_OSCSurfaceToken)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_SETCURSEL, 0, 0);
+                else
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_SETCURSEL, 1, 0);
+
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, s_surfaceRemoteDeviceIP.c_str());
                 SetDlgItemInt(hwndDlg, IDC_EDIT_OSCInPort, s_surfaceInPort, false);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_OSCOutPort, s_surfaceOutPort, false);
@@ -1937,6 +1952,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             else
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, "");
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_SETCURSEL, 0, 0);
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, "");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCInPort, "");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCOutPort, "");
@@ -1956,6 +1972,15 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                             
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
+                        
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_GETCURSEL, 0, 0);
+                        if (index >= 0)
+                        {
+                            if (index == 0)
+                                s_surfaceType = s_OSCSurfaceToken;
+                            else
+                                s_surfaceType = s_OSCX32SurfaceToken;
+                        }
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, buf, sizeof(buf));
                         s_surfaceRemoteDeviceIP = buf;
@@ -2510,8 +2535,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             if (s_dlgResult == IDOK)
                             {
                                 SurfaceLine *surface = new SurfaceLine();
-                                surface->type = s_OSCSurfaceToken;
+                            
                                 surface->name = s_surfaceName;
+                                surface->type = s_surfaceType;
                                 surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                 surface->inPort = s_surfaceInPort;
                                 surface->outPort = s_surfaceOutPort;
@@ -2581,6 +2607,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             if (index >= 0)
                             {
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(s_surfaceName.c_str()));
+                                s_surfaceType = s_surfaces.Get(index)->type;
                                 s_surfaceInPort = s_surfaces.Get(index)->inPort;
                                 s_surfaceOutPort = s_surfaces.Get(index)->outPort;
                                 s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
@@ -2590,14 +2617,17 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
-                                if (s_surfaces.Get(index)->type == s_MidiSurfaceToken)
+                                string type = s_surfaces.Get(index)->type;
+                                
+                                if (type == s_MidiSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
-                                else if (s_surfaces.Get(index)->type == s_OSCSurfaceToken)
+                                else if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_OSCSurface), hwndDlg, dlgProcOSCSurface);
                                                                
                                 if (s_dlgResult == IDOK)
                                 {
                                     s_surfaces.Get(index)->name = s_surfaceName;
+                                    s_surfaces.Get(index)->type = s_surfaceType;
                                     s_surfaces.Get(index)->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                     s_surfaces.Get(index)->inPort = s_surfaceInPort;
                                     s_surfaces.Get(index)->outPort = s_surfaceOutPort;
@@ -2784,18 +2814,18 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     string_list tokens;
                     GetTokens(tokens, line.c_str());
                     
-                    if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken)
+                    if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken || tokens[0] == s_OSCX32SurfaceToken)
                     {
                         SurfaceLine *surface = new SurfaceLine();
                         
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
-                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken) && (tokens.size() == 4 || tokens.size() == 5 || tokens.size() == 6))
+                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken) && (tokens.size() == 4 || tokens.size() == 5 || tokens.size() == 6))
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
-                            if (surface->type == s_OSCSurfaceToken && tokens.size() > 4)
+                            if ((surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken) && tokens.size() > 4)
                                 surface->remoteDeviceIP = tokens[4];
                             
                             if (surface->type == s_MidiSurfaceToken)
@@ -2805,7 +2835,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 else
                                     surface->surfaceRefreshRate = s_surfaceDefaultRefreshRate;
                             }
-                            else if (surface->type == s_OSCSurfaceToken)
+                            else if (surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken)
                             {
                                 if (tokens.size() == 6)
                                     surface->surfaceMaxPacketsPerRun = atoi(tokens[5]);
@@ -2966,13 +2996,15 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         s_surfaces.Get(i)->inPort,
                         s_surfaces.Get(i)->outPort);
 
-                    if (s_surfaces.Get(i)->type == s_MidiSurfaceToken)
+                    string type = s_surfaces.Get(i)->type;
+                    
+                    if (type == s_MidiSurfaceToken)
                     {
                         int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
                         fprintf(iniFile, "%d ", refreshRate);
                     }
                     
-                    else if (s_surfaces.Get(i)->type == s_OSCSurfaceToken)
+                    else if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)
                     {
                         fprintf(iniFile, "%s ", s_surfaces.Get(i)->remoteDeviceIP.c_str());
                         

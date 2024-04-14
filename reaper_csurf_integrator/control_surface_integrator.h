@@ -77,6 +77,7 @@ static const char * const s_MajorVersionToken = "Version 3.0";
 static const char * const s_PageToken = "Page";
 static const char * const s_MidiSurfaceToken = "MidiSurface";
 static const char * const s_OSCSurfaceToken = "OSCSurface";
+static const char * const s_OSCX32SurfaceToken = "OSCX32Surface";
 
 static const char * const s_BadFileChars = " \\:*?<>|.,()/";
 static const char * const s_BeginAutoSection = "#Begin auto generated section";
@@ -96,6 +97,7 @@ class fpistream
     ~fpistream() { close(); }
     void close() { if (handle) { fclose(handle); handle = NULL; } }
 };
+
 bool getline(fpistream &fp, string &str); // mimic C++ getline()
 
 static char *format_number(double v, char *buf, int bufsz)
@@ -3363,8 +3365,6 @@ protected:
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
     oscpkt::Storage storageTmp_;
-    DWORD X32HeartBeatRefreshInterval_;
-    DWORD X32HeartBeatLastRefreshTime_;
     int maxBundleSize_; // 0 = no bundles (would only be useful if the destination doesn't support bundles)
     int maxPacketsPerRun_; // 0 = no limit
     int sentPacketCount_; // count of packets sent this Run() slice, after maxPacketsPerRun_ packtees go into packetQueue_
@@ -3372,7 +3372,7 @@ protected:
     
 public:
     OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
-    ~OSC_ControlSurfaceIO();
+    virtual ~OSC_ControlSurfaceIO();
 
     const char *GetName() { return name_.c_str(); }
 
@@ -3512,19 +3512,35 @@ public:
         packetQueue_.Compact();
     }
 
-    void Run(bool isX32)
+    virtual void Run()
     {
-        if (isX32)
-        {
-          DWORD currentTime = GetTickCount();
-
-          if ((currentTime - X32HeartBeatLastRefreshTime_) > X32HeartBeatRefreshInterval_)
-          {
-              X32HeartBeatLastRefreshTime_ = currentTime;
-              SendOSCMessage("/xremote");
-          }
-        }
         QueueOSCMessage(NULL); // flush any latent bundles
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSC_X32ControlSurfaceIO :public OSC_ControlSurfaceIO
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+protected:
+    DWORD X32HeartBeatRefreshInterval_;
+    DWORD X32HeartBeatLastRefreshTime_;
+    
+public:
+    OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
+    virtual ~OSC_X32ControlSurfaceIO() {}
+
+    void Run() override
+    {
+        DWORD currentTime = GetTickCount();
+
+        if ((currentTime - X32HeartBeatLastRefreshTime_) > X32HeartBeatRefreshInterval_)
+        {
+            X32HeartBeatLastRefreshTime_ = currentTime;
+            SendOSCMessage("/xremote");
+        }
+        
+        OSC_ControlSurfaceIO::Run();
     }
 };
 
@@ -3561,7 +3577,7 @@ public:
     {
         surfaceIO_->BeginRun();
         ControlSurface::RequestUpdate();
-        surfaceIO_->Run(IsX32());
+        surfaceIO_->Run();
     }
 
     virtual void HandleExternalInput() override

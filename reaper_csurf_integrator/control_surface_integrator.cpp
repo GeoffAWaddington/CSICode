@@ -2062,14 +2062,12 @@ void CSurfIntegrator::Init()
             
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 4) // If CSI.ini file is missing refresh rate, supply default -- 15
-                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), 15));
-                else if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 5)
+                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 5)
                     midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4])));
-                else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 5) // If CSI.ini file is missing max packets per run, supply default -- 0 -- no max
-                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], 0));
                 else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 6)
                     oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
+                else if (tokens[0] == s_OSCX32SurfaceToken && tokens.size() == 6)
+                    oscSurfacesIO_.Add(new OSC_X32ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
                 else if (tokens[0] == s_PageToken)
                 {
                     bool followMCP = true;
@@ -2134,8 +2132,6 @@ void CSurfIntegrator::Init()
                         string_list::string_ref zoneFolder = tokens[4];
                         string_list::string_ref fxZoneFolder = tokens[5];
                         
-                        // GAW -- there is a potential bug here (if you hand edit CSI.ini for instance), no way to tell if surfacew is MIDI or OSC
-                        // maybe prepend the line with s_MidiSurfaceToken or s_OSCSurfaceToken, would break existing installs though
                         bool foundIt = false;
                         
                         for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
@@ -5274,13 +5270,18 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+OSC_X32ControlSurfaceIO::OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : OSC_ControlSurfaceIO(csi, surfaceName, receiveOnPort, transmitToPort, transmitToIpAddress, maxPacketsPerRun)
+{
+    X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
+    X32HeartBeatLastRefreshTime_ = GetTickCount()-30000;
+}
+
 OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : csi_(csi), name_(surfaceName)
 {
     // private:
     inSocket_ = NULL;
     outSocket_ = NULL;
-    X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
-    X32HeartBeatLastRefreshTime_ = GetTickCount()-30000;
     maxBundleSize_ = 0; // could be user configured, possible some networks might enforce a 1500 byte MTU or something
     maxPacketsPerRun_ = maxPacketsPerRun < 0 ? 0 : maxPacketsPerRun;
     sentPacketCount_ = 0;
