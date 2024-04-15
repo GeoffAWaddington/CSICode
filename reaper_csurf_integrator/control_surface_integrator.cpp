@@ -1668,6 +1668,10 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
             widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
             widget->AddFeedbackProcessor(new OSC_IntFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_X32Processor")
+            widget->AddFeedbackProcessor(new OSC_X32FeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_X32IntProcessor")
+            widget->AddFeedbackProcessor(new OSC_X32IntFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
     }
 }
 
@@ -3399,35 +3403,37 @@ void OSC_FeedbackProcessor::SetColorValue(const rgba_color &color)
     if (lastColor_ != color)
     {
         lastColor_ = color;
-
         char tmp[32];
-        if (surface_->IsX32())
-            X32SetColorValue(color);
-        else
-            surface_->SendOSCMessage(this, (oscAddress_ + "/Color").c_str(), color.rgba_to_string(tmp));
+        surface_->SendOSCMessage(this, (oscAddress_ + "/Color").c_str(), color.rgba_to_string(tmp));
     }
 }
 
-void OSC_FeedbackProcessor::X32SetColorValue(const rgba_color &color)
+void OSC_X32FeedbackProcessor::SetColorValue(const rgba_color &color)
 {
-    int surfaceColor = 0;
-    int r = color.r;
-    int g = color.g;
-    int b = color.b;
+    if (lastColor_ != color)
+    {
+        lastColor_ = color;
 
-    if (r == 64 && g == 64 && b == 64)                               surfaceColor = 8;    // BLACK
-    else if (r > g && r > b)                                         surfaceColor = 1;    // RED
-    else if (g > r && g > b)                                         surfaceColor = 2;    // GREEN
-    else if (abs(r - g) < 30 && r > b && g > b)                      surfaceColor = 3;    // YELLOW
-    else if (b > r && b > g)                                         surfaceColor = 4;    // BLUE
-    else if (abs(r - b) < 30 && r > g && b > g)                      surfaceColor = 5;    // MAGENTA
-    else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
-    else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
-
-    string oscAddress = "/ch/";
-    if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
-    oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
-    surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
+        
+        int surfaceColor = 0;
+        int r = color.r;
+        int g = color.g;
+        int b = color.b;
+        
+        if (r == 64 && g == 64 && b == 64)                               surfaceColor = 8;    // BLACK
+        else if (r > g && r > b)                                         surfaceColor = 1;    // RED
+        else if (g > r && g > b)                                         surfaceColor = 2;    // GREEN
+        else if (abs(r - g) < 30 && r > b && g > b)                      surfaceColor = 3;    // YELLOW
+        else if (b > r && b > g)                                         surfaceColor = 4;    // BLUE
+        else if (abs(r - b) < 30 && r > g && b > g)                      surfaceColor = 5;    // MAGENTA
+        else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
+        else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
+        
+        string oscAddress = "/ch/";
+        if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
+        oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
+        surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
+    }
 }
 
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
@@ -3455,23 +3461,30 @@ void OSC_FeedbackProcessor::ForceClear()
     surface_->SendOSCMessage(this, oscAddress_.c_str(), "");
 }
 
+void OSC_IntFeedbackProcessor::ForceClear()
+{
+    lastDoubleValue_ = 0.0;
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), 0.0);
+}
+
 void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
     lastDoubleValue_ = value;
     
-    if (surface_->IsX32() && oscAddress_.find("/-stat/selidx") != string::npos)
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
+}
+
+void OSC_X32IntFeedbackProcessor::ForceValue(const PropertyList &properties, double value)
+{
+    lastDoubleValue_ = value;
+    
+    if (oscAddress_.find("/-stat/selidx") != string::npos)
     {
         if (value != 0.0)
             surface_->SendOSCMessage(this, "/-stat/selidx", widget_->GetChannelNumber() -1);
     }
     else
         surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
-}
-
-void OSC_IntFeedbackProcessor::ForceClear()
-{
-    lastDoubleValue_ = 0.0;
-    surface_->SendOSCMessage(this, oscAddress_.c_str(), 0.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -5337,43 +5350,71 @@ OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
     }
 }
 
- void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
- {
-    if (inSocket_ != NULL && inSocket_->isOk())
-    {
-        while (inSocket_->receiveNextPacket(0))  // timeout, in ms
-        {
-            packetReader_.init(inSocket_->packetData(), inSocket_->packetSize());
-            oscpkt::Message *message;
-            
-            while (packetReader_.isOk() && (message = packetReader_.popMessage()) != 0)
-            {
-                if (message->arg().isFloat())
-                {
-                    float value = 0;
-                    message->arg().popFloat(value);
-                    surface->ProcessOSCMessage(message->addressPattern(), value);
-                }
-                else if (message->arg().isInt32())
-                {
-                    int value;
-                    message->arg().popInt32(value);
-                    
-                    if (surface->IsX32() && message->addressPattern() == "/-stat/selidx")
-                    {
-                        string x32Select = message->addressPattern() + '/';
-                        if (value < 10)
-                            x32Select += '0';
-                        x32Select += int_to_string(value);
-                        surface->ProcessOSCMessage(x32Select, 1.0);
-                    }
-                    else
-                        surface->ProcessOSCMessage(message->addressPattern(), value);
-                }
-            }
-        }
-    }
- }
+void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
+{
+   if (inSocket_ != NULL && inSocket_->isOk())
+   {
+       while (inSocket_->receiveNextPacket(0))  // timeout, in ms
+       {
+           packetReader_.init(inSocket_->packetData(), inSocket_->packetSize());
+           oscpkt::Message *message;
+           
+           while (packetReader_.isOk() && (message = packetReader_.popMessage()) != 0)
+           {
+               if (message->arg().isFloat())
+               {
+                   float value = 0;
+                   message->arg().popFloat(value);
+                   surface->ProcessOSCMessage(message->addressPattern(), value);
+               }
+               else if (message->arg().isInt32())
+               {
+                   int value;
+                   message->arg().popInt32(value);
+                   surface->ProcessOSCMessage(message->addressPattern(), value);
+               }
+           }
+       }
+   }
+}
+
+void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
+{
+   if (inSocket_ != NULL && inSocket_->isOk())
+   {
+       while (inSocket_->receiveNextPacket(0))  // timeout, in ms
+       {
+           packetReader_.init(inSocket_->packetData(), inSocket_->packetSize());
+           oscpkt::Message *message;
+           
+           while (packetReader_.isOk() && (message = packetReader_.popMessage()) != 0)
+           {
+               if (message->arg().isFloat())
+               {
+                   float value = 0;
+                   message->arg().popFloat(value);
+                   surface->ProcessOSCMessage(message->addressPattern(), value);
+               }
+               else if (message->arg().isInt32())
+               {
+                   int value;
+                   message->arg().popInt32(value);
+                   
+                   if (message->addressPattern() == "/-stat/selidx")
+                   {
+                       string x32Select = message->addressPattern() + '/';
+                       if (value < 10)
+                           x32Select += '0';
+                       x32Select += int_to_string(value);
+                       surface->ProcessOSCMessage(x32Select, 1.0);
+                   }
+                   else
+                       surface->ProcessOSCMessage(message->addressPattern(), value);
+               }
+           }
+       }
+   }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface

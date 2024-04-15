@@ -3333,10 +3333,22 @@ public:
     virtual const char *GetName() override { return "OSC_FeedbackProcessor"; }
 
     virtual void SetColorValue(const rgba_color &color) override;
-    virtual void X32SetColorValue(const rgba_color &color);
     virtual void ForceValue(const PropertyList &properties, double value) override;
     virtual void ForceValue(const PropertyList &properties, const char * const &value) override;
     virtual void ForceClear() override;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSC_X32FeedbackProcessor : public OSC_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    OSC_X32FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress)  {}
+    ~OSC_X32FeedbackProcessor() {}
+
+    virtual const char *GetName() override { return "OSC_X32FeedbackProcessor"; }
+
+    virtual void SetColorValue(const rgba_color &color) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3351,6 +3363,19 @@ public:
 
     virtual void ForceValue(const PropertyList &properties, double value) override;
     virtual void ForceClear() override;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSC_X32IntFeedbackProcessor : public OSC_IntFeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    OSC_X32IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_IntFeedbackProcessor(csi, surface, widget, oscAddress) {}
+    ~OSC_X32IntFeedbackProcessor() {}
+
+    virtual const char *GetName() override { return "OSC_X32IntFeedbackProcessor"; }
+
+    virtual void ForceValue(const PropertyList &properties, double value) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3376,7 +3401,7 @@ public:
 
     const char *GetName() { return name_.c_str(); }
 
-    void HandleExternalInput(OSC_ControlSurface *surface);
+    virtual void HandleExternalInput(OSC_ControlSurface *surface);
 
     void QueuePacket(const void *p, int sz)
     {
@@ -3530,6 +3555,8 @@ public:
     OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
     virtual ~OSC_X32ControlSurfaceIO() {}
 
+    virtual void HandleExternalInput(OSC_ControlSurface *surface) override;
+
     void Run() override
     {
         DWORD currentTime = GetTickCount();
@@ -3568,11 +3595,6 @@ public:
     virtual void SendOSCMessage(const char *zoneName, double value) override;
     virtual void SendOSCMessage(const char *zoneName, const char *value) override;
 
-    bool IsX32()
-    {
-        return strstr(GetName(), "X32") || strstr(GetName(), "x32");
-    }
-    
     virtual void RequestUpdate() override
     {
         surfaceIO_->BeginRun();
