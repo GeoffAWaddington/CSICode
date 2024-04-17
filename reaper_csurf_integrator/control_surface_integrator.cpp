@@ -5324,6 +5324,13 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const cha
 
 OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
 {
+    int cnt = 0;
+    while (packetQueue_.GetSize()>=sizeof(int) && cnt < 100)
+    {
+        BeginRun();
+        if (cnt++) Sleep(10);
+    }
+
     if (inSocket_)
     {
         for (int x = 0; x < s_inputSockets.GetSize(); x ++)
