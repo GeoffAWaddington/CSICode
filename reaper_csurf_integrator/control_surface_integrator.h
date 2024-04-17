@@ -3376,6 +3376,7 @@ public:
     virtual const char *GetName() override { return "OSC_X32IntFeedbackProcessor"; }
 
     virtual void ForceValue(const PropertyList &properties, double value) override;
+    virtual void SetColorValue(const rgba_color &color) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
