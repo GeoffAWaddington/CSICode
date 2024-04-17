@@ -1180,6 +1180,14 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 #else
 
+static void InitLearnDlg(HWND hwndDlg)
+{
+    SetDlgItemText(hwndDlg, IDC_FXNAME, s_zoneDef.fxName.c_str());
+    SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_zoneDef.fxAlias.c_str());
+
+    PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+}
+
 static POINT lastCursorPosition;
 
 static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1190,12 +1198,6 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
             if (((LPNMHDR)lParam)->code == NM_DBLCLK)
                 EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-            else if (((LPNMHDR)lParam)->code == LVN_BEGINDRAG)
-            {
-                s_isDragging = true;
-                GetCursorPos(&lastCursorPosition);
-                SetCapture(hwndDlg);
-            }
         }
             break;
             
@@ -1229,61 +1231,10 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             }
             
             s_dlgResult = IDCANCEL;
-            
-            SetDlgItemText(hwndDlg, IDC_FXNAME, s_zoneDef.fxName.c_str());
-            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_zoneDef.fxAlias.c_str());
-            
-            PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-            
-            break;
-        }
-            
-        case WM_LBUTTONUP:
-        {
-            if (s_isDragging)
-            {
-                s_isDragging = false;
-                ReleaseCapture();
-            }
-            break;
-        }
 
-        case WM_MOUSEMOVE:
-        {
-            if (s_isDragging)
-            {
-                POINT currentCursorPosition;
-                GetCursorPos(&currentCursorPosition);
-                
-                if (lastCursorPosition.y > currentCursorPosition.y && lastCursorPosition.y - currentCursorPosition.y > 21)
-                {
-                    lastCursorPosition = currentCursorPosition;
-                    
-                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                }
-                else if (currentCursorPosition.y > lastCursorPosition.y && currentCursorPosition.y - lastCursorPosition.y > 21)
-                {
-                    lastCursorPosition = currentCursorPosition;
-                    
-                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                }
-            }
             break;
         }
             
-        case WM_KEYDOWN:
-            switch (wParam)
-            {
-                case VK_LEFT:
-                    MoveUp(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                    break;
-                    
-                case VK_RIGHT:
-                    MoveDown(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-                    break;
-            }
-            break;
-
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
@@ -1313,7 +1264,7 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        EndDialog(hwndDlg, 0);
+                        ShowWindow(hwndDlg, SW_HIDE);
                     break ;
             }
         }
@@ -1322,6 +1273,8 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     return 0;
 }
 #endif
+
+static HWND learnDlg = NULL;
 
 bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
 {
@@ -1332,8 +1285,13 @@ bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
     
     s_zoneManager->UnpackFXZone(s_zoneDef);
     
-    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapFX), g_hwnd, dlgProcRemapFX);
+    if (learnDlg == NULL)
+        learnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapFX), g_hwnd, dlgProcRemapFX);
     
+    InitLearnDlg(learnDlg);
+    
+    ShowWindow(learnDlg, SW_SHOW);
+
     if (s_dlgResult == IDSAVE)
     {
         s_zoneManager->SaveRemappedZone(s_zoneDef);
