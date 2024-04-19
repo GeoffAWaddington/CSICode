@@ -25,6 +25,8 @@ bool g_surfaceInDisplay;
 bool g_surfaceOutDisplay;
 bool g_fxParamsWrite;
 
+Widget* g_FocusedWidget;
+
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties)
 {
     for (int i = start; i < finish; i++)
@@ -3464,7 +3466,7 @@ void OSC_FeedbackProcessor::ForceClear()
 void OSC_IntFeedbackProcessor::ForceClear()
 {
     lastDoubleValue_ = 0.0;
-    surface_->SendOSCMessage(this, oscAddress_.c_str(), 0.0);
+    surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)0);
 }
 
 void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double value)
@@ -4518,6 +4520,10 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
                 cell.address = string(tokens[1]);
                 cell.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
                 
+                string_list modifierTokens;
+                GetSubTokens(modifierTokens, cell.modifiers.c_str(), '+');
+                cell.modifier = GetSurface()->GetModifierManager()->GetModifierValue(modifierTokens);
+
                 zd.cells.push_back(cell);
             }
             else
@@ -5352,11 +5358,13 @@ OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const cha
 
 OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
 {
-    int cnt = 0;
-    while (packetQueue_.GetSize()>=sizeof(int) && cnt < 100)
+    Sleep(33);
+    
+    int count = 0;
+    while (packetQueue_.GetSize()>=sizeof(int) && count++ < 100)
     {
         BeginRun();
-        if (cnt++) Sleep(10);
+        if (count) Sleep(33);
     }
 
     if (inSocket_)

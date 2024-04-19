@@ -23,8 +23,8 @@ static FXZoneDefinition s_zoneDef;
 
 static int s_dlgResult = IDCANCEL;
 
-static int s_fxListIndex = 0;
-static int s_groupIndex = 0;
+static int s_fxCellIndex = 0;
+static int s_fxParamTemplateIndex = 0;
 
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -32,11 +32,11 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, (__LOCALIZE("Advanced Edit Group ","csi_adv") + int_to_string(s_groupIndex + 1)).c_str());
+            SetWindowText(hwndDlg, (__LOCALIZE("Advanced Edit Group ","csi_adv") + int_to_string(s_fxParamTemplateIndex + 1)).c_str());
 
             s_dlgResult = IDCANCEL;
 
-            FXParamTemplate &t = s_zoneDef.cells[s_fxListIndex].paramTemplates[s_groupIndex];
+            FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[s_fxParamTemplateIndex];
 
             char tmp[BUFSZ];
             if (t.deltaValue != 0.0)
@@ -82,7 +82,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        FXParamTemplate &t = s_zoneDef.cells[s_fxListIndex].paramTemplates[s_groupIndex];
+                        FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[s_fxParamTemplateIndex];
 
                         char buf[BUFSZ];
 
@@ -373,7 +373,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             ShowFontControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
             ShowColorControls(hwndDlg, 0, NUM_ELEM(s_groupBoxes), false);
 
-            SurfaceCell &cell = s_zoneDef.cells[s_fxListIndex];
+            SurfaceCell &cell = s_zoneDef.cells[s_fxCellIndex];
             
             SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + cell.modifiers + cell.address).c_str());
 
@@ -439,9 +439,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     SendDlgItemMessage(hwndDlg, s_paramValueDisplayFontPickers[i], CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
             }
 
-            for (int i = 0; i < s_zoneDef.cells[s_fxListIndex].paramTemplates.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
+            for (int i = 0; i < s_zoneDef.cells[s_fxCellIndex].paramTemplates.size() && i < NUM_ELEM(s_paramNumEditControls); i++)
             {
-                FXParamTemplate &t = s_zoneDef.cells[s_fxListIndex].paramTemplates[i];
+                FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[i];
                 
                 SetDlgItemText(hwndDlg, s_paramNumEditControls[i], t.paramNum.c_str());
                 SetDlgItemText(hwndDlg, s_fixedTextEditControls[i], t.paramName.c_str());
@@ -588,7 +588,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                           
                 case IDC_AdvancedGroup1:
                 {
-                    s_groupIndex = 0;
+                    s_fxParamTemplateIndex = 0;
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
                     s_dlgResult = IDCANCEL;
                 }
@@ -596,7 +596,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     
                 case IDC_AdvancedGroup2:
                 {
-                    s_groupIndex = 1;
+                    s_fxParamTemplateIndex = 1;
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
                     s_dlgResult = IDCANCEL;
                 }
@@ -604,7 +604,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     
                 case IDC_AdvancedGroup3:
                 {
-                    s_groupIndex = 2;
+                    s_fxParamTemplateIndex = 2;
                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
                     s_dlgResult = IDCANCEL;
                 }
@@ -621,9 +621,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        for (int i = 0; i < s_zoneDef.cells[s_fxListIndex].paramTemplates.size(); i++)
+                        for (int i = 0; i < s_zoneDef.cells[s_fxCellIndex].paramTemplates.size(); i++)
                         {
-                            FXParamTemplate &t = s_zoneDef.cells[s_fxListIndex].paramTemplates[i];
+                            FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[i];
   
                             char buf[BUFSZ];
                             
@@ -974,7 +974,7 @@ static void EditItem(HWND hwndParamList)
     
     if (index >= 0)
     {
-        s_fxListIndex = index;
+        s_fxCellIndex = index;
         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXParam), g_hwnd, dlgProcEditFXParam);
         
         if (s_dlgResult == IDOK)
@@ -997,6 +997,8 @@ static bool DeleteZone()
     return true;
 }
 
+
+/*
 static bool s_isDragging = false;
 
 #ifdef _WIN32
@@ -1179,6 +1181,8 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 }
 
 #else
+*/
+
 
 static void InitLearnDlg(HWND hwndDlg)
 {
@@ -1188,8 +1192,6 @@ static void InitLearnDlg(HWND hwndDlg)
     PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
 }
 
-static POINT lastCursorPosition;
-
 static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -1197,7 +1199,74 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_NOTIFY:
         {
             if (((LPNMHDR)lParam)->code == NM_DBLCLK)
+            {
                 EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+
+                LVHITTESTINFO hitTestInfo;
+                memset(&hitTestInfo, 0, sizeof(hitTestInfo));
+                POINT cursorPos;
+                GetCursorPos(&cursorPos);
+                ScreenToClient(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &cursorPos);
+                hitTestInfo.pt = cursorPos;
+                s_fxCellIndex = ListView_SubItemHitTest(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &hitTestInfo);
+                int column = hitTestInfo.iSubItem;
+                
+                if (column != 0)
+                {
+                    s_fxParamTemplateIndex = (column - 1) / 2;
+                        
+                    // Edit the cell param template
+                }
+            }
+            else if (((LPNMHDR)lParam)->code == NM_CUSTOMDRAW)
+            {
+                LPNMLVCUSTOMDRAW lplvcd = (LPNMLVCUSTOMDRAW)lParam;
+                switch(lplvcd->nmcd.dwDrawStage)
+                {
+#ifdef _WIN32
+                    case CDDS_PREPAINT:
+                        SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_NOTIFYITEMDRAW);
+                        return 1;
+                    case CDDS_ITEMPREPAINT|CDDS_SUBITEM:
+#endif
+                    case CDDS_ITEMPREPAINT:
+                    {
+                        SurfaceCell *cell = s_zoneDef.cells.Get(lplvcd->nmcd.dwItemSpec);
+                             
+                        if (lplvcd->iSubItem != 0)
+                        {
+                            int cellParamIndex = (lplvcd->iSubItem - 1) / 2;
+                            
+                            string widgetName = cell->paramTemplates.Get(cellParamIndex)->control + cell->address;
+                            
+                            const WDL_TypedBuf<int> &currentModifiers = s_zoneManager->GetSurface()->GetModifiers();
+
+                            if (g_FocusedWidget != NULL && g_FocusedWidget->GetName() == widgetName && currentModifiers.GetSize() && currentModifiers.Get()[0] == cell->modifier)
+                                lplvcd->clrText = RGB(0xff, 00, 00);
+                            else if (cell->paramTemplates.Get(cellParamIndex)->controlParams != "")
+                                lplvcd->clrText =  RGB(00, 00, 0xff);
+                            else
+                                lplvcd->clrText =  RGB(0x00, 00, 00);;
+                        }
+                        
+
+                        //lplvcd->clrTextBk = 0x00ffffff;
+
+                        // can also remove selected state if desired lplvcd->nmcd.uItemState &= ~CDIS_SELECTED;
+                        //if (LVIS_FOCUSED)
+                        //{
+                            //lplvcd->nmcd.uItemState &= ~CDIS_FOCUS;
+                        //}
+                        
+#ifdef _WIN32
+                        SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, 0);
+#endif
+                        
+                    }
+
+                  return 1;
+                }
+            }
         }
             break;
             
@@ -1211,6 +1280,16 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
             
             vector<int> columnSizes;
+            
+#ifdef _WIN32
+            columnSizes.push_back(160); // modifiers
+            
+            for (int i = 1; i <= s_numGroups; i++)
+            {
+                columnSizes.push_back(80);  // widget
+                columnSizes.push_back(150); // param name
+            }
+#else
             columnSizes.push_back(65); // modifiers
             
             for (int i = 1; i <= s_numGroups; i++)
@@ -1218,7 +1297,8 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 columnSizes.push_back(38); // widget
                 columnSizes.push_back(75); // param name
             }
-            
+#endif
+
             LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
             columnDescriptor.cx = columnSizes[0];
             
@@ -1272,9 +1352,15 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     
     return 0;
 }
-#endif
+//#endif
 
 static HWND learnDlg = NULL;
+
+void RefreshLearnDlg()
+{
+    if (learnDlg != NULL)
+        InitLearnDlg(learnDlg);
+}
 
 bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
 {
