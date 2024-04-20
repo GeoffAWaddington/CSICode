@@ -731,6 +731,8 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
 {
     ptrvector<FXCellLayoutInfo> fxLayouts;
     
+    numFXChannels_ = 0;
+
     try
     {
         fpistream file(layoutPath.c_str());
@@ -746,21 +748,24 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
             {
                 string_list tokens;
                 GetTokens(tokens, line.c_str());
-
-                if (tokens.size() == 3)
+                
+                if (tokens.size() == 2)
                 {
-                    
-                    int channelCount = atoi(tokens[2].c_str());
-                    for (int i = 1; i <= channelCount; ++i )
+                    if (tokens[0] == "Channels")
+                        numFXChannels_ = atoi(tokens[1].c_str());
+                    else
                     {
-                        FXCellLayoutInfo info;
-
-                        info.modifiers = tokens[0];
-                        if (info.modifiers != "")
-                            info.modifiers += "+";
-                        info.address = tokens[1];
-                        info.address += int_to_string(i);
-                        fxLayouts.push_back(info);
+                        for (int i = 1; i <= numFXChannels_; ++i )
+                        {
+                            FXCellLayoutInfo info;
+                            
+                            info.modifiers = tokens[0];
+                            if (info.modifiers != "")
+                                info.modifiers += "+";
+                            info.address = tokens[1];
+                            info.address += int_to_string(i);
+                            fxLayouts.push_back(info);
+                        }
                     }
                 }
             }
@@ -4028,6 +4033,39 @@ void ZoneManager::SaveLearnedFXParams()
     ClearLearnedFXParams();
 }
 
+void ZoneManager::SaveRemappedZone(const FXZoneDefinition &zoneDef)
+{
+    FILE *fxFile = fopenUTF8(zoneDef.fullPath.c_str(),"wb");
+    
+    if (fxFile)
+    {
+        fprintf(fxFile, "Zone \"%s\" \"%s\"\n", zoneDef.fxName.c_str(), zoneDef.fxAlias.c_str());
+        
+        for (int i = 0; i < (int)zoneDef.prologue.size(); ++i)
+            fprintf(fxFile, "%s\n", zoneDef.prologue[i].c_str());
+        
+        fprintf(fxFile, "%s\n\n", s_BeginAutoSection);
+        
+        for (int i = 0; i < zoneDef.cells.size(); ++i)
+            zoneDef.cells.Get(i)->WriteTemplateToFile(fxFile, paramWidgets_);
+        
+        fprintf(fxFile, "%s\n", s_EndAutoSection);
+        
+        for (int i = 0; i < (int)zoneDef.epilogue.size(); ++i)
+            fprintf(fxFile, "%s\n", zoneDef.epilogue[i].c_str());
+        
+        fprintf(fxFile, "ZoneEnd\n");
+        
+        for (int i = 0; i < (int)zoneDef.rawParams.size(); ++i)
+            fprintf(fxFile, "%s\n", zoneDef.rawParams[i].c_str());
+        
+        fclose(fxFile);
+    }
+    
+    PreProcessZoneFile(zoneDef.fullPath.c_str(), this);
+    GoFocusedFX();
+}
+
 void ZoneManager::EraseLastTouchedControl()
 {
     if (lastTouchedControl_ == NULL)
@@ -4267,14 +4305,8 @@ void ZoneManager::RemapZone()
             const char *path = zoneFilePaths_.Get(FXName)->filePath.c_str();
             
             if (path[0] != 0)
-            {
-                if (::RemapFXDialog(this, path))
-                {
-                    PreProcessZoneFile(path, this);
-                    GoFocusedFX();
-                }
-            }
-        }
+                RemapFXDialog(this, path);
+         }
     }
 }
 

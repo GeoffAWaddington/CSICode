@@ -1101,12 +1101,6 @@ struct FXCellLayoutInfo
 {
     string modifiers;
     string address;
-    int channelCount;
-    
-    FXCellLayoutInfo()
-    {
-        channelCount = 0;
-    }
     
     string_list &GetModifierTokens(string_list &modifierList)
     {
@@ -1399,6 +1393,7 @@ private:
     
     Zone *homeZone_;
     ptrvector<SurfaceCell> surfaceCells_;
+    int numFXChannels_;
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
@@ -1825,6 +1820,7 @@ public:
     {
         //private:
         homeZone_ = NULL;
+        numFXChannels_ = 0;
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
         lastTouchedControl_ = NULL;
@@ -1884,6 +1880,7 @@ public:
     const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
+    int  GetNumFXChannels() { return numFXChannels_; }
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void UnpackFXZone(FXZoneDefinition &zoneDef);
@@ -1903,6 +1900,7 @@ public:
     void AutoLearnFocusedFX();
     void SaveLearnedFXParams();
     void EraseLastTouchedControl();
+    void SaveRemappedZone(const FXZoneDefinition &zoneDef);
     
     const string &GetZoneFolder() { return zoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
@@ -2317,36 +2315,6 @@ public:
 
         if (homeZone_ != NULL)
             homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    }
-            
-    void SaveRemappedZone(const FXZoneDefinition &zoneDef)
-    {
-        FILE *fxFile = fopenUTF8(zoneDef.fullPath.c_str(),"wb");
-        
-        if (fxFile)
-        {
-            fprintf(fxFile, "Zone \"%s\" \"%s\"\n", zoneDef.fxName.c_str(), zoneDef.fxAlias.c_str());
-            
-            for (int i = 0; i < (int)zoneDef.prologue.size(); ++i)
-                fprintf(fxFile, "%s\n", zoneDef.prologue[i].c_str());
-            
-            fprintf(fxFile, "%s\n\n", s_BeginAutoSection);
-            
-            for (int i = 0; i < zoneDef.cells.size(); ++i)
-                zoneDef.cells.Get(i)->WriteTemplateToFile(fxFile, paramWidgets_);
-            
-            fprintf(fxFile, "%s\n", s_EndAutoSection);
-            
-            for (int i = 0; i < (int)zoneDef.epilogue.size(); ++i)
-                fprintf(fxFile, "%s\n", zoneDef.epilogue[i].c_str());
-            
-            fprintf(fxFile, "ZoneEnd\n");
-            
-            for (int i = 0; i < (int)zoneDef.rawParams.size(); ++i)
-                fprintf(fxFile, "%s\n", zoneDef.rawParams[i].c_str());
-            
-            fclose(fxFile);
-        }
     }
 };
 
