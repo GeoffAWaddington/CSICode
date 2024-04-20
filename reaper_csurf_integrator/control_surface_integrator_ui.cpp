@@ -188,33 +188,33 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + cell.modifiers + cell.address).c_str());
 
-                WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_stepPickers[i]));
-                SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("Custom","csi_fxparm"));
-                
-                for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
-                    SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickSteps));
+            SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("Custom","csi_fxparm"));
+            
+            for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
+                SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
                                       
             PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
 
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_widgetTypePickers[i]));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickWidgetType));
             SendDlgItemMessage(hwndDlg, IDC_PickWidgetType, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
             for (int j = 0; j < s_zoneManager->paramWidgets_.size(); j++)
                 SendDlgItemMessage(hwndDlg, IDC_PickWidgetType, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->paramWidgets_[j].c_str());
             
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_ringStylePickers[i]));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickRingStyle));
             for (int j = 0; j < s_zoneManager->ringStyles_.size(); j++)
                 SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->ringStyles_[j].c_str());
             
             if (s_zoneManager->ringStyles_.size())
                 SendMessage(GetDlgItem(hwndDlg, IDC_PickRingStyle), CB_SETCURSEL, 0, 0);
             
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_fixedTextDisplayRowPickers[i]));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow));
 
             for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                 SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
 
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, s_paramValueDisplayRowPickers[i]));
+            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow));
 
             for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
                 SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
@@ -790,6 +790,8 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 hitTestInfo.pt = cursorPos;
                 s_fxCellIndex = ListView_SubItemHitTest(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &hitTestInfo);
                 int column = hitTestInfo.iSubItem;
+
+                SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), -1, LVIS_SELECTED, ! LVIS_SELECTED);
                 
                 if (column != 0)
                 {
