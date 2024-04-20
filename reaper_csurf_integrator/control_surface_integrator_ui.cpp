@@ -46,7 +46,6 @@ static const int s_baseControls[] =
     IDC_GroupFXParamValueDisplay,
 };
 
-
 static const int s_fontControls[] =
 {
     IDC_FixedTextDisplayFontLabel,
@@ -139,7 +138,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 {
     switch (uMsg)
     {
-            
         case WM_PAINT:
         {
             if (s_zoneManager->hasColor_)
@@ -149,18 +147,15 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
                 {
-                    const int colorPicker = s_buttonColors[x][0];
-                    // GAW TBD -- think of a more elegant way to do this :)
-
-                    const int colorPicker2 = s_buttonColors[x][1];
+                    const int colorPickerBox = s_buttonColors[x][1];
                     const int colorValue = s_buttonColors[x][2];
 
                     HBRUSH brush = CreateSolidBrush(colorValue);
                     
                     RECT clientRect, windowRect;
                     POINT p;
-                    GetClientRect(GetDlgItem(hwndDlg, colorPicker2), &clientRect);
-                    GetWindowRect(GetDlgItem(hwndDlg, colorPicker2), &windowRect);
+                    GetClientRect(GetDlgItem(hwndDlg, colorPickerBox), &clientRect);
+                    GetWindowRect(GetDlgItem(hwndDlg, colorPickerBox), &windowRect);
                     p.x = windowRect.left;
                     p.y = windowRect.top;
                     ScreenToClient(hwndDlg, &p);
@@ -347,10 +342,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 ShowColorControls(hwndDlg, true);
                 InvalidateRect(hwndDlg, NULL, true);
             }
-            
 
-            
-            
             char tmp[BUFSZ];
             if (t.deltaValue != 0.0)
                 SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(t.deltaValue, tmp, sizeof(tmp)));
@@ -384,11 +376,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
-            
-
-            
-            
-            
         }
             break;
 
@@ -579,8 +566,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         
                         t.valueDisplayParams = propBuf;
                         propBuf[0] = 0;
-                        
-                        
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
                         if (buf[0])
@@ -613,8 +598,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             for (int i = 0; i < (int)ticks.size(); ++i)
                                 t.acceleratedTickValues.push_back(atoi(ticks[i].c_str()));
                         }
-
-                        
                         
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);

@@ -76,6 +76,7 @@
 #define IDC_FXParamValueDisplayPickFont 1163
 #define IDC_FixedTextDisplayPickFont    1166
 #define IDC_GroupFXParamValueDisplay    1169
+#define IDC_GroupFXParamValues          1170
 #define IDC_FXParamRingColor            1173
 #define IDC_FXParamIndicatorColor       1174
 #define IDC_FixedTextDisplayForegroundColor 1179
