@@ -60,7 +60,6 @@
 #define IDC_AutoMap                     1103
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
-#define IDC_Group                       1137
 #define IDC_AllParams                   1139
 #define IDC_GroupFXParam                1140
 #define IDC_FXParamNumEdit              1141
@@ -96,7 +95,6 @@
 #define IDC_ParamValueDisplayTopLabel   1228
 #define IDC_ParamValueDisplayBottomLabel 1229
 #define IDC_StepsPromptGroup            1231
-#define IDC_AdvancedGroup               1233
 #define IDC_LIST_Listeners              1246
 #define IDC_LIST_Broadcasters           1247
 #define IDC_EDIT_Delta                  1248

@@ -26,117 +26,6 @@ static int s_dlgResult = IDCANCEL;
 static int s_fxCellIndex = 0;
 static int s_fxParamTemplateIndex = 0;
 
-static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-        case WM_INITDIALOG:
-        {
-            SetWindowText(hwndDlg, (__LOCALIZE("Advanced Edit Group ","csi_adv") + int_to_string(s_fxParamTemplateIndex + 1)).c_str());
-
-            s_dlgResult = IDCANCEL;
-
-            FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[s_fxParamTemplateIndex];
-
-            char tmp[BUFSZ];
-            if (t.deltaValue != 0.0)
-                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(t.deltaValue, tmp, sizeof(tmp)));
-
-            if (t.rangeMinimum != 1.0 ||
-                t.rangeMaximum != 0.0)
-            {
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, format_number(t.rangeMinimum, tmp, sizeof(tmp)));
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, format_number(t.rangeMaximum, tmp, sizeof(tmp)));
-            }
-
-            if (t.acceleratedDeltaValues.size() > 0)
-            {
-                string deltas;
-                
-                for (int i = 0; i < (int)t.acceleratedDeltaValues.size(); ++i)
-                {
-                    deltas += format_number(t.acceleratedDeltaValues[i], tmp, sizeof(tmp));
-                    deltas += " ";
-                }
-                
-                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
-            }
-
-            if (t.acceleratedTickValues.size() > 0)
-            {
-                string ticks;
-                
-                for (int i = 0; i < (int)t.acceleratedTickValues.size(); ++i)
-                    ticks += int_to_string(t.acceleratedTickValues[i]) + " ";
-                
-                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
-            }
-        }
-            break;
-            
-            
-        case WM_COMMAND:
-        {
-            switch(LOWORD(wParam))
-            {
-                case IDOK:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[s_fxParamTemplateIndex];
-
-                        char buf[BUFSZ];
-
-                        GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
-                        if (buf[0])
-                            t.deltaValue = atof(buf);
-
-                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
-                        if (buf[0])
-                            t.rangeMinimum = atof(buf);
-
-                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
-                        if (buf[0])
-                            t.rangeMaximum = atof(buf);
-
-                        GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
-                        if (buf[0])
-                        {
-                            t.acceleratedDeltaValues.clear();
-                            string_list deltas;
-                            GetTokens(deltas, buf);
-                            for (int i = 0; i < (int)deltas.size(); ++i)
-                                t.acceleratedDeltaValues.push_back(atof(deltas[i].c_str()));
-                        }
-
-                        GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
-                        if (buf[0])
-                        {
-                            t.acceleratedTickValues.clear();
-                            string_list ticks;
-                            GetTokens(ticks, buf);
-                            for (int i = 0; i < (int)ticks.size(); ++i)
-                                t.acceleratedTickValues.push_back(atoi(ticks[i].c_str()));
-                        }
-
-                        s_dlgResult = IDOK;
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break ;
-                    
-                case IDCANCEL:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        s_dlgResult = IDCANCEL;
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break ;
-            }
-        }
-    }
-    
-    return 0;
-}
-
 static const int s_baseControls[] =
 {
     IDC_FXParamNumEdit,
@@ -152,11 +41,9 @@ static const int s_baseControls[] =
     IDC_EditSteps,
     IDC_StepsPromptGroup,
     
-    IDC_Group,
     IDC_GroupFXParam,
     IDC_GroupFixedTextDisplay,
     IDC_GroupFXParamValueDisplay,
-    IDC_AdvancedGroup
 };
 
 
@@ -461,6 +348,47 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 InvalidateRect(hwndDlg, NULL, true);
             }
             
+
+            
+            
+            char tmp[BUFSZ];
+            if (t.deltaValue != 0.0)
+                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(t.deltaValue, tmp, sizeof(tmp)));
+
+            if (t.rangeMinimum != 1.0 ||
+                t.rangeMaximum != 0.0)
+            {
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, format_number(t.rangeMinimum, tmp, sizeof(tmp)));
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, format_number(t.rangeMaximum, tmp, sizeof(tmp)));
+            }
+
+            if (t.acceleratedDeltaValues.size() > 0)
+            {
+                string deltas;
+                
+                for (int i = 0; i < (int)t.acceleratedDeltaValues.size(); ++i)
+                {
+                    deltas += format_number(t.acceleratedDeltaValues[i], tmp, sizeof(tmp));
+                    deltas += " ";
+                }
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
+            }
+
+            if (t.acceleratedTickValues.size() > 0)
+            {
+                string ticks;
+                
+                for (int i = 0; i < (int)t.acceleratedTickValues.size(); ++i)
+                    ticks += int_to_string(t.acceleratedTickValues[i]) + " ";
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
+            }
+            
+
+            
+            
+            
         }
             break;
 
@@ -479,15 +407,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
-                          
-                case IDC_AdvancedGroup:
-                {
-                    s_fxParamTemplateIndex = 0;
-                    DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Advanced), g_hwnd, dlgProcEditAdvanced);
-                    s_dlgResult = IDCANCEL;
-                }
-                    break;
-                    
+                                              
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -659,6 +579,42 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         
                         t.valueDisplayParams = propBuf;
                         propBuf[0] = 0;
+                        
+                        
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
+                        if (buf[0])
+                            t.deltaValue = atof(buf);
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
+                        if (buf[0])
+                            t.rangeMinimum = atof(buf);
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
+                        if (buf[0])
+                            t.rangeMaximum = atof(buf);
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
+                        if (buf[0])
+                        {
+                            t.acceleratedDeltaValues.clear();
+                            string_list deltas;
+                            GetTokens(deltas, buf);
+                            for (int i = 0; i < (int)deltas.size(); ++i)
+                                t.acceleratedDeltaValues.push_back(atof(deltas[i].c_str()));
+                        }
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
+                        if (buf[0])
+                        {
+                            t.acceleratedTickValues.clear();
+                            string_list ticks;
+                            GetTokens(ticks, buf);
+                            for (int i = 0; i < (int)ticks.size(); ++i)
+                                t.acceleratedTickValues.push_back(atoi(ticks[i].c_str()));
+                        }
+
+                        
                         
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);

@@ -4727,7 +4727,8 @@ public:
       if (size==8) return (double *)ret;
       return NULL;
     }
-    double *GetMetronomeSecondaryVolumePtr() 
+    
+    double *GetMetronomeSecondaryVolumePtr()
     { 
       void *ret = projectconfig_var_addr(NULL,projectMetronomeSecondaryVolumeOffs_);
       if (ret) return (double *)ret;
