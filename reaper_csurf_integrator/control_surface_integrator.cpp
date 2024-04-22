@@ -731,7 +731,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
 {
     ptrvector<FXCellLayoutInfo> fxLayouts;
     
-    numFXChannels_ = 0;
+    numFXColumns_ = 0;
 
     try
     {
@@ -752,10 +752,10 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 if (tokens.size() == 2)
                 {
                     if (tokens[0] == "Channels")
-                        numFXChannels_ = atoi(tokens[1].c_str());
+                        numFXColumns_ = atoi(tokens[1].c_str());
                     else
                     {
-                        for (int i = 1; i <= numFXChannels_; ++i )
+                        for (int i = 1; i <= numFXColumns_; ++i )
                         {
                             FXCellLayoutInfo info;
                             
@@ -1930,6 +1930,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("SoftTakeover7BitTrackVolume", new SoftTakeover7BitTrackVolume());
     actions_.Insert("SoftTakeover14BitTrackVolume", new SoftTakeover14BitTrackVolume());
     actions_.Insert("TrackVolumeDB", new TrackVolumeDB());
+    actions_.Insert("X32TrackVolume", new X32TrackVolume());
     actions_.Insert("TrackToggleVCASpill", new TrackToggleVCASpill());
     actions_.Insert("TrackVCALeaderDisplay", new TrackVCALeaderDisplay());
     actions_.Insert("TrackToggleFolderSpill", new TrackToggleFolderSpill());
@@ -4470,6 +4471,8 @@ void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxInd
 
 void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 {
+    numRowsPerFXCell_ = 0;
+    
     zd.cells.clear();
     zd.prologue.clear();
     zd.epilogue.clear();
@@ -4659,6 +4662,9 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
             }
         }
     }
+    
+    if (zd.cells.size() > 0)
+        numRowsPerFXCell_ = zd.cells[0].paramTemplates.size();
 }
 
 void ZoneManager::DoTouch(Widget *widget, double value)

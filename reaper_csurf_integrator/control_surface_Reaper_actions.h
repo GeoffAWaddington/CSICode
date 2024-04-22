@@ -542,6 +542,63 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class X32TrackVolume : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+
+    double X32ToReaper(double x32Vol)
+    {
+        double    volDB   = 0;
+        if      (x32Vol >= 0.5)    volDB = x32Vol *  40.0 - 30.0;  // max dB value: +10.
+        else if (x32Vol >= 0.25)   volDB = x32Vol *  80.0 - 50.0;
+        else if (x32Vol >= 0.0625) volDB = x32Vol * 160.0 - 70.0;
+        else if (x32Vol >= 0.0)    volDB = x32Vol * 480.0 - 90.0;  // min dB value: -90 or -oo
+        return volDB;
+    }
+
+    double ReaperToX32(double volDB)
+    {
+        double    vol    = 0;
+        if      (volDB < -60.0) vol = (volDB + 90.0) / 480.0;
+        else if (volDB < -30.0) vol = (volDB + 70.0) / 160.0;
+        else if (volDB < -10.0) vol = (volDB + 50.0) /  80.0;
+        else if (volDB <= 10.0) vol = (volDB + 30.0) /  40.0;
+        return vol;
+    }
+
+public:
+
+    virtual const char *GetName() override { return "X32TrackVolume"; }
+    
+    virtual double GetCurrentDBValue(ActionContext *context) override
+    {
+        if (MediaTrack *track = context->GetTrack())
+        {
+            double vol, pan = 0.0;
+            GetTrackUIVolPan(track, &vol, &pan);
+            return VAL2DB(vol);
+        }
+        else
+            return 0.0;
+    }
+
+    virtual void RequestUpdate(ActionContext * context) override
+    {
+        if (MediaTrack *track = context->GetTrack())
+            context->UpdateWidgetValue(ReaperToX32(GetCurrentDBValue(context)));
+        else
+            context->ClearWidget();
+    }
+    
+    virtual void Do(ActionContext *context, double value) override
+    {
+        if (MediaTrack *track = context->GetTrack())
+            CSurf_SetSurfaceVolume(track, CSurf_OnVolumeChange(track, DB2VAL(X32ToReaper(value)), false), NULL);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class TrackPan : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

@@ -1269,19 +1269,6 @@ struct SurfaceCell
     string address;
     ptrvector<FXParamTemplate> paramTemplates;
      
-    void ExchangeParamTemplates(SurfaceCell &other)
-    {
-        WDL_PtrList<FXParamTemplate> tmp = other.paramTemplates;
-        other.paramTemplates.Empty();
-
-        for (int x = 0; x < paramTemplates.GetSize(); x ++)
-            other.paramTemplates.Add(paramTemplates.Get(x));
-
-        paramTemplates.Empty();
-        for (int x = 0; x < tmp.GetSize(); x ++)
-            paramTemplates.Add(tmp.Get(x));
-    }
-    
     void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
     {
         if ( ! fxFile)
@@ -1393,7 +1380,8 @@ private:
     
     Zone *homeZone_;
     ptrvector<SurfaceCell> surfaceCells_;
-    int numFXChannels_;
+    int numFXColumns_;
+    int numRowsPerFXCell_;
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
@@ -1820,7 +1808,8 @@ public:
     {
         //private:
         homeZone_ = NULL;
-        numFXChannels_ = 0;
+        numFXColumns_ = 0;
+        numRowsPerFXCell_ = 0;
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
         lastTouchedControl_ = NULL;
@@ -1880,7 +1869,9 @@ public:
     const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
-    int  GetNumFXChannels() { return numFXChannels_; }
+    int  GetNumFXColumns() { return numFXColumns_; }
+    int  GetNumRowsPerFXCell() { return numRowsPerFXCell_; }
+    
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void UnpackFXZone(FXZoneDefinition &zoneDef);

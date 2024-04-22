@@ -705,36 +705,6 @@ static void PopulateListView(HWND hwndParamList)
         SetListViewItem(hwndParamList, i, true);
 }
 
-static void MoveUp(HWND hwndParamList)
-{
-    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    
-    if (index > 0)
-    {
-        s_zoneDef.cells[index].ExchangeParamTemplates(s_zoneDef.cells[index - 1]);
-
-        SetListViewItem(hwndParamList, index, false);
-        SetListViewItem(hwndParamList, index - 1, false);
-
-        ListView_SetItemState(hwndParamList, index - 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-    }
-}
-
-static void MoveDown(HWND hwndParamList)
-{
-    int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
-    
-    if (index >= 0 && index < s_zoneDef.cells.size() - 1)
-    {
-        s_zoneDef.cells[index].ExchangeParamTemplates(s_zoneDef.cells[index + 1]);
-
-        SetListViewItem(hwndParamList, index, false);
-        SetListViewItem(hwndParamList, index + 1, false);
-
-        ListView_SetItemState(hwndParamList, index + 1, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-    }
-}
-
 static void EditItem(HWND hwndParamList)
 {
     int index = ListView_GetNextItem(hwndParamList, -1, LVNI_SELECTED);
@@ -815,9 +785,10 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     {
                         SurfaceCell *cell = s_zoneDef.cells.Get(lplvcd->nmcd.dwItemSpec);
                              
-                        if (lplvcd->iSubItem != 0)
+                        if (0)
+                        //if (lplvcd->iSubItem != 0)
                         {
-                            int cellParamIndex = (lplvcd->iSubItem - 1) / 2;
+                            int cellParamIndex = lplvcd->iSubItem - 1;
                             
                             string widgetName = cell->paramTemplates.Get(cellParamIndex)->control + cell->address;
                             
@@ -861,19 +832,13 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 #ifdef _WIN32
             columnSizes.push_back(160); // modifiers
             
-            for (int i = 1; i <= s_numGroups; i++)
-            {
+            for (int i = 1; i <= s_zoneManager->GetNumFXColumns(); i++)
                 columnSizes.push_back(80);  // widget
-                columnSizes.push_back(150); // param name
-            }
 #else
             columnSizes.push_back(65); // modifiers
             
-            for (int i = 1; i <= s_numGroups; i++)
-            {
+            for (int i = 1; i <= s_zoneManager->GetNumFXColumns(); i++)
                 columnSizes.push_back(38); // widget
-                columnSizes.push_back(75); // param name
-            }
 #endif
 
             LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
@@ -881,7 +846,7 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for (int i = 1; i <= s_numGroups * 2; i++)
+            for (int i = 1; i <= s_zoneManager->GetNumFXColumns(); i++)
             {
                 char caption[20];
                 sprintf(caption, "%d", i);
@@ -949,7 +914,7 @@ bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
     if (learnDlg == NULL)
         learnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapFX), g_hwnd, dlgProcRemapFX);
     
-    InitLearnDlg(learnDlg);
+    //InitLearnDlg(learnDlg);
     
     ShowWindow(learnDlg, SW_SHOW);
 
