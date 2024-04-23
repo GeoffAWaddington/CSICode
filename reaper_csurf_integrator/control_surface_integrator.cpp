@@ -731,7 +731,7 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
 {
     ptrvector<FXCellLayoutInfo> fxLayouts;
     
-    numFXColumns_ = 0;
+    int numFXColumns_ = 0;
 
     try
     {
@@ -872,53 +872,53 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         ShowConsoleMsg(buffer);
     }
         
-    surfaceCells_.clear();
+    fxRows_.clear();
     
     for (int i = 0; i < fxLayouts.size(); ++i)
     {
-        SurfaceCell cell;
+        FXCellRow row;
         
-        cell.modifiers = fxLayouts[i].modifiers;
+        row.modifiers = fxLayouts[i].modifiers;
         string_list modifierTokens;
-        GetSubTokens(modifierTokens, cell.modifiers.c_str(), '+');
-        cell.modifier = GetModifierValue(modifierTokens);
+        GetSubTokens(modifierTokens, row.modifiers.c_str(), '+');
+        row.modifier = GetModifierValue(modifierTokens);
 
-        cell.address = fxLayouts[i].address;
+        row.address = fxLayouts[i].address;
         
-        FXParamTemplate t;
+        FXCell cell;
 
-        t.control = paramWidget;
-        t.controlParams = widgetParams;
-        t.nameDisplay = nameWidget;
-        t.nameDisplayAction = "FixedTextDisplay";
-        t.nameDisplayParams = nameParams;
-        t.valueDisplay = valueWidget;
-        t.valueDisplayAction = "FXParamValueDisplay";
-        t.valueDisplayParams = valueParams;
+        cell.control = paramWidget;
+        cell.controlParams = widgetParams;
+        cell.nameDisplay = nameWidget;
+        cell.nameDisplayAction = "FixedTextDisplay";
+        cell.nameDisplayParams = nameParams;
+        cell.valueDisplay = valueWidget;
+        cell.valueDisplayAction = "FXParamValueDisplay";
+        cell.valueDisplayParams = valueParams;
 
-        cell.paramTemplates.push_back(t);
+        row.cells.push_back(cell);
         
         for (int j = 0; j < paramWidgets_.size(); ++j)
         {
             if (paramWidgets_[j] != paramWidget)
             {
-                FXParamTemplate t2;
+                FXCell cell2;
                 
-                t2.control = paramWidgets_[j];
+                cell2.control = paramWidgets_[j];
 
                 if (displayRows_.size() > 1)
                 {
-                    t2.nameDisplay = displayRows_[0];
-                    t2.nameDisplayAction = "NullDisplay";
-                    t2.valueDisplay = displayRows_[1];
-                    t2.valueDisplayAction = "NullDisplay";
+                    cell2.nameDisplay = displayRows_[0];
+                    cell2.nameDisplayAction = "NullDisplay";
+                    cell2.valueDisplay = displayRows_[1];
+                    cell2.valueDisplayAction = "NullDisplay";
                 }
                 
-                cell.paramTemplates.push_back(t2);
+                row.cells.push_back(cell2);
             }
         }
         
-        surfaceCells_.push_back(cell);
+        fxRows_.push_back(row);
     }
 }
 
@@ -3906,33 +3906,33 @@ void ZoneManager::SaveLearnedFXParams()
         
         fprintf(fxZone, "\n%s\n\n", s_BeginAutoSection);
         
-        for (int i = 0; i < surfaceCells_.size(); ++i)
+        for (int i = 0; i < fxRows_.size(); ++i)
         {
-            SurfaceCell &cell = surfaceCells_[i];
+            FXCellRow &row = fxRows_[i];
 
-            if (learnedWidgets_.Exists(cell.modifier))
+            if (learnedWidgets_.Exists(row.modifier))
             {
                 ptrvector<string> learnedWidgets;
                 
-                for (int j = 0; j < cell.paramTemplates.size(); ++j)
+                for (int j = 0; j < row.cells.size(); ++j)
                 {
-                    Widget *learnedWidget = surface_->GetWidgetByName((cell.paramTemplates[j].control + cell.address).c_str());
+                    Widget *learnedWidget = surface_->GetWidgetByName((row.cells[j].control + row.address).c_str());
 
-                    if (learnedWidget && learnedWidgets_.Get(cell.modifier)->Exists(learnedWidget))
-                        learnedWidgets.push_back(cell.paramTemplates[j].control);
+                    if (learnedWidget && learnedWidgets_.Get(row.modifier)->Exists(learnedWidget))
+                        learnedWidgets.push_back(row.cells[j].control);
                 }
                 
                 if (learnedWidgets.size() == 0)
-                    cell.WriteDefaultTemplateToFile(fxZone);
+                    row.WriteDefaultTemplateToFile(fxZone);
                 else
                 {
-                    fprintf(fxZone, "\t#Cell %s %s \n", cell.address.c_str(), cell.modifiers.c_str());
+                    fprintf(fxZone, "\t#Cell %s %s \n", row.address.c_str(), row.modifiers.c_str());
 
                     int learnIdx = 0;
                     
                     for (int j = 0; j < paramWidgets_.size(); ++j)
                     {
-                        FXParamTemplate fpt;
+                        FXCell cell;
                         
                         string steps;
 
@@ -3941,55 +3941,55 @@ void ZoneManager::SaveLearnedFXParams()
                             if (paramWidgets_[j] == learnedWidgets[learnIdx])
                             {
                                 // Write params and steps
-                                Widget *learnedWidget = surface_->GetWidgetByName((cell.paramTemplates[j].control + cell.address).c_str());
+                                Widget *learnedWidget = surface_->GetWidgetByName((row.cells[j].control + row.address).c_str());
 
                                 if (learnedWidget)
                                 {
-                                    fpt.control = cell.paramTemplates.Get(j)->control;
-                                    fpt.nameDisplay = cell.paramTemplates.Get(j)->nameDisplay;
-                                    fpt.valueDisplay = cell.paramTemplates.Get(j)->valueDisplay;
+                                    cell.control = row.cells.Get(j)->control;
+                                    cell.nameDisplay = row.cells.Get(j)->nameDisplay;
+                                    cell.valueDisplay = row.cells.Get(j)->valueDisplay;
 
-                                    fpt.controlAction = "FXParam";
-                                    fpt.nameDisplayAction = "FixedTextDisplay";
-                                    fpt.valueDisplayAction = "FXParamValueDisplay";
+                                    cell.controlAction = "FXParam";
+                                    cell.nameDisplayAction = "FixedTextDisplay";
+                                    cell.valueDisplayAction = "FXParamValueDisplay";
                                     
-                                    int paramNum = learnedWidgets_.Get(cell.modifier)->GetPtr(learnedWidget)->paramNum;
+                                    int paramNum = learnedWidgets_.Get(row.modifier)->GetPtr(learnedWidget)->paramNum;
                                     
-                                    fpt.paramNum = int_to_string(paramNum);
+                                    cell.paramNum = int_to_string(paramNum);
 
                                     char tmp[BUFSZ];
                                     TrackFX_GetParamName(learnFXTrack_, learnFXSlot_, paramNum, tmp, sizeof(tmp));
 
-                                    fpt.paramName = tmp;
+                                    cell.paramName = tmp;
                                     
                                     int steppedValueCount =  csi_->GetSteppedValueCount(fxName, paramNum);
                                     
                                     if (steppedValueCount >= g_minNumParamSteps && steppedValueCount <= g_maxNumParamSteps)
                                         GetParamStepsString(steps, steppedValueCount);
 
-                                    fpt.WriteToFile(fxZone, cell.modifiers.c_str(), cell.address.c_str(), steps.c_str());
+                                    cell.WriteToFile(fxZone, row.modifiers.c_str(), row.address.c_str(), steps.c_str());
                                 }
                             }
                             else
                             {
-                                fpt.control = cell.paramTemplates.Get(j)->control;
-                                fpt.nameDisplay = cell.paramTemplates.Get(j)->nameDisplay;
-                                fpt.valueDisplay = cell.paramTemplates.Get(j)->valueDisplay;
+                                cell.control = row.cells.Get(j)->control;
+                                cell.nameDisplay = row.cells.Get(j)->nameDisplay;
+                                cell.valueDisplay = row.cells.Get(j)->valueDisplay;
 
-                                fpt.nameDisplayAction = "NullDisplay";
-                                fpt.valueDisplayAction = "NullDisplay";
-                                fpt.WriteToFile(fxZone, cell.modifiers.c_str(), cell.address.c_str(), steps.c_str());
+                                cell.nameDisplayAction = "NullDisplay";
+                                cell.valueDisplayAction = "NullDisplay";
+                                cell.WriteToFile(fxZone, row.modifiers.c_str(), row.address.c_str(), steps.c_str());
                             }
                         }
                         else
                         {
-                            fpt.control = cell.paramTemplates.Get(j)->control;
-                            fpt.nameDisplay = cell.paramTemplates.Get(j)->nameDisplay;
-                            fpt.valueDisplay = cell.paramTemplates.Get(j)->valueDisplay;
+                            cell.control = row.cells.Get(j)->control;
+                            cell.nameDisplay = row.cells.Get(j)->nameDisplay;
+                            cell.valueDisplay = row.cells.Get(j)->valueDisplay;
 
-                            fpt.nameDisplayAction = "NullDisplay";
-                            fpt.valueDisplayAction = "NullDisplay";
-                            fpt.WriteToFile(fxZone, cell.modifiers.c_str(), cell.address.c_str(), steps.c_str());
+                            cell.nameDisplayAction = "NullDisplay";
+                            cell.valueDisplayAction = "NullDisplay";
+                            cell.WriteToFile(fxZone, row.modifiers.c_str(), row.address.c_str(), steps.c_str());
                         }
                         
                         if (j == paramWidgets_.size() - 1)
@@ -3998,7 +3998,7 @@ void ZoneManager::SaveLearnedFXParams()
                 }
             }
             else
-                cell.WriteDefaultTemplateToFile(fxZone);
+                row.WriteDefaultTemplateToFile(fxZone);
         }
         
         fprintf(fxZone, "%s\n", s_EndAutoSection);
@@ -4047,8 +4047,8 @@ void ZoneManager::SaveRemappedZone(const FXZoneDefinition &zoneDef)
         
         fprintf(fxFile, "%s\n\n", s_BeginAutoSection);
         
-        for (int i = 0; i < zoneDef.cells.size(); ++i)
-            zoneDef.cells.Get(i)->WriteTemplateToFile(fxFile, paramWidgets_);
+        for (int i = 0; i < zoneDef.rows.size(); ++i)
+            zoneDef.rows.Get(i)->WriteTemplateToFile(fxFile, paramWidgets_);
         
         fprintf(fxFile, "%s\n", s_EndAutoSection);
         
@@ -4100,32 +4100,32 @@ void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int paramNum)
 
 void ZoneManager::GetParamDisplayWidgets(const char *controlName, int modifier, LearnedWidgetParams *learnedWidgetParams)
 {
-    for (int i = 0; i < surfaceCells_.size(); ++i)
+    for (int i = 0; i < fxRows_.size(); ++i)
     {
-        if (surfaceCells_[i].modifier == modifier)
+        if (fxRows_[i].modifier == modifier)
         {
-            const char *address = surfaceCells_[i].address.c_str();
+            const char *address = fxRows_[i].address.c_str();
             
-            for (int j = 0; j < surfaceCells_[i].paramTemplates.size(); ++j)
+            for (int j = 0; j < fxRows_[i].cells.size(); ++j)
             {
-                FXParamTemplate &t = surfaceCells_[i].paramTemplates[j];
+                FXCell &cell = fxRows_[i].cells[j];
 
                 char buf[BUFSZ];
                 buf[0] = 0;
 
-                sprintf(buf, "%s%s", t.control.c_str(), address);
+                sprintf(buf, "%s%s", cell.control.c_str(), address);
 
                 if ( ! strcmp(buf, controlName))
                 {
                     buf[0] = 0;
                     
-                    const char *nameDisplay = t.nameDisplay != "" ? t.nameDisplay.c_str() : surfaceCells_[i].paramTemplates[0].nameDisplay.c_str();
+                    const char *nameDisplay = cell.nameDisplay != "" ? cell.nameDisplay.c_str() : fxRows_[i].cells[0].nameDisplay.c_str();
                     sprintf(buf, "%s%s", nameDisplay, address);
                     learnedWidgetParams->nameDisplay = surface_->GetWidgetByName(buf);
 
                     buf[0] = 0;
                     
-                    const char *valueDisplay = t.valueDisplay != "" ? t.valueDisplay.c_str() : surfaceCells_[i].paramTemplates[0].valueDisplay.c_str();
+                    const char *valueDisplay = cell.valueDisplay != "" ? cell.valueDisplay.c_str() : fxRows_[i].cells[0].valueDisplay.c_str();
                     sprintf(buf, "%s%s", valueDisplay, address);
                     learnedWidgetParams->valueDisplay = surface_->GetWidgetByName(buf);
                     return;
@@ -4400,7 +4400,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
         return;
     
-    int totalLayoutCount = surfaceCells_.size();
+    int totalLayoutCount = fxRows_.size();
     
     //for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
         //totalLayoutCount += surfaceFXLayouts_[i].channelCount;
@@ -4453,27 +4453,25 @@ void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxInd
 {
     int numParams = TrackFX_GetNumParams(track, fxIndex);
 
-    for (int i = 0; i < surfaceCells_.size() && i < numParams; ++i)
+    for (int i = 0; i < fxRows_.size() && i < numParams; ++i)
     {
         // Add learned Widget
-        if (surfaceCells_[i].paramTemplates.size())
+        if (fxRows_[i].cells.size())
         {
             char buf[BUFSZ];
-            sprintf(buf, "%s%s", surfaceCells_[i].paramTemplates[0].control.c_str(), surfaceCells_[i].address.c_str());
+            sprintf(buf, "%s%s", fxRows_[i].cells[0].control.c_str(), fxRows_[i].address.c_str());
             
             Widget *control = surface_->GetWidgetByName(buf);
 
             if (control)
-                AddLearnedWidget(control, surfaceCells_[i].modifier, i);
+                AddLearnedWidget(control, fxRows_[i].modifier, i);
         }
     }
 }
 
 void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 {
-    numRowsPerFXCell_ = 0;
-    
-    zd.cells.clear();
+    zd.rows.clear();
     zd.prologue.clear();
     zd.epilogue.clear();
     zd.rawParams.clear();
@@ -4550,23 +4548,23 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
         {
             if (tokens[0] == "#Cell" && tokens.size() > 1)
             {
-                SurfaceCell cell;
+                FXCellRow row;
                 
-                cell.address = string(tokens[1]);
-                cell.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
+                row.address = string(tokens[1]);
+                row.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
                 
                 string_list modifierTokens;
-                GetSubTokens(modifierTokens, cell.modifiers.c_str(), '+');
-                cell.modifier = GetSurface()->GetModifierManager()->GetModifierValue(modifierTokens);
+                GetSubTokens(modifierTokens, row.modifiers.c_str(), '+');
+                row.modifier = GetSurface()->GetModifierManager()->GetModifierValue(modifierTokens);
 
-                zd.cells.push_back(cell);
+                zd.rows.push_back(row);
             }
             else
             {
-                if (zd.cells.size()== 0)
+                if (zd.rows.size()== 0)
                     continue;
 
-                SurfaceCell &lastCell = zd.cells[zd.cells.size() - 1];
+                FXCellRow &lastRow = zd.rows[zd.rows.size() - 1];
                 
                 string line2;
                 string line3;
@@ -4577,7 +4575,7 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
                     
                     GetTokens(cellTokens, line.c_str());
 
-                    FXParamTemplate t;
+                    FXCell cell;
 
                     string_list widgetTokens;
                     string_list propertyTokens;
@@ -4585,21 +4583,21 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 
                     GetSubTokens(widgetTokens, cellTokens[0], '+');
 
-                    t.control = widgetTokens[widgetTokens.size() - 1];
-                    t.control = t.control.substr(0, t.control.find(lastCell.address));
+                    cell.control = widgetTokens[widgetTokens.size() - 1];
+                    cell.control = cell.control.substr(0, cell.control.find(lastRow.address));
 
                     if (cellTokens.size() > 2)
                     {
-                        t.controlAction = cellTokens[1];
-                        t.paramNum = cellTokens[2];
+                        cell.controlAction = cellTokens[1];
+                        cell.paramNum = cellTokens[2];
                         if (cellTokens.size() > 3)
                         {
-                            t.controlParams = line.substr(line.find(cellTokens[3]), line.length() - 1);
-                            GetTokens(propertyTokens, t.controlParams.c_str());
-                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.controlProperties);
+                            cell.controlParams = line.substr(line.find(cellTokens[3]), line.length() - 1);
+                            GetTokens(propertyTokens, cell.controlParams.c_str());
+                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, cell.controlProperties);
                           
-                            GetTokens(paramTokens, t.controlParams.c_str());
-                            GetSteppedValues(paramTokens, 0, t.deltaValue, t.acceleratedDeltaValues, t.rangeMinimum, t.rangeMaximum, t.steppedValues, t.acceleratedTickValues);
+                            GetTokens(paramTokens, cell.controlParams.c_str());
+                            GetSteppedValues(paramTokens, 0, cell.deltaValue, cell.acceleratedDeltaValues, cell.rangeMinimum, cell.rangeMaximum, cell.steppedValues, cell.acceleratedTickValues);
                         }
                     }
                     
@@ -4612,19 +4610,19 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 
                     GetSubTokens(widgetTokens, cellTokens[0], '+');
 
-                    t.nameDisplay = widgetTokens[widgetTokens.size() - 1];
+                    cell.nameDisplay = widgetTokens[widgetTokens.size() - 1];
 
-                    t.nameDisplay = t.nameDisplay.substr(0, t.nameDisplay.find(lastCell.address));
+                    cell.nameDisplay = cell.nameDisplay.substr(0, cell.nameDisplay.find(lastRow.address));
 
                     if (cellTokens.size() > 2)
                     {
-                        t.nameDisplayAction = cellTokens[1];
-                        t.paramName = cellTokens[2];
+                        cell.nameDisplayAction = cellTokens[1];
+                        cell.paramName = cellTokens[2];
                         if (cellTokens.size() > 3)
                         {
-                            t.nameDisplayParams = line2.substr(line2.find(cellTokens[3]), line2.length() - 1);
-                            GetTokens(propertyTokens, t.nameDisplayParams.c_str());
-                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.nameDisplayProperties);
+                            cell.nameDisplayParams = line2.substr(line2.find(cellTokens[3]), line2.length() - 1);
+                            GetTokens(propertyTokens, cell.nameDisplayParams.c_str());
+                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, cell.nameDisplayProperties);
                         }
                     }
 
@@ -4637,18 +4635,18 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 
                     GetSubTokens(widgetTokens, cellTokens[0], '+');
 
-                    t.valueDisplay = widgetTokens[widgetTokens.size() - 1];
+                    cell.valueDisplay = widgetTokens[widgetTokens.size() - 1];
 
-                    t.valueDisplay = t.valueDisplay.substr(0, t.valueDisplay.find(lastCell.address));
+                    cell.valueDisplay = cell.valueDisplay.substr(0, cell.valueDisplay.find(lastRow.address));
 
                     if (cellTokens.size() > 2)
                     {
-                        t.valueDisplayAction = cellTokens[1];
+                        cell.valueDisplayAction = cellTokens[1];
                         if (cellTokens.size() > 3)
                         {
-                            t.valueDisplayParams = line3.substr(line3.find(cellTokens[3]), line3.length() - 1);
-                            GetTokens(propertyTokens, t.valueDisplayParams.c_str());
-                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, t.valueDisplayProperties);
+                            cell.valueDisplayParams = line3.substr(line3.find(cellTokens[3]), line3.length() - 1);
+                            GetTokens(propertyTokens, cell.valueDisplayParams.c_str());
+                            GetPropertiesFromTokens(0, propertyTokens.size(), propertyTokens, cell.valueDisplayProperties);
                         }
                     }
                     
@@ -4657,14 +4655,11 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
                     propertyTokens.clear();
                     paramTokens.clear();
 
-                    lastCell.paramTemplates.push_back(t);
+                    lastRow.cells.push_back(cell);
                 }
             }
         }
     }
-    
-    if (zd.cells.size() > 0)
-        numRowsPerFXCell_ = zd.cells[0].paramTemplates.size();
 }
 
 void ZoneManager::DoTouch(Widget *widget, double value)

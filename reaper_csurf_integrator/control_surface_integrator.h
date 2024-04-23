@@ -1113,7 +1113,7 @@ struct FXCellLayoutInfo
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXParamTemplate
+struct FXCell
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string control;
@@ -1142,7 +1142,7 @@ struct FXParamTemplate
     string paramNum;
     string paramName;
         
-    FXParamTemplate()
+    FXCell()
     {
         start_idx = 0;
         deltaValue = 0.001;
@@ -1261,13 +1261,13 @@ struct FXParamTemplate
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct SurfaceCell
+struct FXCellRow
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     string modifiers;
     int modifier;
     string address;
-    ptrvector<FXParamTemplate> paramTemplates;
+    ptrvector<FXCell> cells;
      
     void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
     {
@@ -1276,12 +1276,12 @@ struct SurfaceCell
         
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
-        for (int i = 0; i < paramTemplates.size(); ++i)
+        for (int i = 0; i < cells.size(); ++i)
         {
             if (i == 0) // Auto Map only maps the first control/display
-                paramTemplates[i].WriteToFile(fxFile, modifiers.c_str(), address.c_str(), paramNum, paramName.c_str(), steps.c_str());
+                cells[i].WriteToFile(fxFile, modifiers.c_str(), address.c_str(), paramNum, paramName.c_str(), steps.c_str());
             else
-                paramTemplates[i].WriteDefaultTemplateToFile(fxFile, modifiers.c_str(), address.c_str());
+                cells[i].WriteDefaultTemplateToFile(fxFile, modifiers.c_str(), address.c_str());
         }
         
         fprintf(fxFile, "\n");
@@ -1294,8 +1294,8 @@ struct SurfaceCell
         
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
-        for (int i = 0; i <paramTemplates.size(); ++i)
-            paramTemplates[i].WriteDefaultTemplateToFile(fxFile, modifiers.c_str(), address.c_str());
+        for (int i = 0; i <cells.size(); ++i)
+            cells[i].WriteDefaultTemplateToFile(fxFile, modifiers.c_str(), address.c_str());
             
         fprintf(fxFile, "\n");
     }
@@ -1307,8 +1307,8 @@ struct SurfaceCell
         
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
-        for (int i = 0; i < paramTemplates.size(); ++i)
-            paramTemplates[i].WriteTemplateToFile(fxFile, modifiers.c_str(), address.c_str(), paramWidgets);
+        for (int i = 0; i < cells.size(); ++i)
+            cells[i].WriteTemplateToFile(fxFile, modifiers.c_str(), address.c_str(), paramWidgets);
             
         fprintf(fxFile, "\n");
     }
@@ -1323,7 +1323,7 @@ struct FXZoneDefinition
     string fullPath;
     string_list prologue;
     string_list epilogue;
-    ptrvector<SurfaceCell> cells;
+    ptrvector<FXCellRow> rows;
     string_list rawParams;
 
     void Clear()
@@ -1333,7 +1333,7 @@ struct FXZoneDefinition
         fullPath = "";
         prologue.clear();
         epilogue.clear();
-        cells.clear();
+        rows.clear();
         rawParams.clear();
     }
 };
@@ -1379,9 +1379,7 @@ private:
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
     Zone *homeZone_;
-    ptrvector<SurfaceCell> surfaceCells_;
-    int numFXColumns_;
-    int numRowsPerFXCell_;
+    ptrvector<FXCellRow> fxRows_;
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
@@ -1808,8 +1806,6 @@ public:
     {
         //private:
         homeZone_ = NULL;
-        numFXColumns_ = 0;
-        numRowsPerFXCell_ = 0;
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
         lastTouchedControl_ = NULL;
@@ -1869,8 +1865,6 @@ public:
     const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
-    int  GetNumFXColumns() { return numFXColumns_; }
-    int  GetNumRowsPerFXCell() { return numRowsPerFXCell_; }
     
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);

@@ -184,9 +184,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             ShowFontControls(hwndDlg, false);
             ShowColorControls(hwndDlg, false);
 
-            SurfaceCell &cell = s_zoneDef.cells[s_fxCellIndex];
+            FXCellRow &row = s_zoneDef.rows[s_fxCellIndex];
             
-            SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + cell.modifiers + cell.address).c_str());
+            SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + row.modifiers + row.address).c_str());
 
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickSteps));
             SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("Custom","csi_fxparm"));
@@ -229,44 +229,44 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
                 SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
 
-            FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[0];
+            FXCell &cell = s_zoneDef.rows[s_fxCellIndex].cells[0];
             
-            SetDlgItemText(hwndDlg, IDC_FXParamNumEdit, t.paramNum.c_str());
-            SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, t.paramName.c_str());
+            SetDlgItemText(hwndDlg, IDC_FXParamNumEdit, cell.paramNum.c_str());
+            SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, cell.paramName.c_str());
 
-            SetDlgItemText(hwndDlg, IDC_PickWidgetType, t.control.c_str());
-            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickRow, t.nameDisplay.c_str());
-            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickRow, t.valueDisplay.c_str());
+            SetDlgItemText(hwndDlg, IDC_PickWidgetType, cell.control.c_str());
+            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickRow, cell.nameDisplay.c_str());
+            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickRow, cell.valueDisplay.c_str());
             
-            const char *ringstyle = t.controlProperties.get_prop(PropertyType_RingStyle);
+            const char *ringstyle = cell.controlProperties.get_prop(PropertyType_RingStyle);
             if (ringstyle)
                 SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
 
-            const char *font = t.nameDisplayProperties.get_prop(PropertyType_Font);
+            const char *font = cell.nameDisplayProperties.get_prop(PropertyType_Font);
             if (font)
                 SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, font);
 
-            const char *topMargin = t.nameDisplayProperties.get_prop(PropertyType_TopMargin);
+            const char *topMargin = cell.nameDisplayProperties.get_prop(PropertyType_TopMargin);
             if (topMargin)
                 SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, topMargin);
 
-            const char *bottomMargin = t.nameDisplayProperties.get_prop(PropertyType_BottomMargin);
+            const char *bottomMargin = cell.nameDisplayProperties.get_prop(PropertyType_BottomMargin);
             if (bottomMargin)
                 SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, bottomMargin);
 
-            font = t.valueDisplayProperties.get_prop(PropertyType_Font);
+            font = cell.valueDisplayProperties.get_prop(PropertyType_Font);
             if (font)
                 SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, font);
 
-            topMargin = t.valueDisplayProperties.get_prop(PropertyType_TopMargin);
+            topMargin = cell.valueDisplayProperties.get_prop(PropertyType_TopMargin);
             if (topMargin)
                 SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, topMargin);
 
-            bottomMargin = t.valueDisplayProperties.get_prop(PropertyType_BottomMargin);
+            bottomMargin = cell.valueDisplayProperties.get_prop(PropertyType_BottomMargin);
             if (bottomMargin)
                 SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, bottomMargin);
 
-            const char *ringcolor = t.controlProperties.get_prop(PropertyType_LEDRingColor);
+            const char *ringcolor = cell.controlProperties.get_prop(PropertyType_LEDRingColor);
             if (ringcolor)
             {
                 rgba_color color;
@@ -274,7 +274,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
             }
             
-            const char *pushcolor = t.controlProperties.get_prop(PropertyType_PushColor);
+            const char *pushcolor = cell.controlProperties.get_prop(PropertyType_PushColor);
             if (pushcolor)
             {
                 rgba_color color;
@@ -282,7 +282,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
             }
 
-            const char *foreground = t.nameDisplayProperties.get_prop(PropertyType_TextColor);
+            const char *foreground = cell.nameDisplayProperties.get_prop(PropertyType_TextColor);
             if (foreground)
             {
                 rgba_color color;
@@ -290,7 +290,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
             }
             
-            const char *background = t.nameDisplayProperties.get_prop(PropertyType_BackgroundColor);
+            const char *background = cell.nameDisplayProperties.get_prop(PropertyType_BackgroundColor);
             if (background)
             {
                 rgba_color color;
@@ -298,7 +298,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
             }
 
-            foreground = t.valueDisplayProperties.get_prop(PropertyType_TextColor);
+            foreground = cell.valueDisplayProperties.get_prop(PropertyType_TextColor);
             if (foreground)
             {
                 rgba_color color;
@@ -306,7 +306,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
             }
 
-            background = t.valueDisplayProperties.get_prop(PropertyType_BackgroundColor);
+            background = cell.valueDisplayProperties.get_prop(PropertyType_BackgroundColor);
             if (background)
             {
                 rgba_color color;
@@ -317,9 +317,9 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             string steps;
             
             char buf[BUFSZ];
-            for (int j = 0; j < (int)t.steppedValues.size(); ++j)
+            for (int j = 0; j < (int)cell.steppedValues.size(); ++j)
             {
-                steps += format_number(t.steppedValues[j], buf, sizeof(buf));
+                steps += format_number(cell.steppedValues[j], buf, sizeof(buf));
                 steps += "  ";
             }
             
@@ -344,35 +344,35 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             }
 
             char tmp[BUFSZ];
-            if (t.deltaValue != 0.0)
-                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(t.deltaValue, tmp, sizeof(tmp)));
+            if (cell.deltaValue != 0.0)
+                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, format_number(cell.deltaValue, tmp, sizeof(tmp)));
 
-            if (t.rangeMinimum != 1.0 ||
-                t.rangeMaximum != 0.0)
+            if (cell.rangeMinimum != 1.0 ||
+                cell.rangeMaximum != 0.0)
             {
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, format_number(t.rangeMinimum, tmp, sizeof(tmp)));
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, format_number(t.rangeMaximum, tmp, sizeof(tmp)));
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, format_number(cell.rangeMinimum, tmp, sizeof(tmp)));
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, format_number(cell.rangeMaximum, tmp, sizeof(tmp)));
             }
 
-            if (t.acceleratedDeltaValues.size() > 0)
+            if (cell.acceleratedDeltaValues.size() > 0)
             {
                 string deltas;
                 
-                for (int i = 0; i < (int)t.acceleratedDeltaValues.size(); ++i)
+                for (int i = 0; i < (int)cell.acceleratedDeltaValues.size(); ++i)
                 {
-                    deltas += format_number(t.acceleratedDeltaValues[i], tmp, sizeof(tmp));
+                    deltas += format_number(cell.acceleratedDeltaValues[i], tmp, sizeof(tmp));
                     deltas += " ";
                 }
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             }
 
-            if (t.acceleratedTickValues.size() > 0)
+            if (cell.acceleratedTickValues.size() > 0)
             {
                 string ticks;
                 
-                for (int i = 0; i < (int)t.acceleratedTickValues.size(); ++i)
-                    ticks += int_to_string(t.acceleratedTickValues[i]) + " ";
+                for (int i = 0; i < (int)cell.acceleratedTickValues.size(); ++i)
+                    ticks += int_to_string(cell.acceleratedTickValues[i]) + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
             }
@@ -406,24 +406,24 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        FXParamTemplate &t = s_zoneDef.cells[s_fxCellIndex].paramTemplates[0];
+                        FXCell &cell = s_zoneDef.rows[s_fxCellIndex].cells[0];
 
                         char buf[BUFSZ];
                         
                         GetDlgItemText(hwndDlg, IDC_FXParamNumEdit, buf, sizeof(buf));
-                        t.paramNum = buf;
+                        cell.paramNum = buf;
 
                         GetDlgItemText(hwndDlg, IDC_PickWidgetType, buf, sizeof(buf));
-                        t.control = buf;
+                        cell.control = buf;
                                                     
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
-                        t.paramName = buf;
+                        cell.paramName = buf;
 
                         GetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickRow, buf, sizeof(buf));
-                        t.nameDisplay = buf;
+                        cell.nameDisplay = buf;
 
                         GetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickRow, buf, sizeof(buf));
-                        t.valueDisplay = buf;
+                        cell.valueDisplay = buf;
 
                         char propBuf[4096];
                         propBuf[0] = 0;
@@ -434,87 +434,87 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             char tmp[32];
                             
                             ColorFromNative(GetButtonColorForID(IDC_FXParamRingColor), &color.r, &color.g, &color.b);
-                            t.controlProperties.set_prop(PropertyType_LEDRingColor, color.rgba_to_string(tmp));
-                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_LEDRingColor);
+                            cell.controlProperties.set_prop(PropertyType_LEDRingColor, color.rgba_to_string(tmp));
+                            cell.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_LEDRingColor);
                             
                             ColorFromNative(GetButtonColorForID(IDC_FXParamIndicatorColor), &color.r, &color.g, &color.b);
-                            t.controlProperties.set_prop(PropertyType_PushColor, color.rgba_to_string(tmp));
-                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_PushColor);
+                            cell.controlProperties.set_prop(PropertyType_PushColor, color.rgba_to_string(tmp));
+                            cell.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_PushColor);
                         }
                         
                         snprintf_append(propBuf, sizeof(propBuf), "[ ");
 
-                        if (t.rangeMinimum < t.rangeMaximum)
-                            snprintf_append(propBuf, sizeof(propBuf), "%.2f>%.2f ", t.rangeMinimum, t.rangeMaximum);
+                        if (cell.rangeMinimum < cell.rangeMaximum)
+                            snprintf_append(propBuf, sizeof(propBuf), "%.2f>%.2f ", cell.rangeMinimum, cell.rangeMaximum);
                         
-                        if (t.acceleratedDeltaValues.size())
+                        if (cell.acceleratedDeltaValues.size())
                         {
                             snprintf_append(propBuf, sizeof(propBuf), "(");
-                            for (int j = 0; j < t.acceleratedDeltaValues.size(); ++j)
+                            for (int j = 0; j < cell.acceleratedDeltaValues.size(); ++j)
                             {
-                                if (j == t.acceleratedDeltaValues.size() - 1)
-                                    snprintf_append(propBuf, sizeof(propBuf), "%.3f) ", t.acceleratedDeltaValues[j]);
+                                if (j == cell.acceleratedDeltaValues.size() - 1)
+                                    snprintf_append(propBuf, sizeof(propBuf), "%.3f) ", cell.acceleratedDeltaValues[j]);
                                 else
-                                    snprintf_append(propBuf, sizeof(propBuf), "%.3f,", t.acceleratedDeltaValues[j]);
+                                    snprintf_append(propBuf, sizeof(propBuf), "%.3f,", cell.acceleratedDeltaValues[j]);
                             }
                         }
                         else
-                            snprintf_append(propBuf, sizeof(propBuf), "(%.3f) ", t.deltaValue);
+                            snprintf_append(propBuf, sizeof(propBuf), "(%.3f) ", cell.deltaValue);
 
-                        if (t.acceleratedTickValues.size() > 1)
+                        if (cell.acceleratedTickValues.size() > 1)
                         {
                             snprintf_append(propBuf, sizeof(propBuf), "(");
-                            for (int j = 0; j < t.acceleratedTickValues.size(); ++j)
+                            for (int j = 0; j < cell.acceleratedTickValues.size(); ++j)
                             {
-                                if (j == t.acceleratedTickValues.size() - 1)
-                                    snprintf_append(propBuf, sizeof(propBuf), "%d) ", t.acceleratedTickValues[j]);
+                                if (j == cell.acceleratedTickValues.size() - 1)
+                                    snprintf_append(propBuf, sizeof(propBuf), "%d) ", cell.acceleratedTickValues[j]);
                                 else
-                                    snprintf_append(propBuf, sizeof(propBuf), "%d,", t.acceleratedTickValues[j]);
+                                    snprintf_append(propBuf, sizeof(propBuf), "%d,", cell.acceleratedTickValues[j]);
                             }
                         }
-                        else if (t.acceleratedTickValues.size() > 0)
-                            snprintf_append(propBuf, sizeof(propBuf), "(%d) ", t.acceleratedTickValues[0]);
+                        else if (cell.acceleratedTickValues.size() > 0)
+                            snprintf_append(propBuf, sizeof(propBuf), "(%d) ", cell.acceleratedTickValues[0]);
                         
                         GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
                         
                         if (string(buf) != "")
                         {
-                            t.steppedValues.clear();
+                            cell.steppedValues.clear();
                             string_list steps;
                             GetTokens(steps, buf);
                             for (int j = 0; j < (int)steps.size(); ++j)
                             {
-                                t.steppedValues.push_back(atoi(steps[j].c_str()));
+                                cell.steppedValues.push_back(atoi(steps[j].c_str()));
                                 snprintf_append(propBuf, sizeof(propBuf), "%s ", steps[j].c_str());
                             }
-                            t.controlParams += buf;
+                            cell.controlParams += buf;
                         }
                         
                         snprintf_append(propBuf, sizeof(propBuf), "] ");
                         
-                        if (t.control == "Rotary")
+                        if (cell.control == "Rotary")
                         {
                             GetDlgItemText(hwndDlg, IDC_PickRingStyle, buf, sizeof(buf));
-                            t.controlProperties.set_prop(PropertyType_RingStyle, buf);
-                            t.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
+                            cell.controlProperties.set_prop(PropertyType_RingStyle, buf);
+                            cell.controlProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_RingStyle);
                         }
                         
-                        t.controlParams = propBuf;
+                        cell.controlParams = propBuf;
                         propBuf[0] = 0;
                     
                         if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont)))
                         {
                             GetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, buf, sizeof(buf));
-                            t.nameDisplayProperties.set_prop(PropertyType_Font, buf);
-                            t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_Font);
+                            cell.nameDisplayProperties.set_prop(PropertyType_Font, buf);
+                            cell.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_Font);
 
                             GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, buf, sizeof(buf));
-                            t.nameDisplayProperties.set_prop(PropertyType_TopMargin, buf);
-                            t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TopMargin);
+                            cell.nameDisplayProperties.set_prop(PropertyType_TopMargin, buf);
+                            cell.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TopMargin);
 
                             GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, buf, sizeof(buf));
-                            t.nameDisplayProperties.set_prop(PropertyType_BottomMargin, buf);
-                            t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BottomMargin);
+                            cell.nameDisplayProperties.set_prop(PropertyType_BottomMargin, buf);
+                            cell.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BottomMargin);
                         }
                         
                         if (IsWindowVisible(GetDlgItem(hwndDlg,IDC_FixedTextDisplayForegroundColor)))
@@ -523,30 +523,30 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             char tmp[32];
                             
                             ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
-                            t.nameDisplayProperties.set_prop(PropertyType_TextColor, color.rgba_to_string(tmp));
-                            t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TextColor);
+                            cell.nameDisplayProperties.set_prop(PropertyType_TextColor, color.rgba_to_string(tmp));
+                            cell.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TextColor);
 
                             ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor), &color.r, &color.g, &color.b);
-                            t.nameDisplayProperties.set_prop(PropertyType_BackgroundColor, color.rgba_to_string(tmp));
-                            t.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BackgroundColor);
+                            cell.nameDisplayProperties.set_prop(PropertyType_BackgroundColor, color.rgba_to_string(tmp));
+                            cell.nameDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BackgroundColor);
                         }
                         
-                        t.nameDisplayParams = propBuf;
+                        cell.nameDisplayParams = propBuf;
                         propBuf[0] = 0;
 
                         if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont)))
                         {
                             GetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, buf, sizeof(buf));
-                            t.valueDisplayProperties.set_prop(PropertyType_Font, buf);
-                            t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_Font);
+                            cell.valueDisplayProperties.set_prop(PropertyType_Font, buf);
+                            cell.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_Font);
 
                             GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, buf, sizeof(buf));
-                            t.valueDisplayProperties.set_prop(PropertyType_TopMargin, buf);
-                            t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TopMargin);
+                            cell.valueDisplayProperties.set_prop(PropertyType_TopMargin, buf);
+                            cell.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TopMargin);
 
                             GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, buf, sizeof(buf));
-                            t.valueDisplayProperties.set_prop(PropertyType_BottomMargin, buf);
-                            t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BottomMargin);
+                            cell.valueDisplayProperties.set_prop(PropertyType_BottomMargin, buf);
+                            cell.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BottomMargin);
                         }
                         
                         if (IsWindowVisible(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor)))
@@ -555,48 +555,48 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             char tmp[32];
                             
                             ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
-                            t.valueDisplayProperties.set_prop(PropertyType_TextColor, color.rgba_to_string(tmp));
-                            t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TextColor);
+                            cell.valueDisplayProperties.set_prop(PropertyType_TextColor, color.rgba_to_string(tmp));
+                            cell.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_TextColor);
 
                             
                             ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayBackgroundColor), &color.r, &color.g, &color.b);
-                            t.valueDisplayProperties.set_prop(PropertyType_BackgroundColor, color.rgba_to_string(tmp));
-                            t.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BackgroundColor);
+                            cell.valueDisplayProperties.set_prop(PropertyType_BackgroundColor, color.rgba_to_string(tmp));
+                            cell.valueDisplayProperties.print_to_buf(propBuf, sizeof(propBuf), PropertyType_BackgroundColor);
                         }
                         
-                        t.valueDisplayParams = propBuf;
+                        cell.valueDisplayParams = propBuf;
                         propBuf[0] = 0;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
                         if (buf[0])
-                            t.deltaValue = atof(buf);
+                            cell.deltaValue = atof(buf);
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
                         if (buf[0])
-                            t.rangeMinimum = atof(buf);
+                            cell.rangeMinimum = atof(buf);
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
                         if (buf[0])
-                            t.rangeMaximum = atof(buf);
+                            cell.rangeMaximum = atof(buf);
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
                         if (buf[0])
                         {
-                            t.acceleratedDeltaValues.clear();
+                            cell.acceleratedDeltaValues.clear();
                             string_list deltas;
                             GetTokens(deltas, buf);
                             for (int i = 0; i < (int)deltas.size(); ++i)
-                                t.acceleratedDeltaValues.push_back(atof(deltas[i].c_str()));
+                                cell.acceleratedDeltaValues.push_back(atof(deltas[i].c_str()));
                         }
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
                         if (buf[0])
                         {
-                            t.acceleratedTickValues.clear();
+                            cell.acceleratedTickValues.clear();
                             string_list ticks;
                             GetTokens(ticks, buf);
                             for (int i = 0; i < (int)ticks.size(); ++i)
-                                t.acceleratedTickValues.push_back(atoi(ticks[i].c_str()));
+                                cell.acceleratedTickValues.push_back(atoi(ticks[i].c_str()));
                         }
                         
                         s_dlgResult = IDOK;
@@ -637,16 +637,16 @@ string_list GetLineComponents(int index)
 {
     string_list components;
     
-    SurfaceCell &cell = s_zoneDef.cells[index];
+    FXCellRow &row = s_zoneDef.rows[index];
     
-    components.push_back(cell.modifiers + cell.address);
+    components.push_back(row.modifiers + row.address);
 
-    for (int i = 0; i < cell.paramTemplates.size(); ++i)
+    for (int i = 0; i < row.cells.size(); ++i)
     {
-        FXParamTemplate &t = cell.paramTemplates[i];
+        FXCell &cell = row.cells[i];
         
         string_list tokens;
-        GetSubTokens(tokens, t.control.c_str(), '+');
+        GetSubTokens(tokens, cell.control.c_str(), '+');
         
         string controlName = string(tokens[tokens.size() - 1]);
         
@@ -655,8 +655,8 @@ string_list GetLineComponents(int index)
         
         components.push_back(controlName);
         
-        if (t.paramName != "")
-            components.push_back(t.paramName);
+        if (cell.paramName != "")
+            components.push_back(cell.paramName);
         else
             components.push_back("NoAction");
     }
@@ -701,7 +701,7 @@ static void PopulateListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
         
-    for (int i = 0; i < s_zoneDef.cells.size(); i++)
+    for (int i = 0; i < s_zoneDef.rows.size(); i++)
         SetListViewItem(hwndParamList, i, true);
 }
 
@@ -783,20 +783,20 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 #endif
                     case CDDS_ITEMPREPAINT:
                     {
-                        SurfaceCell *cell = s_zoneDef.cells.Get(lplvcd->nmcd.dwItemSpec);
+                        FXCellRow *row = s_zoneDef.rows.Get(lplvcd->nmcd.dwItemSpec);
                              
                         if (0)
                         //if (lplvcd->iSubItem != 0)
                         {
                             int cellParamIndex = lplvcd->iSubItem - 1;
                             
-                            string widgetName = cell->paramTemplates.Get(cellParamIndex)->control + cell->address;
+                            string widgetName = row->cells.Get(cellParamIndex)->control + row->address;
                             
                             const WDL_TypedBuf<int> &currentModifiers = s_zoneManager->GetSurface()->GetModifiers();
 
-                            if (g_FocusedWidget != NULL && g_FocusedWidget->GetName() == widgetName && currentModifiers.GetSize() && currentModifiers.Get()[0] == cell->modifier)
+                            if (g_FocusedWidget != NULL && g_FocusedWidget->GetName() == widgetName && currentModifiers.GetSize() && currentModifiers.Get()[0] == row->modifier)
                                 lplvcd->clrText = RGB(0xff, 00, 00);
-                            else if (cell->paramTemplates.Get(cellParamIndex)->controlParams != "")
+                            else if (row->cells.Get(cellParamIndex)->controlParams != "")
                                 lplvcd->clrText =  RGB(00, 00, 0xff);
                             else
                                 lplvcd->clrText =  RGB(0x00, 00, 00);;
@@ -829,15 +829,17 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             vector<int> columnSizes;
             
+            int numFXColumns = 8;
+            
 #ifdef _WIN32
             columnSizes.push_back(160); // modifiers
             
-            for (int i = 1; i <= s_zoneManager->GetNumFXColumns(); i++)
+            for (int i = 1; i <= numFXColumns; i++)
                 columnSizes.push_back(80);  // widget
 #else
             columnSizes.push_back(65); // modifiers
             
-            for (int i = 1; i <= s_zoneManager->GetNumFXColumns(); i++)
+            for (int i = 1; i <= numFXColumns; i++)
                 columnSizes.push_back(38); // widget
 #endif
 
@@ -846,7 +848,7 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             ListView_InsertColumn(paramList, 0, &columnDescriptor);
             
-            for (int i = 1; i <= s_zoneManager->GetNumFXColumns(); i++)
+            for (int i = 1; i <= numFXColumns; i++)
             {
                 char caption[20];
                 sprintf(caption, "%d", i);
