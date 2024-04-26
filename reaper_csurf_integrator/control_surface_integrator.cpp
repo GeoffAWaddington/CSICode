@@ -729,9 +729,11 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyed
 
 void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
 {
-    ptrvector<FXCellLayoutInfo> fxLayouts;
+    fxRowLayout_.DeleteAll();
     
-    int numFXColumns_ = 0;
+    
+    
+    ptrvector<FXCellLayoutInfo> fxLayouts;
 
     try
     {
@@ -752,10 +754,18 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                 if (tokens.size() == 2)
                 {
                     if (tokens[0] == "Channels")
-                        numFXColumns_ = atoi(tokens[1].c_str());
+                        numFXLayoutColumns_ = atoi(tokens[1].c_str());
                     else
                     {
-                        for (int i = 1; i <= numFXColumns_; ++i )
+                        FXRowLayout *t = new FXRowLayout();
+                        
+                        t->suffix = tokens[1];
+                        t->modifiers = tokens[0];
+                        fxRowLayout_.Insert(GetSurface()->GetModifierManager()->GetModifierValue(tokens[0]), t);
+                        
+                        
+                        
+                        for (int i = 1; i <= numFXLayoutColumns_; ++i )
                         {
                             FXCellLayoutInfo info;
                             
@@ -766,6 +776,10 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
                             info.address += int_to_string(i);
                             fxLayouts.push_back(info);
                         }
+                        
+                        
+                        
+                        
                     }
                 }
             }
@@ -777,9 +791,18 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", layoutPath.c_str(), 1);
         ShowConsoleMsg(buffer);
     }
-
+    
+    
+    
+    
+    
+    
     if (fxLayouts.size() == 0) // didn't find any layouts
         return;
+    
+    
+    
+    
     
     paramWidgets_.clear();
     displayRows_.clear();
@@ -872,16 +895,26 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         ShowConsoleMsg(buffer);
     }
         
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     fxRows_.clear();
+    
+    
     
     for (int i = 0; i < fxLayouts.size(); ++i)
     {
         FXCellRow row;
         
         row.modifiers = fxLayouts[i].modifiers;
-        string_list modifierTokens;
-        GetSubTokens(modifierTokens, row.modifiers.c_str(), '+');
-        row.modifier = GetModifierValue(modifierTokens);
+        row.modifier = GetSurface()->GetModifierManager()->GetModifierValue(row.modifiers.c_str());
 
         row.address = fxLayouts[i].address;
         
@@ -921,6 +954,11 @@ void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPa
         fxRows_.push_back(row);
     }
 }
+
+
+
+
+
 
 void ZoneManager::ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate)
 {
@@ -3544,8 +3582,8 @@ void ZoneManager::Initialize()
     LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
-    if (zoneFilePaths_.Exists("FXLayouts") && zoneFilePaths_.Exists("SurfaceFXLayout"))
-        BuildFXTemplate(zoneFilePaths_.Get("FXLayouts")->filePath, zoneFilePaths_.Get("SurfaceFXLayout")->filePath);
+    if (zoneFilePaths_.Exists("FXRowLayout") && zoneFilePaths_.Exists("FXWidgetLayout"))
+        BuildFXTemplate(zoneFilePaths_.Get("FXRowLayout")->filePath, zoneFilePaths_.Get("FXWidgetLayout")->filePath);
     if (zoneFilePaths_.Exists("FXPrologue"))
         ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
     if (zoneFilePaths_.Exists("FXEpilogue"))
@@ -3850,22 +3888,13 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
 
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
 {
-    GetSubTokens(modifiers, line, '+');
-
-    modifier = GetModifierValue(modifiers);
+    modifier = GetSurface()->GetModifierManager()->GetModifierValue(line);
     
     paramWidgetFullName = modifiers[modifiers.size() - 1];
 
     paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
     
     cell = layoutTemplates[listSlotIndex].suffix;
-}
-
-int ZoneManager::GetModifierValue(const string_list &modifierTokens)
-{
-    ModifierManager modifierManager(csi_);
-
-    return modifierManager.GetModifierValue(modifierTokens);
 }
 
 void ZoneManager::SaveLearnedFXParams()
@@ -4402,8 +4431,6 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     
     int totalLayoutCount = fxRows_.size();
     
-    //for (int i = 0; i < (int)surfaceFXLayouts_.size(); ++i)
-        //totalLayoutCount += surfaceFXLayouts_[i].channelCount;
     bool wasMuted = false;
     GetTrackUIMute(track, &wasMuted);
     
@@ -4552,10 +4579,7 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
                 
                 row.address = string(tokens[1]);
                 row.modifiers = tokens.size() > 2 ? string(tokens[2]) : "";
-                
-                string_list modifierTokens;
-                GetSubTokens(modifierTokens, row.modifiers.c_str(), '+');
-                row.modifier = GetSurface()->GetModifierManager()->GetModifierValue(modifierTokens);
+                row.modifier = GetSurface()->GetModifierManager()->GetModifierValue(row.modifiers.c_str());
 
                 zd.rows.push_back(row);
             }

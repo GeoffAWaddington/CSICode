@@ -1155,7 +1155,7 @@ class TrackSolo : public Action
 {
 public:
     virtual const char *GetName() override { return "TrackSolo"; }
-
+    
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
         if (MediaTrack *track = context->GetTrack())
@@ -1163,7 +1163,7 @@ public:
         else
             return 0.0;
     }
-
+    
     virtual void RequestUpdate(ActionContext *context) override
     {
         if (context->GetTrack())
@@ -1178,7 +1178,18 @@ public:
         
         if (MediaTrack *track = context->GetTrack())
         {
-            CSurf_SetSurfaceSolo(track, CSurf_OnSoloChange(track, ! GetMediaTrackInfo_Value(track, "I_SOLO")), NULL);
+            if (track != GetMasterTrack(NULL))
+                CSurf_SetSurfaceSolo(track, CSurf_OnSoloChange(track, ! GetMediaTrackInfo_Value(track, "I_SOLO")), NULL);
+            else
+            {
+                int muteSoloFlags = GetMasterMuteSoloFlags();
+                if (muteSoloFlags & 2)
+                    muteSoloFlags &= !2;
+                else
+                    muteSoloFlags |= 2;
+                
+                CSurf_SetSurfaceSolo(track, CSurf_OnSoloChange(track, muteSoloFlags), NULL);
+            }
         }
     }
 };

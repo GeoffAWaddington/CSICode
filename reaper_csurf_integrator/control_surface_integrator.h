@@ -1315,6 +1315,14 @@ struct FXCellRow
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct FXRowLayout
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    string suffix;
+    string modifiers;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXZoneDefinition
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1379,6 +1387,11 @@ private:
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
     Zone *homeZone_;
+    
+    int numFXLayoutColumns_;
+    WDL_IntKeyedArray<FXRowLayout *> fxRowLayout_;
+    static void disposeFXRowLayout(FXRowLayout *fxRowLayout) { delete fxRowLayout; }
+    
     ptrvector<FXCellRow> fxRows_;
     
     MediaTrack *learnFXTrack_;
@@ -1467,7 +1480,6 @@ private:
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
-    int GetModifierValue(const string_list &modifiers);
         
     void BuildFXTemplate(const string &layoutPath, const string &cellPath);
     
@@ -1802,7 +1814,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), fxRowLayout_(disposeFXRowLayout)
     {
         //private:
         homeZone_ = NULL;
@@ -1810,6 +1822,8 @@ public:
         learnFXSlot_ = 0;
         lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
+        
+        numFXLayoutColumns_ = 0;
         
         listensToGoHome_ = false;
         listensToSends_ = false;
@@ -1849,6 +1863,8 @@ public:
     string_list displayRows_;
     string_list ringStyles_;
     string_list fonts_;
+    
+    
     bool hasColor_;
     
     void Initialize();
@@ -2506,6 +2522,13 @@ public:
         return buf;
     }
 
+    int GetModifierValue(const char *modifierString)
+    {
+        string_list modifierTokens;
+        GetSubTokens(modifierTokens, modifierString, '+');
+        return GetModifierValue(modifierTokens);
+    }
+    
     int GetModifierValue(const string_list &tokens)
     {
         int modifierValue = 0;
