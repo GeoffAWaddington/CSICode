@@ -11,9 +11,10 @@
 #define ID_BUTTON_AddListener           6
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
-#define IDD_DIALOG_RemapFX              117
+#define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_Advanced             119
 #define IDD_DIALOG_Broadcast            123
+#define IDD_DIALOG_EditFXAlias          125
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -55,8 +56,7 @@
 #define IDC_RADIO_TCP                   1098
 #define IDC_PARAM_LIST                  1099
 #define IDSAVE                          1100
-#define IDC_FXNAME                      1101
-#define IDC_EDIT_FXAlias                1102
+#define IDC_FXAlias                     1102
 #define IDC_AutoMap                     1103
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
@@ -122,14 +122,15 @@
 #define IDC_CHECK_WriteFXParams         1271
 #define IDC_CHECK_LearnFocusedFX        1274
 #define IDC_COMBO_Type                  1275
+#define IDC_EDIT_FXAlias                1276
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        125
+#define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1276
+#define _APS_NEXT_CONTROL_VALUE         1277
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -200,6 +200,7 @@ extern void GetTokens(string_list &tokens, const char *line);
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
 extern bool RemapFXDialog(ZoneManager *zoneManager, const char *fullPath);
+extern void LearnFXDialog(ZoneManager *zoneManager);
 extern void RefreshLearnDlg();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1320,6 +1321,12 @@ struct FXRowLayout
 {
     string suffix;
     string modifiers;
+    int modifier;
+    
+    FXRowLayout()
+    {
+        modifier = 0;
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1387,11 +1394,7 @@ private:
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
     Zone *homeZone_;
-    
-    int numFXLayoutColumns_;
-    WDL_IntKeyedArray<FXRowLayout *> fxRowLayout_;
-    static void disposeFXRowLayout(FXRowLayout *fxRowLayout) { delete fxRowLayout; }
-    
+        
     ptrvector<FXCellRow> fxRows_;
     
     MediaTrack *learnFXTrack_;
@@ -1475,7 +1478,6 @@ private:
         selectedTrackFXMenuOffset_ = 0;
     }
    
-    void AutoLearnFX(const string &fxName, MediaTrack *track, int fxIndex);
     void GoLearnFocusedFX();
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
@@ -1814,7 +1816,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), fxRowLayout_(disposeFXRowLayout)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
     {
         //private:
         homeZone_ = NULL;
@@ -1859,12 +1861,14 @@ public:
         allZonesNeedFree_.Empty(true);
     }
      
+    int numFXLayoutColumns_;
+    ptrvector<FXRowLayout *> fxRowLayouts_;
+    
     string_list paramWidgets_;
     string_list displayRows_;
     string_list ringStyles_;
     string_list fonts_;
-    
-    
+       
     bool hasColor_;
     
     void Initialize();
@@ -1885,7 +1889,9 @@ public:
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void UnpackFXZone(FXZoneDefinition &zoneDef);
-        
+    void AutoLearnFX(const string &fxName, MediaTrack *track, int fxIndex);
+    void AutoMapFX(MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias);
+    
     bool DoesZoneExist(char *name) { return zoneFilePaths_.Exists(name); }
     
     WDL_PtrList<Zone> allZonesNeedFree_;

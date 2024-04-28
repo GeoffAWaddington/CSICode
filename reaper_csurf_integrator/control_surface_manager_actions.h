@@ -646,17 +646,17 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class RemapZone  : public Action
+class LearnFX  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "RemapZone"; }
+    virtual const char *GetName() override { return "LearnFX"; }
     
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->RemapZone();
+        LearnFXDialog(context->GetSurface()->GetZoneManager());
     }
 };
 

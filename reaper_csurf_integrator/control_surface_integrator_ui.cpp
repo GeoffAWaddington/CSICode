@@ -26,6 +26,11 @@ static int s_dlgResult = IDCANCEL;
 static int s_fxCellIndex = 0;
 static int s_fxParamTemplateIndex = 0;
 
+MediaTrack *s_focusedTrack = NULL;
+int s_fxSlot = 0;
+char s_fxName[BUFSZ];
+char s_fxAlias[BUFSZ];
+
 static const int s_baseControls[] =
 {
     IDC_FXParamNumEdit,
@@ -633,6 +638,50 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
+static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+        {
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias);
+        }
+            break;
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias, sizeof(s_fxAlias));
+                        s_dlgResult = IDOK;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+            break ;
+            
+        case WM_CLOSE:
+            DestroyWindow(hwndDlg) ;
+            break ;
+            
+        case WM_DESTROY:
+            EndDialog(hwndDlg, 0);
+            break;
+    }
+    
+    return 0;
+}
+
+
 string_list GetLineComponents(int index)
 {
     string_list components;
@@ -734,18 +783,63 @@ static bool DeleteZone()
     return true;
 }
 
-static void InitLearnDlg(HWND hwndDlg)
+struct ChildOffset
 {
-    SetDlgItemText(hwndDlg, IDC_FXNAME, s_zoneDef.fxName.c_str());
-    SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_zoneDef.fxAlias.c_str());
+    int id;
+    int x;
+    int y;
+    
+    ChildOffset(int control, int xOffset, int yOffset)
+    {
+        id = control;
+        x = xOffset;
+        y = yOffset;
+    }
+};
 
-    PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-}
+vector<ChildOffset> s_childOffsets;
 
-static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+int s_paramListXOffset;
+int s_paramListYOffset;
+int s_paramListWidthBias;
+int s_paramListHeightBias;
+
+static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
-    {
+    { 
+        case WM_SIZE:
+        {
+            RECT parent;
+            
+            GetClientRect(hwndDlg, &parent);
+            
+            RECT child;
+            
+            for (int i = 0; i < s_childOffsets.size(); ++i)
+            {
+                HWND hwndChild = GetDlgItem(hwndDlg, s_childOffsets[i].id);
+                
+                GetClientRect(hwndChild, &child);
+                
+                SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, parent.bottom - s_childOffsets[i].y, child.right - child.left, child.bottom - child.top, 0);
+            }
+            
+            RECT parentWinRect;
+            
+            GetWindowRect(hwndDlg, &parentWinRect);
+            
+            int parentWinHeight = parentWinRect.bottom - parentWinRect.top;
+            
+            HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+            
+            GetClientRect(hwndParamList, &child);
+
+            SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top + s_paramListYOffset, parent.right - parent.left - s_paramListWidthBias, parentWinHeight - s_paramListHeightBias, 0);
+        }
+            break;
+            
+            
         case WM_NOTIFY:
         {
             if (((LPNMHDR)lParam)->code == NM_DBLCLK)
@@ -785,8 +879,7 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     {
                         FXCellRow *row = s_zoneDef.rows.Get(lplvcd->nmcd.dwItemSpec);
                              
-                        if (0)
-                        //if (lplvcd->iSubItem != 0)
+                        if (lplvcd->iSubItem != 0)
                         {
                             int cellParamIndex = lplvcd->iSubItem - 1;
                             
@@ -825,39 +918,77 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
         case WM_INITDIALOG:
         {
-            HWND paramList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+            int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap, IDSAVE, IDCANCEL };
+            
+            s_childOffsets.clear();
+            
+            RECT parent;
+            
+            GetWindowRect(hwndDlg, &parent);
+            
+            RECT child;
+                        
+            for (int i = 0; i < NUM_ELEM(childIds); ++i)
+            {
+                int id = childIds[i];
+                
+                GetWindowRect(GetDlgItem(hwndDlg, id), &child);
+
+                ChildOffset offset(id, (parent.right - child.right) + (child.right - child.left), child.top - parent.top);
+                
+                s_childOffsets.push_back(offset);
+            }
+            
+            HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+
+            GetWindowRect(hwndParamList, &child);
+            
+            s_paramListHeightBias = (parent.bottom - parent.top) - (child.top - child.bottom );
+
+            POINT p;
+            
+            p.x = child.left;
+            p.y = child.top;
+            
+            ScreenToClient(hwndDlg, &p);
+            
+            s_paramListXOffset = p.x;
+            s_paramListYOffset = p.y;
+            
+            GetClientRect(hwndDlg, &parent);
+            GetClientRect(hwndParamList, &child);
+
+            s_paramListWidthBias = parent.right - child.right;
             
             vector<int> columnSizes;
             
-            int numFXColumns = 8;
+            int numColumns = s_zoneManager->numFXLayoutColumns_;
             
 #ifdef _WIN32
             columnSizes.push_back(160); // modifiers
             
-            for (int i = 1; i <= numFXColumns; i++)
+            for (int i = 1; i <= numColumns; i++)
                 columnSizes.push_back(80);  // widget
 #else
             columnSizes.push_back(65); // modifiers
             
-            for (int i = 1; i <= numFXColumns; i++)
+            for (int i = 1; i <= numColumns; i++)
                 columnSizes.push_back(38); // widget
 #endif
 
             LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
             columnDescriptor.cx = columnSizes[0];
             
-            ListView_InsertColumn(paramList, 0, &columnDescriptor);
+            ListView_InsertColumn(hwndParamList, 0, &columnDescriptor);
             
-            for (int i = 1; i <= numFXColumns; i++)
+            for (int i = 1; i <= numColumns; i++)
             {
                 char caption[20];
                 sprintf(caption, "%d", i);
                 columnDescriptor.pszText = caption;
                 columnDescriptor.cx = columnSizes[i];
-                ListView_InsertColumn(paramList, i, &columnDescriptor);
+                ListView_InsertColumn(hwndParamList, i, &columnDescriptor);
             }
-            
-            s_dlgResult = IDCANCEL;
 
             break;
         }
@@ -866,11 +997,25 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
             switch(LOWORD(wParam))
             {
+                case IDC_FXAlias:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
+                        
+                        if (s_dlgResult == IDOK)
+                        {
+                            char buf[BUFSZ];
+                            sprintf(buf, "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
+                            SetWindowText(hwndDlg, buf);
+                        }
+                    }
+                    break;
+                    
                 case IDSAVE:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         char buf[BUFSZ];
-                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
+                        //GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, buf, sizeof(buf));
                         s_zoneDef.fxAlias = buf;
                         s_zoneManager->SaveRemappedZone(s_zoneDef);
                         s_dlgResult = IDSAVE;
@@ -878,12 +1023,11 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     }
                     break ;
                    
-                case IDC_Delete:
+                case IDC_AutoMap:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        if (DeleteZone())
-                            EndDialog(hwndDlg, 0);
+                        s_zoneManager->AutoMapFX(s_focusedTrack, s_fxSlot, s_fxName, s_fxAlias);
                     break ;
-                    
+                                        
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
                         ShowWindow(hwndDlg, SW_HIDE);
@@ -896,34 +1040,94 @@ static WDL_DLGRET dlgProcRemapFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 }
 //#endif
 
-static HWND learnDlg = NULL;
+static void InitLearnDlg(HWND hwndDlg)
+{
+    //SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_zoneDef.fxAlias.c_str());
+
+    PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+}
+
+static HWND hwndLearnDlg = NULL;
 
 void RefreshLearnDlg()
 {
-    if (learnDlg != NULL)
-        InitLearnDlg(learnDlg);
+    if (hwndLearnDlg != NULL)
+        InitLearnDlg(hwndLearnDlg);
 }
 
 bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
 {
-    s_zoneDef.Clear();
+    //s_zoneDef.Clear();
     s_zoneManager = zoneManager;
-    s_zoneDef.fullPath = fullFilePath;
+    if (fullFilePath)
+        s_zoneDef.fullPath = fullFilePath;
     s_numGroups = s_zoneManager->paramWidgets_.size();
     
-    s_zoneManager->UnpackFXZone(s_zoneDef);
+    //s_zoneManager->UnpackFXZone(s_zoneDef);
     
-    if (learnDlg == NULL)
-        learnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_RemapFX), g_hwnd, dlgProcRemapFX);
+    if (hwndLearnDlg == NULL)
+        hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
     
     //InitLearnDlg(learnDlg);
     
-    ShowWindow(learnDlg, SW_SHOW);
+    ShowWindow(hwndLearnDlg, SW_SHOW);
 
     if (s_dlgResult == IDSAVE)
         return true;
     else
         return false;
+}
+
+void LearnFXDialog(ZoneManager *zoneManager)
+{
+    s_zoneManager = zoneManager;
+    
+    if (hwndLearnDlg == NULL)
+        hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
+    
+    if (hwndLearnDlg == NULL)
+        return;
+    
+    int trackNumber = 0;
+    int itemNumber = 0;
+    int takeNumber = 0;
+    int paramIndex = 0;
+
+    s_focusedTrack = NULL;
+    s_fxSlot = 0;
+    s_fxName[0] = 0;
+    s_fxAlias[0] = 0;
+    
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &s_fxSlot, &paramIndex);
+    
+    trackNumber++;
+    
+    if (retVal && ! (paramIndex & 0x01))
+    {
+        if (trackNumber > 0)
+            s_focusedTrack = DAW::GetTrack(trackNumber);
+        else if (trackNumber == 0)
+            s_focusedTrack = GetMasterTrack(NULL);
+    }
+    
+    if (s_focusedTrack)
+    {
+        TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
+        
+        char buf[BUFSZ];
+
+        if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
+        {
+            sprintf(s_fxAlias, "%s", s_zoneManager->GetZoneFilePaths().Get(s_fxName)->alias.c_str());
+            sprintf(buf, "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
+        }
+        else
+            sprintf(buf, "%s    %s", s_zoneManager->GetSurface()->GetName(), s_fxName);
+        
+        SetWindowText(hwndLearnDlg, buf);
+    }
+    
+    ShowWindow(hwndLearnDlg, SW_SHOW);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
