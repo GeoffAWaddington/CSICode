@@ -727,6 +727,12 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyed
     }
 }
 
+
+
+
+
+
+
 void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
 {
     fxRowLayouts_.clear();
@@ -984,6 +990,12 @@ void ZoneManager::ProcessFXBoilerplate(const string &filePath, string_list &fxBo
         ShowConsoleMsg(buffer);
     }
 }
+
+
+
+
+
+
 
 void Zone::GCTagZone(Zone *zone)
 {
@@ -3539,7 +3551,6 @@ void OSC_X32IntFeedbackProcessor::SetColorValue(const rgba_color &color)
     {
         lastColor_ = color;
 
-        
         int surfaceColor = 0;
         int r = color.r;
         int g = color.g;
@@ -3582,6 +3593,10 @@ void ZoneManager::Initialize()
     LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, dummy, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
+    
+    
+    
+    
     if (zoneFilePaths_.Exists("FXRowLayout") && zoneFilePaths_.Exists("FXWidgetLayout"))
         BuildFXTemplate(zoneFilePaths_.Get("FXRowLayout")->filePath, zoneFilePaths_.Get("FXWidgetLayout")->filePath);
     if (zoneFilePaths_.Exists("FXPrologue"))
@@ -3747,6 +3762,250 @@ void ZoneManager::GoSelectedTrackFX()
     needGarbageCollect_ = true;
 }
 
+void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
+{
+    if (fxSlot > TrackFX_GetCount(track) - 1)
+        return;
+    
+    char fxName[BUFSZ];
+    
+    TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
+    
+    if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
+        CalculateSteppedValues(fxName, track, fxSlot);
+
+    if (zoneFilePaths_.Exists(fxName))
+    {
+        WDL_PtrList<Navigator> navigators;
+        navigators.Add(navigator);
+        
+        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
+        
+        if (fxSlotZones_.GetSize() > 0)
+        {
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(fxSlot);
+            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
+        }
+    }
+    else
+        TrackFX_SetOpen(track, fxSlot, true);
+    
+    needGarbageCollect_ = true;
+}
+
+void ZoneManager::UpdateCurrentActionContextModifiers()
+{    
+    if (focusedFXParamZone_ != NULL)
+        focusedFXParamZone_->UpdateCurrentActionContextModifiers();
+    
+    for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
+        focusedFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
+    
+    for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        selectedTrackFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
+    
+    for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
+        fxSlotZones_.Get(i)->UpdateCurrentActionContextModifiers();
+    
+    if (homeZone_ != NULL)
+        homeZone_->UpdateCurrentActionContextModifiers();
+}
+
+void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
+{
+    modifier = GetSurface()->GetModifierManager()->GetModifierValue(line);
+    
+    paramWidgetFullName = modifiers[modifiers.size() - 1];
+
+    paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
+    
+    cell = layoutTemplates[listSlotIndex].suffix;
+}
+
+void ZoneManager::PreProcessZones()
+{
+    if (zoneFolder_[0] == 0)
+    {
+        char tmp[2048];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your CSI.ini, cannot find Zone folder for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder definiton for surface is empty","csi_mbox"), MB_OK);
+
+        return;
+    }
+    
+    string_list zoneFilesToProcess;
+    listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
+       
+    if (zoneFilesToProcess.size() == 0)
+    {
+        char tmp[2048];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find Zone files for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder is missing or empty","csi_mbox"), MB_OK);
+
+        return;
+    }
+      
+    for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
+        PreProcessZoneFile(zoneFilesToProcess[i], this);
+    
+    if (zoneFolder_ != fxZoneFolder_)
+    {
+        zoneFilesToProcess.clear();
+        
+        listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
+         
+        for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
+            PreProcessZoneFile(zoneFilesToProcess[i], this);
+    }
+}
+
+void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex)
+{
+    // Check for UAD / Plugin Alliance and bail if neither
+    if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
+        return;
+    
+    bool wasMuted = false;
+    GetTrackUIMute(track, &wasMuted);
+    
+    if ( ! wasMuted)
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
+
+    double minvalOut = 0.0;
+    double maxvalOut = 0.0;
+
+    double currentValue;
+
+    currentValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+    
+        int stepCount = 1;
+        double stepValue = 0.0;
+        
+        for (double value = 0.0; value < 1.01; value += .01)
+        {
+            TrackFX_SetParam(track, fxIndex, paramIndex, value);
+            
+            double fxValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
+            
+            if (stepValue != fxValue)
+            {
+                stepValue = fxValue;
+                stepCount++;
+            }
+        }
+        
+    if (stepCount > 1 && stepCount < 31)
+        csi_->SetSteppedValueCount(fxName, paramIndex, stepCount);
+
+    TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
+    
+    if ( ! wasMuted)
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
+}
+
+void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
+{
+    csi_->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+
+    // Check for UAD / Plugin Alliance and bail if neither
+    if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
+        return;
+    
+    int totalLayoutCount = fxRows_.size();
+    
+    bool wasMuted = false;
+    GetTrackUIMute(track, &wasMuted);
+    
+    if ( ! wasMuted)
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
+
+    double minvalOut = 0.0;
+    double maxvalOut = 0.0;
+
+    int numParams = TrackFX_GetNumParams(track, fxIndex);
+
+    vector<double> currentValues;
+
+    for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
+        currentValues.push_back(TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
+    
+    for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
+    {
+        int stepCount = 1;
+        double stepValue = 0.0;
+        
+        for (double value = 0.0; value < 1.01; value += .01)
+        {
+            TrackFX_SetParam(track, fxIndex, i, value);
+            
+            double fxValue = TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
+            
+            if (stepValue != fxValue)
+            {
+                stepValue = fxValue;
+                stepCount++;
+            }
+        }
+        
+        if (stepCount > 1 && stepCount < 31)
+            csi_->SetSteppedValueCount(fxName, i, stepCount);
+    }
+    
+    for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
+        TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
+    
+    if ( ! wasMuted)
+        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
+}
+
+void ZoneManager::DoTouch(Widget *widget, double value)
+{
+    surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
+    
+    widget->LogInput(value);
+    
+    bool isUsed = false;
+    
+    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
+        focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
+        focusedFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    if (isUsed)
+        return;
+
+    for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        selectedTrackFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    if (isUsed)
+        return;
+
+    for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
+        fxSlotZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
+    
+    if (isUsed)
+        return;
+
+    if (homeZone_ != NULL)
+        homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
+}
+
+Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
+Navigator *ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
+Navigator *ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
+int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
+
+
+
+
+
+
+
+
+
+
+
 void ZoneManager::AutoLearnFocusedFX()
 {
     int trackNumber = 0;
@@ -3835,66 +4094,6 @@ void ZoneManager::GoLearnFocusedFX()
         
         LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navs, zones, NULL);
     }
-}
-
-void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
-{
-    if (fxSlot > TrackFX_GetCount(track) - 1)
-        return;
-    
-    char fxName[BUFSZ];
-    
-    TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-    
-    if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
-        CalculateSteppedValues(fxName, track, fxSlot);
-
-    if (zoneFilePaths_.Exists(fxName))
-    {
-        WDL_PtrList<Navigator> navigators;
-        navigators.Add(navigator);
-        
-        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
-        
-        if (fxSlotZones_.GetSize() > 0)
-        {
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(fxSlot);
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
-        }
-    }
-    else
-        TrackFX_SetOpen(track, fxSlot, true);
-    
-    needGarbageCollect_ = true;
-}
-
-void ZoneManager::UpdateCurrentActionContextModifiers()
-{    
-    if (focusedFXParamZone_ != NULL)
-        focusedFXParamZone_->UpdateCurrentActionContextModifiers();
-    
-    for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-        focusedFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
-    
-    for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
-        selectedTrackFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
-    
-    for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
-        fxSlotZones_.Get(i)->UpdateCurrentActionContextModifiers();
-    
-    if (homeZone_ != NULL)
-        homeZone_->UpdateCurrentActionContextModifiers();
-}
-
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
-{
-    modifier = GetSurface()->GetModifierManager()->GetModifierValue(line);
-    
-    paramWidgetFullName = modifiers[modifiers.size() - 1];
-
-    paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
-    
-    cell = layoutTemplates[listSlotIndex].suffix;
 }
 
 void ZoneManager::SaveLearnedFXParams()
@@ -4355,142 +4554,6 @@ void ZoneManager::RemapZone()
     }
 }
 
-void ZoneManager::PreProcessZones()
-{
-    if (zoneFolder_[0] == 0)
-    {
-        char tmp[2048];
-        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your CSI.ini, cannot find Zone folder for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
-        MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder definiton for surface is empty","csi_mbox"), MB_OK);
-
-        return;
-    }
-    
-    string_list zoneFilesToProcess;
-    listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
-       
-    if (zoneFilesToProcess.size() == 0)
-    {
-        char tmp[2048];
-        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find Zone files for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
-        MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder is missing or empty","csi_mbox"), MB_OK);
-
-        return;
-    }
-      
-    for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-        PreProcessZoneFile(zoneFilesToProcess[i], this);
-    
-    if (zoneFolder_ != fxZoneFolder_)
-    {
-        zoneFilesToProcess.clear();
-        
-        listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
-         
-        for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-            PreProcessZoneFile(zoneFilesToProcess[i], this);
-    }
-}
-
-void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex)
-{
-    // Check for UAD / Plugin Alliance and bail if neither
-    if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
-        return;
-    
-    bool wasMuted = false;
-    GetTrackUIMute(track, &wasMuted);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
-
-    double minvalOut = 0.0;
-    double maxvalOut = 0.0;
-
-    double currentValue;
-
-    currentValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
-    
-        int stepCount = 1;
-        double stepValue = 0.0;
-        
-        for (double value = 0.0; value < 1.01; value += .01)
-        {
-            TrackFX_SetParam(track, fxIndex, paramIndex, value);
-            
-            double fxValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
-            
-            if (stepValue != fxValue)
-            {
-                stepValue = fxValue;
-                stepCount++;
-            }
-        }
-        
-    if (stepCount > 1 && stepCount < 31)
-        csi_->SetSteppedValueCount(fxName, paramIndex, stepCount);
-
-    TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
-}
-
-void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
-{
-    csi_->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
-
-    // Check for UAD / Plugin Alliance and bail if neither
-    if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
-        return;
-    
-    int totalLayoutCount = fxRows_.size();
-    
-    bool wasMuted = false;
-    GetTrackUIMute(track, &wasMuted);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
-
-    double minvalOut = 0.0;
-    double maxvalOut = 0.0;
-
-    int numParams = TrackFX_GetNumParams(track, fxIndex);
-
-    vector<double> currentValues;
-
-    for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
-        currentValues.push_back(TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
-    
-    for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
-    {
-        int stepCount = 1;
-        double stepValue = 0.0;
-        
-        for (double value = 0.0; value < 1.01; value += .01)
-        {
-            TrackFX_SetParam(track, fxIndex, i, value);
-            
-            double fxValue = TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
-            
-            if (stepValue != fxValue)
-            {
-                stepValue = fxValue;
-                stepCount++;
-            }
-        }
-        
-        if (stepCount > 1 && stepCount < 31)
-            csi_->SetSteppedValueCount(fxName, i, stepCount);
-    }
-    
-    for (int i = 0; i < numParams && i <= totalLayoutCount; i++)
-        TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
-}
-
 void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxIndex)
 {
     int numParams = TrackFX_GetNumParams(track, fxIndex);
@@ -4720,43 +4783,11 @@ void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
     }
 }
 
-void ZoneManager::DoTouch(Widget *widget, double value)
-{
-    surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
-    
-    widget->LogInput(value);
-    
-    bool isUsed = false;
-    
-    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-        focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
-    
-    for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-        focusedFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
-    
-    if (isUsed)
-        return;
 
-    for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
-        selectedTrackFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
-    
-    if (isUsed)
-        return;
 
-    for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
-        fxSlotZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
-    
-    if (isUsed)
-        return;
 
-    if (homeZone_ != NULL)
-        homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
-}
 
-Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
-Navigator *ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
-Navigator *ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
-int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ModifierManager
@@ -5751,8 +5782,6 @@ CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), learnFXActio
 
     index = projectconfig_var_getoffs("projmetrov2", &size);
     projectMetronomeSecondaryVolumeOffs_ = size==8 ? index : -1;
-            
-    //GenerateX32SurfaceFile();
 }
 
 CSurfIntegrator::~CSurfIntegrator()
