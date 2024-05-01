@@ -1845,9 +1845,6 @@ public:
     
     
     
-    string_list fxPrologue_;
-    string_list fxEpilogue_;
-
     int numFXLayoutColumns_;
     ptrvector<FXRowLayout *> fxRowLayouts_;
     
@@ -1860,13 +1857,10 @@ public:
     void AutoLearnFX(const string &fxName, MediaTrack *track, int fxIndex);
     void AutoMapFX(MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias);
     void RemapZone();
-    void AutoLearnFocusedFX();
     void SaveLearnedFXParams();
     void EraseLastTouchedControl();
     void SaveRemappedZone(const FXZoneDefinition &zoneDef);
     void GoLearnFocusedFX();
-    void BuildFXTemplate(const string &layoutPath, const string &cellPath);
-    void ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate);
     ptrvector<FXCellRow> fxRows_;
     
     MediaTrack *learnFXTrack_;
@@ -1923,6 +1917,7 @@ public:
     
     
     const string &GetZoneFolder() { return zoneFolder_; }
+    const string &GetFXZoneFolder() { return fxZoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
 
     ControlSurface *GetSurface() { return surface_; }

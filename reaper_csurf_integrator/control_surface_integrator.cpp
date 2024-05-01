@@ -733,264 +733,6 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyed
 
 
 
-void ZoneManager::BuildFXTemplate(const string &layoutPath, const string &cellPath)
-{
-    fxRowLayouts_.clear();
-    
-    
-    
-    ptrvector<FXCellLayoutInfo> fxLayouts;
-
-    try
-    {
-        fpistream file(layoutPath.c_str());
-        
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-        
-            if (line.find("Zone") == string::npos)
-            {
-                string_list tokens;
-                GetTokens(tokens, line.c_str());
-                
-                if (tokens.size() == 2)
-                {
-                    if (tokens[0] == "Channels")
-                        numFXLayoutColumns_ = atoi(tokens[1].c_str());
-                    else
-                    {
-                        FXRowLayout *t = new FXRowLayout();
-                        
-                        t->suffix = tokens[1];
-                        t->modifiers = tokens[0];
-                        t->modifier = GetSurface()->GetModifierManager()->GetModifierValue(tokens[0]);
-                        fxRowLayouts_.push_back(t);
-                        
-                        
-                        for (int i = 1; i <= numFXLayoutColumns_; ++i )
-                        {
-                            FXCellLayoutInfo info;
-                            
-                            info.modifiers = tokens[0];
-                            if (info.modifiers != "")
-                                info.modifiers += "+";
-                            info.address = tokens[1];
-                            info.address += int_to_string(i);
-                            fxLayouts.push_back(info);
-                        }
-                        
-                        
-                        
-                        
-                    }
-                }
-            }
-        }
-    }
-    catch (exception)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", layoutPath.c_str(), 1);
-        ShowConsoleMsg(buffer);
-    }
-    
-    
-    
-    
-    
-    
-    if (fxLayouts.size() == 0) // didn't find any layouts
-        return;
-    
-    
-    
-    
-    
-    paramWidgets_.clear();
-    displayRows_.clear();
-    ringStyles_.clear();
-    fonts_.clear();
-    
-    string paramWidget = "";
-    string nameWidget = "";
-    string valueWidget = "";
-    string widgetParams = "";
-    string nameParams = "";
-    string valueParams = "";
-    
-    try
-    {
-        fpistream file(cellPath.c_str());
-        
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "") // ignore blank lines
-                continue;
-        
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
-
-            if (tokens[0] != "Zone" && tokens[0] != "ZoneEnd")
-            {
-                if (tokens[0][0] == '#')
-                {
-                    if (tokens[0] == "#WidgetTypes")
-                    {
-                        for (int i = 1; i < tokens.size(); ++i)
-                            paramWidgets_.push_back(tokens[i]);
-                    }
-                    else if (tokens[0] == "#DisplayRows")
-                    {
-                        for (int i = 1; i < tokens.size(); ++i)
-                            displayRows_.push_back(tokens[i]);
-                    }
-
-                    else if (tokens[0] == "#RingStyles")
-                    {
-                        for (int i = 1; i < tokens.size(); ++i)
-                            ringStyles_.push_back(tokens[i]);
-                    }
-
-                    else if (tokens[0] == "#DisplayFonts")
-                    {
-                        for (int i = 1; i < tokens.size(); ++i)
-                            fonts_.push_back(tokens[i]);
-                    }
-                    else if (tokens[0] == "#SupportsColor")
-                    {
-                        hasColor_ = true;
-                    }
-                }
-                else
-                {
-                    if (tokens.size() > 1 && tokens[1] == "FXParam")
-                    {
-                        paramWidget = tokens[0];
-                        
-                        if (tokens.size() > 2)
-                            widgetParams = line.substr(line.find(tokens[2]), line.length() - 1);
-                    }
-                    if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
-                    {
-                        nameWidget = tokens[0];
-                        
-                        if (tokens.size() > 2)
-                            nameParams = line.substr(line.find(tokens[2]), line.length() - 1);
-                    }
-                    if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
-                    {
-                        valueWidget = tokens[0];
-                        
-                        if (tokens.size() > 2)
-                            valueParams = line.substr(line.find(tokens[2]), line.length() - 1);
-                    }
-                }
-            }
-        }
-    }
-    catch (exception)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", cellPath.c_str(), 1);
-        ShowConsoleMsg(buffer);
-    }
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    fxRows_.clear();
-    
-    
-    
-    for (int i = 0; i < fxLayouts.size(); ++i)
-    {
-        FXCellRow row;
-        
-        row.modifiers = fxLayouts[i].modifiers;
-        row.modifier = GetSurface()->GetModifierManager()->GetModifierValue(row.modifiers.c_str());
-
-        row.address = fxLayouts[i].address;
-        
-        FXCell cell;
-
-        cell.control = paramWidget;
-        cell.controlParams = widgetParams;
-        cell.nameDisplay = nameWidget;
-        cell.nameDisplayAction = "FixedTextDisplay";
-        cell.nameDisplayParams = nameParams;
-        cell.valueDisplay = valueWidget;
-        cell.valueDisplayAction = "FXParamValueDisplay";
-        cell.valueDisplayParams = valueParams;
-
-        row.cells.push_back(cell);
-        
-        for (int j = 0; j < paramWidgets_.size(); ++j)
-        {
-            if (paramWidgets_[j] != paramWidget)
-            {
-                FXCell cell2;
-                
-                cell2.control = paramWidgets_[j];
-
-                if (displayRows_.size() > 1)
-                {
-                    cell2.nameDisplay = displayRows_[0];
-                    cell2.nameDisplayAction = "NullDisplay";
-                    cell2.valueDisplay = displayRows_[1];
-                    cell2.valueDisplayAction = "NullDisplay";
-                }
-                
-                row.cells.push_back(cell2);
-            }
-        }
-        
-        fxRows_.push_back(row);
-    }
-}
-
-
-
-
-
-
-void ZoneManager::ProcessFXBoilerplate(const string &filePath, string_list &fxBoilerplate)
-{
-    try
-    {
-        fpistream file(filePath.c_str());
-            
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-        
-            if (line.find("Zone") != 0)
-                fxBoilerplate.push_back(line);
-        }
-    }
-    catch (exception)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
-        ShowConsoleMsg(buffer);
-    }
-}
-
 
 
 
@@ -1955,7 +1697,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
     actions_.Insert("LearnFX", new LearnFX());
-    actions_.Insert("AutoLearnFocusedFX", new AutoLearnFocusedFX());
     actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
@@ -3594,16 +3335,6 @@ void ZoneManager::Initialize()
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
     
-    
-    
-    
-    if (zoneFilePaths_.Exists("FXRowLayout") && zoneFilePaths_.Exists("FXWidgetLayout"))
-        BuildFXTemplate(zoneFilePaths_.Get("FXRowLayout")->filePath, zoneFilePaths_.Get("FXWidgetLayout")->filePath);
-    if (zoneFilePaths_.Exists("FXPrologue"))
-        ProcessFXBoilerplate(zoneFilePaths_.Get("FXPrologue")->filePath, fxPrologue_);
-    if (zoneFilePaths_.Exists("FXEpilogue"))
-        ProcessFXBoilerplate(zoneFilePaths_.Get("FXEpilogue")->filePath, fxEpilogue_);
-
     GoHome();
 }
 
@@ -4006,37 +3737,7 @@ int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 
 
-void ZoneManager::AutoLearnFocusedFX()
-{
-    int trackNumber = 0;
-    int itemNumber = 0;
-    int takeNumber = 0;
-    int fxSlot = 0;
-    int paramIndex = 0;
-    
-    MediaTrack *track = NULL;
-    
-    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
 
-    trackNumber++;
-
-    if (retVal && ! (paramIndex & 0x01))
-    {
-        if (trackNumber > 0)
-            track = DAW::GetTrack(trackNumber);
-        else if (trackNumber == 0)
-            track = GetMasterTrack(NULL);
-
-        if (track)
-        {
-            char fxName[BUFSZ];
-            TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-            if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
-                CalculateSteppedValues(fxName, track, fxSlot);
-            AutoLearnFX(fxName, track, fxSlot);
-        }
-    }
-}
 
 void ZoneManager::GoLearnFocusedFX()
 {
@@ -4129,8 +3830,6 @@ void ZoneManager::SaveLearnedFXParams()
     {
         fprintf(fxZone, "Zone \"%s\" \"%s\"\n", fxName, alias);
         
-        for (int i = 0; i < (int)fxPrologue_.size(); ++i)
-            fprintf(fxZone, "\t%s\n", fxPrologue_[i].c_str());
         
         fprintf(fxZone, "\n%s\n\n", s_BeginAutoSection);
         
@@ -4231,8 +3930,6 @@ void ZoneManager::SaveLearnedFXParams()
         
         fprintf(fxZone, "%s\n", s_EndAutoSection);
         
-        for (int i = 0; i < (int)fxEpilogue_.size(); ++i)
-            fprintf(fxZone, "\t%s\n", fxEpilogue_[i].c_str());
         
         fprintf(fxZone, "ZoneEnd\n\n");
         
