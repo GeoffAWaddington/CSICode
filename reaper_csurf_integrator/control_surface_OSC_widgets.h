@@ -106,8 +106,6 @@ public:
     X32_Fader_OSC_MessageGenerator(CSurfIntegrator *const csi, Widget *widget) : CSIMessageGenerator(csi, widget) {}
     ~X32_Fader_OSC_MessageGenerator() {}
 
-    virtual const char *GetName() override { return "X32_Fader_OSC_MessageGenerator"; }
-
     virtual void ProcessMessage(double value) override
     {
         if      (value >= 0.5)    value = value *  40.0 - 30.0;  // max dB value: +10.
