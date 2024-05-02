@@ -98,4 +98,48 @@ public:
     }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class X32_Fader_OSC_MessageGenerator : public CSIMessageGenerator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    X32_Fader_OSC_MessageGenerator(CSurfIntegrator *const csi, Widget *widget) : CSIMessageGenerator(csi, widget) {}
+    ~X32_Fader_OSC_MessageGenerator() {}
+
+    virtual const char *GetName() override { return "X32_Fader_OSC_MessageGenerator"; }
+
+    virtual void ProcessMessage(double value) override
+    {
+        if      (value >= 0.5)    value = value *  40.0 - 30.0;  // max dB value: +10.
+        else if (value >= 0.25)   value = value *  80.0 - 50.0;
+        else if (value >= 0.0625) value = value * 160.0 - 70.0;
+        else if (value >= 0.0)    value = value * 480.0 - 90.0;  // min dB value: -90 or -oo
+
+        widget_->GetZoneManager()->DoAction(widget_, value);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSC_X32FaderFeedbackProcessor : public OSC_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    OSC_X32FaderFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    ~OSC_X32FaderFeedbackProcessor() {}
+
+    virtual const char *GetName() override { return "OSC_X32FaderFeedbackProcessor"; }
+    
+    virtual void ForceValue(const PropertyList &properties, double value) override
+    {
+        lastDoubleValue_ = value;
+
+        if      (value < -60.0) value = (value + 90.0) / 480.0;
+        else if (value < -30.0) value = (value + 70.0) / 160.0;
+        else if (value < -10.0) value = (value + 50.0) /  80.0;
+        else if (value <= 10.0) value = (value + 30.0) /  40.0;
+
+        surface_->SendOSCMessage(this, oscAddress_.c_str(), value);
+    }
+};
+
 #endif /* control_surface_OSC_widgets_h */

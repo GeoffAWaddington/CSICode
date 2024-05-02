@@ -1464,6 +1464,8 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
             AddCSIMessageGenerator(tokenLines[i][1], new MotorizedFaderWithoutTouch_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
             AddCSIMessageGenerator(tokenLines[i][1], new Touch_CSIMessageGenerator(csi_, widget));
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "X32Fader")
+            AddCSIMessageGenerator(tokenLines[i][1], new X32_Fader_OSC_MessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
             widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
@@ -1472,6 +1474,8 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
             widget->AddFeedbackProcessor(new OSC_X32FeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_X32IntProcessor")
             widget->AddFeedbackProcessor(new OSC_X32IntFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_X32FaderProcessor")
+            widget->AddFeedbackProcessor(new OSC_X32FaderFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
     }
 }
 
@@ -1722,7 +1726,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("SoftTakeover7BitTrackVolume", new SoftTakeover7BitTrackVolume());
     actions_.Insert("SoftTakeover14BitTrackVolume", new SoftTakeover14BitTrackVolume());
     actions_.Insert("TrackVolumeDB", new TrackVolumeDB());
-    actions_.Insert("X32TrackVolume", new X32TrackVolume());
     actions_.Insert("TrackToggleVCASpill", new TrackToggleVCASpill());
     actions_.Insert("TrackVCALeaderDisplay", new TrackVCALeaderDisplay());
     actions_.Insert("TrackToggleFolderSpill", new TrackToggleFolderSpill());
