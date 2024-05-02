@@ -1855,7 +1855,6 @@ public:
        
     void UnpackFXZone(FXZoneDefinition &zoneDef);
     void AutoLearnFX(const string &fxName, MediaTrack *track, int fxIndex);
-    void AutoMapFX(MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias);
     void RemapZone();
     void SaveLearnedFXParams();
     void EraseLastTouchedControl();
@@ -3340,19 +3339,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class OSC_X32FeedbackProcessor : public OSC_FeedbackProcessor
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    OSC_X32FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress)  {}
-    ~OSC_X32FeedbackProcessor() {}
-
-    virtual const char *GetName() override { return "OSC_X32FeedbackProcessor"; }
-
-    virtual void SetColorValue(const rgba_color &color) override;
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -3364,20 +3350,6 @@ public:
 
     virtual void ForceValue(const PropertyList &properties, double value) override;
     virtual void ForceClear() override;
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class OSC_X32IntFeedbackProcessor : public OSC_IntFeedbackProcessor
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    OSC_X32IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_IntFeedbackProcessor(csi, surface, widget, oscAddress) {}
-    ~OSC_X32IntFeedbackProcessor() {}
-
-    virtual const char *GetName() override { return "OSC_X32IntFeedbackProcessor"; }
-
-    virtual void ForceValue(const PropertyList &properties, double value) override;
-    virtual void SetColorValue(const rgba_color &color) override;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

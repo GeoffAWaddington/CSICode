@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -33,6 +33,7 @@
 		0310E4CB1EB5403C00040D1A /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
 		0310E4CC1EB5403C00040D1A /* ../WDL */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../WDL; sourceTree = "<group>"; };
 		0310E4D31EB5405900040D1A /* swell-modstub.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "swell-modstub.mm"; path = "../WDL/swell/swell-modstub.mm"; sourceTree = "<group>"; };
+		031B2AB82BE3A27F0058ABF6 /* control_surface_OSC_widgets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = control_surface_OSC_widgets.h; sourceTree = "<group>"; };
 		0326FA6B2122E6C3000D5794 /* udp.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = udp.hh; sourceTree = "<group>"; };
 		0326FA6C2122E6C3000D5794 /* oscpkt.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = oscpkt.hh; sourceTree = "<group>"; };
 		03464AE01EB53E7A00EAD095 /* reaper_csurf_integrator.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = reaper_csurf_integrator.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,6 +88,7 @@
 				0310E4C71EB5403C00040D1A /* control_surface_integrator.h */,
 				03644D1D1F8FAB4A001F9ED9 /* control_surface_integrator_ui.cpp */,
 				0302E0B71F805102001F3578 /* control_surface_midi_widgets.h */,
+				031B2AB82BE3A27F0058ABF6 /* control_surface_OSC_widgets.h */,
 				0302E0B81F805229001F3578 /* control_surface_action_contexts.h */,
 				0302E0B91F805291001F3578 /* control_surface_Reaper_actions.h */,
 				0302E0BA1F80537E001F3578 /* control_surface_manager_actions.h */,

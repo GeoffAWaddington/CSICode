@@ -1033,8 +1033,102 @@ vector<ChildOffset> s_childOffsets;
 
 int s_paramListXOffset;
 int s_paramListYOffset;
+int s_paramListWidth;
 int s_paramListWidthBias;
 int s_paramListHeightBias;
+
+static void ConfigureListView(HWND hwndParamList)
+{
+    int numColumns = Header_GetItemCount(ListView_GetHeader(hwndParamList));
+    
+    for (int i = numColumns - 1; i >= 0; --i)
+        ListView_DeleteColumn(hwndParamList, i);
+
+    int columnSize  = s_paramListWidth / (s_numFXLayoutColumns + 2);
+    
+    LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
+    columnDescriptor.cx = columnSize * 2;
+    
+    ListView_InsertColumn(hwndParamList, 0, &columnDescriptor);
+    
+    for (int i = 1; i <= s_numFXLayoutColumns; ++i)
+    {
+        char caption[20];
+        sprintf(caption, "%d", i);
+        columnDescriptor.pszText = caption;
+        columnDescriptor.cx = columnSize;
+        ListView_InsertColumn(hwndParamList, i, &columnDescriptor);
+    }
+}
+
+static void CalcInitialSizes(HWND hwndDlg)
+{
+    int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap, IDSAVE, IDCANCEL };
+    
+    s_childOffsets.clear();
+    
+    RECT parent;
+    
+    GetWindowRect(hwndDlg, &parent);
+    
+    RECT child;
+                
+    for (int i = 0; i < NUM_ELEM(childIds); ++i)
+    {
+        int id = childIds[i];
+        
+        GetWindowRect(GetDlgItem(hwndDlg, id), &child);
+
+        ChildOffset offset(id, (parent.right - child.right) + (child.right - child.left), child.top - parent.top);
+        
+        s_childOffsets.push_back(offset);
+    }
+    
+    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+
+    GetWindowRect(hwndParamList, &child);
+    
+    s_paramListHeightBias = (parent.bottom - parent.top) - (child.top - child.bottom );
+
+    POINT p;
+    
+    p.x = child.left;
+    p.y = child.top;
+    
+    ScreenToClient(hwndDlg, &p);
+    
+    s_paramListXOffset = p.x;
+    s_paramListYOffset = p.y;
+    
+    GetClientRect(hwndDlg, &parent);
+    GetClientRect(hwndParamList, &child);
+
+    s_paramListWidthBias = parent.right - child.right;
+    s_paramListWidth = child.right;
+}
+
+static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias)
+{
+    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+
+    ListView_DeleteAllItems(hwndParamList);
+    
+    ConfigureListView(hwndParamList);
+    
+    int numParams = TrackFX_GetNumParams(track, fxSlot);
+
+    for (int i = 0; i < s_fxRowLayouts.size(); ++i)
+    {
+        if (i < numParams)
+        {
+            
+        }
+        else
+        {
+            
+        }
+    }
+}
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1043,6 +1137,10 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_USER + 1024: // initialize
         {
             LoadTemplates();
+            
+            CalcInitialSizes(hwndDlg);
+            
+            ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
             
             int trackNumber = 0;
             int itemNumber = 0;
@@ -1162,7 +1260,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     case CDDS_PREPAINT:
                         SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, CDRF_NOTIFYITEMDRAW);
                         return 1;
-                    case CDDS_ITEMPREPAINT|CDDS_SUBITEM:
+                    case CDDS_ITEMPREPAINT | CDDS_SUBITEM:
 #endif
                     case CDDS_ITEMPREPAINT:
                     {
@@ -1204,84 +1302,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             }
         }
             break;
-            
-        case WM_INITDIALOG:
-        {
-            int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap, IDSAVE, IDCANCEL };
-            
-            s_childOffsets.clear();
-            
-            RECT parent;
-            
-            GetWindowRect(hwndDlg, &parent);
-            
-            RECT child;
                         
-            for (int i = 0; i < NUM_ELEM(childIds); ++i)
-            {
-                int id = childIds[i];
-                
-                GetWindowRect(GetDlgItem(hwndDlg, id), &child);
-
-                ChildOffset offset(id, (parent.right - child.right) + (child.right - child.left), child.top - parent.top);
-                
-                s_childOffsets.push_back(offset);
-            }
-            
-            HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-
-            GetWindowRect(hwndParamList, &child);
-            
-            s_paramListHeightBias = (parent.bottom - parent.top) - (child.top - child.bottom );
-
-            POINT p;
-            
-            p.x = child.left;
-            p.y = child.top;
-            
-            ScreenToClient(hwndDlg, &p);
-            
-            s_paramListXOffset = p.x;
-            s_paramListYOffset = p.y;
-            
-            GetClientRect(hwndDlg, &parent);
-            GetClientRect(hwndParamList, &child);
-
-            s_paramListWidthBias = parent.right - child.right;
-            
-            vector<int> columnSizes;
-            
-            int numColumns = s_zoneManager->numFXLayoutColumns_;
-            
-#ifdef _WIN32
-            columnSizes.push_back(160); // modifiers
-            
-            for (int i = 1; i <= numColumns; i++)
-                columnSizes.push_back(80);  // widget
-#else
-            columnSizes.push_back(65); // modifiers
-            
-            for (int i = 1; i <= numColumns; i++)
-                columnSizes.push_back(38); // widget
-#endif
-
-            LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
-            columnDescriptor.cx = columnSizes[0];
-            
-            ListView_InsertColumn(hwndParamList, 0, &columnDescriptor);
-            
-            for (int i = 1; i <= numColumns; ++i)
-            {
-                char caption[20];
-                sprintf(caption, "%d", i);
-                columnDescriptor.pszText = caption;
-                columnDescriptor.cx = columnSizes[i];
-                ListView_InsertColumn(hwndParamList, i, &columnDescriptor);
-            }
-
-            break;
-        }
-            
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
@@ -1307,7 +1328,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                    
                 case IDC_AutoMap:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        s_zoneManager->AutoMapFX(s_focusedTrack, s_fxSlot, s_fxName, s_fxAlias);
+                        AutoMapFX(hwndDlg, s_focusedTrack, s_fxSlot, s_fxName, s_fxAlias);
                     break ;
                                         
                 case IDCANCEL:

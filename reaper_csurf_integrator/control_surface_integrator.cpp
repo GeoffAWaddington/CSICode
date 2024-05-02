@@ -7,6 +7,7 @@
 #define INCLUDE_LOCALIZE_IMPORT_H
 #include "control_surface_integrator.h"
 #include "control_surface_midi_widgets.h"
+#include "control_surface_OSC_widgets.h"
 #include "control_surface_Reaper_actions.h"
 #include "control_surface_manager_actions.h"
 
@@ -3207,34 +3208,6 @@ void OSC_FeedbackProcessor::SetColorValue(const rgba_color &color)
     }
 }
 
-void OSC_X32FeedbackProcessor::SetColorValue(const rgba_color &color)
-{
-    if (lastColor_ != color)
-    {
-        lastColor_ = color;
-
-        
-        int surfaceColor = 0;
-        int r = color.r;
-        int g = color.g;
-        int b = color.b;
-        
-        if (r == 64 && g == 64 && b == 64)                               surfaceColor = 8;    // BLACK
-        else if (r > g && r > b)                                         surfaceColor = 1;    // RED
-        else if (g > r && g > b)                                         surfaceColor = 2;    // GREEN
-        else if (abs(r - g) < 30 && r > b && g > b)                      surfaceColor = 3;    // YELLOW
-        else if (b > r && b > g)                                         surfaceColor = 4;    // BLUE
-        else if (abs(r - b) < 30 && r > g && b > g)                      surfaceColor = 5;    // MAGENTA
-        else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
-        else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
-        
-        string oscAddress = "/ch/";
-        if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
-        oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
-        surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
-    }
-}
-
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double value)
 {
     if ((GetTickCount() - GetWidget()->GetLastIncomingMessageTime()) < 50) // adjust the 50 millisecond value to give you smooth behaviour without making updates sluggish
@@ -3271,46 +3244,6 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
     lastDoubleValue_ = value;
     
     surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
-}
-
-void OSC_X32IntFeedbackProcessor::ForceValue(const PropertyList &properties, double value)
-{
-    lastDoubleValue_ = value;
-    
-    if (oscAddress_.find("/-stat/selidx") != string::npos)
-    {
-        if (value != 0.0)
-            surface_->SendOSCMessage(this, "/-stat/selidx", widget_->GetChannelNumber() -1);
-    }
-    else
-        surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
-}
-
-void OSC_X32IntFeedbackProcessor::SetColorValue(const rgba_color &color)
-{
-    if (lastColor_ != color)
-    {
-        lastColor_ = color;
-
-        int surfaceColor = 0;
-        int r = color.r;
-        int g = color.g;
-        int b = color.b;
-        
-        if (r == 64 && g == 64 && b == 64)                               surfaceColor = 8;    // BLACK
-        else if (r > g && r > b)                                         surfaceColor = 1;    // RED
-        else if (g > r && g > b)                                         surfaceColor = 2;    // GREEN
-        else if (abs(r - g) < 30 && r > b && g > b)                      surfaceColor = 3;    // YELLOW
-        else if (b > r && b > g)                                         surfaceColor = 4;    // BLUE
-        else if (abs(r - b) < 30 && r > g && b > g)                      surfaceColor = 5;    // MAGENTA
-        else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
-        else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
-        
-        string oscAddress = "/ch/";
-        if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
-        oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
-        surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4271,24 +4204,6 @@ void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxInd
     }
 }
 
-void ZoneManager::AutoMapFX(MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias)
-{
-    int numParams = TrackFX_GetNumParams(track, fxSlot);
-
-    for (int i = 0; i < fxRowLayouts_.size(); ++i)
-    {
-        if (i < numParams)
-        {
-            
-        }
-        else
-        {
-            
-        }
-    }
-    
-    
-}
 
 void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 {
