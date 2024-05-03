@@ -1168,6 +1168,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             {
                 TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
                 
+                s_zoneManager->EnterLearn(s_focusedTrack, s_fxSlot);
+                
                 char buf[BUFSZ];
 
                 if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
@@ -1333,7 +1335,10 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                         
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        s_zoneManager->ExitLearn();
                         ShowWindow(hwndDlg, SW_HIDE);
+                    }
                     break ;
             }
         }

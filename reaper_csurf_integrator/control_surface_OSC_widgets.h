@@ -113,6 +113,7 @@ public:
         else if (value >= 0.0625) value = value * 160.0 - 70.0;
         else if (value >= 0.0)    value = value * 480.0 - 90.0;  // min dB value: -90 or -oo
 
+        widget_->SetIncomingMessageTime(GetTickCount());
         widget_->GetZoneManager()->DoAction(widget_, value);
     }
 };
@@ -136,7 +137,8 @@ public:
         else if (value < -10.0) value = (value + 50.0) /  80.0;
         else if (value <= 10.0) value = (value + 30.0) /  40.0;
 
-        surface_->SendOSCMessage(this, oscAddress_.c_str(), value);
+        if ((GetTickCount() - GetWidget()->GetLastIncomingMessageTime()) >= 50)
+            surface_->SendOSCMessage(this, oscAddress_.c_str(), value);
     }
 };
 

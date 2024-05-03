@@ -37,45 +37,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class EraseLastTouchedControl : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "EraseLastTouchedControl"; }
-   
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0) return; // ignore button releases
-        
-        context->GetSurface()->GetZoneManager()->EraseLastTouchedControl();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class SaveLearnedFXParams : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "SaveLearnedFXParams"; }
-   
-    virtual void RequestUpdate(ActionContext *context) override
-    {
-        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive("LearnFocusedFX"))
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-    }
-    
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0) return; // ignore button releases
-        
-        if (!strcmp(context->GetZone()->GetName(), "LearnFocusedFX"))
-            context->GetSurface()->GetZoneManager()->DeclareSaveLearnedFXParams();
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class JSFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

@@ -1460,8 +1460,6 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
             AddCSIMessageGenerator(tokenLines[i][1], new CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "AnyPress")
             AddCSIMessageGenerator(tokenLines[i][1], new AnyPress_CSIMessageGenerator(csi_, widget));
-        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "MotorizedFaderWithoutTouch")
-            AddCSIMessageGenerator(tokenLines[i][1], new MotorizedFaderWithoutTouch_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "Touch")
             AddCSIMessageGenerator(tokenLines[i][1], new Touch_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "X32Fader")
@@ -1766,8 +1764,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TrackVolumeWithMeterMaxPeakLR", new TrackVolumeWithMeterMaxPeakLR());
     actions_.Insert("FocusedFXParam", new FocusedFXParam());
     actions_.Insert("FXParam", new FXParam());
-    actions_.Insert("SaveLearnedFXParams", new SaveLearnedFXParams());
-    actions_.Insert("EraseLastTouchedControl", new EraseLastTouchedControl());
     actions_.Insert("JSFXParam", new JSFXParam());
     actions_.Insert("TCPFXParam", new TCPFXParam());
     actions_.Insert("ToggleFXBypass", new ToggleFXBypass());
@@ -4068,9 +4064,6 @@ double ZoneManager::GetNextSteppedValue(MediaTrack *track, Widget *widget, Learn
 
 void ZoneManager::DoLearn(Widget *widget, bool isUsed, double value)
 {
-    if (learnFXTrack_ == NULL)
-        return;
-    
     if (value == 0.0)
         return;
     

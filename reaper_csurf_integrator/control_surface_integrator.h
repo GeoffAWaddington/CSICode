@@ -1393,6 +1393,12 @@ private:
     }
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
+    
+    MediaTrack *learnFXTrack_;
+    int learnFXSlot_;
+
+    
+    
     Zone *homeZone_;
         
     WDL_PtrList<ZoneManager> listeners_;
@@ -1578,28 +1584,7 @@ private:
             }
         }
     }
-        
-    void DeclareGoLearnFocusedFX(const char *zoneName)
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            GoLearnFocusedFX();
-        else
-            for (int i = 0; i < (int)listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoLearnFocusedFX(zoneName);
-    }
-    
-    void ListenToGoLearnFocusedFX(const char *zoneName)
-    {
-        if (listensToLearnFocusedFX_)
-            GoLearnFocusedFX();
-    }
-        
-    void ListenToSaveLearnedFXParams()
-    {
-        if (listensToLearnFocusedFX_)
-            SaveLearnedFXParams();
-    }
-    
+
     void DeclareGoSelectedTrackFXMenu(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1795,14 +1780,11 @@ private:
 public:
     ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
     {
-        //private:
         homeZone_ = NULL;
-        
-        
-        
         
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
+        
         lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
         numFXLayoutColumns_ = 0;
@@ -1841,7 +1823,7 @@ public:
         allZonesNeedFree_.Empty(true);
     }
      
-    
+
     
     
     
@@ -1862,8 +1844,9 @@ public:
     void GoLearnFocusedFX();
     ptrvector<FXCellRow> fxRows_;
     
-    MediaTrack *learnFXTrack_;
-    int learnFXSlot_;
+    
+    
+    
     Widget *lastTouchedControl_;
     static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
     WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
@@ -1903,8 +1886,6 @@ public:
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     
-    //bool DoesZoneExist(char *name) { return zoneFilePaths_.Exists(name); }
-    
     WDL_PtrList<Zone> allZonesNeedFree_;
     void GarbageCollectZones();
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
@@ -1935,15 +1916,20 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
-    void DeclareSaveLearnedFXParams()
+    void EnterLearn(MediaTrack *track, int slot)
     {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            SaveLearnedFXParams();
-        else
-            for (int i = 0; i < (int)listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToSaveLearnedFXParams();
+        learnFXTrack_ = track;
+        learnFXSlot_ = slot;
+        
+        homeZone_->GoAssociatedZone("LearnFocusedFX");
     }
-
+    
+    void ExitLearn()
+    {
+        ClearLearnedFXParams();
+        homeZone_->DeactivateLearnFocusedFXZone();
+    }
+    
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
@@ -2027,8 +2013,6 @@ public:
             DeclareGoSelectedTrackFX();
         else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
             DeclareGoSelectedTrackFXMenu(zoneName);
-        else if (!strcmp(zoneName, "LearnFocusedFX"))
-            DeclareGoLearnFocusedFX(zoneName);
         else if (!strncmp(zoneName, "Custom", 6))
             DeclareGoCustom(zoneName);
         else if (homeZone_ != NULL)
@@ -2361,21 +2345,6 @@ public:
     virtual void ProcessMessage(double value) override
     {
         widget_->GetZoneManager()->DoAction(widget_, 1.0);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class MotorizedFaderWithoutTouch_CSIMessageGenerator : public CSIMessageGenerator
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    MotorizedFaderWithoutTouch_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget) : CSIMessageGenerator(csi, widget) {}
-    virtual ~MotorizedFaderWithoutTouch_CSIMessageGenerator() {}
-    
-    virtual void ProcessMessage(double value) override
-    {
-        widget_->SetIncomingMessageTime(GetTickCount());
-        widget_->GetZoneManager()->DoAction(widget_, value);
     }
 };
 
