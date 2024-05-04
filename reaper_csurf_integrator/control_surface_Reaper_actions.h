@@ -2985,12 +2985,18 @@ public:
         if (value > 0.5)
         {
             if ( ! strcmp(amount, "Bar"))
-                DAW::SendCommandMessage(41042); // move right 1 bar
+                DAW::SendCommandMessage(41042); // move to next bar
+            
+            else if ( ! strcmp(amount, "Marker"))
+                DAW::SendCommandMessage(40173); // move to next marker/region
         }
         else if (value < 0.5)
         {
             if ( ! strcmp(amount, "Bar"))
-                DAW::SendCommandMessage(41043); // move left 1 bar
+                DAW::SendCommandMessage(41043); // move to previous bar
+            
+            else if ( ! strcmp(amount, "Marker"))
+                DAW::SendCommandMessage(40172); // move to previous marker/region
         }
     }
 };
