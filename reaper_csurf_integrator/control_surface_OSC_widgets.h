@@ -142,4 +142,46 @@ public:
     }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class X32_RotaryToEncoder_OSC_MessageGenerator : public CSIMessageGenerator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    X32_RotaryToEncoder_OSC_MessageGenerator(CSurfIntegrator *const csi, Widget *widget) : CSIMessageGenerator(csi, widget) {}
+    ~X32_RotaryToEncoder_OSC_MessageGenerator() {}
+
+    virtual void ProcessMessage(double value) override
+    {
+        double delta = (1 / 128.0) * value ;
+        
+        if (delta < 0.5)
+            delta = -delta;
+        
+        delta *= 0.1;
+        
+        widget_->SetLastIncomingDelta(delta);
+        widget_->GetZoneManager()->DoRelativeAction(widget_, delta);
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class OSC_X32_RotaryToEncoderFeedbackProcessor : public OSC_FeedbackProcessor
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    OSC_X32_RotaryToEncoderFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    ~OSC_X32_RotaryToEncoderFeedbackProcessor() {}
+
+    virtual const char *GetName() override { return "OSC_X32_RotaryToEncoderFeedbackProcessor"; }
+    
+    virtual void ForceValue(const PropertyList &properties, double value) override
+    {
+        if (widget_->GetLastIncomingDelta() != 0.0)
+        {
+            widget_->SetLastIncomingDelta(0.0);
+            surface_->SendOSCMessage(this, oscAddress_.c_str(), 64);
+        }
+    }
+};
+
 #endif /* control_surface_OSC_widgets_h */

@@ -55,7 +55,6 @@
 #define IDC_RADIO_MCP                   1097
 #define IDC_RADIO_TCP                   1098
 #define IDC_PARAM_LIST                  1099
-#define IDSAVE                          1100
 #define IDC_FXAlias                     1102
 #define IDC_AutoMap                     1103
 #define IDC_EditSteps                   1107

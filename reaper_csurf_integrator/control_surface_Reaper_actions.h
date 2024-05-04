@@ -2959,6 +2959,43 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class MoveCursor : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual const char *GetName() override { return "MoveCursor"; }
+
+    virtual double GetCurrentNormalizedValue(ActionContext *context) override
+    {
+        return  0.5;
+    }
+    
+    virtual void RequestUpdate(ActionContext *context) override
+    {
+        context->UpdateWidgetValue(1.0);
+    }
+    
+    virtual void Do(ActionContext *context, double value) override
+    {
+        // Below is the Reaper API call, might be worth investigating using this.
+        // MoveEditCursor)(double adjamt, bool dosel);
+        
+        const char *amount = context->GetStringParam();
+        
+        if (value > 0.5)
+        {
+            if ( ! strcmp(amount, "Bar"))
+                DAW::SendCommandMessage(41042); // move right 1 bar
+        }
+        else if (value < 0.5)
+        {
+            if ( ! strcmp(amount, "Bar"))
+                DAW::SendCommandMessage(41043); // move left 1 bar
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FastForward : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {

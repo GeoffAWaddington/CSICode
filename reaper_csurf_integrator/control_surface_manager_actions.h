@@ -646,17 +646,17 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class LearnFX  : public Action
+class LearnFocusedFX  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "LearnFX"; }
-    
+    virtual const char *GetName() override { return "LearnFocusedFX"; }
+
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0) return; // ignore button releases
         
-        LearnFXDialog(context->GetSurface()->GetZoneManager());
+        context->GetSurface()->GetZoneManager()->LearnFocusedFX();
     }
 };
 

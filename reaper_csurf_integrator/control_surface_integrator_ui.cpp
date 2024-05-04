@@ -1063,7 +1063,7 @@ static void ConfigureListView(HWND hwndParamList)
 
 static void CalcInitialSizes(HWND hwndDlg)
 {
-    int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap, IDSAVE, IDCANCEL };
+    int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap };
     
     s_childOffsets.clear();
     
@@ -1142,6 +1142,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
             
+            
+            
             int trackNumber = 0;
             int itemNumber = 0;
             int takeNumber = 0;
@@ -1164,6 +1166,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     s_focusedTrack = GetMasterTrack(NULL);
             }
             
+            
+            
             if (s_focusedTrack)
             {
                 TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
@@ -1184,11 +1188,15 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             }
             else
             {
-                int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap, IDSAVE };
+                int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap };
 
                 for (int i = 0; i < NUM_ELEM(childIds); ++i)
                     EnableWindow(GetDlgItem(hwndDlg, childIds[i]), false);
             }
+            
+            
+            
+            
         }
             break;
             
@@ -1309,6 +1317,20 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
             switch(LOWORD(wParam))
             {
+                case IDC_Delete:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        
+                    }
+                    break ;
+                    
+                case IDC_EraseControl:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        
+                    }
+                    break ;
+
                 case IDC_FXAlias:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1322,12 +1344,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         }
                     }
                     break;
-                    
-                case IDSAVE:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                        SaveZone();
-                    break ;
-                   
+                                       
                 case IDC_AutoMap:
                     if (HIWORD(wParam) == BN_CLICKED)
                         AutoMapFX(hwndDlg, s_focusedTrack, s_fxSlot, s_fxName, s_fxAlias);
@@ -1380,13 +1397,10 @@ bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
     
     ShowWindow(hwndLearnDlg, SW_SHOW);
 
-    if (s_dlgResult == IDSAVE)
-        return true;
-    else
-        return false;
+    return false;
 }
 
-void LearnFXDialog(ZoneManager *zoneManager)
+void LearnFocusedFXDialog(ZoneManager *zoneManager)
 {
     s_zoneManager = zoneManager;
     
@@ -1400,6 +1414,12 @@ void LearnFXDialog(ZoneManager *zoneManager)
     SendMessage(hwndLearnDlg, WM_USER + 1024, 0, 0);
         
     ShowWindow(hwndLearnDlg, SW_SHOW);
+}
+
+void CloseLearnFocusedFXDialog()
+{
+    if (hwndLearnDlg != NULL)
+        ShowWindow(hwndLearnDlg, SW_HIDE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

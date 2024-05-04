@@ -200,8 +200,8 @@ extern void GetTokens(string_list &tokens, const char *line);
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
 extern bool RemapFXDialog(ZoneManager *zoneManager, const char *fullPath);
-extern void LearnFXDialog(ZoneManager *zoneManager);
-extern void RefreshLearnDlg();
+extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
+extern void CloseLearnFocusedFXDialog();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
@@ -1013,8 +1013,9 @@ protected:
     string const name_;
     WDL_PtrList<FeedbackProcessor> feedbackProcessors_; // owns the objects
     int channelNumber_;
-    DWORD lastIncomingMessageTime_;
-       
+    int lastIncomingMessageTime_;
+    double lastIncomingDelta_;
+    
     double stepSize_;
     vector<double> accelerationValues_;
     
@@ -1027,6 +1028,7 @@ public:
         // private:
         channelNumber_ = 0;
         lastIncomingMessageTime_ = GetTickCount()-30000;
+        lastIncomingDelta_ = 0.0;
         stepSize_ = 0.0;
         hasBeenUsedByUpdate_ = false;
 
@@ -1061,9 +1063,12 @@ public:
     void SetAccelerationValues(const vector<double> *accelerationValues) { accelerationValues_ = *accelerationValues; }
     const vector<double> &GetAccelerationValues() { return accelerationValues_; }
     
-    void SetIncomingMessageTime(DWORD lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
-    DWORD GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
+    void SetIncomingMessageTime(int lastIncomingMessageTime) { lastIncomingMessageTime_ = lastIncomingMessageTime; }
+    int GetLastIncomingMessageTime() { return lastIncomingMessageTime_; }
     
+    void SetLastIncomingDelta(double delta) { lastIncomingDelta_ = delta; }
+    double GetLastIncomingDelta() { return lastIncomingDelta_; }
+
     void Configure(const WDL_PtrList<ActionContext> &contexts);
     void UpdateValue(const PropertyList &properties, double value);
     void UpdateValue(const PropertyList &properties, const char * const &value);
@@ -1396,7 +1401,7 @@ private:
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
-
+    Zone *learnFocusedFXZone_;
     
     
     Zone *homeZone_;
@@ -1784,6 +1789,7 @@ public:
         
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
+        learnFocusedFXZone_ = NULL;
         
         lastTouchedControl_ = NULL;
         focusedFXParamZone_ = NULL;
@@ -1916,6 +1922,9 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
+    
+    
+    
     void EnterLearn(MediaTrack *track, int slot)
     {
         learnFXTrack_ = track;
@@ -1929,6 +1938,10 @@ public:
         ClearLearnedFXParams();
         homeZone_->DeactivateLearnFocusedFXZone();
     }
+    
+    
+    
+    
     
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
@@ -1983,6 +1996,9 @@ public:
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
         lastTouchedControl_ = NULL;
+        
+        if (learnFocusedFXZone_ != NULL)
+            delete learnFocusedFXZone_;
     }
         
     void DeclareClearFocusedFXParam()
@@ -2003,6 +2019,25 @@ public:
                 listeners_.Get(i)->ListenToClearFocusedFX();
     }
 
+    void LearnFocusedFX()
+    {
+        if (zoneFilePaths_.Exists("LearnFocusedFX"))
+        {
+            if (learnFXTrack_)
+            {
+                learnFXTrack_ = NULL;
+                CloseLearnFocusedFXDialog();
+                ClearLearnedFXParams();
+            }
+            else
+            {
+                // Load Zone here.
+                
+                LearnFocusedFXDialog(this);
+            }
+        }
+    }
+    
     void GoAssociatedZone(const char *zoneName)
     {
         if (!strcmp(zoneName, "SelectedTrackSend"))
@@ -2203,7 +2238,7 @@ public:
         bool isUsed = false;
         
         g_FocusedWidget = widget;
-        RefreshLearnDlg();
+        //RefreshLearnDlg();
         
         if (learnFXTrack_ != NULL)
         {
@@ -2243,7 +2278,7 @@ public:
         bool isUsed = false;
         
         g_FocusedWidget = widget;
-        RefreshLearnDlg();
+        //RefreshLearnDlg();
 
         if (learnFXTrack_ != NULL)
         {
@@ -2283,7 +2318,7 @@ public:
         bool isUsed = false;
         
         g_FocusedWidget = widget;
-        RefreshLearnDlg();
+        //RefreshLearnDlg();
 
         if (learnFXTrack_ != NULL)
         {

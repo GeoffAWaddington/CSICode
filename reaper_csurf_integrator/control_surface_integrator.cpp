@@ -1464,6 +1464,8 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
             AddCSIMessageGenerator(tokenLines[i][1], new Touch_CSIMessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "X32Fader")
             AddCSIMessageGenerator(tokenLines[i][1], new X32_Fader_OSC_MessageGenerator(csi_, widget));
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "X32RotaryToEncoder")
+            AddCSIMessageGenerator(tokenLines[i][1], new X32_RotaryToEncoder_OSC_MessageGenerator(csi_, widget));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_Processor")
             widget->AddFeedbackProcessor(new OSC_FeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_IntProcessor")
@@ -1474,6 +1476,8 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
             widget->AddFeedbackProcessor(new OSC_X32IntFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
         else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_X32FaderProcessor")
             widget->AddFeedbackProcessor(new OSC_X32FaderFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
+        else if (tokenLines[i].size() > 1 && tokenLines[i][0] == "FB_X32RotaryToEncoder")
+            widget->AddFeedbackProcessor(new OSC_X32_RotaryToEncoderFeedbackProcessor(csi_, this, widget, tokenLines[i][1]));
     }
 }
 
@@ -1670,6 +1674,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("Reaper", new ReaperAction());
     actions_.Insert("FixedTextDisplay", new FixedTextDisplay());
     actions_.Insert("FixedRGBColorDisplay", new FixedRGBColorDisplay());
+    actions_.Insert("MoveEditCursor", new MoveCursor());
     actions_.Insert("Rewind", new Rewind());
     actions_.Insert("FastForward", new FastForward());
     actions_.Insert("Play", new Play());
@@ -1699,7 +1704,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("SetLatchTime", new SetLatchTime());
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
-    actions_.Insert("LearnFX", new LearnFX());
+    actions_.Insert("LearnFocusedFX", new LearnFocusedFX());
     actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
