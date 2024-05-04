@@ -174,6 +174,11 @@ public:
 
     virtual const char *GetName() override { return "OSC_X32_RotaryToEncoderFeedbackProcessor"; }
     
+    virtual void SetValue(const PropertyList &properties, double value) override
+    {
+        ForceValue(properties, value);
+    }
+    
     virtual void ForceValue(const PropertyList &properties, double value) override
     {
         if (widget_->GetLastIncomingDelta() != 0.0)
