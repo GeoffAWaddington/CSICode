@@ -1142,61 +1142,12 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
             
-            
-            
-            int trackNumber = 0;
-            int itemNumber = 0;
-            int takeNumber = 0;
-            int paramIndex = 0;
+            TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
+                        
+            char buf[BUFSZ];
+            sprintf(buf, "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
 
-            s_focusedTrack = NULL;
-            s_fxSlot = 0;
-            s_fxName[0] = 0;
-            s_fxAlias[0] = 0;
-            
-            int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &s_fxSlot, &paramIndex);
-            
-            trackNumber++;
-            
-            if (retVal && ! (paramIndex & 0x01))
-            {
-                if (trackNumber > 0)
-                    s_focusedTrack = DAW::GetTrack(trackNumber);
-                else if (trackNumber == 0)
-                    s_focusedTrack = GetMasterTrack(NULL);
-            }
-            
-            
-            
-            if (s_focusedTrack)
-            {
-                TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
-                
-                s_zoneManager->EnterLearn(s_focusedTrack, s_fxSlot);
-                
-                char buf[BUFSZ];
-
-                if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
-                {
-                    sprintf(s_fxAlias, "%s", s_zoneManager->GetZoneFilePaths().Get(s_fxName)->alias.c_str());
-                    sprintf(buf, "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
-                }
-                else
-                    sprintf(buf, "%s    %s", s_zoneManager->GetSurface()->GetName(), s_fxName);
-                
-                SetWindowText(hwndDlg, buf);
-            }
-            else
-            {
-                int childIds[] = { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap };
-
-                for (int i = 0; i < NUM_ELEM(childIds); ++i)
-                    EnableWindow(GetDlgItem(hwndDlg, childIds[i]), false);
-            }
-            
-            
-            
-            
+            SetWindowText(hwndDlg, buf);
         }
             break;
             
@@ -1374,35 +1325,13 @@ static void InitLearnDlg(HWND hwndDlg)
 
 static HWND hwndLearnDlg = NULL;
 
-void RefreshLearnDlg()
-{
-    if (hwndLearnDlg != NULL)
-        InitLearnDlg(hwndLearnDlg);
-}
-
-bool RemapFXDialog(ZoneManager *zoneManager, const char *fullFilePath)
-{
-    //s_zoneDef.Clear();
-    s_zoneManager = zoneManager;
-    if (fullFilePath)
-        s_zoneDef.fullPath = fullFilePath;
-    s_numGroups = s_zoneManager->paramWidgets_.size();
-    
-    //s_zoneManager->UnpackFXZone(s_zoneDef);
-    
-    if (hwndLearnDlg == NULL)
-        hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
-    
-    //InitLearnDlg(learnDlg);
-    
-    ShowWindow(hwndLearnDlg, SW_SHOW);
-
-    return false;
-}
-
-void LearnFocusedFXDialog(ZoneManager *zoneManager)
+void LearnFocusedFXDialog(ZoneManager *zoneManager, MediaTrack *focusedTrack, int focusedTrackFXSlot, const char *fxName, const char *fxAlias)
 {
     s_zoneManager = zoneManager;
+    s_fxSlot = focusedTrackFXSlot;
+    s_focusedTrack = focusedTrack;
+    strcpy(s_fxName, fxName);
+    strcpy(s_fxAlias, fxAlias);
     
     if (hwndLearnDlg == NULL)
         hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
@@ -1416,7 +1345,7 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
     ShowWindow(hwndLearnDlg, SW_SHOW);
 }
 
-void CloseLearnFocusedFXDialog()
+void CloseFocusedFXDialog()
 {
     if (hwndLearnDlg != NULL)
         ShowWindow(hwndLearnDlg, SW_HIDE);

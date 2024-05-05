@@ -2678,13 +2678,6 @@ void Zone::ReactivateFXMenuZone()
             selfxmenu->Get(i)->Activate();
 }
 
-void Zone::DeactivateLearnFocusedFXZone()
-{
-    WDL_PtrList<Zone> *learnFXParams = associatedZones_.Get("LearnFocusedFX");
-    for (int i = 0; i < learnFXParams->GetSize(); ++i)
-        learnFXParams->Get(i)->Deactivate();
-}
-
 void Zone::AddWidget(Widget *widget)
 {
     thisZoneWidgets_.Add(widget);
@@ -3888,11 +3881,6 @@ void ZoneManager::SaveLearnedFXParams()
         LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, focusedFXZones_, NULL);
     }
     
-    if (homeZone_ != NULL)
-    {
-        homeZone_->DeactivateLearnFocusedFXZone();
-    }
-
     ClearLearnedFXParams();
 }
 
@@ -4164,8 +4152,8 @@ void ZoneManager::RemapZone()
         {
             const char *path = zoneFilePaths_.Get(fxName)->filePath.c_str();
             
-            if (path[0] != 0)
-                RemapFXDialog(this, path);
+            //if (path[0] != 0)
+                //RemapFXDialog(this, path);
         }
         else
         {
@@ -4179,8 +4167,8 @@ void ZoneManager::RemapZone()
             char path[1024];
             sprintf(path, "%s/%s.zon", dirPath, trimmedFXName.c_str());
             
-            if (path[0] != 0)
-                RemapFXDialog(this, path);
+            //if (path[0] != 0)
+                //RemapFXDialog(this, path);
         }
     }
 }

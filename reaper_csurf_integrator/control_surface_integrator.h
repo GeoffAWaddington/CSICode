@@ -199,9 +199,8 @@ extern void GetTokens(string_list &tokens, const char *line);
 
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
-extern bool RemapFXDialog(ZoneManager *zoneManager, const char *fullPath);
-extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
-extern void CloseLearnFocusedFXDialog();
+extern void LearnFocusedFXDialog(ZoneManager *zoneManager, MediaTrack *focusedTrack, int focusedTrackFXSlot, const char *fxName, const char *fxAlias);
+extern void CloseFocusedFXDialog();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
@@ -813,7 +812,6 @@ public:
     void GoAssociatedZone(const char *associatedZoneName);
     void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
-    void DeactivateLearnFocusedFXZone();
     int GetSlotIndex();
     int GetParamIndex(const char *widgetName);
     void SetXTouchDisplayColors(const char *color);
@@ -1403,7 +1401,6 @@ private:
     int learnFXSlot_;
     Zone *learnFocusedFXZone_;
     
-    
     Zone *homeZone_;
         
     WDL_PtrList<ZoneManager> listeners_;
@@ -1423,7 +1420,6 @@ private:
 
     Zone *focusedFXParamZone_;
     bool isFocusedFXParamMappingEnabled_;
-    
     
     WDL_PtrList<Zone> focusedFXZones_;
     bool isFocusedFXMappingEnabled_;
@@ -1795,8 +1791,6 @@ public:
         focusedFXParamZone_ = NULL;
         numFXLayoutColumns_ = 0;
         hasColor_ = false;
-
-        
         
         listensToGoHome_ = false;
         listensToSends_ = false;
@@ -1925,18 +1919,9 @@ public:
     
     
     
-    void EnterLearn(MediaTrack *track, int slot)
-    {
-        learnFXTrack_ = track;
-        learnFXSlot_ = slot;
-        
-        homeZone_->GoAssociatedZone("LearnFocusedFX");
-    }
-    
     void ExitLearn()
     {
         ClearLearnedFXParams();
-        homeZone_->DeactivateLearnFocusedFXZone();
     }
     
     
@@ -2021,20 +2006,60 @@ public:
 
     void LearnFocusedFX()
     {
-        if (zoneFilePaths_.Exists("LearnFocusedFX"))
+        if (learnFXTrack_)
         {
-            if (learnFXTrack_)
-            {
-                learnFXTrack_ = NULL;
-                CloseLearnFocusedFXDialog();
-                ClearLearnedFXParams();
-            }
-            else
-            {
-                // Load Zone here.
-                
-                LearnFocusedFXDialog(this);
-            }
+            learnFXTrack_ = NULL;
+            
+            // GAW - TBD  dump the Zone, etc.
+            ClearLearnedFXParams();
+            CloseFocusedFXDialog();
+            return;
+        }
+
+        int trackNumber = 0;
+        int itemNumber = 0;
+        int takeNumber = 0;
+        int paramIndex = 0;
+
+        learnFXTrack_ = NULL;
+        learnFXSlot_ = 0;
+        
+        int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &learnFXSlot_, &paramIndex);
+        
+        trackNumber++;
+        
+        if (retVal && ! (paramIndex & 0x01))
+        {
+            if (trackNumber > 0)
+                learnFXTrack_ = DAW::GetTrack(trackNumber);
+            else if (trackNumber == 0)
+                learnFXTrack_ = GetMasterTrack(NULL);
+        }
+        
+        if (learnFXTrack_ == NULL)
+            return;
+
+        homeZone_->GoAssociatedZone("LearnFocusedFX");
+        
+        char learnFXName[BUFSZ];
+        TrackFX_GetFXName(learnFXTrack_, learnFXSlot_, learnFXName, sizeof(learnFXName));
+
+
+        
+        if (zoneFilePaths_.Exists(learnFXName))
+        {
+            
+            // Load Zone
+
+            LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, zoneFilePaths_.Get(learnFXName)->alias.c_str());
+        }
+        else
+        {
+            char learnFXAlias[BUFSZ];
+            GetAlias(learnFXName, learnFXAlias, sizeof(learnFXAlias));
+            
+            LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, learnFXAlias);
+
         }
     }
     

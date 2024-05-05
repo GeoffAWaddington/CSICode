@@ -2978,7 +2978,7 @@ public:
     virtual void Do(ActionContext *context, double value) override
     {
         // Below is the Reaper API call, might be worth investigating using this.
-        // MoveEditCursor)(double adjamt, bool dosel);
+        // MoveEditCursor(double adjamt, bool dosel);
         
         const char *amount = context->GetStringParam();
         
