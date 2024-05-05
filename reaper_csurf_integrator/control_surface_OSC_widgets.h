@@ -176,16 +176,16 @@ public:
     
     virtual void SetValue(const PropertyList &properties, double value) override
     {
-        ForceValue(properties, value);
+        if (widget_->GetLastIncomingDelta() != 0.0)
+        {
+            widget_->SetLastIncomingDelta(0.0);
+            ForceValue(properties, value);
+        }
     }
     
     virtual void ForceValue(const PropertyList &properties, double value) override
     {
-        if (widget_->GetLastIncomingDelta() != 0.0)
-        {
-            widget_->SetLastIncomingDelta(0.0);
-            surface_->SendOSCMessage(this, oscAddress_.c_str(), 64);
-        }
+        surface_->SendOSCMessage(this, oscAddress_.c_str(), 64);
     }
 };
 
