@@ -2023,7 +2023,7 @@ public:
 
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
-        
+
         int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &learnFXSlot_, &paramIndex);
         
         trackNumber++;
@@ -2038,8 +2038,9 @@ public:
         
         if (learnFXTrack_ == NULL)
             return;
-
-        homeZone_->GoAssociatedZone("LearnFocusedFX");
+        
+        // GAW TBD -- LearnFocusedFX no longer an AssociatedZone
+        // homeZone_->GoAssociatedZone("LearnFocusedFX");
         
         char learnFXName[BUFSZ];
         TrackFX_GetFXName(learnFXTrack_, learnFXSlot_, learnFXName, sizeof(learnFXName));

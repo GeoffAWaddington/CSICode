@@ -3309,9 +3309,6 @@ void ZoneManager::SetListenerCategories(const char *categoryList)
 
 void ZoneManager::CheckFocusedFXState()
 {
-    if (! isFocusedFXMappingEnabled_)
-        return;
-
     int trackNumber = 0;
     int itemNumber = 0;
     int takeNumber = 0;
@@ -3319,10 +3316,58 @@ void ZoneManager::CheckFocusedFXState()
     int paramIndex = 0;
     
     bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
+
+    if (learnFXTrack_)
+    {
+        MediaTrack *focusedTrack = NULL;
+
+        if (retVal && ! (paramIndex & 0x01))
+        {
+            trackNumber++;
+
+            if (trackNumber > 0)
+                focusedTrack = DAW::GetTrack(trackNumber);
+            else if (trackNumber == 0)
+                focusedTrack = GetMasterTrack(NULL);
+        }
+
+        if (focusedTrack != NULL)
+        {
+            if (focusedTrack != learnFXTrack_ || (focusedTrack == learnFXTrack_ && fxIndex != learnFXSlot_))
+            {
+                learnFXTrack_ = focusedTrack;
+                learnFXSlot_ = fxIndex;
+                
+                // GAW - TBD -- save currently edited map  here
+                
+                char learnFXName[BUFSZ];
+                TrackFX_GetFXName(learnFXTrack_, learnFXSlot_, learnFXName, sizeof(learnFXName));
+                
+                if (zoneFilePaths_.Exists(learnFXName))
+                {
+                    
+                    // Load Zone
+
+                    LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, zoneFilePaths_.Get(learnFXName)->alias.c_str());
+                }
+                else
+                {
+                    char learnFXAlias[BUFSZ];
+                    GetAlias(learnFXName, learnFXAlias, sizeof(learnFXAlias));
+                    
+                    LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, learnFXAlias);
+
+                }
+            }
+        }
+    }
     
+    if (! isFocusedFXMappingEnabled_)
+        return;
+
     if ( ! retVal || (retVal && (paramIndex & 0x01)))
     {
-        if( focusedFXZones_.GetSize() > 0)
+        if (focusedFXZones_.GetSize() > 0)
         {
             for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
                 focusedFXZones_.Get(i)->RestoreXTouchDisplayColors();
@@ -3704,7 +3749,7 @@ void ZoneManager::GoLearnFocusedFX()
     
     learnFXTrack_ = track;
     learnFXSlot_ = fxSlot;
-    
+
     if (homeZone_ != NULL)
     {
         ClearFXMapping();
