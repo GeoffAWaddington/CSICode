@@ -1130,88 +1130,130 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
     }
 }
 
+static void HandleDoubleClick(HWND hwndDlg)
+{
+    EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+
+    LVHITTESTINFO hitTestInfo;
+    memset(&hitTestInfo, 0, sizeof(hitTestInfo));
+    POINT cursorPos;
+    GetCursorPos(&cursorPos);
+    ScreenToClient(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &cursorPos);
+    hitTestInfo.pt = cursorPos;
+    s_fxCellIndex = ListView_SubItemHitTest(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &hitTestInfo);
+    int column = hitTestInfo.iSubItem;
+
+    SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), -1, LVIS_SELECTED, ! LVIS_SELECTED);
+    
+    if (column != 0)
+    {
+        s_fxParamTemplateIndex = (column - 1) / 2;
+            
+        // Edit the cell param template
+    }
+}
+
+static void HandlePrePaint(HWND hwndDlg, LPNMLVCUSTOMDRAW lplvcd)
+{
+    FXCellRow *row = s_zoneDef.rows.Get(lplvcd->nmcd.dwItemSpec);
+         
+    if (lplvcd->iSubItem != 0)
+    {
+        int cellParamIndex = lplvcd->iSubItem - 1;
+        
+        string widgetName = row->cells.Get(cellParamIndex)->control + row->address;
+        
+        const WDL_TypedBuf<int> &currentModifiers = s_zoneManager->GetSurface()->GetModifiers();
+
+        if (g_FocusedWidget != NULL && g_FocusedWidget->GetName() == widgetName && currentModifiers.GetSize() && currentModifiers.Get()[0] == row->modifier)
+            lplvcd->clrText = RGB(0xff, 00, 00);
+        else if (row->cells.Get(cellParamIndex)->controlParams != "")
+            lplvcd->clrText =  RGB(00, 00, 0xff);
+        else
+            lplvcd->clrText =  RGB(0x00, 00, 00);;
+    }
+    
+
+    //lplvcd->clrTextBk = 0x00ffffff;
+
+    // can also remove selected state if desired lplvcd->nmcd.uItemState &= ~CDIS_SELECTED;
+    //if (LVIS_FOCUSED)
+    //{
+        //lplvcd->nmcd.uItemState &= ~CDIS_FOCUS;
+    //}
+    
+#ifdef _WIN32
+    SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, 0);
+#endif
+}
+
+static void HandleResize(HWND hwndDlg)
+{
+    RECT parent;
+    
+    GetClientRect(hwndDlg, &parent);
+    
+    RECT child;
+    
+    for (int i = 0; i < s_childOffsets.size(); ++i)
+    {
+        HWND hwndChild = GetDlgItem(hwndDlg, s_childOffsets[i].id);
+        
+        GetClientRect(hwndChild, &child);
+        
+        SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, parent.bottom - s_childOffsets[i].y, child.right - child.left, child.bottom - child.top, 0);
+    }
+    
+    RECT parentWinRect;
+    
+    GetWindowRect(hwndDlg, &parentWinRect);
+    
+    int parentWinHeight = parentWinRect.bottom - parentWinRect.top;
+    
+    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+    
+    GetClientRect(hwndParamList, &child);
+
+    SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top + s_paramListYOffset, parent.right - parent.left - s_paramListWidthBias, parentWinHeight - s_paramListHeightBias, 0);
+    
+    ListView_SetColumnWidth(hwndParamList, 0, (parent.right - parent.left - s_paramListWidthBias) / 7);
+    
+    for (int i = 1; i <= s_zoneManager->numFXLayoutColumns_; ++i)
+        ListView_SetColumnWidth(hwndParamList, i, (parent.right - parent.left - s_paramListWidthBias) / 14);
+}
+
+static void HandleInitialize(HWND hwndDlg)
+{
+    LoadTemplates();
+    
+    CalcInitialSizes(hwndDlg);
+    
+    ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+    
+    TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
+                
+    char buf[BUFSZ];
+    sprintf(buf, "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
+
+    SetWindowText(hwndDlg, buf);
+}
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     { 
         case WM_USER + 1024: // initialize
-        {
-            LoadTemplates();
-            
-            CalcInitialSizes(hwndDlg);
-            
-            ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-            
-            TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
-                        
-            char buf[BUFSZ];
-            sprintf(buf, "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
-
-            SetWindowText(hwndDlg, buf);
-        }
+            HandleInitialize(hwndDlg);
             break;
             
         case WM_SIZE:
-        {
-            RECT parent;
-            
-            GetClientRect(hwndDlg, &parent);
-            
-            RECT child;
-            
-            for (int i = 0; i < s_childOffsets.size(); ++i)
-            {
-                HWND hwndChild = GetDlgItem(hwndDlg, s_childOffsets[i].id);
-                
-                GetClientRect(hwndChild, &child);
-                
-                SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, parent.bottom - s_childOffsets[i].y, child.right - child.left, child.bottom - child.top, 0);
-            }
-            
-            RECT parentWinRect;
-            
-            GetWindowRect(hwndDlg, &parentWinRect);
-            
-            int parentWinHeight = parentWinRect.bottom - parentWinRect.top;
-            
-            HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-            
-            GetClientRect(hwndParamList, &child);
-
-            SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top + s_paramListYOffset, parent.right - parent.left - s_paramListWidthBias, parentWinHeight - s_paramListHeightBias, 0);
-            
-            ListView_SetColumnWidth(hwndParamList, 0, (parent.right - parent.left - s_paramListWidthBias) / 7);
-            
-            for (int i = 1; i <= s_zoneManager->numFXLayoutColumns_; ++i)
-                ListView_SetColumnWidth(hwndParamList, i, (parent.right - parent.left - s_paramListWidthBias) / 14);
-        }
+            HandleResize(hwndDlg);
             break;
-            
             
         case WM_NOTIFY:
         {
             if (((LPNMHDR)lParam)->code == NM_DBLCLK)
-            {
-                EditItem(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
-
-                LVHITTESTINFO hitTestInfo;
-                memset(&hitTestInfo, 0, sizeof(hitTestInfo));
-                POINT cursorPos;
-                GetCursorPos(&cursorPos);
-                ScreenToClient(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &cursorPos);
-                hitTestInfo.pt = cursorPos;
-                s_fxCellIndex = ListView_SubItemHitTest(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &hitTestInfo);
-                int column = hitTestInfo.iSubItem;
-
-                SendMessage(GetDlgItem(hwndDlg, IDC_PARAM_LIST), -1, LVIS_SELECTED, ! LVIS_SELECTED);
-                
-                if (column != 0)
-                {
-                    s_fxParamTemplateIndex = (column - 1) / 2;
-                        
-                    // Edit the cell param template
-                }
-            }
+                HandleDoubleClick(hwndDlg);
             else if (((LPNMHDR)lParam)->code == NM_CUSTOMDRAW)
             {
                 LPNMLVCUSTOMDRAW lplvcd = (LPNMLVCUSTOMDRAW)lParam;
@@ -1224,41 +1266,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     case CDDS_ITEMPREPAINT | CDDS_SUBITEM:
 #endif
                     case CDDS_ITEMPREPAINT:
-                    {
-                        FXCellRow *row = s_zoneDef.rows.Get(lplvcd->nmcd.dwItemSpec);
-                             
-                        if (lplvcd->iSubItem != 0)
-                        {
-                            int cellParamIndex = lplvcd->iSubItem - 1;
-                            
-                            string widgetName = row->cells.Get(cellParamIndex)->control + row->address;
-                            
-                            const WDL_TypedBuf<int> &currentModifiers = s_zoneManager->GetSurface()->GetModifiers();
-
-                            if (g_FocusedWidget != NULL && g_FocusedWidget->GetName() == widgetName && currentModifiers.GetSize() && currentModifiers.Get()[0] == row->modifier)
-                                lplvcd->clrText = RGB(0xff, 00, 00);
-                            else if (row->cells.Get(cellParamIndex)->controlParams != "")
-                                lplvcd->clrText =  RGB(00, 00, 0xff);
-                            else
-                                lplvcd->clrText =  RGB(0x00, 00, 00);;
-                        }
+                        HandlePrePaint(hwndDlg, lplvcd);
                         
-
-                        //lplvcd->clrTextBk = 0x00ffffff;
-
-                        // can also remove selected state if desired lplvcd->nmcd.uItemState &= ~CDIS_SELECTED;
-                        //if (LVIS_FOCUSED)
-                        //{
-                            //lplvcd->nmcd.uItemState &= ~CDIS_FOCUS;
-                        //}
-                        
-#ifdef _WIN32
-                        SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, 0);
-#endif
-                        
-                    }
-
-                  return 1;
+                    return 1;
                 }
             }
         }
@@ -1347,6 +1357,8 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager, MediaTrack *focusedTrack, in
 
 void CloseFocusedFXDialog()
 {
+    // GAW TBD -- Save here
+    
     if (hwndLearnDlg != NULL)
         ShowWindow(hwndLearnDlg, SW_HIDE);
 }

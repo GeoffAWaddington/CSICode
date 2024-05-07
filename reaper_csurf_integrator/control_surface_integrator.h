@@ -2010,7 +2010,7 @@ public:
         {
             learnFXTrack_ = NULL;
             
-            // GAW - TBD  dump the Zone, etc.
+            // GAW TBD  dump the Zone, etc.
             ClearLearnedFXParams();
             CloseFocusedFXDialog();
             return;

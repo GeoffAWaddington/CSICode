@@ -3338,7 +3338,7 @@ void ZoneManager::CheckFocusedFXState()
                 learnFXTrack_ = focusedTrack;
                 learnFXSlot_ = fxIndex;
                 
-                // GAW - TBD -- save currently edited map  here
+                // GAW TBD -- save currently edited map  here
                 
                 char learnFXName[BUFSZ];
                 TrackFX_GetFXName(learnFXTrack_, learnFXSlot_, learnFXName, sizeof(learnFXName));
