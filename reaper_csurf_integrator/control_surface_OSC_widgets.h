@@ -24,7 +24,6 @@ public:
         {
             lastColor_ = color;
 
-            
             int surfaceColor = 0;
             int r = color.r;
             int g = color.g;
@@ -39,10 +38,7 @@ public:
             else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
             else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
             
-            string oscAddress = "/ch/";
-            if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
-            oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
-            surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
+            surface_->SendOSCMessage(this, oscAddress_.c_str(), surfaceColor);
         }
     }
 };
@@ -68,33 +64,6 @@ public:
         }
         else
             surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
-    }
-
-    virtual void SetColorValue(const rgba_color &color) override
-    {
-        if (lastColor_ != color)
-        {
-            lastColor_ = color;
-
-            int surfaceColor = 0;
-            int r = color.r;
-            int g = color.g;
-            int b = color.b;
-            
-            if (r == 64 && g == 64 && b == 64)                               surfaceColor = 8;    // BLACK
-            else if (r > g && r > b)                                         surfaceColor = 1;    // RED
-            else if (g > r && g > b)                                         surfaceColor = 2;    // GREEN
-            else if (abs(r - g) < 30 && r > b && g > b)                      surfaceColor = 3;    // YELLOW
-            else if (b > r && b > g)                                         surfaceColor = 4;    // BLUE
-            else if (abs(r - b) < 30 && r > g && b > g)                      surfaceColor = 5;    // MAGENTA
-            else if (abs(g - b) < 30 && g > r && b > r)                      surfaceColor = 6;    // CYAN
-            else if (abs(r - g) < 30 && abs(r - b) < 30 && abs(g - b) < 30)  surfaceColor = 7;    // WHITE
-            
-            string oscAddress = "/ch/";
-            if (widget_->GetChannelNumber() < 10)   oscAddress += '0';
-            oscAddress += int_to_string(widget_->GetChannelNumber()) + "/config/color";
-            surface_->SendOSCMessage(this, oscAddress.c_str(), surfaceColor);
-        }
     }
 };
 

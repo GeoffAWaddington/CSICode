@@ -885,13 +885,10 @@ static void LoadTemplates()
     
     if (s_zoneManager == NULL || ! zonePaths.Exists("FXRowLayout") || ! zonePaths.Exists("FXWidgetLayout"))
         return;
-    
-    char path[BUFSIZ];
-    sprintf(path, "%s/CSI/Zones/%s/FXRowLayout.zon", GetResourcePath(), s_zoneManager->GetZoneFolder().c_str());
 
     try
     {
-        fpistream file(path);
+        fpistream file(zonePaths.Get("FXRowLayout")->filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -925,16 +922,14 @@ static void LoadTemplates()
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", path);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", zonePaths.Get("FXRowLayout")->filePath.c_str());
         ShowConsoleMsg(buffer);
     }
 
-    sprintf(path, "%s/CSI/Zones/%s/FXWidgetLayout.zon", GetResourcePath(), s_zoneManager->GetZoneFolder().c_str());
-
     try
     {
-        fpistream file(path);
-        
+        fpistream file(zonePaths.Get("FXWidgetLayout")->filePath.c_str());
+
         for (string line; getline(file, line) ; )
         {
             TrimLine(line);
@@ -1010,7 +1005,7 @@ static void LoadTemplates()
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", path);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", zonePaths.Get("FXWidgetLayout")->filePath.c_str());
         ShowConsoleMsg(buffer);
     }
 }
@@ -1107,6 +1102,41 @@ static void CalcInitialSizes(HWND hwndDlg)
     s_paramListWidth = child.right;
 }
 
+static void HandleResize(HWND hwndDlg)
+{
+    RECT parent;
+    
+    GetClientRect(hwndDlg, &parent);
+    
+    RECT child;
+    
+    for (int i = 0; i < s_childOffsets.size(); ++i)
+    {
+        HWND hwndChild = GetDlgItem(hwndDlg, s_childOffsets[i].id);
+        
+        GetClientRect(hwndChild, &child);
+        
+        SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, parent.bottom - s_childOffsets[i].y, child.right - child.left, child.bottom - child.top, 0);
+    }
+    
+    RECT parentWinRect;
+    
+    GetWindowRect(hwndDlg, &parentWinRect);
+    
+    int parentWinHeight = parentWinRect.bottom - parentWinRect.top;
+    
+    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
+    
+    GetClientRect(hwndParamList, &child);
+
+    SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top + s_paramListYOffset, parent.right - parent.left - s_paramListWidthBias, parentWinHeight - s_paramListHeightBias, 0);
+    
+    ListView_SetColumnWidth(hwndParamList, 0, (parent.right - parent.left - s_paramListWidthBias) / 7);
+    
+    for (int i = 1; i <= s_zoneManager->numFXLayoutColumns_; ++i)
+        ListView_SetColumnWidth(hwndParamList, i, (parent.right - parent.left - s_paramListWidthBias) / 14);
+}
+
 static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias)
 {
     HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
@@ -1185,41 +1215,6 @@ static void HandlePrePaint(HWND hwndDlg, LPNMLVCUSTOMDRAW lplvcd)
 #ifdef _WIN32
     SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, 0);
 #endif
-}
-
-static void HandleResize(HWND hwndDlg)
-{
-    RECT parent;
-    
-    GetClientRect(hwndDlg, &parent);
-    
-    RECT child;
-    
-    for (int i = 0; i < s_childOffsets.size(); ++i)
-    {
-        HWND hwndChild = GetDlgItem(hwndDlg, s_childOffsets[i].id);
-        
-        GetClientRect(hwndChild, &child);
-        
-        SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, parent.bottom - s_childOffsets[i].y, child.right - child.left, child.bottom - child.top, 0);
-    }
-    
-    RECT parentWinRect;
-    
-    GetWindowRect(hwndDlg, &parentWinRect);
-    
-    int parentWinHeight = parentWinRect.bottom - parentWinRect.top;
-    
-    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-    
-    GetClientRect(hwndParamList, &child);
-
-    SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top + s_paramListYOffset, parent.right - parent.left - s_paramListWidthBias, parentWinHeight - s_paramListHeightBias, 0);
-    
-    ListView_SetColumnWidth(hwndParamList, 0, (parent.right - parent.left - s_paramListWidthBias) / 7);
-    
-    for (int i = 1; i <= s_zoneManager->numFXLayoutColumns_; ++i)
-        ListView_SetColumnWidth(hwndParamList, i, (parent.right - parent.left - s_paramListWidthBias) / 14);
 }
 
 static void HandleInitialize(HWND hwndDlg)
