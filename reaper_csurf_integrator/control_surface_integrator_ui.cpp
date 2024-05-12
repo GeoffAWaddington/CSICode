@@ -18,18 +18,16 @@ extern int g_maxNumParamSteps;
 // Learn FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static ZoneManager *s_zoneManager;
-static int s_numGroups = 0;
 static FXZoneDefinition s_zoneDef;
 
 static int s_dlgResult = IDCANCEL;
 
 static int s_fxCellIndex = 0;
-static int s_fxParamTemplateIndex = 0;
 
-MediaTrack *s_focusedTrack = NULL;
-int s_fxSlot = 0;
-char s_fxName[BUFSZ];
-char s_fxAlias[BUFSZ];
+static MediaTrack *s_focusedTrack = NULL;
+static int s_fxSlot = 0;
+static char s_fxName[BUFSZ];
+static char s_fxAlias[BUFSZ];
 
 static const int s_baseControls[] =
 {
@@ -844,23 +842,23 @@ static void SaveZone()
     }
 }
 
-int s_numFXLayoutColumns;
-ptrvector<FXRowLayout *> s_fxRowLayouts;
+static int s_numFXLayoutColumns;
+static ptrvector<FXRowLayout *> s_fxRowLayouts;
 
-string s_paramWidget;
-string s_nameWidget;
-string s_valueWidget;
+static string s_paramWidget;
+static string s_nameWidget;
+static string s_valueWidget;
 
-string s_paramWidgetParams;
-string s_nameWidgetParams;
-string s_valueWidgetParams;
+static string s_paramWidgetParams;
+static string s_nameWidgetParams;
+static string s_valueWidgetParams;
 
-string_list s_paramWidgets;
-string_list s_displayRows;
-string_list s_ringStyles;
-string_list s_fonts;
+static string_list s_paramWidgets;
+static string_list s_displayRows;
+static string_list s_ringStyles;
+static string_list s_fonts;
 
-bool s_hasColor;
+static bool s_hasColor;
 
 static void LoadTemplates()
 {
@@ -1024,13 +1022,13 @@ struct ChildOffset
     }
 };
 
-vector<ChildOffset> s_childOffsets;
+static vector<ChildOffset> s_childOffsets;
 
-int s_paramListXOffset;
-int s_paramListYOffset;
-int s_paramListWidth;
-int s_paramListWidthBias;
-int s_paramListHeightBias;
+static int s_paramListXOffset;
+static int s_paramListYOffset;
+static int s_paramListWidth;
+static int s_paramListWidthBias;
+static int s_paramListHeightBias;
 
 static void ConfigureListView(HWND hwndParamList)
 {
@@ -1039,8 +1037,9 @@ static void ConfigureListView(HWND hwndParamList)
     for (int i = numColumns - 1; i >= 0; --i)
         ListView_DeleteColumn(hwndParamList, i);
 
-    int columnSize  = s_paramListWidth / (s_numFXLayoutColumns + 2);
-    
+    // GAW TBD -- junk, will improve
+    int columnSize  = ((s_paramListWidth * 3) / 4) / (s_numFXLayoutColumns + 2);
+
     LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
     columnDescriptor.cx = columnSize * 2;
     
@@ -1052,6 +1051,7 @@ static void ConfigureListView(HWND hwndParamList)
         sprintf(caption, "%d", i);
         columnDescriptor.pszText = caption;
         columnDescriptor.cx = columnSize;
+        columnDescriptor.fmt = LVCFMT_CENTER;
         ListView_InsertColumn(hwndParamList, i, &columnDescriptor);
     }
 }
@@ -1131,10 +1131,13 @@ static void HandleResize(HWND hwndDlg)
 
     SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top + s_paramListYOffset, parent.right - parent.left - s_paramListWidthBias, parentWinHeight - s_paramListHeightBias, 0);
     
-    ListView_SetColumnWidth(hwndParamList, 0, (parent.right - parent.left - s_paramListWidthBias) / 7);
+    // GAW TBD -- junk, will improve
+    int columnSize = ((child.right * 3) / 4) / (s_numFXLayoutColumns + 2);
+
+    ListView_SetColumnWidth(hwndParamList, 0, columnSize * 2);
     
-    for (int i = 1; i <= s_zoneManager->numFXLayoutColumns_; ++i)
-        ListView_SetColumnWidth(hwndParamList, i, (parent.right - parent.left - s_paramListWidthBias) / 14);
+    for (int i = 1; i <= s_numFXLayoutColumns; ++i)
+        ListView_SetColumnWidth(hwndParamList, i, columnSize);
 }
 
 static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *fxName, const char *fxAlias)
@@ -1144,6 +1147,9 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
     ListView_DeleteAllItems(hwndParamList);
     
     ConfigureListView(hwndParamList);
+    
+    
+    
     
     int numParams = TrackFX_GetNumParams(track, fxSlot);
 
@@ -1158,6 +1164,8 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
             
         }
     }
+    
+    
 }
 
 static void HandleDoubleClick(HWND hwndDlg)
@@ -1177,7 +1185,7 @@ static void HandleDoubleClick(HWND hwndDlg)
     
     if (column != 0)
     {
-        s_fxParamTemplateIndex = (column - 1) / 2;
+        // s_fxParamTemplateIndex = (column - 1) / 2;
             
         // Edit the cell param template
     }
@@ -1219,8 +1227,6 @@ static void HandlePrePaint(HWND hwndDlg, LPNMLVCUSTOMDRAW lplvcd)
 
 static void HandleInitialize(HWND hwndDlg)
 {
-    LoadTemplates();
-    
     CalcInitialSizes(hwndDlg);
     
     ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
@@ -1308,10 +1314,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                         
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        s_zoneManager->ExitLearn();
-                        ShowWindow(hwndDlg, SW_HIDE);
-                    }
+                        CloseFocusedFXDialog();
                     break ;
             }
         }
@@ -1330,14 +1333,8 @@ static void InitLearnDlg(HWND hwndDlg)
 
 static HWND hwndLearnDlg = NULL;
 
-void LearnFocusedFXDialog(ZoneManager *zoneManager, MediaTrack *focusedTrack, int focusedTrackFXSlot, const char *fxName, const char *fxAlias)
+static void LearnFocusedFXDialog()
 {
-    s_zoneManager = zoneManager;
-    s_fxSlot = focusedTrackFXSlot;
-    s_focusedTrack = focusedTrack;
-    strcpy(s_fxName, fxName);
-    strcpy(s_fxAlias, fxAlias);
-    
     if (hwndLearnDlg == NULL)
         hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
     
@@ -1345,14 +1342,114 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager, MediaTrack *focusedTrack, in
         return;
     
     // initialize
+    LoadTemplates();
     SendMessage(hwndLearnDlg, WM_USER + 1024, 0, 0);
         
     ShowWindow(hwndLearnDlg, SW_SHOW);
 }
 
+void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
+{
+    zoneManager->EnterLearn();
+    
+    TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
+    
+    const WDL_StringKeyedArray<CSIZoneInfo*> &zonePaths = s_zoneManager->GetZoneFilePaths();
+
+    if (zonePaths.Exists(s_fxName))
+    {
+        zoneManager->LoadAndActivateZone(s_fxName);
+        lstrcpyn_safe(s_fxAlias, zonePaths.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
+        LearnFocusedFXDialog();
+    }
+    else
+    {
+        zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
+        LearnFocusedFXDialog();
+    }
+}
+
+void CheckLearnFocusedFXState(ZoneManager *zoneManager)
+{
+    if ((hwndLearnDlg != NULL && ! IsWindowVisible(hwndLearnDlg)) || s_zoneManager == NULL || zoneManager != s_zoneManager) // not the current control surface
+        return;
+    
+    int trackNumber = 0;
+    int fxSlot = 0;
+    int itemNumber = 0;
+    int takeNumber = 0;
+    int paramIndex = 0;
+        
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+
+    MediaTrack *focusedTrack = NULL;
+    
+    trackNumber++;
+    
+    if (retVal && ! (paramIndex & 0x01))
+    {
+        if (trackNumber > 0)
+            focusedTrack = DAW::GetTrack(trackNumber);
+        else if (trackNumber == 0)
+            focusedTrack = GetMasterTrack(NULL);
+    }
+
+    if (focusedTrack != NULL && (focusedTrack != s_focusedTrack || (focusedTrack == s_focusedTrack && fxSlot != s_fxSlot)))
+    {
+        s_focusedTrack = focusedTrack;
+        s_fxSlot = fxSlot;
+        
+        LaunchLearnFocusedFXDialog(zoneManager);
+    }
+}
+
+void LearnFocusedFXDialog(ZoneManager *zoneManager)
+{
+    if (s_zoneManager != NULL && zoneManager != s_zoneManager) // not the current control surface
+        return;
+    
+    if (hwndLearnDlg != NULL && IsWindowVisible(hwndLearnDlg))
+    {
+        CloseFocusedFXDialog();
+        return;
+    }
+    
+    int trackNumber = 0;
+    int fxSlot = 0;
+    int itemNumber = 0;
+    int takeNumber = 0;
+    int paramIndex = 0;
+        
+    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+
+    MediaTrack *focusedTrack = NULL;
+    
+    trackNumber++;
+    
+    if (retVal && ! (paramIndex & 0x01))
+    {
+        if (trackNumber > 0)
+            focusedTrack = DAW::GetTrack(trackNumber);
+        else if (trackNumber == 0)
+            focusedTrack = GetMasterTrack(NULL);
+    }
+
+    if (focusedTrack == NULL)
+        return;
+    
+    s_zoneManager = zoneManager;
+    s_focusedTrack = focusedTrack;
+    s_fxSlot = fxSlot;
+
+    LaunchLearnFocusedFXDialog(zoneManager);
+}
+
 void CloseFocusedFXDialog()
 {
     // GAW TBD -- Save here
+    
+    s_zoneManager =  NULL;
+    s_zoneManager->ExitLearn();
     
     if (hwndLearnDlg != NULL)
         ShowWindow(hwndLearnDlg, SW_HIDE);

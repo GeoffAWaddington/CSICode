@@ -199,7 +199,8 @@ extern void GetTokens(string_list &tokens, const char *line);
 
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
-extern void LearnFocusedFXDialog(ZoneManager *zoneManager, MediaTrack *focusedTrack, int focusedTrackFXSlot, const char *fxName, const char *fxAlias);
+extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
+extern void CheckLearnFocusedFXState(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1396,6 +1397,7 @@ private:
     }
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
+    Zone *learnFXZone_;
     
     MediaTrack *learnFXTrack_;
     int learnFXSlot_;
@@ -1728,60 +1730,12 @@ private:
         }
     }
 
-    void GetAlias(const char *fxName, char *alias, int aliassz)
-    {
-        static const char  *const prefixes[] =
-        {
-            "AU: Tube-Tech ",
-            "AU: AU ",
-            "AU: UAD UA ",
-            "AU: UAD Pultec ",
-            "AU: UAD Tube-Tech ",
-            "AU: UAD Softube ",
-            "AU: UAD Teletronix ",
-            "AU: UADx ",
-            "AU: UAD ",
-            "AU: ",
-            "AUi: ",
-            "VST: TDR ",
-            "VST: UAD UA ",
-            "VST: UAD Pultec ",
-            "VST: UAD Tube-Tech ",
-            "VST: UAD Softube ",
-            "VST: UAD Teletronix ",
-            "VST: UAD ",
-            "VST3: UADx ",
-            "VST3i: UADx ",
-            "VST: ",
-            "VSTi: ",
-            "VST3: ",
-            "VST3i: ",
-            "JS: ",
-            "Rewire: ",
-            "CLAP: ",
-            "CLAPi: ",
-        };
-        
-        // skip over known prefixes
-        for (int i = 0; i < NUM_ELEM(prefixes); ++i)
-        {
-            const int l = (int) strlen(prefixes[i]);
-            if (!strncmp(fxName, prefixes[i], l))
-            {
-                fxName += l;
-                break;
-            }
-        }
-
-        lstrcpyn_safe(alias, fxName, aliassz);
-        char *p = strstr(alias," (");
-        if (p) *p = 0;
-    }
-
 public:
     ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
     {
         homeZone_ = NULL;
+        
+        learnFXZone_ = NULL;
         
         learnFXTrack_ = NULL;
         learnFXSlot_ = 0;
@@ -1823,7 +1777,12 @@ public:
         allZonesNeedFree_.Empty(true);
     }
      
-
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1895,7 +1854,6 @@ public:
 
     void DoTouch(Widget *widget, double value);
     
-    
     const string &GetZoneFolder() { return zoneFolder_; }
     const string &GetFXZoneFolder() { return fxZoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
@@ -1904,7 +1862,8 @@ public:
     
     void SetHomeZone(Zone *zone) { homeZone_ = zone; }
     void SetFocusedFXParamZone(Zone *zone) { focusedFXParamZone_ = zone; }
-    
+    void SetLearnFXZone(Zone *zone) { learnFXZone_ = zone; }
+
     int GetTrackSendOffset() { return trackSendOffset_; }
     int GetTrackReceiveOffset() { return trackReceiveOffset_; }
     int GetTrackFXMenuOffset() { return trackFXMenuOffset_; }
@@ -1916,17 +1875,86 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
+    void GetAlias(const char *fxName, char *alias, int aliassz)
+    {
+        static const char  *const prefixes[] =
+        {
+            "AU: Tube-Tech ",
+            "AU: AU ",
+            "AU: UAD UA ",
+            "AU: UAD Pultec ",
+            "AU: UAD Tube-Tech ",
+            "AU: UAD Softube ",
+            "AU: UAD Teletronix ",
+            "AU: UADx ",
+            "AU: UAD ",
+            "AU: ",
+            "AUi: ",
+            "VST: TDR ",
+            "VST: UAD UA ",
+            "VST: UAD Pultec ",
+            "VST: UAD Tube-Tech ",
+            "VST: UAD Softube ",
+            "VST: UAD Teletronix ",
+            "VST: UAD ",
+            "VST3: UADx ",
+            "VST3i: UADx ",
+            "VST: ",
+            "VSTi: ",
+            "VST3: ",
+            "VST3i: ",
+            "JS: ",
+            "Rewire: ",
+            "CLAP: ",
+            "CLAPi: ",
+        };
+        
+        // skip over known prefixes
+        for (int i = 0; i < NUM_ELEM(prefixes); ++i)
+        {
+            const int l = (int) strlen(prefixes[i]);
+            if (!strncmp(fxName, prefixes[i], l))
+            {
+                fxName += l;
+                break;
+            }
+        }
+
+        lstrcpyn_safe(alias, fxName, aliassz);
+        char *p = strstr(alias," (");
+        if (p) *p = 0;
+    }
     
-    
+    void LoadAndActivateZone(const char *name)
+    {
+        WDL_PtrList<Navigator> navigators;
+        navigators.Add(GetFocusedFXNavigator());
+
+        WDL_PtrList<Zone> zones;
+        zones.Add(learnFocusedFXZone_);
+        
+        if(zoneFilePaths_.Exists(name))
+        {
+            LoadZoneFile(zoneFilePaths_.Get(name)->filePath.c_str(), navigators, zones, NULL);
+            
+            //learnFocusedFXZone_->Activate();
+        }
+    }
+
+    void EnterLearn()
+    {
+        //if (learnFXZone_ != NULL)
+            //learnFXZone_->Activate();
+        
+    }
     
     void ExitLearn()
     {
-        ClearLearnedFXParams();
+        //if (learnFXZone_ != NULL)
+            //learnFXZone_->Deactivate();
+
+        //ClearLearnedFXParams();
     }
-    
-    
-    
-    
     
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
@@ -1977,13 +2005,15 @@ public:
         
     void ClearLearnedFXParams()
     {
-        learnedWidgets_.DeleteAll();
-        learnFXTrack_ = NULL;
-        learnFXSlot_ = 0;
-        lastTouchedControl_ = NULL;
-        
         if (learnFocusedFXZone_ != NULL)
+        {
+            learnedWidgets_.DeleteAll();
+            learnFXTrack_ = NULL;
+            learnFXSlot_ = 0;
+            lastTouchedControl_ = NULL;
+            
             delete learnFocusedFXZone_;
+        }
     }
         
     void DeclareClearFocusedFXParam()
@@ -2016,52 +2046,6 @@ public:
             return;
         }
 
-        int trackNumber = 0;
-        int itemNumber = 0;
-        int takeNumber = 0;
-        int paramIndex = 0;
-
-        learnFXTrack_ = NULL;
-        learnFXSlot_ = 0;
-
-        int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &learnFXSlot_, &paramIndex);
-        
-        trackNumber++;
-        
-        if (retVal && ! (paramIndex & 0x01))
-        {
-            if (trackNumber > 0)
-                learnFXTrack_ = DAW::GetTrack(trackNumber);
-            else if (trackNumber == 0)
-                learnFXTrack_ = GetMasterTrack(NULL);
-        }
-        
-        if (learnFXTrack_ == NULL)
-            return;
-        
-        // GAW TBD -- LearnFocusedFX no longer an AssociatedZone
-        // homeZone_->GoAssociatedZone("LearnFocusedFX");
-        
-        char learnFXName[BUFSZ];
-        TrackFX_GetFXName(learnFXTrack_, learnFXSlot_, learnFXName, sizeof(learnFXName));
-
-
-        
-        if (zoneFilePaths_.Exists(learnFXName))
-        {
-            
-            // Load Zone
-
-            LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, zoneFilePaths_.Get(learnFXName)->alias.c_str());
-        }
-        else
-        {
-            char learnFXAlias[BUFSZ];
-            GetAlias(learnFXName, learnFXAlias, sizeof(learnFXAlias));
-            
-            LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, learnFXAlias);
-
-        }
     }
     
     void GoAssociatedZone(const char *zoneName)

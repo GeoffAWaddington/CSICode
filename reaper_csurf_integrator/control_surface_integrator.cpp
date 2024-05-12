@@ -874,7 +874,10 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                                                
                         if (zoneName == "FocusedFXParam")
                             SetFocusedFXParamZone(zone);
-                        
+
+                        if (zoneName == "LearnFX")
+                            SetLearnFXZone(zone);
+
                         zones.Add(zone);
                         
                         for (int tde = 0; tde < actionTemplatesDictionary.GetSize(); tde++)
@@ -3260,10 +3263,14 @@ void ZoneManager::Initialize()
         
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
-    WDL_PtrList<Zone> dummy; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
-    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, dummy, NULL);
+    WDL_PtrList<Zone> zones; // Needed to satisfy protcol, Home and FocusedFXParam have special Zone handling
+    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
-        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, dummy, NULL);
+        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, zones, NULL);
+    
+    zones.Add(learnFXZone_);
+    if (zoneFilePaths_.Exists("LearnFX"))
+        LoadZoneFile(zoneFilePaths_.Get("LearnFX")->filePath.c_str(), navigators, zones, NULL);
     
     GoHome();
 }
@@ -3317,50 +3324,7 @@ void ZoneManager::CheckFocusedFXState()
     
     bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
 
-    if (learnFXTrack_)
-    {
-        MediaTrack *focusedTrack = NULL;
-
-        if (retVal && ! (paramIndex & 0x01))
-        {
-            trackNumber++;
-
-            if (trackNumber > 0)
-                focusedTrack = DAW::GetTrack(trackNumber);
-            else if (trackNumber == 0)
-                focusedTrack = GetMasterTrack(NULL);
-        }
-
-        if (focusedTrack != NULL)
-        {
-            if (focusedTrack != learnFXTrack_ || (focusedTrack == learnFXTrack_ && fxIndex != learnFXSlot_))
-            {
-                learnFXTrack_ = focusedTrack;
-                learnFXSlot_ = fxIndex;
-                
-                // GAW TBD -- save currently edited map  here
-                
-                char learnFXName[BUFSZ];
-                TrackFX_GetFXName(learnFXTrack_, learnFXSlot_, learnFXName, sizeof(learnFXName));
-                
-                if (zoneFilePaths_.Exists(learnFXName))
-                {
-                    
-                    // Load Zone
-
-                    LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, zoneFilePaths_.Get(learnFXName)->alias.c_str());
-                }
-                else
-                {
-                    char learnFXAlias[BUFSZ];
-                    GetAlias(learnFXName, learnFXAlias, sizeof(learnFXAlias));
-                    
-                    LearnFocusedFXDialog(this, learnFXTrack_, learnFXSlot_, learnFXName, learnFXAlias);
-
-                }
-            }
-        }
-    }
+    CheckLearnFocusedFXState(this);
     
     if (! isFocusedFXMappingEnabled_)
         return;
@@ -4237,7 +4201,6 @@ void ZoneManager::AutoLearnFX(const string &fxName, MediaTrack *track, int fxInd
         }
     }
 }
-
 
 void ZoneManager::UnpackFXZone(FXZoneDefinition &zd)
 {

@@ -57,10 +57,10 @@ public:
     {
         lastDoubleValue_ = value;
         
-        if (oscAddress_.find("/-stat/selidx") != string::npos)
+        if (oscAddress_.find("/-stat/selidx/") != string::npos  && value != 0.0)
         {
-            if (value != 0.0)
-                surface_->SendOSCMessage(this, "/-stat/selidx", widget_->GetChannelNumber() -1);
+            string selectIndex = oscAddress_.substr(oscAddress_.find_last_of('/') + 1);
+            surface_->SendOSCMessage(this, "/-stat/selidx", (int)atoi(selectIndex.c_str()));
         }
         else
             surface_->SendOSCMessage(this, oscAddress_.c_str(), (int)value);
