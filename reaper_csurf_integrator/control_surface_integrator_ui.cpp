@@ -879,6 +879,8 @@ static void LoadTemplates()
     
     s_hasColor = false;
 
+    s_numFXLayoutColumns = s_zoneManager->GetSurface()->GetNumChannels();
+    
     const WDL_StringKeyedArray<CSIZoneInfo*> &zonePaths = s_zoneManager->GetZoneFilePaths();
     
     if (s_zoneManager == NULL || ! zonePaths.Exists("FXRowLayout") || ! zonePaths.Exists("FXWidgetLayout"))
@@ -902,17 +904,12 @@ static void LoadTemplates()
                 
                 if (tokens.size() == 2)
                 {
-                    if (tokens[0] == "Channels")
-                        s_numFXLayoutColumns = atoi(tokens[1].c_str());
-                    else
-                    {
-                        FXRowLayout *t = new FXRowLayout();
-                        
-                        t->suffix = tokens[1];
-                        t->modifiers = tokens[0];
-                        t->modifier = s_zoneManager->GetSurface()->GetModifierManager()->GetModifierValue(tokens[0]);
-                        s_fxRowLayouts.push_back(t);
-                    }
+                    FXRowLayout *t = new FXRowLayout();
+                    
+                    t->suffix = tokens[1];
+                    t->modifiers = tokens[0];
+                    t->modifier = s_zoneManager->GetSurface()->GetModifierManager()->GetModifierValue(tokens[0]);
+                    s_fxRowLayouts.push_back(t);
                 }
             }
         }
@@ -1350,7 +1347,7 @@ static void LearnFocusedFXDialog()
 
 void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 {
-    zoneManager->EnterLearn();
+    zoneManager->EnterLearn(s_focusedTrack, s_fxSlot);
     
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
     
@@ -1358,7 +1355,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 
     if (zonePaths.Exists(s_fxName))
     {
-        zoneManager->LoadAndActivateZone(s_fxName);
+        zoneManager->LoadAndActivateFocusedFXZone(s_fxName);
         lstrcpyn_safe(s_fxAlias, zonePaths.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
         LearnFocusedFXDialog();
     }
