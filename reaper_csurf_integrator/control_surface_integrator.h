@@ -767,9 +767,8 @@ public:
 class Zone
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-public:
-    ZoneManager  *const zoneManager_;
 protected:
+    ZoneManager  *const zoneManager_;
     CSurfIntegrator *const csi_;
     Navigator *const navigator_;
     int slotIndex_;
@@ -780,9 +779,7 @@ protected:
     bool isActive_;
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
-    WDL_PtrList<Widget> thisZoneWidgets_;
-    WDL_PointerKeyedArray<Widget*, bool> widgets_; 
-    WDL_StringKeyedArray<Widget*> widgetsByName_;
+    WDL_PtrList<Widget> widgets_;
     WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
 
     static void destroyActionContextListArray(WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *list) { delete list; }
@@ -801,17 +798,22 @@ protected:
 public:
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones);
     
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
+        subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
+    {
+        //protected:
+        isActive_ = false;
+    }
+
     virtual ~Zone()
     {
-        thisZoneWidgets_.Empty();
+        widgets_.Empty();
     }
     
-    void InitSubZones(const string_list &subZones, Zone *enclosingZone);
+    void InitSubZonesOld(const string_list &subZones, Zone *enclosingZone);
     void GoAssociatedZone(const char *associatedZoneName);
-    void GoAssociatedZone(const char *associatedZoneName, int slotIndex);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
-    int GetParamIndex(const char *widgetName);
     void SetXTouchDisplayColors(const char *color);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
@@ -823,16 +825,12 @@ public:
     void DoRelativeAction(Widget *widget, bool &isUsed, double delta);
     void DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta);
     void DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value);
-    int GetChannelNumber();
     void RequestUpdate();
-    void SetFXParamNum(Widget *paramWidget, int paramIndex);
 
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
     
     virtual const char *GetType() { return "Zone"; }
     
-    const WDL_PointerKeyedArray<Widget*, bool> &GetWidgets() { return widgets_; }
-
     Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
@@ -891,12 +889,7 @@ public:
         else
             return name_.c_str();
     }
-        
-    Widget *GetWidgetByName(const char *name)
-    {
-        return widgetsByName_.Get(name);
-    }
-    
+            
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
         WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
@@ -1392,6 +1385,13 @@ private:
     }
     static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
     
+    WDL_StringKeyedArray<WDL_PtrList<Zone> *> radioButtonZones_;
+    static void disposeRadioButtonZoneList(WDL_PtrList<Zone> *list)
+    {
+        list->Empty(true);
+        delete list;
+    }
+    
     Zone *learnFXZone_;
     
     MediaTrack *learnFXTrack_;
@@ -1466,6 +1466,10 @@ private:
     void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
         
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
+    void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
+                                   bool &isDecrease, bool &isIncrease);
+
+    
     void BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary);
         
     bool GetIsListener()
@@ -1719,7 +1723,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), radioButtonZones_(true, disposeRadioButtonZoneList)
     {
         homeZone_ = NULL;
         
@@ -1826,6 +1830,7 @@ public:
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
         
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
+    void LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffix);
 
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
