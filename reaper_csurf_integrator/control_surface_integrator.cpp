@@ -200,7 +200,7 @@ void TrimLine(string &line)
 string int_to_string(int value)
 {
     char buf[64];
-    sprintf(buf, "%d", value);
+    snprintf(buf, sizeof(buf), "%d", value);
     
     return string(buf);
 }
@@ -766,7 +766,7 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyed
 
 
 
-void ZoneManager::LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffix)
+void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 {
     int lineNumber = 0;
     bool isInSubZonesSection = false;
@@ -774,7 +774,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffi
 
     try
     {
-        fpistream file(filePath);
+        fpistream file(zone->GetSourceFilePath());
         
         for (string line; getline(file, line) ; )
         {
@@ -798,7 +798,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffi
             else if (tokens[0] == "SubZonesEnd")
             {
                 isInSubZonesSection = false;
-                // GAW TBD -- handle SubZones
+                // GAW TBD -- handle SubZone creation
             }
             else if (isInSubZonesSection)
                 subZones.push_back(tokens[0]);
@@ -817,10 +817,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffi
                 
                 char widgetName[BUFSIZ];
                 
-                if (widgetSuffix > 0)
-                    sprintf(widgetName, "%s%d", baseWidgetName.c_str(), widgetSuffix);
-                else
-                    sprintf(widgetName, "%s", baseWidgetName.c_str());
+                snprintf(widgetName, sizeof(widgetName), "%s%s", baseWidgetName.c_str(), widgetSuffix);
 
                 Widget *widget = GetSurface()->GetWidgetByName(widgetName);
                                             
@@ -867,7 +864,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffi
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, lineNumber);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", zone->GetSourceFilePath(), lineNumber);
         ShowConsoleMsg(buffer);
     }
 }
@@ -1017,7 +1014,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                         }
                     
                         if (enclosingZone == NULL && subZones.size() > 0)
-                            zone->InitSubZonesOld(subZones, zone);
+                            zone->InitSubZones(subZones, zone);
                     }
                                     
                     break;
@@ -2121,7 +2118,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     intParam_ = 0;
     supportsColor_ = false;
     supportsTrackColor_ = false;
-    provideFeedback_ = false;
+    provideFeedback_ = true;
     
     if (stringParam != NULL)
         stringParam_ = *stringParam;
@@ -2516,6 +2513,30 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
+subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
+{
+    isActive_ = false;
+    
+    if (name == "Home")
+    {
+        string_list includedZones;
+        includedZones.push_back("Track");
+        includedZones.push_back("MasterTrack");
+
+        for (int i = 0; i < (int)includedZones.size(); ++i)
+        {
+            if (zoneManager_->GetZoneFilePaths().Exists(includedZones[i].c_str()))
+            {
+                WDL_PtrList<Navigator> navigators;
+                AddNavigatorsForZone(includedZones[i], navigators);
+                
+                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(includedZones[i].c_str())->filePath.c_str(), navigators, includedZones_, NULL);
+            }
+        }
+    }
+}
+
 Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), /* learnFXCells_(destroyLearnFXCellList),*/ actionContextDictionary_(destroyActionContextListArray)
 {
     //protected:
@@ -2559,7 +2580,7 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
     }
 }
 
-void Zone::InitSubZonesOld(const string_list &subZones, Zone *enclosingZone)
+void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
@@ -3222,14 +3243,14 @@ void ZoneManager::Initialize()
     }
         
     // GAW TBD -- Use RadioButton and HomeIncluded metadata to instantiate empty Zones here, then Load instantiated Zones -- aka add Widgets and ActionContexts
-
     
-    
+    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
+    LoadZoneFile(homeZone_, "");
     
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
     WDL_PtrList<Zone> zones; // Needed to satisfy protcol, Home, FocusedFXParam, and LearnFX have special Zone handling
-    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
+    //LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("LearnFX"))
@@ -3669,20 +3690,20 @@ void ZoneManager::GetParamDisplayWidgets(const char *controlName, int modifier, 
                 char buf[BUFSZ];
                 buf[0] = 0;
 
-                sprintf(buf, "%s%s", cell.control.c_str(), address);
+                snprintf(buf, sizeof(buf), "%s%s", cell.control.c_str(), address);
 
                 if ( ! strcmp(buf, controlName))
                 {
                     buf[0] = 0;
                     
                     const char *nameDisplay = cell.nameDisplay != "" ? cell.nameDisplay.c_str() : fxRows_[i].cells[0].nameDisplay.c_str();
-                    sprintf(buf, "%s%s", nameDisplay, address);
+                    snprintf(buf, sizeof(buf), "%s%s", nameDisplay, address);
                     learnedWidgetParams->nameDisplay = surface_->GetWidgetByName(buf);
 
                     buf[0] = 0;
                     
                     const char *valueDisplay = cell.valueDisplay != "" ? cell.valueDisplay.c_str() : fxRows_[i].cells[0].valueDisplay.c_str();
-                    sprintf(buf, "%s%s", valueDisplay, address);
+                    snprintf(buf, sizeof(buf), "%s%s", valueDisplay, address);
                     learnedWidgetParams->valueDisplay = surface_->GetWidgetByName(buf);
                     return;
                 }

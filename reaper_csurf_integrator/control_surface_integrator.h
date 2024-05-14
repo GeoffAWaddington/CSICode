@@ -798,19 +798,14 @@ protected:
 public:
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones);
     
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
-        subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
-    {
-        //protected:
-        isActive_ = false;
-    }
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath);
 
     virtual ~Zone()
     {
         widgets_.Empty();
     }
     
-    void InitSubZonesOld(const string_list &subZones, Zone *enclosingZone);
+    void InitSubZones(const string_list &subZones, Zone *enclosingZone);
     void GoAssociatedZone(const char *associatedZoneName);
     void ReactivateFXMenuZone();
     int GetSlotIndex();
@@ -1830,7 +1825,7 @@ public:
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
         
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
-    void LoadZoneFile(const char *filePath, Zone *zone, int widgetSuffix);
+    void LoadZoneFile(Zone *zone, const char *widgetSuffix);
 
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
@@ -4559,7 +4554,7 @@ public:
             
             char msgBuffer[250];
             
-            sprintf(msgBuffer, "Total duration = %d\n\n\n", totalDuration);
+            snprintf(msgBuffer, sizeof(msgBuffer), "Total duration = %d\n\n\n", totalDuration);
             ShowConsoleMsg(msgBuffer);
         }
     }
@@ -4569,7 +4564,7 @@ public:
     {
         char msgBuffer[250];
         
-        sprintf(msgBuffer, "%s - %d microseconds\n", item.c_str(), duration);
+        snprintf(msgBuffer, sizeof(msgBuffer), "%s - %d microseconds\n", item.c_str(), duration);
         ShowConsoleMsg(msgBuffer);
     }
     
@@ -4577,7 +4572,7 @@ public:
     {
         char msgBuffer[250];
         
-        sprintf(msgBuffer, "%s - %s - %d microseconds\n", surface.c_str(), item.c_str(), duration);
+        snprintf(msgBuffer, sizeof(msgBuffer), "%s - %s - %d microseconds\n", surface.c_str(), item.c_str(), duration);
         ShowConsoleMsg(msgBuffer);
     }
    */
@@ -4952,7 +4947,7 @@ public:
          
          char msgBuffer[250];
          
-         sprintf(msgBuffer, "%d microseconds\n", duration);
+         snprintf(msgBuffer, sizeof(msgBuffer), "%d microseconds\n", duration);
          ShowConsoleMsg(msgBuffer);
          }
         */
@@ -4976,7 +4971,7 @@ public:
  
  char msgBuffer[250];
  
- sprintf(msgBuffer, "%d microseconds\n", duration);
+ snprintf(msgBuffer, sizeof(msgBuffer), "%d microseconds\n", duration);
  ShowConsoleMsg(msgBuffer);
  
  */
