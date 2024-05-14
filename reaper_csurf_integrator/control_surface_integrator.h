@@ -233,8 +233,6 @@ enum PropertyType {
   D(Background) \
   D(Foreground) \
 
-
-
   PropertyType_Unknown = 0, // in this case, string is type=value pair
 #define DEFPT(x) PropertyType_##x ,
   DECLARE_PROPERTY_TYPES(DEFPT)
@@ -899,6 +897,35 @@ public:
             l = new WDL_PtrList<ActionContext>;
             m->Insert(modifier,l);
         }
+
+        l->Add(actionContext);
+    }
+    
+    void AddActionContextNew(Widget *widget, int modifier, ActionContext *actionContext)
+    {
+        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
+        if (m)
+        {
+            WDL_PtrList<ActionContext> *l = m->Get(modifier);
+            if (l)
+            {
+                l->Add(actionContext);
+                return;
+            }
+        }
+        
+        if (!m)
+        {
+            m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>(destroyActionContextList);
+            actionContextDictionary_.Insert(widget,m);
+        }
+        WDL_PtrList<ActionContext> *l = m->Get(modifier);
+        if (!l)
+        {
+            l = new WDL_PtrList<ActionContext>;
+            m->Insert(modifier,l);
+        }
+
         l->Add(actionContext);
     }
     
@@ -1394,7 +1421,8 @@ private:
     Zone *learnFocusedFXZone_;
     
     Zone *homeZone_;
-        
+    ptrvector<Zone *> homeZones_;
+    
     WDL_PtrList<ZoneManager> listeners_;
     
     bool listensToGoHome_;

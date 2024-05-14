@@ -638,11 +638,12 @@ static void PreProcessZoneFile(const char *filePath, ZoneManager *zoneManager)
     }
 }
 
+static ModifierManager s_modifierManager(NULL);
+
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount, bool &isDecrease, bool &isIncrease)
 {
     string_list tokens;
     GetSubTokens(tokens, line, '+');
-    ModifierManager modifierManager(NULL);
     
     baseWidgetName = tokens[tokens.size() - 1];
 
@@ -670,7 +671,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidget
     
     tokens.erase(tokens.size() - 1);
     
-    modifier += modifierManager.GetModifierValue(tokens);
+    modifier += s_modifierManager.GetModifierValue(tokens);
 }
 
 
@@ -678,7 +679,6 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *ac
 {
     string_list tokens;
     GetSubTokens(tokens, line, '+');
-    ModifierManager modifierManager(NULL);
     
     actionTemplate->widgetName = tokens[tokens.size() - 1];
        
@@ -706,7 +706,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *ac
     
     tokens.erase(tokens.size() - 1);
     
-    actionTemplate->modifier += modifierManager.GetModifierValue(tokens);
+    actionTemplate->modifier += s_modifierManager.GetModifierValue(tokens);
 }
 
 void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary)
@@ -806,14 +806,17 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
             {
                 string baseWidgetName;
                 int modifier = 0;
-                
                 bool isValueInverted = false;
                 bool isFeedbackInverted = false;
                 double holdDelayAmount = 0.0;
                 bool isDecrease = false;
                 bool isIncrease = false;
-
+                
                 GetWidgetNameAndModifiers(tokens[0], baseWidgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
+                
+                if ( ! strcmp(baseWidgetName.c_str(), "Stop"))
+                    int blah = 0;
+
                 
                 char widgetName[BUFSIZ];
                 
@@ -828,7 +831,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 
                 string_list memberParams;
 
-                for (int i = 2; i < tokens.size(); ++i)
+                for (int i = 1; i < tokens.size(); ++i)
                     memberParams.push_back(tokens[i]);
                 
                 ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
@@ -857,7 +860,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
                     context->SetRange(range);
                 }
                 
-                zone->AddActionContext(widget, modifier, context);
+                zone->AddActionContextNew(widget, modifier, context);
             }
         }
     }
@@ -2147,8 +2150,6 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     currentColorIndex_ = 0;
     
     supportsTrackColor_ = false;
-        
-    provideFeedback_ = false;
     
     string_list params_wr;
     const string_list &params = params_wr;
@@ -2162,6 +2163,10 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         }
         GetPropertiesFromTokens(0, (int)(*paramsAndProperties).size(), *paramsAndProperties, widgetProperties_);
     }
+    
+    for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
+        if ( !strcmp((*paramsAndProperties)[i], "NoFeedback"))
+            provideFeedback_ = false;
 
     const char *actionName = "";
     
@@ -3246,6 +3251,7 @@ void ZoneManager::Initialize()
     
     homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
     LoadZoneFile(homeZone_, "");
+    homeZones_.push_back(homeZone_);
     
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
