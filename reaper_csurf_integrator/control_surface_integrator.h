@@ -794,7 +794,11 @@ protected:
 public:
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones);
     
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath);
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
+    subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
+    {
+        isActive_ = false;
+    }
 
     virtual ~Zone()
     {
@@ -825,6 +829,11 @@ public:
     Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
+    
+    void AddIncludedZone(Zone * zone)
+    {
+        includedZones_.Add(zone);
+    }
     
     int GetModifier(Widget *widget)
     {
@@ -873,9 +882,9 @@ public:
         return name_.c_str();
     }
     
-    const char *GetNameOrAlias()
+    const char *GetAlias()
     {
-        if (alias_.size()>0)
+        if (alias_.size() > 0)
             return alias_.c_str();
         else
             return name_.c_str();
@@ -884,24 +893,7 @@ public:
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
         WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
-        if (!m)
-        {
-            m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>(destroyActionContextList);
-            actionContextDictionary_.Insert(widget,m);
-        }
-        WDL_PtrList<ActionContext> *l = m->Get(modifier);
-        if (!l)
-        {
-            l = new WDL_PtrList<ActionContext>;
-            m->Insert(modifier,l);
-        }
-
-        l->Add(actionContext);
-    }
-    
-    void AddActionContextNew(Widget *widget, int modifier, ActionContext *actionContext)
-    {
-        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
+        
         if (m)
         {
             WDL_PtrList<ActionContext> *l = m->Get(modifier);
@@ -917,6 +909,7 @@ public:
             m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>(destroyActionContextList);
             actionContextDictionary_.Insert(widget,m);
         }
+        
         WDL_PtrList<ActionContext> *l = m->Get(modifier);
         if (!l)
         {
@@ -926,7 +919,7 @@ public:
 
         l->Add(actionContext);
     }
-    
+
     const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget, int modifier)
     {
         WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
@@ -1386,14 +1379,6 @@ struct LearnedWidgetParams
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct MutexZoneDef
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string name;
-    ptrvector<Zone> zones;
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1428,7 +1413,7 @@ private:
     
     Zone *homeZone_;
 
-    ptrvector<MutexZoneDef> mutexZones_;
+    ptrvector<Zone *> goZones_;
     
     WDL_PtrList<ZoneManager> listeners_;
     
@@ -1472,8 +1457,18 @@ private:
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
 
-    
+    void Initialize();
+
+
+
     void BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary);
+
+    
+    void GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators);
+
+    
+    void LoadIncludedZones(Zone *ownerZone, string_list &includedZones, const char *widgetSuffix);
+   
    
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
     {
@@ -1789,44 +1784,7 @@ private:
     }
 
 public:
-    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), radioButtonZones_(true, disposeRadioButtonZoneList)
-    {
-        homeZone_ = NULL;
-        
-        learnFXZone_ = NULL;
-        
-        learnFXTrack_ = NULL;
-        learnFXSlot_ = 0;
-        learnFocusedFXZone_ = NULL;
-        
-        lastTouchedControl_ = NULL;
-        focusedFXParamZone_ = NULL;
-        numFXLayoutColumns_ = 0;
-        hasColor_ = false;
-        
-        listensToGoHome_ = false;
-        listensToSends_ = false;
-        listensToReceives_ = false;
-        listensToLearnFocusedFX_ = false;
-        listensToFocusedFX_ = false;
-        listensToFocusedFXParam_ = false;
-        listensToFXMenu_ = false;
-        listensToLocalFXSlot_ = false;
-        listensToSelectedTrackFX_ = false;
-        listensToCustom_ = false;
-
-        isFocusedFXParamMappingEnabled_ = false;
-        
-        isFocusedFXMappingEnabled_ = true;
-        
-        trackSendOffset_ = 0;
-        trackReceiveOffset_ = 0;
-        trackFXMenuOffset_ = 0;
-        selectedTrackSendOffset_ = 0;
-        selectedTrackReceiveOffset_ = 0;
-        selectedTrackFXMenuOffset_ = 0;
-        masterTrackFXMenuOffset_ = 0;
-    }
+    ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder);
 
     ~ZoneManager()
     {
@@ -1877,7 +1835,6 @@ public:
     
     
     
-    void Initialize();
     
     void PreProcessZones();
         
@@ -1897,8 +1854,9 @@ public:
      
     void PreProcessZoneFile(const char *filePath);
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
+    
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
-
+    
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 

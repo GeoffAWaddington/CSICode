@@ -1816,7 +1816,7 @@ int ActionContext::GetSlotIndex()
 
 const char *ActionContext::GetName()
 {
-    return zone_->GetNameOrAlias();
+    return zone_->GetAlias();
 }
 
 void ActionContext::RunDeferredActions()
@@ -2056,31 +2056,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
-subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
-{
-    isActive_ = false;
-    
-    if (name == "Home")
-    {
-        string_list includedZones;
-        includedZones.push_back("Track");
-        includedZones.push_back("MasterTrack");
-
-        for (int i = 0; i < (int)includedZones.size(); ++i)
-        {
-            if (zoneManager_->GetZoneFilePaths().Exists(includedZones[i].c_str()))
-            {
-                WDL_PtrList<Navigator> navigators;
-                AddNavigatorsForZone(includedZones[i], navigators);
-                
-                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(includedZones[i].c_str())->filePath.c_str(), navigators, includedZones_, NULL);
-            }
-        }
-    }
-}
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), mutexZones_(true,disposeZoneRefList), /* learnFXCells_(destroyLearnFXCellList),*/ actionContextDictionary_(destroyActionContextListArray)
 {
     //protected:
@@ -2348,7 +2324,7 @@ void Zone::AddNavigatorsForZone(const char *zoneName, WDL_PtrList<Navigator> &na
     if (!strcmp(zoneName, "MasterTrack"))
         navigators.Add(zoneManager_->GetMasterTrackNavigator());
     else if (!strcmp(zoneName, "Track") ||
-             !strcmp(zoneName, "VCA") || 
+             !strcmp(zoneName, "VCA") ||
              !strcmp(zoneName, "Folder") ||
              !strcmp(zoneName, "SelectedTracks") ||
              !strcmp(zoneName, "TrackSend") ||
@@ -2774,6 +2750,47 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), radioButtonZones_(true, disposeRadioButtonZoneList)
+{
+    homeZone_ = NULL;
+    
+    learnFXZone_ = NULL;
+    
+    learnFXTrack_ = NULL;
+    learnFXSlot_ = 0;
+    learnFocusedFXZone_ = NULL;
+    
+    lastTouchedControl_ = NULL;
+    focusedFXParamZone_ = NULL;
+    numFXLayoutColumns_ = 0;
+    hasColor_ = false;
+    
+    listensToGoHome_ = false;
+    listensToSends_ = false;
+    listensToReceives_ = false;
+    listensToLearnFocusedFX_ = false;
+    listensToFocusedFX_ = false;
+    listensToFocusedFXParam_ = false;
+    listensToFXMenu_ = false;
+    listensToLocalFXSlot_ = false;
+    listensToSelectedTrackFX_ = false;
+    listensToCustom_ = false;
+
+    isFocusedFXParamMappingEnabled_ = false;
+    
+    isFocusedFXMappingEnabled_ = true;
+    
+    trackSendOffset_ = 0;
+    trackReceiveOffset_ = 0;
+    trackFXMenuOffset_ = 0;
+    selectedTrackSendOffset_ = 0;
+    selectedTrackReceiveOffset_ = 0;
+    selectedTrackFXMenuOffset_ = 0;
+    masterTrackFXMenuOffset_ = 0;
+    
+    Initialize();
+}
+
 void ZoneManager::Initialize()
 {
     PreProcessZones();
@@ -2788,18 +2805,19 @@ void ZoneManager::Initialize()
         
     // GAW TBD -- Use RadioButton and HomeIncluded metadata to instantiate empty Zones here, then Load instantiated Zones -- aka add Widgets and ActionContexts
     
-    //homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
-    //LoadZoneFile(homeZone_, "");
-    //homeZones_.push_back(homeZone_);
+    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
+    LoadZoneFile(homeZone_, "");
     
+    string_list metadata;
     
-    
+    if (zoneFilePaths_.Exists("GoZones"))
+        LoadZoneMetadata(zoneFilePaths_.Get("GoZones")->filePath.c_str(), metadata);
     
     
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
     WDL_PtrList<Zone> zones; // Needed to satisfy protcol, Home, FocusedFXParam, and LearnFX have special Zone handling
-    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
+    //LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("LearnFX"))
@@ -2879,7 +2897,6 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidget
     
     modifier += s_modifierManager.GetModifierValue(tokens);
 }
-
 
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate)
 {
@@ -2964,17 +2981,83 @@ void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyed
 }
 
 
+void ZoneManager::GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators)
+{
+    // GAW TBD -- check Zones not in list -- if Navigator is defined, use it, otherwise default to SelectedTrackNavigator
+    
+    if (!strcmp(zoneName, "MasterTrack"))
+        navigators.push_back(GetMasterTrackNavigator());
+    else if (!strcmp(zoneName, "Track") ||
+             !strcmp(zoneName, "VCA") ||
+             !strcmp(zoneName, "Folder") ||
+             !strcmp(zoneName, "SelectedTracks") ||
+             !strcmp(zoneName, "TrackSend") ||
+             !strcmp(zoneName, "TrackReceive") ||
+             !strcmp(zoneName, "TrackFXMenu"))
+    {
+        for (int i = 0; i < GetNumChannels(); i++)
+        {
+            Navigator *channelNavigator = GetSurface()->GetPage()->GetNavigatorForChannel(i + GetSurface()->GetChannelOffset());
+            if (channelNavigator)
+                navigators.push_back(channelNavigator);
+        }
+    }
+    else if (!strcmp(zoneName, "SelectedTrack") ||
+             !strcmp(zoneName, "SelectedTrackSend") ||
+             !strcmp(zoneName, "SelectedTrackReceive") ||
+             !strcmp(zoneName, "SelectedTrackFXMenu"))
+        for (int i = 0; i < GetNumChannels(); i++)
+            navigators.push_back(GetSelectedTrackNavigator());
+    else if (!strcmp(zoneName, "MasterTrackFXMenu"))
+        for (int i = 0; i < GetNumChannels(); i++)
+            navigators.push_back(GetMasterTrackNavigator());
+    else
+        navigators.push_back(GetSelectedTrackNavigator());
+}
 
+void ZoneManager::LoadIncludedZones(Zone *ownerZone, string_list &includedZones, const char *widgetSuffix)
+{
+    for (int i = 0; i < includedZones.size(); ++i)
+    {
+        if (zoneFilePaths_.Exists(includedZones[i]))
+        {
+            ptrvector<Navigator *> navigators;
+            
+            GetNavigatorsForZone(includedZones[i], navigators);
+            
+            if (navigators.size() == 1)
+            {
+                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(includedZones[i]), string(includedZones[i]), zoneFilePaths_.Get(includedZones[i])->filePath);
+                if (zone)
+                {
+                    LoadZoneFile(zone, "");
+                    ownerZone->AddIncludedZone(zone);
+                }
+            }
+            else
+            {
+                for (int j = 0; j < navigators.size(); ++j)
+                {
+                    char buf[BUFSZ];
+                    snprintf(buf, sizeof(buf), "%s%d", string(includedZones[i]).c_str(), j + 1);
+                    
+                    Zone *zone = new Zone(csi_, this, navigators[0], 0, string(includedZones[i]), string(buf), zoneFilePaths_.Get(includedZones[i])->filePath);
 
-
-
-
-
-
+                    snprintf(buf, sizeof(buf), "%d", j + 1);
+                    
+                    LoadZoneFile(zone, buf);
+                    ownerZone->AddIncludedZone(zone);
+                }
+            }
+        }
+    }
+}
 
 void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 {
     int lineNumber = 0;
+    bool isInIncludedZonesSection = false;
+    string_list includedZones;
     bool isInSubZonesSection = false;
     string_list subZones;
 
@@ -3008,6 +3091,17 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
             }
             else if (isInSubZonesSection)
                 subZones.push_back(tokens[0]);
+            
+            else if (tokens[0] == "IncludedZones")
+                isInIncludedZonesSection = true;
+            else if (tokens[0] == "IncludedZonesEnd")
+            {
+                isInIncludedZonesSection = false;
+                LoadIncludedZones(zone, includedZones, widgetSuffix);
+            }
+            else if (isInIncludedZonesSection)
+                includedZones.push_back(tokens[0]);
+            
             else if (tokens.size() > 1)
             {
                 string baseWidgetName;
@@ -3062,7 +3156,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
                     context->SetRange(range);
                 }
                 
-                zone->AddActionContextNew(widget, modifier, context);
+                zone->AddActionContext(widget, modifier, context);
             }
         }
     }
@@ -4438,12 +4532,10 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     displayType_ = 0x14;
     lastRun_ = 0;
     
-    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
-    
     ProcessMIDIWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
     InitHardwiredWidgets(this);
     InitializeMeters();
-    zoneManager_->Initialize();
+    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
@@ -4652,11 +4744,9 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
 OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
 
 {
-    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
-
     ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
     InitHardwiredWidgets(this);
-    zoneManager_->Initialize();
+    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
