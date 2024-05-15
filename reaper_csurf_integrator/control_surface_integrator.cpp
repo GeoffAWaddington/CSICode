@@ -602,467 +602,6 @@ static void listFilesOfType(const string &path, string_list &results, const char
     }
 }
 
-static void PreProcessZoneFile(const char *filePath, ZoneManager *zoneManager)
-{
-    try
-    {
-        fpistream file(filePath);
-        
-        CSIZoneInfo *info = new CSIZoneInfo();
-        info->filePath = filePath;
-                 
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-            
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
-
-            if (tokens[0] == "Zone" && tokens.size() > 1)
-            {
-                info->alias = tokens.size() > 2 ? tokens[2] : tokens[1];
-                zoneManager->AddZoneFilePath(tokens[1].c_str(), info);
-            }
-
-            break;
-        }
-    }
-    catch (exception)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, 1);
-        ShowConsoleMsg(buffer);
-    }
-}
-
-static ModifierManager s_modifierManager(NULL);
-
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount, bool &isDecrease, bool &isIncrease)
-{
-    string_list tokens;
-    GetSubTokens(tokens, line, '+');
-    
-    baseWidgetName = tokens[tokens.size() - 1];
-
-    if (tokens.size() > 1)
-    {
-        for (int i = 0; i < tokens.size() - 1; ++i)
-        {
-            if (tokens[i].find("Touch") != string::npos)
-                modifier += 1;
-            else if (tokens[i] == "Toggle")
-                modifier += 2;
-
-            else if (tokens[i] == "Invert")
-                isValueInverted = true;
-            else if (tokens[i] == "InvertFB")
-                isFeedbackInverted = true;
-            else if (tokens[i] == "Hold")
-                holdDelayAmount = 1.0;
-            else if (tokens[i] == "Decrease")
-                isDecrease = true;
-            else if (tokens[i] == "Increase")
-                isIncrease = true;
-        }
-    }
-    
-    tokens.erase(tokens.size() - 1);
-    
-    modifier += s_modifierManager.GetModifierValue(tokens);
-}
-
-
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate)
-{
-    string_list tokens;
-    GetSubTokens(tokens, line, '+');
-    
-    actionTemplate->widgetName = tokens[tokens.size() - 1];
-       
-    if (tokens.size() > 1)
-    {
-        for (int i = 0; i < tokens.size() - 1; i++)
-        {
-            if (tokens[i].find("Touch") != string::npos)
-                actionTemplate->modifier += 1;
-            else if (tokens[i] == "Toggle")
-                actionTemplate->modifier += 2;
-                        
-            else if (tokens[i] == "Invert")
-                actionTemplate->isValueInverted = true;
-            else if (tokens[i] == "InvertFB")
-                actionTemplate->isFeedbackInverted = true;
-            else if (tokens[i] == "Hold")
-                actionTemplate->holdDelayAmount = 1.0;
-            else if (tokens[i] == "Decrease")
-                actionTemplate->isDecrease = true;
-            else if (tokens[i] == "Increase")
-                actionTemplate->isIncrease = true;
-        }
-    }
-    
-    tokens.erase(tokens.size() - 1);
-    
-    actionTemplate->modifier += s_modifierManager.GetModifierValue(tokens);
-}
-
-void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary)
-{
-    string feedbackIndicator;
-    
-    string_list params;
-    for (int i = 1; i < tokens.size(); i++)
-    {
-        if (tokens[i] == "Feedback=Yes" || tokens[i] == "Feedback=No")
-            feedbackIndicator = tokens[i];
-        else
-            params.push_back(tokens[i]);
-    }
-
-    ActionTemplate *currentActionTemplate = new ActionTemplate();
-    
-    currentActionTemplate->actionName = tokens[1];
-    currentActionTemplate->params = params;
-    
-    GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
-
-    WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *wr = actionTemplatesDictionary.Get(currentActionTemplate->widgetName.c_str());
-    if (!wr)
-    {
-        wr = new WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >(disposeActionTemplateList);
-        actionTemplatesDictionary.Insert(currentActionTemplate->widgetName.c_str(), wr);
-    }
-
-    WDL_PtrList<ActionTemplate> *ml = wr->Get(currentActionTemplate->modifier);
-    if (!ml)
-    {
-        ml = new WDL_PtrList<ActionTemplate>;
-        wr->Insert(currentActionTemplate->modifier, ml);
-    }
-
-    ml->Add(currentActionTemplate);
-    
-    if (ml->GetSize() == 1)
-    {
-        if (feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
-            currentActionTemplate->provideFeedback = true;
-    }
-    else if (feedbackIndicator == "Feedback=Yes")
-    {
-        for (int i = 0; i < ml->GetSize(); ++i)
-            ml->Get(i)->provideFeedback =  (i == ml->GetSize() - 1);
-    }
-}
-
-
-
-
-
-
-
-
-
-
-void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
-{
-    int lineNumber = 0;
-    bool isInSubZonesSection = false;
-    string_list subZones;
-
-    try
-    {
-        fpistream file(zone->GetSourceFilePath());
-        
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            lineNumber++;
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-            
-            if (line == s_BeginAutoSection || line == s_EndAutoSection)
-                continue;
-            
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
-            
-            if (tokens[0] == "Zone" || tokens[0] == "ZoneEnd")
-                continue;
-            else if (tokens[0] == "SubZones")
-                isInSubZonesSection = true;
-            else if (tokens[0] == "SubZonesEnd")
-            {
-                isInSubZonesSection = false;
-                // GAW TBD -- handle SubZone creation
-            }
-            else if (isInSubZonesSection)
-                subZones.push_back(tokens[0]);
-            else if (tokens.size() > 1)
-            {
-                string baseWidgetName;
-                int modifier = 0;
-                bool isValueInverted = false;
-                bool isFeedbackInverted = false;
-                double holdDelayAmount = 0.0;
-                bool isDecrease = false;
-                bool isIncrease = false;
-                
-                GetWidgetNameAndModifiers(tokens[0], baseWidgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
-                
-                if ( ! strcmp(baseWidgetName.c_str(), "Stop"))
-                    int blah = 0;
-
-                
-                char widgetName[BUFSIZ];
-                
-                snprintf(widgetName, sizeof(widgetName), "%s%s", baseWidgetName.c_str(), widgetSuffix);
-
-                Widget *widget = GetSurface()->GetWidgetByName(widgetName);
-                                            
-                if (widget == NULL)
-                    continue;
-
-                zone->AddWidget(widget);
-
-                string_list memberParams;
-
-                for (int i = 1; i < tokens.size(); ++i)
-                    memberParams.push_back(tokens[i]);
-                
-                ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
-                    
-                if (isValueInverted)
-                    context->SetIsValueInverted();
-                
-                if (isFeedbackInverted)
-                    context->SetIsFeedbackInverted();
-                
-                if (holdDelayAmount != 0.0)
-                    context->SetHoldDelayAmount(holdDelayAmount);
-                
-                vector<double> range;
-                
-                if (isDecrease)
-                {
-                    range.push_back(-2.0);
-                    range.push_back(1.0);
-                    context->SetRange(range);
-                }
-                else if (isIncrease)
-                {
-                    range.push_back(0.0);
-                    range.push_back(2.0);
-                    context->SetRange(range);
-                }
-                
-                zone->AddActionContextNew(widget, modifier, context);
-            }
-        }
-    }
-    catch (exception)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", zone->GetSourceFilePath(), lineNumber);
-        ShowConsoleMsg(buffer);
-    }
-}
-
-void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone)
-{
-    WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > actionTemplatesDictionary(true, disposeActionTemplates);
-
-    bool isInIncludedZonesSection = false;
-    string_list includedZones;
-    bool isInSubZonesSection = false;
-    string_list subZones;
-    bool isInAssociatedZonesSection = false;
-    string_list associatedZones;
-    
-    string zoneName;
-    string zoneAlias;
-    int lineNumber = 0;
-   
-    try
-    {
-        fpistream file(filePath);
-        
-        for (string line; getline(file, line) ; )
-        {
-            TrimLine(line);
-            
-            lineNumber++;
-            
-            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                continue;
-            
-            if (line == s_BeginAutoSection || line == s_EndAutoSection)
-                continue;
-            
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
-
-            if (tokens.size() > 0)
-            {
-                if (tokens[0] == "Zone")
-                {
-                    zoneName = tokens.size() > 1 ? tokens[1] : "";
-                    zoneAlias = tokens.size() > 2 ? tokens[2] : "";
-                }
-                else if (tokens[0] == "ZoneEnd" && zoneName != "")
-                {
-                    for (int i = 0; i < navigators.GetSize(); i++)
-                    {
-                        string numStr = int_to_string(i + 1);
-                                                
-                        Zone *zone;
-                        
-                        if (enclosingZone == NULL)
-                            zone = new Zone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
-                        else
-                            zone = new SubZone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
-
-                        if (zoneName == "Home")
-                            SetHomeZone(zone);
-                                               
-                        if (zoneName == "FocusedFXParam")
-                            SetFocusedFXParamZone(zone);
-
-                        if (zoneName == "LearnFX")
-                            SetLearnFXZone(zone);
-
-                        zones.Add(zone);
-                        
-                        for (int tde = 0; tde < actionTemplatesDictionary.GetSize(); tde++)
-                        {
-                            const char *widgetName = NULL;
-                            WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *modifiedActionTemplates = actionTemplatesDictionary.Enumerate(tde,&widgetName);
-                            if (WDL_NOT_NORMALLY(modifiedActionTemplates == NULL || widgetName == NULL)) continue;
-
-                            string surfaceWidgetName = widgetName;
-                            
-                            if (navigators.GetSize() > 1)
-                                ReplaceAllWith(surfaceWidgetName, "|", int_to_string(i + 1).c_str());
-                            
-                            //if (enclosingZone != NULL && enclosingZone->GetChannelNumber() != 0)
-                                //ReplaceAllWith(surfaceWidgetName, "|", int_to_string(enclosingZone->GetChannelNumber()).c_str());
-                            
-                            Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName.c_str());
-                                                        
-                            if (widget == NULL)
-                                continue;
- 
-                            zone->AddWidget(widget);
-                                                        
-                            for (int ti = 0; ti < modifiedActionTemplates->GetSize(); ti ++)
-                            {
-                                int modifier=0;
-                                WDL_PtrList<ActionTemplate> *actionTemplates = modifiedActionTemplates->Enumerate(ti,&modifier);
-                                if (WDL_NOT_NORMALLY(actionTemplates == NULL)) continue;
-                                for (int j = 0; j < actionTemplates->GetSize(); ++j)
-                                {
-                                    string actionName = actionTemplates->Get(j)->actionName;
-                                    
-                                    if (actionName == "NullDisplay")
-                                        continue;                                    
-                                    
-                                    ReplaceAllWith(actionName, "|", numStr.c_str());
-
-                                    string_list memberParams;
-                                    for (int k = 0; k < actionTemplates->Get(j)->params.size(); k++)
-                                    {
-                                        string params = string(actionTemplates->Get(j)->params[k]);
-                                        ReplaceAllWith(params, "|", numStr.c_str());
-                                        memberParams.push_back(params);
-                                    }
-                                    
-                                    ActionContext *context = csi_->GetActionContext(actionName, widget, zone, memberParams);
-                                        
-                                    context->SetProvideFeedback(actionTemplates->Get(j)->provideFeedback);
-                                    
-                                    if (actionTemplates->Get(j)->isValueInverted)
-                                        context->SetIsValueInverted();
-                                    
-                                    if (actionTemplates->Get(j)->isFeedbackInverted)
-                                        context->SetIsFeedbackInverted();
-                                    
-                                    if (actionTemplates->Get(j)->holdDelayAmount != 0.0)
-                                        context->SetHoldDelayAmount(actionTemplates->Get(j)->holdDelayAmount);
-                                    
-                                    vector<double> range;
-                                    
-                                    if (actionTemplates->Get(j)->isDecrease)
-                                    {
-                                        range.push_back(-2.0);
-                                        range.push_back(1.0);
-                                        context->SetRange(range);
-                                    }
-                                    else if (actionTemplates->Get(j)->isIncrease)
-                                    {
-                                        range.push_back(0.0);
-                                        range.push_back(2.0);
-                                        context->SetRange(range);
-                                    }
-                                   
-                                    if (learnFXTrack_ && ! (actionName == "NoAction" || actionName == "NullDisplay"))
-                                        AddLearnedWidget(widget, actionTemplates->Get(j)->modifier, context->GetParamIndex());
-                                    
-                                    zone->AddActionContext(widget, modifier, context);
-                                }
-                            }
-                        }
-                    
-                        if (enclosingZone == NULL && subZones.size() > 0)
-                            zone->InitSubZones(subZones, zone);
-                    }
-                                    
-                    break;
-                }
-                                
-                else if (tokens[0] == "IncludedZones")
-                    isInIncludedZonesSection = true;
-                
-                else if (tokens[0] == "IncludedZonesEnd")
-                    isInIncludedZonesSection = false;
-                
-                else if (isInIncludedZonesSection)
-                    includedZones.push_back(tokens[0]);
-
-                else if (tokens[0] == "SubZones")
-                    isInSubZonesSection = true;
-                
-                else if (tokens[0] == "SubZonesEnd")
-                    isInSubZonesSection = false;
-                
-                else if (isInSubZonesSection)
-                    subZones.push_back(tokens[0]);
-                 
-                else if (tokens[0] == "AssociatedZones")
-                    isInAssociatedZonesSection = true;
-                
-                else if (tokens[0] == "AssociatedZonesEnd")
-                    isInAssociatedZonesSection = false;
-                
-                else if (isInAssociatedZonesSection)
-                    associatedZones.push_back(tokens[0]);
-                               
-                else if (tokens.size() > 1)
-                    BuildActionTemplate(tokens, actionTemplatesDictionary);
-            }
-        }
-    }
-    catch (exception)
-    {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, lineNumber);
-        ShowConsoleMsg(buffer);
-    }
-}
-
 void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string_list &colors)
 {
     for (int i = 0; i < (int)colors.size(); ++i)
@@ -1764,7 +1303,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
     actions_.Insert("LearnFocusedFX", new LearnFocusedFX());
-    actions_.Insert("GoAssociatedZone", new GoAssociatedZone());
+    actions_.Insert("GoZone", new GoZone());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
     actions_.Insert("ClearSelectedTrackFX", new ClearSelectedTrackFX());
@@ -2165,7 +1704,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     }
     
     for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
-        if ( !strcmp((*paramsAndProperties)[i], "NoFeedback"))
+        if (!strcmp((*paramsAndProperties)[i], "NoFeedback"))
             provideFeedback_ = false;
 
     const char *actionName = "";
@@ -2542,7 +2081,7 @@ subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionConte
     }
 }
 
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), associatedZones_(true,disposeZoneRefList), /* learnFXCells_(destroyLearnFXCellList),*/ actionContextDictionary_(destroyActionContextListArray)
+Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), mutexZones_(true,disposeZoneRefList), /* learnFXCells_(destroyLearnFXCellList),*/ actionContextDictionary_(destroyActionContextListArray)
 {
     //protected:
     isActive_ = false;
@@ -2556,11 +2095,11 @@ Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigato
                 WDL_PtrList<Navigator> navigators;
                 AddNavigatorsForZone(associatedZones[i], navigators);
 
-                WDL_PtrList<Zone> *az = associatedZones_.Get(associatedZones[i].c_str());
+                WDL_PtrList<Zone> *az = mutexZones_.Get(associatedZones[i].c_str());
                 if (WDL_NORMALLY(az == NULL))
                 {
                     az = new WDL_PtrList<Zone>;
-                    associatedZones_.Insert(associatedZones[i].c_str(), az);
+                    mutexZones_.Insert(associatedZones[i].c_str(), az);
                     zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath.c_str(), navigators, *az, NULL);
                 }
                 else
@@ -2632,13 +2171,13 @@ int Zone::GetSlotIndex()
     else return slotIndex_;
 }
 
-void Zone::GoAssociatedZone(const char *zoneName)
+void Zone::GoZone(const char *zoneName)
 {
     if (!strcmp(zoneName, "Track"))
     {
-        for (int j = 0; j < associatedZones_.GetSize(); j++)
+        for (int j = 0; j < mutexZones_.GetSize(); j++)
         {
-            WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+            WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
             if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
                 zones->Get(i)->Deactivate();
         }
@@ -2646,7 +2185,7 @@ void Zone::GoAssociatedZone(const char *zoneName)
         return;
     }
     
-    WDL_PtrList<Zone> *az = associatedZones_.Get(zoneName);
+    WDL_PtrList<Zone> *az = mutexZones_.Get(zoneName);
     if (az != NULL && az->Get(0) != NULL && az->Get(0)->GetIsActive())
     {
         for (int i = 0; i < az->GetSize(); ++i)
@@ -2657,14 +2196,14 @@ void Zone::GoAssociatedZone(const char *zoneName)
         return;
     }
     
-    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    for (int j = 0; j < mutexZones_.GetSize(); j ++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->Deactivate();
     }
 
-    az = associatedZones_.Get(zoneName);
+    az = mutexZones_.Get(zoneName);
     if (az != NULL)
         for (int i = 0; i < az->GetSize(); ++i)
             az->Get(i)->Activate();
@@ -2672,8 +2211,8 @@ void Zone::GoAssociatedZone(const char *zoneName)
 
 void Zone::ReactivateFXMenuZone()
 {
-    WDL_PtrList<Zone> *fxmenu = associatedZones_.Get("TrackFXMenu");
-    WDL_PtrList<Zone> *selfxmenu = associatedZones_.Get("SelectedTrackFXMenu");
+    WDL_PtrList<Zone> *fxmenu = mutexZones_.Get("TrackFXMenu");
+    WDL_PtrList<Zone> *selfxmenu = mutexZones_.Get("SelectedTrackFXMenu");
     if (fxmenu && fxmenu->Get(0) != NULL && fxmenu->Get(0)->GetIsActive())
         for (int i = 0; i < fxmenu->GetSize(); ++i)
             fxmenu->Get(i)->Activate();
@@ -2712,9 +2251,9 @@ void Zone::Activate()
 
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
 
-    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    for (int j = 0; j < mutexZones_.GetSize(); j ++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->Deactivate();
     }
@@ -2756,9 +2295,9 @@ void Zone::Deactivate()
     for (int i = 0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->Deactivate();
 
-    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    for (int j = 0; j < mutexZones_.GetSize(); j ++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->Deactivate();
     }
@@ -2784,9 +2323,9 @@ void Zone::RequestUpdate()
             zones->Get(i)->RequestUpdate();
     }
 
-    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    for (int j = 0; j < mutexZones_.GetSize(); j ++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->RequestUpdate();
     }
@@ -2860,9 +2399,9 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
             zones->Get(i)->DoAction(widget, isUsed, value);
     }
 
-    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    for (int j = 0; j < mutexZones_.GetSize(); j ++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->DoAction(widget, isUsed, value);
     }
@@ -2903,9 +2442,9 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
             zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
     }
 
-    for (int j = 0; j < associatedZones_.GetSize(); j++)
+    for (int j = 0; j < mutexZones_.GetSize(); j++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
     }
@@ -2946,9 +2485,9 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
             zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
-    for (int j = 0; j < associatedZones_.GetSize(); j++)
+    for (int j = 0; j < mutexZones_.GetSize(); j++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
@@ -2989,9 +2528,9 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
             zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
     }
     
-    for (int j = 0; j < associatedZones_.GetSize(); j++)
+    for (int j = 0; j < mutexZones_.GetSize(); j++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
     }
@@ -3038,9 +2577,9 @@ void Zone::UpdateCurrentActionContextModifiers()
             zones->Get(i)->UpdateCurrentActionContextModifiers();
     }
     
-    for (int j = 0; j < associatedZones_.GetSize(); j ++)
+    for (int j = 0; j < mutexZones_.GetSize(); j ++)
     {
-        WDL_PtrList<Zone> *zones = associatedZones_.Enumerate(j);
+        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->UpdateCurrentActionContextModifiers();
     }
@@ -3249,20 +2788,481 @@ void ZoneManager::Initialize()
         
     // GAW TBD -- Use RadioButton and HomeIncluded metadata to instantiate empty Zones here, then Load instantiated Zones -- aka add Widgets and ActionContexts
     
-    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
-    LoadZoneFile(homeZone_, "");
-    homeZones_.push_back(homeZone_);
+    //homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
+    //LoadZoneFile(homeZone_, "");
+    //homeZones_.push_back(homeZone_);
+    
+    
+    
+    
     
     WDL_PtrList<Navigator> navigators;
     navigators.Add(GetSelectedTrackNavigator());
     WDL_PtrList<Zone> zones; // Needed to satisfy protcol, Home, FocusedFXParam, and LearnFX have special Zone handling
-    //LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
+    LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
         LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("LearnFX"))
         LoadZoneFile(zoneFilePaths_.Get("LearnFX")->filePath.c_str(), navigators, zones, NULL);
     
     GoHome();
+}
+
+void ZoneManager::PreProcessZoneFile(const char *filePath)
+{
+    try
+    {
+        fpistream file(filePath);
+        
+        CSIZoneInfo *info = new CSIZoneInfo();
+        info->filePath = filePath;
+                 
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            string_list tokens;
+            GetTokens(tokens, line.c_str());
+
+            if (tokens[0] == "Zone" && tokens.size() > 1)
+            {
+                info->alias = tokens.size() > 2 ? tokens[2] : tokens[1];
+                AddZoneFilePath(tokens[1].c_str(), info);
+            }
+
+            break;
+        }
+    }
+    catch (exception)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, 1);
+        ShowConsoleMsg(buffer);
+    }
+}
+
+static ModifierManager s_modifierManager(NULL);
+
+void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount, bool &isDecrease, bool &isIncrease)
+{
+    string_list tokens;
+    GetSubTokens(tokens, line, '+');
+    
+    baseWidgetName = tokens[tokens.size() - 1];
+
+    if (tokens.size() > 1)
+    {
+        for (int i = 0; i < tokens.size() - 1; ++i)
+        {
+            if (tokens[i].find("Touch") != string::npos)
+                modifier += 1;
+            else if (tokens[i] == "Toggle")
+                modifier += 2;
+
+            else if (tokens[i] == "Invert")
+                isValueInverted = true;
+            else if (tokens[i] == "InvertFB")
+                isFeedbackInverted = true;
+            else if (tokens[i] == "Hold")
+                holdDelayAmount = 1.0;
+            else if (tokens[i] == "Decrease")
+                isDecrease = true;
+            else if (tokens[i] == "Increase")
+                isIncrease = true;
+        }
+    }
+    
+    tokens.erase(tokens.size() - 1);
+    
+    modifier += s_modifierManager.GetModifierValue(tokens);
+}
+
+
+void ZoneManager::GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate)
+{
+    string_list tokens;
+    GetSubTokens(tokens, line, '+');
+    
+    actionTemplate->widgetName = tokens[tokens.size() - 1];
+       
+    if (tokens.size() > 1)
+    {
+        for (int i = 0; i < tokens.size() - 1; i++)
+        {
+            if (tokens[i].find("Touch") != string::npos)
+                actionTemplate->modifier += 1;
+            else if (tokens[i] == "Toggle")
+                actionTemplate->modifier += 2;
+                        
+            else if (tokens[i] == "Invert")
+                actionTemplate->isValueInverted = true;
+            else if (tokens[i] == "InvertFB")
+                actionTemplate->isFeedbackInverted = true;
+            else if (tokens[i] == "Hold")
+                actionTemplate->holdDelayAmount = 1.0;
+            else if (tokens[i] == "Decrease")
+                actionTemplate->isDecrease = true;
+            else if (tokens[i] == "Increase")
+                actionTemplate->isIncrease = true;
+        }
+    }
+    
+    tokens.erase(tokens.size() - 1);
+    
+    actionTemplate->modifier += s_modifierManager.GetModifierValue(tokens);
+}
+
+void ZoneManager::BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary)
+{
+    string feedbackIndicator;
+    
+    string_list params;
+    for (int i = 1; i < tokens.size(); i++)
+    {
+        if (tokens[i] == "Feedback=Yes" || tokens[i] == "Feedback=No")
+            feedbackIndicator = tokens[i];
+        else
+            params.push_back(tokens[i]);
+    }
+
+    ActionTemplate *currentActionTemplate = new ActionTemplate();
+    
+    currentActionTemplate->actionName = tokens[1];
+    currentActionTemplate->params = params;
+    
+    GetWidgetNameAndModifiers(tokens[0], currentActionTemplate);
+
+    WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *wr = actionTemplatesDictionary.Get(currentActionTemplate->widgetName.c_str());
+    if (!wr)
+    {
+        wr = new WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >(disposeActionTemplateList);
+        actionTemplatesDictionary.Insert(currentActionTemplate->widgetName.c_str(), wr);
+    }
+
+    WDL_PtrList<ActionTemplate> *ml = wr->Get(currentActionTemplate->modifier);
+    if (!ml)
+    {
+        ml = new WDL_PtrList<ActionTemplate>;
+        wr->Insert(currentActionTemplate->modifier, ml);
+    }
+
+    ml->Add(currentActionTemplate);
+    
+    if (ml->GetSize() == 1)
+    {
+        if (feedbackIndicator == "" || feedbackIndicator == "Feedback=Yes")
+            currentActionTemplate->provideFeedback = true;
+    }
+    else if (feedbackIndicator == "Feedback=Yes")
+    {
+        for (int i = 0; i < ml->GetSize(); ++i)
+            ml->Get(i)->provideFeedback =  (i == ml->GetSize() - 1);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
+{
+    int lineNumber = 0;
+    bool isInSubZonesSection = false;
+    string_list subZones;
+
+    try
+    {
+        fpistream file(zone->GetSourceFilePath());
+        
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            lineNumber++;
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            if (line == s_BeginAutoSection || line == s_EndAutoSection)
+                continue;
+            
+            string_list tokens;
+            GetTokens(tokens, line.c_str());
+            
+            if (tokens[0] == "Zone" || tokens[0] == "ZoneEnd")
+                continue;
+            else if (tokens[0] == "SubZones")
+                isInSubZonesSection = true;
+            else if (tokens[0] == "SubZonesEnd")
+            {
+                isInSubZonesSection = false;
+                // GAW TBD -- handle SubZone creation
+            }
+            else if (isInSubZonesSection)
+                subZones.push_back(tokens[0]);
+            else if (tokens.size() > 1)
+            {
+                string baseWidgetName;
+                int modifier = 0;
+                bool isValueInverted = false;
+                bool isFeedbackInverted = false;
+                double holdDelayAmount = 0.0;
+                bool isDecrease = false;
+                bool isIncrease = false;
+                
+                GetWidgetNameAndModifiers(tokens[0], baseWidgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
+                
+                char widgetName[BUFSIZ];
+                
+                snprintf(widgetName, sizeof(widgetName), "%s%s", baseWidgetName.c_str(), widgetSuffix);
+
+                Widget *widget = GetSurface()->GetWidgetByName(widgetName);
+                                            
+                if (widget == NULL)
+                    continue;
+
+                zone->AddWidget(widget);
+
+                string_list memberParams;
+
+                for (int i = 1; i < tokens.size(); ++i)
+                    memberParams.push_back(tokens[i]);
+                
+                ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
+                    
+                if (isValueInverted)
+                    context->SetIsValueInverted();
+                
+                if (isFeedbackInverted)
+                    context->SetIsFeedbackInverted();
+                
+                if (holdDelayAmount != 0.0)
+                    context->SetHoldDelayAmount(holdDelayAmount);
+                
+                vector<double> range;
+                
+                if (isDecrease)
+                {
+                    range.push_back(-2.0);
+                    range.push_back(1.0);
+                    context->SetRange(range);
+                }
+                else if (isIncrease)
+                {
+                    range.push_back(0.0);
+                    range.push_back(2.0);
+                    context->SetRange(range);
+                }
+                
+                zone->AddActionContextNew(widget, modifier, context);
+            }
+        }
+    }
+    catch (exception)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", zone->GetSourceFilePath(), lineNumber);
+        ShowConsoleMsg(buffer);
+    }
+}
+
+void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone)
+{
+    WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > actionTemplatesDictionary(true, disposeActionTemplates);
+
+    bool isInIncludedZonesSection = false;
+    string_list includedZones;
+    bool isInSubZonesSection = false;
+    string_list subZones;
+    bool isInAssociatedZonesSection = false;
+    string_list associatedZones;
+    
+    string zoneName;
+    string zoneAlias;
+    int lineNumber = 0;
+   
+    try
+    {
+        fpistream file(filePath);
+        
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            lineNumber++;
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            if (line == s_BeginAutoSection || line == s_EndAutoSection)
+                continue;
+            
+            string_list tokens;
+            GetTokens(tokens, line.c_str());
+
+            if (tokens.size() > 0)
+            {
+                if (tokens[0] == "Zone")
+                {
+                    zoneName = tokens.size() > 1 ? tokens[1] : "";
+                    zoneAlias = tokens.size() > 2 ? tokens[2] : "";
+                }
+                else if (tokens[0] == "ZoneEnd" && zoneName != "")
+                {
+                    for (int i = 0; i < navigators.GetSize(); i++)
+                    {
+                        string numStr = int_to_string(i + 1);
+                                                
+                        Zone *zone;
+                        
+                        if (enclosingZone == NULL)
+                            zone = new Zone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
+                        else
+                            zone = new SubZone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
+
+                        if (zoneName == "Home")
+                            SetHomeZone(zone);
+                                               
+                        if (zoneName == "FocusedFXParam")
+                            SetFocusedFXParamZone(zone);
+
+                        if (zoneName == "LearnFX")
+                            SetLearnFXZone(zone);
+
+                        zones.Add(zone);
+                        
+                        for (int tde = 0; tde < actionTemplatesDictionary.GetSize(); tde++)
+                        {
+                            const char *widgetName = NULL;
+                            WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *modifiedActionTemplates = actionTemplatesDictionary.Enumerate(tde,&widgetName);
+                            if (WDL_NOT_NORMALLY(modifiedActionTemplates == NULL || widgetName == NULL)) continue;
+
+                            string surfaceWidgetName = widgetName;
+                            
+                            if (navigators.GetSize() > 1)
+                                ReplaceAllWith(surfaceWidgetName, "|", int_to_string(i + 1).c_str());
+                            
+                            //if (enclosingZone != NULL && enclosingZone->GetChannelNumber() != 0)
+                                //ReplaceAllWith(surfaceWidgetName, "|", int_to_string(enclosingZone->GetChannelNumber()).c_str());
+                            
+                            Widget *widget = GetSurface()->GetWidgetByName(surfaceWidgetName.c_str());
+                                                        
+                            if (widget == NULL)
+                                continue;
+ 
+                            zone->AddWidget(widget);
+                                                        
+                            for (int ti = 0; ti < modifiedActionTemplates->GetSize(); ti ++)
+                            {
+                                int modifier=0;
+                                WDL_PtrList<ActionTemplate> *actionTemplates = modifiedActionTemplates->Enumerate(ti,&modifier);
+                                if (WDL_NOT_NORMALLY(actionTemplates == NULL)) continue;
+                                for (int j = 0; j < actionTemplates->GetSize(); ++j)
+                                {
+                                    string actionName = actionTemplates->Get(j)->actionName;
+                                    
+                                    if (actionName == "NullDisplay")
+                                        continue;
+                                    
+                                    ReplaceAllWith(actionName, "|", numStr.c_str());
+
+                                    string_list memberParams;
+                                    for (int k = 0; k < actionTemplates->Get(j)->params.size(); k++)
+                                    {
+                                        string params = string(actionTemplates->Get(j)->params[k]);
+                                        ReplaceAllWith(params, "|", numStr.c_str());
+                                        memberParams.push_back(params);
+                                    }
+                                    
+                                    ActionContext *context = csi_->GetActionContext(actionName, widget, zone, memberParams);
+                                        
+                                    context->SetProvideFeedback(actionTemplates->Get(j)->provideFeedback);
+                                    
+                                    if (actionTemplates->Get(j)->isValueInverted)
+                                        context->SetIsValueInverted();
+                                    
+                                    if (actionTemplates->Get(j)->isFeedbackInverted)
+                                        context->SetIsFeedbackInverted();
+                                    
+                                    if (actionTemplates->Get(j)->holdDelayAmount != 0.0)
+                                        context->SetHoldDelayAmount(actionTemplates->Get(j)->holdDelayAmount);
+                                    
+                                    vector<double> range;
+                                    
+                                    if (actionTemplates->Get(j)->isDecrease)
+                                    {
+                                        range.push_back(-2.0);
+                                        range.push_back(1.0);
+                                        context->SetRange(range);
+                                    }
+                                    else if (actionTemplates->Get(j)->isIncrease)
+                                    {
+                                        range.push_back(0.0);
+                                        range.push_back(2.0);
+                                        context->SetRange(range);
+                                    }
+                                   
+                                    if (learnFXTrack_ && ! (actionName == "NoAction" || actionName == "NullDisplay"))
+                                        AddLearnedWidget(widget, actionTemplates->Get(j)->modifier, context->GetParamIndex());
+                                    
+                                    zone->AddActionContext(widget, modifier, context);
+                                }
+                            }
+                        }
+                    
+                        if (enclosingZone == NULL && subZones.size() > 0)
+                            zone->InitSubZones(subZones, zone);
+                    }
+                                    
+                    break;
+                }
+                                
+                else if (tokens[0] == "IncludedZones")
+                    isInIncludedZonesSection = true;
+                
+                else if (tokens[0] == "IncludedZonesEnd")
+                    isInIncludedZonesSection = false;
+                
+                else if (isInIncludedZonesSection)
+                    includedZones.push_back(tokens[0]);
+
+                else if (tokens[0] == "SubZones")
+                    isInSubZonesSection = true;
+                
+                else if (tokens[0] == "SubZonesEnd")
+                    isInSubZonesSection = false;
+                
+                else if (isInSubZonesSection)
+                    subZones.push_back(tokens[0]);
+                 
+                else if (tokens[0] == "AssociatedZones")
+                    isInAssociatedZonesSection = true;
+                
+                else if (tokens[0] == "AssociatedZonesEnd")
+                    isInAssociatedZonesSection = false;
+                
+                else if (isInAssociatedZonesSection)
+                    associatedZones.push_back(tokens[0]);
+                               
+                else if (tokens.size() > 1)
+                    BuildActionTemplate(tokens, actionTemplatesDictionary);
+            }
+        }
+    }
+    catch (exception)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, lineNumber);
+        ShowConsoleMsg(buffer);
+    }
 }
 
 void ZoneManager::AddListener(ControlSurface *surface)
@@ -3392,7 +3392,7 @@ void ZoneManager::GoSelectedTrackFX()
         ClearFXMapping();
         ResetOffsets();
                 
-        homeZone_->GoAssociatedZone("SelectedTrackFX");
+        homeZone_->GoZone("SelectedTrackFX");
     }
 
     selectedTrackFXZones_.Empty();
@@ -3500,7 +3500,7 @@ void ZoneManager::PreProcessZones()
     }
       
     for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-        PreProcessZoneFile(zoneFilesToProcess[i], this);
+        PreProcessZoneFile(zoneFilesToProcess[i]);
     
     if (zoneFolder_ != fxZoneFolder_)
     {
@@ -3509,7 +3509,7 @@ void ZoneManager::PreProcessZones()
         listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
          
         for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-            PreProcessZoneFile(zoneFilesToProcess[i], this);
+            PreProcessZoneFile(zoneFilesToProcess[i]);
     }
 }
 

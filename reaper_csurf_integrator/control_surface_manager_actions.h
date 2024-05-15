@@ -661,7 +661,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class GoAssociatedZone : public Action
+class GoZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
@@ -690,7 +690,7 @@ public:
             !strcmp(name, "TrackFXMenu"))
             context->GetPage()->GoAssociatedZone(name);
         else
-            context->GetSurface()->GetZoneManager()->GoAssociatedZone(name);
+            context->GetSurface()->GetZoneManager()->GoZone(name);
     }
 };
 
