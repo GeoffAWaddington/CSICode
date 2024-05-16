@@ -4613,7 +4613,6 @@ private:
     WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
 
     WDL_StringKeyedArray<Action*> actions_;
-    WDL_StringKeyedArray<Action*> learnFXActions_;
     static void disposeAction(Action *action) { delete action; }
 
     WDL_PtrList<Page> pages_;
@@ -4733,30 +4732,6 @@ public:
     {
         if (actions_.Exists(actionName.c_str()))
             return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
-        else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
-    }
-
-    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, int paramIndex)
-    {
-        if (actions_.Exists(actionName.c_str()))
-            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, paramIndex, NULL, NULL);
-        else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, paramIndex, NULL, NULL);
-    }
-
-    ActionContext *GetActionContext(const string &actionName, Widget *widget, Zone *zone, const string &stringParam)
-    {
-        if (actions_.Exists(actionName.c_str()))
-            return new ActionContext(this, actions_.Get(actionName.c_str()), widget, zone, 0, NULL, &stringParam);
-        else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, NULL, &stringParam);
-    }
-
-    ActionContext *GetLearnFXActionContext(const string &actionName, Widget *widget, Zone *zone, const string_list &params)
-    {
-        if (learnFXActions_.Exists(actionName.c_str()))
-            return new ActionContext(this, learnFXActions_.Get(actionName.c_str()), widget, zone, 0, &params, NULL);
         else
             return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
     }
