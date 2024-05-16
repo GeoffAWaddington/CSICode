@@ -1364,7 +1364,7 @@ private:
 
     ptrvector<Zone *> goZones_;
     
-    WDL_PtrList<ZoneManager> listeners_;
+    ptrvector<ZoneManager *> listeners_;
     
     bool listensToGoHome_;
     bool listensToSends_;
@@ -1498,7 +1498,7 @@ private:
         }
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoSelectedTrackSend(zoneName);
+                listeners_[i]->ListenToGoSelectedTrackSend(zoneName);
     }
     
     void DeclareGoSelectedTrackReceive(const char *zoneName)
@@ -1515,7 +1515,7 @@ private:
         }
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoSelectedTrackReceive(zoneName);
+                listeners_[i]->ListenToGoSelectedTrackReceive(zoneName);
     }
   
     void DeclareGoSelectedTrackFX()
@@ -1524,7 +1524,7 @@ private:
             GoSelectedTrackFX();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoSelectedTrackFX();
+                listeners_[i]->ListenToGoSelectedTrackFX();
     }
         
     void DeclareGoCustom(const char *zoneName)
@@ -1541,7 +1541,7 @@ private:
         }
         else
             for (int i = 0; i < (int)listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoCustom(zoneName);
+                listeners_[i]->ListenToGoCustom(zoneName);
     }
     
     void ListenToGoHome()
@@ -1606,7 +1606,7 @@ private:
         }
         else
             for (int i = 0; i < (int)listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoSelectedTrackFXMenu(zoneName);
+                listeners_[i]->ListenToGoSelectedTrackFXMenu(zoneName);
     }
     
     void ListenToGoSelectedTrackFXMenu(const char *zoneName)
@@ -1797,7 +1797,7 @@ public:
     bool GetIsBroadcaster() { return  ! (listeners_.GetSize() == 0); }
     void AddListener(ControlSurface *surface);
     void SetListenerCategories(const char *categoryList);
-    const WDL_PtrList<ZoneManager> &GetListeners() { return listeners_; }
+    const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
     
@@ -1928,7 +1928,7 @@ public:
             GoFXSlot(track, navigator, fxSlot);
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoFXSlot(track, navigator, fxSlot);
+                listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
     }
     
     void DeclareClearSelectedTrackFX()
@@ -1937,7 +1937,7 @@ public:
             ClearSelectedTrackFX();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToClearSelectedTrackFX();
+                listeners_[i]->ListenToClearSelectedTrackFX();
     }
     
     void DeclareClearFXSlot(Zone *zone)
@@ -1946,7 +1946,7 @@ public:
             ClearFXSlot(zone);
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToClearFXSlot(zone);
+                listeners_[i]->ListenToClearFXSlot(zone);
     }
                 
     void RemoveZone(const char *zoneName)
@@ -1988,7 +1988,7 @@ public:
             ClearFocusedFXParam();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToClearFocusedFXParam();
+                listeners_[i]->ListenToClearFocusedFXParam();
     }
     
     void DeclareClearFocusedFX()
@@ -1997,7 +1997,7 @@ public:
             ClearFocusedFX();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToClearFocusedFX();
+                listeners_[i]->ListenToClearFocusedFX();
     }
     
     void GoZone(const char *zoneName)
@@ -2092,7 +2092,7 @@ public:
             GoHome();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToGoHome();
+                listeners_[i]->ListenToGoHome();
     }
         
     void OnTrackSelection()
@@ -2127,7 +2127,7 @@ public:
             ToggleEnableFocusedFXParamMapping();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToToggleEnableFocusedFXParamMapping();
+                listeners_[i]->ListenToToggleEnableFocusedFXParamMapping();
     }
 
     void DeclareToggleEnableFocusedFXMapping()
@@ -2136,7 +2136,7 @@ public:
             ToggleEnableFocusedFXMapping();
         else
             for (int i = 0; i < listeners_.GetSize(); ++i)
-                listeners_.Get(i)->ListenToToggleEnableFocusedFXMapping();
+                listeners_[i]->ListenToToggleEnableFocusedFXMapping();
     }
     
     bool GetIsGoZoneActive(const char *zoneName)

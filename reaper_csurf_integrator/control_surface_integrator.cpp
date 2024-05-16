@@ -3193,7 +3193,7 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
 void ZoneManager::AddListener(ControlSurface *surface)
 {
     if (WDL_NOT_NORMALLY(!surface)) { return; }
-    listeners_.Add(surface->GetZoneManager());
+    listeners_.push_back(surface->GetZoneManager());
 }
 
 void ZoneManager::SetListenerCategories(const char *categoryList)
@@ -4130,8 +4130,8 @@ void ControlSurface::SetShift(bool value)
         modifierManager_->SetShift(value, latchTime_);
         
         for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetShift(value, latchTime_);
@@ -4145,9 +4145,9 @@ void ControlSurface::SetOption(bool value)
     {
         modifierManager_->SetOption(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetOption(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetOption(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetOption(value, latchTime_);
@@ -4161,9 +4161,9 @@ void ControlSurface::SetControl(bool value)
     {
         modifierManager_->SetControl(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetControl(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetControl(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetControl(value, latchTime_);
@@ -4177,9 +4177,9 @@ void ControlSurface::SetAlt(bool value)
     {
         modifierManager_->SetAlt(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetAlt(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetAlt(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetAlt(value, latchTime_);
@@ -4193,9 +4193,9 @@ void ControlSurface::SetFlip(bool value)
     {
         modifierManager_->SetFlip(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetFlip(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetFlip(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetFlip(value, latchTime_);
@@ -4209,9 +4209,9 @@ void ControlSurface::SetGlobal(bool value)
     {
         modifierManager_->SetGlobal(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetGlobal(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetGlobal(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetGlobal(value, latchTime_);
@@ -4225,9 +4225,9 @@ void ControlSurface::SetMarker(bool value)
     {
         modifierManager_->SetMarker(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetMarker(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetMarker(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetMarker(value, latchTime_);
@@ -4241,9 +4241,9 @@ void ControlSurface::SetNudge(bool value)
     {
         modifierManager_->SetNudge(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetNudge(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetNudge(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetNudge(value, latchTime_);
@@ -4257,9 +4257,9 @@ void ControlSurface::SetZoom(bool value)
     {
         modifierManager_->SetZoom(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetZoom(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetZoom(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetZoom(value, latchTime_);
@@ -4273,9 +4273,9 @@ void ControlSurface::SetScrub(bool value)
     {
         modifierManager_->SetScrub(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->SetScrub(value, latchTime_);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetScrub(value, latchTime_);
     }
     else if (usesLocalModifiers_)
         modifierManager_->SetScrub(value, latchTime_);
@@ -4297,9 +4297,9 @@ void ControlSurface::ClearModifier(const char *modifier)
     {
         modifierManager_->ClearModifier(modifier);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->ClearModifier(modifier);
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->ClearModifier(modifier);
     }
     else if (usesLocalModifiers_ || listensToModifiers_)
         modifierManager_->ClearModifier(modifier);
@@ -4313,9 +4313,9 @@ void ControlSurface::ClearModifiers()
     {
         modifierManager_->ClearModifiers();
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
-            if (zoneManager_->GetListeners().Get(i)->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners().Get(i)->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners().Get(i)->GetSurface()->GetName() != name_)
-                zoneManager_->GetListeners().Get(i)->GetSurface()->GetModifierManager()->ClearModifiers();
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->ClearModifiers();
     }
     else if (usesLocalModifiers_ || listensToModifiers_)
         modifierManager_->ClearModifiers();
