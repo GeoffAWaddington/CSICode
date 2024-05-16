@@ -372,33 +372,6 @@ class Zone;
 class ActionContext;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct ActionTemplate
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string widgetName;
-    int modifier;
-    string actionName;
-    string_list params;
-    bool isValueInverted;
-    bool isFeedbackInverted;
-    double holdDelayAmount;
-    bool isDecrease;
-    bool isIncrease;
-    bool provideFeedback;
-    
-    ActionTemplate()
-    {
-        modifier = 0;
-        isValueInverted = false;
-        isFeedbackInverted = false;
-        holdDelayAmount = 0.0;
-        isDecrease = false;
-        isIncrease = false;
-        provideFeedback = false;
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class Action
@@ -591,7 +564,6 @@ private:
     void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
     void SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
     void GetColorValues(vector<rgba_color> &colorValues, const string_list &colors);
-    void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
 public:
     ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const string_list *params, const string *stringParam);
 
@@ -1339,13 +1311,6 @@ private:
    
     WDL_StringKeyedArray<CSIZoneInfo*> zoneFilePaths_;
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
-
-    static void disposeActionTemplateList(WDL_PtrList<ActionTemplate> *list)
-    {
-        list->Empty(true);
-        delete list;
-    }
-    static void disposeActionTemplates(WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* > *actionTemplates) { delete actionTemplates; }
         
     Zone *learnFXZone_;
     
@@ -1393,24 +1358,11 @@ private:
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
-        
-    void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
-
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
-
     void Initialize();
-
-
-
-    void BuildActionTemplate(const string_list &tokens, WDL_StringKeyedArray<WDL_IntKeyedArray<WDL_PtrList<ActionTemplate>* >* > &actionTemplatesDictionary);
-
-    
     void GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators);
-
-    
     void LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_list &zoneList);
-   
    
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
     {
@@ -1799,9 +1751,6 @@ public:
      
     void PreProcessZoneFile(const char *filePath);
     
-    
-    
-    void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
     
     
     
