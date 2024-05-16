@@ -669,7 +669,7 @@ public:
     
     virtual void RequestUpdate(ActionContext *context) override
     {
-        if (context->GetSurface()->GetZoneManager()->GetIsAssociatedZoneActive(context->GetStringParam()))
+        if (context->GetSurface()->GetZoneManager()->GetIsGoZoneActive(context->GetStringParam()))
             context->UpdateWidgetValue(1.0);
         else
             context->UpdateWidgetValue(0.0);
@@ -688,7 +688,7 @@ public:
             !strcmp(name, "TrackReceive") ||
             !strcmp(name, "MasterTrackFXMenu") ||
             !strcmp(name, "TrackFXMenu"))
-            context->GetPage()->GoAssociatedZone(name);
+            context->GetPage()->GoZone(name);
         else
             context->GetSurface()->GetZoneManager()->GoZone(name);
     }

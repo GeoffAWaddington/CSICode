@@ -786,14 +786,10 @@ protected:
 
     static void disposeZoneRefList(WDL_PtrList<Zone> *l) { delete l; }  // does not dispose zones in list, these are not owned by us
     WDL_StringKeyedArray<WDL_PtrList<Zone> *> subZones_;
-    WDL_StringKeyedArray<WDL_PtrList<Zone> *> mutexZones_;
-    
-    void AddNavigatorsForZone(const char *zoneName, WDL_PtrList<Navigator> &navigators);
+
     void UpdateCurrentActionContextModifier(Widget *widget);
         
-public:
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones);
-    
+public:   
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
     subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
     {
@@ -806,8 +802,6 @@ public:
     }
     
     void InitSubZones(const string_list &subZones, Zone *enclosingZone);
-    void GoZone(const char *associatedZoneName);
-    void ReactivateFXMenuZone();
     int GetSlotIndex();
     void SetXTouchDisplayColors(const char *color);
     void RestoreXTouchDisplayColors();
@@ -845,30 +839,6 @@ public:
         return modifier;
     }
       
-    bool GetIsMainZoneOnlyActive()
-    {
-        for (int j = 0; j < mutexZones_.GetSize(); j ++)
-        {
-            WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-                if (zones->Get(i)->GetIsActive())
-                    return false;
-        }
-        
-        return true;
-    }
-    
-    bool GetIsAssociatedZoneActive(const char *zoneName)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Get(zoneName);
-        if (zones)
-            for (int i = 0; i < zones->GetSize(); ++i)
-                if (zones->Get(i)->GetIsActive())
-                    return true;
-        
-        return false;
-    }
-
     void Toggle()
     {
         if (isActive_)
@@ -938,20 +908,6 @@ public:
         
         for (int i = 0; i < includedZones_.GetSize(); ++i)
             includedZones_.Get(i)->Activate();
-       
-        static const char * const chk[] = {
-            "SelectedTrack",
-            "SelectedTrackSend",
-            "SelectedTrackReceive",
-            "SelectedTrackFXMenu",
-        };
-        for (int j = 0; j < NUM_ELEM(chk); j ++)
-        {
-            WDL_PtrList<Zone> *zones = mutexZones_.Get(chk[j]);
-            if (zones != NULL)
-                for (int i = 0; i < zones->GetSize(); ++i)
-                    zones->Get(i)->Deactivate();
-        }
     }
 
     void RequestUpdateWidget(Widget *widget)
@@ -991,7 +947,7 @@ private:
     Zone  *const enclosingZone_;
     
 public:
-    SubZone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones, Zone *enclosingZone) : Zone(csi, zoneManager, navigator, slotIndex, name, alias, sourceFilePath, includedZones, associatedZones), enclosingZone_(enclosingZone) {}
+    SubZone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, Zone *enclosingZone) : Zone(csi, zoneManager, navigator, slotIndex, name, alias, sourceFilePath), enclosingZone_(enclosingZone) {}
 
     virtual ~SubZone() {}
     
@@ -1467,7 +1423,7 @@ private:
     void GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators);
 
     
-    void LoadIncludedZones(Zone *ownerZone, string_list &includedZones, const char *widgetSuffix);
+    void LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_list &zoneList);
    
    
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
@@ -1485,9 +1441,6 @@ private:
                 lineNumber++;
                 
                 if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
-                    continue;
-                
-                if (line == s_BeginAutoSection || line == s_EndAutoSection)
                     continue;
                 
                 string_list tokens;
@@ -1547,7 +1500,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
         else
@@ -1564,7 +1517,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
         else
@@ -1590,7 +1543,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
         else
@@ -1613,7 +1566,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
     }
@@ -1627,7 +1580,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
     }
@@ -1641,7 +1594,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
     }
@@ -1655,7 +1608,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
         else
@@ -1672,7 +1625,7 @@ private:
                 ClearFXMapping();
                 ResetOffsets();
                         
-                homeZone_->GoZone(zoneName);
+                GoMutexZone(zoneName);
             }
         }
     }
@@ -1776,11 +1729,25 @@ private:
             {
                 fxSlotZones_.Get(i)->Deactivate();
                 fxSlotZones_.Delete(i);
-                if (homeZone_ != NULL)
-                    homeZone_->ReactivateFXMenuZone();
+                ReactivateFXMenuZone();
                 break;
             }
         }
+    }
+    
+    void ReactivateFXMenuZone()
+    {
+        /*
+        WDL_PtrList<Zone> *fxmenu = goZones_.Get("TrackFXMenu");
+        WDL_PtrList<Zone> *selfxmenu = goZones_.Get("SelectedTrackFXMenu");
+        
+        if (fxmenu && fxmenu->Get(0) != NULL && fxmenu->Get(0)->GetIsActive())
+            for (int i = 0; i < fxmenu->GetSize(); ++i)
+                fxmenu->Get(i)->Activate();
+        else if (selfxmenu && selfxmenu->Get(0) && selfxmenu->Get(0)->GetIsActive())
+            for (int i = 0; i < selfxmenu->GetSize(); ++i)
+                selfxmenu->Get(i)->Activate();
+         */
     }
 
 public:
@@ -1853,7 +1820,13 @@ public:
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
      
     void PreProcessZoneFile(const char *filePath);
+    
+    
+    
     void LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator> &navigators, WDL_PtrList<Zone> &zones, Zone *enclosingZone);
+    
+    
+    
     
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
     
@@ -2062,7 +2035,33 @@ public:
             ClearFXMapping();
             ResetOffsets();
                     
-            homeZone_->GoZone(zoneName);
+            GoMutexZone(zoneName);
+        }
+    }
+    
+    void GoMutexZone(const char *zoneName)
+    {
+        for (int i = 0; i < goZones_.size(); ++i)
+        {
+            if (!strcmp(zoneName, goZones_[i]->GetName()))
+            {
+                if (goZones_[i]->GetIsActive())
+                {
+                    for (int j = i; j < goZones_.size(); ++j)
+                        if (!strcmp(zoneName, goZones_[j]->GetName()))
+                            goZones_[j]->Deactivate();
+                    
+                    return;
+                }
+            }
+        }
+        
+        for (int i = 0; i < goZones_.size(); ++i)
+        {
+            if (!strcmp(zoneName, goZones_[i]->GetName()))
+               goZones_[i]->Activate();
+            else
+                goZones_[i]->Deactivate();
         }
     }
 
@@ -2095,16 +2094,14 @@ public:
     void GoHome()
     {
         HideAllFXWindows();
-        
         ClearLearnedFXParams();
-
         ClearFXMapping();
+        ResetOffsets();
+
+        for (int i = 0; i < goZones_.size(); ++i)
+            goZones_[i]->Deactivate();
         
-        if (homeZone_ != NULL)
-        {
-            ResetOffsets();
-            homeZone_->Activate();
-        }
+        homeZone_->Activate();
     }
     
     void DeclareGoHome()
@@ -2123,14 +2120,22 @@ public:
 
     void OnTrackDeselection()
     {
-        if (homeZone_ != NULL)
+        ResetSelectedTrackOffsets();
+        
+        selectedTrackFXZones_.Empty();
+        
+        for (int i = 0; i < goZones_.size(); ++i)
         {
-            ResetSelectedTrackOffsets();
-            
-            selectedTrackFXZones_.Empty();
-            
-            homeZone_->OnTrackDeselection();
+            if (!strcmp(goZones_[i]->GetName(), "SelectedTrack") ||
+                !strcmp(goZones_[i]->GetName(), "SelectedTrackSend") ||
+                !strcmp(goZones_[i]->GetName(), "SelectedTrackReceive") ||
+                !strcmp(goZones_[i]->GetName(), "SelectedTrackFXMenu"))
+            {
+                goZones_[i]->Deactivate();
+            }
         }
+        
+        homeZone_->OnTrackDeselection();
     }
     
     void DeclareToggleEnableFocusedFXParamMapping()
@@ -2150,22 +2155,25 @@ public:
             for (int i = 0; i < listeners_.GetSize(); ++i)
                 listeners_.Get(i)->ListenToToggleEnableFocusedFXMapping();
     }
-
-    bool GetIsHomeZoneOnlyActive()
+    
+    bool GetIsGoZoneActive(const char *zoneName)
     {
-        if (homeZone_ !=  NULL)
-            return homeZone_->GetIsMainZoneOnlyActive();
-        else
-            return false;
+        for (int i = 0; i < goZones_.size(); ++i)
+            if (!strcmp(zoneName, goZones_[i]->GetName()))
+                return goZones_[i]->GetIsActive();
+        
+        return false;
     }
     
-    bool GetIsAssociatedZoneActive(const char *zoneName)
+    bool GetIsHomeZoneOnlyActive()
     {
-        if (homeZone_ !=  NULL)
-            return homeZone_->GetIsAssociatedZoneActive(zoneName);
-        else
-            return false;
+        for (int i = 0; i < goZones_.size(); ++i)
+            if (goZones_[i]->GetIsActive())
+                return false;
+
+        return true;
     }
+
     
     void ClearFXMapping()
     {
@@ -2211,8 +2219,8 @@ public:
         if (learnFXTrack_ != NULL)
             UpdateLearnedParams();
         
-        if (homeZone_ != NULL && homeZone_->GetIsAssociatedZoneActive("LearnFocusedFX"))
-            homeZone_->RequestUpdate();
+        if (learnFocusedFXZone_ != NULL)
+            learnFocusedFXZone_->RequestUpdate();
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate();
@@ -2226,6 +2234,9 @@ public:
         for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
             fxSlotZones_.Get(i)->RequestUpdate();
         
+        for (int i = 0; i < goZones_.GetSize(); ++i)
+            goZones_[i]->RequestUpdate();
+
         if (homeZone_ != NULL)
             homeZone_->RequestUpdate();
     }
@@ -4477,7 +4488,7 @@ public:
             surfaces_.Get(i)->GetZoneManager()->GoHome();
     }
     
-    void GoAssociatedZone(const char *name)
+    void GoZone(const char *name)
     {
         for (int i = 0; i < surfaces_.GetSize(); ++i)
             surfaces_.Get(i)->GetZoneManager()->GoZone(name);

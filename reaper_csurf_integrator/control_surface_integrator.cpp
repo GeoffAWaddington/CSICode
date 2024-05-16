@@ -2057,49 +2057,6 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-Zone::Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath, string_list includedZones, string_list associatedZones): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), subZones_(true,disposeZoneRefList), mutexZones_(true,disposeZoneRefList), /* learnFXCells_(destroyLearnFXCellList),*/ actionContextDictionary_(destroyActionContextListArray)
-{
-    //protected:
-    isActive_ = false;
-
-    if (name == "Home")
-    {
-        for (int i = 0; i < (int)associatedZones.size(); ++i)
-        {
-            if (zoneManager_->GetZoneFilePaths().Exists(associatedZones[i].c_str()))
-            {
-                WDL_PtrList<Navigator> navigators;
-                AddNavigatorsForZone(associatedZones[i], navigators);
-
-                WDL_PtrList<Zone> *az = mutexZones_.Get(associatedZones[i].c_str());
-                if (WDL_NORMALLY(az == NULL))
-                {
-                    az = new WDL_PtrList<Zone>;
-                    mutexZones_.Insert(associatedZones[i].c_str(), az);
-                    zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(associatedZones[i].c_str())->filePath.c_str(), navigators, *az, NULL);
-                }
-                else
-                {
-                    char buffer[250];
-                    snprintf(buffer, sizeof(buffer), "Duplicate definition of %s, it has already been loaded.\n", associatedZones[i].c_str());
-                    ShowConsoleMsg(buffer);
-                }
-            }
-        }
-    }
-    
-    for (int i = 0; i < (int)includedZones.size(); ++i)
-    {
-        if (zoneManager_->GetZoneFilePaths().Exists(includedZones[i].c_str()))
-        {
-            WDL_PtrList<Navigator> navigators;
-            AddNavigatorsForZone(includedZones[i], navigators);
-            
-            zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(includedZones[i].c_str())->filePath.c_str(), navigators, includedZones_, NULL);
-        }
-    }
-}
-
 void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
@@ -2147,56 +2104,6 @@ int Zone::GetSlotIndex()
     else return slotIndex_;
 }
 
-void Zone::GoZone(const char *zoneName)
-{
-    if (!strcmp(zoneName, "Track"))
-    {
-        for (int j = 0; j < mutexZones_.GetSize(); j++)
-        {
-            WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-            if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-                zones->Get(i)->Deactivate();
-        }
-        
-        return;
-    }
-    
-    WDL_PtrList<Zone> *az = mutexZones_.Get(zoneName);
-    if (az != NULL && az->Get(0) != NULL && az->Get(0)->GetIsActive())
-    {
-        for (int i = 0; i < az->GetSize(); ++i)
-            az->Get(i)->Deactivate();
-        
-        zoneManager_->GoHome();
-        
-        return;
-    }
-    
-    for (int j = 0; j < mutexZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->Deactivate();
-    }
-
-    az = mutexZones_.Get(zoneName);
-    if (az != NULL)
-        for (int i = 0; i < az->GetSize(); ++i)
-            az->Get(i)->Activate();
-}
-
-void Zone::ReactivateFXMenuZone()
-{
-    WDL_PtrList<Zone> *fxmenu = mutexZones_.Get("TrackFXMenu");
-    WDL_PtrList<Zone> *selfxmenu = mutexZones_.Get("SelectedTrackFXMenu");
-    if (fxmenu && fxmenu->Get(0) != NULL && fxmenu->Get(0)->GetIsActive())
-        for (int i = 0; i < fxmenu->GetSize(); ++i)
-            fxmenu->Get(i)->Activate();
-    else if (selfxmenu && selfxmenu->Get(0) && selfxmenu->Get(0)->GetIsActive())
-        for (int i = 0; i < selfxmenu->GetSize(); ++i)
-            selfxmenu->Get(i)->Activate();
-}
-
 void Zone::AddWidget(Widget *widget)
 {
     if (widgets_.Find(widget) < 0)
@@ -2227,13 +2134,6 @@ void Zone::Activate()
 
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
 
-    for (int j = 0; j < mutexZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->Deactivate();
-    }
-    
     for (int j = 0; j < subZones_.GetSize(); j ++)
     {
         WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
@@ -2271,13 +2171,6 @@ void Zone::Deactivate()
     for (int i = 0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->Deactivate();
 
-    for (int j = 0; j < mutexZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->Deactivate();
-    }
-    
     for (int j = 0; j < subZones_.GetSize(); j ++)
     {
         WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
@@ -2299,13 +2192,6 @@ void Zone::RequestUpdate()
             zones->Get(i)->RequestUpdate();
     }
 
-    for (int j = 0; j < mutexZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->RequestUpdate();
-    }
-
     for (int i =  0; i < includedZones_.GetSize(); ++i)
         includedZones_.Get(i)->RequestUpdate();
     
@@ -2317,38 +2203,6 @@ void Zone::RequestUpdate()
             RequestUpdateWidget(widgets_.Get(i));
         }
     }
-}
-
-void Zone::AddNavigatorsForZone(const char *zoneName, WDL_PtrList<Navigator> &navigators)
-{
-    if (!strcmp(zoneName, "MasterTrack"))
-        navigators.Add(zoneManager_->GetMasterTrackNavigator());
-    else if (!strcmp(zoneName, "Track") ||
-             !strcmp(zoneName, "VCA") ||
-             !strcmp(zoneName, "Folder") ||
-             !strcmp(zoneName, "SelectedTracks") ||
-             !strcmp(zoneName, "TrackSend") ||
-             !strcmp(zoneName, "TrackReceive") ||
-             !strcmp(zoneName, "TrackFXMenu"))
-    {
-        for (int i = 0; i < zoneManager_->GetNumChannels(); i++)
-        {
-            Navigator *channelNavigator = zoneManager_->GetSurface()->GetPage()->GetNavigatorForChannel(i + zoneManager_->GetSurface()->GetChannelOffset());
-            if (channelNavigator)
-                navigators.Add(channelNavigator);
-        }
-    }
-    else if (!strcmp(zoneName, "SelectedTrack") ||
-             !strcmp(zoneName, "SelectedTrackSend") ||
-             !strcmp(zoneName, "SelectedTrackReceive") ||
-             !strcmp(zoneName, "SelectedTrackFXMenu"))
-        for (int i = 0; i < zoneManager_->GetNumChannels(); i++)
-            navigators.Add(zoneManager_->GetSelectedTrackNavigator());
-    else if (!strcmp(zoneName, "MasterTrackFXMenu"))
-        for (int i = 0; i < zoneManager_->GetNumChannels(); i++)
-            navigators.Add(zoneManager_->GetMasterTrackNavigator());
-    else
-        navigators.Add(zoneManager_->GetSelectedTrackNavigator());
 }
 
 void Zone::SetXTouchDisplayColors(const char *color)
@@ -2371,13 +2225,6 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     for (int j = 0; j < subZones_.GetSize(); j ++)
     {
         WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoAction(widget, isUsed, value);
-    }
-
-    for (int j = 0; j < mutexZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->DoAction(widget, isUsed, value);
     }
@@ -2418,13 +2265,6 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
             zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
     }
 
-    for (int j = 0; j < mutexZones_.GetSize(); j++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
-    }
-
     if (isUsed)
         return;
 
@@ -2461,13 +2301,6 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
             zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
     
-    for (int j = 0; j < mutexZones_.GetSize(); j++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    }
-
     if (isUsed)
         return;
 
@@ -2504,13 +2337,6 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
             zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
     }
     
-    for (int j = 0; j < mutexZones_.GetSize(); j++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
-    }
-
     if (isUsed)
         return;
 
@@ -2551,14 +2377,7 @@ void Zone::UpdateCurrentActionContextModifiers()
         WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
         if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
             zones->Get(i)->UpdateCurrentActionContextModifiers();
-    }
-    
-    for (int j = 0; j < mutexZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = mutexZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->UpdateCurrentActionContextModifiers();
-    }
+    }    
 }
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
@@ -2802,26 +2621,26 @@ void ZoneManager::Initialize()
         MessageBox(g_hwnd, tmp, __LOCALIZE("CSI Missing Home Zone", "csi_mbox"), MB_OK);
         return;
     }
-        
-    // GAW TBD -- Use RadioButton and HomeIncluded metadata to instantiate empty Zones here, then Load instantiated Zones -- aka add Widgets and ActionContexts
-    
+            
     homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
     LoadZoneFile(homeZone_, "");
     
-    string_list metadata;
-    
+    string_list zoneList;
     if (zoneFilePaths_.Exists("GoZones"))
-        LoadZoneMetadata(zoneFilePaths_.Get("GoZones")->filePath.c_str(), metadata);
+        LoadZoneMetadata(zoneFilePaths_.Get("GoZones")->filePath.c_str(), zoneList);
+    LoadZones(NULL, goZones_, zoneList);
     
-    
-    WDL_PtrList<Navigator> navigators;
-    navigators.Add(GetSelectedTrackNavigator());
-    WDL_PtrList<Zone> zones; // Needed to satisfy protcol, Home, FocusedFXParam, and LearnFX have special Zone handling
-    //LoadZoneFile(zoneFilePaths_.Get("Home")->filePath.c_str(), navigators, zones, NULL);
     if (zoneFilePaths_.Exists("FocusedFXParam"))
-        LoadZoneFile(zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str(), navigators, zones, NULL);
+    {
+        focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str());
+        LoadZoneFile(focusedFXParamZone_, "");
+    }
+    
     if (zoneFilePaths_.Exists("LearnFX"))
-        LoadZoneFile(zoneFilePaths_.Get("LearnFX")->filePath.c_str(), navigators, zones, NULL);
+    {
+        learnFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LearnFX", "LearnFX", zoneFilePaths_.Get("LearnFX")->filePath.c_str());
+        LoadZoneFile(learnFXZone_, "");
+    }
     
     GoHome();
 }
@@ -3015,23 +2834,27 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator
         navigators.push_back(GetSelectedTrackNavigator());
 }
 
-void ZoneManager::LoadIncludedZones(Zone *ownerZone, string_list &includedZones, const char *widgetSuffix)
+void ZoneManager::LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_list &zoneList)
 {
-    for (int i = 0; i < includedZones.size(); ++i)
+    for (int i = 0; i < zoneList.size(); ++i)
     {
-        if (zoneFilePaths_.Exists(includedZones[i]))
+        if (zoneFilePaths_.Exists(zoneList[i]))
         {
             ptrvector<Navigator *> navigators;
             
-            GetNavigatorsForZone(includedZones[i], navigators);
+            GetNavigatorsForZone(zoneList[i], navigators);
             
             if (navigators.size() == 1)
             {
-                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(includedZones[i]), string(includedZones[i]), zoneFilePaths_.Get(includedZones[i])->filePath);
+                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneList[i]), string(zoneList[i]), zoneFilePaths_.Get(zoneList[i])->filePath);
                 if (zone)
                 {
                     LoadZoneFile(zone, "");
-                    ownerZone->AddIncludedZone(zone);
+                    
+                    if (ownerZone)
+                        ownerZone->AddIncludedZone(zone);
+                    else
+                        goZones.push_back(zone);
                 }
             }
             else
@@ -3039,14 +2862,18 @@ void ZoneManager::LoadIncludedZones(Zone *ownerZone, string_list &includedZones,
                 for (int j = 0; j < navigators.size(); ++j)
                 {
                     char buf[BUFSZ];
-                    snprintf(buf, sizeof(buf), "%s%d", string(includedZones[i]).c_str(), j + 1);
+                    snprintf(buf, sizeof(buf), "%s%d", string(zoneList[i]).c_str(), j + 1);
                     
-                    Zone *zone = new Zone(csi_, this, navigators[0], 0, string(includedZones[i]), string(buf), zoneFilePaths_.Get(includedZones[i])->filePath);
+                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneList[i]), string(buf), zoneFilePaths_.Get(zoneList[i])->filePath);
 
                     snprintf(buf, sizeof(buf), "%d", j + 1);
                     
                     LoadZoneFile(zone, buf);
-                    ownerZone->AddIncludedZone(zone);
+
+                    if (ownerZone)
+                        ownerZone->AddIncludedZone(zone);
+                    else
+                        goZones.push_back(zone);
                 }
             }
         }
@@ -3097,7 +2924,8 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
             else if (tokens[0] == "IncludedZonesEnd")
             {
                 isInIncludedZonesSection = false;
-                LoadIncludedZones(zone, includedZones, widgetSuffix);
+                ptrvector<Zone *> dummy; // to satisfy protocol
+                LoadZones(zone, dummy, includedZones);
             }
             else if (isInIncludedZonesSection)
                 includedZones.push_back(tokens[0]);
@@ -3216,12 +3044,12 @@ void ZoneManager::LoadZoneFile(const char *filePath, const WDL_PtrList<Navigator
                         string numStr = int_to_string(i + 1);
                                                 
                         Zone *zone;
-                        
+                        /*
                         if (enclosingZone == NULL)
                             zone = new Zone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones);
                         else
                             zone = new SubZone(csi_, this, navigators.Get(i), i, zoneName, zoneAlias, filePath, includedZones, associatedZones, enclosingZone);
-
+*/
                         if (zoneName == "Home")
                             SetHomeZone(zone);
                                                
@@ -3486,7 +3314,7 @@ void ZoneManager::GoSelectedTrackFX()
         ClearFXMapping();
         ResetOffsets();
                 
-        homeZone_->GoZone("SelectedTrackFX");
+        GoMutexZone("SelectedTrackFX");
     }
 
     selectedTrackFXZones_.Empty();
