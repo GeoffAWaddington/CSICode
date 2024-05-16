@@ -2569,7 +2569,7 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList), radioButtonZones_(true, disposeRadioButtonZoneList)
+ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
 {
     homeZone_ = NULL;
     
@@ -2859,6 +2859,9 @@ void ZoneManager::LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_
             }
             else
             {
+                if (!strcmp(zoneList[i], "SelectedTrackFXMenu"))
+                    int blah = 0;
+                
                 for (int j = 0; j < navigators.size(); ++j)
                 {
                     char buf[BUFSZ];
@@ -2959,7 +2962,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
                     memberParams.push_back(tokens[i]);
                 
                 ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
-                    
+                
                 if (isValueInverted)
                     context->SetIsValueInverted();
                 
@@ -3243,28 +3246,23 @@ void ZoneManager::CheckFocusedFXState()
 
     if ( ! retVal || (retVal && (paramIndex & 0x01)))
     {
-        if (focusedFXZones_.GetSize() > 0)
+        if (focusedFXZone_ != NULL)
         {
-            for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-                focusedFXZones_.Get(i)->RestoreXTouchDisplayColors();
-            
-            focusedFXZones_.Empty();
+            focusedFXZone_->RestoreXTouchDisplayColors();
+            ClearFocusedFX();
         }
         
         return;
     }
     
     if (fxIndex > -1)
-    {
-        if (focusedFXZones_.GetSize() == 0)
-            GoFocusedFX();
-    }
+        GoFocusedFX();
 }
 
 void ZoneManager::GoFocusedFX()
 {
-    focusedFXZones_.Empty();
-    
+    ClearFocusedFX();
+
     int trackNumber = 0;
     int itemNumber = 0;
     int takeNumber = 0;
@@ -3287,22 +3285,15 @@ void ZoneManager::GoFocusedFX()
     
     if (focusedTrack)
     {
-        char FXName[BUFSZ];
-        TrackFX_GetFXName(focusedTrack, fxSlot, FXName, sizeof(FXName));
+        char fxName[BUFSZ];
+        TrackFX_GetFXName(focusedTrack, fxSlot, fxName, sizeof(fxName));
         
-        if (zoneFilePaths_.Exists(FXName))
+        if (zoneFilePaths_.Exists(fxName))
         {
-            WDL_PtrList<Navigator> navigators;
-            navigators.Add(GetSurface()->GetPage()->GetFocusedFXNavigator());
-            
-            LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath.c_str(), navigators, focusedFXZones_, NULL);
-            
-            for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-            {
-                focusedFXZones_.Get(i)->SetXTouchDisplayColors("White");
-                focusedFXZones_.Get(i)->SetSlotIndex(fxSlot);
-                focusedFXZones_.Get(i)->Activate();
-            }
+            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath.c_str());
+            LoadZoneFile(focusedFXParamZone_, "");
+            focusedFXZone_->SetXTouchDisplayColors("White");
+            focusedFXZone_->Activate();
         }
     }
 }
@@ -3317,24 +3308,22 @@ void ZoneManager::GoSelectedTrackFX()
         GoMutexZone("SelectedTrackFX");
     }
 
-    selectedTrackFXZones_.Empty();
+    selectedTrackFXZones_.clear();
     
     if (MediaTrack *selectedTrack = surface_->GetPage()->GetSelectedTrack())
     {
         for (int i = 0; i < TrackFX_GetCount(selectedTrack); i++)
         {
-            char FXName[BUFSZ];
+            char fxName[BUFSZ];
             
-            TrackFX_GetFXName(selectedTrack, i, FXName, sizeof(FXName));
+            TrackFX_GetFXName(selectedTrack, i, fxName, sizeof(fxName));
             
-            if (zoneFilePaths_.Exists(FXName))
+            if (zoneFilePaths_.Exists(fxName))
             {
-                WDL_PtrList<Navigator> navigators;
-                navigators.Add(GetSurface()->GetPage()->GetSelectedTrackNavigator());
-                LoadZoneFile(zoneFilePaths_.Get(FXName)->filePath.c_str(), navigators, selectedTrackFXZones_, NULL);
-                
-                selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->SetSlotIndex(i);
-                selectedTrackFXZones_.Get(selectedTrackFXZones_.GetSize() - 1)->Activate();
+                Zone *zone = new Zone(csi_, this, GetSelectedTrackNavigator(), i, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath);
+                LoadZoneFile(zone, "");
+                selectedTrackFXZones_.push_back(zone);
+                zone->Activate();
             }
         }
     }
@@ -3344,26 +3333,22 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 {
     if (fxSlot > TrackFX_GetCount(track) - 1)
         return;
-    
+        
     char fxName[BUFSZ];
     
     TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
-    
-    if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
-        CalculateSteppedValues(fxName, track, fxSlot);
 
     if (zoneFilePaths_.Exists(fxName))
     {
-        WDL_PtrList<Navigator> navigators;
-        navigators.Add(navigator);
+        if (fxSlotZone_ != NULL)
+            ClearFXSlot(fxSlotZone_);
         
-        LoadZoneFile(zoneFilePaths_.Get(fxName)->filePath.c_str(), navigators, fxSlotZones_, NULL);
+        if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
+            CalculateSteppedValues(fxName, track, fxSlot);
         
-        if (fxSlotZones_.GetSize() > 0)
-        {
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->SetSlotIndex(fxSlot);
-            fxSlotZones_.Get(fxSlotZones_.GetSize() - 1)->Activate();
-        }
+        fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath);
+        LoadZoneFile(fxSlotZone_, "");
+        fxSlotZone_->Activate();
     }
     else
         TrackFX_SetOpen(track, fxSlot, true);
@@ -3374,14 +3359,14 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     if (focusedFXParamZone_ != NULL)
         focusedFXParamZone_->UpdateCurrentActionContextModifiers();
     
-    for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-        focusedFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
+    if (focusedFXZone_ != NULL)
+        focusedFXZone_->UpdateCurrentActionContextModifiers();
     
     for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
-        selectedTrackFXZones_.Get(i)->UpdateCurrentActionContextModifiers();
+        selectedTrackFXZones_[i]->UpdateCurrentActionContextModifiers();
     
-    for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
-        fxSlotZones_.Get(i)->UpdateCurrentActionContextModifiers();
+    if (fxSlotZone_ != NULL)
+        fxSlotZone_->UpdateCurrentActionContextModifiers();
     
     if (homeZone_ != NULL)
         homeZone_->UpdateCurrentActionContextModifiers();
@@ -3545,21 +3530,27 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
         focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
-    for (int i = 0; i < focusedFXZones_.GetSize(); ++i)
-        focusedFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
+    if (focusedFXZone_ != NULL)
+        focusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if (isUsed)
         return;
 
     for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
-        selectedTrackFXZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
+        selectedTrackFXZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if (isUsed)
         return;
 
-    for (int i = 0; i < fxSlotZones_.GetSize(); ++i)
-        fxSlotZones_.Get(i)->DoTouch(widget, widget->GetName(), isUsed, value);
+    if (fxSlotZone_ != NULL)
+        fxSlotZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
+    if (isUsed)
+        return;
+
+    for (int i = 0; i < goZones_.GetSize(); ++i)
+        goZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
+
     if (isUsed)
         return;
 

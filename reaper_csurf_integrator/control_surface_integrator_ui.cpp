@@ -1355,7 +1355,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 
     if (zonePaths.Exists(s_fxName))
     {
-        zoneManager->LoadAndActivateFocusedFXZone(s_fxName);
+        zoneManager->LoadAndActivateFocusedFXZone(s_fxName, s_fxSlot);
         lstrcpyn_safe(s_fxAlias, zonePaths.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
         LearnFocusedFXDialog();
     }
