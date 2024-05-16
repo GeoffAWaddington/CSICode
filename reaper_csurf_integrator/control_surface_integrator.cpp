@@ -2061,24 +2061,13 @@ void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
-        if (zoneManager_->GetZoneFilePaths().Exists(subZones[i].c_str()))
+        const WDL_StringKeyedArray<CSIZoneInfo*> &zfp = zoneManager_->GetZoneFilePaths();
+        
+        if (zfp.Exists(subZones[i]))
         {
-            WDL_PtrList<Navigator> navigators;
-            navigators.Add(GetNavigator());
-
-            WDL_PtrList<Zone> *sz = subZones_.Get(subZones[i].c_str());
-            if (WDL_NORMALLY(sz == NULL))
-            {
-                sz = new WDL_PtrList<Zone>;
-                subZones_.Insert(subZones[i].c_str(), sz);
-                zoneManager_->LoadZoneFile(zoneManager_->GetZoneFilePaths().Get(subZones[i].c_str())->filePath.c_str(), navigators, *sz, enclosingZone);
-            }
-            else
-            {
-                char buffer[250];
-                snprintf(buffer, sizeof(buffer), "Duplicate definition of %s, it has already been loaded.\n", subZones[i].c_str());
-                ShowConsoleMsg(buffer);
-            }
+            SubZone *subZone = new SubZone(csi_, zoneManager_, enclosingZone->GetNavigator(), enclosingZone->GetSlotIndex(), subZones[i].c_str(), zfp.Get(subZones[i])->alias.c_str(), zfp.Get(subZones[i])->filePath.c_str(), enclosingZone);
+            zoneManager_->LoadZoneFile(subZone, "");
+            subZones_.push_back(subZone);
         }
     }
 }
@@ -2134,15 +2123,11 @@ void Zone::Activate()
 
     zoneManager_->GetSurface()->SendOSCMessage(GetName());
 
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->Deactivate();
-    }
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->Deactivate();
 
-    for (int i = 0; i < includedZones_.GetSize(); ++i)
-        includedZones_.Get(i)->Activate();
+    for (int i = 0; i < includedZones_.size(); ++i)
+        includedZones_[i]->Activate();
 }
 
 void Zone::Deactivate()
@@ -2168,16 +2153,11 @@ void Zone::Deactivate()
     else if (!strcmp(GetName(), "SelectedTracks"))
         zoneManager_->GetSurface()->GetPage()->SelectedTracksModeDeactivated();
     
-    for (int i = 0; i < includedZones_.GetSize(); ++i)
-        includedZones_.Get(i)->Deactivate();
+    for (int i = 0; i < includedZones_.size(); ++i)
+        includedZones_[i]->Deactivate();
 
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->Deactivate();
-    }
-
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->Deactivate();
 }
 
 void Zone::RequestUpdate()
@@ -2185,15 +2165,11 @@ void Zone::RequestUpdate()
     if (! isActive_)
         return;
     
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->RequestUpdate();
-    }
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->RequestUpdate();
 
-    for (int i =  0; i < includedZones_.GetSize(); ++i)
-        includedZones_.Get(i)->RequestUpdate();
+    for (int i =  0; i < includedZones_.size(); ++i)
+        includedZones_[i]->RequestUpdate();
     
     for (int i = 0; i < widgets_.GetSize(); i ++)
     {
@@ -2222,12 +2198,8 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     if (! isActive_ || isUsed)
         return;
     
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoAction(widget, isUsed, value);
-    }
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->DoAction(widget, isUsed, value);
 
     if (isUsed)
         return;
@@ -2248,8 +2220,8 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     }
     else
     {
-        for (int i = 0; i < includedZones_.GetSize(); ++i)
-            includedZones_.Get(i)->DoAction(widget, isUsed, value);
+        for (int i = 0; i < includedZones_.size(); ++i)
+            includedZones_[i]->DoAction(widget, isUsed, value);
     }
 }
 
@@ -2258,12 +2230,8 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
     if (! isActive_ || isUsed)
         return;
     
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoRelativeAction(widget, isUsed, delta);
-    }
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->DoRelativeAction(widget, isUsed, delta);
 
     if (isUsed)
         return;
@@ -2284,8 +2252,8 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
     }
     else
     {
-        for (int i = 0; i < includedZones_.GetSize(); ++i)
-            includedZones_.Get(i)->DoRelativeAction(widget, isUsed, delta);
+        for (int i = 0; i < includedZones_.size(); ++i)
+            includedZones_[i]->DoRelativeAction(widget, isUsed, delta);
     }
 }
 
@@ -2294,12 +2262,8 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
     if (! isActive_ || isUsed)
         return;
 
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-    }
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     
     if (isUsed)
         return;
@@ -2320,8 +2284,8 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
     }
     else
     {
-        for (int i = 0; i < includedZones_.GetSize(); ++i)
-            includedZones_.Get(i)->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+        for (int i = 0; i < includedZones_.size(); ++i)
+            includedZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
 }
 
@@ -2330,12 +2294,8 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
     if (! isActive_ || isUsed)
         return;
 
-    for (int j = 0; j < subZones_.GetSize(); j ++)
-    {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->DoTouch(widget, widgetName, isUsed, value);
-    }
+    for (int i = 0; i < subZones_.size(); ++i)
+        subZones_[i]->DoTouch(widget, widgetName, isUsed, value);
     
     if (isUsed)
         return;
@@ -2356,8 +2316,8 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
     }
     else
     {
-        for (int i = 0; i < includedZones_.GetSize(); ++i)
-            includedZones_.Get(i)->DoTouch(widget, widgetName, isUsed, value);
+        for (int i = 0; i < includedZones_.size(); ++i)
+            includedZones_[i]->DoTouch(widget, widgetName, isUsed, value);
     }
 }
 
@@ -2369,15 +2329,13 @@ void Zone::UpdateCurrentActionContextModifiers()
         widgets_.Get(i)->Configure(GetActionContexts(widgets_.Get(i), currentActionContextModifiers_.Get(widgets_.Get(i))));
     }
     
-    for (int i = 0; i < includedZones_.GetSize(); ++i)
-        includedZones_.Get(i)->UpdateCurrentActionContextModifiers();
+    for (int i = 0; i < includedZones_.size(); ++i)
+        includedZones_[i]->UpdateCurrentActionContextModifiers();
 
-    for (int j = 0; j < subZones_.GetSize(); j ++)
+    for (int i = 0; i < subZones_.size(); ++i)
     {
-        WDL_PtrList<Zone> *zones = subZones_.Enumerate(j);
-        if (WDL_NORMALLY(zones != NULL)) for (int i = 0; i < zones->GetSize(); ++i)
-            zones->Get(i)->UpdateCurrentActionContextModifiers();
-    }    
+        subZones_[i]->UpdateCurrentActionContextModifiers();
+    }
 }
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
@@ -2859,9 +2817,6 @@ void ZoneManager::LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_
             }
             else
             {
-                if (!strcmp(zoneList[i], "SelectedTrackFXMenu"))
-                    int blah = 0;
-                
                 for (int j = 0; j < navigators.size(); ++j)
                 {
                     char buf[BUFSZ];
@@ -3362,7 +3317,7 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     if (focusedFXZone_ != NULL)
         focusedFXZone_->UpdateCurrentActionContextModifiers();
     
-    for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+    for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
         selectedTrackFXZones_[i]->UpdateCurrentActionContextModifiers();
     
     if (fxSlotZone_ != NULL)
@@ -3370,17 +3325,6 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     
     if (homeZone_ != NULL)
         homeZone_->UpdateCurrentActionContextModifiers();
-}
-
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates)
-{
-    modifier = GetSurface()->GetModifierManager()->GetModifierValue(line);
-    
-    paramWidgetFullName = modifiers[modifiers.size() - 1];
-
-    paramWidgetName = paramWidgetFullName.substr(0, paramWidgetFullName.length() - layoutTemplates[listSlotIndex].suffix.length());
-    
-    cell = layoutTemplates[listSlotIndex].suffix;
 }
 
 void ZoneManager::PreProcessZones()
@@ -3536,7 +3480,7 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     if (isUsed)
         return;
 
-    for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+    for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
         selectedTrackFXZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if (isUsed)
@@ -3548,7 +3492,7 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     if (isUsed)
         return;
 
-    for (int i = 0; i < goZones_.GetSize(); ++i)
+    for (int i = 0; i < goZones_.size(); ++i)
         goZones_[i]->DoTouch(widget, widget->GetName(), isUsed, value);
 
     if (isUsed)
@@ -4129,7 +4073,7 @@ void ControlSurface::SetShift(bool value)
     {
         modifierManager_->SetShift(value, latchTime_);
         
-        for (int i = 0; i < zoneManager_->GetListeners().GetSize(); ++i)
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
             if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
                 zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
     }

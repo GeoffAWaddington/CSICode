@@ -782,16 +782,14 @@ protected:
     static void destroyActionContextList(WDL_PtrList<ActionContext> *l) { l->Empty(true); delete l; }
     WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
         
-    WDL_PtrList<Zone> includedZones_;
+    ptrvector<Zone *> includedZones_;
 
-    static void disposeZoneRefList(WDL_PtrList<Zone> *l) { delete l; }  // does not dispose zones in list, these are not owned by us
-    WDL_StringKeyedArray<WDL_PtrList<Zone> *> subZones_;
+    ptrvector<Zone *> subZones_;
 
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:   
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath),
-    subZones_(true, disposeZoneRefList), actionContextDictionary_(destroyActionContextListArray)
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, string name, string alias, string sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), actionContextDictionary_(destroyActionContextListArray)
     {
         isActive_ = false;
     }
@@ -826,7 +824,7 @@ public:
     
     void AddIncludedZone(Zone * zone)
     {
-        includedZones_.Add(zone);
+        includedZones_.push_back(zone);
     }
     
     int GetModifier(Widget *widget)
@@ -906,8 +904,8 @@ public:
     {
         isActive_ = true;
         
-        for (int i = 0; i < includedZones_.GetSize(); ++i)
-            includedZones_.Get(i)->Activate();
+        for (int i = 0; i < includedZones_.size(); ++i)
+            includedZones_[i]->Activate();
     }
 
     void RequestUpdateWidget(Widget *widget)
@@ -921,20 +919,15 @@ public:
     
     virtual void GoSubZone(const char *subZoneName)
     {
-        for (int i = 0; i < subZones_.GetSize(); ++i)
+        for (int i = 0; i < subZones_.size(); ++i)
         {
-            WDL_PtrList<Zone> *zones = subZones_.Enumerate(i);
-            
-            for (int j = 0; j < zones->GetSize(); ++j)
+            if ( ! strcmp(subZones_[i]->GetName(), subZoneName))
             {
-                if ( ! strcmp(zones->Get(j)->GetName(), subZoneName))
-                {
-                    zones->Get(j)->SetSlotIndex(GetSlotIndex());
-                    zones->Get(j)->Activate();
-                }
-                else
-                    zones->Get(j)->Deactivate();
+                subZones_[i]->SetSlotIndex(GetSlotIndex());
+                subZones_[i]->Activate();
             }
+            else
+                subZones_[i]->Deactivate();
         }
     }
 };
@@ -1400,9 +1393,9 @@ private:
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
-    void GetWidgetNameAndModifiers(const char *line, int listSlotIndex, string &cell, string &paramWidgetName, string &paramWidgetFullName, string_list &modifiers, int &modifier, const ptrvector<FXParamLayoutTemplate> &layoutTemplates);
         
     void GetWidgetNameAndModifiers(const char *line, ActionTemplate *actionTemplate);
+
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
 
@@ -1497,7 +1490,7 @@ private:
             }
         }
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoSelectedTrackSend(zoneName);
     }
     
@@ -1514,7 +1507,7 @@ private:
             }
         }
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoSelectedTrackReceive(zoneName);
     }
   
@@ -1523,7 +1516,7 @@ private:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoSelectedTrackFX();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoSelectedTrackFX();
     }
         
@@ -1540,7 +1533,7 @@ private:
             }
         }
         else
-            for (int i = 0; i < (int)listeners_.GetSize(); ++i)
+            for (int i = 0; i < (int)listeners_.size(); ++i)
                 listeners_[i]->ListenToGoCustom(zoneName);
     }
     
@@ -1605,7 +1598,7 @@ private:
             }
         }
         else
-            for (int i = 0; i < (int)listeners_.GetSize(); ++i)
+            for (int i = 0; i < (int)listeners_.size(); ++i)
                 listeners_[i]->ListenToGoSelectedTrackFXMenu(zoneName);
     }
     
@@ -1794,7 +1787,7 @@ public:
     Navigator *GetSelectedTrackNavigator();
     Navigator *GetFocusedFXNavigator();
     
-    bool GetIsBroadcaster() { return  ! (listeners_.GetSize() == 0); }
+    bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(ControlSurface *surface);
     void SetListenerCategories(const char *categoryList);
     const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
@@ -1927,7 +1920,7 @@ public:
         if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
     }
     
@@ -1936,7 +1929,7 @@ public:
         if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             ClearSelectedTrackFX();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToClearSelectedTrackFX();
     }
     
@@ -1945,7 +1938,7 @@ public:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFXSlot(zone);
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToClearFXSlot(zone);
     }
                 
@@ -1987,7 +1980,7 @@ public:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFXParam();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToClearFocusedFXParam();
     }
     
@@ -1996,7 +1989,7 @@ public:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ClearFocusedFX();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToClearFocusedFX();
     }
     
@@ -2091,7 +2084,7 @@ public:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoHome();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoHome();
     }
         
@@ -2105,7 +2098,7 @@ public:
     {
         ResetSelectedTrackOffsets();
         
-        selectedTrackFXZones_.Empty();
+        selectedTrackFXZones_.Empty(true);
         
         for (int i = 0; i < goZones_.size(); ++i)
         {
@@ -2126,7 +2119,7 @@ public:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXParamMapping();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToToggleEnableFocusedFXParamMapping();
     }
 
@@ -2135,7 +2128,7 @@ public:
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             ToggleEnableFocusedFXMapping();
         else
-            for (int i = 0; i < listeners_.GetSize(); ++i)
+            for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToToggleEnableFocusedFXMapping();
     }
     
@@ -2157,7 +2150,6 @@ public:
         return true;
     }
 
-    
     void ClearFXMapping()
     {
         selectedTrackFXZones_.Empty();
@@ -2215,13 +2207,13 @@ public:
         if (focusedFXZone_ != NULL)
             focusedFXZone_->RequestUpdate();
         
-        for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
             selectedTrackFXZones_[i]->RequestUpdate();
         
         if (fxSlotZone_ != NULL)
             fxSlotZone_->RequestUpdate();
         
-        for (int i = 0; i < goZones_.GetSize(); ++i)
+        for (int i = 0; i < goZones_.size(); ++i)
             goZones_[i]->RequestUpdate();
 
         if (homeZone_ != NULL)
@@ -2256,7 +2248,7 @@ public:
         if (isUsed)
             return;
         
-        for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
             selectedTrackFXZones_[i]->DoAction(widget, isUsed, value);
         
         if (isUsed)
@@ -2268,7 +2260,7 @@ public:
         if (isUsed)
             return;
 
-        for (int i = 0; i < goZones_.GetSize(); ++i)
+        for (int i = 0; i < goZones_.size(); ++i)
             goZones_[i]->DoAction(widget, isUsed, value);
 
         if (isUsed)
@@ -2306,7 +2298,7 @@ public:
         if (isUsed)
             return;
         
-        for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
             selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
         
         if (isUsed)
@@ -2318,7 +2310,7 @@ public:
         if (isUsed)
             return;
 
-        for (int i = 0; i < goZones_.GetSize(); ++i)
+        for (int i = 0; i < goZones_.size(); ++i)
             goZones_[i]->DoRelativeAction(widget, isUsed, delta);
         
         if (isUsed)
@@ -2356,7 +2348,7 @@ public:
         if (isUsed)
             return;
         
-        for (int i = 0; i < selectedTrackFXZones_.GetSize(); ++i)
+        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
             selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
         
         if (isUsed)
@@ -2368,7 +2360,7 @@ public:
         if (isUsed)
             return;
 
-        for (int i = 0; i < goZones_.GetSize(); ++i)
+        for (int i = 0; i < goZones_.size(); ++i)
             goZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 
         if (isUsed)
