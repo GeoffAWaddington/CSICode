@@ -72,8 +72,8 @@ extern bool g_fxParamsWrite;
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 static const char * const s_CSIName = "CSI";
-static const char * const s_CSIVersionDisplay = "v3.0";
-static const char * const s_MajorVersionToken = "Version 3.0";
+static const char * const s_CSIVersionDisplay = "v7.0";
+static const char * const s_MajorVersionToken = "Version 7.0";
 static const char * const s_PageToken = "Page";
 static const char * const s_MidiSurfaceToken = "MidiSurface";
 static const char * const s_OSCSurfaceToken = "OSCSurface";
