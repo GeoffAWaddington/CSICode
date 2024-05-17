@@ -769,9 +769,11 @@ public:
     virtual ~Zone()
     {
         widgets_.Empty();
+        includedZones_.clear();
+        subZones_.clear();
     }
     
-    void InitSubZones(const string_list &subZones, Zone *enclosingZone);
+    void InitSubZones(const string_list &subZones, const char *widgetSuffix);
     int GetSlotIndex();
     void SetXTouchDisplayColors(const char *color);
     void RestoreXTouchDisplayColors();
@@ -787,7 +789,8 @@ public:
     void RequestUpdate();
 
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
-    
+    ptrvector<Zone *> &GetIncludedZones() { return includedZones_; }
+
     virtual const char *GetType() { return "Zone"; }
     
     Navigator *GetNavigator() { return navigator_; }
@@ -1362,7 +1365,7 @@ private:
                                    bool &isDecrease, bool &isIncrease);
     void Initialize();
     void GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators);
-    void LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_list &zoneList);
+    void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
    
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
     {
@@ -1574,10 +1577,10 @@ private:
             GoFXSlot(track, navigator, fxSlot);
     }
     
-    void ListenToClearFXSlot(Zone *zone)
+    void ListenToClearFXSlot()
     {
        if (listensToFXMenu_)
-           ClearFXSlot(zone);
+           ClearFXSlot();
     }
             
     void ListenToGoSelectedTrackFX()
@@ -1658,12 +1661,12 @@ private:
         for (int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
             selectedTrackFXZones_[i]->Deactivate();
         
-        selectedTrackFXZones_.Empty();
+        selectedTrackFXZones_.Empty(true);
     }
     
-    void ClearFXSlot(Zone *zone)
+    void ClearFXSlot()
     {
-        if (fxSlotZone_ == zone)
+        if (fxSlotZone_ != NULL)
         {
             fxSlotZone_->Deactivate();
             delete fxSlotZone_;
@@ -1671,7 +1674,7 @@ private:
             ReactivateFXMenuZone();
         }
     }
-    
+
     void ReactivateFXMenuZone()
     {
         for (int i = 0; i < goZones_.size(); ++i)
@@ -1685,10 +1688,26 @@ public:
 
     ~ZoneManager()
     {
-        // GAW TDB -- clean up Zones
+        if (homeZone_ != NULL)
+            delete homeZone_;
+        
+        if (focusedFXParamZone_!= NULL)
+            delete focusedFXParamZone_;
+
+        if (learnFXZone_!= NULL)
+            delete learnFXZone_;
+        
+        if (fxSlotZone_ != NULL)
+            delete fxSlotZone_;
+
+        goZones_.clear();
+
+        ClearFocusedFX();
+        ClearFocusedFXParam();
+        ClearSelectedTrackFX();
+        ClearLearnedFXParams();
     }
-     
-    
+
     
     
     
@@ -1733,7 +1752,6 @@ public:
     
     
     
-    void PreProcessZones();
         
     Navigator *GetMasterTrackNavigator();
     Navigator *GetSelectedTrackNavigator();
@@ -1749,12 +1767,8 @@ public:
     void GoFocusedFX();
     void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
      
+    void PreProcessZones();
     void PreProcessZoneFile(const char *filePath);
-    
-    
-    
-    
-    
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
     
     void UpdateCurrentActionContextModifiers();
@@ -1850,7 +1864,6 @@ public:
 
         if (learnFXZone_ != NULL)
             learnFXZone_->Activate();
-        
     }
     
     void ExitLearn()
@@ -1882,13 +1895,13 @@ public:
                 listeners_[i]->ListenToClearSelectedTrackFX();
     }
     
-    void DeclareClearFXSlot(Zone *zone)
+    void DeclareClearFXSlot()
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            ClearFXSlot(zone);
+            ClearFXSlot();
         else
             for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFXSlot(zone);
+                listeners_[i]->ListenToClearFXSlot();
     }
                 
     void RemoveZone(const char *zoneName)
@@ -2040,7 +2053,7 @@ public:
     void OnTrackSelection()
     {
         if (fxSlotZone_ != NULL)
-            ClearFXSlot(fxSlotZone_);
+            ClearFXSlot();
     }
 
     void OnTrackDeselection()
@@ -2101,13 +2114,9 @@ public:
 
     void ClearFXMapping()
     {
-        selectedTrackFXZones_.Empty();
-        
-        if (focusedFXZone_ != NULL)
-            ClearFocusedFX();
-        
-        if (fxSlotZone_ != NULL)
-            ClearFXSlot(fxSlotZone_);
+        selectedTrackFXZones_.Empty(true);
+        ClearFocusedFX();
+        ClearFXSlot();
     }
         
     void AdjustBank(const char *zoneName, int amount)
@@ -3288,7 +3297,6 @@ public:
 
         ControlSurface::RequestUpdate();
     }
-
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

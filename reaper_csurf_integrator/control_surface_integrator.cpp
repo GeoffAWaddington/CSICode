@@ -2057,7 +2057,7 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
+void Zone::InitSubZones(const string_list &subZones, const char *widgetSuffix)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
@@ -2065,8 +2065,8 @@ void Zone::InitSubZones(const string_list &subZones, Zone *enclosingZone)
         
         if (zfp.Exists(subZones[i]))
         {
-            SubZone *subZone = new SubZone(csi_, zoneManager_, enclosingZone->GetNavigator(), enclosingZone->GetSlotIndex(), subZones[i].c_str(), zfp.Get(subZones[i])->alias.c_str(), zfp.Get(subZones[i])->filePath.c_str(), enclosingZone);
-            zoneManager_->LoadZoneFile(subZone, "");
+            SubZone *subZone = new SubZone(csi_, zoneManager_, GetNavigator(), GetSlotIndex(), subZones[i].c_str(), zfp.Get(subZones[i])->alias.c_str(), zfp.Get(subZones[i])->filePath.c_str(), this);
+            zoneManager_->LoadZoneFile(subZone, widgetSuffix);
             subZones_.push_back(subZone);
         }
     }
@@ -2586,7 +2586,7 @@ void ZoneManager::Initialize()
     string_list zoneList;
     if (zoneFilePaths_.Exists("GoZones"))
         LoadZoneMetadata(zoneFilePaths_.Get("GoZones")->filePath.c_str(), zoneList);
-    LoadZones(NULL, goZones_, zoneList);
+    LoadZones(goZones_, zoneList);
     
     if (zoneFilePaths_.Exists("FocusedFXParam"))
     {
@@ -2709,7 +2709,7 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator
         navigators.push_back(GetSelectedTrackNavigator());
 }
 
-void ZoneManager::LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_list &zoneList)
+void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
 {
     for (int i = 0; i < zoneList.size(); ++i)
     {
@@ -2725,11 +2725,7 @@ void ZoneManager::LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_
                 if (zone)
                 {
                     LoadZoneFile(zone, "");
-                    
-                    if (ownerZone)
-                        ownerZone->AddIncludedZone(zone);
-                    else
-                        goZones.push_back(zone);
+                    zones.push_back(zone);
                 }
             }
             else
@@ -2745,10 +2741,7 @@ void ZoneManager::LoadZones(Zone *ownerZone, ptrvector<Zone *> &goZones, string_
                     
                     LoadZoneFile(zone, buf);
 
-                    if (ownerZone)
-                        ownerZone->AddIncludedZone(zone);
-                    else
-                        goZones.push_back(zone);
+                    zones.push_back(zone);
                 }
             }
         }
@@ -2759,9 +2752,9 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 {
     int lineNumber = 0;
     bool isInIncludedZonesSection = false;
-    string_list includedZones;
+    string_list includedZonesList;
     bool isInSubZonesSection = false;
-    string_list subZones;
+    string_list subZonesList;
 
     try
     {
@@ -2784,26 +2777,26 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
             
             if (tokens[0] == "Zone" || tokens[0] == "ZoneEnd")
                 continue;
+            
             else if (tokens[0] == "SubZones")
                 isInSubZonesSection = true;
             else if (tokens[0] == "SubZonesEnd")
             {
                 isInSubZonesSection = false;
-                // GAW TBD -- handle SubZone creation
+                zone->InitSubZones(subZonesList, widgetSuffix);
             }
             else if (isInSubZonesSection)
-                subZones.push_back(tokens[0]);
+                subZonesList.push_back(tokens[0]);
             
             else if (tokens[0] == "IncludedZones")
                 isInIncludedZonesSection = true;
             else if (tokens[0] == "IncludedZonesEnd")
             {
                 isInIncludedZonesSection = false;
-                ptrvector<Zone *> dummy; // to satisfy protocol
-                LoadZones(zone, dummy, includedZones);
+                LoadZones(zone->GetIncludedZones(), includedZonesList);
             }
             else if (isInIncludedZonesSection)
-                includedZones.push_back(tokens[0]);
+                includedZonesList.push_back(tokens[0]);
             
             else if (tokens.size() > 1)
             {
@@ -2832,6 +2825,9 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 
                 for (int i = 1; i < tokens.size(); ++i)
                     memberParams.push_back(tokens[i]);
+                
+                if (!strcmp(tokens[1], "NullDisplay"))
+                    continue;
                 
                 ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
                 
@@ -3021,8 +3017,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 
     if (zoneFilePaths_.Exists(fxName))
     {
-        if (fxSlotZone_ != NULL)
-            ClearFXSlot(fxSlotZone_);
+        ClearFXSlot();
         
         if ( ! csi_->HaveFXSteppedValuesBeenCalculated(fxName))
             CalculateSteppedValues(fxName, track, fxSlot);

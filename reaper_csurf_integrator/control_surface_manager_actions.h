@@ -754,7 +754,7 @@ public:
         if (value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->DeclareClearFXSlot(context->GetZone());
+        context->GetSurface()->GetZoneManager()->DeclareClearFXSlot();
     }
 };
 
