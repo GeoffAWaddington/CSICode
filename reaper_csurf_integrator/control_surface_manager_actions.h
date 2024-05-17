@@ -690,7 +690,7 @@ public:
             !strcmp(name, "TrackFXMenu"))
             context->GetPage()->GoZone(name);
         else
-            context->GetSurface()->GetZoneManager()->GoZone(name);
+            context->GetSurface()->GetZoneManager()->DeclareGoZone(name);
     }
 };
 
@@ -706,7 +706,7 @@ public:
         if (value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->DeclareClearFocusedFXParam();
+        context->GetSurface()->GetZoneManager()->DeclareClearFXZone("FocusedFXParam");
     }
 };
 
@@ -722,7 +722,7 @@ public:
         if (value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->DeclareClearFocusedFX();
+        context->GetSurface()->GetZoneManager()->DeclareClearFXZone("FocusedFX");
     }
 };
 
@@ -738,7 +738,7 @@ public:
         if (value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->DeclareClearSelectedTrackFX();
+        context->GetSurface()->GetZoneManager()->DeclareClearFXZone("SelectedTrackFX");
     }
 };
 
@@ -754,7 +754,7 @@ public:
         if (value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->DeclareClearFXSlot();
+        context->GetSurface()->GetZoneManager()->DeclareClearFXZone("FXSlot");
     }
 };
 

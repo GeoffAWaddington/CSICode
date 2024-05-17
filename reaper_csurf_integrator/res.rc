@@ -230,7 +230,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,386,176,37,14
     PUSHBUTTON      "Cancel",IDCANCEL,428,176,37,14
-    GROUPBOX        "Surface Listens to",IDC_ListenCheckboxes,250,24,215,106
+    GROUPBOX        "Surface Listens to",IDC_ListenCheckboxes,250,24,215,87
     LISTBOX         IDC_LIST_Listeners,133,39,107,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "GoHome",IDC_CHECK_GoHome,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,47,44,10
     CONTROL         "SelectedTrackSends",IDC_CHECK_Sends,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,255,69,78,10
@@ -248,16 +248,14 @@ BEGIN
     CONTROL         "FocusedFX",IDC_CHECK_FocusedFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,69,49,10
     CONTROL         "FocusedFXParam",IDC_CHECK_FocusedFXParam,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,91,66,10
     CONTROL         "SelectedTrackFX",IDC_CHECK_SelectedTrackFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,255,47,66,10
-    CONTROL         "Custom",IDC_CHECK_Custom,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,69,40,10
-    CONTROL         "LocalFXSlot",IDC_CHECK_LocalFXSlot,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,112,49,10
+    CONTROL         "LocalFXSlot",IDC_CHECK_LocalFXSlot,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,69,49,10
     CONTROL         "Modifiers",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,91,44,10
     CONTROL         "Show MIDI input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,154,65,10
     CONTROL         "Show input",IDC_CHECK_ShowInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,77,154,52,10
     CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,133,154,53,10
     CONTROL         "Write params to /CSI/Zones/ZoneRawFXFiles when FX inserted",IDC_CHECK_WriteFXParams,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,154,247,10
-    GROUPBOX        "Monitoring",IDC_STATIC,7,139,458,32
-    CONTROL         "LearnFX",IDC_CHECK_LearnFocusedFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,112,49,10
+    GROUPBOX        "Monitoring",IDC_STATIC,5,139,460,32
 END
 
 IDD_DIALOG_EditFXAlias DIALOGEX 0, 0, 122, 71

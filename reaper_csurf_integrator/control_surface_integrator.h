@@ -1330,13 +1330,11 @@ private:
     bool listensToGoHome_;
     bool listensToSends_;
     bool listensToReceives_;
-    bool listensToLearnFocusedFX_;
     bool listensToFocusedFX_;
     bool listensToFocusedFXParam_;
     bool listensToFXMenu_;
     bool listensToLocalFXSlot_;
     bool listensToSelectedTrackFX_;
-    bool listensToCustom_;
 
     Zone *focusedFXParamZone_;
     bool isFocusedFXParamMappingEnabled_;
@@ -1429,67 +1427,41 @@ private:
    
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToLearnFocusedFX_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
-    }
-
-    void DeclareGoSelectedTrackSend(const char *zoneName)
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-        else
-            for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackSend(zoneName);
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
     }
     
-    void DeclareGoSelectedTrackReceive(const char *zoneName)
+    void ListenToGoZone(const char *zoneName)
     {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-        else
+        if (!strcmp("SelectedTrackSend", zoneName) && listensToSends_)
             for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackReceive(zoneName);
-    }
-  
-    void DeclareGoSelectedTrackFX()
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            GoSelectedTrackFX();
-        else
+                listeners_[i]->GoZone(zoneName);
+        else if (!strcmp("SelectedTrackReceive", zoneName) && listensToReceives_)
             for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackFX();
-    }
-        
-    void DeclareGoCustom(const char *zoneName)
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
+                listeners_[i]->GoZone(zoneName);
+        else if (!strcmp("SelectedTrackFX", zoneName) && listensToSelectedTrackFX_)
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->GoZone(zoneName);
+        else if (!strcmp("SelectedTrackFXMenu", zoneName) && listensToFXMenu_)
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->GoZone(zoneName);
         else
-            for (int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoCustom(zoneName);
+            GoZone(zoneName);
+    }
+    
+    void ListenToClearFXZone(const char *zoneToClear)
+    {
+        if (!strcmp("FocusedFXParam", zoneToClear) && listensToFocusedFXParam_)
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->ClearFocusedFXParam();
+        else if (!strcmp("FocusedFX", zoneToClear) && listensToFocusedFX_)
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->ClearFocusedFX();
+        else if (!strcmp("SelectedTrackFX", zoneToClear) && listensToSelectedTrackFX_)
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->ClearSelectedTrackFX();
+        else if (!strcmp("FXSlot", zoneToClear) && listensToFXMenu_)
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->ClearFXSlot();
     }
     
     void ListenToGoHome()
@@ -1498,109 +1470,12 @@ private:
             GoHome();
     }
     
-    void ListenToGoSelectedTrackSend(const char *zoneName)
-    {
-        if (listensToSends_)
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-    }
-
-    void ListenToGoSelectedTrackReceive(const char *zoneName)
-    {
-        if (listensToReceives_)
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-    }
-    
-    void ListenToGoCustom(const char *zoneName)
-    {
-        if (listensToCustom_)
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-    }
-
-    void DeclareGoSelectedTrackFXMenu(const char *zoneName)
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-        else
-            for (int i = 0; i < (int)listeners_.size(); ++i)
-                listeners_[i]->ListenToGoSelectedTrackFXMenu(zoneName);
-    }
-    
-    void ListenToGoSelectedTrackFXMenu(const char *zoneName)
-    {
-        if (listensToFXMenu_)
-        {
-            if (homeZone_ != NULL)
-            {
-                ClearFXMapping();
-                ResetOffsets();
-                        
-                GoMutexZone(zoneName);
-            }
-        }
-    }
-    
     void ListenToGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         if (listensToFXMenu_)
             GoFXSlot(track, navigator, fxSlot);
     }
-    
-    void ListenToClearFXSlot()
-    {
-       if (listensToFXMenu_)
-           ClearFXSlot();
-    }
-            
-    void ListenToGoSelectedTrackFX()
-    {
-       if (listensToSelectedTrackFX_)
-           GoSelectedTrackFX();
-    }
-    
-    void ListenToClearSelectedTrackFX()
-    {
-       if (listensToSelectedTrackFX_)
-           ClearSelectedTrackFX();
-    }
-    
-    void ListenToClearFocusedFXParam()
-    {
-       if (listensToFocusedFXParam_)
-           ClearFocusedFXParam();
-    }
-    
+
     void ListenToToggleEnableFocusedFXParamMapping()
     {
         if (listensToFocusedFXParam_)
@@ -1620,12 +1495,6 @@ private:
         }
     }
 
-    void ListenToClearFocusedFX()
-    {
-       if (listensToFocusedFX_)
-           ClearFocusedFX();
-    }
-
     void ListenToToggleEnableFocusedFXMapping()
     {
         if (listensToFocusedFX_)
@@ -1640,10 +1509,7 @@ private:
     void ClearFocusedFXParam()
     {
         if (focusedFXParamZone_ != NULL)
-        {
             focusedFXParamZone_->Deactivate();
-            focusedFXParamZone_ = NULL;
-        }
     }
     
     void ClearFocusedFX()
@@ -1716,8 +1582,6 @@ public:
     
     
     
-    int numFXLayoutColumns_;
-    ptrvector<FXRowLayout *> fxRowLayouts_;
     
     string_list paramWidgets_;
     string_list displayRows_;
@@ -1877,6 +1741,62 @@ public:
         //ClearLearnedFXParams();
     }
     
+    void DeclareGoZone(const char *zoneName)
+    {
+        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+            GoZone(zoneName);
+        else
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->ListenToGoZone(zoneName);
+    }
+    
+    void GoZone(const char *zoneName)
+    {
+        ClearFXMapping();
+        ResetOffsets();
+
+        for (int i = 0; i < goZones_.size(); ++i)
+        {
+            if (!strcmp(zoneName, goZones_[i]->GetName()))
+            {
+                if (goZones_[i]->GetIsActive())
+                {
+                    for (int j = i; j < goZones_.size(); ++j)
+                        if (!strcmp(zoneName, goZones_[j]->GetName()))
+                            goZones_[j]->Deactivate();
+                    
+                    return;
+                }
+            }
+        }
+        
+        for (int i = 0; i < goZones_.size(); ++i)
+        {
+            if (!strcmp(zoneName, goZones_[i]->GetName()))
+               goZones_[i]->Activate();
+            else
+                goZones_[i]->Deactivate();
+        }
+    }
+    
+    void DeclareClearFXZone(const char *zoneName)
+    {
+        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        {
+            if (!strcmp("FocusedFXParam", zoneName))
+                ClearFocusedFXParam();
+            else if (!strcmp("FocusedFX", zoneName))
+                ClearFocusedFX();
+            else if (!strcmp("SelectedTrackFX", zoneName))
+                ClearSelectedTrackFX();
+            else if (!strcmp("FXSlot", zoneName))
+                ClearFXSlot();
+        }
+        else
+            for (int i = 0; i < listeners_.size(); ++i)
+                listeners_[i]->ListenToClearFXZone(zoneName);
+    }
+    
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
@@ -1884,24 +1804,6 @@ public:
         else
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
-    }
-    
-    void DeclareClearSelectedTrackFX()
-    {
-        if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
-            ClearSelectedTrackFX();
-        else
-            for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToClearSelectedTrackFX();
-    }
-    
-    void DeclareClearFXSlot()
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            ClearFXSlot();
-        else
-            for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFXSlot();
     }
                 
     void RemoveZone(const char *zoneName)
@@ -1936,72 +1838,7 @@ public:
             delete learnFocusedFXZone_;
         }
     }
-        
-    void DeclareClearFocusedFXParam()
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            ClearFocusedFXParam();
-        else
-            for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFocusedFXParam();
-    }
-    
-    void DeclareClearFocusedFX()
-    {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            ClearFocusedFX();
-        else
-            for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToClearFocusedFX();
-    }
-    
-    void GoZone(const char *zoneName)
-    {
-        if (!strcmp(zoneName, "SelectedTrackSend"))
-            DeclareGoSelectedTrackSend(zoneName);
-        else if (!strcmp(zoneName, "SelectedTrackReceive"))
-            DeclareGoSelectedTrackReceive(zoneName);
-        else if (!strcmp(zoneName, "SelectedTrackFX"))
-            DeclareGoSelectedTrackFX();
-        else if (!strcmp(zoneName, "SelectedTrackFXMenu"))
-            DeclareGoSelectedTrackFXMenu(zoneName);
-        else if (!strncmp(zoneName, "Custom", 6))
-            DeclareGoCustom(zoneName);
-        else if (homeZone_ != NULL)
-        {
-            ClearFXMapping();
-            ResetOffsets();
-                    
-            GoMutexZone(zoneName);
-        }
-    }
-    
-    void GoMutexZone(const char *zoneName)
-    {
-        for (int i = 0; i < goZones_.size(); ++i)
-        {
-            if (!strcmp(zoneName, goZones_[i]->GetName()))
-            {
-                if (goZones_[i]->GetIsActive())
-                {
-                    for (int j = i; j < goZones_.size(); ++j)
-                        if (!strcmp(zoneName, goZones_[j]->GetName()))
-                            goZones_[j]->Deactivate();
-                    
-                    return;
-                }
-            }
-        }
-        
-        for (int i = 0; i < goZones_.size(); ++i)
-        {
-            if (!strcmp(zoneName, goZones_[i]->GetName()))
-               goZones_[i]->Activate();
-            else
-                goZones_[i]->Deactivate();
-        }
-    }
-
+          
     void HideAllFXWindows()
     {
         for (int i = -1; i < GetNumTracks(); i++)
@@ -4481,13 +4318,6 @@ public:
         else
             for (int i = 0; i < (int)surfaces_.GetSize(); ++i)
                 surfaces_.Get(i)->GetZoneManager()->AdjustBank(zoneName, amount);
-    }
-    
-    void AddZoneFilePath(ControlSurface *originatingSurface, const char *zoneFolder, const char *name, CSIZoneInfo *info)
-    {
-        for (int i = 0; i < surfaces_.GetSize(); ++i)
-            if (surfaces_.Get(i) != originatingSurface)
-                surfaces_.Get(i)->GetZoneManager()->AddZoneFilePath(zoneFolder, name, info);
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2539,19 +2539,16 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     
     lastTouchedControl_ = NULL;
     focusedFXParamZone_ = NULL;
-    numFXLayoutColumns_ = 0;
     hasColor_ = false;
     
     listensToGoHome_ = false;
     listensToSends_ = false;
     listensToReceives_ = false;
-    listensToLearnFocusedFX_ = false;
     listensToFocusedFX_ = false;
     listensToFocusedFXParam_ = false;
     listensToFXMenu_ = false;
     listensToLocalFXSlot_ = false;
     listensToSelectedTrackFX_ = false;
-    listensToCustom_ = false;
 
     isFocusedFXParamMappingEnabled_ = false;
     
@@ -2886,8 +2883,6 @@ void ZoneManager::SetListenerCategories(const char *categoryList)
             listensToSends_ = true;
         if (categoryTokens[i] == "Receives")
             listensToReceives_ = true;
-        if (categoryTokens[i] == "LearnFocusedFX")
-            listensToLearnFocusedFX_ = true;
         if (categoryTokens[i] == "FocusedFX")
             listensToFocusedFX_ = true;
         if (categoryTokens[i] == "FocusedFXParam")
@@ -2897,10 +2892,7 @@ void ZoneManager::SetListenerCategories(const char *categoryList)
         if (categoryTokens[i] == "LocalFXSlot")
             listensToLocalFXSlot_ = true;
         if (categoryTokens[i] == "SelectedTrackFX")
-            listensToSelectedTrackFX_ = true;
-        if (categoryTokens[i] == "Custom")
-            listensToCustom_ = true;
-        
+            listensToSelectedTrackFX_ = true;        
         if (categoryTokens[i] == "Modifiers")
             surface_->SetListensToModifiers();
     }
@@ -2982,7 +2974,7 @@ void ZoneManager::GoSelectedTrackFX()
         ClearFXMapping();
         ResetOffsets();
                 
-        GoMutexZone("SelectedTrackFX");
+        GoZone("SelectedTrackFX");
     }
 
     selectedTrackFXZones_.clear();
