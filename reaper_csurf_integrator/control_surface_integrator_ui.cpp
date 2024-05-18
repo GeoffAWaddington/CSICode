@@ -1195,6 +1195,11 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
         
         for (int row = 0; row < s_fxRowLayouts.size(); ++row)
         {
+            char modifiers[BUFSIZ];
+            modifiers[0] = 0;
+            if (s_fxRowLayouts[row]->modifiers != "")
+                snprintf(modifiers, sizeof(modifiers), "%s+", s_fxRowLayouts[row]->modifiers.c_str());
+            
             for (int column = 0; column < s_numFXLayoutColumns; ++column)
             {
                 if (currentParam < numParams)
@@ -1202,51 +1207,24 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                     char paramName[BUFSIZ];
                     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
                     
-                    if (s_fxRowLayouts[row]->modifiers != "")
-                    {
-                        fprintf(fxFile, "\t%s+%s%d FXParam %d %s\n", s_fxRowLayouts[row]->modifiers.c_str(), s_paramWidget.c_str(), column + 1, currentParam, s_paramWidgetParams.c_str());
-                        fprintf(fxFile, "\t%s+%s%d FixedTextDisplay \"%s\" %s\n", s_fxRowLayouts[row]->modifiers.c_str(), s_nameWidget.c_str(), column + 1, paramName, s_nameWidgetParams.c_str());
-                        fprintf(fxFile, "\t%s+%s%d FXParamValueDisplay %d %s\n\n", s_fxRowLayouts[row]->modifiers.c_str(), s_valueWidget.c_str(), column + 1, currentParam, s_valueWidgetParams.c_str());
-                    }
-                    else
-                    {
-                        fprintf(fxFile, "\t%s%d FXParam %d %s\n", s_paramWidget.c_str(), column + 1, currentParam, s_paramWidgetParams.c_str());
-                        fprintf(fxFile, "\t%s%d FixedTextDisplay \"%s\" %s\n", s_nameWidget.c_str(), column + 1, paramName, s_nameWidgetParams.c_str());
-                        fprintf(fxFile, "\t%s%d FXParamValueDisplay %d %s\n\n ", s_valueWidget.c_str(), column + 1, currentParam, s_valueWidgetParams.c_str());
-                    }
+                    fprintf(fxFile, "\t%s%s%d FXParam %d %s\n", modifiers, s_paramWidget.c_str(), column + 1, currentParam, s_paramWidgetParams.c_str());
+                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_nameWidget.c_str(), column + 1, paramName, s_nameWidgetParams.c_str());
+                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_valueWidget.c_str(), column + 1, currentParam, s_valueWidgetParams.c_str());
                         
                     currentParam++;
                 }
                 else
                 {
-                    if (s_fxRowLayouts[row]->modifiers != "")
-                    {
-                        fprintf(fxFile, "\t%s+%s%d NoAction\n", s_fxRowLayouts[row]->modifiers.c_str(), s_paramWidget.c_str(), column + 1);
-                        fprintf(fxFile, "\t%s+%s%d NoAction\n", s_fxRowLayouts[row]->modifiers.c_str(), s_nameWidget.c_str(), column + 1);
-                        fprintf(fxFile, "\t%s+%s%d NoAction\n\n", s_fxRowLayouts[row]->modifiers.c_str(), s_valueWidget.c_str(), column + 1);
-                    }
-                    else
-                    {
-                        fprintf(fxFile, "\t%s%d NoAction\n", s_paramWidget.c_str(), column + 1);
-                        fprintf(fxFile, "\t%s%d NoAction\n", s_nameWidget.c_str(), column + 1);
-                        fprintf(fxFile, "\t%s%d NoAction\n\n", s_valueWidget.c_str(), column + 1);
-                    }
+                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_paramWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_nameWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction\n\n", modifiers, s_valueWidget.c_str(), column + 1);
                 }
                 
                 for (int cell = 1; cell < s_paramWidgets.size(); ++cell)
                 {
-                    if (s_fxRowLayouts[row]->modifiers != "")
-                    {
-                        fprintf(fxFile, "\t%s+%s%d NoAction\n", s_fxRowLayouts[row]->modifiers.c_str(), s_paramWidgets[cell].c_str(), column + 1);
-                        fprintf(fxFile, "\t%s+%s%d NullDisplay\n", s_fxRowLayouts[row]->modifiers.c_str(), s_nameWidget.c_str(), column + 1);
-                        fprintf(fxFile, "\t%s+%s%d NullDisplay\n\n", s_fxRowLayouts[row]->modifiers.c_str(), s_valueWidget.c_str(), column + 1);
-                    }
-                    else
-                    {
-                        fprintf(fxFile, "\t%s%d NoAction\n", s_paramWidgets[cell].c_str(), column + 1);
-                        fprintf(fxFile, "\t%s%d NullDisplay\n", s_nameWidget.c_str(), column + 1);
-                        fprintf(fxFile, "\t%s%d NullDisplay\n\n", s_valueWidget.c_str(), column + 1);
-                    }
+                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_paramWidgets[cell].c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NullDisplay\n", modifiers, s_nameWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NullDisplay\n\n", modifiers, s_valueWidget.c_str(), column + 1);
                 }
             }
         }
