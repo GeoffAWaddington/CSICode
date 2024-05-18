@@ -1205,14 +1205,14 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                     if (s_fxRowLayouts[row]->modifiers != "")
                     {
                         fprintf(fxFile, "\t%s+%s%d FXParam %d %s\n", s_fxRowLayouts[row]->modifiers.c_str(), s_paramWidget.c_str(), column + 1, currentParam, s_paramWidgetParams.c_str());
-                        fprintf(fxFile, "\t%s+%s%d FixedTextDisplay \"%s\"\n", s_fxRowLayouts[row]->modifiers.c_str(), s_nameWidget.c_str(), column + 1, paramName);
-                        fprintf(fxFile, "\t%s+%s%d FXParamValueDisplay %d\n\n", s_fxRowLayouts[row]->modifiers.c_str(), s_valueWidget.c_str(), column + 1, currentParam);
+                        fprintf(fxFile, "\t%s+%s%d FixedTextDisplay \"%s\" %s\n", s_fxRowLayouts[row]->modifiers.c_str(), s_nameWidget.c_str(), column + 1, paramName, s_nameWidgetParams.c_str());
+                        fprintf(fxFile, "\t%s+%s%d FXParamValueDisplay %d %s\n\n", s_fxRowLayouts[row]->modifiers.c_str(), s_valueWidget.c_str(), column + 1, currentParam, s_valueWidgetParams.c_str());
                     }
                     else
                     {
                         fprintf(fxFile, "\t%s%d FXParam %d %s\n", s_paramWidget.c_str(), column + 1, currentParam, s_paramWidgetParams.c_str());
-                        fprintf(fxFile, "\t%s%d FixedTextDisplay \"%s\"\n", s_nameWidget.c_str(), column + 1, paramName);
-                        fprintf(fxFile, "\t%s%d FXParamValueDisplay %d\n\n ", s_valueWidget.c_str(), column + 1, currentParam);
+                        fprintf(fxFile, "\t%s%d FixedTextDisplay \"%s\" %s\n", s_nameWidget.c_str(), column + 1, paramName, s_nameWidgetParams.c_str());
+                        fprintf(fxFile, "\t%s%d FXParamValueDisplay %d %s\n\n ", s_valueWidget.c_str(), column + 1, currentParam, s_valueWidgetParams.c_str());
                     }
                         
                     currentParam++;
