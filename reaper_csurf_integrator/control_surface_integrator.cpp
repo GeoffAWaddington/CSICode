@@ -2672,36 +2672,35 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidget
     modifier += s_modifierManager.GetModifierValue(tokens);
 }
 
-void ZoneManager::GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators)
+void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators)
 {
-    // GAW TBD -- check Zones not in list -- if Navigator is defined, use it, otherwise default to SelectedTrackNavigator
-    
-    if (!strcmp(zoneName, "MasterTrack"))
+    if (!strcmp(navigatorName, "MasterTrackNavigator") || !strcmp(zoneName, "MasterTrack"))
         navigators.push_back(GetMasterTrackNavigator());
-    else if (!strcmp(zoneName, "Track") ||
+    else if (!strcmp(zoneName, "MasterTrackFXMenu"))
+        for (int i = 0; i < GetNumChannels(); i++)
+            navigators.push_back(GetMasterTrackNavigator());
+    else if (!strcmp(navigatorName, "TrackNavigator") ||
+             !strcmp(zoneName, "Track") ||
              !strcmp(zoneName, "VCA") ||
              !strcmp(zoneName, "Folder") ||
              !strcmp(zoneName, "SelectedTracks") ||
              !strcmp(zoneName, "TrackSend") ||
              !strcmp(zoneName, "TrackReceive") ||
              !strcmp(zoneName, "TrackFXMenu"))
-    {
         for (int i = 0; i < GetNumChannels(); i++)
         {
             Navigator *channelNavigator = GetSurface()->GetPage()->GetNavigatorForChannel(i + GetSurface()->GetChannelOffset());
             if (channelNavigator)
                 navigators.push_back(channelNavigator);
         }
-    }
     else if (!strcmp(zoneName, "SelectedTrack") ||
              !strcmp(zoneName, "SelectedTrackSend") ||
              !strcmp(zoneName, "SelectedTrackReceive") ||
              !strcmp(zoneName, "SelectedTrackFXMenu"))
         for (int i = 0; i < GetNumChannels(); i++)
             navigators.push_back(GetSelectedTrackNavigator());
-    else if (!strcmp(zoneName, "MasterTrackFXMenu"))
-        for (int i = 0; i < GetNumChannels(); i++)
-            navigators.push_back(GetMasterTrackNavigator());
+    else if (!strcmp(navigatorName, "FocusedFXNavigator"))
+        navigators.push_back(GetFocusedFXNavigator());
     else
         navigators.push_back(GetSelectedTrackNavigator());
 }
@@ -2710,35 +2709,45 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
 {
     for (int i = 0; i < zoneList.size(); ++i)
     {
-        if (zoneFilePaths_.Exists(zoneList[i]))
+        string_list tokens;
+        GetTokens(tokens, zoneList[i]);
+        
+        char zoneName[BUFSZ];
+        snprintf(zoneName, sizeof(zoneName), "%s", tokens[0].c_str());
+        
+        char navigatorName[BUFSZ];
+        navigatorName[0] = 0;
+        if(tokens.size() > 1)
+            snprintf(navigatorName, sizeof(navigatorName), "%s", tokens[1].c_str());
+    
+        if (zoneFilePaths_.Exists(zoneName))
         {
             ptrvector<Navigator *> navigators;
-            
-            GetNavigatorsForZone(zoneList[i], navigators);
+            GetNavigatorsForZone(zoneName, navigatorName, navigators);
             
             if (navigators.size() == 1)
             {
-                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneList[i]), string(zoneList[i]), zoneFilePaths_.Get(zoneList[i])->filePath);
+                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneName), zoneFilePaths_.Get(zoneName)->alias, zoneFilePaths_.Get(zoneName)->filePath);
                 if (zone)
                 {
                     LoadZoneFile(zone, "");
                     zones.push_back(zone);
                 }
             }
-            else
+            else if (navigators.size() > 1)
             {
                 for (int j = 0; j < navigators.size(); ++j)
                 {
                     char buf[BUFSZ];
-                    snprintf(buf, sizeof(buf), "%s%d", string(zoneList[i]).c_str(), j + 1);
+                    snprintf(buf, sizeof(buf), "%s%d", string(zoneName).c_str(), j + 1);
                     
-                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneList[i]), string(buf), zoneFilePaths_.Get(zoneList[i])->filePath);
-
-                    snprintf(buf, sizeof(buf), "%d", j + 1);
-                    
-                    LoadZoneFile(zone, buf);
-
-                    zones.push_back(zone);
+                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneName), string(buf), zoneFilePaths_.Get(zoneName)->filePath);
+                    if (zone)
+                    {
+                        snprintf(buf, sizeof(buf), "%d", j + 1);
+                        LoadZoneFile(zone, buf);
+                        zones.push_back(zone);
+                    }
                 }
             }
         }
@@ -2961,7 +2970,6 @@ void ZoneManager::GoFocusedFX()
         {
             focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath.c_str());
             LoadZoneFile(focusedFXParamZone_, "");
-            focusedFXZone_->SetXTouchDisplayColors("White");
             focusedFXZone_->Activate();
         }
     }

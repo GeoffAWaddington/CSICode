@@ -1362,7 +1362,7 @@ private:
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
     void Initialize();
-    void GetNavigatorsForZone(const char *zoneName, ptrvector<Navigator *> &navigators);
+    void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators);
     void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
    
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
