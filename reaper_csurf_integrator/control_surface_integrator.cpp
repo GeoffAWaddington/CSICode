@@ -1580,6 +1580,9 @@ void CSurfIntegrator::Init()
         ShowConsoleMsg(buffer);
     }
     
+    if (pages_.GetSize() == 0)
+        pages_.Add(new Page(this, "Home", false, false, false, false));
+    
     for (int i = 0; i < pages_.GetSize(); ++i)
     {
         for (int j = 0; j < pages_.Get(i)->GetSurfaces().GetSize(); ++j)

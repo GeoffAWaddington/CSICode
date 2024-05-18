@@ -3007,6 +3007,20 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 }
             }
           
+            if (s_pages.GetSize() == 0)
+            {
+                PageLine *page = new PageLine();
+                page->name = "Home";
+                page->followMCP = false;
+                page->synchPages = false;
+                page->isScrollLinkEnabled = false;
+                page->scrollSynch = false;
+
+                s_pages.Add(page);
+                
+                AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
+            }
+                
             if (s_surfaces.GetSize() > 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, 0, 0);
             
