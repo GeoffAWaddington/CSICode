@@ -1555,23 +1555,44 @@ public:
     ~ZoneManager()
     {
         if (homeZone_ != NULL)
+        {
             delete homeZone_;
-        
-        if (focusedFXParamZone_!= NULL)
+            homeZone_ = NULL;
+        }
+            
+        if (focusedFXZone_ != NULL)
+        {
+            delete focusedFXZone_;
+            focusedFXZone_ = NULL;
+        }
+            
+        if (focusedFXParamZone_ != NULL)
+        {
             delete focusedFXParamZone_;
-
-        if (learnFXZone_!= NULL)
+            focusedFXParamZone_ = NULL;
+        }
+            
+        if (learnFXZone_ != NULL)
+        {
             delete learnFXZone_;
-        
+            learnFXZone_ = NULL;
+        }
+            
         if (fxSlotZone_ != NULL)
+        {
             delete fxSlotZone_;
-
+            fxSlotZone_ = NULL;
+        }
+            
+        if (learnFocusedFXZone_ != NULL)
+        {
+            delete learnFocusedFXZone_;
+            learnFocusedFXZone_ = NULL;
+        }
+            
         goZones_.clear();
 
-        ClearFocusedFX();
-        ClearFocusedFXParam();
-        ClearSelectedTrackFX();
-        ClearLearnedFXParams();
+        selectedTrackFXZones_.Empty(true);
     }
 
     

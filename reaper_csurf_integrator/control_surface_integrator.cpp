@@ -2533,15 +2533,17 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction), learnedWidgets_(disposeLearnedWidgetsList)
 {
     homeZone_ = NULL;
-    
+
     learnFXZone_ = NULL;
-    
+    focusedFXZone_ = NULL;
+    fxSlotZone_ = NULL;
+    learnFocusedFXZone_ = NULL;
+    focusedFXParamZone_ = NULL;
+
     learnFXTrack_ = NULL;
     learnFXSlot_ = 0;
-    learnFocusedFXZone_ = NULL;
     
     lastTouchedControl_ = NULL;
-    focusedFXParamZone_ = NULL;
     hasColor_ = false;
     
     listensToGoHome_ = false;
