@@ -1971,12 +1971,11 @@ private:
         if (!strcmp(str, "Green")) return 2;
         if (!strcmp(str, "Yellow")) return 3;
         if (!strcmp(str, "Blue")) return 4;
-        // no color 5?
+        if (!strcmp(str, "Magenta")) return 5;
         if (!strcmp(str, "Cyan")) return 6;
         if (!strcmp(str, "White")) return 7;
         return -1;
     }
-    WDL_TypedBuf<rgba_color> availableRGBColors_;
     
 public:
     virtual ~XTouchDisplay_Midi_FeedbackProcessor() {}
@@ -1988,34 +1987,6 @@ public:
         
         for (int i = 0; i < surface_->GetNumChannels(); i++)
             currentTrackColors_.Add(color);
-        
-        availableRGBColors_.Add(color); // Black
-        
-        color.r = 255;
-        availableRGBColors_.Add(color); // Red
-
-        color.r = 0;
-        color.g = 255;
-        availableRGBColors_.Add(color); // Green
-        
-        color.r = 255;
-        color.g = 255;
-        availableRGBColors_.Add(color); // Yellow
-        
-        color.r = 0;
-        color.g = 0;
-        color.b = 255;
-        availableRGBColors_.Add(color); // Blue
-        
-        color.r = 255;
-        availableRGBColors_.Add(color); // Magenta
-
-        color.r = 0;
-        color.g = 255;
-        availableRGBColors_.Add(color); // Cyan
-
-        color.r = 255;
-        availableRGBColors_.Add(color); // White
     }
         
     virtual const char *GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
@@ -2026,7 +1997,7 @@ public:
         ForceValue(properties, "");
     }
     
-    virtual void SetXTouchDisplayColors(const char *zoneName, const char *colors) override
+    virtual void SetXTouchDisplayColors(const char *colors) override
     {
         preventUpdateTrackColors_ = true;
         
@@ -2047,8 +2018,6 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
         
-        vector<rgba_color> trackColors;
-        
         for (int i = 0; i < surface_->GetNumChannels(); i++)
         {
             int surfaceColor = 7; // White
@@ -2058,15 +2027,9 @@ public:
                 surfaceColor = c;
             else if (currentColors.size() == 8 && i < currentColors.size() && (c = colorFromString(currentColors[i].c_str())) >= 0)
                 surfaceColor = c;
-
-            if (!strcmp(zoneName,"Track") && surfaceColor < availableRGBColors_.GetSize())
-                trackColors.push_back(availableRGBColors_.Get()[surfaceColor]);
             
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = surfaceColor;
         }
-        
-        if (trackColors.size() > 0)
-            surface_->SetFixedTrackColors(trackColors);
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
         
@@ -2163,7 +2126,7 @@ public:
 
         vector<rgba_color> trackColors;
         
-        for (int i = 0; i < currentTrackColors_.GetSize(); i++)
+        for (int i = 0; i < surface_->GetNumChannels(); i++)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
 
         for (int i = 0; i < trackColors.size(); i++)

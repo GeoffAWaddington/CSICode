@@ -2184,10 +2184,10 @@ void Zone::RequestUpdate()
     }
 }
 
-void Zone::SetXTouchDisplayColors(const char *color)
+void Zone::SetXTouchDisplayColors(const char *colors)
 {
     for (int i = 0; i < widgets_.GetSize(); ++i)
-        widgets_.Get(i)->SetXTouchDisplayColors(name_.c_str(), color);
+        widgets_.Get(i)->SetXTouchDisplayColors(colors);
 }
 
 void Zone::RestoreXTouchDisplayColors()
@@ -2426,10 +2426,10 @@ void  Widget::UpdateColorValue(const rgba_color &color)
         feedbackProcessors_.Get(i)->SetColorValue(color);
 }
 
-void Widget::SetXTouchDisplayColors(const char *zoneName, const char *colors)
+void Widget::SetXTouchDisplayColors(const char *colors)
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->SetXTouchDisplayColors(zoneName, colors);
+        feedbackProcessors_.Get(i)->SetXTouchDisplayColors(colors);
 }
 
 void Widget::RestoreXTouchDisplayColors()
@@ -2783,6 +2783,8 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
             if (line == s_BeginAutoSection || line == s_EndAutoSection)
                 continue;
             
+            ReplaceAllWith(line, "|", widgetSuffix);
+            
             string_list tokens;
             GetTokens(tokens, line.c_str());
             
@@ -2811,7 +2813,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
             
             else if (tokens.size() > 1)
             {
-                string baseWidgetName;
+                string widgetName;
                 int modifier = 0;
                 bool isValueInverted = false;
                 bool isFeedbackInverted = false;
@@ -2819,13 +2821,9 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
                 bool isDecrease = false;
                 bool isIncrease = false;
                 
-                GetWidgetNameAndModifiers(tokens[0], baseWidgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
+                GetWidgetNameAndModifiers(tokens[0], widgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
                 
-                char widgetName[BUFSIZ];
-                
-                snprintf(widgetName, sizeof(widgetName), "%s%s", baseWidgetName.c_str(), widgetSuffix);
-
-                Widget *widget = GetSurface()->GetWidgetByName(widgetName);
+                Widget *widget = GetSurface()->GetWidgetByName(widgetName.c_str());
                                             
                 if (widget == NULL)
                     continue;
@@ -3637,15 +3635,10 @@ rgba_color ControlSurface::GetTrackColorForChannel(int channel)
     if (channel < 0 || channel >= numChannels_)
         return white;
     
-    if (fixedTrackColors_.size() == numChannels_)
-        return fixedTrackColors_[channel];
+    if (MediaTrack *track = page_->GetNavigatorForChannel(channel + channelOffset_)->GetTrack())
+        return DAW::GetTrackColor(track);
     else
-    {
-        if (MediaTrack *track = page_->GetNavigatorForChannel(channel + channelOffset_)->GetTrack())
-            return DAW::GetTrackColor(track);
-        else
-            return white;
-    }
+        return white;
 }
 
 void ControlSurface::RequestUpdate()
@@ -4397,7 +4390,6 @@ static const char * const Control_Surface_Integrator = "Control Surface Integrat
 
 CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), fxParamSteppedValueCounts_(true, disposeCounts)
 {
-    // private:
     currentPageIndex_ = 0;
 
     shouldRun_ = true;

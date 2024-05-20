@@ -775,7 +775,7 @@ public:
     
     void InitSubZones(const string_list &subZones, const char *widgetSuffix);
     int GetSlotIndex();
-    void SetXTouchDisplayColors(const char *color);
+    void SetXTouchDisplayColors(const char *colors);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
     const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget);
@@ -998,7 +998,7 @@ public:
     void UpdateValue(const PropertyList &properties, const char * const &value);
     void RunDeferredActions();
     void UpdateColorValue(const rgba_color &color);
-    void SetXTouchDisplayColors(const char *zoneName, const char *colors);
+    void SetXTouchDisplayColors(const char *colors);
     void RestoreXTouchDisplayColors();
     void ForceClear();
     void LogInput(double value);
@@ -1792,12 +1792,12 @@ public:
         }
         
         for (int i = 0; i < goZones_.size(); ++i)
-        {
+            if (strcmp(zoneName, goZones_[i]->GetName()))
+                goZones_[i]->Deactivate();
+        
+        for (int i = 0; i < goZones_.size(); ++i)
             if (!strcmp(zoneName, goZones_[i]->GetName()))
                goZones_[i]->Activate();
-            else
-                goZones_[i]->Deactivate();
-        }
     }
     
     void DeclareClearFXZone(const char *zoneName)
@@ -2518,7 +2518,6 @@ private:
     int latchTime_;
         
     WDL_PtrList<FeedbackProcessor> trackColorFeedbackProcessors_; // does not own pointers
-    vector<rgba_color> fixedTrackColors_;
     
     WDL_TypedBuf<ChannelTouch> channelTouches_;
     WDL_TypedBuf<ChannelToggle> channelToggles_;
@@ -2788,11 +2787,6 @@ public:
         if (WDL_NOT_NORMALLY(!feedbackProcessor)) { return; }
         trackColorFeedbackProcessors_.Add(feedbackProcessor);
     }
-    
-    void SetFixedTrackColors(const vector<rgba_color> &colors)
-    {
-        fixedTrackColors_ = colors;
-    }
         
     void ForceClear()
     {
@@ -2962,18 +2956,20 @@ public:
     virtual ~FeedbackProcessor() {}
     virtual const char *GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
-    virtual void SetColorValue(const rgba_color &color) {}
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
     virtual void ForceValue(const PropertyList &properties, double value) {}
-    virtual void ForceColorValue(const rgba_color &color) {}
     virtual void ForceValue(const PropertyList &properties, const char * const &value) {}
-    virtual void RunDeferredActions() {}
-    virtual void UpdateTrackColors() {}
+    virtual void ForceColorValue(const rgba_color &color) {}
     virtual void ForceUpdateTrackColors() {}
-    virtual void SetXTouchDisplayColors(const char *zoneName, const char *colors) {}
-    virtual void RestoreXTouchDisplayColors() {}
+    virtual void RunDeferredActions() {}
     virtual void ForceClear() {}
     
+    virtual void UpdateTrackColors() {}
+    virtual void SetXTouchDisplayColors(const char *colors) {}
+    virtual void RestoreXTouchDisplayColors() {}
+
+    virtual void SetColorValue(const rgba_color &color) {}
+
     virtual void SetValue(const PropertyList &properties, double value)
     {
         if (lastDoubleValue_ != value)
