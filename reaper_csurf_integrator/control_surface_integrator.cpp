@@ -3086,51 +3086,7 @@ void ZoneManager::PreProcessZones()
             PreProcessZoneFile(zoneFilesToProcess[i]);
     }
 }
-/*
-void ZoneManager::CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex)
-{
-    // Check for UAD / Plugin Alliance and bail if neither
-    if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
-        return;
-    
-    bool wasMuted = false;
-    GetTrackUIMute(track, &wasMuted);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
 
-    double minvalOut = 0.0;
-    double maxvalOut = 0.0;
-
-    double currentValue;
-
-    currentValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
-    
-        int stepCount = 1;
-        double stepValue = 0.0;
-        
-        for (double value = 0.0; value < 1.01; value += .01)
-        {
-            TrackFX_SetParam(track, fxIndex, paramIndex, value);
-            
-            double fxValue = TrackFX_GetParam(track, fxIndex, paramIndex, &minvalOut, &maxvalOut);
-            
-            if (stepValue != fxValue)
-            {
-                stepValue = fxValue;
-                stepCount++;
-            }
-        }
-        
-    if (stepCount > 1 && stepCount < 31)
-        csi_->SetSteppedValueCount(fxName, paramIndex, stepCount);
-
-    TrackFX_SetParam(track, fxIndex, paramIndex, currentValue);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
-}
-*/
 void ZoneManager::GetSteppedValuesForParam(string &output, const char *fxName, MediaTrack *track, int fxIndex, int paramIndex)
 {
     CalculateSteppedValues(fxName, track, fxIndex);

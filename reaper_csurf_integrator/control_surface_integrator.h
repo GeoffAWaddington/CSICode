@@ -1650,7 +1650,6 @@ public:
     
     void GoFocusedFX();
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
-    //void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
     void GetSteppedValuesForParam(string &output, const char *fxName, MediaTrack *track, int fxIndex, int paramIndex);
 
     void PreProcessZones();
