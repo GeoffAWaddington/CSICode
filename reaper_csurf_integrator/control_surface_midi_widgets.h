@@ -288,19 +288,6 @@ public:
         ForceValue(properties, 0.0);
     }
     
-    virtual void SetValue(const PropertyList &properties, double value) override
-    {
-        if (value == 0.0)
-        {
-            if (midiFeedbackMessage2_)
-                SendMidiMessage(midiFeedbackMessage2_->midi_message[0], midiFeedbackMessage2_->midi_message[1], midiFeedbackMessage2_->midi_message[2]);
-            else if (midiFeedbackMessage1_)
-                SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], 0x00);
-        }
-        else if (midiFeedbackMessage1_)
-            SendMidiMessage(midiFeedbackMessage1_->midi_message[0], midiFeedbackMessage1_->midi_message[1], midiFeedbackMessage1_->midi_message[2]);
-    }
-
     virtual void ForceValue(const PropertyList &properties, double value) override
     {
         if (value == 0.0)
