@@ -1356,7 +1356,6 @@ private:
     FXZoneDefinition zoneDef_;
     string_list paramList_;
 
-    void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
@@ -1650,8 +1649,10 @@ public:
     int  GetNumChannels();
     
     void GoFocusedFX();
-    void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
-     
+    void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
+    //void CalculateSteppedValue(const string &fxName, MediaTrack *track, int fxIndex, int paramIndex);
+    void GetSteppedValuesForParam(string &output, const char *fxName, MediaTrack *track, int fxIndex, int paramIndex);
+
     void PreProcessZones();
     void PreProcessZoneFile(const char *filePath);
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
@@ -1750,18 +1751,7 @@ public:
         if (learnFXZone_ != NULL)
             learnFXZone_->Activate();
     }
-    
-    void ExitLearn()
-    {
-        //learnFXTrack_ = NULL;
-        //learnFXSlot_ = 0;
-
-        //if (learnFXZone_ != NULL)
-            //learnFXZone_->Deactivate();
-
-        //ClearLearnedFXParams();
-    }
-    
+        
     void DeclareGoZone(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1857,6 +1847,7 @@ public:
             lastTouchedControl_ = NULL;
             
             delete learnFocusedFXZone_;
+            learnFocusedFXZone_ = NULL;
         }
     }
           
@@ -4740,13 +4731,13 @@ public:
         return buf;
     }
     
-    void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValuecount)
+    void SetSteppedValueCount(const string &fxName, int paramIndex, int steppedValueCount)
     {
         if ( ! fxParamSteppedValueCounts_.Exists(fxName.c_str()))
             fxParamSteppedValueCounts_.Insert(fxName.c_str(), new WDL_IntKeyedArray<int>());
         
         if (fxParamSteppedValueCounts_.Exists(fxName.c_str()))
-            fxParamSteppedValueCounts_.Get(fxName.c_str())->Insert(paramIndex, steppedValuecount);
+            fxParamSteppedValueCounts_.Get(fxName.c_str())->Insert(paramIndex, steppedValueCount);
     }
     
     bool HaveFXSteppedValuesBeenCalculated(const char *fxName)

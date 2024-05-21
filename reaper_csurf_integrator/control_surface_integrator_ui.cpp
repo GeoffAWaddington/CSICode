@@ -771,8 +771,8 @@ static void EditItem(HWND hwndParamList)
 static bool DeleteZone()
 {
     char buf[2048], buf2[2048];
-    snprintf(buf, sizeof(buf), __LOCALIZE_VERFMT("This will permanently delete\r\n\r\n%s.zon\r\n\r\nAre you sure you want to permanently delete this file from disk?\n\nIf you delete the file the RemapAutoZone dialog will close.","csi_mbox"), s_zoneDef.fxName.c_str());
-    snprintf(buf2, sizeof(buf2), __LOCALIZE_VERFMT("Delete %s","csi_mbox"), s_zoneDef.fxAlias.c_str());
+    snprintf(buf, sizeof(buf), __LOCALIZE_VERFMT("This will permanently delete\n\n%s\n\nAre you sure you want to permanently delete this Zone from disk?","csi_mbox"), s_fxName);
+    snprintf(buf2, sizeof(buf2), __LOCALIZE_VERFMT("Delete %s","csi_mbox"), s_fxAlias);
     if (MessageBox(GetMainHwnd(), buf, buf2, MB_YESNO) == IDNO)
        return false;
     
@@ -1204,10 +1204,14 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
             {
                 if (currentParam < numParams)
                 {
+                    string steps;
+                    s_zoneManager->GetSteppedValuesForParam(steps, fxName, track, fxSlot, currentParam);
+                    
                     char paramName[BUFSIZ];
+                    paramName[0] = 0;
                     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
                     
-                    fprintf(fxFile, "\t%s%s%d FXParam %d %s\n", modifiers, s_paramWidget.c_str(), column + 1, currentParam, s_paramWidgetParams.c_str());
+                    fprintf(fxFile, "\t%s%s%d FXParam %d %s%s\n", modifiers, s_paramWidget.c_str(), column + 1, currentParam, steps.c_str(), s_paramWidgetParams.c_str());
                     fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_nameWidget.c_str(), column + 1, paramName, s_nameWidgetParams.c_str());
                     fprintf(fxFile, "\t%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_valueWidget.c_str(), column + 1, currentParam, s_valueWidgetParams.c_str());
                         
@@ -1280,7 +1284,7 @@ static void HandlePrePaint(HWND hwndDlg, LPNMLVCUSTOMDRAW lplvcd)
         if (g_FocusedWidget != NULL && g_FocusedWidget->GetName() == widgetName && currentModifiers.GetSize() && currentModifiers.Get()[0] == row->modifier)
             lplvcd->clrText = RGB(0xff, 00, 00);
         else if (row->cells.Get(cellParamIndex)->controlParams != "")
-            lplvcd->clrText =  RGB(00, 00, 0xff);
+            lplvcd->clrText =  RGB(00, 0xff, 00);
         else
             lplvcd->clrText =  RGB(0x00, 00, 00);;
     }
@@ -1313,7 +1317,11 @@ static void HandleInitialize(HWND hwndDlg)
     SetWindowText(hwndDlg, buf);
     
     if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
+    {
+        // PopulateListView
+     
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
+    }
     else
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
 }
@@ -1361,7 +1369,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_Delete:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        
+                        DeleteZone();
                     }
                     break ;
                     
@@ -1401,12 +1409,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     
     return 0;
 }
-//#endif
 
 static void InitLearnDlg(HWND hwndDlg)
 {
-    //SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_zoneDef.fxAlias.c_str());
-
     PopulateListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
 }
 
@@ -1528,8 +1533,9 @@ void CloseFocusedFXDialog()
     // GAW TBD -- Save here
     
     s_zoneManager =  NULL;
-    s_zoneManager->ExitLearn();
-    
+    s_focusedTrack = NULL;
+    s_fxSlot = 0;
+
     if (hwndLearnDlg != NULL)
         ShowWindow(hwndLearnDlg, SW_HIDE);
 }
