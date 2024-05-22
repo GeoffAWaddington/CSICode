@@ -2544,7 +2544,6 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     learnFXSlot_ = 0;
     
     lastTouchedControl_ = NULL;
-    hasColor_ = false;
     
     listensToGoHome_ = false;
     listensToSends_ = false;
@@ -3170,10 +3169,22 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     widget->LogInput(value);
     
     bool isUsed = false;
+  
+    //if (learnFXTrack_ != NULL)
+        //DoLearn(widget, isUsed, value);
     
+    if (learnFocusedFXZone_ != NULL)
+        learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
+
+    if (isUsed)
+        return;
+
     if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
         focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
+    if (isUsed)
+        return;
+
     if (focusedFXZone_ != NULL)
         focusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     

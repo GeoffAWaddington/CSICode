@@ -117,6 +117,13 @@ static unsigned int &GetButtonColorForID(unsigned int id)
     return s_buttonColors[0][2];
 }
 
+string_list s_paramWidgets;
+string_list s_displayRows;
+string_list s_ringStyles;
+string_list s_fonts;
+static bool s_hasColor;
+
+
 static void PopulateParamListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
@@ -143,7 +150,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_PAINT:
         {
-            if (s_zoneManager->hasColor_)
+            if (s_hasColor)
             {
                 PAINTSTRUCT ps;
                 HDC hdc = BeginPaint(hwndDlg, &ps);
@@ -202,35 +209,35 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickWidgetType));
             SendDlgItemMessage(hwndDlg, IDC_PickWidgetType, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
 
-            for (int j = 0; j < s_zoneManager->paramWidgets_.size(); j++)
-                SendDlgItemMessage(hwndDlg, IDC_PickWidgetType, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->paramWidgets_[j].c_str());
+            for (int j = 0; j < s_paramWidgets.size(); j++)
+                SendDlgItemMessage(hwndDlg, IDC_PickWidgetType, CB_ADDSTRING, 0, (LPARAM)s_paramWidgets[j].c_str());
             
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickRingStyle));
-            for (int j = 0; j < s_zoneManager->ringStyles_.size(); j++)
-                SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->ringStyles_[j].c_str());
+            for (int j = 0; j < s_ringStyles.size(); j++)
+                SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_ringStyles[j].c_str());
             
-            if (s_zoneManager->ringStyles_.size())
+            if (s_ringStyles.size())
                 SendMessage(GetDlgItem(hwndDlg, IDC_PickRingStyle), CB_SETCURSEL, 0, 0);
             
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow));
 
-            for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
-                SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
+            for (int j = 0; j < s_displayRows.size(); j++)
+                SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)s_displayRows[j].c_str());
 
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow));
 
-            for (int j = 0; j < s_zoneManager->displayRows_.size(); j++)
-                SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->displayRows_[j].c_str());
+            for (int j = 0; j < s_displayRows.size(); j++)
+                SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)s_displayRows[j].c_str());
 
             SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)"");
 
-            for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
-                SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
+            for (int j = 0; j < s_fonts.size(); j++)
+                SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_fonts[j].c_str());
 
             SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)"");
 
-            for (int j = 0; j < s_zoneManager->fonts_.size(); j++)
-                SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_zoneManager->fonts_[j].c_str());
+            for (int j = 0; j < s_fonts.size(); j++)
+                SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_fonts[j].c_str());
 
             FXCell &cell = s_zoneDef.rows[s_fxCellIndex].cells[0];
             
@@ -337,10 +344,10 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             ShowBaseControls(hwndDlg, true);
             
-            if (s_zoneManager->fonts_.size())
+            if (s_fonts.size())
                 ShowFontControls(hwndDlg, true);
             
-            if (s_zoneManager->hasColor_)
+            if (s_hasColor)
             {
                 ShowColorControls(hwndDlg, true);
                 InvalidateRect(hwndDlg, NULL, true);
@@ -747,9 +754,18 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
 static void PopulateListView(HWND hwndParamList)
 {
     ListView_DeleteAllItems(hwndParamList);
+
+    
+    
+    
+    
+    
+    /*
+    ListView_DeleteAllItems(hwndParamList);
         
     for (int i = 0; i < s_zoneDef.rows.size(); i++)
         SetListViewItem(hwndParamList, i, true);
+     */
 }
 
 static void EditItem(HWND hwndParamList)
@@ -852,13 +868,6 @@ static string s_valueWidget;
 static string s_paramWidgetParams;
 static string s_nameWidgetParams;
 static string s_valueWidgetParams;
-
-static string_list s_paramWidgets;
-static string_list s_displayRows;
-static string_list s_ringStyles;
-static string_list s_fonts;
-
-static bool s_hasColor;
 
 static void LoadTemplates()
 {
@@ -1319,11 +1328,14 @@ static void HandleInitialize(HWND hwndDlg)
     if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
     {
         // PopulateListView
-     
+        s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
     }
     else
+    {
+        s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
+    }
 }
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1442,7 +1454,6 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 
     if (zonePaths.Exists(s_fxName))
     {
-        zoneManager->LoadAndActivateFocusedFXZone(s_fxName, s_fxSlot);
         lstrcpyn_safe(s_fxAlias, zonePaths.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
         LearnFocusedFXDialog();
     }
@@ -1531,6 +1542,8 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
 void CloseFocusedFXDialog()
 {
     // GAW TBD -- Save here
+    
+    s_zoneManager->DeactivateLearnFXZone();
     
     s_zoneManager =  NULL;
     s_focusedTrack = NULL;
