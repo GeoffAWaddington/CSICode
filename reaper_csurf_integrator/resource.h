@@ -83,8 +83,7 @@
 #define IDC_FixedTextDisplayBackgroundColor 1182
 #define IDC_FXParamDisplayForegroundColor 1185
 #define IDC_FXParamDisplayBackgroundColor 1188
-#define IDC_Undo                        1189
-#define IDC_Redo                        1190
+#define IDC_ExitWithSave                1190
 #define IDC_FixedTextDisplayFontLabel   1199
 #define IDC_FXParamValueDisplayFontLabel 1202
 #define IDC_FXParamRingColorBox         1205
@@ -126,8 +125,9 @@
 #define IDC_AcceleratedTickValuesLabel  1277
 #define IDC_AcceleratedDeltaValuesLabel 1278
 #define IDC_RangeMaximumLabel           1279
-#define IDC_RangeMinimumLabel            1280
+#define IDC_RangeMinimumLabel           1280
 #define IDC_DeltaValueLabel             1281
+#define IDC_Apply                       1282
 
 // Next default values for new objects
 // 
@@ -135,7 +135,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1282
+#define _APS_NEXT_CONTROL_VALUE         1283
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

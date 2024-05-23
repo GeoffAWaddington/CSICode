@@ -216,9 +216,9 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_PARAM_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,17,6,427,379
     PUSHBUTTON      "Delete Map",IDC_Delete,17,391,50,14
-    PUSHBUTTON      "Erase Control",IDC_EraseControl,395,391,50,14
-    PUSHBUTTON      "Edit Alias",IDC_FXAlias,269,391,50,14
-    PUSHBUTTON      "Auto Map",IDC_AutoMap,143,391,50,14
+    PUSHBUTTON      "Erase Control",IDC_EraseControl,206,391,50,14
+    PUSHBUTTON      "Edit Alias",IDC_FXAlias,143,391,50,14
+    PUSHBUTTON      "Auto Map",IDC_AutoMap,80,391,50,14
     EDITTEXT        IDC_EditSteps,594,186,152,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps,540,186,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Choose number of steps or enter custom steps manually",IDC_StepsPromptGroup,540,200,178,8
@@ -267,9 +267,9 @@ BEGIN
     LTEXT           "Range minimum",IDC_RangeMinimumLabel,539,108,53,8
     EDITTEXT        IDC_EDIT_RangeMax,620,122,38,12,ES_AUTOHSCROLL
     GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,532,79,220,136
-    PUSHBUTTON      "Exit Without Saving",IDC_ExitNoSave,665,391,81,14
-    PUSHBUTTON      "Undo",IDC_Undo,539,391,37,14
-    PUSHBUTTON      "Redo",IDC_Redo,583,391,37,14
+    PUSHBUTTON      "Exit Without Saving",IDC_ExitNoSave,363,391,81,14
+    PUSHBUTTON      "Apply",IDC_Apply,532,391,37,14
+    PUSHBUTTON      "Save and Exit",IDC_ExitWithSave,269,391,81,14
 END
 
 IDD_DIALOG_Broadcast DIALOGEX 0, 0, 472, 200
