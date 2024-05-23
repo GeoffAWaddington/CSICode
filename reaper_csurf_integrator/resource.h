@@ -123,6 +123,11 @@
 #define IDC_CHECK_WriteFXParams         1271
 #define IDC_COMBO_Type                  1275
 #define IDC_EDIT_FXAlias                1276
+#define IDC_AcceleratedTickValuesLabel  1277
+#define IDC_AcceleratedDeltaValuesLabel 1278
+#define IDC_RangeMaximumLabel           1279
+#define IDC_RangeMinimumLabel            1280
+#define IDC_DeltaValueLabel             1281
 
 // Next default values for new objects
 // 
@@ -130,7 +135,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1277
+#define _APS_NEXT_CONTROL_VALUE         1282
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1169,7 +1169,56 @@ static void ConfigureListView(HWND hwndParamList)
 
 static void CalcInitialSizes(HWND hwndDlg)
 {
-    int childIds[] = {}; //  { IDC_Delete, IDC_EraseControl, IDC_FXAlias, IDC_AutoMap };
+    int childIds[] = {     IDC_FXParamNumEdit,
+        IDC_PickWidgetType,
+        IDC_PickRingStyle,
+        
+        IDC_FXParamNameEdit,
+        IDC_FixedTextDisplayPickRow,
+        
+        IDC_FXParamValueDisplayPickRow,
+        
+        IDC_PickSteps,
+        IDC_EditSteps,
+        IDC_StepsPromptGroup,
+        
+        IDC_GroupFXParam,
+        IDC_GroupFixedTextDisplay,
+        IDC_GroupFXParamValueDisplay,
+
+        IDC_FixedTextDisplayFontLabel,
+        IDC_FixedTextDisplayPickFont,
+        IDC_FixedTextDisplayTopLabel,
+        IDC_Edit_FixedTextDisplayTop,
+        IDC_FixedTextDisplayBottomLabel,
+        IDC_Edit_FixedTextDisplayBottom,
+        IDC_FXParamValueDisplayFontLabel,
+        IDC_FXParamValueDisplayPickFont,
+        IDC_ParamValueDisplayTopLabel,
+        IDC_Edit_ParamValueDisplayTop,
+        IDC_ParamValueDisplayBottomLabel,
+        IDC_Edit_ParamValueDisplayBottom,
+
+        IDC_FXParamRingColorBox,
+        IDC_FXParamRingColor,
+        IDC_FXParamIndicatorColorBox,
+        IDC_FXParamIndicatorColor,
+        IDC_FixedTextDisplayForegroundColor,
+        IDC_FXFixedTextDisplayForegroundColorBox,
+        IDC_FixedTextDisplayBackgroundColor,
+        IDC_FXFixedTextDisplayBackgroundColorBox,
+        IDC_FXParamDisplayForegroundColor,
+        IDC_FXParamValueDisplayForegroundColorBox,
+        IDC_FXParamDisplayBackgroundColor,
+        IDC_FXParamValueDisplayBackgroundColorBox,
+        
+        IDC_EDIT_Delta, IDC_EDIT_RangeMin, IDC_EDIT_RangeMax,
+        IDC_EDIT_DeltaValues, IDC_EDIT_TickValues, IDC_AllParams,
+        
+        IDC_GroupFXParamValues, IDC_DeltaValueLabel, IDC_RangeMinimumLabel, IDC_RangeMaximumLabel,
+        IDC_AcceleratedTickValuesLabel, IDC_AcceleratedDeltaValuesLabel,
+
+        IDC_ExitNoSave, IDC_Undo, IDC_Redo };
     
     s_childOffsets.clear();
     
@@ -1194,7 +1243,7 @@ static void CalcInitialSizes(HWND hwndDlg)
 
     GetWindowRect(hwndParamList, &child);
     
-    s_paramListHeightBias = (parent.bottom - parent.top) - (child.top - child.bottom );
+    s_paramListHeightBias = parent.top - child.top;
 
     POINT p;
     
@@ -1226,7 +1275,13 @@ static void HandleResize(HWND hwndDlg)
         
         GetClientRect(hwndChild, &child);
         
-        SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, parent.bottom - s_childOffsets[i].y, child.right - child.left, child.bottom - child.top, 0);
+        POINT childLocation;
+        childLocation.x = child.left;
+        childLocation.y = child.top;
+        
+        ClientToScreen(hwndChild, &childLocation);
+        
+        SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, childLocation.y, child.right - child.left, child.bottom - child.top, 0);
     }
     
     RECT parentWinRect;
@@ -1237,7 +1292,13 @@ static void HandleResize(HWND hwndDlg)
     
     GetClientRect(hwndParamList, &child);
 
-    SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, child.top, parent.right - parent.left - s_paramListWidthBias, child.bottom - child.top, 0);
+    POINT childLocation;
+    childLocation.x = child.left;
+    childLocation.y = child.top;
+    
+    ClientToScreen(hwndParamList, &childLocation);
+
+    SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, childLocation.y, parent.right - parent.left - s_paramListWidthBias, child.bottom - child.top, 0);
     
     // GAW TBD -- junk, will improve
     int columnSize = ((child.right * 3) / 4) / (s_numColumns + 2);

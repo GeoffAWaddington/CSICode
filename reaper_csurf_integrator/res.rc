@@ -255,16 +255,16 @@ BEGIN
     EDITTEXT        IDC_Edit_ParamValueDisplayTop,733,353,13,12,ES_CENTER | ES_NUMBER
     LTEXT           "Top",IDC_ParamValueDisplayTopLabel,706,354,13,8
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,733,369,13,12,ES_CENTER | ES_NUMBER
-    LTEXT           "Accelerated delta values",IDC_STATIC,539,144,76,8
-    LTEXT           "Accelerated tick values",IDC_STATIC,544,165,72,8
-    LTEXT           "Delta value",IDC_STATIC,556,92,36,8
-    LTEXT           "Range maximum",IDC_STATIC,539,124,54,8
+    LTEXT           "Accelerated delta values",IDC_AcceleratedDeltaValuesLabel,539,144,76,8
+    LTEXT           "Accelerated tick values",IDC_AcceleratedTickValuesLabel,544,165,72,8
+    LTEXT           "Delta value",IDC_DeltaValueLabel,556,92,36,8
+    LTEXT           "Range maximum",IDC_RangeMaximumLabel,539,124,54,8
     EDITTEXT        IDC_EDIT_Delta,620,90,38,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_RangeMin,620,106,38,12,ES_AUTOHSCROLL | WS_GROUP
     EDITTEXT        IDC_EDIT_DeltaValues,620,142,126,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_TickValues,619,163,127,12,ES_AUTOHSCROLL
     LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,706,370,24,8
-    LTEXT           "Range minimum",IDC_STATIC,539,108,53,8
+    LTEXT           "Range minimum",IDC_RangeMinimumLabel,539,108,53,8
     EDITTEXT        IDC_EDIT_RangeMax,620,122,38,12,ES_AUTOHSCROLL
     GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,532,79,220,136
     PUSHBUTTON      "Exit Without Saving",IDC_ExitNoSave,665,391,81,14
