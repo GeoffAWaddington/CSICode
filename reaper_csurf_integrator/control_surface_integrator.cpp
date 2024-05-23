@@ -240,7 +240,6 @@ bool getline(fpistream &fp, string &str) // mimic C++ getline()
     }
 }
 
-
 void ReplaceAllWith(string &output, const char *charsToReplace, const char *replacement)
 {
     // replace all occurences of
@@ -2539,9 +2538,6 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     fxSlotZone_ = NULL;
     learnFocusedFXZone_ = NULL;
     focusedFXParamZone_ = NULL;
-
-    learnFXTrack_ = NULL;
-    learnFXSlot_ = 0;
     
     lastTouchedControl_ = NULL;
     
@@ -3169,9 +3165,6 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     widget->LogInput(value);
     
     bool isUsed = false;
-  
-    //if (learnFXTrack_ != NULL)
-        //DoLearn(widget, isUsed, value);
     
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
@@ -3231,6 +3224,8 @@ void ZoneManager::EraseLastTouchedControl()
     lastTouchedControl_ = NULL;
 }
 
+
+/*
 void ZoneManager::AddLearnedWidget(Widget* widget, int modifier, int paramNum)
 {
     if ( ! learnedWidgets_.Exists(modifier))
@@ -3421,7 +3416,7 @@ void ZoneManager::DoRelativeLearn(Widget *widget, bool isUsed, double delta)
         isUsed = true;
     }
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ModifierManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

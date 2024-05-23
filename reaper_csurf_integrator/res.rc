@@ -158,8 +158,6 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,234,254,57,14
-    PUSHBUTTON      "Cancel",IDCANCEL,299,254,57,14
     EDITTEXT        IDC_EditSteps,145,223,217,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_PickSteps,91,223,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Choose number of steps from the dropdown or enter custom steps manually",IDC_StepsPromptGroup,91,238,242,8
@@ -211,16 +209,67 @@ BEGIN
     LTEXT           "Range minimum",IDC_STATIC,96,138,53,8
 END
 
-IDD_DIALOG_LearnFX DIALOGEX 0, 0, 464, 411
+IDD_DIALOG_LearnFX DIALOGEX 0, 0, 761, 411
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "No Focused FX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_PARAM_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,17,6,427,379
-    PUSHBUTTON      "Delete Map",IDC_Delete,239,391,50,14
-    PUSHBUTTON      "Erase Control",IDC_EraseControl,291,391,50,14
-    PUSHBUTTON      "Edit Alias",IDC_FXAlias,343,391,50,14
-    PUSHBUTTON      "Auto Map",IDC_AutoMap,395,391,50,14
+    PUSHBUTTON      "Delete Map",IDC_Delete,17,391,50,14
+    PUSHBUTTON      "Erase Control",IDC_EraseControl,395,391,50,14
+    PUSHBUTTON      "Edit Alias",IDC_FXAlias,269,391,50,14
+    PUSHBUTTON      "Auto Map",IDC_AutoMap,143,391,50,14
+    EDITTEXT        IDC_EditSteps,594,186,152,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickSteps,540,186,45,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Choose number of steps or enter custom steps manually",IDC_StepsPromptGroup,540,200,178,8
+    GROUPBOX        "FXParam",IDC_GroupFXParam,532,7,220,54
+    EDITTEXT        IDC_FXParamNumEdit,538,20,22,12,ES_CENTER | ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickWidgetType,564,20,55,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PickRingStyle,538,37,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Fixed Text Display",IDC_GroupFixedTextDisplay,531,237,221,63
+    EDITTEXT        IDC_FXParamNameEdit,540,252,81,12,ES_CENTER | ES_AUTOHSCROLL
+    GROUPBOX        "FX Param Value Display",IDC_GroupFXParamValueDisplay,531,322,221,63
+    COMBOBOX        IDC_FixedTextDisplayPickRow,540,269,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickRow,539,338,81,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel,706,339,15,8
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,724,339,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_FixedTextDisplayFontLabel,707,254,15,8
+    COMBOBOX        IDC_FixedTextDisplayPickFont,724,253,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor,650,19,56,12
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,650,36,56,12
+    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor,631,252,47,12
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,631,269,47,12
+    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,631,337,47,12
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,631,354,47,12
+    LTEXT           "",IDC_FXParamRingColorBox,722,21,9,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox,722,37,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,682,254,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,682,271,9,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,682,356,9,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,682,338,9,8
+    CONTROL         "",IDC_AllParams,"SysListView32",LVS_LIST | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,451,6,74,379,WS_EX_RIGHT
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop,733,267,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_FixedTextDisplayTopLabel,707,269,13,8
+    LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel,707,285,24,8
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,733,283,13,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop,733,353,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_ParamValueDisplayTopLabel,706,354,13,8
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,733,369,13,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Accelerated delta values",IDC_STATIC,539,144,76,8
+    LTEXT           "Accelerated tick values",IDC_STATIC,544,165,72,8
+    LTEXT           "Delta value",IDC_STATIC,556,92,36,8
+    LTEXT           "Range maximum",IDC_STATIC,539,124,54,8
+    EDITTEXT        IDC_EDIT_Delta,620,90,38,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_RangeMin,620,106,38,12,ES_AUTOHSCROLL | WS_GROUP
+    EDITTEXT        IDC_EDIT_DeltaValues,620,142,126,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_TickValues,619,163,127,12,ES_AUTOHSCROLL
+    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,706,370,24,8
+    LTEXT           "Range minimum",IDC_STATIC,539,108,53,8
+    EDITTEXT        IDC_EDIT_RangeMax,620,122,38,12,ES_AUTOHSCROLL
+    GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,532,79,220,136
+    PUSHBUTTON      "Exit Without Saving",IDC_ExitNoSave,665,391,81,14
+    PUSHBUTTON      "Undo",IDC_Undo,539,391,37,14
+    PUSHBUTTON      "Redo",IDC_Redo,583,391,37,14
 END
 
 IDD_DIALOG_Broadcast DIALOGEX 0, 0, 472, 200
@@ -277,6 +326,11 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO 
 BEGIN
+    IDD_DIALOG_LearnFX, DIALOG
+    BEGIN
+        RIGHTMARGIN, 760
+    END
+
     IDD_DIALOG_EditFXAlias, DIALOG
     BEGIN
         LEFTMARGIN, 7

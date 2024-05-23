@@ -778,6 +778,8 @@ public:
     void SetXTouchDisplayColors(const char *colors);
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
+    
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> &GetActionContextDictionary() { return actionContextDictionary_; }
     const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget);
     void AddWidget(Widget *widget);
     void Activate();
@@ -787,6 +789,7 @@ public:
     void DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta);
     void DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value);
     void RequestUpdate();
+    const WDL_PtrList<Widget> &GetWidgets() { return widgets_; }
 
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
     ptrvector<Zone *> &GetIncludedZones() { return includedZones_; }
@@ -1025,27 +1028,27 @@ struct CSIZoneInfo
     string alias;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXCellLayoutInfo
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string modifiers;
-    string address;
-    
-    string_list &GetModifierTokens(string_list &modifierList)
-    {
-        modifierList.clear();
-        GetSubTokens(modifierList, modifiers.c_str(), '+');
 
-        modifierList.push_back("");
-        return modifierList;
-    }
-};
+
+
+
+
+
+
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXCell
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
+    string suffix;
+    string modifiers;
+    int modifier;
+    string address;
+
     string control;
     string controlAction;
     string controlParams;
@@ -1083,39 +1086,8 @@ struct FXCell
         nameDisplayAction = "NoAction";
         valueDisplayAction = "NoAction";
     }
-    
-    void WriteToFile(FILE *fxFile, const char *modifiers, const char *address, const char *steps) const
-    {
-        if ( ! fxFile)
-            return;
-        
-        fprintf(fxFile, "\t%s%s%s %s %s", modifiers, control.c_str(), address, controlAction.c_str(), paramNum.c_str());
-        
-        if (steps[0] != 0)
-            fprintf(fxFile, " [ %s]", steps);
-        
-        if (control == "Rotary")
-            fprintf(fxFile," %s", "RingStyle=Dot");
-            
-        fprintf(fxFile, "\n");
-        
-        if (paramName != "")
-            fprintf(fxFile, "\t%s%s%s %s \"%s\"", modifiers, nameDisplay.c_str(), address, nameDisplayAction.c_str(), paramName.c_str());
-        else
-            fprintf(fxFile, "\t%s%s%s %s", modifiers, nameDisplay.c_str(), address, nameDisplayAction.c_str());
 
-        //fprintf(fxFile, " %s", nameDisplayParams.c_str());
-        
-        fprintf(fxFile, "\n");
-            
-        fprintf(fxFile, "\t%s%s%s %s %s\n", modifiers, valueDisplay.c_str(), address, valueDisplayAction.c_str(), paramNum.c_str());
-
-        //fprintf(fxFile, " %s", valueDisplayParams.c_str());
-        
-        fprintf(fxFile, "\n");
-    }
-    
-    void WriteToFile(FILE *fxFile, const char *modifiers, const char *address, int paramNumParm, const char *paramNameParm, const char *steps) const
+    void WriteToFile(FILE *fxFile, int paramNum, const char *paramName, const char *steps) const
     {
         if ( ! fxFile)
             return;
@@ -1124,20 +1096,20 @@ struct FXCell
             return;
         
         if (steps[0] != 0)
-            fprintf(fxFile, "\t%s%s%s %s %d [ %s]", modifiers, control.c_str(), address, "FXParam", paramNumParm, steps);
+            fprintf(fxFile, "\t%s%s%s %s %d [ %s]", modifiers.c_str(), control.c_str(), address.c_str(), "FXParam", paramNum, steps);
         else
-            fprintf(fxFile, "\t%s%s%s %s %d", modifiers, control.c_str(), address, "FXParam", paramNumParm);
+            fprintf(fxFile, "\t%s%s%s %s %d", modifiers.c_str(), control.c_str(), address.c_str(), "FXParam", paramNum);
 
         fprintf(fxFile, " %s", controlParams.c_str());
         
         fprintf(fxFile, "\n");
         
-        fprintf(fxFile, "\t%s%s%s %s \"%s\" %s\n", modifiers, nameDisplay.c_str(), address, nameDisplayAction.c_str(), paramNameParm, nameDisplayParams.c_str());
+        fprintf(fxFile, "\t%s%s%s %s \"%s\" %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), nameDisplayAction.c_str(), paramName, nameDisplayParams.c_str());
             
-        fprintf(fxFile, "\t%s%s%s %s %d %s\n\n", modifiers, valueDisplay.c_str(), address, valueDisplayAction.c_str(), paramNumParm, valueDisplayParams.c_str());
+        fprintf(fxFile, "\t%s%s%s %s %d %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), valueDisplayAction.c_str(), paramNum, valueDisplayParams.c_str());
     }
     
-    void WriteDefaultTemplateToFile(FILE *fxFile, const char *modifiers, const char *address) const
+    void WriteDefaultTemplateToFile(FILE *fxFile) const
     {
         if ( ! fxFile)
             return;
@@ -1145,18 +1117,18 @@ struct FXCell
         if (control == "")
             return;
         
-        fprintf(fxFile, "\t%s%s%s %s\n", modifiers, control.c_str(), address, controlAction.c_str());
+        fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), control.c_str(), address.c_str(), controlAction.c_str());
 
         string nda = nameDisplayAction == "FixedTextDisplay" ? "NoAction" : nameDisplayAction;
         
-        fprintf(fxFile, "\t%s%s%s %s\n", modifiers, nameDisplay.c_str(), address, nda.c_str());
+        fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), nda.c_str());
 
         string vda = valueDisplayAction == "FXParamValueDisplay" ? "NoAction" : valueDisplayAction;
         
-        fprintf(fxFile, "\t%s%s%s %s\n\n", modifiers, valueDisplay.c_str(), address, vda.c_str());
+        fprintf(fxFile, "\t%s%s%s %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), vda.c_str());
     }
     
-    void WriteTemplateToFile(FILE *fxFile, const char *modifiers, const char *address, string_list &paramWidgets) const
+    void WriteTemplateToFile(FILE *fxFile, string_list &paramWidgets) const
     {
         if ( ! fxFile)
             return;
@@ -1168,25 +1140,62 @@ struct FXCell
             return;
         
         if (paramNum != "")
-            fprintf(fxFile, "\t%s%s%s %s %s %s\n", modifiers, control.c_str(), address, controlAction.c_str(), paramNum.c_str(), controlParams.c_str());
+            fprintf(fxFile, "\t%s%s%s %s %s %s\n", modifiers.c_str(), control.c_str(), address.c_str(), controlAction.c_str(), paramNum.c_str(), controlParams.c_str());
         else
-            fprintf(fxFile, "\t%s%s%s %s\n", modifiers, control.c_str(), address, "NoAction");
+            fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), control.c_str(), address.c_str(), "NoAction");
 
         if (paramName != "")
-            fprintf(fxFile, "\t%s%s%s %s \"%s\" %s\n", modifiers, nameDisplay.c_str(), address, nameDisplayAction.c_str(), paramName.c_str(), nameDisplayParams.c_str());
+            fprintf(fxFile, "\t%s%s%s %s \"%s\" %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), nameDisplayAction.c_str(), paramName.c_str(), nameDisplayParams.c_str());
         else
         {
             const char *displayAction = strcmp(control.c_str(), paramWidgets[0]) ? "NullDisplay" : "NoAction";
-            fprintf(fxFile, "\t%s%s%s %s\n", modifiers, nameDisplay.c_str(), address, displayAction);
+            fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), displayAction);
         }
 
         if (paramNum != "")
-            fprintf(fxFile, "\t%s%s%s %s %s %s\n\n", modifiers, valueDisplay.c_str(), address, valueDisplayAction.c_str(), paramNum.c_str(), valueDisplayParams.c_str());
+            fprintf(fxFile, "\t%s%s%s %s %s %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), valueDisplayAction.c_str(), paramNum.c_str(), valueDisplayParams.c_str());
         else
         {
             const char *displayAction = strcmp(control.c_str(), paramWidgets[0]) ? "NullDisplay" : "NoAction";
-            fprintf(fxFile, "\t%s%s%s %s\n\n", modifiers, valueDisplay.c_str(), address, displayAction);
+            fprintf(fxFile, "\t%s%s%s %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), displayAction);
         }
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct FXCellLayoutInfo
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    string suffix;
+
+    string modifiers;
+    string address;
+    
+    string_list &GetModifierTokens(string_list &modifierList)
+    {
+        modifierList.clear();
+        GetSubTokens(modifierList, modifiers.c_str(), '+');
+
+        modifierList.push_back("");
+        return modifierList;
     }
 };
 
@@ -1209,9 +1218,9 @@ struct FXCellRow
         for (int i = 0; i < cells.size(); ++i)
         {
             if (i == 0) // Auto Map only maps the first control/display
-                cells[i].WriteToFile(fxFile, modifiers.c_str(), address.c_str(), paramNum, paramName.c_str(), steps.c_str());
+                cells[i].WriteToFile(fxFile, paramNum, paramName.c_str(), steps.c_str());
             else
-                cells[i].WriteDefaultTemplateToFile(fxFile, modifiers.c_str(), address.c_str());
+                cells[i].WriteDefaultTemplateToFile(fxFile);
         }
         
         fprintf(fxFile, "\n");
@@ -1225,7 +1234,7 @@ struct FXCellRow
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i <cells.size(); ++i)
-            cells[i].WriteDefaultTemplateToFile(fxFile, modifiers.c_str(), address.c_str());
+            cells[i].WriteDefaultTemplateToFile(fxFile);
             
         fprintf(fxFile, "\n");
     }
@@ -1238,7 +1247,7 @@ struct FXCellRow
         fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
 
         for (int i = 0; i < cells.size(); ++i)
-            cells[i].WriteTemplateToFile(fxFile, modifiers.c_str(), address.c_str(), paramWidgets);
+            cells[i].WriteTemplateToFile(fxFile, paramWidgets);
             
         fprintf(fxFile, "\n");
     }
@@ -1302,6 +1311,20 @@ struct LearnedWidgetParams
     }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1317,8 +1340,6 @@ private:
         
     Zone *learnFXZone_;
     
-    MediaTrack *learnFXTrack_;
-    int learnFXSlot_;
     Zone *learnFocusedFXZone_;
     
     Zone *homeZone_;
@@ -1673,6 +1694,13 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *GetLearnFocusedFXActionContextDictionary()
+    {
+        if (learnFocusedFXZone_ != NULL)
+            return &learnFocusedFXZone_->GetActionContextDictionary();
+        else return NULL;
+    }
+
     void GetAlias(const char *fxName, char *alias, int aliassz)
     {
         static const char  *const prefixes[] =
@@ -1761,8 +1789,9 @@ public:
             RecursiveCreateDirectory(fxFilePath, 0);
             string fxFileName = fxName;
             ReplaceAllWith(fxFileName, s_BadFileChars, "_");
-            snprintf(fxFilePath, sizeof(fxFilePath), "%s/%s.zon", fxFilePath, fxFileName.c_str());
-            info.filePath = fxFilePath;
+            char fxFullFilePath[BUFSIZ];
+            snprintf(fxFullFilePath, sizeof(fxFullFilePath), "%s/%s.zon", fxFilePath, fxFileName.c_str());
+            info.filePath = fxFullFilePath;
             
             learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, info.alias, info.filePath);
             learnFocusedFXZone_->Activate();
@@ -1780,13 +1809,7 @@ public:
         if (learnFXZone_ != NULL)
             learnFXZone_->Deactivate();
     }
-    
-    void EnterLearn(MediaTrack *learnFXTrack, int learnFXSlot)
-    {
-        learnFXTrack_ = learnFXTrack;
-        learnFXSlot_ = learnFXSlot;
-    }
-        
+            
     void DeclareGoZone(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1877,8 +1900,6 @@ public:
         if (learnFocusedFXZone_ != NULL)
         {
             learnedWidgets_.DeleteAll();
-            learnFXTrack_ = NULL;
-            learnFXSlot_ = 0;
             lastTouchedControl_ = NULL;
             
             delete learnFocusedFXZone_;
@@ -2037,9 +2058,6 @@ public:
     {
         CheckFocusedFXState();
           
-        //if (learnFXTrack_ != NULL)
-            //UpdateLearnedParams();
-        
         if (learnFocusedFXZone_ != NULL)
             learnFocusedFXZone_->RequestUpdate();
 
@@ -2074,9 +2092,6 @@ public:
         
         g_FocusedWidget = widget;
         //RefreshLearnDlg();
-        
-        //if (learnFXTrack_ != NULL)
-            //DoLearn(widget, isUsed, value);
         
         if (learnFocusedFXZone_ != NULL)
             learnFocusedFXZone_->DoAction(widget, isUsed, value);
@@ -2128,9 +2143,6 @@ public:
         g_FocusedWidget = widget;
         //RefreshLearnDlg();
 
-        //if (learnFXTrack_ != NULL)
-            //DoLearn(widget, isUsed, value);
-        
         if (learnFocusedFXZone_ != NULL)
             learnFocusedFXZone_->DoRelativeAction(widget, isUsed, delta);
 
@@ -2181,9 +2193,6 @@ public:
         g_FocusedWidget = widget;
         //RefreshLearnDlg();
 
-        //if (learnFXTrack_ != NULL)
-            //DoLearn(widget, isUsed, value);
-        
         if (learnFocusedFXZone_ != NULL)
             learnFocusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
 

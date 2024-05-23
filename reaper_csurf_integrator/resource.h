@@ -9,6 +9,7 @@
 #define IDC_EraseControl                5
 #define ID_BUTTON_AddBroadcaster2       6
 #define ID_BUTTON_AddListener           6
+#define IDC_ExitNoSave                  6
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_LearnFX              117
@@ -82,6 +83,8 @@
 #define IDC_FixedTextDisplayBackgroundColor 1182
 #define IDC_FXParamDisplayForegroundColor 1185
 #define IDC_FXParamDisplayBackgroundColor 1188
+#define IDC_Undo                        1189
+#define IDC_Redo                        1190
 #define IDC_FixedTextDisplayFontLabel   1199
 #define IDC_FXParamValueDisplayFontLabel 1202
 #define IDC_FXParamRingColorBox         1205
