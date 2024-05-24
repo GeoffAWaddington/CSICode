@@ -59,10 +59,21 @@
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
+class CSurfIntegrator;
+class ZoneManager;
+class Widget;
+extern Widget* g_FocusedWidget;
+
 extern string int_to_string(int value);
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
 extern int strToHex(const char *valueStr);
+
+extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
+extern void CheckLearnFocusedFXState(ZoneManager *zoneManager);
+extern void CloseFocusedFXDialog();
+extern void UpdateLearnWindow();
+extern void UpdateLearnWindow(int paramNumber);
 
 extern bool g_surfaceRawInDisplay;
 extern bool g_surfaceInDisplay;
@@ -82,15 +93,6 @@ static const char * const s_OSCX32SurfaceToken = "OSCX32Surface";
 static const char * const s_BadFileChars = " \\:*?<>|.,()/";
 static const char * const s_BeginAutoSection = "#Begin auto generated section";
 static const char * const s_EndAutoSection = "#End auto generated section";
-
-class CSurfIntegrator;
-class ZoneManager;
-class Widget;
-extern Widget* g_FocusedWidget;
-
-extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
-extern void CheckLearnFocusedFXState(ZoneManager *zoneManager);
-extern void CloseFocusedFXDialog();
 
 class fpistream
 {
@@ -2059,7 +2061,10 @@ public:
         CheckFocusedFXState();
           
         if (learnFocusedFXZone_ != NULL)
+        {
+            UpdateLearnWindow();
             learnFocusedFXZone_->RequestUpdate();
+        }
 
         if (learnFXZone_ != NULL)
             learnFXZone_->RequestUpdate();

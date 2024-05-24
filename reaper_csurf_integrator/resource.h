@@ -11,7 +11,6 @@
 #define ID_BUTTON_AddListener           6
 #define IDC_ExitNoSave                  6
 #define IDD_DIALOG_Page                 103
-#define IDD_DIALOG_EditFXParam          115
 #define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_Advanced             119
 #define IDD_DIALOG_Broadcast            123
@@ -61,9 +60,7 @@
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
 #define IDC_AllParams                   1139
-#define IDC_GroupFXParam                1140
-#define IDC_FXParamNumEdit              1141
-#define IDC_PickWidgetType              1142
+#define IDC_GroupFXControl              1140
 #define IDC_PickRingStyle               1143
 #define IDC_FixedTextDisplayPickRow     1144
 #define IDC_GroupFixedTextDisplay       1148
@@ -128,6 +125,7 @@
 #define IDC_RangeMinimumLabel           1280
 #define IDC_DeltaValueLabel             1281
 #define IDC_Apply                       1282
+#define IDC_LIST1                       1283
 
 // Next default values for new objects
 // 
@@ -135,7 +133,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1283
+#define _APS_NEXT_CONTROL_VALUE         1284
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

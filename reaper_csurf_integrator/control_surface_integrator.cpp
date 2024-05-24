@@ -1715,19 +1715,19 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         actionName = params[0];
     
     // Action with int param, could include leading minus sign
-    if (params.size() > 1 && (isdigit(params[1][0]) ||  params[1][0] == '-'))  // C++ 11 says empty strings can be queried without catastrophe :)
+    if (params.size() > 1 && (isdigit(params[1][0]) ||  params[1][0] == '-'))  // C++ 2003 says empty strings can be queried without catastrophe :)
     {
         intParam_= atol(params[1].c_str());
     }
     
-    if (!strcmp(actionName, "Bank") && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 11 says empty strings can be queried without catastrophe :)
+    if (!strcmp(actionName, "Bank") && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 2003 says empty strings can be queried without catastrophe :)
     {
         stringParam_ = params[1];
         intParam_= atol(params[2].c_str());
     }
     
     // Action with param index, must be positive
-    if (params.size() > 1 && isdigit(params[1][0]))  // C++ 11 says empty strings can be queried without catastrophe :)
+    if (params.size() > 1 && isdigit(params[1][0]))  // C++ 2003 says empty strings can be queried without catastrophe :)
     {
         paramIndex_ = atol(params[1].c_str());
     }
