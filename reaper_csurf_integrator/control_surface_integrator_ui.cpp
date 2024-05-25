@@ -1052,12 +1052,14 @@ struct FXParamInfo
     int row;
     int column;
     int paramNum;
+    int modifier;
     
     FXParamInfo()
     {
         row = 0;
         column = 0;
         paramNum = 0;
+        modifier = 0;
     }
 };
 
@@ -1167,6 +1169,7 @@ static void ConfigureListView(HWND hwndParamList)
                 info.row = rowIdx;
                 info.column = column + 1;
                 info.paramNum = paramNum;
+                info.modifier = s_fxRowLayouts[row].modifier;
                 
                 s_fxParamInfo.push_back(info);
             }
@@ -1446,7 +1449,7 @@ void UpdateLearnWindow(int paramNumber)
 
     SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
 }
-
+/*
 static void HandleDoubleClick(HWND hwndDlg)
 {
     LVHITTESTINFO hitTestInfo;
@@ -1469,7 +1472,7 @@ static void HandleDoubleClick(HWND hwndDlg)
         }
     }
 }
-
+*/
 static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
 {
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
@@ -1500,11 +1503,26 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                     modifiers += string(tokens[j]) + "+";
             
             
-            snprintf(buf, sizeof(buf), "%s%s%d", modifiers.c_str(), s_t_nameWidget.c_str(), s_fxParamInfo[i].column);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), buf);
             
             snprintf(buf, sizeof(buf), "%s%s%d", modifiers.c_str(), s_t_valueWidget.c_str(), s_fxParamInfo[i].column);
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), buf);
+            
+            
+            snprintf(buf, sizeof(buf), "%s%s%d", modifiers.c_str(), s_t_nameWidget.c_str(), s_fxParamInfo[i].column);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), buf);
+
+            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(buf);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_fxParamInfo[i].modifier))
+                {
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier);
+                    
+                    if(contexts->GetSize() > 0)
+                        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), contexts->Get(0)->GetStringParam());
+                }
+            }
         }
     }
 }
@@ -1599,14 +1617,14 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_SIZE:
             HandleResize(hwndDlg);
             break;
-            
+        /*
         case WM_NOTIFY:
         {
             if (((LPNMHDR)lParam)->code == NM_DBLCLK && ((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hwndDlg, IDC_PARAM_LIST))
                 HandleDoubleClick(hwndDlg);
         }
             break;
-                        
+        */
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
