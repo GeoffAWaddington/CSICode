@@ -62,7 +62,6 @@ static char s_fxAlias[BUFSZ];
 
 static int s_numColumns;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
-static int s_fxCellIndex = 0;
 
 // t = template
 string_list s_t_paramWidgets;
@@ -163,24 +162,16 @@ static unsigned int &GetButtonColorForID(unsigned int id)
     return s_buttonColors[0][2];
 }
 
-static void PopulateParamListView(HWND hwndParamList)
+static void PopulateAllParamList(HWND hwndDlg)
 {
-    ListView_DeleteAllItems(hwndParamList);
-        
-    LVITEM lvi;
-    lvi.mask      = LVIF_TEXT | LVCF_WIDTH | LVCF_FMT;
-    lvi.stateMask = 0;
-    lvi.iSubItem  = 0;
-    lvi.state     = 0;
-    
+    SendMessage(GetDlgItem(hwndDlg, IDC_AllParams), LB_RESETCONTENT, 0, 0);
+
     for (int i = 0; i < TrackFX_GetNumParams(s_focusedTrack, s_fxSlot); ++i)
     {
         char buf[BUFSIZ];
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, i, buf, sizeof(buf));
 
-        lvi.iItem = i;
-        lvi.pszText = buf;
-        ListView_InsertItem(hwndParamList, &lvi);
+        SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_ADDSTRING, 0, (LPARAM)buf);
     }
 }
 
@@ -243,7 +234,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             ShowFontControls(hwndDlg, false);
             ShowColorControls(hwndDlg, false);
 
-            FXCellRow &row = s_zoneDef.rows[s_fxCellIndex];
+            FXCellRow &row = s_zoneDef.rows[0];
             
             SetWindowText(hwndDlg, (s_zoneDef.fxAlias + "   " + row.modifiers + row.address).c_str());
 
@@ -253,7 +244,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
                 SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
                                       
-            PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
+            PopulateAllParamList(GetDlgItem(hwndDlg, IDC_AllParams));
 
            //WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_PickWidgetType));
             //SendDlgItemMessage(hwndDlg, IDC_PickWidgetType, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("None","csi_fxparm"));
@@ -288,7 +279,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int j = 0; j < s_t_fonts.size(); j++)
                 SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[j].c_str());
 
-            FXCell &cell = s_zoneDef.rows[s_fxCellIndex].cells[0];
+            FXCell &cell = s_zoneDef.rows[0].cells[0];
             
             //SetDlgItemText(hwndDlg, IDC_FXParamNumEdit, cell.paramNum.c_str());
             SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, cell.paramName.c_str());
@@ -465,7 +456,7 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        FXCell &cell = s_zoneDef.rows[s_fxCellIndex].cells[0];
+                        FXCell &cell = s_zoneDef.rows[0].cells[0];
 
                         char buf[BUFSZ];
                         
@@ -692,48 +683,6 @@ static WDL_DLGRET dlgProcEditFXParam(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
-static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-        case WM_INITDIALOG:
-        {
-            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias);
-        }
-            break;
-            
-        case WM_COMMAND:
-        {
-            switch(LOWORD(wParam))
-            {
-                case IDOK:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias, sizeof(s_fxAlias));
-                        s_dlgResult = IDOK;
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break ;
-                    
-                case IDCANCEL:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                        EndDialog(hwndDlg, 0);
-                    break ;
-            }
-        }
-            break ;
-            
-        case WM_CLOSE:
-            DestroyWindow(hwndDlg) ;
-            break ;
-            
-        case WM_DESTROY:
-            EndDialog(hwndDlg, 0);
-            break;
-    }
-    
-    return 0;
-}
 
 string_list GetLineComponents(int index)
 {
@@ -813,7 +762,48 @@ static void SetListViewItem(HWND hwndParamList, int index, bool shouldInsert)
 
 
 
-
+static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+        {
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias);
+        }
+            break;
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias, sizeof(s_fxAlias));
+                        s_dlgResult = IDOK;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+            break ;
+            
+        case WM_CLOSE:
+            DestroyWindow(hwndDlg) ;
+            break ;
+            
+        case WM_DESTROY:
+            EndDialog(hwndDlg, 0);
+            break;
+    }
+    
+    return 0;
+}
 
 static bool DeleteZone()
 {
@@ -1033,20 +1023,6 @@ static void LoadTemplates()
     }
 }
 
-struct ChildOffset
-{
-    int id;
-    int x;
-    int y;
-    
-    ChildOffset(int control, int xOffset, int yOffset)
-    {
-        id = control;
-        x = xOffset;
-        y = yOffset;
-    }
-};
-
 struct FXParamInfo
 {
     int row;
@@ -1063,15 +1039,9 @@ struct FXParamInfo
     }
 };
 
-vector<FXParamInfo> s_fxParamInfo;
+ptrvector<FXParamInfo> s_fxParamInfo;
 
-static vector<ChildOffset> s_childOffsets;
-
-static int s_paramListXOffset;
-static int s_paramListWidth;
-static int s_paramListWidthBias;
-
-static void ConfigureListView(HWND hwndParamList)
+static void ConfigureParamListView(HWND hwndParamList)
 {
     int numColumns = Header_GetItemCount(ListView_GetHeader(hwndParamList));
        
@@ -1080,11 +1050,16 @@ static void ConfigureListView(HWND hwndParamList)
     
     ListView_DeleteAllItems(hwndParamList);
     
-    // GAW TBD -- junk, will improve
-    int columnSize  = ((s_paramListWidth * 3) / 4) / (s_numColumns + 3);
+    int firstColumnSize = 200;
+    int columnSize  = 73;
 
+#ifdef WIN32
+    firstColumnSize = 244;
+    columnSize  = 124;
+#endif
+    
     LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
-    columnDescriptor.cx = columnSize * 3;
+    columnDescriptor.cx = firstColumnSize;
     
     ListView_InsertColumn(hwndParamList, 0, &columnDescriptor);
     
@@ -1097,7 +1072,7 @@ static void ConfigureListView(HWND hwndParamList)
         columnDescriptor.fmt = LVCFMT_CENTER;
         ListView_InsertColumn(hwndParamList, i, &columnDescriptor);
     }
-    
+
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
     
     if (contexts ==  NULL)
@@ -1175,141 +1150,6 @@ static void ConfigureListView(HWND hwndParamList)
             }
         }
     }
-}
-
-static void CalcInitialSizes(HWND hwndDlg)
-{
-    int childIds[] = {    
-        IDC_PickRingStyle,
-        
-        IDC_FXParamNameEdit,
-        IDC_FixedTextDisplayPickRow,
-        
-        IDC_FXParamValueDisplayPickRow,
-        
-        IDC_PickSteps,
-        IDC_EditSteps,
-        IDC_StepsPromptGroup,
-        
-        IDC_GroupFXControl,
-        IDC_GroupFixedTextDisplay,
-        IDC_GroupFXParamValueDisplay,
-
-        IDC_FixedTextDisplayFontLabel,
-        IDC_FixedTextDisplayPickFont,
-        IDC_FixedTextDisplayTopLabel,
-        IDC_Edit_FixedTextDisplayTop,
-        IDC_FixedTextDisplayBottomLabel,
-        IDC_Edit_FixedTextDisplayBottom,
-        IDC_FXParamValueDisplayFontLabel,
-        IDC_FXParamValueDisplayPickFont,
-        IDC_ParamValueDisplayTopLabel,
-        IDC_Edit_ParamValueDisplayTop,
-        IDC_ParamValueDisplayBottomLabel,
-        IDC_Edit_ParamValueDisplayBottom,
-
-        IDC_FXParamRingColorBox,
-        IDC_FXParamRingColor,
-        IDC_FXParamIndicatorColorBox,
-        IDC_FXParamIndicatorColor,
-        IDC_FixedTextDisplayForegroundColor,
-        IDC_FXFixedTextDisplayForegroundColorBox,
-        IDC_FixedTextDisplayBackgroundColor,
-        IDC_FXFixedTextDisplayBackgroundColorBox,
-        IDC_FXParamDisplayForegroundColor,
-        IDC_FXParamValueDisplayForegroundColorBox,
-        IDC_FXParamDisplayBackgroundColor,
-        IDC_FXParamValueDisplayBackgroundColorBox,
-        
-        IDC_EDIT_Delta, IDC_EDIT_RangeMin, IDC_EDIT_RangeMax,
-        IDC_EDIT_DeltaValues, IDC_EDIT_TickValues, IDC_AllParams,
-        
-        IDC_GroupFXParamValues, IDC_DeltaValueLabel, IDC_RangeMinimumLabel, IDC_RangeMaximumLabel,
-        IDC_AcceleratedTickValuesLabel, IDC_AcceleratedDeltaValuesLabel,
-
-        IDC_ExitWithSave, IDC_ExitNoSave, IDC_Apply };
-    
-    s_childOffsets.clear();
-    
-    RECT parent;
-    
-    GetWindowRect(hwndDlg, &parent);
-    
-    RECT child;
-                
-    for (int i = 0; i < NUM_ELEM(childIds); ++i)
-    {
-        int id = childIds[i];
-        
-        GetWindowRect(GetDlgItem(hwndDlg, id), &child);
-
-        ChildOffset offset(id, (parent.right - child.right) + (child.right - child.left), child.top - parent.top);
-        
-        s_childOffsets.push_back(offset);
-    }
-    
-    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-
-    GetWindowRect(hwndParamList, &child);
-
-    POINT p;
-    
-    p.x = child.left;
-    p.y = child.top;
-    
-    ScreenToClient(hwndDlg, &p);
-    
-    s_paramListXOffset = p.x;
-        
-    GetClientRect(hwndDlg, &parent);
-    GetClientRect(hwndParamList, &child);
-
-    s_paramListWidthBias = parent.right - child.right;
-    s_paramListWidth = child.right;
-}
-
-static void HandleResize(HWND hwndDlg)
-{
-    RECT parent;
-    
-    GetClientRect(hwndDlg, &parent);
-    
-    RECT child;
-    
-    for (int i = 0; i < s_childOffsets.size(); ++i)
-    {
-        HWND hwndChild = GetDlgItem(hwndDlg, s_childOffsets[i].id);
-        
-        GetClientRect(hwndChild, &child);
-        
-        POINT childLocation;
-        childLocation.x = child.left;
-        childLocation.y = child.top;
-        
-        ClientToScreen(hwndChild, &childLocation);
-        
-        SetWindowPos(hwndChild, NULL, parent.right - s_childOffsets[i].x, childLocation.y, child.right - child.left, child.bottom - child.top, 0);
-    }
-        
-    HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
-    
-    GetClientRect(hwndParamList, &child);
-
-    POINT childLocation;
-    childLocation.x = child.left;
-    childLocation.y = child.top;
-    
-    ClientToScreen(hwndParamList, &childLocation);
-
-    SetWindowPos(hwndParamList, NULL, child.left + s_paramListXOffset, childLocation.y, parent.right - parent.left - s_paramListWidthBias, child.bottom - child.top, 0);
-    
-    // GAW TBD -- junk, will improve
-    int columnSize = ((child.right * 3) / 4) / (s_numColumns + 2);
-
-    ListView_SetColumnWidth(hwndParamList, 0, columnSize * 2);
-    
-    for (int i = 1; i <= s_numColumns; ++i)
-        ListView_SetColumnWidth(hwndParamList, i, columnSize);
 }
 
 static void WriteBoilerPlate(FILE *fxFile, string &fxBoilerplatePath)
@@ -1449,30 +1289,7 @@ void UpdateLearnWindow(int paramNumber)
 
     SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
 }
-/*
-static void HandleDoubleClick(HWND hwndDlg)
-{
-    LVHITTESTINFO hitTestInfo;
-    memset(&hitTestInfo, 0, sizeof(hitTestInfo));
-    POINT cursorPos;
-    GetCursorPos(&cursorPos);
-    ScreenToClient(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &cursorPos);
-    hitTestInfo.pt = cursorPos;
-    s_fxCellIndex = ListView_SubItemHitTest(GetDlgItem(hwndDlg, IDC_PARAM_LIST), &hitTestInfo);
-    
-    int row = hitTestInfo.iItem;
-    int column = hitTestInfo.iSubItem;
 
-    for (int i = 0; i < s_fxParamInfo.size(); ++i)
-    {
-        if (s_fxParamInfo[i].row == row && s_fxParamInfo[i].column == column)
-        {
-            SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_fxParamInfo[i].paramNum, 0);
-            break;
-        }
-    }
-}
-*/
 static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
 {
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
@@ -1530,9 +1347,7 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
 static void HandleInitialize(HWND hwndDlg)
 {
     s_lastTouchedParamNum = -1;
-    
-    CalcInitialSizes(hwndDlg);
-        
+            
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
                 
     char buf[BUFSZ];
@@ -1552,7 +1367,7 @@ static void HandleInitialize(HWND hwndDlg)
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
     }
     
-    ConfigureListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
+    ConfigureParamListView(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
     
     if (s_t_fonts.size())
         ShowFontControls(hwndDlg, true);
@@ -1567,7 +1382,7 @@ static void HandleInitialize(HWND hwndDlg)
     else
         ShowColorControls(hwndDlg, false);
     
-    PopulateParamListView(GetDlgItem(hwndDlg, IDC_AllParams));
+    PopulateAllParamList(hwndDlg);
 }
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1577,7 +1392,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_USER + 1024: // initialize
             HandleInitialize(hwndDlg);
             break;
-            
+           
         case WM_PAINT:
         {
             if (s_t_hasColor)
@@ -1614,17 +1429,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
             break;
             
-        case WM_SIZE:
-            HandleResize(hwndDlg);
-            break;
-        /*
-        case WM_NOTIFY:
-        {
-            if (((LPNMHDR)lParam)->code == NM_DBLCLK && ((LPNMHDR)lParam)->hwndFrom == GetDlgItem(hwndDlg, IDC_PARAM_LIST))
-                HandleDoubleClick(hwndDlg);
-        }
-            break;
-        */
         case WM_COMMAND:
         {
             switch(LOWORD(wParam))
