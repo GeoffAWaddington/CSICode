@@ -716,18 +716,18 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
     if (zoneContexts == NULL)
         return;
 
-    for (int i = 0; i < s_fxParamInfo.size(); ++i)
+    for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
-        int modifier = s_fxParamInfo[i].modifier;
-        int column = s_fxParamInfo[i].column;
+        int modifier = s_fxParamInfo[infoIdx].modifier;
+        int column = s_fxParamInfo[infoIdx].column;
         
-        if (s_fxParamInfo[i].paramNum == paramIdx)
+        if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
         {
             char baseWidgetName[BUFSIZ];
-            ListView_GetItemText(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[i].row, 0, baseWidgetName, sizeof(baseWidgetName));
+            ListView_GetItemText(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, 0, baseWidgetName, sizeof(baseWidgetName));
             
             char buf[BUFSIZ];
-            snprintf(buf, sizeof(buf), "%s%d", baseWidgetName, s_fxParamInfo[i].column);
+            snprintf(buf, sizeof(buf), "%s%d", baseWidgetName, s_fxParamInfo[infoIdx].column);
             
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), buf);
             
@@ -743,8 +743,8 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
             string modifiers;
             
             if (tokens.size() > 0)
-                for (int j = 0; j < tokens.size() - 1; ++j)
-                    modifiers += string(tokens[j]) + "+";
+                for (int i = 0; i < tokens.size() - 1; ++i)
+                    modifiers += string(tokens[i]) + "+";
             
             snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidget.c_str(), column);
             
@@ -754,7 +754,7 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
             {
                 if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
                 {
-                    ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[i].row, LVIS_SELECTED, LVIS_SELECTED);
+                    ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
 
                     WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
                     
@@ -790,9 +790,9 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                         const vector<double> &steppedValues = context->GetSteppedValues();
                         string steps;
 
-                        for (int j = 0; j < steppedValues.size(); ++j)
+                        for (int i = 0; i < steppedValues.size(); ++i)
                         {
-                            steps += format_number(steppedValues[j], tmp, sizeof(tmp));
+                            steps += format_number(steppedValues[i], tmp, sizeof(tmp));
                             steps += "  ";
                         }
                         
@@ -864,10 +864,18 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
 
                         
-                        
-                        SetDlgItemText(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), 0, widget->GetName());
-                        
-                        
+                        char widgetNameBuf[BUFSIZ]; // Get the undecorated Widget name
+                        snprintf(widgetNameBuf, sizeof(widgetNameBuf), "%s", widget->GetName());
+                        for (int i = string(widget->GetName()).length() - 1; i >= 0; --i)
+                        {
+                            if (isdigit(widgetNameBuf[i]))
+                                widgetNameBuf[i] = 0;
+                            else
+                                break;
+                        }
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)widgetNameBuf);
+                        if (index >= 0)
+                            SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_SETCURSEL, index, 0);
                         
                         
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
@@ -929,12 +937,19 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                         ActionContext *context = contexts->Get(0);
                         
                         
-                        
-                        
-                        SetDlgItemText(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), 0, widget->GetName());
+                        char widgetNameBuf[BUFSIZ]; // Get the undecorated Widget name
+                        snprintf(widgetNameBuf, sizeof(widgetNameBuf), "%s", widget->GetName());
+                        for (int i = string(widget->GetName()).length() - 1; i >= 0; --i)
+                        {
+                            if (isdigit(widgetNameBuf[i]))
+                                widgetNameBuf[i] = 0;
+                            else
+                                break;
+                        }
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)widgetNameBuf);
+                        if (index >= 0)
+                            SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_SETCURSEL, index, 0);
 
-                        
-                        
                         
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
