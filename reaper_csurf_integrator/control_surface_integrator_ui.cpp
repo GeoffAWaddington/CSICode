@@ -1093,7 +1093,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 {
                     switch (HIWORD(wParam))
                     {
-                        case  LBN_SELCHANGE:
+                        case LBN_SELCHANGE:
                         {
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
 
@@ -1290,6 +1290,9 @@ void UpdateLearnWindow()
         {
             s_lastTouchedParamNum = paramnumberOut;
             SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
+#ifdef WIN32
+            PopulateFXParamNumParams(hwndLearnDlg, s_lastTouchedParamNum);
+#endif
         }
     }
 }
@@ -1300,6 +1303,9 @@ void UpdateLearnWindow(int paramNumber)
         return;
 
     SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
+#ifdef WIN32
+    PopulateFXParamNumParams(hwndLearnDlg, paramNumber);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
