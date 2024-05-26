@@ -1033,231 +1033,6 @@ struct CSIZoneInfo
     string alias;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXCell
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string suffix;
-    string modifiers;
-    int modifier;
-    string address;
-
-    string control;
-    string controlAction;
-    string controlParams;
-    PropertyList controlProperties;
-    
-    int start_idx;
-    double deltaValue;
-    vector<double> acceleratedDeltaValues;
-    double rangeMinimum;
-    double rangeMaximum;
-    vector<double> steppedValues;
-    vector<int> acceleratedTickValues;
-      
-    string nameDisplay;
-    string nameDisplayAction;
-    string nameDisplayParams;
-    PropertyList nameDisplayProperties;
-
-    string valueDisplay;
-    string valueDisplayAction;
-    string valueDisplayParams;
-    PropertyList valueDisplayProperties;
-
-    string paramNum;
-    string paramName;
-        
-    FXCell()
-    {
-        start_idx = 0;
-        deltaValue = 0.001;
-        rangeMinimum = 0.0;
-        rangeMaximum = 1.0;
-        
-        controlAction = "NoAction";
-        nameDisplayAction = "NoAction";
-        valueDisplayAction = "NoAction";
-    }
-
-    void WriteToFile(FILE *fxFile, int paramNum, const char *paramName, const char *steps) const
-    {
-        if ( ! fxFile)
-            return;
-        
-        if ( control == "")
-            return;
-        
-        if (steps[0] != 0)
-            fprintf(fxFile, "\t%s%s%s %s %d [ %s]", modifiers.c_str(), control.c_str(), address.c_str(), "FXParam", paramNum, steps);
-        else
-            fprintf(fxFile, "\t%s%s%s %s %d", modifiers.c_str(), control.c_str(), address.c_str(), "FXParam", paramNum);
-
-        fprintf(fxFile, " %s", controlParams.c_str());
-        
-        fprintf(fxFile, "\n");
-        
-        fprintf(fxFile, "\t%s%s%s %s \"%s\" %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), nameDisplayAction.c_str(), paramName, nameDisplayParams.c_str());
-            
-        fprintf(fxFile, "\t%s%s%s %s %d %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), valueDisplayAction.c_str(), paramNum, valueDisplayParams.c_str());
-    }
-    
-    void WriteDefaultTemplateToFile(FILE *fxFile) const
-    {
-        if ( ! fxFile)
-            return;
-        
-        if (control == "")
-            return;
-        
-        fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), control.c_str(), address.c_str(), controlAction.c_str());
-
-        string nda = nameDisplayAction == "FixedTextDisplay" ? "NoAction" : nameDisplayAction;
-        
-        fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), nda.c_str());
-
-        string vda = valueDisplayAction == "FXParamValueDisplay" ? "NoAction" : valueDisplayAction;
-        
-        fprintf(fxFile, "\t%s%s%s %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), vda.c_str());
-    }
-    
-    void WriteTemplateToFile(FILE *fxFile, string_list &paramWidgets) const
-    {
-        if ( ! fxFile)
-            return;
-        
-        if (control == "")
-            return;
-        
-        if (paramWidgets.size() < 1)
-            return;
-        
-        if (paramNum != "")
-            fprintf(fxFile, "\t%s%s%s %s %s %s\n", modifiers.c_str(), control.c_str(), address.c_str(), controlAction.c_str(), paramNum.c_str(), controlParams.c_str());
-        else
-            fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), control.c_str(), address.c_str(), "NoAction");
-
-        if (paramName != "")
-            fprintf(fxFile, "\t%s%s%s %s \"%s\" %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), nameDisplayAction.c_str(), paramName.c_str(), nameDisplayParams.c_str());
-        else
-        {
-            const char *displayAction = strcmp(control.c_str(), paramWidgets[0]) ? "NullDisplay" : "NoAction";
-            fprintf(fxFile, "\t%s%s%s %s\n", modifiers.c_str(), nameDisplay.c_str(), address.c_str(), displayAction);
-        }
-
-        if (paramNum != "")
-            fprintf(fxFile, "\t%s%s%s %s %s %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), valueDisplayAction.c_str(), paramNum.c_str(), valueDisplayParams.c_str());
-        else
-        {
-            const char *displayAction = strcmp(control.c_str(), paramWidgets[0]) ? "NullDisplay" : "NoAction";
-            fprintf(fxFile, "\t%s%s%s %s\n\n", modifiers.c_str(), valueDisplay.c_str(), address.c_str(), displayAction);
-        }
-    }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXCellLayoutInfo
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string suffix;
-
-    string modifiers;
-    string address;
-    
-    string_list &GetModifierTokens(string_list &modifierList)
-    {
-        modifierList.clear();
-        GetSubTokens(modifierList, modifiers.c_str(), '+');
-
-        modifierList.push_back("");
-        return modifierList;
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXCellRow
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    string modifiers;
-    int modifier;
-    string address;
-    ptrvector<FXCell> cells;
-     
-    void WriteToAutoMapFile(FILE *fxFile, int paramNum, const string &paramName, const string &steps)
-    {
-        if ( ! fxFile)
-            return;
-        
-        fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
-
-        for (int i = 0; i < cells.size(); ++i)
-        {
-            if (i == 0) // Auto Map only maps the first control/display
-                cells[i].WriteToFile(fxFile, paramNum, paramName.c_str(), steps.c_str());
-            else
-                cells[i].WriteDefaultTemplateToFile(fxFile);
-        }
-        
-        fprintf(fxFile, "\n");
-    }
-    
-    void WriteDefaultTemplateToFile(FILE *fxFile)
-    {
-        if ( ! fxFile)
-            return;
-        
-        fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
-
-        for (int i = 0; i <cells.size(); ++i)
-            cells[i].WriteDefaultTemplateToFile(fxFile);
-            
-        fprintf(fxFile, "\n");
-    }
-    
-    void WriteTemplateToFile(FILE *fxFile, string_list &paramWidgets)
-    {
-        if ( ! fxFile)
-            return;
-        
-        fprintf(fxFile, "\t#Cell %s %s \n", address.c_str(), modifiers.c_str());
-
-        for (int i = 0; i < cells.size(); ++i)
-            cells[i].WriteTemplateToFile(fxFile, paramWidgets);
-            
-        fprintf(fxFile, "\n");
-    }
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXRowLayout
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1281,7 +1056,6 @@ struct FXZoneDefinition
     string fullPath;
     string_list prologue;
     string_list epilogue;
-    ptrvector<FXCellRow> rows;
     string_list rawParams;
 
     void Clear()
@@ -1291,44 +1065,9 @@ struct FXZoneDefinition
         fullPath = "";
         prologue.clear();
         epilogue.clear();
-        rows.clear();
         rawParams.clear();
     }
 };
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct LearnedWidgetParams
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    int paramNum;
-    Widget *control;
-    Widget *nameDisplay;
-    Widget *valueDisplay;
-    double lastValueSent;
-
-    LearnedWidgetParams()
-    {
-        paramNum = 0;
-        control = NULL;
-        nameDisplay = NULL;
-        valueDisplay = NULL;
-        lastValueSent = 0;
-    }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ZoneManager
@@ -1620,43 +1359,8 @@ public:
         selectedTrackFXZones_.Empty(true);
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     void EraseLastTouchedControl();
-    ptrvector<FXCellRow> fxRows_;
-    
-    
-    
-    
     Widget *lastTouchedControl_;
-    static void disposeLearnedWidgetsList(WDL_PointerKeyedArray<Widget *, LearnedWidgetParams>  *w) { delete w; }
-    WDL_IntKeyedArray<WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *> learnedWidgets_;
-    
-    void GetParamDisplayWidgets(const char *controlName, int modifier, LearnedWidgetParams *learnedWidgetParams);
-    void AddLearnedWidget(Widget* widget, int modifier, int paramNum);
-    void UpdateLearnedParams();
-    void DoLearn(Widget *widget, bool isUsed, double value);
-    void DoRelativeLearn(Widget *widget, bool isUsed, double delta);
-    double GetNextSteppedValue(MediaTrack *track, Widget *widget, LearnedWidgetParams *lwp, double value);
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
         
     Navigator *GetMasterTrackNavigator();
     Navigator *GetSelectedTrackNavigator();
@@ -1904,7 +1608,6 @@ public:
     {
         if (learnFocusedFXZone_ != NULL)
         {
-            learnedWidgets_.DeleteAll();
             lastTouchedControl_ = NULL;
             
             delete learnFocusedFXZone_;

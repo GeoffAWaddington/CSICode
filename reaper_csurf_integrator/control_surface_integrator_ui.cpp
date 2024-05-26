@@ -863,7 +863,12 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                         
                         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
 
+                        
+                        
                         SetDlgItemText(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), 0, widget->GetName());
+                        
+                        
+                        
                         
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
@@ -923,8 +928,14 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                     {
                         ActionContext *context = contexts->Get(0);
                         
+                        
+                        
+                        
                         SetDlgItemText(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), 0, widget->GetName());
 
+                        
+                        
+                        
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
                             SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
