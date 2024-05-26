@@ -1299,6 +1299,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("HideFXSlot", new HideFXSlot());
     actions_.Insert("ToggleUseLocalModifiers", new ToggleUseLocalModifiers());
     actions_.Insert("SetLatchTime", new SetLatchTime());
+    actions_.Insert("SetHoldTime", new SetHoldTime());
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
     actions_.Insert("LearnFocusedFX", new LearnFocusedFX());
@@ -2531,6 +2532,8 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction)
 {
+    holdDelayAmount_ = 1.0;
+    
     homeZone_ = NULL;
 
     learnFXZone_ = NULL;
@@ -2659,7 +2662,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidget
             else if (tokens[i] == "InvertFB")
                 isFeedbackInverted = true;
             else if (tokens[i] == "Hold")
-                holdDelayAmount = 1.0;
+                holdDelayAmount = holdDelayAmount_;
             else if (tokens[i] == "Decrease")
                 isDecrease = true;
             else if (tokens[i] == "Increase")

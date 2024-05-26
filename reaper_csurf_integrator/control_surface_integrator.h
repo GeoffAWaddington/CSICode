@@ -1082,6 +1082,8 @@ private:
     WDL_StringKeyedArray<CSIZoneInfo*> zoneFilePaths_;
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
         
+    double holdDelayAmount_;
+    
     Zone *learnFXZone_;
     
     Zone *learnFocusedFXZone_;
@@ -1128,7 +1130,7 @@ private:
     void Initialize();
     void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators);
     void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
-   
+       
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
     {
         int lineNumber = 0;
@@ -1361,7 +1363,9 @@ public:
 
     void EraseLastTouchedControl();
     Widget *lastTouchedControl_;
-        
+      
+    void SetHoldDelayAmount(double value) { holdDelayAmount_ = value; }
+
     Navigator *GetMasterTrackNavigator();
     Navigator *GetSelectedTrackNavigator();
     Navigator *GetFocusedFXNavigator();
