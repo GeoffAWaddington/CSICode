@@ -17,6 +17,19 @@ extern int g_maxNumParamSteps;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Learn FX
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct FXRowLayout
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    string suffix;
+    string modifiers;
+    int modifier;
+    
+    FXRowLayout()
+    {
+        modifier = 0;
+    }
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXCellParams
@@ -47,19 +60,39 @@ struct FXCellParams
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct FXCellWidgets
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    int modifier;
+    int paramNum;
+    char paramName[128];
+    char paramWidget[128];
+    char paramNameWidget[128];
+    char paramValueWidget[128];
+    
+    FXCellWidgets()
+    {
+        modifier = 0;
+        paramNum = -1;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXParamInfo
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     int row;
-    int column;
     int paramNum;
     int modifier;
-    
+    char paramName[128];
+    char paramWidget[128];
+    char paramNameWidget[128];
+    char paramValueWidget[128];
+
     FXParamInfo()
     {
         row = 0;
-        column = 0;
-        paramNum = 0;
+        paramNum = -1;
         modifier = 0;
     }
 };
@@ -81,6 +114,7 @@ static char s_fxAlias[BUFSZ];
 static int s_numColumns;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
 ptrvector<FXParamInfo> s_fxParamInfo;
+static ptrvector<FXCellWidgets> cellWidgets;
 
 // t = template
 string_list s_t_paramWidgets;
@@ -582,7 +616,7 @@ static void HandleInitDialog(HWND hwndDlg)
         SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
 }
 
-static void PopulateAllParamsLists(HWND hwndDlg)
+static void FillAllParamsLists(HWND hwndDlg)
 {
     char buf[BUFSIZ];
 
@@ -596,8 +630,78 @@ static void PopulateAllParamsLists(HWND hwndDlg)
     }
 }
 
-static void PopulateParams(HWND hwndDlg)
+static void FillFXCellWidgets()
 {
+    cellWidgets.clear();
+    
+    int lineNumber = 0;
+    
+    if ( ! s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
+        return;
+    try
+    {
+        
+        fpistream file(s_zoneManager->GetZoneFilePaths().Get(s_fxName)->filePath.c_str());
+        
+        for (string line; getline(file, line) ; )
+        {
+            TrimLine(line);
+            
+            if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
+                continue;
+            
+            string_list tokens;
+            
+            GetTokens(tokens, line.c_str());
+            
+            if (tokens.size() > 2 && !strcmp(tokens[1], "FXParam"))
+            {
+                FXCellWidgets widgets;
+                string_list subTokens;
+                GetSubTokens(subTokens, tokens[0], '+');
+                widgets.modifier = s_modifierManager.GetModifierValue(subTokens);
+                strcpy(widgets.paramWidget, subTokens[subTokens.size() - 1]);
+                widgets.paramNum = atoi(tokens[2]);
+                
+                tokens.clear();
+                subTokens.clear();
+                getline(file, line);
+                GetTokens(tokens, line.c_str());
+                
+                if (tokens.size() > 2 && !strcmp(tokens[1], "FixedTextDisplay"))
+                {
+                    GetSubTokens(subTokens, tokens[0], '+');
+                    strcpy(widgets.paramNameWidget, subTokens[subTokens.size() - 1]);
+                    strcpy(widgets.paramName, tokens[2]);
+                }
+                
+                tokens.clear();
+                subTokens.clear();
+                getline(file, line);
+                GetTokens(tokens, line.c_str());
+                
+                if (tokens.size() > 0)
+                {
+                    GetSubTokens(subTokens, tokens[0], '+');
+                    strcpy(widgets.paramValueWidget, subTokens[subTokens.size() - 1]);
+                }
+                
+                cellWidgets.push_back(widgets);
+            }
+        }
+    }
+    catch (exception)
+    {
+        char buffer[250];
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", s_zoneManager->GetZoneFilePaths().Get(s_fxName)->filePath.c_str(), lineNumber);
+        ShowConsoleMsg(buffer);
+    }
+}
+
+static void FillParams(HWND hwndDlg)
+{
+    FillFXCellWidgets();
+    
     HWND hwndParamList = GetDlgItem(hwndDlg, IDC_PARAM_LIST);
     
     int numColumns = Header_GetItemCount(ListView_GetHeader(hwndParamList));
@@ -643,48 +747,32 @@ static void PopulateParams(HWND hwndDlg)
         {
             int rowIdx = row * s_t_paramWidgets.size() + cell;
             
-            char buf[BUFSZ];
+            char undecoratedWidgetName[128];
             
             if(s_fxRowLayouts[row].modifier)
-                snprintf(buf, sizeof(buf), "%s+%s%s", s_fxRowLayouts[row].modifiers.c_str(), s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
+                snprintf(undecoratedWidgetName, sizeof(undecoratedWidgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers.c_str(), s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
             else
-                snprintf(buf, sizeof(buf), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
+                snprintf(undecoratedWidgetName, sizeof(undecoratedWidgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
 
             LVITEM item;
             memset(&item, 0, sizeof(item));
             item.mask = LVIF_TEXT | LVIF_PARAM;
             item.iItem = rowIdx;
             item.cchTextMax = 20;
-            item.pszText = buf;
+            item.pszText = undecoratedWidgetName;
             
             ListView_InsertItem(hwndParamList, &item);
             
             for (int column = 0; column < s_numColumns; ++column)
             {
-                int paramNum = -1;
-                
                 char paramName[BUFSIZ];
                 paramName[0] = 0;
                 
                 char widgetName[BUFSIZ];
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str(), column + 1);
                 
-                Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
-                
-                if (widget)
-                {
-                    if (contexts->Exists(widget) && contexts->Get(widget)->Exists(s_fxRowLayouts[row].modifier))
-                    {
-                        WDL_PtrList<ActionContext> *context = s_zoneManager->GetLearnFocusedFXActionContextDictionary()->Get(widget)->Get(s_fxRowLayouts[row].modifier);
-                        
-                        if (context && context->GetSize() > 0 && strcmp(context->Get(0)->GetStringParam(), ""))
-                        {
-                            paramNum = atoi(context->Get(0)->GetStringParam());
-                            
-                            TrackFX_GetParamName(s_focusedTrack, s_fxSlot, paramNum, paramName, sizeof(paramName));
-                        }
-                    }
-                }
+                char pszTextBuf[128];
+                pszTextBuf[0] = 0;
                 
                 LVITEM item;
                 memset(&item, 0, sizeof(item));
@@ -692,37 +780,286 @@ static void PopulateParams(HWND hwndDlg)
                 item.iItem = rowIdx;
                 item.iSubItem = column + 1;
                 item.cchTextMax = 20;
-                item.pszText = paramName;
-                
-                ListView_SetItem(hwndParamList, &item);
+                item.pszText = pszTextBuf;
                 
                 FXParamInfo info;
-                
                 info.row = rowIdx;
-                info.column = column + 1;
-                info.paramNum = paramNum;
+                info.paramName[0] = 0;
+                info.paramWidget[0] = 0;
+                info.paramNameWidget[0] = 0;
+                info.paramValueWidget[0] = 0;
                 info.modifier = s_fxRowLayouts[row].modifier;
                 
+                for (int cellWidget = 0; cellWidget < cellWidgets.size(); ++cellWidget)
+                {
+                    FXCellWidgets &widgets = cellWidgets[cellWidget];
+                    
+                    if(!strcmp(widgets.paramWidget, widgetName) && info.modifier == widgets.modifier)
+                    {
+                        info.paramNum = widgets.paramNum;
+                        strcpy(info.paramName, widgets.paramName);
+                        item.pszText = info.paramName;
+                        strcpy(info.paramWidget, widgets.paramWidget);
+                        strcpy(info.paramNameWidget, widgets.paramNameWidget);
+                        strcpy(info.paramValueWidget, widgets.paramValueWidget);
+
+                        break;
+                    }
+                }
+                  
+                ListView_SetItem(hwndParamList, &item);
                 s_fxParamInfo.push_back(info);
             }
         }
     }
 }
 
-static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
+static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
 {
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
     
     if (zoneContexts == NULL)
         return;
 
+    rgba_color defaultColor;
+    defaultColor.r = 237;
+    defaultColor.g = 237;
+    defaultColor.b = 237;
+
     for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
         int modifier = s_fxParamInfo[infoIdx].modifier;
-        int column = s_fxParamInfo[infoIdx].column;
+        
+        char buf[BUFSIZ];
         
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
         {
+            ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
+            
+            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), s_fxParamInfo[infoIdx].paramWidget);
+            
+            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramWidget);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                {
+                    ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
+                    
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
+                    
+                    if(contexts->GetSize() > 0)
+                    {
+                        ActionContext *context = contexts->Get(0);
+                        
+                        const char *ringstyle = context->GetWidgetProperties().get_prop(PropertyType_RingStyle);
+                        if (ringstyle)
+                            SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+                        
+                        snprintf(buf, sizeof(buf), "%0.2f", context->GetDeltaValue());
+                        SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
+                        
+                        snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMinimum());
+                        SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
+                        
+                        snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMaximum());
+                        SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
+                        
+                        int numSteps = context->GetNumberOfSteppedValues();
+                        if (numSteps)
+                        {
+                            snprintf(buf, sizeof(buf), "%d", numSteps);
+                            SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
+                        }
+                        else
+                            SetDlgItemText(hwndDlg, IDC_PickSteps, "");
+                        
+                        char tmp[BUFSZ];
+                        const vector<double> &steppedValues = context->GetSteppedValues();
+                        string steps;
+                        
+                        for (int i = 0; i < steppedValues.size(); ++i)
+                        {
+                            steps += format_number(steppedValues[i], tmp, sizeof(tmp));
+                            steps += "  ";
+                        }
+                        
+                        SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
+                        
+                        
+                        const vector<double> &acceleratedDeltaValues = context->GetAcceleratedDeltaValues();
+                        string deltas;
+                        
+                        for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
+                        {
+                            deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
+                            deltas += " ";
+                        }
+                        
+                        SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
+                        
+                        
+                        const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
+                        string ticks;
+                        
+                        for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
+                            ticks += int_to_string(acceleratedTickCounts[i]) + " ";
+                        
+                        SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
+                        
+                        const char *ringcolor = context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
+                        if (ringcolor)
+                        {
+                            rgba_color color;
+                            GetColorValue(ringcolor, color);
+                            GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
+                        }
+                        else
+                            GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                        
+                        
+                        const char *pushcolor = context->GetWidgetProperties().get_prop(PropertyType_PushColor);
+                        if (pushcolor)
+                        {
+                            rgba_color color;
+                            GetColorValue(pushcolor, color);
+                            GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
+                        }
+                        else
+                            GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                        
+                    }
+                }
+            }
+            
+            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramNameWidget);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                {
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
+                    
+                    if(contexts->GetSize() > 0)
+                    {
+                        ActionContext *context = contexts->Get(0);
+                        
+                        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
+                        /*
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxParamInfo[infoIdx].undecoratedWidgetName);
+                        if (index >= 0)
+                            SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_SETCURSEL, index, 0);
+                        */
+                        const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
+                        if (property)
+                            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
+                        
+                        property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+                        if (property)
+                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
+                        
+                        property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+                        if (property)
+                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
+                        
+                        const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
+                        if (foreground)
+                        {
+                            rgba_color color;
+                            GetColorValue(foreground, color);
+                            GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+                        }
+                        else
+                            GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                        
+                        const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+                        if (background)
+                        {
+                            rgba_color color;
+                            GetColorValue(background, color);
+                            GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+                        }
+                        else
+                            GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                    }
+                }
+            }
+            
+            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramValueWidget);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                {
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
+                    
+                    if(contexts->GetSize() > 0)
+                    {
+                        ActionContext *context = contexts->Get(0);
+                        /*
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxParamInfo[infoIdx].undecoratedWidgetName);
+                        if (index >= 0)
+                            SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_SETCURSEL, index, 0);
+                        */
+                        const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
+                        if (property)
+                            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
+                        
+                        property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+                        if (property)
+                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
+                        
+                        property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+                        if (property)
+                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
+                        else
+                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
+                        
+                        const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
+                        if (foreground)
+                        {
+                            rgba_color color;
+                            GetColorValue(foreground, color);
+                            GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+                        }
+                        else
+                            GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                        
+                        const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+                        if (background)
+                        {
+                            rgba_color color;
+                            GetColorValue(background, color);
+                            GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+                        }
+                        else
+                            GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                    }
+                }
+            }
+        }
+        
+    } 
+/*
+    for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
+    {        
+        if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
+        {
+            int modifier = s_fxParamInfo[infoIdx].modifier;
+            int column = s_fxParamInfo[infoIdx].column;
+
             char baseWidgetName[BUFSIZ];
             ListView_GetItemText(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, 0, baseWidgetName, sizeof(baseWidgetName));
             
@@ -731,10 +1068,6 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
             
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), buf);
             
-            rgba_color defaultColor;
-            defaultColor.r = 237;
-            defaultColor.g = 237;
-            defaultColor.b = 237;
 
             string_list tokens;
             
@@ -863,20 +1196,9 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                         
                         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
 
-                        
-                        char widgetNameBuf[BUFSIZ]; // Get the undecorated Widget name
-                        snprintf(widgetNameBuf, sizeof(widgetNameBuf), "%s", widget->GetName());
-                        for (int i = string(widget->GetName()).length() - 1; i >= 0; --i)
-                        {
-                            if (isdigit(widgetNameBuf[i]))
-                                widgetNameBuf[i] = 0;
-                            else
-                                break;
-                        }
-                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)widgetNameBuf);
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxParamInfo[infoIdx].undecoratedWidgetName);
                         if (index >= 0)
                             SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_SETCURSEL, index, 0);
-                        
                         
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
@@ -935,22 +1257,11 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
                     if(contexts->GetSize() > 0)
                     {
                         ActionContext *context = contexts->Get(0);
-                        
-                        
-                        char widgetNameBuf[BUFSIZ]; // Get the undecorated Widget name
-                        snprintf(widgetNameBuf, sizeof(widgetNameBuf), "%s", widget->GetName());
-                        for (int i = string(widget->GetName()).length() - 1; i >= 0; --i)
-                        {
-                            if (isdigit(widgetNameBuf[i]))
-                                widgetNameBuf[i] = 0;
-                            else
-                                break;
-                        }
-                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)widgetNameBuf);
+                                                
+                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxParamInfo[infoIdx].undecoratedWidgetName);
                         if (index >= 0)
                             SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_SETCURSEL, index, 0);
 
-                        
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
                             SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
@@ -993,6 +1304,7 @@ static void PopulateFXParamNumParams(HWND hwndDlg, int paramIdx)
             }
         }
     }
+*/
     
     RECT rect;
     GetClientRect(hwndDlg, &rect);
@@ -1022,7 +1334,7 @@ static void HandleInitialize(HWND hwndDlg)
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
     }
     
-    PopulateParams(hwndDlg);
+    FillParams(hwndDlg);
     
     if (s_t_fonts.size())
         ShowFontControls(hwndDlg, true);
@@ -1037,7 +1349,7 @@ static void HandleInitialize(HWND hwndDlg)
     else
         ShowColorControls(hwndDlg, false);
     
-    PopulateAllParamsLists(hwndDlg);
+    FillAllParamsLists(hwndDlg);
 }
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1113,7 +1425,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
 
                             if (index >= 0)
-                                 PopulateFXParamNumParams(hwndDlg, index);
+                                 FillFXParamNumParams(hwndDlg, index);
                         }
                     }
                 }
@@ -1597,7 +1909,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-static void PopulateSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
+static void FillSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
 {
     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_RESETCONTENT, 0, 0);
     
@@ -1643,7 +1955,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemInt(hwndDlg, IDC_EDIT_NumChannels, s_numChannels, false);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, s_channelOffset, false);
                
-                PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
+                FillSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
                 for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
@@ -1673,7 +1985,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
                 
-                PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
+                FillSurfaceTemplateCombo(hwndDlg, resourcePath);
                             
                 for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
@@ -1695,7 +2007,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             const string resourcePath(GetResourcePath());
-                            PopulateSurfaceTemplateCombo(hwndDlg, resourcePath);
+                            FillSurfaceTemplateCombo(hwndDlg, resourcePath);
                         }
                     }
                     
