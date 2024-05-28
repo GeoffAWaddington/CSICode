@@ -774,6 +774,7 @@ public:
     virtual ~Zone()
     {
         widgets_.Empty();
+        currentActionContextModifiers_.DeleteAll();
         includedZones_.clear();
         subZones_.clear();
     }
@@ -810,16 +811,6 @@ public:
         includedZones_.push_back(zone);
     }
     
-    int GetModifier(Widget *widget)
-    {
-        int modifier = 0;
-        
-        if (currentActionContextModifiers_.Exists(widget))
-            modifier = currentActionContextModifiers_.Get(widget);
-
-        return modifier;
-    }
-      
     void Toggle()
     {
         if (isActive_)

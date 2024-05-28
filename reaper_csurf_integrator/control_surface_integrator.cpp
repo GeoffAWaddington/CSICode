@@ -2350,8 +2350,14 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
     {
         if (wl->Get(mods.Get()[i]))
         {
-            currentActionContextModifiers_.Delete(widget);
-            currentActionContextModifiers_.Insert(widget, mods.Get()[i]);
+            if (currentActionContextModifiers_.Exists(widget))
+            {
+                if (currentActionContextModifiers_.GetPtr(widget))
+                    *currentActionContextModifiers_.GetPtr(widget) = mods.Get()[i];
+            }
+            else
+                currentActionContextModifiers_.Insert(widget, mods.Get()[i]);
+            
             break;
         }
     }
@@ -3031,7 +3037,10 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 }
 
 void ZoneManager::UpdateCurrentActionContextModifiers()
-{    
+{  
+    if (learnFocusedFXZone_ != NULL)
+        learnFocusedFXZone_->UpdateCurrentActionContextModifiers();
+
     if (focusedFXParamZone_ != NULL)
         focusedFXParamZone_->UpdateCurrentActionContextModifiers();
     
