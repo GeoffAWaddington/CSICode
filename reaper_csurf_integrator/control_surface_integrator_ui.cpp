@@ -1070,6 +1070,46 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
     InvalidateRect(hwndDlg, &rect, 0);
 }
 
+static void ApplyChanges(HWND hwndDlg, int paramIdx)
+{
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+
+    char buf[BUFSIZ];
+
+    GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
+
+    double deltaVal = atof(buf);
+    
+    for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
+    {
+        int modifier = s_fxParamInfo[infoIdx].modifier;
+        
+        if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
+        {
+            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramWidget);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                {
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
+                    
+                    if(contexts->GetSize() > 0) for (int cIdx = 0; cIdx < contexts->GetSize(); ++cIdx)
+                    {
+                        ActionContext *context = contexts->Get(cIdx);
+                        
+                        context->SetDeltaValue(deltaVal);
+                        
+                        
+                        
+                        
+                    }
+                }
+            }
+        }
+    }
+}
+
 static void HandleInitialize(HWND hwndDlg)
 {
     s_lastTouchedParamNum = -1;
@@ -1201,6 +1241,16 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         
+                    }
+                    break ;
+
+                case IDC_Apply:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
+
+                        if (index >= 0)
+                            ApplyChanges(hwndDlg, index);
                     }
                     break ;
 

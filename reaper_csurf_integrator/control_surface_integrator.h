@@ -622,18 +622,18 @@ public:
     void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateColorValue(double value);
 
-    void   SetAccelerationValues(const vector<double> &acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
-    const vector<double> &GetAcceleratedDeltaValues() { return acceleratedDeltaValues_; }
-    void   SetStepSize(double deltaValue) { deltaValue_ = deltaValue; }
-    double GetDeltaValue() { return deltaValue_; }
-    void   SetStepValues(const vector<double> &steppedValues) { steppedValues_ = steppedValues; }
-    int    GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
-    const vector<double> &GetSteppedValues() { return steppedValues_; }
-    void   SetTickCounts(const vector<int> &acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
-    const vector<int> &GetAcceleratedTickCounts() { return acceleratedTickValues_; }
+    void    SetAccelerationValues(const vector<double> &acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
+    const   vector<double> &GetAcceleratedDeltaValues() { return acceleratedDeltaValues_; }
+    void    SetDeltaValue(double deltaValue) { deltaValue_ = deltaValue; }
+    double  GetDeltaValue() { return deltaValue_; }
+    void    SetStepValues(const vector<double> &steppedValues) { steppedValues_ = steppedValues; }
+    int     GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
+    const   vector<double> &GetSteppedValues() { return steppedValues_; }
+    void    SetTickCounts(const vector<int> &acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
+    const   vector<int> &GetAcceleratedTickCounts() { return acceleratedTickValues_; }
     
-    double GetRangeMinimum() const { return rangeMinimum_; }
-    double GetRangeMaximum() const { return rangeMaximum_; }
+    double  GetRangeMinimum() const { return rangeMinimum_; }
+    double  GetRangeMaximum() const { return rangeMaximum_; }
     
     void DoTouch(double value)
     {
