@@ -105,7 +105,6 @@ static int s_dlgResult = IDCANCEL;
 static ModifierManager s_modifierManager(NULL);
 
 static ZoneManager *s_zoneManager;
-static FXZoneDefinition s_zoneDef;
 
 static int s_lastTouchedParamNum = -1;
 static MediaTrack *s_focusedTrack = NULL;
@@ -268,7 +267,7 @@ static bool DeleteZone()
     if (MessageBox(GetMainHwnd(), buf, buf2, MB_YESNO) == IDNO)
        return false;
     
-    s_zoneManager->RemoveZone(s_zoneDef.fxName.c_str());
+    s_zoneManager->RemoveZone(s_fxName);
     
     return true;
 }
@@ -569,8 +568,8 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                 for (int cell = 1; cell < s_t_paramWidgets.size(); ++cell)
                 {
                     fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidgets[cell].c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d NullDisplay\n", modifiers, s_t_nameWidget.c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d NullDisplay\n\n", modifiers, s_t_valueWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction NoFeedback\n", modifiers, s_t_nameWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction NoFeedback\n\n", modifiers, s_t_valueWidget.c_str(), column + 1);
                 }
             }
         }
@@ -1233,7 +1232,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_Delete:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        DeleteZone();
+                        if (DeleteZone())
+                            EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
                     }
                     break ;
                     
