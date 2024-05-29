@@ -62,14 +62,12 @@
 #define IDC_AllParams                   1139
 #define IDC_GroupFXControl              1140
 #define IDC_PickRingStyle               1143
-#define IDC_FixedTextDisplayPickRow     1144
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150
 #define IDC_Edit_FixedTextDisplayBottom 1151
 #define IDC_Edit_ParamValueDisplayTop   1152
 #define IDC_Edit_ParamValueDisplayBottom 1153
-#define IDC_FXParamValueDisplayPickRow  1160
 #define IDC_FXParamValueDisplayPickFont 1163
 #define IDC_FixedTextDisplayPickFont    1166
 #define IDC_GroupFXParamValueDisplay    1169
@@ -125,7 +123,8 @@
 #define IDC_RangeMinimumLabel           1280
 #define IDC_DeltaValueLabel             1281
 #define IDC_Apply                       1282
-#define IDC_LIST1                       1283
+#define IDC_CHECK_ParamNameDisplay      1285
+#define IDC_CHECK_ParamValueDisplay     1286
 
 // Next default values for new objects
 // 
@@ -133,7 +132,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1284
+#define _APS_NEXT_CONTROL_VALUE         1286
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

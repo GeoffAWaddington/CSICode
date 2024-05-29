@@ -135,9 +135,6 @@ static const int s_baseControls[] =
     IDC_PickRingStyle,
     
     IDC_FXParamNameEdit,
-    IDC_FixedTextDisplayPickRow,
-    
-    IDC_FXParamValueDisplayPickRow,
     
     IDC_PickSteps,
     IDC_EditSteps,
@@ -568,8 +565,8 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                 for (int cell = 1; cell < s_t_paramWidgets.size(); ++cell)
                 {
                     fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidgets[cell].c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d NoAction NoFeedback\n", modifiers, s_t_nameWidget.c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d NoAction NoFeedback\n\n", modifiers, s_t_valueWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"\" NoFeedback\n", modifiers, s_t_nameWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay 0 NoFeedback\n\n", modifiers, s_t_valueWidget.c_str(), column + 1);
                 }
             }
         }
@@ -591,12 +588,6 @@ static void HandleInitDialog(HWND hwndDlg)
 {
     for (int i = 0; i < s_t_ringStyles.size(); ++i)
         SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_t_ringStyles[i].c_str());
-
-    WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow));
-    SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("No Display","csi_fxsteps"));
-    
-    WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow));
-    SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("No Display","csi_fxsteps"));
 
     for (int i = 0; i < s_t_fonts.size(); ++i)
     {
@@ -719,7 +710,7 @@ static void FillParams(HWND hwndDlg)
 #endif
 
     LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
-    columnDescriptor.cx = firstColumnSize;    
+    columnDescriptor.cx = firstColumnSize;
     ListView_InsertColumn(hwndParamList, 0, &columnDescriptor);
     
     for (int i = 1; i <= s_numColumns; ++i)
@@ -833,23 +824,12 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
         
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
         {
-            SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_RESETCONTENT, 0, 0);
-            SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_RESETCONTENT, 0, 0);
-
-            SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)"No Display");
-            SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)"No Display");
-
-            for (int i = 0; i < s_t_displayRows.size(); ++i)
-            {
-                snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), s_fxParamInfo[infoIdx].column + 1);
-                SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)buf);
-                SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickRow, CB_ADDSTRING, 0, (LPARAM)buf);
-            }
-                        
             ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
             
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), s_fxParamInfo[infoIdx].paramWidget);
-            
+            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), s_fxParamInfo[infoIdx].paramNameWidget);
+            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), s_fxParamInfo[infoIdx].paramValueWidget);
+
             Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramWidget);
             
             if (widget != NULL)
@@ -959,13 +939,7 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
                         ActionContext *context = contexts->Get(0);
                         
                         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
-
-                        string pnw = s_fxParamInfo[infoIdx].paramNameWidget;
                         
-                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxParamInfo[infoIdx].paramNameWidget);
-                        if (index >= 0)
-                            SendMessage(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickRow), CB_SETCURSEL, index, 0);
-
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
                             SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
@@ -1018,10 +992,6 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
                     if(contexts->GetSize() > 0)
                     {
                         ActionContext *context = contexts->Get(0);
-
-                        int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxParamInfo[infoIdx].paramValueWidget);
-                        if (index >= 0)
-                            SendMessage(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickRow), CB_SETCURSEL, index, 0);
 
                         const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                         if (property)
@@ -1100,7 +1070,33 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
                     {
                         ActionContext *context = contexts->Get(cIdx);
                         
+                        
+                        
                         context->SetDeltaValue(deltaVal);
+                        
+                        
+
+                        
+                        
+                        
+                    }
+                }
+            }
+            
+            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramNameWidget);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                {
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
+                    
+                    if(contexts->GetSize() > 0 && contexts->GetSize() > 0)
+                    {
+                        ActionContext *context = contexts->Get(0);
+                        
+                        context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamNameDisplay));
+                        
                         
                         
                         
@@ -1108,6 +1104,29 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
                     }
                 }
             }
+            
+            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramValueWidget);
+            
+            if (widget != NULL)
+            {
+                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                {
+                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
+                    
+                    if(contexts->GetSize() > 0 && contexts->GetSize() > 0)
+                    {
+                        ActionContext *context = contexts->Get(0);
+
+                        context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamValueDisplay));
+
+                        
+                    }
+                }
+            }
+            
+            
+            
+            
         }
     }
 }

@@ -1706,6 +1706,10 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         GetPropertiesFromTokens(0, (int)(*paramsAndProperties).size(), *paramsAndProperties, widgetProperties_);
     }
     
+    const char *feedback = widgetProperties_.get_prop(PropertyType_Feedback);
+    if (feedback && !strcmp(feedback, "No"))
+        provideFeedback_ = false;
+
     for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
         if (!strcmp((*paramsAndProperties)[i], "NoFeedback"))
             provideFeedback_ = false;

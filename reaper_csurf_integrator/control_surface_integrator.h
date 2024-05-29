@@ -232,6 +232,7 @@ enum PropertyType {
   D(OnColor) \
   D(Background) \
   D(Foreground) \
+  D(Feedback) \
 
   PropertyType_Unknown = 0, // in this case, string is type=value pair
 #define DEFPT(x) PropertyType_##x ,
@@ -602,7 +603,6 @@ public:
     void SetIsValueInverted() { isValueInverted_ = true; }
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = (DWORD) (holdDelayAmount * 1000.0 + 0.5); } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
-    void SetProvideFeedback(bool provideFeedback) { provideFeedback_ = provideFeedback; }
     
     // For Learn
     void SetCellAddress(const char *cellAddress) { cellAddress_.Set(cellAddress); }
@@ -634,6 +634,16 @@ public:
     
     double  GetRangeMinimum() const { return rangeMinimum_; }
     double  GetRangeMaximum() const { return rangeMaximum_; }
+    
+    void SetProvideFeedback(bool provideFeedback)
+    {
+        if (provideFeedback)
+            RequestUpdate();
+        else
+            ClearWidget();
+        
+        provideFeedback_ = provideFeedback;
+    }
     
     void DoTouch(double value)
     {
