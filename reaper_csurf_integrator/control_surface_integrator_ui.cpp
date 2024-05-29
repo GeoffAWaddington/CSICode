@@ -706,17 +706,20 @@ static void FillParams(HWND hwndDlg)
     
     ListView_DeleteAllItems(hwndParamList);
     
-    int firstColumnSize = 200;
-    int columnSize  = 73;
+    RECT r;
+    
+    GetClientRect(hwndParamList, &r);
+
+    int firstColumnSize = (int)((r.right - r.left) / 4.685);
+    int columnSize  = (int)((r.right - r.left) / 12.835);
 
 #ifdef WIN32
-    firstColumnSize = 244;
-    columnSize  = 124;
+    firstColumnSize = (int)((r.right - r.left) / 5.065);
+    columnSize  = (int)((r.right - r.left) / 9.967);
 #endif
-    
+
     LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
-    columnDescriptor.cx = firstColumnSize;
-    
+    columnDescriptor.cx = firstColumnSize;    
     ListView_InsertColumn(hwndParamList, 0, &columnDescriptor);
     
     for (int i = 1; i <= s_numColumns; ++i)
