@@ -15,9 +15,6 @@ extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Learn FX
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXRowLayout
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -723,11 +720,6 @@ static void FillParams(HWND hwndDlg)
         ListView_InsertColumn(hwndParamList, i, &columnDescriptor);
     }
 
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-    
-    if (contexts ==  NULL)
-        return;
-    
     s_fxParamInfo.clear();
     
     for (int row = 0; row < s_fxRowLayouts.size(); ++row)
@@ -804,13 +796,25 @@ static void FillParams(HWND hwndDlg)
     }
 }
 
-static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
+static ActionContext *GetFirstActionContext(char *widgetName, int modifier)
 {
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-    
-    if (zoneContexts == NULL)
-        return;
 
+    if (zoneContexts == NULL)
+        return NULL;
+    
+    Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
+    
+    if (widget != NULL
+        &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier)
+           && zoneContexts->Get(widget)->Get(modifier)->GetSize() > 0)
+            return zoneContexts->Get(widget)->Get(modifier)->Get(0);
+    else
+        return NULL;
+}
+
+static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
+{
     rgba_color defaultColor;
     defaultColor.r = 237;
     defaultColor.g = 237;
@@ -829,212 +833,175 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), s_fxParamInfo[infoIdx].paramWidget);
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), s_fxParamInfo[infoIdx].paramNameWidget);
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), s_fxParamInfo[infoIdx].paramValueWidget);
+                    
+            if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier))
+            {
+                ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
 
-            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramWidget);
-            
-            if (widget != NULL)
-            {
-                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                const char *ringstyle = context->GetWidgetProperties().get_prop(PropertyType_RingStyle);
+                if (ringstyle)
+                    SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
+                else
+                    SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+                
+                snprintf(buf, sizeof(buf), "%0.2f", context->GetDeltaValue());
+                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
+                
+                snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMinimum());
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
+                
+                snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMaximum());
+                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
+                
+                int numSteps = context->GetNumberOfSteppedValues();
+                if (numSteps)
                 {
-                    ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
-                    
-                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
-                    
-                    if(contexts->GetSize() > 0)
-                    {
-                        ActionContext *context = contexts->Get(0);
-                        
-                        const char *ringstyle = context->GetWidgetProperties().get_prop(PropertyType_RingStyle);
-                        if (ringstyle)
-                            SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
-                        
-                        snprintf(buf, sizeof(buf), "%0.2f", context->GetDeltaValue());
-                        SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
-                        
-                        snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMinimum());
-                        SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
-                        
-                        snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMaximum());
-                        SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
-                        
-                        int numSteps = context->GetNumberOfSteppedValues();
-                        if (numSteps)
-                        {
-                            snprintf(buf, sizeof(buf), "%d", numSteps);
-                            SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
-                        }
-                        else
-                            SetDlgItemText(hwndDlg, IDC_PickSteps, "");
-                        
-                        char tmp[BUFSZ];
-                        const vector<double> &steppedValues = context->GetSteppedValues();
-                        string steps;
-                        
-                        for (int i = 0; i < steppedValues.size(); ++i)
-                        {
-                            steps += format_number(steppedValues[i], tmp, sizeof(tmp));
-                            steps += "  ";
-                        }
-                        
-                        SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
-                        
-                        
-                        const vector<double> &acceleratedDeltaValues = context->GetAcceleratedDeltaValues();
-                        string deltas;
-                        
-                        for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
-                        {
-                            deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
-                            deltas += " ";
-                        }
-                        
-                        SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
-                        
-                        
-                        const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
-                        string ticks;
-                        
-                        for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
-                            ticks += int_to_string(acceleratedTickCounts[i]) + " ";
-                        
-                        SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
-                        
-                        const char *ringcolor = context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
-                        if (ringcolor)
-                        {
-                            rgba_color color;
-                            GetColorValue(ringcolor, color);
-                            GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
-                        }
-                        else
-                            GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                        
-                        
-                        const char *pushcolor = context->GetWidgetProperties().get_prop(PropertyType_PushColor);
-                        if (pushcolor)
-                        {
-                            rgba_color color;
-                            GetColorValue(pushcolor, color);
-                            GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
-                        }
-                        else
-                            GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                        
-                    }
+                    snprintf(buf, sizeof(buf), "%d", numSteps);
+                    SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
                 }
+                else
+                    SetDlgItemText(hwndDlg, IDC_PickSteps, "");
+                
+                char tmp[BUFSZ];
+                const vector<double> &steppedValues = context->GetSteppedValues();
+                string steps;
+                
+                for (int i = 0; i < steppedValues.size(); ++i)
+                {
+                    steps += format_number(steppedValues[i], tmp, sizeof(tmp));
+                    steps += "  ";
+                }
+                
+                SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
+                
+                
+                const vector<double> &acceleratedDeltaValues = context->GetAcceleratedDeltaValues();
+                string deltas;
+                
+                for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
+                {
+                    deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
+                    deltas += " ";
+                }
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
+                
+                
+                const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
+                string ticks;
+                
+                for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
+                    ticks += int_to_string(acceleratedTickCounts[i]) + " ";
+                
+                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
+                
+                const char *ringcolor = context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
+                if (ringcolor)
+                {
+                    rgba_color color;
+                    GetColorValue(ringcolor, color);
+                    GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
+                }
+                else
+                    GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                
+                
+                const char *pushcolor = context->GetWidgetProperties().get_prop(PropertyType_PushColor);
+                if (pushcolor)
+                {
+                    rgba_color color;
+                    GetColorValue(pushcolor, color);
+                    GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
+                }
+                else
+                    GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                
             }
-            
-            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramNameWidget);
-            
-            if (widget != NULL)
-            {
-                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
-                {
-                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
                     
-                    if(contexts->GetSize() > 0)
-                    {
-                        ActionContext *context = contexts->Get(0);
-                        
-                        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
-                        
-                        const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
-                        if (property)
-                            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
-                        
-                        property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
-                        if (property)
-                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
-                        
-                        property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
-                        if (property)
-                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
-                        
-                        const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
-                        if (foreground)
-                        {
-                            rgba_color color;
-                            GetColorValue(foreground, color);
-                            GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
-                        }
-                        else
-                            GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                        
-                        const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
-                        if (background)
-                        {
-                            rgba_color color;
-                            GetColorValue(background, color);
-                            GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
-                        }
-                        else
-                            GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                    }
+            if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier))
+            {
+                SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
+                
+                const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
+                if (property)
+                    SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
+                else
+                    SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
+                
+                property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+                if (property)
+                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
+                else
+                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
+                
+                property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+                if (property)
+                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
+                else
+                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
+                
+                const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
+                if (foreground)
+                {
+                    rgba_color color;
+                    GetColorValue(foreground, color);
+                    GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
                 }
+                else
+                    GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                
+                const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+                if (background)
+                {
+                    rgba_color color;
+                    GetColorValue(background, color);
+                    GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+                }
+                else
+                    GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
             }
-            
-            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramValueWidget);
-            
-            if (widget != NULL)
+                                
+            if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
             {
-                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
+                const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
+                if (property)
+                    SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
+                else
+                    SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
+                
+                property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+                if (property)
+                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
+                else
+                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
+                
+                property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+                if (property)
+                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
+                else
+                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
+                
+                const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
+                if (foreground)
                 {
-                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
-                    
-                    if(contexts->GetSize() > 0)
-                    {
-                        ActionContext *context = contexts->Get(0);
-
-                        const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
-                        if (property)
-                            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
-                        
-                        property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
-                        if (property)
-                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
-                        
-                        property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
-                        if (property)
-                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
-                        else
-                            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
-                        
-                        const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
-                        if (foreground)
-                        {
-                            rgba_color color;
-                            GetColorValue(foreground, color);
-                            GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
-                        }
-                        else
-                            GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                        
-                        const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
-                        if (background)
-                        {
-                            rgba_color color;
-                            GetColorValue(background, color);
-                            GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
-                        }
-                        else
-                            GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                    }
+                    rgba_color color;
+                    GetColorValue(foreground, color);
+                    GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
                 }
+                else
+                    GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+                
+                const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+                if (background)
+                {
+                    rgba_color color;
+                    GetColorValue(background, color);
+                    GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+                }
+                else
+                    GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
             }
         }
-        
     } 
     
     RECT rect;
@@ -1044,11 +1011,7 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
 
 static void ApplyChanges(HWND hwndDlg, int paramIdx)
 {
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-
     char buf[BUFSIZ];
-
-    GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
 
     double deltaVal = atof(buf);
     
@@ -1058,75 +1021,45 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
         
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
         {
-            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramWidget);
-            
-            if (widget != NULL)
+            if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier))
             {
-                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
-                {
-                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
-                    
-                    if(contexts->GetSize() > 0) for (int cIdx = 0; cIdx < contexts->GetSize(); ++cIdx)
-                    {
-                        ActionContext *context = contexts->Get(cIdx);
-                        
-                        
-                        
-                        context->SetDeltaValue(deltaVal);
-                        
-                        
+                GetDlgItemText(hwndDlg, IDC_PickRingStyle, buf, sizeof(buf));
+                context->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
+                
+                GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
+                context->SetDeltaValue(deltaVal);
 
-                        
-                        
-                        
-                    }
-                }
+                
+                
+                
+                
+                
+                
             }
             
-            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramNameWidget);
-            
-            if (widget != NULL)
+            if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier))
             {
-                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
-                {
-                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
-                    
-                    if(contexts->GetSize() > 0 && contexts->GetSize() > 0)
-                    {
-                        ActionContext *context = contexts->Get(0);
-                        
-                        context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamNameDisplay));
-                        
-                        
-                        
-                        
-                        
-                    }
-                }
+                context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamNameDisplay));
+
+                
+                
+                
+                
+                
+                
             }
-            
-            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[infoIdx].paramValueWidget);
-            
-            if (widget != NULL)
+
+            if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
             {
-                if(zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
-                {
-                    WDL_PtrList<ActionContext> *contexts = zoneContexts->Get(widget)->Get(modifier);
-                    
-                    if(contexts->GetSize() > 0 && contexts->GetSize() > 0)
-                    {
-                        ActionContext *context = contexts->Get(0);
+                context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamValueDisplay));
 
-                        context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamValueDisplay));
-
-                        
-                    }
-                }
+                
+                
+                
+                
+                
+                
             }
-            
-            
-            
-            
         }
     }
 }
