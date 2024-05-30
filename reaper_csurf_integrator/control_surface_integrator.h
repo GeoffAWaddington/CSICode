@@ -582,6 +582,7 @@ public:
 
     int GetIntParam() { return intParam_; }
     const char *GetStringParam() { return stringParam_.c_str(); }
+    void SetStringParam(const char *stringParam) { stringParam_ = stringParam; }
     int GetCommandId() { return commandId_; }
     
     const char *GetFXParamDisplayName() { return fxParamDisplayName_.c_str(); }
