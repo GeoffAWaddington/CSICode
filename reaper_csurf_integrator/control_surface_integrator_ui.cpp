@@ -653,7 +653,7 @@ static void FillFXCellWidgets()
     }
 }
 
-static void FillParams(HWND hwndDlg)
+static void InitializeParamListView(HWND hwndDlg)
 {
     FillFXCellWidgets();
     
@@ -894,6 +894,8 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
             {
                 SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
                 
+                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamNameDisplay), BM_SETCHECK, context->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
+                
                 const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                 if (property)
                     SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
@@ -935,6 +937,8 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
                                 
             if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
             {
+                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamValueDisplay), BM_SETCHECK, context->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
+
                 const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
                 if (property)
                     SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
@@ -1085,7 +1089,7 @@ static void HandleInitialize(HWND hwndDlg)
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
     }
     
-    FillParams(hwndDlg);
+    InitializeParamListView(hwndDlg);
     
     if (s_t_fonts.size())
         ShowFontControls(hwndDlg, true);

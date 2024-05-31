@@ -636,14 +636,15 @@ public:
     double  GetRangeMinimum() const { return rangeMinimum_; }
     double  GetRangeMaximum() const { return rangeMaximum_; }
     
+    bool GetProvideFeedback() { return provideFeedback_; }
     void SetProvideFeedback(bool provideFeedback)
     {
+        provideFeedback_ = provideFeedback;
+
         if (provideFeedback)
             RequestUpdate();
         else
             ClearWidget();
-        
-        provideFeedback_ = provideFeedback;
     }
     
     void DoTouch(double value)
