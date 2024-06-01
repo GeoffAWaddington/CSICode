@@ -1088,7 +1088,7 @@ private:
     void Initialize();
     void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators);
     void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
-       
+          
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
     {
         int lineNumber = 0;
@@ -1357,6 +1357,7 @@ public:
     const string &GetFXZoneFolder() { return fxZoneFolder_; }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
 
+    CSurfIntegrator *GetCSI() { return csi_; }
     ControlSurface *GetSurface() { return surface_; }
     
     int GetTrackSendOffset() { return trackSendOffset_; }
@@ -1370,6 +1371,8 @@ public:
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
 
+    Zone *GetLearnedFocusedFXZone() { return  learnFocusedFXZone_;  }
+    
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *GetLearnFocusedFXActionContextDictionary()
     {
         if (learnFocusedFXZone_ != NULL)

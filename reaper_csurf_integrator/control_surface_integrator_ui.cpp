@@ -79,7 +79,6 @@ static int s_dlgResult = IDCANCEL;
 static ModifierManager s_modifierManager(NULL);
 
 static ZoneManager *s_zoneManager;
-
 static int s_lastTouchedParamNum = -1;
 static MediaTrack *s_focusedTrack = NULL;
 static int s_fxSlot = 0;
@@ -1180,6 +1179,8 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                 if (zoneContexts == NULL)
                     return;
                 
+                string_list params;
+                
                 Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramWidget);
                 
                 if (widget != NULL
@@ -1188,7 +1189,11 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                 {
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
                     widget->ForceClear();
-                    
+                    if (Zone *zone = s_zoneManager->GetLearnedFocusedFXZone())
+                    {
+                        ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, params);
+                        zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Add(context);
+                    }
                 }
                 
                 widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
@@ -1199,7 +1204,11 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                 {
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
                     widget->ForceClear();
-                    
+                    if (Zone *zone = s_zoneManager->GetLearnedFocusedFXZone())
+                    {
+                        ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, params);
+                        zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Add(context);
+                    }
                 }
                 
                 widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramValueWidget);
@@ -1210,7 +1219,11 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                 {
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
                     widget->ForceClear();
-                    
+                    if (Zone *zone = s_zoneManager->GetLearnedFocusedFXZone())
+                    {
+                        ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, params);
+                        zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Add(context);
+                    }
                 }
             }
         }
@@ -1460,7 +1473,7 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
     s_zoneManager = zoneManager;
     s_focusedTrack = focusedTrack;
     s_fxSlot = fxSlot;
-
+    
     LaunchLearnFocusedFXDialog(zoneManager);
 }
 
