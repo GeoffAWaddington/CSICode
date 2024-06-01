@@ -14,6 +14,9 @@ extern void GetParamStepsString(string &outputString, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
+Widget *g_lastTouchedWidget;
+int g_lastTouchedModifier;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXRowLayout
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,8 +55,9 @@ struct FXParamInfo
 {
     int row;
     int column;
-    int paramNum;
+    int cellNum;
     int modifier;
+    int paramNum;
     char paramName[128];
     char paramWidget[128];
     char paramNameWidget[128];
@@ -63,6 +67,7 @@ struct FXParamInfo
     {
         row = 0;
         column = 0;
+        cellNum = 0;
         paramNum = -1;
         modifier = 0;
     }
@@ -571,7 +576,7 @@ static void HandleInitDialog(HWND hwndDlg)
         SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
 }
 
-static void FillAllParamsLists(HWND hwndDlg)
+static void FillAllParamsList(HWND hwndDlg)
 {
     char buf[BUFSIZ];
 
@@ -595,7 +600,6 @@ static void FillFXCellWidgets()
         return;
     try
     {
-        
         fpistream file(s_zoneManager->GetZoneFilePaths().Get(s_fxName)->filePath.c_str());
         
         for (string line; getline(file, line) ; )
@@ -693,10 +697,15 @@ static void InitializeParamListView(HWND hwndDlg)
     }
 
     s_fxParamInfo.clear();
+        
+    int cellNumOffset = 0;
     
     for (int row = 0; row < s_fxRowLayouts.size(); ++row)
     {
-        for (int cell= 0; cell < s_t_paramWidgets.size(); ++cell)
+        if (row != 0)
+            cellNumOffset += s_numColumns;
+        
+        for (int cell = 0; cell < s_t_paramWidgets.size(); ++cell)
         {
             int rowIdx = row * s_t_paramWidgets.size() + cell;
             
@@ -715,7 +724,7 @@ static void InitializeParamListView(HWND hwndDlg)
             item.pszText = undecoratedWidgetName;
             
             ListView_InsertItem(hwndParamList, &item);
-            
+                        
             for (int columnIdx = 0; columnIdx < s_numColumns; ++columnIdx)
             {
                 char paramName[BUFSIZ];
@@ -738,12 +747,13 @@ static void InitializeParamListView(HWND hwndDlg)
                 FXParamInfo info;
                 info.row = rowIdx;
                 info.column = columnIdx + 1;
+                info.cellNum = columnIdx + cellNumOffset + 1;
                 info.paramName[0] = 0;
                 info.paramWidget[0] = 0;
                 info.paramNameWidget[0] = 0;
                 info.paramValueWidget[0] = 0;
                 info.modifier = s_fxRowLayouts[row].modifier;
-                
+
                 for (int cellWidget = 0; cellWidget < cellWidgets.size(); ++cellWidget)
                 {
                     FXCellWidgets &widgets = cellWidgets[cellWidget];
@@ -785,27 +795,36 @@ static ActionContext *GetFirstActionContext(char *widgetName, int modifier)
         return NULL;
 }
 
-static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
+static void FillParamListView(HWND hwndDlg, int paramIdx)
 {
-    rgba_color defaultColor;
-    defaultColor.r = 237;
-    defaultColor.g = 237;
-    defaultColor.b = 237;
-
-    char buf[BUFSIZ];
-
     for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
-        int modifier = s_fxParamInfo[infoIdx].modifier;
-        
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
         {
+            rgba_color defaultColor;
+            defaultColor.r = 237;
+            defaultColor.g = 237;
+            defaultColor.b = 237;
+
+            char buf[BUFSIZ];
+            buf[0] = 0;
+            
+            int modifier = s_fxParamInfo[infoIdx].modifier;
+
+            SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
+            SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
+            SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
+            SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf);
+            SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf);
+            SetDlgItemText(hwndDlg, IDC_EditSteps, buf);
+            
             ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
             
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), s_fxParamInfo[infoIdx].paramWidget);
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), s_fxParamInfo[infoIdx].paramNameWidget);
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), s_fxParamInfo[infoIdx].paramValueWidget);
-                    
+              
+            // param
             if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier))
             {
                 ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
@@ -889,7 +908,8 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
                     GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
                 
             }
-                    
+               
+            // param name display
             if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier))
             {
                 SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
@@ -934,7 +954,8 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
                 else
                     GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
             }
-                                
+               
+            // param value display
             if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
             {
                 SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamValueDisplay), BM_SETCHECK, context->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -989,17 +1010,18 @@ static void FillFXParamNumParams(HWND hwndDlg, int paramIdx)
 
 static void ApplyChanges(HWND hwndDlg, int paramIdx)
 {
-    char buf[BUFSIZ];
-
-    rgba_color color;
-    char colorBuf[32];
-
     for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
-        int modifier = s_fxParamInfo[infoIdx].modifier;
-        
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
         {
+            char buf[BUFSIZ];
+
+            rgba_color color;
+            char colorBuf[32];
+
+            int modifier = s_fxParamInfo[infoIdx].modifier;
+
+            // param
             if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier))
             {
                 GetDlgItemText(hwndDlg, IDC_PickRingStyle, buf, sizeof(buf));
@@ -1010,13 +1032,48 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
 
                 ColorFromNative(GetButtonColorForID(IDC_FXParamIndicatorColor), &color.r, &color.g, &color.b);
                 context->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
-
                 
                 GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
                 double deltaVal = atof(buf);
                 context->SetDeltaValue(deltaVal);
+                
+                GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
+                double min = atof(buf);
+                context->SetRangeMinimum(min);
+                
+                GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
+                double max = atof(buf);
+                context->SetRangeMinimum(max);
+                
+                string_list tokens;
+                
+                GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
+                GetTokens(tokens, buf);
+                vector<double> accelValues;
+                for (int i = 0; i < tokens.size(); ++i)
+                    accelValues.push_back(atof(tokens[i]));
+                context->SetAccelerationValues(accelValues);
+                
+                tokens.clear();
+
+                GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
+                GetTokens(tokens, buf);
+                vector<int> tickcounts;
+                for (int i = 0; i < tokens.size(); ++i)
+                    tickcounts.push_back(atof(tokens[i]));
+                context->SetTickCounts(tickcounts);
+                
+                tokens.clear();
+
+                GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
+                GetTokens(tokens, buf);
+                vector<double> steps;
+                for (int i = 0; i < tokens.size(); ++i)
+                    steps.push_back(atof(tokens[i]));
+                context->SetStepValues(steps);
             }
             
+            // param name display
             if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier))
             {
                 ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
@@ -1040,7 +1097,8 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
                 context->SetStringParam(buf);
                 ListView_SetItemText(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, s_fxParamInfo[infoIdx].column, buf);
             }
-
+            
+            // param value display
             if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
             {
                 ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
@@ -1104,7 +1162,59 @@ static void HandleInitialize(HWND hwndDlg)
     else
         ShowColorControls(hwndDlg, false);
     
-    FillAllParamsLists(hwndDlg);
+    FillAllParamsList(hwndDlg);
+}
+
+static void EraseLastTouchedControl(HWND hwndParamList)
+{
+    if (g_lastTouchedWidget) 
+    {
+        for (int i = 0; i < s_fxParamInfo.size(); ++i)
+        {
+            if (s_fxParamInfo[i].modifier == g_lastTouchedModifier && !strcmp(g_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
+            {
+                ListView_SetItemText(hwndParamList, s_fxParamInfo[i].row, s_fxParamInfo[i].column, "");
+                
+                const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+                
+                if (zoneContexts == NULL)
+                    return;
+                
+                Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramWidget);
+                
+                if (widget != NULL
+                    &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_fxParamInfo[i].modifier)
+                    && zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->GetSize() > 0)
+                {
+                    zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
+                    widget->ForceClear();
+                    
+                }
+                
+                widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
+                
+                if (widget != NULL
+                    &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_fxParamInfo[i].modifier)
+                    && zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->GetSize() > 0)
+                {
+                    zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
+                    widget->ForceClear();
+                    
+                }
+                
+                widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramValueWidget);
+                
+                if (widget != NULL
+                    &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_fxParamInfo[i].modifier)
+                    && zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->GetSize() > 0)
+                {
+                    zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
+                    widget->ForceClear();
+                    
+                }
+            }
+        }
+    }
 }
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1180,7 +1290,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
 
                             if (index >= 0)
-                                 FillFXParamNumParams(hwndDlg, index);
+                                 FillParamListView(hwndDlg, index);
                         }
                     }
                 }
@@ -1197,7 +1307,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_EraseControl:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        
+                        EraseLastTouchedControl(GetDlgItem(hwndDlg, IDC_PARAM_LIST));
                     }
                     break ;
 
@@ -1384,7 +1494,7 @@ void UpdateLearnWindow()
             s_lastTouchedParamNum = paramnumberOut;
             SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
 #ifdef WIN32
-            FillFXParamNumParams(hwndLearnDlg, s_lastTouchedParamNum);
+            FillParamListView(hwndLearnDlg, s_lastTouchedParamNum);
 #endif
         }
     }
@@ -1397,7 +1507,7 @@ void UpdateLearnWindow(int paramNumber)
 
     SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
 #ifdef WIN32
-    FillFXParamNumParams(hwndLearnDlg, paramNumber);
+    FillParamListView(hwndLearnDlg, paramNumber);
 #endif
 }
 

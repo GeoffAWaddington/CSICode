@@ -21,12 +21,13 @@ extern reaper_plugin_info_t *g_reaper_plugin_info;
 int g_minNumParamSteps = 2;
 int g_maxNumParamSteps = 30;
 
+extern Widget *g_lastTouchedWidget;
+extern int g_lastTouchedModifier;
+
 bool g_surfaceRawInDisplay;
 bool g_surfaceInDisplay;
 bool g_surfaceOutDisplay;
 bool g_fxParamsWrite;
-
-Widget* g_FocusedWidget;
 
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties)
 {
@@ -1859,12 +1860,6 @@ void ActionContext::RequestUpdate()
         action_->RequestUpdate(this);
 }
 
-void ActionContext::RequestUpdate(int paramNum)
-{
-    if (provideFeedback_)
-        action_->RequestUpdate(this, paramNum);
-}
-
 void ActionContext::ClearWidget()
 {
     UpdateWidgetValue(0.0);
@@ -2552,8 +2547,6 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     learnFocusedFXZone_ = NULL;
     focusedFXParamZone_ = NULL;
     
-    lastTouchedControl_ = NULL;
-    
     listensToGoHome_ = false;
     listensToSends_ = false;
     listensToReceives_ = false;
@@ -3174,6 +3167,159 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
         CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
 }
 
+void ZoneManager::DoAction(Widget *widget, double value)
+{
+    if (WDL_NOT_NORMALLY(!widget)) return;
+    widget->LogInput(value);
+    
+    bool isUsed = false;
+    
+    g_lastTouchedWidget = widget;
+    if (surface_->GetModifiers().GetSize() > 0)
+        g_lastTouchedModifier = surface_->GetModifiers().Get()[0];
+    
+    if (learnFocusedFXZone_ != NULL)
+        learnFocusedFXZone_->DoAction(widget, isUsed, value);
+    
+    if (isUsed)
+        return;
+
+    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
+        focusedFXParamZone_->DoAction(widget, isUsed, value);
+
+    if (isUsed)
+        return;
+
+    if (focusedFXZone_ != NULL)
+        focusedFXZone_->DoAction(widget, isUsed, value);
+    
+    if (isUsed)
+        return;
+    
+    for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
+        selectedTrackFXZones_[i]->DoAction(widget, isUsed, value);
+    
+    if (isUsed)
+        return;
+
+    if (fxSlotZone_ != NULL)
+        fxSlotZone_->DoAction(widget, isUsed, value);
+    
+    if (isUsed)
+        return;
+
+    for (int i = 0; i < goZones_.size(); ++i)
+        goZones_[i]->DoAction(widget, isUsed, value);
+
+    if (isUsed)
+        return;
+
+    if (homeZone_ != NULL)
+        homeZone_->DoAction(widget, isUsed, value);
+}
+
+void ZoneManager::DoRelativeAction(Widget *widget, double delta)
+{
+    if (WDL_NOT_NORMALLY(!widget)) return;
+    widget->LogInput(delta);
+    
+    bool isUsed = false;
+   
+    g_lastTouchedWidget = widget;
+    if (surface_->GetModifiers().GetSize() > 0)
+        g_lastTouchedModifier = surface_->GetModifiers().Get()[0];
+
+    if (learnFocusedFXZone_ != NULL)
+        learnFocusedFXZone_->DoRelativeAction(widget, isUsed, delta);
+
+    if (isUsed)
+        return;
+
+    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
+        focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
+
+    if (isUsed)
+        return;
+
+    if (focusedFXZone_ != NULL)
+        focusedFXZone_->DoRelativeAction(widget, isUsed, delta);
+    
+    if (isUsed)
+        return;
+    
+    for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
+        selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
+    
+    if (isUsed)
+        return;
+
+    if (fxSlotZone_ != NULL)
+        fxSlotZone_->DoRelativeAction(widget, isUsed, delta);
+    
+    if (isUsed)
+        return;
+
+    for (int i = 0; i < goZones_.size(); ++i)
+        goZones_[i]->DoRelativeAction(widget, isUsed, delta);
+    
+    if (isUsed)
+        return;
+
+    if (homeZone_ != NULL)
+        homeZone_->DoRelativeAction(widget, isUsed, delta);
+}
+
+void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta)
+{
+    if (WDL_NOT_NORMALLY(!widget)) return;
+    widget->LogInput(delta);
+    
+    bool isUsed = false;
+    
+    g_lastTouchedWidget = widget;
+    if (surface_->GetModifiers().GetSize() > 0)
+        g_lastTouchedModifier = surface_->GetModifiers().Get()[0];
+
+    if (learnFocusedFXZone_ != NULL)
+        learnFocusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+
+    if (isUsed)
+        return;
+
+    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
+        focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    
+    if (isUsed)
+        return;
+
+    if (focusedFXZone_ != NULL)
+        focusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    
+    if (isUsed)
+        return;
+    
+    for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
+        selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    
+    if (isUsed)
+        return;
+
+    if (fxSlotZone_ != NULL)
+        fxSlotZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    
+    if (isUsed)
+        return;
+
+    for (int i = 0; i < goZones_.size(); ++i)
+        goZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+
+    if (isUsed)
+        return;
+
+    if (homeZone_ != NULL)
+        homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+}
+
 void ZoneManager::DoTouch(Widget *widget, double value)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
@@ -3181,6 +3327,10 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     widget->LogInput(value);
     
     bool isUsed = false;
+    
+    g_lastTouchedWidget = widget;
+    if (surface_->GetModifiers().GetSize() > 0)
+        g_lastTouchedModifier = surface_->GetModifiers().Get()[0];
     
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
@@ -3226,19 +3376,6 @@ Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->
 Navigator *ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
 Navigator *ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
 int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
-
-void ZoneManager::EraseLastTouchedControl()
-{
-    if (lastTouchedControl_ == NULL)
-        return;
-    
-    //WDL_PointerKeyedArray<Widget *, LearnedWidgetParams> *widgetParams = learnedWidgets_.Get(surface_->GetModifiers().Get()[0]);
-    
-    //if (widgetParams->Exists(lastTouchedControl_))
-        //widgetParams->Delete(lastTouchedControl_);
-    
-    //lastTouchedControl_ = NULL;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ModifierManager

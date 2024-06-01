@@ -62,7 +62,9 @@
 class CSurfIntegrator;
 class ZoneManager;
 class Widget;
-extern Widget* g_FocusedWidget;
+
+extern Widget *g_lastTouchedWidget;
+extern int g_lastTouchedModifier;
 
 extern string int_to_string(int value);
 extern void TrimLine(string &line);
@@ -387,7 +389,6 @@ public:
 
     virtual void Touch(ActionContext *context, double value) {}
     virtual void RequestUpdate(ActionContext *context) {}
-    virtual void RequestUpdate(ActionContext *context, int paramNum) {}
     virtual void Do(ActionContext *context, double value) {}
     virtual double GetCurrentNormalizedValue(ActionContext *context) { return 0.0; }
     virtual double GetCurrentDBValue(ActionContext *context) { return 0.0; }
@@ -559,10 +560,7 @@ private:
     bool provideFeedback_;
 
     PropertyList widgetProperties_;
-    
-    // For Learn
-    WDL_FastString cellAddress_;
-    
+        
     void UpdateTrackColor();
     void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
     void SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
@@ -581,8 +579,6 @@ public:
     const char *GetName();
 
     int GetIntParam() { return intParam_; }
-    const char *GetStringParam() { return stringParam_.c_str(); }
-    void SetStringParam(const char *stringParam) { stringParam_ = stringParam; }
     int GetCommandId() { return commandId_; }
     
     const char *GetFXParamDisplayName() { return fxParamDisplayName_.c_str(); }
@@ -605,17 +601,11 @@ public:
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = (DWORD) (holdDelayAmount * 1000.0 + 0.5); } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     
-    // For Learn
-    void SetCellAddress(const char *cellAddress) { cellAddress_.Set(cellAddress); }
-    const char *GetCellAddress() { return cellAddress_.Get(); }
-
     void DoAction(double value);
     void DoRelativeAction(double value);
     void DoRelativeAction(int accelerationIndex, double value);
     
     void RequestUpdate();
-    void RequestUpdate(int paramNum);
-    void RequestUpdateWidgetMode();
     void RunDeferredActions();
     void ClearWidget();
     void UpdateWidgetValue(double value); // note: if passing the constant 0, must be 0.0 to avoid ambiguous type vs pointer
@@ -623,21 +613,23 @@ public:
     void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateColorValue(double value);
 
-    void    SetAccelerationValues(const vector<double> &acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
+    const char *GetStringParam() { return stringParam_.c_str(); }
+    void    SetStringParam(const char *stringParam) { stringParam_ = stringParam; }
     const   vector<double> &GetAcceleratedDeltaValues() { return acceleratedDeltaValues_; }
-    void    SetDeltaValue(double deltaValue) { deltaValue_ = deltaValue; }
-    double  GetDeltaValue() { return deltaValue_; }
-    void    SetStepValues(const vector<double> &steppedValues) { steppedValues_ = steppedValues; }
+    void    SetAccelerationValues(const vector<double> &acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
+    const   vector<int> &GetAcceleratedTickCounts() { return acceleratedTickValues_; }
+    void    SetTickCounts(const vector<int> &acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     int     GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
     const   vector<double> &GetSteppedValues() { return steppedValues_; }
-    void    SetTickCounts(const vector<int> &acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
-    const   vector<int> &GetAcceleratedTickCounts() { return acceleratedTickValues_; }
-    
+    void    SetStepValues(const vector<double> &steppedValues) { steppedValues_ = steppedValues; }
+    double  GetDeltaValue() { return deltaValue_; }
+    void    SetDeltaValue(double deltaValue) { deltaValue_ = deltaValue; }
     double  GetRangeMinimum() const { return rangeMinimum_; }
+    void    SetRangeMinimum(double rangeMinimum) { rangeMinimum_ = rangeMinimum; }
     double  GetRangeMaximum() const { return rangeMaximum_; }
-    
-    bool GetProvideFeedback() { return provideFeedback_; }
-    void SetProvideFeedback(bool provideFeedback)
+    void    SetRangeMaximum(double rangeMaximum) { rangeMaximum_ = rangeMaximum; }
+    bool    GetProvideFeedback() { return provideFeedback_; }
+    void    SetProvideFeedback(bool provideFeedback)
     {
         provideFeedback_ = provideFeedback;
 
@@ -1331,9 +1323,6 @@ public:
 
         selectedTrackFXZones_.Empty(true);
     }
-
-    void EraseLastTouchedControl();
-    Widget *lastTouchedControl_;
       
     void SetHoldDelayAmount(double value) { holdDelayAmount_ = value; }
 
@@ -1359,6 +1348,9 @@ public:
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
+    void DoAction(Widget *widget, double value);
+    void DoRelativeAction(Widget *widget, double delta);
+    void DoRelativeAction(Widget *widget, int accelerationIndex, double delta);
     void DoTouch(Widget *widget, double value);
     
     const string &GetZoneFolder() { return zoneFolder_; }
@@ -1583,8 +1575,7 @@ public:
     {
         if (learnFocusedFXZone_ != NULL)
         {
-            lastTouchedControl_ = NULL;
-            
+            g_lastTouchedWidget = NULL;
             delete learnFocusedFXZone_;
             learnFocusedFXZone_ = NULL;
         }
@@ -1767,156 +1758,6 @@ public:
 
         if (homeZone_ != NULL)
             homeZone_->RequestUpdate();
-    }
-
-    void DoAction(Widget *widget, double value)
-    {
-        if (WDL_NOT_NORMALLY(!widget)) return;
-        widget->LogInput(value);
-        
-        bool isUsed = false;
-        
-        g_FocusedWidget = widget;
-        //RefreshLearnDlg();
-        
-        if (learnFocusedFXZone_ != NULL)
-            learnFocusedFXZone_->DoAction(widget, isUsed, value);
-        
-        if (isUsed)
-            return;
-
-        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-            focusedFXParamZone_->DoAction(widget, isUsed, value);
-
-        if (isUsed)
-            return;
-
-        if (focusedFXZone_ != NULL)
-            focusedFXZone_->DoAction(widget, isUsed, value);
-        
-        if (isUsed)
-            return;
-        
-        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
-            selectedTrackFXZones_[i]->DoAction(widget, isUsed, value);
-        
-        if (isUsed)
-            return;
-   
-        if (fxSlotZone_ != NULL)
-            fxSlotZone_->DoAction(widget, isUsed, value);
-        
-        if (isUsed)
-            return;
-
-        for (int i = 0; i < goZones_.size(); ++i)
-            goZones_[i]->DoAction(widget, isUsed, value);
-
-        if (isUsed)
-            return;
-
-        if (homeZone_ != NULL)
-            homeZone_->DoAction(widget, isUsed, value);
-    }
-    
-    void DoRelativeAction(Widget *widget, double delta)
-    {
-        if (WDL_NOT_NORMALLY(!widget)) return;
-        widget->LogInput(delta);
-        
-        bool isUsed = false;
-        
-        g_FocusedWidget = widget;
-        //RefreshLearnDlg();
-
-        if (learnFocusedFXZone_ != NULL)
-            learnFocusedFXZone_->DoRelativeAction(widget, isUsed, delta);
-
-        if (isUsed)
-            return;
-
-        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-            focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
-
-        if (isUsed)
-            return;
-
-        if (focusedFXZone_ != NULL)
-            focusedFXZone_->DoRelativeAction(widget, isUsed, delta);
-        
-        if (isUsed)
-            return;
-        
-        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
-            selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, delta);
-        
-        if (isUsed)
-            return;
-
-        if (fxSlotZone_ != NULL)
-            fxSlotZone_->DoRelativeAction(widget, isUsed, delta);
-        
-        if (isUsed)
-            return;
-
-        for (int i = 0; i < goZones_.size(); ++i)
-            goZones_[i]->DoRelativeAction(widget, isUsed, delta);
-        
-        if (isUsed)
-            return;
-
-        if (homeZone_ != NULL)
-            homeZone_->DoRelativeAction(widget, isUsed, delta);
-    }
-    
-    void DoRelativeAction(Widget *widget, int accelerationIndex, double delta)
-    {
-        if (WDL_NOT_NORMALLY(!widget)) return;
-        widget->LogInput(delta);
-        
-        bool isUsed = false;
-        
-        g_FocusedWidget = widget;
-        //RefreshLearnDlg();
-
-        if (learnFocusedFXZone_ != NULL)
-            learnFocusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-
-        if (isUsed)
-            return;
-
-        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-            focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        
-        if (isUsed)
-            return;
-
-        if (focusedFXZone_ != NULL)
-            focusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        
-        if (isUsed)
-            return;
-        
-        for (int i = 0; i < selectedTrackFXZones_.size(); ++i)
-            selectedTrackFXZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        
-        if (isUsed)
-            return;
-
-        if (fxSlotZone_ != NULL)
-            fxSlotZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-        
-        if (isUsed)
-            return;
-
-        for (int i = 0; i < goZones_.size(); ++i)
-            goZones_[i]->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
-
-        if (isUsed)
-            return;
-
-        if (homeZone_ != NULL)
-            homeZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     }
 };
 
