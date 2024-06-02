@@ -708,19 +708,19 @@ static void InitializeParamListView(HWND hwndDlg)
         {
             int rowIdx = row * s_t_paramWidgets.size() + cell;
             
-            char undecoratedWidgetName[128];
+            char widgetName[128];
             
             if(s_fxRowLayouts[row].modifier)
-                snprintf(undecoratedWidgetName, sizeof(undecoratedWidgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers.c_str(), s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
+                snprintf(widgetName, sizeof(widgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers.c_str(), s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
             else
-                snprintf(undecoratedWidgetName, sizeof(undecoratedWidgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
+                snprintf(widgetName, sizeof(widgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
 
             LVITEM item;
             memset(&item, 0, sizeof(item));
             item.mask = LVIF_TEXT | LVIF_PARAM;
             item.iItem = rowIdx;
             item.cchTextMax = 20;
-            item.pszText = undecoratedWidgetName;
+            item.pszText = widgetName;
             
             ListView_InsertItem(hwndParamList, &item);
                         
@@ -729,9 +729,15 @@ static void InitializeParamListView(HWND hwndDlg)
                 char paramName[BUFSIZ];
                 paramName[0] = 0;
                 
-                char widgetName[BUFSIZ];
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
+                char paramWidget[BUFSIZ];
+                snprintf(paramWidget, sizeof(paramWidget), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
                 
+                char nameDisplayWidget[BUFSIZ];
+                snprintf(nameDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_nameWidget.c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
+
+                char valueDisplayWidget[BUFSIZ];
+                snprintf(valueDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_valueWidget.c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
+
                 char pszTextBuf[128];
                 pszTextBuf[0] = 0;
                 
@@ -748,16 +754,16 @@ static void InitializeParamListView(HWND hwndDlg)
                 info.column = columnIdx + 1;
                 info.cellNum = columnIdx + cellNumOffset + 1;
                 info.paramName[0] = 0;
-                info.paramWidget[0] = 0;
-                info.paramNameWidget[0] = 0;
-                info.paramValueWidget[0] = 0;
+                strcpy(info.paramWidget, paramWidget);
+                strcpy(info.paramNameWidget, nameDisplayWidget);
+                strcpy(info.paramValueWidget, valueDisplayWidget);
                 info.modifier = s_fxRowLayouts[row].modifier;
 
                 for (int cellWidget = 0; cellWidget < cellWidgets.size(); ++cellWidget)
                 {
                     FXCellWidgets &widgets = cellWidgets[cellWidget];
                     
-                    if(!strcmp(widgets.paramWidget, widgetName) && info.modifier == widgets.modifier)
+                    if(!strcmp(widgets.paramWidget, paramWidget) && info.modifier == widgets.modifier)
                     {
                         info.paramNum = widgets.paramNum;
                         strcpy(info.paramName, widgets.paramName);
@@ -1134,17 +1140,12 @@ static void HandleInitialize(HWND hwndDlg)
 
     SetWindowText(hwndDlg, buf);
     
+    s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
+
     if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
-    {
-        // PopulateListView
-        s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
-    }
     else
-    {
-        s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
-    }
     
     InitializeParamListView(hwndDlg);
     
@@ -1244,7 +1245,7 @@ void WidgetMoved(Widget *widget, int modifier)
     int paramIndex = (int)SendDlgItemMessage(hwndLearnDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
     if (paramIndex < 0)
         return;
-    
+
     for (int i = 0; i < s_fxParamInfo.size(); ++i)
     {
         if (s_fxParamInfo[i].modifier == s_lastTouchedModifier && !strcmp(s_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
@@ -1261,17 +1262,17 @@ void WidgetMoved(Widget *widget, int modifier)
             if (widget == NULL)
                 break;
             
-            if (zoneContexts->Exists(widget)
-               && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier)
-               && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0
-               && strcmp(zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Get(0)->GetAction()->GetName(), "NoAction"))
+            if (zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier))
             {
-                break;
+                if (zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
+                {
+                    if (strcmp(zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Get(0)->GetAction()->GetName(), "NoAction"))
+                        break;
+                    else
+                        zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
+                }
             }
             
-            if (zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
-                zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
-
             string_list params;
             ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParam", widget, zone, params);
             context->SetParamIndex(paramIndex);
@@ -1282,7 +1283,9 @@ void WidgetMoved(Widget *widget, int modifier)
             {
                 ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FixedTextDisplay", widget, zone, params);
                 
-                if (zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
+                if (zoneContexts->Exists(widget)
+                    && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier)
+                    && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
                     zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
                 
                 char buf[BUFSZ];
@@ -1295,7 +1298,9 @@ void WidgetMoved(Widget *widget, int modifier)
             widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramValueWidget);
             if (widget != NULL)
             {
-                if (zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
+                if (zoneContexts->Exists(widget)
+                    && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier)
+                    && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
                     zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
 
                 ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParamValueDisplay", widget, zone, params);
