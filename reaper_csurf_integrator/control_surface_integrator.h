@@ -63,9 +63,6 @@ class CSurfIntegrator;
 class ZoneManager;
 class Widget;
 
-extern Widget *g_lastTouchedWidget;
-extern int g_lastTouchedModifier;
-
 extern string int_to_string(int value);
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
@@ -1578,7 +1575,8 @@ public:
     {
         if (learnFocusedFXZone_ != NULL)
         {
-            g_lastTouchedWidget = NULL;
+            // GAW TDB -- clear UI vars
+            
             delete learnFocusedFXZone_;
             learnFocusedFXZone_ = NULL;
         }
