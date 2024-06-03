@@ -1276,6 +1276,7 @@ void WidgetMoved(Widget *widget, int modifier)
             string_list params;
             ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParam", widget, zone, params);
             context->SetParamIndex(paramIndex);
+            zone->AddWidget(widget);
             zone->AddActionContext(widget, modifier, context);
             
             widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
@@ -1291,6 +1292,7 @@ void WidgetMoved(Widget *widget, int modifier)
                 char buf[BUFSZ];
                 SendDlgItemMessage(hwndLearnDlg, IDC_AllParams, LB_GETTEXT, paramIndex, (LPARAM)(LPSTR)buf);
                 context->SetStringParam(buf);
+                zone->AddWidget(widget);
                 zone->AddActionContext(widget, modifier, context);
                 ListView_SetItemText(GetDlgItem(hwndLearnDlg, IDC_AllParams), s_fxParamInfo[i].row, s_fxParamInfo[i].column, buf);
             }
@@ -1305,6 +1307,7 @@ void WidgetMoved(Widget *widget, int modifier)
 
                 ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParamValueDisplay", widget, zone, params);
                 context->SetParamIndex(paramIndex);
+                zone->AddWidget(widget);
                 zone->AddActionContext(widget, modifier, context);
             }
             
