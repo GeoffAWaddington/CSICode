@@ -662,7 +662,7 @@ public:
     
     virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
         
         if (lastStringSent_ == displayText)
@@ -1767,7 +1767,7 @@ public:
     {
         lastStringSent_ = inputText;
         
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
         if (!strcmp(text,"-150.00")) text="";
@@ -1835,7 +1835,7 @@ public:
     {
         lastStringSent_ = inputText;
         
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
         if (!strcmp(text,"-150.00")) text="";
@@ -1901,7 +1901,7 @@ public:
     {
         lastStringSent_ = inputText;
         
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
         if (!strcmp(text,"-150.00")) text = "";
@@ -2038,7 +2038,7 @@ public:
     {
         lastStringSent_ = inputText;
         
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
         if (!strcmp(text, "-150.00")) text = "";
@@ -2219,7 +2219,7 @@ public:
     {
         lastStringSent_ = inputText;
         
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
         if (text[0] == 0)
@@ -2377,7 +2377,7 @@ public:
     {
         lastStringSent_ = inputText;
         
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         const char *text = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
 
         struct

@@ -2128,7 +2128,7 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            char alias[BUFSZ];
+            char alias[MEDBUF];
             alias[0] = 0;
             
             if (context->GetSlotIndex() < TrackFX_GetCount(track))
@@ -2155,7 +2155,7 @@ public:
 
         if (MediaTrack *track = context->GetTrack())
         {
-            char alias[BUFSZ];
+            char alias[MEDBUF];
             alias[0] = 0;
             
             if (context->GetSlotIndex() < TrackFX_GetCount(track))
@@ -2182,7 +2182,7 @@ public:
                 context->UpdateWidgetValue(context->GetFXParamDisplayName());
             else
             {
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 TrackFX_GetParamName(track, context->GetSlotIndex(), context->GetParamIndex(), tmp, sizeof(tmp));
                 context->UpdateWidgetValue(tmp);
             }
@@ -2210,7 +2210,7 @@ public:
                 int fxIndex = 0;
                 int paramIndex = 0;
                 
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 if (GetTCPFXParm(NULL, track, index, &fxIndex, &paramIndex))
                     context->UpdateWidgetValue(context->GetCSI()->GetTCPFXParamName(track, fxIndex, paramIndex, tmp, sizeof(tmp)));
                 else
@@ -2296,7 +2296,7 @@ public:
         {
             if (MediaTrack *track = DAW::GetTrack(trackNum))
             {
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 TrackFX_GetParamName(track, fxSlotNum, fxParamNum, tmp, sizeof(tmp));
                 context->UpdateWidgetValue(tmp);
             }
@@ -2372,7 +2372,7 @@ public:
             if (destTrack)
             {
                 const char *sendTrackName = (const char *)GetSetMediaTrackInfo(destTrack, "P_NAME", NULL);
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 snprintf(tmp, sizeof(tmp), "Track %d%s%s",
                     context->GetPage()->GetIdFromTrack(destTrack),
                     sendTrackName && *sendTrackName ? " " : "",
@@ -2433,7 +2433,7 @@ public:
                 double vol, pan = 0.0;
                 GetTrackSendUIVolPan(track, context->GetSlotIndex() + numHardwareSends, &vol, &pan);
 
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 context->UpdateWidgetValue(context->GetPanValueString(pan, "", tmp, sizeof(tmp)));
             }
             else
@@ -2523,7 +2523,7 @@ public:
             if (srcTrack)
             {
                 const char *receiveTrackName = (const char *)GetSetMediaTrackInfo(srcTrack, "P_NAME", NULL);
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 snprintf(tmp, sizeof(tmp), "Track %d%s%s", context->GetPage()->GetIdFromTrack(srcTrack),
                     receiveTrackName && *receiveTrackName ? " " : "",
                     receiveTrackName ? receiveTrackName : "");
@@ -2577,7 +2577,7 @@ public:
             {
                 double panVal = GetTrackSendInfo_Value(track, -1, context->GetSlotIndex(), "D_PAN");
                 
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 context->UpdateWidgetValue(context->GetPanValueString(panVal, "", tmp, sizeof(tmp)));
             }
             else
@@ -2662,7 +2662,7 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            char buf[BUFSZ];
+            char buf[MEDBUF];
             
             GetTrackName(track, buf, sizeof(buf));
             
@@ -2714,7 +2714,7 @@ public:
             If 1024 is set, input is stereo input, otherwise input is mono.
             */
             
-            char inputDisplay[BUFSZ];
+            char inputDisplay[MEDBUF];
             
             int input = (int)GetMediaTrackInfo_Value(track, "I_RECINPUT");
 
@@ -2809,7 +2809,7 @@ public:
             double vol, pan = 0.0;
             GetTrackUIVolPan(track, &vol, &pan);
 
-            char tmp[BUFSZ];
+            char tmp[MEDBUF];
             context->UpdateWidgetValue(context->GetPanValueString(pan, "", tmp, sizeof(tmp)));
         }
         else
@@ -2830,7 +2830,7 @@ public:
         {
             double widthVal = GetMediaTrackInfo_Value(track, "D_WIDTH");
             
-            char tmp[BUFSZ];
+            char tmp[MEDBUF];
             context->UpdateWidgetValue(context->GetPanWidthValueString(widthVal, tmp, sizeof(tmp)));
         }
         else
@@ -2851,7 +2851,7 @@ public:
         {
             double panVal = GetMediaTrackInfo_Value(track, "D_DUALPANL");
             
-            char tmp[BUFSZ];
+            char tmp[MEDBUF];
             context->UpdateWidgetValue(context->GetPanValueString(panVal, "L", tmp, sizeof(tmp)));
         }
         else
@@ -2872,7 +2872,7 @@ public:
         {
             double panVal = GetMediaTrackInfo_Value(track, "D_DUALPANR");
             
-            char tmp[BUFSZ];
+            char tmp[MEDBUF];
             context->UpdateWidgetValue(context->GetPanValueString(panVal, "R", tmp, sizeof(tmp)));
         }
         else
@@ -2891,7 +2891,7 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            char tmp[BUFSZ];
+            char tmp[MEDBUF];
             if (GetPanMode(track) == 6)
             {
                 double panVal = GetMediaTrackInfo_Value(track, "D_DUALPANL");
@@ -2920,7 +2920,7 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
         {
-            char tmp[BUFSZ];
+            char tmp[MEDBUF];
             if (GetPanMode(track) == 6)
             {
                 double panVal = GetMediaTrackInfo_Value(track, "D_DUALPANR");
@@ -3459,7 +3459,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        char timeStr[BUFSZ];
+        char timeStr[MEDBUF];
         
         double pp=(GetPlayState()&1) ? GetPlayPosition() : GetCursorPosition();
 
@@ -3730,7 +3730,7 @@ public:
 
     virtual void RequestUpdate(ActionContext *context) override
     {
-        char buffer[BUFSZ];
+        char buffer[MEDBUF];
         
         if (MediaTrack *track = context->GetTrack())
         {

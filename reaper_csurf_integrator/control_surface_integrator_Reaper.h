@@ -16,7 +16,8 @@ using namespace std;
 
 extern HWND g_hwnd;
 
-const int BUFSZ = 512;
+const int MEDBUF = 512;
+const int SMLBUF = 256;
 
 struct rgba_color
 {

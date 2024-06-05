@@ -73,6 +73,7 @@ extern void CheckLearnFocusedFXState(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow();
 extern void UpdateLearnWindow(int paramNumber);
+extern void FillLearnFocusedFXZone();
 
 extern bool g_surfaceRawInDisplay;
 extern bool g_surfaceInDisplay;
@@ -1341,7 +1342,8 @@ public:
     void PreProcessZones();
     void PreProcessZoneFile(const char *filePath);
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
-    
+    void LoadZoneFile(Zone *zone, const char *filePath, const char *widgetSuffix);
+
     void UpdateCurrentActionContextModifiers();
     void CheckFocusedFXState();
 
@@ -1470,6 +1472,7 @@ public:
             info.filePath = fxFullFilePath;
             
             learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, info.alias, info.filePath);
+            FillLearnFocusedFXZone();
             learnFocusedFXZone_->Activate();
         }
     }
@@ -1562,7 +1565,7 @@ public:
       
     void GetName(MediaTrack *track, int fxIndex, char *name, int namesz)
     {
-        char fxName[BUFSZ];
+        char fxName[MEDBUF];
         TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
         if (zoneFilePaths_.Exists(fxName))
@@ -4262,7 +4265,7 @@ public:
         
         if (g_fxParamsWrite)
         {
-            char fxName[BUFSZ];
+            char fxName[MEDBUF];
             
             for (int i = 0; i < TrackFX_GetCount(track); i++)
             {
@@ -4282,7 +4285,7 @@ public:
 
                 for (int j = 0; j < TrackFX_GetNumParams(track, i); j++)
                 {
-                    char fxParamName[BUFSZ];
+                    char fxParamName[MEDBUF];
                     TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
  
                     if (fxFile)

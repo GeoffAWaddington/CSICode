@@ -1423,7 +1423,7 @@ void CSurfIntegrator::Init()
     WDL_DirScan ds;
     if (ds.First(CSIFolderPath.c_str()))
     {       
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), CSIFolderPath.c_str());
         MessageBox(g_hwnd, tmp, __LOCALIZE("Missing CSI Folder","csi_mbox"), MB_OK);
         
@@ -1445,7 +1445,7 @@ void CSurfIntegrator::Init()
             {
                 if (line != s_MajorVersionToken)
                 {
-                    char tmp[BUFSZ];
+                    char tmp[MEDBUF];
                     snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
                     MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
 
@@ -2504,7 +2504,7 @@ void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, double va
 void OSC_FeedbackProcessor::ForceValue(const PropertyList &properties, const char * const &value)
 {
     lastStringValue_ = value;
-    char tmp[BUFSZ];
+    char tmp[MEDBUF];
     surface_->SendOSCMessage(this, oscAddress_.c_str(), GetWidget()->GetSurface()->GetRestrictedLengthText(value,tmp,sizeof(tmp)));
 }
 
@@ -2575,7 +2575,7 @@ void ZoneManager::Initialize()
 
     if ( ! zoneFilePaths_.Exists("Home"))
     {
-        char tmp[BUFSZ];
+        char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s needs a Home Zone to operate, please recheck your installation", "csi_mbox"), surface_->GetName());
         MessageBox(g_hwnd, tmp, __LOCALIZE("CSI Missing Home Zone", "csi_mbox"), MB_OK);
         return;
@@ -2716,10 +2716,10 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
         string_list tokens;
         GetTokens(tokens, zoneList[i]);
         
-        char zoneName[BUFSZ];
+        char zoneName[MEDBUF];
         snprintf(zoneName, sizeof(zoneName), "%s", tokens[0].c_str());
         
-        char navigatorName[BUFSZ];
+        char navigatorName[MEDBUF];
         navigatorName[0] = 0;
         if(tokens.size() > 1)
             snprintf(navigatorName, sizeof(navigatorName), "%s", tokens[1].c_str());
@@ -2742,7 +2742,7 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
             {
                 for (int j = 0; j < navigators.size(); ++j)
                 {
-                    char buf[BUFSZ];
+                    char buf[MEDBUF];
                     snprintf(buf, sizeof(buf), "%s%d", string(zoneName).c_str(), j + 1);
                     
                     Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneName), string(buf), zoneFilePaths_.Get(zoneName)->filePath);
@@ -2760,6 +2760,11 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
 
 void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 {
+    LoadZoneFile(zone, zone->GetSourceFilePath(), widgetSuffix);
+}
+
+void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *widgetSuffix)
+{
     int lineNumber = 0;
     bool isInIncludedZonesSection = false;
     string_list includedZonesList;
@@ -2768,7 +2773,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *widgetSuffix)
 
     try
     {
-        fpistream file(zone->GetSourceFilePath());
+        fpistream file(filePath);
         
         for (string line; getline(file, line) ; )
         {
@@ -2965,7 +2970,7 @@ void ZoneManager::GoFocusedFX()
     
     if (focusedTrack)
     {
-        char fxName[BUFSZ];
+        char fxName[MEDBUF];
         TrackFX_GetFXName(focusedTrack, fxSlot, fxName, sizeof(fxName));
         
         if (zoneFilePaths_.Exists(fxName))
@@ -2993,7 +2998,7 @@ void ZoneManager::GoSelectedTrackFX()
     {
         for (int i = 0; i < TrackFX_GetCount(selectedTrack); i++)
         {
-            char fxName[BUFSZ];
+            char fxName[MEDBUF];
             
             TrackFX_GetFXName(selectedTrack, i, fxName, sizeof(fxName));
             
@@ -3013,7 +3018,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     if (fxSlot > TrackFX_GetCount(track) - 1)
         return;
         
-    char fxName[BUFSZ];
+    char fxName[MEDBUF];
     
     TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
 
@@ -4251,7 +4256,7 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 static struct
 {
     MIDI_event_ex_t evt;
-    char data[BUFSZ];
+    char data[MEDBUF];
 } s_midiSysExData;
 
 void Midi_ControlSurface::SendSysexInitData(int line[], int numElem)

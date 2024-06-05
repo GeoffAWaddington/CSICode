@@ -37,10 +37,10 @@ struct FXCellWidgets
 {
     int modifier;
     int paramNum;
-    char paramName[128];
-    char paramWidget[128];
-    char paramNameWidget[128];
-    char paramValueWidget[128];
+    char paramName[SMLBUF];
+    char paramWidget[SMLBUF];
+    char paramNameWidget[SMLBUF];
+    char paramValueWidget[SMLBUF];
     
     FXCellWidgets()
     {
@@ -58,10 +58,10 @@ struct FXParamInfo
     int cellNum;
     int modifier;
     int paramNum;
-    char paramName[128];
-    char paramWidget[128];
-    char paramNameWidget[128];
-    char paramValueWidget[128];
+    char paramName[SMLBUF];
+    char paramWidget[SMLBUF];
+    char paramNameWidget[SMLBUF];
+    char paramValueWidget[SMLBUF];
 
     FXParamInfo()
     {
@@ -82,8 +82,8 @@ static ZoneManager *s_zoneManager;
 static int s_lastTouchedParamNum = -1;
 static MediaTrack *s_focusedTrack = NULL;
 static int s_fxSlot = 0;
-static char s_fxName[BUFSZ];
-static char s_fxAlias[BUFSZ];
+static char s_fxName[MEDBUF];
+static char s_fxAlias[MEDBUF];
 
 static int s_numColumns;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
@@ -518,7 +518,7 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                     string steps;
                     s_zoneManager->GetSteppedValuesForParam(steps, fxName, track, fxSlot, currentParam);
                     
-                    char paramName[BUFSIZ];
+                    char paramName[SMLBUF];
                     paramName[0] = 0;
                     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
                     
@@ -555,6 +555,88 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
     }
     
     EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
+}
+
+void FillLearnFocusedFXZone()
+{
+    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
+        
+    if (s_zoneManager->GetZoneFilePaths().Exists("FXPrologue"))
+        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneFilePaths().Get("FXPrologue")->filePath.c_str(), "");
+    
+    int modifier = 0;
+    char buf[MEDBUF];
+    string_list blankParams;
+    
+    string_list nameParams;
+    nameParams.push_back("");
+    nameParams.push_back("NoFeedback");
+    
+    string_list valueParams;
+    valueParams.push_back("0");
+    valueParams.push_back("NoFeedback");
+
+    for (int row = 0; row < s_fxRowLayouts.size(); ++row)
+    {
+        modifier = s_fxRowLayouts[row].modifier;
+        
+        for (int column = 0; column < s_numColumns; ++column)
+        {
+            snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidget.c_str(), column + 1);
+            if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+            {
+                zone->AddWidget(widget);
+                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
+                zone->AddActionContext(widget, modifier, context);
+            }
+            
+            snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget.c_str(), column + 1);
+            if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+            {
+                zone->AddWidget(widget);
+                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
+                zone->AddActionContext(widget, modifier, context);
+            }
+            
+            snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget.c_str(), column + 1);
+            if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+            {
+                zone->AddWidget(widget);
+                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
+                zone->AddActionContext(widget, modifier, context);
+            }
+            
+            for (int cell = 1; cell < s_t_paramWidgets.size(); ++cell)
+            {
+                snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidgets[cell].c_str(), column + 1);
+                if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+                {
+                    zone->AddWidget(widget);
+                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
+                    zone->AddActionContext(widget, modifier, context);
+                }
+
+                snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget.c_str(), column + 1);
+                if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+                {
+                    zone->AddWidget(widget);
+                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FixedTextDisplay", widget, zone, nameParams);
+                    zone->AddActionContext(widget, modifier, context);
+                }
+
+                snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget.c_str(), column + 1);
+                if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+                {
+                    zone->AddWidget(widget);
+                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParamValueDisplay", widget, zone, valueParams);
+                    zone->AddActionContext(widget, modifier, context);
+                }
+            }
+        }
+    }
+    
+    if (s_zoneManager->GetZoneFilePaths().Exists("FXEpilogue"))
+        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneFilePaths().Get("FXEpilogue")->filePath.c_str(), "");
 }
 
 static void HandleInitDialog(HWND hwndDlg)
@@ -726,16 +808,16 @@ static void InitializeParamListView(HWND hwndDlg)
                         
             for (int columnIdx = 0; columnIdx < s_numColumns; ++columnIdx)
             {
-                char paramName[BUFSIZ];
+                char paramName[MEDBUF];
                 paramName[0] = 0;
                 
-                char paramWidget[BUFSIZ];
+                char paramWidget[MEDBUF];
                 snprintf(paramWidget, sizeof(paramWidget), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
                 
-                char nameDisplayWidget[BUFSIZ];
+                char nameDisplayWidget[MEDBUF];
                 snprintf(nameDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_nameWidget.c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
 
-                char valueDisplayWidget[BUFSIZ];
+                char valueDisplayWidget[MEDBUF];
                 snprintf(valueDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_valueWidget.c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
 
                 char pszTextBuf[128];
@@ -811,7 +893,7 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
             defaultColor.g = 237;
             defaultColor.b = 237;
 
-            char buf[BUFSIZ];
+            char buf[MEDBUF];
             buf[0] = 0;
             
             int modifier = s_fxParamInfo[infoIdx].modifier;
@@ -858,7 +940,7 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
                 else
                     SetDlgItemText(hwndDlg, IDC_PickSteps, "");
                 
-                char tmp[BUFSZ];
+                char tmp[MEDBUF];
                 const vector<double> &steppedValues = context->GetSteppedValues();
                 string steps;
                 
@@ -1135,7 +1217,7 @@ static void HandleInitialize(HWND hwndDlg)
             
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
                 
-    char buf[BUFSZ];
+    char buf[MEDBUF];
     snprintf(buf, sizeof(buf), "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
 
     SetWindowText(hwndDlg, buf);
@@ -1289,7 +1371,7 @@ void WidgetMoved(Widget *widget, int modifier)
                     && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
                     zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
                 
-                char buf[BUFSZ];
+                char buf[MEDBUF];
                 SendDlgItemMessage(hwndLearnDlg, IDC_AllParams, LB_GETTEXT, paramIndex, (LPARAM)(LPSTR)buf);
                 context->SetStringParam(buf);
                 zone->AddWidget(widget);
@@ -1427,7 +1509,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
                         if (s_dlgResult == IDOK)
                         {
-                            char buf[BUFSZ];
+                            char buf[MEDBUF];
                             snprintf(buf, sizeof(buf), "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
                             SetWindowText(hwndDlg, buf);
                         }
@@ -1846,7 +1928,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        char buf[BUFSZ];
+                        char buf[MEDBUF];
                         GetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf, sizeof(buf));
                         s_surfaceName = buf;
                         
@@ -1888,7 +1970,7 @@ static void FillSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
 {
     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_RESETCONTENT, 0, 0);
     
-    char buf[BUFSZ];
+    char buf[MEDBUF];
     
     GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
     
@@ -1998,7 +2080,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_GETCURSEL, 0, 0);
                             if (index >= 0 && ! s_editMode)
                             {
-                                char buffer[BUFSZ];
+                                char buffer[MEDBUF];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
                                 
@@ -2033,7 +2115,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates), CB_GETCURSEL, 0, 0);
                             if (index >= 0 && ! s_editMode)
                             {
-                                char buffer[BUFSZ];
+                                char buffer[MEDBUF];
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_ZoneTemplates, buffer, sizeof(buffer));
                                 
@@ -2050,7 +2132,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        char buf[BUFSZ];
+                        char buf[MEDBUF];
 
                         GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
                         s_pageSurfaceName = buf;
@@ -2101,7 +2183,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            char buf[BUFSZ];
+            char buf[MEDBUF];
             int currentIndex = 0;
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn));
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut));
@@ -2148,7 +2230,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        char buf[BUFSZ];
+                        char buf[MEDBUF];
                         GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
                         
@@ -2229,7 +2311,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        char buf[BUFSZ];
+                        char buf[MEDBUF];
                                             
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
@@ -2285,7 +2367,7 @@ static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
     if(listener == NULL)
         return;
     
-    char tmp[BUFSZ];
+    char tmp[MEDBUF];
     snprintf(tmp,sizeof(tmp), __LOCALIZE_VERFMT("%s Listens to","csi_osc"), listener->name.c_str());
     SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, tmp);
 
@@ -2394,7 +2476,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_AddBroadcaster, LB_GETCURSEL, 0, 0);
                         if (broadcasterIndex >= 0)
                         {
-                            char broadcasterName[BUFSZ];
+                            char broadcasterName[MEDBUF];
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
                             
                             bool foundit = false;
@@ -2422,7 +2504,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_AddListener, LB_GETCURSEL, 0, 0);
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            char listenerName[BUFSZ];
+                            char listenerName[MEDBUF];
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
                             
                             bool foundit = false;
@@ -2438,7 +2520,7 @@ static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARA
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
 
-                                char tmp[BUFSZ];
+                                char tmp[MEDBUF];
                                 snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s Listens to","csi_osc"), 
                                    s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name.c_str());
                                 SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, tmp);
@@ -3024,7 +3106,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 {
                     if (line != s_MajorVersionToken)
                     {
-                        char tmp[BUFSZ];
+                        char tmp[MEDBUF];
                         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
                         MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
                         iniFile.close();
