@@ -2581,7 +2581,7 @@ void ZoneManager::Initialize()
         return;
     }
             
-    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath.c_str());
+    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath);
     LoadZoneFile(homeZone_, "");
     
     string_list zoneList;
@@ -2591,13 +2591,13 @@ void ZoneManager::Initialize()
     
     if (zoneFilePaths_.Exists("FocusedFXParam"))
     {
-        focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneFilePaths_.Get("FocusedFXParam")->filePath.c_str());
+        focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneFilePaths_.Get("FocusedFXParam")->filePath);
         LoadZoneFile(focusedFXParamZone_, "");
     }
     
     if (zoneFilePaths_.Exists("LearnFX"))
     {
-        learnFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LearnFX", "LearnFX", zoneFilePaths_.Get("LearnFX")->filePath.c_str());
+        learnFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LearnFX", "LearnFX", zoneFilePaths_.Get("LearnFX")->filePath);
         LoadZoneFile(learnFXZone_, "");
     }
     
@@ -2842,7 +2842,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
                 if (!strcmp(tokens[1], "NullDisplay"))
                     continue;
                 
-                ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
+                ActionContext *context = csi_->GetActionContext(tokens[1], widget, zone, memberParams);
                 
                 if (isValueInverted)
                     context->SetIsValueInverted();
@@ -3119,7 +3119,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
     if (csi_->HaveFXSteppedValuesBeenCalculated(fxName.c_str()))
         return;
     
-    csi_->SetSteppedValueCount(fxName, -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+    csi_->SetSteppedValueCount(fxName.c_str(), -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
 
     // Check for UAD / Plugin Alliance and bail if neither
     if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
@@ -3160,7 +3160,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
         }
         
         if (stepCount > 1 && stepCount < 31)
-            csi_->SetSteppedValueCount(fxName, i, stepCount);
+            csi_->SetSteppedValueCount(fxName.c_str(), i, stepCount);
     }
     
     for (int i = 0; i < numParams; i++)
@@ -4166,7 +4166,7 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), surfaceIO_(surfaceIO)
 
 {
     ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
