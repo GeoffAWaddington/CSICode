@@ -445,11 +445,19 @@ public:
     
     virtual void ForceClear() override
     {
+        char buf[SMLBUF];
+    
         PropertyList properties;
         properties.set_prop(PropertyType_DisplayText, "");
-        properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
-        properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
-        properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
+        snprintf(buf, sizeof(buf), "%d", topMargin_);
+        properties.set_prop(PropertyType_TopMargin, buf);
+        //properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
+        snprintf(buf, sizeof(buf), "%d", bottomMargin_);
+        properties.set_prop(PropertyType_BottomMargin, buf);
+        //properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
+        snprintf(buf, sizeof(buf), "%d", font_);
+        properties.set_prop(PropertyType_Font, buf);
+        //properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
         
         ForceValue(properties, 0.0);
     }
@@ -609,11 +617,19 @@ public:
     
     virtual void ForceClear() override
     {
+        char buf[SMLBUF];
+
         PropertyList properties;
         properties.set_prop(PropertyType_DisplayText, "");
-        properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
-        properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
-        properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
+        snprintf(buf, sizeof(buf), "%d", topMargin_);
+        properties.set_prop(PropertyType_TopMargin, buf);
+        //properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
+        snprintf(buf, sizeof(buf), "%d", bottomMargin_);
+        properties.set_prop(PropertyType_BottomMargin, buf);
+        //properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
+        snprintf(buf, sizeof(buf), "%d", font_);
+        properties.set_prop(PropertyType_Font, buf);
+        //properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
         
         FeedbackProcessor::ForceValue(properties, "");
     }

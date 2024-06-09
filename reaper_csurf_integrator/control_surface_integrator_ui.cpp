@@ -654,7 +654,13 @@ static void HandleInitDialog(HWND hwndDlg)
     SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)__LOCALIZE("Custom","csi_fxsteps"));
     
     for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
-        SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
+    {
+        char buf[SMLBUF];
+        snprintf(buf, sizeof(buf), "%d", j);
+        SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)buf);
+
+    }
+        //SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)int_to_string(j).c_str());
 }
 
 static void FillAllParamsList(HWND hwndDlg)
@@ -966,12 +972,27 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
                 
                 
                 const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
+                WDL_FastString ticks;
+                ticks.Set("");
+                char buf[MEDBUF];
+                
+                for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
+                {
+                    snprintf(buf, sizeof(buf), "%d ", acceleratedTickCounts[i]);
+                    ticks.Append(buf);
+                }
+                 
+                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.Get());
+
+                /*
                 string ticks;
                 
                 for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
                     ticks += int_to_string(acceleratedTickCounts[i]) + " ";
                 
                 SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
+                */
+                
                 
                 const char *ringcolor = context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
                 if (ringcolor)

@@ -14,7 +14,7 @@
 #include "../WDL/dirscan.h"
 #include "resource.h"
 
-WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+extern WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
 
@@ -195,23 +195,6 @@ void TrimLine(string &line)
         }
     }
 }
-
-string int_to_string(int value)
-{
-    char buf[64];
-    snprintf(buf, sizeof(buf), "%d", value);
-    
-    return string(buf);
-}
-
-string double_to_string(double value)
-{
-    char buf[128];
-    snprintf(buf, sizeof(buf), "%f", value);
-    
-    return string(buf);
-}
-
 
 bool getline(fpistream &fp, string &str) // mimic C++ getline()
 {
@@ -467,7 +450,7 @@ static midi_Output *GetMidiOutputForPort(int outputPort)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct OSCSurfaceSocket
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////7/////////////////////////////////////////////////////////////////////////////////////////
 {
     string surfaceName;
     oscpkt::UdpSocket *socket;
@@ -3949,7 +3932,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
-: ControlSurface(csi, page, name, numChannels, channelOffset), templateFilename_(templateFilename), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
+: ControlSurface(csi, page, name, numChannels, channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
     // special processing for MCU meters
@@ -3989,21 +3972,43 @@ void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
 {
     surfaceIO_->SendMidiMessage(midiMessage);
     
-    string output = "OUT->" + name_ + " ";
-    
-    for (int i = 0; i < midiMessage->size; i++)
-    {
-        char buffer[32];
-        
-        snprintf(buffer, sizeof(buffer), "%02x ", midiMessage->midi_message[i]);
-        
-        output += buffer;
-    }
-    
-    output += "\n";
-
     if (g_surfaceOutDisplay)
+    {
+        WDL_FastString output;
+        
+        output.Set("OUT->");
+        output.Append(name_.c_str());
+        output.Append(" ");
+
+        char buf[32];
+
+        for (int i = 0; i < midiMessage->size; i++)
+        {
+            snprintf(buf, sizeof(buf), "%02x ", midiMessage->midi_message[i]);
+            output.Append(buf);
+        }
+        
+        output.Append("\n");
+
+        ShowConsoleMsg(output.Get());
+
+        /*
+        string output = "OUT->" + name_ + " ";
+        
+        for (int i = 0; i < midiMessage->size; i++)
+        {
+            char buffer[32];
+            
+            snprintf(buffer, sizeof(buffer), "%02x ", midiMessage->midi_message[i]);
+            
+            output += buffer;
+        }
+        
+        output += "\n";
+
         ShowConsoleMsg(output.c_str());
+         */
+    }
 }
 
 void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
@@ -4112,13 +4117,13 @@ void OSC_ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
                {
                    float value = 0;
                    message->arg().popFloat(value);
-                   surface->ProcessOSCMessage(message->addressPattern(), value);
+                   surface->ProcessOSCMessage(message->addressPattern().c_str(), value);
                }
                else if (message->arg().isInt32())
                {
                    int value;
                    message->arg().popInt32(value);
-                   surface->ProcessOSCMessage(message->addressPattern(), value);
+                   surface->ProcessOSCMessage(message->addressPattern().c_str(), value);
                }
            }
        }
@@ -4140,7 +4145,7 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
                {
                    float value = 0;
                    message->arg().popFloat(value);
-                   surface->ProcessOSCMessage(message->addressPattern(), value);
+                   surface->ProcessOSCMessage(message->addressPattern().c_str(), value);
                }
                else if (message->arg().isInt32())
                {
@@ -4149,14 +4154,27 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
                    
                    if (message->addressPattern() == "/-stat/selidx")
                    {
-                       string x32Select = message->addressPattern() + '/';
+                       WDL_FastString x32Select;
+                       
+                       x32Select.Set(message->addressPattern().c_str());
+                       x32Select.Append("/");
                        if (value < 10)
-                           x32Select += '0';
-                       x32Select += int_to_string(value);
-                       surface->ProcessOSCMessage(x32Select, 1.0);
+                           x32Select.Append("0");
+
+                       char buf[64];
+                       snprintf(buf, sizeof(buf), "%d", value);
+                       x32Select.Append(buf);
+                       
+                       //string x32Select = message->addressPattern() + '/';
+                       //if (value < 10)
+                           //x32Select += '0';
+                       
+                       //x32Select += int_to_string(value);
+                       
+                       surface->ProcessOSCMessage(x32Select.Get(), 1.0);
                    }
                    else
-                       surface->ProcessOSCMessage(message->addressPattern(), value);
+                       surface->ProcessOSCMessage(message->addressPattern().c_str(), value);
                }
            }
        }
@@ -4174,16 +4192,16 @@ OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, c
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 }
 
-void OSC_ControlSurface::ProcessOSCMessage(const string &message, double value)
+void OSC_ControlSurface::ProcessOSCMessage(const char *message, double value)
 {
-    if (CSIMessageGeneratorsByMessage_.Exists(message.c_str()))
-        CSIMessageGeneratorsByMessage_.Get(message.c_str())->ProcessMessage(value);
+    if (CSIMessageGeneratorsByMessage_.Exists(message))
+        CSIMessageGeneratorsByMessage_.Get(message)->ProcessMessage(value);
     
     if (g_surfaceInDisplay)
     {
-        char buffer[250];
-        snprintf(buffer, sizeof(buffer), "IN <- %s %s  %f  \n", name_.c_str(), message.c_str(), value);
-        ShowConsoleMsg(buffer);
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "IN <- %s %s %f\n", name_.c_str(), message, value);
+        ShowConsoleMsg(buf);
     }
 }
 
@@ -4196,7 +4214,13 @@ void OSC_ControlSurface::SendOSCMessage(const char *zoneName)
     surfaceIO_->SendOSCMessage(oscAddress.c_str());
         
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg((string(zoneName) + "->LoadingZone---->" + name_ + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "->LoadingZone---->%s\n", name_.c_str());
+        ShowConsoleMsg(buf);
+    }
+    
+        //ShowConsoleMsg((string(zoneName) + "->LoadingZone---->" + name_ + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, int value)
@@ -4204,7 +4228,13 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, int value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "OUT->%s %s %d\n", name_.c_str(), oscAddress, value);
+        ShowConsoleMsg(buf);
+    }
+
+        //ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
@@ -4212,7 +4242,12 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, double value)
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + double_to_string(value) + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "OUT->%s %s %f\n", name_.c_str(), oscAddress, value);
+        ShowConsoleMsg(buf);
+    }
+        //ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + double_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *value)
@@ -4220,7 +4255,12 @@ void OSC_ControlSurface::SendOSCMessage(const char *oscAddress, const char *valu
     surfaceIO_->SendOSCMessage(oscAddress, value);
         
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + string(value) + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "OUT->%s %s %s\n", name_.c_str(), oscAddress, value);
+        ShowConsoleMsg(buf);
+    }
+        //ShowConsoleMsg(("OUT->" + name_ + " " + string(oscAddress) + " " + string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, double value)
@@ -4228,7 +4268,13 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
     
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + double_to_string(value) + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "OUT->%s %s %f\n", feedbackProcessor->GetWidget()->GetName(), oscAddress, value);
+        ShowConsoleMsg(buf);
+    }
+
+        //ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + double_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, int value)
@@ -4236,7 +4282,13 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "OUT->%s %s %d\n", feedbackProcessor->GetWidget()->GetName(), oscAddress, value);
+        ShowConsoleMsg(buf);
+    }
+
+        //ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + int_to_string(value) + "\n").c_str());
 }
 
 void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, const char *value)
@@ -4244,7 +4296,13 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
     surfaceIO_->SendOSCMessage(oscAddress, value);
 
     if (g_surfaceOutDisplay)
-        ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + string(value) + "\n").c_str());
+    {
+        char buf[MEDBUF];
+        snprintf(buf, sizeof(buf), "OUT->%s %s %s\n", feedbackProcessor->GetWidget()->GetName(), oscAddress, value);
+        ShowConsoleMsg(buf);
+    }
+
+        //ShowConsoleMsg(("OUT->" + name_ + " " + feedbackProcessor->GetWidget()->GetName() + " " + oscAddress + " " + string(value) + "\n").c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -63,7 +63,6 @@ class CSurfIntegrator;
 class ZoneManager;
 class Widget;
 
-extern string int_to_string(int value);
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
 extern int strToHex(const char *valueStr);
@@ -2655,7 +2654,6 @@ class Midi_ControlSurface : public ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    string const templateFilename_;
     Midi_ControlSurfaceIO *const surfaceIO_;
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
@@ -2962,7 +2960,7 @@ public:
 
     virtual ~OSC_ControlSurface() {}
     
-    void ProcessOSCMessage(const string &message, double value);
+    void ProcessOSCMessage(const char *message, double value);
     void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, double value);
     void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, int value);
     void SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor, const char *oscAddress, const char *value);
