@@ -106,7 +106,7 @@ public:
         else if (value < -10.0) value = (value + 50.0) /  80.0;
         else if (value <= 10.0) value = (value + 30.0) /  40.0;
 
-        if ((GetTickCount() - GetWidget()->GetLastIncomingMessageTime()) >= 50)
+        if ((GetTickCount() - GetWidget()->GetLastIncomingMessageTime()) >= 30)
             surface_->SendOSCMessage(this, oscAddress_.c_str(), value);
     }
 };
