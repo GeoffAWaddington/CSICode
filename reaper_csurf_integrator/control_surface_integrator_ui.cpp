@@ -21,12 +21,13 @@ static int s_lastTouchedModifier;
 struct FXRowLayout
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    string suffix;
-    string modifiers;
+    char suffix[SMLBUF];
+    char modifiers[SMLBUF];
     int modifier;
     
     FXRowLayout()
     {
+        suffix[0] = 0;
         modifier = 0;
     }
 };
@@ -87,21 +88,21 @@ static char s_fxAlias[MEDBUF];
 
 static int s_numColumns;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
-ptrvector<FXParamInfo> s_fxParamInfo;
+static ptrvector<FXParamInfo> s_fxParamInfo;
 static ptrvector<FXCellWidgets> cellWidgets;
 
 // t = template
-string_list s_t_paramWidgets;
-string_list s_t_displayRows;
-string_list s_t_ringStyles;
-string_list s_t_fonts;
+static string_list s_t_paramWidgets;
+static string_list s_t_displayRows;
+static string_list s_t_ringStyles;
+static string_list s_t_fonts;
 static bool s_t_hasColor;
-static string s_t_paramWidget;
-static string s_t_nameWidget;
-static string s_t_valueWidget;
-static string s_t_paramWidgetParams;
-static string s_t_nameWidgetParams;
-static string s_t_valueWidgetParams;
+static char s_t_paramWidget[SMLBUF];
+static char s_t_nameWidget[SMLBUF];
+static char s_t_valueWidget[SMLBUF];
+static char s_t_paramWidgetParams[BUFSIZ];
+static char s_t_nameWidgetParams[BUFSIZ];
+static char s_t_valueWidgetParams[BUFSIZ];
 
 static const int s_baseControls[] =
 {
@@ -307,13 +308,13 @@ static void LoadTemplates()
 {
     s_numColumns = s_zoneManager->GetSurface()->GetNumChannels();
     s_fxRowLayouts.clear();
-    s_t_paramWidget = "";
-    s_t_nameWidget = "";
-    s_t_valueWidget = "";
+    s_t_paramWidget[0] = 0;
+    s_t_nameWidget[0] = 0;
+    s_t_valueWidget[0] = 0;
 
-    s_t_paramWidgetParams = "";
-    s_t_nameWidgetParams = "";
-    s_t_valueWidgetParams = "";
+    s_t_paramWidgetParams[0] = 0;
+    s_t_nameWidgetParams[0] = 0;
+    s_t_valueWidgetParams[0] = 0;
 
     s_t_paramWidgets.clear();
     s_t_displayRows.clear();
@@ -347,8 +348,8 @@ static void LoadTemplates()
                 {
                     FXRowLayout t = FXRowLayout();
                     
-                    t.suffix = tokens[1];
-                    t.modifiers = tokens[0];
+                    strcpy(t.suffix, tokens[1]);
+                    strcpy(t.modifiers, tokens[0]);
                     t.modifier = s_zoneManager->GetSurface()->GetModifierManager()->GetModifierValue(tokens[0]);
                     s_fxRowLayouts.push_back(t);
                 }
@@ -414,24 +415,24 @@ static void LoadTemplates()
                     {
                         if (tokens.size() > 1 && tokens[1] == "FXParam")
                         {
-                            s_t_paramWidget = tokens[0];
+                            strcpy(s_t_paramWidget, tokens[0]);
                             
                             if (tokens.size() > 2)
-                                s_t_paramWidgetParams = line.substr(line.find(tokens[2]), line.length() - 1);
+                                strcpy(s_t_paramWidgetParams, line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                         if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
                         {
-                            s_t_nameWidget = tokens[0];
+                            strcpy(s_t_nameWidget, tokens[0]);
                             
                             if (tokens.size() > 2)
-                                s_t_nameWidgetParams = line.substr(line.find(tokens[2]), line.length() - 1);
+                                strcpy(s_t_nameWidgetParams, line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                         if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
                         {
-                            s_t_valueWidget = tokens[0];
+                            strcpy(s_t_valueWidget, tokens[0]);
                             
                             if (tokens.size() > 2)
-                                s_t_valueWidgetParams = line.substr(line.find(tokens[2]), line.length() - 1);
+                                strcpy(s_t_valueWidgetParams, line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                     }
                 }
@@ -508,8 +509,8 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
         {
             char modifiers[BUFSIZ];
             modifiers[0] = 0;
-            if (s_fxRowLayouts[row].modifiers != "")
-                snprintf(modifiers, sizeof(modifiers), "%s+", s_fxRowLayouts[row].modifiers.c_str());
+            if (s_fxRowLayouts[row].modifiers[0] != 0)
+                snprintf(modifiers, sizeof(modifiers), "%s+", s_fxRowLayouts[row].modifiers);
             
             for (int column = 0; column < s_numColumns; ++column)
             {
@@ -522,24 +523,24 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                     paramName[0] = 0;
                     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
                     
-                    fprintf(fxFile, "\t%s%s%d FXParam %d %s%s\n", modifiers, s_t_paramWidget.c_str(), column + 1, currentParam, steps.c_str(), s_t_paramWidgetParams.c_str());
-                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget.c_str(), column + 1, paramName, s_t_nameWidgetParams.c_str());
-                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget.c_str(), column + 1, currentParam, s_t_valueWidgetParams.c_str());
+                    fprintf(fxFile, "\t%s%s%d FXParam %d %s%s\n", modifiers, s_t_paramWidget, column + 1, currentParam, steps.c_str(), s_t_paramWidgetParams);
+                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, column + 1, paramName, s_t_nameWidgetParams);
+                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, column + 1, currentParam, s_t_valueWidgetParams);
                         
                     currentParam++;
                 }
                 else
                 {
-                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidget.c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_nameWidget.c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d NoAction\n\n", modifiers, s_t_valueWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidget, column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_nameWidget, column + 1);
+                    fprintf(fxFile, "\t%s%s%d NoAction\n\n", modifiers, s_t_valueWidget, column + 1);
                 }
                 
                 for (int cell = 1; cell < s_t_paramWidgets.size(); ++cell)
                 {
                     fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidgets[cell].c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"\" NoFeedback\n", modifiers, s_t_nameWidget.c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay 0 NoFeedback\n\n", modifiers, s_t_valueWidget.c_str(), column + 1);
+                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"\" NoFeedback\n", modifiers, s_t_nameWidget, column + 1);
+                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay 0 NoFeedback\n\n", modifiers, s_t_valueWidget, column + 1);
                 }
             }
         }
@@ -582,7 +583,7 @@ void FillLearnFocusedFXZone()
         
         for (int column = 0; column < s_numColumns; ++column)
         {
-            snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidget.c_str(), column + 1);
+            snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidget, column + 1);
             if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
             {
                 zone->AddWidget(widget);
@@ -590,7 +591,7 @@ void FillLearnFocusedFXZone()
                 zone->AddActionContext(widget, modifier, context);
             }
             
-            snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget.c_str(), column + 1);
+            snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget, column + 1);
             if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
             {
                 zone->AddWidget(widget);
@@ -598,7 +599,7 @@ void FillLearnFocusedFXZone()
                 zone->AddActionContext(widget, modifier, context);
             }
             
-            snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget.c_str(), column + 1);
+            snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget, column + 1);
             if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
             {
                 zone->AddWidget(widget);
@@ -616,7 +617,7 @@ void FillLearnFocusedFXZone()
                     zone->AddActionContext(widget, modifier, context);
                 }
 
-                snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget.c_str(), column + 1);
+                snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget, column + 1);
                 if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
                 {
                     zone->AddWidget(widget);
@@ -624,7 +625,7 @@ void FillLearnFocusedFXZone()
                     zone->AddActionContext(widget, modifier, context);
                 }
 
-                snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget.c_str(), column + 1);
+                snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget, column + 1);
                 if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
                 {
                     zone->AddWidget(widget);
@@ -798,9 +799,9 @@ static void InitializeParamListView(HWND hwndDlg)
             char widgetName[128];
             
             if(s_fxRowLayouts[row].modifier)
-                snprintf(widgetName, sizeof(widgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers.c_str(), s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
+                snprintf(widgetName, sizeof(widgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers, s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix);
             else
-                snprintf(widgetName, sizeof(widgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str());
+                snprintf(widgetName, sizeof(widgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix);
 
             LVITEM item;
             memset(&item, 0, sizeof(item));
@@ -817,13 +818,13 @@ static void InitializeParamListView(HWND hwndDlg)
                 paramName[0] = 0;
                 
                 char paramWidget[MEDBUF];
-                snprintf(paramWidget, sizeof(paramWidget), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
+                snprintf(paramWidget, sizeof(paramWidget), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix, columnIdx + 1);
                 
                 char nameDisplayWidget[MEDBUF];
-                snprintf(nameDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_nameWidget.c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
+                snprintf(nameDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_nameWidget, s_fxRowLayouts[row].suffix, columnIdx + 1);
 
                 char valueDisplayWidget[MEDBUF];
-                snprintf(valueDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_valueWidget.c_str(), s_fxRowLayouts[row].suffix.c_str(), columnIdx + 1);
+                snprintf(valueDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_valueWidget, s_fxRowLayouts[row].suffix, columnIdx + 1);
 
                 char pszTextBuf[128];
                 pszTextBuf[0] = 0;
