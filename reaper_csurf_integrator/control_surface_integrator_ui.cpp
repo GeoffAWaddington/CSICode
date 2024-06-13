@@ -1659,9 +1659,7 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
 void CloseFocusedFXDialog()
 {
     // GAW TBD -- Save here
-    
-    s_zoneManager->DeactivateLearnFXZone();
-    
+        
     s_zoneManager =  NULL;
     s_focusedTrack = NULL;
     s_fxSlot = 0;

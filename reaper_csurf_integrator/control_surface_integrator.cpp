@@ -2522,7 +2522,6 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     
     homeZone_ = NULL;
 
-    learnFXZone_ = NULL;
     focusedFXZone_ = NULL;
     fxSlotZone_ = NULL;
     learnFocusedFXZone_ = NULL;
@@ -2577,13 +2576,7 @@ void ZoneManager::Initialize()
         focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneFilePaths_.Get("FocusedFXParam")->filePath);
         LoadZoneFile(focusedFXParamZone_, "");
     }
-    
-    if (zoneFilePaths_.Exists("LearnFX"))
-    {
-        learnFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LearnFX", "LearnFX", zoneFilePaths_.Get("LearnFX")->filePath);
-        LoadZoneFile(learnFXZone_, "");
-    }
-    
+        
     GoHome();
 }
 
@@ -2902,45 +2895,29 @@ void ZoneManager::CheckFocusedFXState()
     int trackNumber = 0;
     int itemNumber = 0;
     int takeNumber = 0;
-    int fxIndex = 0;
+    int fxSlot = 0;
     int paramIndex = 0;
     
-    bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxIndex, &paramIndex);
+    bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
 
     CheckLearnFocusedFXState(this);
     
     if (! isFocusedFXMappingEnabled_)
         return;
 
-    if ( ! retVal || (retVal && (paramIndex & 0x01)))
+    if (! retVal || (retVal && (paramIndex & 0x01)))
     {
         if (focusedFXZone_ != NULL)
-        {
-            focusedFXZone_->RestoreXTouchDisplayColors();
             ClearFocusedFX();
-        }
         
         return;
     }
     
-    if (fxIndex > -1)
-        GoFocusedFX();
-}
-
-void ZoneManager::GoFocusedFX()
-{
-    ClearFocusedFX();
-
-    int trackNumber = 0;
-    int itemNumber = 0;
-    int takeNumber = 0;
-    int fxSlot = 0;
-    int paramIndex = 0;
-
+    if (fxSlot < 0)
+        return;
+    
     MediaTrack *focusedTrack = NULL;
 
-    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
-    
     trackNumber++;
     
     if (retVal && ! (paramIndex & 0x01))
@@ -2956,12 +2933,17 @@ void ZoneManager::GoFocusedFX()
         char fxName[MEDBUF];
         TrackFX_GetFXName(focusedTrack, fxSlot, fxName, sizeof(fxName));
         
+        if(focusedFXZone_ != NULL && focusedFXZone_->GetSlotIndex() == fxSlot && !strcmp(fxName, focusedFXZone_->GetName()))
+            return;
+        else
+            ClearFocusedFX();
+        
         if (zoneFilePaths_.Exists(fxName))
         {
             focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath.c_str());
-            LoadZoneFile(focusedFXParamZone_, "");
+            LoadZoneFile(focusedFXZone_, "");
             focusedFXZone_->Activate();
-        }
+        }            
     }
 }
 

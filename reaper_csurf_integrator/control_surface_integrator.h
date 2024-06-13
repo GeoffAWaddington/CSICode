@@ -797,12 +797,7 @@ public:
     Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
-    
-    void AddIncludedZone(Zone * zone)
-    {
-        includedZones_.push_back(zone);
-    }
-    
+        
     void Toggle()
     {
         if (isActive_)
@@ -1031,8 +1026,6 @@ private:
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
         
     double holdDelayAmount_;
-    
-    Zone *learnFXZone_;
     
     Zone *learnFocusedFXZone_;
     
@@ -1290,12 +1283,6 @@ public:
             focusedFXParamZone_ = NULL;
         }
             
-        if (learnFXZone_ != NULL)
-        {
-            delete learnFXZone_;
-            learnFXZone_ = NULL;
-        }
-            
         if (fxSlotZone_ != NULL)
         {
             delete fxSlotZone_;
@@ -1326,7 +1313,6 @@ public:
     
     int  GetNumChannels();
     
-    void GoFocusedFX();
     void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
     void GetSteppedValuesForParam(string &output, const char *fxName, MediaTrack *track, int fxIndex, int paramIndex);
 
@@ -1466,19 +1452,7 @@ public:
             learnFocusedFXZone_->Activate();
         }
     }
-    
-    void ActivateLearnFXZone()
-    {
-        if (learnFXZone_ != NULL)
-            learnFXZone_->Activate();
-    }
-    
-    void DeactivateLearnFXZone()
-    {
-        if (learnFXZone_ != NULL)
-            learnFXZone_->Deactivate();
-    }
-            
+                
     void DeclareGoZone(const char *zoneName)
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1731,9 +1705,6 @@ public:
             UpdateLearnWindow();
             learnFocusedFXZone_->RequestUpdate();
         }
-
-        if (learnFXZone_ != NULL)
-            learnFXZone_->RequestUpdate();
 
         if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
             focusedFXParamZone_->RequestUpdate();
