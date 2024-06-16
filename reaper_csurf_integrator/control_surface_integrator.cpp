@@ -2516,7 +2516,7 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneFilePaths_(true, disposeAction)
+ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneInfo_(true, disposeAction)
 {
     holdDelayAmount_ = 1.0;
     
@@ -2555,7 +2555,7 @@ void ZoneManager::Initialize()
 {
     PreProcessZones();
 
-    if ( ! zoneFilePaths_.Exists("Home"))
+    if ( ! zoneInfo_.Exists("Home"))
     {
         char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s needs a Home Zone to operate, please recheck your installation", "csi_mbox"), surface_->GetName());
@@ -2563,17 +2563,17 @@ void ZoneManager::Initialize()
         return;
     }
             
-    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneFilePaths_.Get("Home")->filePath);
+    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneInfo_.Get("Home")->filePath);
     LoadZoneFile(homeZone_, "");
     
     string_list zoneList;
-    if (zoneFilePaths_.Exists("GoZones"))
-        LoadZoneMetadata(zoneFilePaths_.Get("GoZones")->filePath.c_str(), zoneList);
+    if (zoneInfo_.Exists("GoZones"))
+        LoadZoneMetadata(zoneInfo_.Get("GoZones")->filePath.c_str(), zoneList);
     LoadZones(goZones_, zoneList);
     
-    if (zoneFilePaths_.Exists("FocusedFXParam"))
+    if (zoneInfo_.Exists("FocusedFXParam"))
     {
-        focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneFilePaths_.Get("FocusedFXParam")->filePath);
+        focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneInfo_.Get("FocusedFXParam")->filePath);
         LoadZoneFile(focusedFXParamZone_, "");
     }
         
@@ -2700,14 +2700,14 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
         if(tokens.size() > 1)
             snprintf(navigatorName, sizeof(navigatorName), "%s", tokens[1].c_str());
     
-        if (zoneFilePaths_.Exists(zoneName))
+        if (zoneInfo_.Exists(zoneName))
         {
             ptrvector<Navigator *> navigators;
             GetNavigatorsForZone(zoneName, navigatorName, navigators);
             
             if (navigators.size() == 1)
             {
-                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneName), zoneFilePaths_.Get(zoneName)->alias, zoneFilePaths_.Get(zoneName)->filePath);
+                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneName), zoneInfo_.Get(zoneName)->alias, zoneInfo_.Get(zoneName)->filePath);
                 if (zone)
                 {
                     LoadZoneFile(zone, "");
@@ -2721,7 +2721,7 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
                     char buf[MEDBUF];
                     snprintf(buf, sizeof(buf), "%s%d", string(zoneName).c_str(), j + 1);
                     
-                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneName), string(buf), zoneFilePaths_.Get(zoneName)->filePath);
+                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneName), string(buf), zoneInfo_.Get(zoneName)->filePath);
                     if (zone)
                     {
                         snprintf(buf, sizeof(buf), "%d", j + 1);
@@ -2938,9 +2938,9 @@ void ZoneManager::CheckFocusedFXState()
         else
             ClearFocusedFX();
         
-        if (zoneFilePaths_.Exists(fxName))
+        if (zoneInfo_.Exists(fxName))
         {
-            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath.c_str());
+            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath.c_str());
             LoadZoneFile(focusedFXZone_, "");
             focusedFXZone_->Activate();
         }            
@@ -2967,9 +2967,9 @@ void ZoneManager::GoSelectedTrackFX()
             
             TrackFX_GetFXName(selectedTrack, i, fxName, sizeof(fxName));
             
-            if (zoneFilePaths_.Exists(fxName))
+            if (zoneInfo_.Exists(fxName))
             {
-                Zone *zone = new Zone(csi_, this, GetSelectedTrackNavigator(), i, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath);
+                Zone *zone = new Zone(csi_, this, GetSelectedTrackNavigator(), i, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
                 LoadZoneFile(zone, "");
                 selectedTrackFXZones_.push_back(zone);
                 zone->Activate();
@@ -2987,13 +2987,13 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     
     TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
 
-    if (zoneFilePaths_.Exists(fxName))
+    if (zoneInfo_.Exists(fxName))
     {
         ClearFXSlot();
         
         CalculateSteppedValues(fxName, track, fxSlot);
         
-        fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath);
+        fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
         LoadZoneFile(fxSlotZone_, "");
         fxSlotZone_->Activate();
     }
@@ -3141,8 +3141,6 @@ void ZoneManager::DoAction(Widget *widget, double value)
     widget->LogInput(value);
     
     bool isUsed = false;
-    
-    // GAW TBD -- widget moved
     
     if (surface_->GetModifiers().GetSize() > 0)
         WidgetMoved(widget, surface_->GetModifiers().Get()[0]);

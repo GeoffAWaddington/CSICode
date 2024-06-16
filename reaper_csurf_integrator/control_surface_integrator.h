@@ -1022,7 +1022,7 @@ private:
     string const zoneFolder_;
     string const fxZoneFolder_;
    
-    WDL_StringKeyedArray<CSIZoneInfo*> zoneFilePaths_;
+    WDL_StringKeyedArray<CSIZoneInfo*> zoneInfo_;
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
         
     double holdDelayAmount_;
@@ -1223,6 +1223,8 @@ private:
         if (focusedFXZone_ != NULL)
         {
             focusedFXZone_->Deactivate();
+            // GAW TBD -- defer delete
+
             delete focusedFXZone_;
             focusedFXZone_ = NULL;
         }
@@ -1232,6 +1234,8 @@ private:
     {
         for (int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
             selectedTrackFXZones_[i]->Deactivate();
+        
+        // GAW TBD -- defer delete
         
         selectedTrackFXZones_.Empty(true);
     }
@@ -1243,8 +1247,8 @@ private:
             fxSlotZone_->Deactivate();
             
             
-            // GAW TBD -- this appears to fix that crash, but of course it now leaks
-            // delete fxSlotZone_;
+            // GAW TBD -- defer delete
+            delete fxSlotZone_;
             
             
             fxSlotZone_ = NULL;
@@ -1330,7 +1334,7 @@ public:
     void DoTouch(Widget *widget, double value);
     
     const char *GetFXZoneFolder() { return fxZoneFolder_.c_str(); }
-    const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneFilePaths_; }
+    const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneInfo_; }
 
     CSurfIntegrator *GetCSI() { return csi_; }
     ControlSurface *GetSurface() { return surface_; }
@@ -1407,9 +1411,9 @@ public:
     
     void LoadAndActivateFocusedFXZone(const char *fxName, int fxSlot)
     {
-        if(zoneFilePaths_.Exists(fxName))
+        if(zoneInfo_.Exists(fxName))
         {
-            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath.c_str());
+            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath.c_str());
             LoadZoneFile(focusedFXParamZone_, "");
             focusedFXZone_->Activate();
         }
@@ -1423,9 +1427,9 @@ public:
             delete learnFocusedFXZone_;
         }
 
-        if(zoneFilePaths_.Exists(fxName))
+        if(zoneInfo_.Exists(fxName))
         {
-            learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, zoneFilePaths_.Get(fxName)->alias, zoneFilePaths_.Get(fxName)->filePath);
+            learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
             LoadZoneFile(learnFocusedFXZone_, "");
             
             learnFocusedFXZone_->Activate();
@@ -1520,10 +1524,10 @@ public:
                 
     void RemoveZone(const char *zoneName)
     {
-        if (zoneFilePaths_.Exists(zoneName))
+        if (zoneInfo_.Exists(zoneName))
         {
-            remove(zoneFilePaths_.Get(zoneName)->filePath.c_str());
-            zoneFilePaths_.Delete(zoneName);
+            remove(zoneInfo_.Get(zoneName)->filePath.c_str());
+            zoneInfo_.Delete(zoneName);
         }
     }
       
@@ -1532,8 +1536,8 @@ public:
         char fxName[MEDBUF];
         TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
-        if (zoneFilePaths_.Exists(fxName))
-            lstrcpyn_safe(name, zoneFilePaths_.Get(fxName)->alias.c_str(), namesz);
+        if (zoneInfo_.Exists(fxName))
+            lstrcpyn_safe(name, zoneInfo_.Get(fxName)->alias.c_str(), namesz);
         else
             GetAlias(fxName, name, namesz);
     }
@@ -1687,7 +1691,7 @@ public:
     void AddZoneFilePath(const char *name, CSIZoneInfo *info)
     {
         if (name && *name)
-            zoneFilePaths_.Insert(name, info);
+            zoneInfo_.Insert(name, info);
     }
     
     void AddZoneFilePath(const char *fxZoneFolder, const char *name, CSIZoneInfo *info)
