@@ -2044,7 +2044,7 @@ void Zone::InitSubZones(const string_list &subZones, const char *widgetSuffix)
 {
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
-        const WDL_StringKeyedArray<CSIZoneInfo*> &zfp = zoneManager_->GetZoneFilePaths();
+        const WDL_StringKeyedArray<CSIZoneInfo*> &zfp = zoneManager_->GetZoneInfo();
         
         if (zfp.Exists(subZones[i]))
         {

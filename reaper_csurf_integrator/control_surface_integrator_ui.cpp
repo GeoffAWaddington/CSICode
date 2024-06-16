@@ -266,9 +266,9 @@ static void SaveZone()
         {
             fprintf(fxZone, "Zone \"%s\" \"%s\"\n", s_fxName, s_fxAlias);
             
-            if (s_zoneManager->GetZoneFilePaths().Exists("FXPrologue"))
+            if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
             {
-                fpistream file(s_zoneManager->GetZoneFilePaths().Get("FXPrologue")->filePath.c_str());
+                fpistream file(s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str());
                     
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
@@ -284,9 +284,9 @@ static void SaveZone()
             fprintf(fxZone, "\n%s\n\n", s_EndAutoSection);
 
             
-            if (s_zoneManager->GetZoneFilePaths().Exists("FXEpilogue"))
+            if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
             {
-                fpistream file(s_zoneManager->GetZoneFilePaths().Get("FXEpilogue")->filePath.c_str());
+                fpistream file(s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str());
                     
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
@@ -323,14 +323,14 @@ static void LoadTemplates()
     
     s_t_hasColor = false;
 
-    const WDL_StringKeyedArray<CSIZoneInfo*> &zonePaths = s_zoneManager->GetZoneFilePaths();
+    const WDL_StringKeyedArray<CSIZoneInfo*> &zoneInfo = s_zoneManager->GetZoneInfo();
     
-    if (s_zoneManager == NULL || ! zonePaths.Exists("FXRowLayout") || ! zonePaths.Exists("FXWidgetLayout"))
+    if (s_zoneManager == NULL || ! zoneInfo.Exists("FXRowLayout") || ! zoneInfo.Exists("FXWidgetLayout"))
         return;
 
     try
     {
-        fpistream file(zonePaths.Get("FXRowLayout")->filePath.c_str());
+        fpistream file(zoneInfo.Get("FXRowLayout")->filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -359,13 +359,13 @@ static void LoadTemplates()
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", zonePaths.Get("FXRowLayout")->filePath.c_str());
+        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", zoneInfo.Get("FXRowLayout")->filePath.c_str());
         ShowConsoleMsg(buffer);
     }
 
     try
     {
-        fpistream file(zonePaths.Get("FXWidgetLayout")->filePath.c_str());
+        fpistream file(zoneInfo.Get("FXWidgetLayout")->filePath.c_str());
 
         for (string line; getline(file, line) ; )
         {
@@ -442,7 +442,7 @@ static void LoadTemplates()
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", zonePaths.Get("FXWidgetLayout")->filePath.c_str());
+        snprintf(buffer, sizeof(buffer), "Trouble in %s\n", zoneInfo.Get("FXWidgetLayout")->filePath.c_str());
         ShowConsoleMsg(buffer);
     }
 }
@@ -496,8 +496,8 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
     {
         fprintf(fxFile, "%s \"%s\" \"%s\"\n", "Zone", s_fxName, s_fxAlias);
         
-        if (s_zoneManager->GetZoneFilePaths().Exists("FXPrologue"))
-            WriteBoilerPlate(fxFile, s_zoneManager->GetZoneFilePaths().Get("FXPrologue")->filePath);
+        if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
+            WriteBoilerPlate(fxFile, s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath);
 
         fprintf(fxFile, "\n%s\n", s_BeginAutoSection);
         
@@ -547,8 +547,8 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
 
         fprintf(fxFile, "%s\n\n", s_EndAutoSection);
 
-        if (s_zoneManager->GetZoneFilePaths().Exists("FXEpilogue"))
-            WriteBoilerPlate(fxFile, s_zoneManager->GetZoneFilePaths().Get("FXEpilogue")->filePath);
+        if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
+            WriteBoilerPlate(fxFile, s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath);
         
         fprintf(fxFile, "%s\n", "ZoneEnd");
 
@@ -562,8 +562,8 @@ void FillLearnFocusedFXZone()
 {
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
         
-    if (s_zoneManager->GetZoneFilePaths().Exists("FXPrologue"))
-        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneFilePaths().Get("FXPrologue")->filePath.c_str(), "");
+    if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
+        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str(), "");
     
     int modifier = 0;
     char buf[MEDBUF];
@@ -636,8 +636,8 @@ void FillLearnFocusedFXZone()
         }
     }
     
-    if (s_zoneManager->GetZoneFilePaths().Exists("FXEpilogue"))
-        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneFilePaths().Get("FXEpilogue")->filePath.c_str(), "");
+    if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
+        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
 }
 
 static void HandleInitDialog(HWND hwndDlg)
@@ -683,11 +683,11 @@ static void FillFXCellWidgets()
     
     int lineNumber = 0;
     
-    if ( ! s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
+    if ( ! s_zoneManager->GetZoneInfo().Exists(s_fxName))
         return;
     try
     {
-        fpistream file(s_zoneManager->GetZoneFilePaths().Get(s_fxName)->filePath.c_str());
+        fpistream file(s_zoneManager->GetZoneInfo().Get(s_fxName)->filePath.c_str());
         
         for (string line; getline(file, line) ; )
         {
@@ -739,7 +739,7 @@ static void FillFXCellWidgets()
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", s_zoneManager->GetZoneFilePaths().Get(s_fxName)->filePath.c_str(), lineNumber);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", s_zoneManager->GetZoneInfo().Get(s_fxName)->filePath.c_str(), lineNumber);
         ShowConsoleMsg(buffer);
     }
 }
@@ -1235,7 +1235,7 @@ static void HandleInitialize(HWND hwndDlg)
     
     s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
 
-    if (s_zoneManager->GetZoneFilePaths().Exists(s_fxName))
+    if (s_zoneManager->GetZoneInfo().Exists(s_fxName))
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
     else
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
@@ -1567,11 +1567,11 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 {
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
     
-    const WDL_StringKeyedArray<CSIZoneInfo*> &zonePaths = s_zoneManager->GetZoneFilePaths();
+    const WDL_StringKeyedArray<CSIZoneInfo*> &zoneInfo = s_zoneManager->GetZoneInfo();
 
-    if (zonePaths.Exists(s_fxName))
+    if (zoneInfo.Exists(s_fxName))
     {
-        lstrcpyn_safe(s_fxAlias, zonePaths.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
+        lstrcpyn_safe(s_fxAlias, zoneInfo.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
         LearnFocusedFXDialog();
     }
     else
@@ -1658,7 +1658,7 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
 
 void CloseFocusedFXDialog()
 {
-    // GAW TBD -- Save here
+    // GAW TBD -- Save here and add to ZoneManager::zoneInfo_
         
     s_zoneManager =  NULL;
     s_focusedTrack = NULL;

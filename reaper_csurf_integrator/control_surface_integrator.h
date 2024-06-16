@@ -1223,6 +1223,17 @@ private:
             focusedFXParamZone_->Deactivate();
     }
     
+    void ClearLearnFocusedFXZone()
+    {
+        if (learnFocusedFXZone_ != NULL)
+        {
+            learnFocusedFXZone_->Deactivate();
+            if (zonesToBeDeleted_.Find(learnFocusedFXZone_) == -1)
+                zonesToBeDeleted_.Add(learnFocusedFXZone_);
+            learnFocusedFXZone_ = NULL;
+        }
+    }
+    
     void ClearFocusedFX()
     {
         if (focusedFXZone_ != NULL)
@@ -1336,7 +1347,7 @@ public:
     void DoTouch(Widget *widget, double value);
     
     const char *GetFXZoneFolder() { return fxZoneFolder_.c_str(); }
-    const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneFilePaths() { return zoneInfo_; }
+    const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneInfo() { return zoneInfo_; }
 
     CSurfIntegrator *GetCSI() { return csi_; }
     ControlSurface *GetSurface() { return surface_; }
@@ -1427,8 +1438,7 @@ public:
         {
             // GAW TBD -- save here and add to zoneInfo_
             
-            learnFocusedFXZone_->Deactivate();
-            delete learnFocusedFXZone_;
+            ClearLearnFocusedFXZone();
         }
 
         if(zoneInfo_.Exists(fxName))
@@ -1552,8 +1562,6 @@ public:
         {
             // GAW TDB -- clear UI vars
             
-            delete learnFocusedFXZone_;
-            learnFocusedFXZone_ = NULL;
         }
     }
           
@@ -1669,6 +1677,7 @@ public:
 
     void ClearFXMapping()
     {
+        ClearLearnFocusedFXZone();
         ClearFocusedFX();
         ClearSelectedTrackFX();
         ClearFXSlot();
