@@ -2551,6 +2551,11 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     Initialize();
 }
 
+Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
+Navigator *ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
+Navigator *ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
+int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
+
 void ZoneManager::Initialize()
 {
     PreProcessZones();
@@ -3142,6 +3147,13 @@ void ZoneManager::DoAction(Widget *widget, double value)
     
     bool isUsed = false;
     
+    DoAction(widget, value, isUsed);
+    
+    zonesToBeDeleted_.Empty(true);
+}
+    
+void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
+{
     if (surface_->GetModifiers().GetSize() > 0)
         WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
     
@@ -3191,7 +3203,14 @@ void ZoneManager::DoRelativeAction(Widget *widget, double delta)
     widget->LogInput(delta);
     
     bool isUsed = false;
-   
+    
+    DoRelativeAction(widget, delta, isUsed);
+    
+    zonesToBeDeleted_.Empty(true);
+}
+
+void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
+{
     if (surface_->GetModifiers().GetSize() > 0)
         WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
 
@@ -3242,6 +3261,13 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
     
     bool isUsed = false;
     
+    DoRelativeAction(widget, accelerationIndex, delta, isUsed);
+    
+    zonesToBeDeleted_.Empty(true);
+}
+
+void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed)
+{
     if (surface_->GetModifiers().GetSize() > 0)
         WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
 
@@ -3287,12 +3313,20 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
 
 void ZoneManager::DoTouch(Widget *widget, double value)
 {
-    surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
-    
+    if (WDL_NOT_NORMALLY(!widget)) return;
     widget->LogInput(value);
     
     bool isUsed = false;
     
+    DoTouch(widget, value, isUsed);
+    
+    zonesToBeDeleted_.Empty(true);
+}
+
+void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)
+{
+    surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
+        
     if (surface_->GetModifiers().GetSize() > 0)
         WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
 
@@ -3335,11 +3369,6 @@ void ZoneManager::DoTouch(Widget *widget, double value)
     if (homeZone_ != NULL)
         homeZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 }
-
-Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
-Navigator *ZoneManager::GetSelectedTrackNavigator() { return surface_->GetPage()->GetSelectedTrackNavigator(); }
-Navigator *ZoneManager::GetFocusedFXNavigator() { return surface_->GetPage()->GetFocusedFXNavigator(); }
-int ZoneManager::GetNumChannels() { return surface_->GetNumChannels(); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ModifierManager

@@ -765,8 +765,6 @@ public:
 
     virtual ~Zone()
     {
-        widgets_.Empty();
-        currentActionContextModifiers_.DeleteAll();
         includedZones_.clear();
         subZones_.clear();
     }
@@ -1035,6 +1033,8 @@ private:
     
     ptrvector<ZoneManager *> listeners_;
     
+    WDL_PtrList<Zone> zonesToBeDeleted_;
+    
     bool listensToGoHome_;
     bool listensToSends_;
     bool listensToReceives_;
@@ -1070,7 +1070,12 @@ private:
     void Initialize();
     void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators);
     void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
-          
+         
+    void DoAction(Widget *widget, double value, bool &isUsed);
+    void DoRelativeAction(Widget *widget, double delta, bool &isUsed);
+    void DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed);
+    void DoTouch(Widget *widget, double value, bool &isUsed);
+    
     void LoadZoneMetadata(const char *filePath, string_list &metadata)
     {
         int lineNumber = 0;
@@ -1223,9 +1228,8 @@ private:
         if (focusedFXZone_ != NULL)
         {
             focusedFXZone_->Deactivate();
-            // GAW TBD -- defer delete
-
-            delete focusedFXZone_;
+            if (zonesToBeDeleted_.Find(focusedFXZone_) == -1)
+                zonesToBeDeleted_.Add(focusedFXZone_);
             focusedFXZone_ = NULL;
         }
     }
@@ -1233,11 +1237,13 @@ private:
     void ClearSelectedTrackFX()
     {
         for (int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+        {
             selectedTrackFXZones_[i]->Deactivate();
+            if (zonesToBeDeleted_.Find(selectedTrackFXZones_[i]) == -1)
+                zonesToBeDeleted_.Add(selectedTrackFXZones_[i]);
+        }
         
-        // GAW TBD -- defer delete
-        
-        selectedTrackFXZones_.Empty(true);
+        selectedTrackFXZones_.Empty();
     }
     
     void ClearFXSlot()
@@ -1245,12 +1251,8 @@ private:
         if (fxSlotZone_ != NULL)
         {
             fxSlotZone_->Deactivate();
-            
-            
-            // GAW TBD -- defer delete
-            delete fxSlotZone_;
-            
-            
+            if (zonesToBeDeleted_.Find(fxSlotZone_) == -1)
+                zonesToBeDeleted_.Add(fxSlotZone_);
             fxSlotZone_ = NULL;
             ReactivateFXMenuZone();
         }
@@ -1423,6 +1425,8 @@ public:
     {
         if (learnFocusedFXZone_ != NULL)
         {
+            // GAW TBD -- save here and add to zoneInfo_
+            
             learnFocusedFXZone_->Deactivate();
             delete learnFocusedFXZone_;
         }
@@ -1665,8 +1669,8 @@ public:
 
     void ClearFXMapping()
     {
-        selectedTrackFXZones_.Empty(true);
         ClearFocusedFX();
+        ClearSelectedTrackFX();
         ClearFXSlot();
     }
         
