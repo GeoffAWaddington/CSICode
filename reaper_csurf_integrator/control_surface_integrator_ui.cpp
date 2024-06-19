@@ -47,6 +47,10 @@ struct FXCellWidgets
     {
         modifier = 0;
         paramNum = -1;
+        paramName[0] = 0;
+        paramWidget[0] = 0;
+        paramNameWidget[0] = 0;
+        paramValueWidget[0] = 0;
     }
 };
 
@@ -89,7 +93,7 @@ static char s_fxAlias[MEDBUF];
 static int s_numColumns;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
 static ptrvector<FXParamInfo> s_fxParamInfo;
-static ptrvector<FXCellWidgets> cellWidgets;
+static ptrvector<FXCellWidgets> s_cellWidgets;
 
 // t = template
 static string_list s_t_paramWidgets;
@@ -260,11 +264,11 @@ static void SaveZone()
         
         snprintf(path, sizeof(path), "%s/%s.zon", path, trimmedFXName.c_str());
         
-        FILE *fxZone = fopenUTF8(path,"wb");
+        FILE *fxFile = fopenUTF8(path,"wb");
         
-        if (fxZone)
+        if (fxFile)
         {
-            fprintf(fxZone, "Zone \"%s\" \"%s\"\n", s_fxName, s_fxAlias);
+            fprintf(fxFile, "Zone \"%s\" \"%s\"\n", s_fxName, s_fxAlias);
             
             if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
             {
@@ -272,28 +276,52 @@ static void SaveZone()
                     
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
-                        fprintf(fxZone, "%s\n", line.c_str());
+                        fprintf(fxFile, "%s\n", line.c_str());
             }
             
-            fprintf(fxZone, "\n%s\n\n", s_BeginAutoSection);
+            fprintf(fxFile, "\n%s\n\n", s_BeginAutoSection);
             
+            char buf[MEDBUF];
             
-            
-            
-            
-            fprintf(fxZone, "\n%s\n\n", s_EndAutoSection);
+            for (int cell = 0; cell < s_fxParamInfo.GetSize(); ++cell)
+            {
+                buf[0] = 0;
+                
+                s_modifierManager.GetModifierString(s_fxParamInfo.Get(cell)->modifier, buf, sizeof(buf));
 
+                if(Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo.Get(cell)->paramWidget))
+                {
+                    s_modifierManager.GetModifierString(s_fxParamInfo.Get(cell)->modifier, buf, sizeof(buf));
+                    
+                    fprintf(fxFile, "\t%s%s FXParam %d\n", buf, s_fxParamInfo.Get(cell)->paramWidget, s_fxParamInfo.Get(cell)->paramNum);
+                    
+                    if(Widget *nameWidget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo.Get(cell)->paramNameWidget))
+                        fprintf(fxFile, "\t%s%s FixedTextDisplay \"%s\"\n", buf, s_fxParamInfo.Get(cell)->paramNameWidget, s_fxParamInfo.Get(cell)->paramName);
+                    
+                    if(Widget *valueWidget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo.Get(cell)->paramValueWidget))
+                        fprintf(fxFile, "\t%s%s FXParamValueDisplay %d\n\n", buf, s_fxParamInfo.Get(cell)->paramValueWidget, s_fxParamInfo.Get(cell)->paramNum);
+                }
+                
+                else
+                {
+                    fprintf(fxFile, "\t%s%s NoAction\n", buf, s_fxParamInfo.Get(cell)->paramWidget);
+                    fprintf(fxFile, "\t%s%s NoAction\n", buf, s_fxParamInfo.Get(cell)->paramNameWidget);
+                    fprintf(fxFile, "\t%s%s NoAction\n\n", buf, s_fxParamInfo.Get(cell)->paramValueWidget);
+                }
+            }
             
+            fprintf(fxFile, "\n%s\n\n", s_EndAutoSection);
+
             if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
             {
                 fpistream file(s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str());
                     
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
-                        fprintf(fxZone, "%s\n", line.c_str());
+                        fprintf(fxFile, "%s\n", line.c_str());
             }
 
-            fclose(fxZone);
+            fclose(fxFile);
         }
     }
     catch (exception)
@@ -500,10 +528,57 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
             WriteBoilerPlate(fxFile, s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath);
 
         fprintf(fxFile, "\n%s\n", s_BeginAutoSection);
-        
-        int numParams = TrackFX_GetNumParams(track, fxSlot);
 
+        int numParams = TrackFX_GetNumParams(track, fxSlot);
         int currentParam = 0;
+        
+        char modifiers[MEDBUF];
+        
+        for (int cell = 0; cell < s_fxParamInfo.GetSize(); ++cell)
+        {
+            modifiers[0] = 0;
+            s_modifierManager.GetModifierString(s_fxParamInfo.Get(cell)->modifier, modifiers, sizeof(modifiers));
+            
+            int cellRow = s_fxParamInfo[cell].row;
+            int cellSize = s_t_paramWidgets.size();
+            
+            if (cellRow == 0 || ((cellRow > cellSize - 1) && cellRow % cellSize == 0))
+            {
+                if (currentParam < numParams)
+                {
+                    string steps;
+                    s_zoneManager->GetSteppedValuesForParam(steps, fxName, track, fxSlot, currentParam);
+                    
+                    char paramName[SMLBUF];
+                    paramName[0] = 0;
+                    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
+                    
+                    fprintf(fxFile, "\t%s%s FXParam %d %s%s\n", modifiers, s_fxParamInfo[cell].paramWidget, currentParam, steps.c_str(), s_t_paramWidgetParams);
+                    fprintf(fxFile, "\t%s%s FixedTextDisplay \"%s\" %s\n", modifiers, s_fxParamInfo[cell].paramNameWidget, paramName, s_t_nameWidgetParams);
+                    fprintf(fxFile, "\t%s%s FXParamValueDisplay %d %s\n\n", modifiers, s_fxParamInfo[cell].paramValueWidget, currentParam, s_t_valueWidgetParams);
+                        
+                    currentParam++;
+                }
+                else
+                {
+                    fprintf(fxFile, "\t%s%s NoAction\n", modifiers, s_fxParamInfo[cell].paramWidget);
+                    fprintf(fxFile, "\t%s%s NoAction\n", modifiers, s_fxParamInfo[cell].paramNameWidget);
+                    fprintf(fxFile, "\t%s%s NoAction\n\n", modifiers, s_fxParamInfo[cell].paramValueWidget);
+                }
+            }
+            else
+            {
+                fprintf(fxFile, "\t%s%s NoAction\n", modifiers, s_fxParamInfo[cell].paramWidget);
+                fprintf(fxFile, "\t%s%s FixedTextDisplay \"\" NoFeedback\n", modifiers, s_fxParamInfo[cell].paramNameWidget);
+                fprintf(fxFile, "\t%s%s FXParamValueDisplay 0 NoFeedback\n\n", modifiers, s_fxParamInfo[cell].paramValueWidget);
+            }
+        }
+        
+        
+        
+        
+        
+        /*
         
         for (int row = 0; row < s_fxRowLayouts.size(); ++row)
         {
@@ -544,7 +619,11 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
                 }
             }
         }
+        
+        */
 
+        
+        
         fprintf(fxFile, "%s\n\n", s_EndAutoSection);
 
         if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
@@ -679,7 +758,7 @@ static void FillAllParamsList(HWND hwndDlg)
 
 static void FillFXCellWidgets()
 {
-    cellWidgets.clear();
+    s_cellWidgets.clear();
     
     int lineNumber = 0;
     
@@ -732,7 +811,7 @@ static void FillFXCellWidgets()
                     strcpy(widgets.paramValueWidget, subTokens[subTokens.size() - 1]);
                 }
                 
-                cellWidgets.push_back(widgets);
+                s_cellWidgets.push_back(widgets);
             }
         }
     }
@@ -847,9 +926,9 @@ static void InitializeParamListView(HWND hwndDlg)
                 strcpy(info.paramValueWidget, valueDisplayWidget);
                 info.modifier = s_fxRowLayouts[row].modifier;
 
-                for (int cellWidget = 0; cellWidget < cellWidgets.size(); ++cellWidget)
+                for (int cellWidget = 0; cellWidget < s_cellWidgets.size(); ++cellWidget)
                 {
-                    FXCellWidgets &widgets = cellWidgets[cellWidget];
+                    FXCellWidgets &widgets = s_cellWidgets[cellWidget];
                     
                     if(!strcmp(widgets.paramWidget, paramWidget) && info.modifier == widgets.modifier)
                     {
@@ -1409,7 +1488,6 @@ void WidgetMoved(Widget *widget, int modifier)
     }
 }
 
-
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -1530,6 +1608,11 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_AutoMap:
                     if (HIWORD(wParam) == BN_CLICKED)
                         AutoMapFX(hwndDlg, s_focusedTrack, s_fxSlot, s_fxName, s_fxAlias);
+                    break ;
+                                        
+                case IDC_ExitWithSave:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        SaveZone();
                     break ;
                                         
                 case IDCANCEL:
