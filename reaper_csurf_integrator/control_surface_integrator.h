@@ -335,11 +335,14 @@ class PropertyList
     {
         for (int x = 0; x < nprops_; x ++)
         {
-            const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
-            if (key != NULL)
+            //const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
+            const char *value = get_prop(props_[x]);
+            const char *key = string_from_prop(props_[x]);
+            
+            if (key && value)
                 fprintf(fxFile, " %s=%s", key, value);
-            else if (WDL_NORMALLY(props_[x] == PropertyType_Unknown && value && strstr(value,"=")))
-                fprintf(fxFile, " %s", value);
+            //else if (WDL_NORMALLY(props_[x] == PropertyType_Unknown && value && strstr(value,"=")))
+                //fprintf(fxFile, " %s", value);
         }
         fprintf(fxFile,"\n");
     }

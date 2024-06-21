@@ -383,9 +383,9 @@ static void SaveZone()
                         }
                     }
                     
-                    fprintf(fxFile, "]\n");
+                    fprintf(fxFile, "] ");
 
-                    //widgetContext->GetWidgetProperties().save_list(fxFile);
+                    widgetContext->GetWidgetProperties().save_list(fxFile);
                 }
                 
                 actionName = nameDisplayContext->GetAction()->GetName();
@@ -396,10 +396,8 @@ static void SaveZone()
                     fprintf(fxFile, "\t%s%s %s\n", modifiers, nameDisplay->GetName(), actionName);
                 else
                 {
-                     
-                    //nameDisplayContext->GetWidgetProperties().save_list(fxFile);
-                    
-                    fprintf(fxFile, "\t%s%s %s \"%s\"\n", modifiers, nameDisplay->GetName(), actionName, nameDisplayContext->GetStringParam());
+                    fprintf(fxFile, "\t%s%s %s \"%s\" ", modifiers, nameDisplay->GetName(), actionName, nameDisplayContext->GetStringParam());
+                    nameDisplayContext->GetWidgetProperties().save_list(fxFile);
                 }
 
                 actionName = valueDisplayContext->GetAction()->GetName();
@@ -410,10 +408,9 @@ static void SaveZone()
                     fprintf(fxFile, "\t%s%s %s\n\n", modifiers, valueDisplay->GetName(), actionName);
                 else
                 {
-                    
-                    //valueDisplay->GetWidgetProperties().save_list(fxFile);
-
-                    fprintf(fxFile, "\t%s%s %s %d\n\n", modifiers, valueDisplay->GetName(), actionName, valueDisplayContext->GetParamIndex());
+                    fprintf(fxFile, "\t%s%s %s %d ", modifiers, valueDisplay->GetName(), actionName, valueDisplayContext->GetParamIndex());
+                    valueDisplayContext->GetWidgetProperties().save_list(fxFile);
+                    fprintf(fxFile, "\n");
                 }
             }
                             
