@@ -678,56 +678,6 @@ static void AutoMapFX(HWND hwndDlg,  MediaTrack *track, int fxSlot, const char *
             }
         }
         
-        
-        
-        
-        
-        /*
-        
-        for (int row = 0; row < s_fxRowLayouts.size(); ++row)
-        {
-            char modifiers[BUFSIZ];
-            modifiers[0] = 0;
-            if (s_fxRowLayouts[row].modifiers[0] != 0)
-                snprintf(modifiers, sizeof(modifiers), "%s+", s_fxRowLayouts[row].modifiers);
-            
-            for (int column = 0; column < s_numColumns; ++column)
-            {
-                if (currentParam < numParams)
-                {
-                    string steps;
-                    s_zoneManager->GetSteppedValuesForParam(steps, fxName, track, fxSlot, currentParam);
-                    
-                    char paramName[SMLBUF];
-                    paramName[0] = 0;
-                    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
-                    
-                    fprintf(fxFile, "\t%s%s%d FXParam %d %s%s\n", modifiers, s_t_paramWidget, column + 1, currentParam, steps.c_str(), s_t_paramWidgetParams);
-                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, column + 1, paramName, s_t_nameWidgetParams);
-                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, column + 1, currentParam, s_t_valueWidgetParams);
-                        
-                    currentParam++;
-                }
-                else
-                {
-                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidget, column + 1);
-                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_nameWidget, column + 1);
-                    fprintf(fxFile, "\t%s%s%d NoAction\n\n", modifiers, s_t_valueWidget, column + 1);
-                }
-                
-                for (int cell = 1; cell < s_t_paramWidgets.size(); ++cell)
-                {
-                    fprintf(fxFile, "\t%s%s%d NoAction\n", modifiers, s_t_paramWidgets[cell].c_str(), column + 1);
-                    fprintf(fxFile, "\t%s%s%d FixedTextDisplay \"\" NoFeedback\n", modifiers, s_t_nameWidget, column + 1);
-                    fprintf(fxFile, "\t%s%s%d FXParamValueDisplay 0 NoFeedback\n\n", modifiers, s_t_valueWidget, column + 1);
-                }
-            }
-        }
-        
-        */
-
-        
-        
         fprintf(fxFile, "%s\n\n", s_EndAutoSection);
 
         if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
@@ -1055,7 +1005,7 @@ static void InitializeParamListView(HWND hwndDlg)
     }
 }
 
-static ActionContext *GetFirstActionContext(char *widgetName, int modifier)
+static ActionContext *GetActionContext(char *widgetName, int modifier, int idx)
 {
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
 
@@ -1066,8 +1016,8 @@ static ActionContext *GetFirstActionContext(char *widgetName, int modifier)
     
     if (widget != NULL
         &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier)
-           && zoneContexts->Get(widget)->Get(modifier)->GetSize() > 0)
-            return zoneContexts->Get(widget)->Get(modifier)->Get(0);
+           && zoneContexts->Get(widget)->Get(modifier)->GetSize() > idx)
+            return zoneContexts->Get(widget)->Get(modifier)->Get(idx);
     else
         return NULL;
 }
@@ -1102,7 +1052,7 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), s_fxParamInfo[infoIdx].paramValueWidget);
               
             // param
-            if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier))
+            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
                 ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
 
@@ -1192,7 +1142,7 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
             }
                
             // param name display
-            if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier))
+            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
                 SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
                 
@@ -1238,7 +1188,7 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
             }
                
             // param value display
-            if(ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
+            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
                 SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamValueDisplay), BM_SETCHECK, context->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
 
@@ -1304,7 +1254,7 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
             int modifier = s_fxParamInfo[infoIdx].modifier;
 
             // param
-            if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier))
+            if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
                 GetDlgItemText(hwndDlg, IDC_PickRingStyle, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
@@ -1356,7 +1306,7 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
             }
             
             // param name display
-            if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier))
+            if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
                 ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
                 context->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
@@ -1381,7 +1331,7 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
             }
             
             // param value display
-            if (ActionContext *context = GetFirstActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier))
+            if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
                 ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
                 context->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
