@@ -80,8 +80,10 @@ struct FXParamInfo
     }
 };
 
-static HWND hwndLearnDlg = NULL;
+static HWND s_hwndLearnDlg = NULL;
 static int s_dlgResult = IDCANCEL;
+
+static HWND s_hwndForegroundWindow = NULL;
 
 static ModifierManager s_modifierManager(NULL);
 
@@ -1469,12 +1471,39 @@ ActionContext *GetCurrentWidgetActionContext()
     return NULL;
 }
 
+ActionContext *GetCurrentParamNameActionContext()
+{
+    for (int i = 0; i < s_fxParamInfo.size(); ++i)
+    {
+        if (s_fxParamInfo[i].modifier == s_lastTouchedModifier && !strcmp(s_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
+        {
+            const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+
+            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
+
+            if (zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier) && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > s_fxParamInfo[i].paramWidgetIdx)
+                return zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Get(s_fxParamInfo[i].paramWidgetIdx);
+        }
+    }
+    
+    return NULL;
+}
+
+int GetCurrentCellIndex()
+{
+    for (int i = 0; i < s_fxParamInfo.size(); ++i)
+        if (s_fxParamInfo[i].modifier == s_lastTouchedModifier && !strcmp(s_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
+            return i;
+
+    return -1;
+}
+
 void WidgetMoved(Widget *widget, int modifier)
 {
-    if (hwndLearnDlg == NULL)
+    if (s_hwndLearnDlg == NULL)
         return;
     
-    if (! IsWindowVisible(hwndLearnDlg))
+    if (! IsWindowVisible(s_hwndLearnDlg))
         return;
     
     s_lastTouchedWidget = widget;
@@ -1534,7 +1563,7 @@ void WidgetMoved(Widget *widget, int modifier)
             if (widgetContext == NULL || nameDisplayContext == NULL || valueDisplayContext == NULL)
                 return;
 
-            SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
+            SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
             
             widgetContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
             widgetContext->SetParamIndex(s_lastTouchedParamNum);
@@ -1542,10 +1571,10 @@ void WidgetMoved(Widget *widget, int modifier)
             nameDisplayContext->SetProvideFeedback(true);
             nameDisplayContext->SetAction(s_zoneManager->GetCSI()->GetFixedTextDisplayAction());
             char buf[MEDBUF];
-            SendDlgItemMessage(hwndLearnDlg, IDC_AllParams, LB_GETTEXT, s_lastTouchedParamNum, (LPARAM)(LPSTR)buf);
+            SendDlgItemMessage(s_hwndLearnDlg, IDC_AllParams, LB_GETTEXT, s_lastTouchedParamNum, (LPARAM)(LPSTR)buf);
             nameDisplayContext->SetStringParam(buf);
             
-            ListView_SetItemText(GetDlgItem(hwndLearnDlg, IDC_PARAM_LIST), s_fxParamInfo[i].row, s_fxParamInfo[i].column, buf);
+            ListView_SetItemText(GetDlgItem(s_hwndLearnDlg, IDC_PARAM_LIST), s_fxParamInfo[i].row, s_fxParamInfo[i].column, buf);
             
             valueDisplayContext->SetProvideFeedback(true);
             valueDisplayContext->SetAction(s_zoneManager->GetCSI()->GetFXParamValueDisplayAction());
@@ -1622,23 +1651,38 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 
                 case IDC_PickRingStyle:
                 {
-                    switch (HIWORD(wParam))
+                    if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        case CBN_SELCHANGE:
+                        int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
+                        if (index >= 0)
                         {
-                            int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
-                            if (index >= 0)
-                            {
-                                char buf[SMLBUF];
-                                SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
-                                if (GetCurrentWidgetActionContext() != NULL)
-                                    GetCurrentWidgetActionContext()->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
-                            }
+                            char buf[SMLBUF];
+                            SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
+                            if (GetCurrentParamNameActionContext() != NULL)
+                                GetCurrentParamNameActionContext()->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
+                            if (s_hwndForegroundWindow != NULL)
+                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     
                     break;
                 }
+                   
+                case IDC_FXParamNameEdit:
+                {
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        char buf[SMLBUF];
+                        GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
+                        if (GetCurrentWidgetActionContext() != NULL)
+                            GetCurrentWidgetActionContext()->SetStringParam(buf);
+                        int cell = GetCurrentCellIndex();
+                        if (cell >= 0 && s_fxParamInfo.size() > cell)
+                            ListView_SetItemText(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[cell].row, s_fxParamInfo[cell].column, buf);
+                    }
+                }
+                    break;
+                    
                     
                 case IDC_AllParams:
                 {
@@ -1716,22 +1760,24 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 static void LearnFocusedFXDialog()
 {
-    if (hwndLearnDlg == NULL)
+    s_hwndForegroundWindow = GetForegroundWindow();
+
+    if (s_hwndLearnDlg == NULL)
     {
         // initialize
         LoadTemplates();
-        hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
+        s_hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
         
-        if (hwndLearnDlg != NULL)
-            ListView_SetExtendedListViewStyleEx(GetDlgItem(hwndLearnDlg, IDC_PARAM_LIST), LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
+        if (s_hwndLearnDlg != NULL)
+            ListView_SetExtendedListViewStyleEx(GetDlgItem(s_hwndLearnDlg, IDC_PARAM_LIST), LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
     }
     
-    if (hwndLearnDlg == NULL)
+    if (s_hwndLearnDlg == NULL)
         return;
     
-    SendMessage(hwndLearnDlg, WM_USER + 1024, 0, 0);
+    SendMessage(s_hwndLearnDlg, WM_USER + 1024, 0, 0);
         
-    ShowWindow(hwndLearnDlg, SW_SHOW);
+    ShowWindow(s_hwndLearnDlg, SW_SHOW);
 }
 
 void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
@@ -1754,7 +1800,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 
 void CheckLearnFocusedFXState(ZoneManager *zoneManager)
 {
-    if ((hwndLearnDlg != NULL && ! IsWindowVisible(hwndLearnDlg)) || s_zoneManager == NULL || zoneManager != s_zoneManager) // not the current control surface
+    if ((s_hwndLearnDlg != NULL && ! IsWindowVisible(s_hwndLearnDlg)) || s_zoneManager == NULL || zoneManager != s_zoneManager) // not the current control surface
         return;
     
     int trackNumber = 0;
@@ -1791,7 +1837,7 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
     if (s_zoneManager != NULL && zoneManager != s_zoneManager) // not the current control surface
         return;
     
-    if (hwndLearnDlg != NULL && IsWindowVisible(hwndLearnDlg))
+    if (s_hwndLearnDlg != NULL && IsWindowVisible(s_hwndLearnDlg))
     {
         CloseFocusedFXDialog();
         return;
@@ -1823,7 +1869,7 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
     s_zoneManager = zoneManager;
     s_focusedTrack = focusedTrack;
     s_fxSlot = fxSlot;
-    
+        
     LaunchLearnFocusedFXDialog(zoneManager);
 }
 
@@ -1835,13 +1881,13 @@ void CloseFocusedFXDialog()
     s_focusedTrack = NULL;
     s_fxSlot = 0;
 
-    if (hwndLearnDlg != NULL)
-        ShowWindow(hwndLearnDlg, SW_HIDE);
+    if (s_hwndLearnDlg != NULL)
+        ShowWindow(s_hwndLearnDlg, SW_HIDE);
 }
 
 void UpdateLearnWindow()
 {
-    if (hwndLearnDlg == NULL || ! IsWindowVisible(hwndLearnDlg))
+    if (s_hwndLearnDlg == NULL || ! IsWindowVisible(s_hwndLearnDlg))
         return;
 
     int tracknumberOut;
@@ -1853,7 +1899,7 @@ void UpdateLearnWindow()
         if (s_lastTouchedParamNum != paramnumberOut)
         {
             s_lastTouchedParamNum = paramnumberOut;
-            SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
+            SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
 #ifdef WIN32
             FillParamListView(hwndLearnDlg, s_lastTouchedParamNum);
 #endif
@@ -1863,10 +1909,10 @@ void UpdateLearnWindow()
 
 void UpdateLearnWindow(int paramNumber)
 {
-    if (hwndLearnDlg == NULL || ! IsWindowVisible(hwndLearnDlg))
+    if (s_hwndLearnDlg == NULL || ! IsWindowVisible(s_hwndLearnDlg))
         return;
 
-    SendMessage(GetDlgItem(hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
+    SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
 #ifdef WIN32
     FillParamListView(hwndLearnDlg, paramNumber);
 #endif
