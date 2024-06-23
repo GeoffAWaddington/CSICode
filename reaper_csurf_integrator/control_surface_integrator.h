@@ -510,7 +510,7 @@ class ActionContext
 {
 private:
     CSurfIntegrator *const csi_;
-    Action *const action_;
+    Action *action_;
     Widget  *const widget_;
     Zone  *const zone_;
 
@@ -592,6 +592,7 @@ public:
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = (DWORD) (holdDelayAmount * 1000.0 + 0.5); } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     
+    void SetAction(Action *action) { action_ = action; }
     void DoAction(double value);
     void DoRelativeAction(double value);
     void DoRelativeAction(int accelerationIndex, double value);
@@ -620,6 +621,7 @@ public:
     double  GetRangeMaximum() const { return rangeMaximum_; }
     void    SetRangeMaximum(double rangeMaximum) { rangeMaximum_ = rangeMaximum; }
     bool    GetProvideFeedback() { return provideFeedback_; }
+    
     void    SetProvideFeedback(bool provideFeedback)
     {
         provideFeedback_ = provideFeedback;
@@ -4138,6 +4140,28 @@ public:
         if (osara_outputMessage)
             osara_outputMessage(phrase);
     }
+    
+    // These direct calls are used by Learn to change Actions in the dynamic learnFXZone -- it allows for realtime editing, with results immediately visible in the hardware
+    Action *GetNoActionAction()
+    {
+        return actions_.Get("NoAction");
+    }
+    
+    Action *GetFXParamAction()
+    {
+        return actions_.Get("FXParam");
+    }
+    
+    Action *GetFixedTextDisplayAction()
+    {
+        return actions_.Get("FixedTextDisplay");
+    }
+    
+    Action *GetFXParamValueDisplayAction()
+    {
+        return actions_.Get("FXParamValueDisplay");
+    }
+    // End direct calls
     
     ActionContext *GetActionContext(const char *actionName, Widget *widget, Zone *zone, const string_list &params)
     {
