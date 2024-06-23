@@ -1052,7 +1052,7 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
             SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), s_fxParamInfo[infoIdx].paramValueWidget);
               
             // param
-            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
+            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, 0))
             {
                 ListView_SetItemState(GetDlgItem(hwndDlg, IDC_PARAM_LIST), s_fxParamInfo[infoIdx].row, LVIS_SELECTED, LVIS_SELECTED);
 
@@ -1254,7 +1254,7 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
             int modifier = s_fxParamInfo[infoIdx].modifier;
 
             // param
-            if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
+            if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, 0))
             {
                 GetDlgItemText(hwndDlg, IDC_PickRingStyle, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
@@ -1407,8 +1407,6 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                 if (zoneContexts == NULL)
                     return;
                 
-                // string_list params;
-                
                 Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramWidget);
                 
                 if (widget != NULL
@@ -1417,16 +1415,6 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                 {
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Get(0)->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
                     widget->ForceClear();
-
-                    /*
-                    zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
-                    widget->ForceClear();
-                    if (Zone *zone = s_zoneManager->GetLearnedFocusedFXZone())
-                    {
-                        ActionContext *context = s_zoneManager->GetCSI()->GetNoActionAction();
-                        zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Add(context);
-                    }
-                     */
                 }
                 
                 widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
@@ -1441,18 +1429,6 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Get(idx)->SetStringParam("");
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Get(idx)->SetProvideFeedback(false);
                     widget->ForceClear();
-
-                    
-                    
-                    /*
-                    zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
-                    widget->ForceClear();
-                    if (Zone *zone = s_zoneManager->GetLearnedFocusedFXZone())
-                    {
-                        ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, params);
-                        zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Add(context);
-                    }
-                     */
                 }
                 
                 widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramValueWidget);
@@ -1467,24 +1443,30 @@ static void EraseLastTouchedControl(HWND hwndParamList)
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Get(idx)->SetParamIndex(0);
                     zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Get(idx)->SetProvideFeedback(false);
                     widget->ForceClear();
-
-
-                    
-                    /*
-                    zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Delete(0, true);
-                    widget->ForceClear();
-                    if (Zone *zone = s_zoneManager->GetLearnedFocusedFXZone())
-                    {
-                        ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, params);
-                        zoneContexts->Get(widget)->Get(s_fxParamInfo[i].modifier)->Add(context);
-                    }
-                    */
                 }
                 
                 break;
             }
         }
     }
+}
+
+ActionContext *GetCurrentWidgetActionContext()
+{
+    for (int i = 0; i < s_fxParamInfo.size(); ++i)
+    {
+        if (s_fxParamInfo[i].modifier == s_lastTouchedModifier && !strcmp(s_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
+        {
+            const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+
+            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramWidget);
+
+            if (zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier) && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
+                return zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Get(0);
+        }
+    }
+    
+    return NULL;
 }
 
 void WidgetMoved(Widget *widget, int modifier)
@@ -1569,46 +1551,6 @@ void WidgetMoved(Widget *widget, int modifier)
             valueDisplayContext->SetAction(s_zoneManager->GetCSI()->GetFXParamValueDisplayAction());
             valueDisplayContext->SetParamIndex(s_lastTouchedParamNum);
 
-            /*
-            string_list params;
-            ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParam", widget, zone, params);
-            context->SetParamIndex(s_lastTouchedParamNum);
-            zone->AddWidget(widget);
-            zone->AddActionContext(widget, modifier, context);
-            
-            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
-            if (widget != NULL)
-            {
-                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FixedTextDisplay", widget, zone, params);
-                
-                if (zoneContexts->Exists(widget)
-                    && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier)
-                    && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
-                    zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
-                
-                char buf[MEDBUF];
-                SendDlgItemMessage(hwndLearnDlg, IDC_AllParams, LB_GETTEXT, s_lastTouchedParamNum, (LPARAM)(LPSTR)buf);
-                context->SetStringParam(buf);
-                zone->AddWidget(widget);
-                zone->AddActionContext(widget, modifier, context);
-                ListView_SetItemText(GetDlgItem(hwndLearnDlg, IDC_AllParams), s_fxParamInfo[i].row, s_fxParamInfo[i].column, buf);
-            }
-            
-            widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramValueWidget);
-            if (widget != NULL)
-            {
-                if (zoneContexts->Exists(widget)
-                    && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier)
-                    && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
-                    zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Delete(0, true);
-
-                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("FXParamValueDisplay", widget, zone, params);
-                context->SetParamIndex(s_lastTouchedParamNum);
-                zone->AddWidget(widget);
-                zone->AddActionContext(widget, modifier, context);
-            }
-            */
-            
             break;
         }
     }
@@ -1677,6 +1619,26 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                         break;
+                
+                case IDC_PickRingStyle:
+                {
+                    switch (HIWORD(wParam))
+                    {
+                        case CBN_SELCHANGE:
+                        {
+                            int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
+                            if (index >= 0)
+                            {
+                                char buf[SMLBUF];
+                                SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
+                                if (GetCurrentWidgetActionContext() != NULL)
+                                    GetCurrentWidgetActionContext()->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
+                            }
+                        }
+                    }
+                    
+                    break;
+                }
                     
                 case IDC_AllParams:
                 {
