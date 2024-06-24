@@ -1052,7 +1052,7 @@ static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
     SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf);
     SetDlgItemText(hwndDlg, IDC_EditSteps, buf);
     
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), contexts->param->GetName());
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), contexts->param->GetWidget()->GetName());
     SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), contexts->value->GetWidget()->GetName());
     SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), contexts->name->GetWidget()->GetName());
 
@@ -1277,6 +1277,32 @@ static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
     InvalidateRect(hwndDlg, &rect, 0);
      
      */
+}
+
+static void FillParams(HWND hwndDlg, int index)
+{
+    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
+    
+    if (zone == NULL)
+        return;
+    
+    int modifier = 0;
+    
+    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
+    {
+        Widget *widget = zone->GetWidgets().Get(i);
+        
+        const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+        
+        if (modifiers.GetSize() > 0)
+            modifier = modifiers.Get()[0];
+        
+        if (contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier) && contextMap.Get(widget)->Get(modifier)->param->GetParamIndex() == index)
+        {
+            FillParams(hwndDlg, contextMap.Get(widget)->Get(modifier));
+            break;
+        }
+    }
 }
 
 static void ApplyChanges(HWND hwndDlg, int paramIdx)
@@ -1696,9 +1722,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     {
                         case LBN_SELCHANGE:
                         {
-                            //int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
-                            //if (index >= 0)
-                                 //FillParamListView(hwndDlg, index);
+                            int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
+                            if (index >= 0)
+                                 FillParams(hwndDlg, index);
                         }
                     }
                 }
@@ -1917,7 +1943,7 @@ void UpdateLearnWindow(int paramNumber)
 
     SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
 #ifdef WIN32
-    FillParamListView(hwndLearnDlg, paramNumber);
+    FillParams(s_hwndLearnDlg, paramNumber);
 #endif
 }
 
