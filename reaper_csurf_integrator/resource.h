@@ -54,7 +54,6 @@
 #define IDC_CHECK_ScrollSynch           1096
 #define IDC_RADIO_MCP                   1097
 #define IDC_RADIO_TCP                   1098
-#define IDC_PARAM_LIST                  1099
 #define IDC_FXAlias                     1102
 #define IDC_AutoMap                     1103
 #define IDC_EditSteps                   1107
@@ -77,6 +76,7 @@
 #define IDC_FixedTextDisplayForegroundColor 1179
 #define IDC_FixedTextDisplayBackgroundColor 1182
 #define IDC_FXParamDisplayForegroundColor 1185
+#define IDC_FXParamDisplayForegroundColor2 1186
 #define IDC_FXParamDisplayBackgroundColor 1188
 #define IDC_ExitWithSave                1190
 #define IDC_FixedTextDisplayFontLabel   1199
