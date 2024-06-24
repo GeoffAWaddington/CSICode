@@ -49,8 +49,6 @@ struct FXParamWidgetContexts
 static HWND s_hwndLearnDlg = NULL;
 static int s_dlgResult = IDCANCEL;
 
-static HWND s_hwndForegroundWindow = NULL;
-
 static ModifierManager s_modifierManager(NULL);
 
 static ZoneManager *s_zoneManager = NULL;
@@ -1052,231 +1050,180 @@ static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
     SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf);
     SetDlgItemText(hwndDlg, IDC_EditSteps, buf);
     
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), contexts->param->GetWidget()->GetName());
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), contexts->value->GetWidget()->GetName());
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), contexts->name->GetWidget()->GetName());
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), paramContext->GetWidget()->GetName());
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), nameContext->GetWidget()->GetName());
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), valueContext->GetWidget()->GetName());
 
+    const char *ringstyle = paramContext->GetWidgetProperties().get_prop(PropertyType_RingStyle);
+    if (ringstyle)
+        SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
+    else
+        SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+
+    snprintf(buf, sizeof(buf), "%0.2f", paramContext->GetDeltaValue());
+    SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
     
+    snprintf(buf, sizeof(buf), "%0.2f", paramContext->GetRangeMinimum());
+    SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
+    
+    snprintf(buf, sizeof(buf), "%0.2f", paramContext->GetRangeMaximum());
+    SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
+
+    int numSteps = paramContext->GetNumberOfSteppedValues();
+    if (numSteps)
+    {
+        snprintf(buf, sizeof(buf), "%d", numSteps);
+        SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
+    }
+    else
+        SetDlgItemText(hwndDlg, IDC_PickSteps, "");
+    
+    char tmp[MEDBUF];
+    const vector<double> &steppedValues = paramContext->GetSteppedValues();
+    string steps;
+    
+    for (int i = 0; i < steppedValues.size(); ++i)
+    {
+        steps += format_number(steppedValues[i], tmp, sizeof(tmp));
+        steps += "  ";
+    }
+    SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
+
+    const vector<double> &acceleratedDeltaValues = paramContext->GetAcceleratedDeltaValues();
+    string deltas;
+    
+    for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
+    {
+        deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
+        deltas += " ";
+    }
+    SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
+    
+    const vector<int> &acceleratedTickCounts = paramContext->GetAcceleratedTickCounts();
+    WDL_FastString ticks;
+    ticks.Set("");
+    
+    for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
+    {
+        snprintf(buf, sizeof(buf), "%d ", acceleratedTickCounts[i]);
+        ticks.Append(buf);
+    }
+    SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.Get());
+
+    const char *ringcolor = paramContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
+    if (ringcolor)
+    {
+        rgba_color color;
+        GetColorValue(ringcolor, color);
+        GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
+    }
+    else
+        GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+    
+    
+    const char *pushcolor = paramContext->GetWidgetProperties().get_prop(PropertyType_PushColor);
+    if (pushcolor)
+    {
+        rgba_color color;
+        GetColorValue(pushcolor, color);
+        GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
+    }
+    else
+        GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+
+
     
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
 
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamNameDisplay), BM_SETCHECK, nameContext->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
+
+    const char *property = nameContext->GetWidgetProperties().get_prop(PropertyType_Font);
+    if (property)
+        SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
+    else
+        SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
     
+    property = nameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+    if (property)
+        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
+    else
+        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
     
+    property = nameContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+    if (property)
+        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
+    else
+        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
     
-    /*
-    for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
+    const char *foreground = nameContext->GetWidgetProperties().get_prop(PropertyType_TextColor);
+    if (foreground)
     {
-        if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
-        {
-            rgba_color defaultColor;
-            defaultColor.r = 237;
-            defaultColor.g = 237;
-            defaultColor.b = 237;
+        rgba_color color;
+        GetColorValue(foreground, color);
+        GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+    }
+    else
+        GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+    
+    const char *background = nameContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+    if (background)
+    {
+        rgba_color color;
+        GetColorValue(background, color);
+        GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+    }
+    else
+        GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
 
-            char buf[MEDBUF];
-            buf[0] = 0;
-            
-            int modifier = s_fxParamInfo[infoIdx].modifier;
+    
+    
+    
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamValueDisplay), BM_SETCHECK, valueContext->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
 
-            SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
-            SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
-            SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
-            SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf);
-            SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf);
-            SetDlgItemText(hwndDlg, IDC_EditSteps, buf);
-            
-            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), s_fxParamInfo[infoIdx].paramWidget);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), s_fxParamInfo[infoIdx].paramNameWidget);
-            SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), s_fxParamInfo[infoIdx].paramValueWidget);
-              
-            // param
-            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, 0))
-            {
-
-                const char *ringstyle = context->GetWidgetProperties().get_prop(PropertyType_RingStyle);
-                if (ringstyle)
-                    SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
-                else
-                    SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
-                
-                snprintf(buf, sizeof(buf), "%0.2f", context->GetDeltaValue());
-                SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
-                
-                snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMinimum());
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
-                
-                snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMaximum());
-                SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
-                
-                int numSteps = context->GetNumberOfSteppedValues();
-                if (numSteps)
-                {
-                    snprintf(buf, sizeof(buf), "%d", numSteps);
-                    SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
-                }
-                else
-                    SetDlgItemText(hwndDlg, IDC_PickSteps, "");
-                
-                char tmp[MEDBUF];
-                const vector<double> &steppedValues = context->GetSteppedValues();
-                string steps;
-                
-                for (int i = 0; i < steppedValues.size(); ++i)
-                {
-                    steps += format_number(steppedValues[i], tmp, sizeof(tmp));
-                    steps += "  ";
-                }
-                
-                SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
-                
-                
-                const vector<double> &acceleratedDeltaValues = context->GetAcceleratedDeltaValues();
-                string deltas;
-                
-                for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
-                {
-                    deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
-                    deltas += " ";
-                }
-                
-                SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
-                
-                
-                const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
-                WDL_FastString ticks;
-                ticks.Set("");
-                char buf[MEDBUF];
-                
-                for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
-                {
-                    snprintf(buf, sizeof(buf), "%d ", acceleratedTickCounts[i]);
-                    ticks.Append(buf);
-                }
-                 
-                SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.Get());
-                
-                const char *ringcolor = context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
-                if (ringcolor)
-                {
-                    rgba_color color;
-                    GetColorValue(ringcolor, color);
-                    GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
-                }
-                else
-                    GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                
-                
-                const char *pushcolor = context->GetWidgetProperties().get_prop(PropertyType_PushColor);
-                if (pushcolor)
-                {
-                    rgba_color color;
-                    GetColorValue(pushcolor, color);
-                    GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
-                }
-                else
-                    GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                
-            }
-               
-            // param name display
-            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
-            {
-                SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), context->GetStringParam());
-                
-                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamNameDisplay), BM_SETCHECK, context->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
-                
-                const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
-                if (property)
-                    SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
-                else
-                    SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
-                
-                property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
-                if (property)
-                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
-                else
-                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
-                
-                property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
-                if (property)
-                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
-                else
-                    SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
-                
-                const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
-                if (foreground)
-                {
-                    rgba_color color;
-                    GetColorValue(foreground, color);
-                    GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
-                }
-                else
-                    GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                
-                const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
-                if (background)
-                {
-                    rgba_color color;
-                    GetColorValue(background, color);
-                    GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
-                }
-                else
-                    GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-            }
-               
-            // param value display
-            if(ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
-            {
-                SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamValueDisplay), BM_SETCHECK, context->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
-
-                const char *property = context->GetWidgetProperties().get_prop(PropertyType_Font);
-                if (property)
-                    SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
-                else
-                    SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
-                
-                property = context->GetWidgetProperties().get_prop(PropertyType_TopMargin);
-                if (property)
-                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
-                else
-                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
-                
-                property = context->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
-                if (property)
-                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
-                else
-                    SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
-                
-                const char *foreground = context->GetWidgetProperties().get_prop(PropertyType_TextColor);
-                if (foreground)
-                {
-                    rgba_color color;
-                    GetColorValue(foreground, color);
-                    GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
-                }
-                else
-                    GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-                
-                const char *background = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
-                if (background)
-                {
-                    rgba_color color;
-                    GetColorValue(background, color);
-                    GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
-                }
-                else
-                    GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-            }
-            
-            break;
-        }
-    } 
+    property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
+    if (property)
+        SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
+    else
+        SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
+    
+    property = valueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+    if (property)
+        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
+    else
+        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
+    
+    property = valueContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+    if (property)
+        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
+    else
+        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
+    
+    foreground = valueContext->GetWidgetProperties().get_prop(PropertyType_TextColor);
+    if (foreground)
+    {
+        rgba_color color;
+        GetColorValue(foreground, color);
+        GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+    }
+    else
+        GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+    
+    background = valueContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+    if (background)
+    {
+        rgba_color color;
+        GetColorValue(background, color);
+        GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+    }
+    else
+        GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+    
+    
+    
     
     RECT rect;
     GetClientRect(hwndDlg, &rect);
     InvalidateRect(hwndDlg, &rect, 0);
-     
-     */
 }
 
 static void FillParams(HWND hwndDlg, int index)
@@ -1695,8 +1642,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
                             //if (GetCurrentParamNameActionContext() != NULL)
                                 //GetCurrentParamNameActionContext()->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
-                            if (s_hwndForegroundWindow != NULL)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     
@@ -1779,7 +1724,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         SaveZone();
                     break ;
                                         
-                case IDCANCEL:
+                case IDC_ExitNoSave:
                     if (HIWORD(wParam) == BN_CLICKED)
                         CloseFocusedFXDialog();
                     break ;
@@ -1792,8 +1737,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 static void LearnFocusedFXDialog()
 {
-    s_hwndForegroundWindow = GetForegroundWindow();
-
     if (s_hwndLearnDlg == NULL)
     {
         // initialize
@@ -1909,6 +1852,9 @@ void CloseFocusedFXDialog()
     s_zoneManager =  NULL;
     s_focusedTrack = NULL;
     s_fxSlot = 0;
+    s_lastTouchedParamNum = 0;
+    s_lastTouchedWidget = NULL;
+    s_lastTouchedModifier = 0;
 
     if (s_hwndLearnDlg != NULL)
         ShowWindow(s_hwndLearnDlg, SW_HIDE);
