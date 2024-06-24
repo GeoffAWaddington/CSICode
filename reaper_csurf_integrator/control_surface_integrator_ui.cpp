@@ -31,50 +31,18 @@ struct FXRowLayout
         modifier = 0;
     }
 };
-/*
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXCellWidgets
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    int modifier;
-    int paramNum;
-    char paramWidget[SMLBUF];
-    char paramNameWidget[SMLBUF];
-    char paramValueWidget[SMLBUF];
-    
-    FXCellWidgets()
-    {
-        modifier = 0;
-        paramNum = -1;
-        paramWidget[0] = 0;
-        paramNameWidget[0] = 0;
-        paramValueWidget[0] = 0;
-    }
-};
-*/
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXParamInfo
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    int row;
-    int column;
-    int cellNum;
-    int paramWidgetIdx;
-    int modifier;
-    int paramNum;
-    char paramName[SMLBUF];
-    char paramWidget[SMLBUF];
-    char paramNameWidget[SMLBUF];
-    char paramValueWidget[SMLBUF];
 
-    FXParamInfo()
+struct FXParamWidgetContexts
+{
+    ActionContext *param;
+    ActionContext *name;
+    ActionContext *value;
+    
+    FXParamWidgetContexts()
     {
-        row = 0;
-        column = 0;
-        cellNum = 0;
-        paramWidgetIdx = 0;
-        paramNum = -1;
-        modifier = 0;
+        param = NULL;
+        name = NULL;
+        value = NULL;
     }
 };
 
@@ -94,8 +62,9 @@ static char s_fxAlias[MEDBUF];
 
 static int s_numChannels = 0;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
-static ptrvector<FXParamInfo> s_fxParamInfo;
-//static ptrvector<FXCellWidgets> s_cellWidgets;
+
+static void destroyFXParamWidgetContextList(WDL_IntKeyedArray<FXParamWidgetContexts *> *l) { l->Delete(true); delete l; }
+WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXParamWidgetContexts *> *> contextMap(destroyFXParamWidgetContextList);
 
 // t = template
 static string_list s_t_paramWidgets;
@@ -290,7 +259,7 @@ static void SaveZone()
             
             
             
-            
+            /*
             
             for (int cell = 0; cell < s_fxParamInfo.GetSize(); ++cell)
             {
@@ -307,7 +276,8 @@ static void SaveZone()
                 
                 Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
                 
-                if ( ! zone->GetWidgets().Find(widget) ||
+                if (zone == NULL ||
+                    ! zone->GetWidgets().Find(widget) ||
                     ! zone->GetWidgets().Find(nameDisplay) ||
                     ! zone->GetWidgets().Find(valueDisplay))
                     continue;
@@ -422,7 +392,7 @@ static void SaveZone()
             }
                  
             
-            
+            */
             
             
             
@@ -624,11 +594,79 @@ static void WriteBoilerPlate(FILE *fxFile, string &fxBoilerplatePath)
 
 static void CreateContextMap()
 {
-    if (s_zoneManager->GetLearnedFocusedFXZone() == NULL)
+    contextMap.DeleteAll(true);
+    
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+
+    if (zoneContexts == NULL)
         return;
     
+    Widget *paramWidget = NULL;
+    ActionContext *paramContext = NULL;
+    ActionContext *nameContext = NULL;
+    ActionContext *valueContext = NULL;
     
-    
+    for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
+    {
+        int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
+        
+        for (int channel = 1; channel <= s_numChannels; ++channel)
+        {
+            paramWidget = NULL;
+            paramContext = NULL;
+            nameContext = NULL;
+            valueContext = NULL;
+            
+            char widgetName[SMLBUF];
+            
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
+
+                if (widget != NULL &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier)
+                                    && zoneContexts->Get(widget)->Get(modifier)->GetSize() > 0)
+                {
+                    paramContext = zoneContexts->Get(widget)->Get(modifier)->Get(0);
+                    paramWidget = widget;
+                    
+                    snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_nameWidget, s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                    widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
+
+                    if (widget != NULL &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier)
+                                        && zoneContexts->Get(widget)->Get(modifier)->GetSize() > widgetTypesIdx)
+                    {
+                        nameContext = zoneContexts->Get(widget)->Get(modifier)->Get(widgetTypesIdx);
+                    }
+                    
+                    snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_valueWidget, s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                    widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
+
+                    if (widget != NULL &&  zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier)
+                                        && zoneContexts->Get(widget)->Get(modifier)->GetSize() > widgetTypesIdx)
+                    {
+                        valueContext = zoneContexts->Get(widget)->Get(modifier)->Get(widgetTypesIdx);
+                    }
+                    
+                    if (paramWidget == NULL || paramContext == NULL || nameContext == NULL || valueContext == NULL)
+                        continue;
+                    
+                    FXParamWidgetContexts *contexts = new FXParamWidgetContexts();
+                    contexts->param = paramContext;
+                    contexts->name = nameContext;
+                    contexts->value = valueContext;
+                    
+                    if (! contextMap.Exists(paramWidget))
+                    {
+                        WDL_IntKeyedArray<FXParamWidgetContexts *> *m = new WDL_IntKeyedArray<FXParamWidgetContexts *>();
+                        contextMap.Insert(paramWidget, m);
+                    }
+                    
+                    contextMap.Get(paramWidget)->Insert(modifier, contexts);
+                }
+            }
+        }
+    }
 }
 
 static void AutoMapFX(HWND hwndDlg)
@@ -723,7 +761,6 @@ static void AutoMapFX(HWND hwndDlg)
 void InitBlankLearnFocusedFXZone()
 {
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
-      
     if (zone == NULL)
         return;
     
@@ -823,7 +860,6 @@ static void HandleInitDialog(HWND hwndDlg)
         char buf[SMLBUF];
         snprintf(buf, sizeof(buf), "%d", j);
         SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)buf);
-
     }
 }
 
@@ -906,7 +942,7 @@ static void FillFXCellWidgets()
         ShowConsoleMsg(buffer);
     }
 }
-*/
+
 static void InitializeParamListView(HWND hwndDlg)
 {
     //FillFXCellWidgets();
@@ -956,7 +992,7 @@ static void InitializeParamListView(HWND hwndDlg)
                 strcpy(info.paramNameWidget, nameDisplayWidget);
                 strcpy(info.paramValueWidget, valueDisplayWidget);
                 info.modifier = s_fxRowLayouts[row].modifier;
-/*
+
                 for (int cellWidget = 0; cellWidget < s_cellWidgets.size(); ++cellWidget)
                 {
                     FXCellWidgets &widgets = s_cellWidgets[cellWidget];
@@ -971,7 +1007,7 @@ static void InitializeParamListView(HWND hwndDlg)
                         break;
                     }
                 }
-*/
+
                 //s_fxParamInfo.push_back(info);
             }
         }
@@ -994,9 +1030,40 @@ static ActionContext *GetActionContext(char *widgetName, int modifier, int idx)
     else
         return NULL;
 }
-
-static void FillParamListView(HWND hwndDlg, int paramIdx)
+ */
+static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
 {
+    ActionContext *paramContext = contexts->param;
+    ActionContext *nameContext = contexts->name;
+    ActionContext *valueContext = contexts->value;
+
+    rgba_color defaultColor;
+    defaultColor.r = 237;
+    defaultColor.g = 237;
+    defaultColor.b = 237;
+
+    char buf[MEDBUF];
+    buf[0] = 0;
+
+    SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
+    SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
+    SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
+    SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf);
+    SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf);
+    SetDlgItemText(hwndDlg, IDC_EditSteps, buf);
+    
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), contexts->param->GetName());
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), contexts->value->GetWidget()->GetName());
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), contexts->name->GetWidget()->GetName());
+
+    
+    
+    SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
+
+    
+    
+    
+    /*
     for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
@@ -1208,10 +1275,14 @@ static void FillParamListView(HWND hwndDlg, int paramIdx)
     RECT rect;
     GetClientRect(hwndDlg, &rect);
     InvalidateRect(hwndDlg, &rect, 0);
+     
+     */
 }
 
 static void ApplyChanges(HWND hwndDlg, int paramIdx)
 {
+    /*
+    
     for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
         if (s_fxParamInfo[infoIdx].paramNum == paramIdx)
@@ -1323,6 +1394,7 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
             break;
         }
     }
+     */
 }
 
 static void HandleInitialize(HWND hwndDlg)
@@ -1338,12 +1410,12 @@ static void HandleInitialize(HWND hwndDlg)
     
     s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
 
+    CreateContextMap();
+    
     if (s_zoneManager->GetZoneInfo().Exists(s_fxName))
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
     else
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
-    
-    InitializeParamListView(hwndDlg);
     
     if (s_t_fonts.size())
         ShowFontControls(hwndDlg, true);
@@ -1363,7 +1435,8 @@ static void HandleInitialize(HWND hwndDlg)
 
 static void EraseLastTouchedControl()
 {
-    if (s_lastTouchedWidget) 
+    /*
+    if (s_lastTouchedWidget)
     {
         for (int i = 0; i < s_fxParamInfo.size(); ++i)
         {
@@ -1417,42 +1490,7 @@ static void EraseLastTouchedControl()
             }
         }
     }
-}
-
-ActionContext *GetCurrentWidgetActionContext()
-{
-    for (int i = 0; i < s_fxParamInfo.size(); ++i)
-    {
-        if (s_fxParamInfo[i].modifier == s_lastTouchedModifier && !strcmp(s_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
-        {
-            const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-
-            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramWidget);
-
-            if (zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier) && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > 0)
-                return zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Get(0);
-        }
-    }
-    
-    return NULL;
-}
-
-ActionContext *GetCurrentParamNameActionContext()
-{
-    for (int i = 0; i < s_fxParamInfo.size(); ++i)
-    {
-        if (s_fxParamInfo[i].modifier == s_lastTouchedModifier && !strcmp(s_lastTouchedWidget->GetName(), s_fxParamInfo[i].paramWidget))
-        {
-            const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-
-            Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo[i].paramNameWidget);
-
-            if (zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(s_lastTouchedModifier) && zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->GetSize() > s_fxParamInfo[i].paramWidgetIdx)
-                return zoneContexts->Get(widget)->Get(s_lastTouchedModifier)->Get(s_fxParamInfo[i].paramWidgetIdx);
-        }
-    }
-    
-    return NULL;
+     */
 }
 
 void WidgetMoved(Widget *widget, int modifier)
@@ -1462,9 +1500,24 @@ void WidgetMoved(Widget *widget, int modifier)
     
     if (! IsWindowVisible(s_hwndLearnDlg))
         return;
-    
+
+    if (s_lastTouchedParamNum < 0)
+        return;
+
+    if (widget != s_lastTouchedWidget && contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier))
+    {
+        FillParams(s_hwndLearnDlg, contextMap.Get(widget)->Get(modifier));
+        
+        
+    }
+
     s_lastTouchedWidget = widget;
     s_lastTouchedModifier = modifier;
+
+    
+    
+    
+    /*
 
     if (s_lastTouchedParamNum < 0)
         return;
@@ -1538,6 +1591,7 @@ void WidgetMoved(Widget *widget, int modifier)
             break;
         }
     }
+     */
 }
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1613,8 +1667,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         {
                             char buf[SMLBUF];
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (GetCurrentParamNameActionContext() != NULL)
-                                GetCurrentParamNameActionContext()->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
+                            //if (GetCurrentParamNameActionContext() != NULL)
+                                //GetCurrentParamNameActionContext()->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
                             if (s_hwndForegroundWindow != NULL)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1629,8 +1683,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     {
                         char buf[SMLBUF];
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
-                        if (GetCurrentWidgetActionContext() != NULL)
-                            GetCurrentWidgetActionContext()->SetStringParam(buf);
+                        //if (GetCurrentWidgetActionContext() != NULL)
+                            //GetCurrentWidgetActionContext()->SetStringParam(buf);
                     }
                 }
                     break;
@@ -1642,9 +1696,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     {
                         case LBN_SELCHANGE:
                         {
-                            int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
-                            if (index >= 0)
-                                 FillParamListView(hwndDlg, index);
+                            //int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
+                            //if (index >= 0)
+                                 //FillParamListView(hwndDlg, index);
                         }
                     }
                 }
