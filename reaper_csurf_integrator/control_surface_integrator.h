@@ -72,7 +72,7 @@ extern void CheckLearnFocusedFXState(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow();
 extern void UpdateLearnWindow(int paramNumber);
-extern void FillLearnFocusedFXZone();
+extern void InitBlankLearnFocusedFXZone();
 
 extern bool g_surfaceRawInDisplay;
 extern bool g_surfaceInDisplay;
@@ -1471,7 +1471,7 @@ public:
             info.filePath = fxFullFilePath;
             
             learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, info.alias, info.filePath);
-            FillLearnFocusedFXZone();
+            InitBlankLearnFocusedFXZone();
             learnFocusedFXZone_->Activate();
         }
     }
