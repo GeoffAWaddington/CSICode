@@ -612,7 +612,6 @@ public:
     void    SetTickCounts(const vector<int> &acceleratedTickValues) { acceleratedTickValues_ = acceleratedTickValues; }
     int     GetNumberOfSteppedValues() { return (int)steppedValues_.size(); }
     const   vector<double> &GetSteppedValues() { return steppedValues_; }
-    void    SetStepValues(const vector<double> &steppedValues) { steppedValues_ = steppedValues; }
     double  GetDeltaValue() { return deltaValue_; }
     void    SetDeltaValue(double deltaValue) { deltaValue_ = deltaValue; }
     double  GetRangeMinimum() const { return rangeMinimum_; }
@@ -637,7 +636,14 @@ public:
         RequestUpdate();
     }
 
-    
+    void SetStepValues(const vector<double> &steppedValues) 
+    {
+        steppedValues_ = steppedValues;
+        if (steppedValuesIndex_ >= steppedValues.size())
+            steppedValuesIndex_ = 0;
+        RequestUpdate();
+    }
+
     void DoTouch(double value)
     {
         action_->Touch(this, value);

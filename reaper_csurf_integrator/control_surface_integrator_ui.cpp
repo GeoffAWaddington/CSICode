@@ -1248,6 +1248,7 @@ static void FillParams(HWND hwndDlg, int index)
         
         if (contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier) && contextMap.Get(widget)->Get(modifier)->param->GetParamIndex() == index)
         {
+            s_lastTouchedWidget = widget;
             FillParams(hwndDlg, contextMap.Get(widget)->Get(modifier));
             break;
         }
@@ -1314,6 +1315,7 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
                 tokens.clear();
 
                 GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
+     
                 GetTokens(tokens, buf);
                 vector<double> steps;
                 for (int i = 0; i < tokens.size(); ++i)
@@ -1619,6 +1621,16 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
         case WM_COMMAND:
         {
+            int modifier = 0;
+            
+            if (s_zoneManager)
+            {
+                const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+                
+                if (modifiers.GetSize() > 0)
+                    modifier = modifiers.Get()[0];
+            }
+
             switch(LOWORD(wParam))
             {
                 case IDC_FXParamRingColor:
@@ -1627,14 +1639,14 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_FixedTextDisplayBackgroundColor:
                 case IDC_FXParamDisplayForegroundColor:
                 case IDC_FXParamDisplayBackgroundColor:
-                {
-                    GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
-                    InvalidateRect(hwndDlg, NULL, true);
-                }
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        InvalidateRect(hwndDlg, NULL, true);
+                    }
                     break;
                 
                 case IDC_PickRingStyle:
-                {
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
                         int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
@@ -1642,69 +1654,84 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         {
                             char buf[SMLBUF];
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(0)) // GAW TBD needs modifier
-                                contextMap.Get(s_lastTouchedWidget)->Get(0)->param->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf); // GAW TBD needs modifier
+                            if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                                contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
-                 }
                     break;
                    
                 case IDC_FXParamNameEdit:
-                {
                     if (HIWORD(wParam) == EN_CHANGE)
                     {
                         char buf[SMLBUF];
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(0)) // GAW TBD needs modifier
-                            contextMap.Get(s_lastTouchedWidget)->Get(0)->name->SetStringParam(buf); // GAW TBD needs modifier
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->SetStringParam(buf);
                     }
-                }
                     break;
                     
-                    
                 case IDC_CHECK_ParamNameDisplay:
-                {
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         bool isChecked = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamNameDisplay);
                         
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(0)) // GAW TBD needs modifier
-                            contextMap.Get(s_lastTouchedWidget)->Get(0)->name->SetProvideFeedback(isChecked); // GAW TBD needs modifier
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->SetProvideFeedback(isChecked);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
                     }
-                }
                     break;
-
                     
                 case IDC_CHECK_ParamValueDisplay:
-                {
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         bool isChecked = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamValueDisplay);
                         
-                        if(s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(0)) // GAW TBD needs modifier
-                            contextMap.Get(s_lastTouchedWidget)->Get(0)->value->SetProvideFeedback(isChecked); // GAW TBD needs modifier
+                        if(s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->value->SetProvideFeedback(isChecked);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
                     }
-                }
                     break;
 
-                    
                 case IDC_AllParams:
-                {
-                    if (HIWORD(wParam) == LBN_SELCHANGE)
-                    {
-                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
-                        if (index >= 0)
-                             FillParams(hwndDlg, index);
-                    }
-                }
-                    break;
-          
+                   if (HIWORD(wParam) == LBN_SELCHANGE)
+                   {
+                       int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
+                       if (index >= 0)
+                            FillParams(hwndDlg, index);
+                   }
+                   break;
+         
+                case IDC_PickSteps:
+                   if (HIWORD(wParam) == CBN_SELCHANGE)
+                   {
+                       int index = (int)SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_GETCURSEL, 0, 0);
+                       if (index >= 0)
+                       {
+                           string outputString;
+                           GetParamStepsString(outputString, index + 1);
+                           SetDlgItemText(hwndDlg, IDC_EditSteps, outputString.c_str());
+
+                           if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                           {
+                               string_list tokens;
+                               GetTokens(tokens, outputString.c_str());
+                               vector<double> steps;
+                               for (int i = 0; i < tokens.size(); ++i)
+                                   steps.push_back(atof(tokens[i]));
+                               
+                               contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetStepValues(steps);
+                           }
+                           
+                           if (s_hwndForegroundWindow)
+                               SetForegroundWindow(s_hwndForegroundWindow);
+                       }
+                   }
+                   break;
+         
                 case IDC_Delete:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1715,9 +1742,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     
                 case IDC_EraseControl:
                     if (HIWORD(wParam) == BN_CLICKED)
-                    {
                         EraseLastTouchedControl();
-                    }
                     break ;
 
                 case IDC_Apply:
