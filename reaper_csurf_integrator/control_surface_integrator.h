@@ -606,7 +606,6 @@ public:
     void UpdateColorValue(double value);
 
     const char *GetStringParam() { return stringParam_.c_str(); }
-    void    SetStringParam(const char *stringParam) { stringParam_ = stringParam; }
     const   vector<double> &GetAcceleratedDeltaValues() { return acceleratedDeltaValues_; }
     void    SetAccelerationValues(const vector<double> &acceleratedDeltaValues) { acceleratedDeltaValues_ = acceleratedDeltaValues; }
     const   vector<int> &GetAcceleratedTickCounts() { return acceleratedTickValues_; }
@@ -622,7 +621,7 @@ public:
     void    SetRangeMaximum(double rangeMaximum) { rangeMaximum_ = rangeMaximum; }
     bool    GetProvideFeedback() { return provideFeedback_; }
     
-    void    SetProvideFeedback(bool provideFeedback)
+    void SetProvideFeedback(bool provideFeedback)
     {
         provideFeedback_ = provideFeedback;
 
@@ -631,6 +630,13 @@ public:
         else
             ClearWidget();
     }
+    
+    void SetStringParam(const char *stringParam) 
+    { 
+        stringParam_ = stringParam;
+        RequestUpdate();
+    }
+
     
     void DoTouch(double value)
     {
