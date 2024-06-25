@@ -1933,7 +1933,7 @@ void UpdateLearnWindow()
             s_lastTouchedParamNum = paramnumberOut;
             SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
 #ifdef WIN32
-            FillParamListView(hwndLearnDlg, s_lastTouchedParamNum);
+            FillParams(s_hwndLearnDlg, s_lastTouchedParamNum);
 #endif
         }
     }
