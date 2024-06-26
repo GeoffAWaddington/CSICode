@@ -14,7 +14,7 @@
 #define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_Advanced             119
 #define IDD_DIALOG_Broadcast            123
-#define IDD_DIALOG_EditFXAlias          125
+#define IDD_DIALOG_EditAdvanced         126
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -56,6 +56,7 @@
 #define IDC_RADIO_TCP                   1098
 #define IDC_FXAlias                     1102
 #define IDC_AutoMap                     1103
+#define IDC_Advanced                    1105
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
 #define IDC_AllParams                   1139
@@ -67,6 +68,7 @@
 #define IDC_Edit_FixedTextDisplayBottom 1151
 #define IDC_Edit_ParamValueDisplayTop   1152
 #define IDC_Edit_ParamValueDisplayBottom 1153
+#define IDC_EditFXAlias                 1154
 #define IDC_FXParamValueDisplayPickFont 1163
 #define IDC_FixedTextDisplayPickFont    1166
 #define IDC_GroupFXParamValueDisplay    1169
@@ -78,9 +80,10 @@
 #define IDC_FXParamDisplayForegroundColor 1185
 #define IDC_FXParamDisplayForegroundColor2 1186
 #define IDC_FXParamDisplayBackgroundColor 1188
-#define IDC_ExitWithSave                1190
+#define IDC_Save                        1190
 #define IDC_FixedTextDisplayFontLabel   1199
 #define IDC_FXParamValueDisplayFontLabel 1202
+#define IDC_FXParamValueDisplayFontLabel2 1203
 #define IDC_FXParamRingColorBox         1205
 #define IDC_FXParamIndicatorColorBox    1208
 #define IDC_FXFixedTextDisplayForegroundColorBox 1211
@@ -91,6 +94,7 @@
 #define IDC_FixedTextDisplayBottomLabel 1227
 #define IDC_ParamValueDisplayTopLabel   1228
 #define IDC_ParamValueDisplayBottomLabel 1229
+#define IDC_FixedTextDisplayTopLabel2   1230
 #define IDC_StepsPromptGroup            1231
 #define IDC_LIST_Listeners              1246
 #define IDC_LIST_Broadcasters           1247
@@ -116,7 +120,6 @@
 #define IDC_CHECK_ShowOutput            1270
 #define IDC_CHECK_WriteFXParams         1271
 #define IDC_COMBO_Type                  1275
-#define IDC_EDIT_FXAlias                1276
 #define IDC_AcceleratedTickValuesLabel  1277
 #define IDC_AcceleratedDeltaValuesLabel 1278
 #define IDC_RangeMaximumLabel           1279
@@ -130,7 +133,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        126
+#define _APS_NEXT_RESOURCE_VALUE        127
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1286
 #define _APS_NEXT_SYMED_VALUE           101
