@@ -1255,9 +1255,10 @@ static void FillParams(HWND hwndDlg, int index)
     }
 }
 
+/*
 static void ApplyChanges(HWND hwndDlg, int paramIdx)
 {
-    /*
+
     
     for (int infoIdx = 0; infoIdx < s_fxParamInfo.size(); ++infoIdx)
     {
@@ -1273,107 +1274,52 @@ static void ApplyChanges(HWND hwndDlg, int paramIdx)
             // param
             if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramWidget, modifier, 0))
             {
-                GetDlgItemText(hwndDlg, IDC_PickRingStyle, buf, sizeof(buf));
-                context->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
                 
-                ColorFromNative(GetButtonColorForID(IDC_FXParamRingColor), &color.r, &color.g, &color.b);
-                context->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
-
-                ColorFromNative(GetButtonColorForID(IDC_FXParamIndicatorColor), &color.r, &color.g, &color.b);
-                context->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
-                
-                GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
-                double deltaVal = atof(buf);
-                context->SetDeltaValue(deltaVal);
-                
-                GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
-                double min = atof(buf);
-                context->SetRangeMinimum(min);
-                
-                GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
-                double max = atof(buf);
-                context->SetRangeMinimum(max);
-                
-                string_list tokens;
-                
-                GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
-                GetTokens(tokens, buf);
-                vector<double> accelValues;
-                for (int i = 0; i < tokens.size(); ++i)
-                    accelValues.push_back(atof(tokens[i]));
-                context->SetAccelerationValues(accelValues);
-                
-                tokens.clear();
-
-                GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
-                GetTokens(tokens, buf);
-                vector<int> tickcounts;
-                for (int i = 0; i < tokens.size(); ++i)
-                    tickcounts.push_back(atof(tokens[i]));
-                context->SetTickCounts(tickcounts);
-                
-                tokens.clear();
-
-                GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
-     
-                GetTokens(tokens, buf);
-                vector<double> steps;
-                for (int i = 0; i < tokens.size(); ++i)
-                    steps.push_back(atof(tokens[i]));
-                context->SetStepValues(steps);
+                 
             }
             
             // param name display
             if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramNameWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
-                ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
-                context->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
 
-                ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor), &color.r, &color.g, &color.b);
-                context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
-
+ 
+ 
                 GetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_Font, buf);
 
+ 
+ 
                 GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
 
                 GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
 
-                context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamNameDisplay));
-
-                GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
-                context->SetStringParam(buf);
-            }
+             }
             
             // param value display
             if (ActionContext *context = GetActionContext(s_fxParamInfo[infoIdx].paramValueWidget, modifier, s_fxParamInfo[infoIdx].paramWidgetIdx))
             {
-                ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
-                context->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
 
-                ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayBackgroundColor), &color.r, &color.g, &color.b);
-                context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
-
+ 
+ 
                 GetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_Font, buf);
 
+ 
+ 
                 GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
 
                 GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, buf, sizeof(buf));
                 context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
-
-                context->SetProvideFeedback(IsDlgButtonChecked(hwndDlg, IDC_CHECK_ParamValueDisplay));
             }
             
             break;
         }
     }
-     */
 }
-
+*/
 static void HandleInitialize(HWND hwndDlg)
 {
     s_lastTouchedParamNum = -1;
@@ -1573,6 +1519,11 @@ void WidgetMoved(Widget *widget, int modifier)
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    char buf[MEDBUF];
+    
+    rgba_color color;
+    char colorBuf[32];
+    
     switch (uMsg)
     { 
         case WM_USER + 1024: // initialize
@@ -1634,15 +1585,92 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             switch(LOWORD(wParam))
             {
                 case IDC_FXParamRingColor:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        
+                        ColorFromNative(GetButtonColorForID(IDC_FXParamRingColor), &color.r, &color.g, &color.b);
+                        
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
+                        InvalidateRect(hwndDlg, NULL, true);
+                        if (s_hwndForegroundWindow)
+                            SetForegroundWindow(s_hwndForegroundWindow);
+                    }
+                    break;
+                    
                 case IDC_FXParamIndicatorColor:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        
+                        ColorFromNative(GetButtonColorForID(IDC_FXParamIndicatorColor), &color.r, &color.g, &color.b);
+                        
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
+                        InvalidateRect(hwndDlg, NULL, true);
+                        if (s_hwndForegroundWindow)
+                            SetForegroundWindow(s_hwndForegroundWindow);
+                    }
+                    break;
+
                 case IDC_FixedTextDisplayForegroundColor:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        
+                        ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
+                        
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                        InvalidateRect(hwndDlg, NULL, true);
+                        if (s_hwndForegroundWindow)
+                            SetForegroundWindow(s_hwndForegroundWindow);
+                    }
+                    break;
+
                 case IDC_FixedTextDisplayBackgroundColor:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        
+                        ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor), &color.r, &color.g, &color.b);
+                        
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
+                        InvalidateRect(hwndDlg, NULL, true);
+                        if (s_hwndForegroundWindow)
+                            SetForegroundWindow(s_hwndForegroundWindow);
+                    }
+                    break;
+
                 case IDC_FXParamDisplayForegroundColor:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        
+                        ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
+                        
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                        InvalidateRect(hwndDlg, NULL, true);
+                        if (s_hwndForegroundWindow)
+                            SetForegroundWindow(s_hwndForegroundWindow);
+                    }
+                    break;
+
                 case IDC_FXParamDisplayBackgroundColor:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         GR_SelectColor(hwndDlg, (int *)&GetButtonColorForID(LOWORD(wParam)));
+                        
+                        ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayBackgroundColor), &color.r, &color.g, &color.b);
+                        
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
+                        if (s_hwndForegroundWindow)
+                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
                 
@@ -1652,7 +1680,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
-                            char buf[SMLBUF];
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
                                 contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
@@ -1665,7 +1692,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_FXParamNameEdit:
                     if (HIWORD(wParam) == EN_CHANGE)
                     {
-                        char buf[SMLBUF];
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
                         if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
                             contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->SetStringParam(buf);
@@ -1705,6 +1731,67 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                    }
                    break;
          
+                case IDC_EDIT_Delta:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->SetDeltaValue(atof(buf));
+                    }
+                    break;
+
+                case IDC_EDIT_RangeMin:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->SetRangeMinimum(atof(buf));
+                    }
+                    break;
+
+                case IDC_EDIT_RangeMax:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->name->SetRangeMaximum(atof(buf));
+                    }
+                    break;
+
+                case IDC_EDIT_DeltaValues:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                        {
+                            string_list tokens;
+                            GetTokens(tokens, buf);
+                            vector<double> steps;
+                            for (int i = 0; i < tokens.size(); ++i)
+                                steps.push_back(atof(tokens[i]));
+                            
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetAccelerationValues(steps);
+                        }
+                     }
+                    break;
+
+                case IDC_EDIT_TickValues:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
+                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                        {
+                            string_list tokens;
+                            GetTokens(tokens, buf);
+                            vector<int> ticks;
+                            for (int i = 0; i < tokens.size(); ++i)
+                                ticks.push_back(atoi(tokens[i]));
+                            
+                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetTickCounts(ticks);
+                        }
+                     }
+                    break;
+
                 case IDC_PickSteps:
                    if (HIWORD(wParam) == CBN_SELCHANGE)
                    {
@@ -1714,20 +1801,26 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            string outputString;
                            GetParamStepsString(outputString, index + 1);
                            SetDlgItemText(hwndDlg, IDC_EditSteps, outputString.c_str());
-
-                           if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
-                           {
-                               string_list tokens;
-                               GetTokens(tokens, outputString.c_str());
-                               vector<double> steps;
-                               for (int i = 0; i < tokens.size(); ++i)
-                                   steps.push_back(atof(tokens[i]));
-                               
-                               contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetStepValues(steps);
-                           }
-                           
                            if (s_hwndForegroundWindow)
                                SetForegroundWindow(s_hwndForegroundWindow);
+                       }
+                   }
+                   break;
+
+                case IDC_EditSteps:
+                   if (HIWORD(wParam) == EN_CHANGE)
+                   {
+                       GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
+
+                       if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                       {
+                           string_list tokens;
+                           GetTokens(tokens, buf);
+                           vector<double> steps;
+                           for (int i = 0; i < tokens.size(); ++i)
+                               steps.push_back(atof(tokens[i]));
+                           
+                           contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetStepValues(steps);
                        }
                    }
                    break;
@@ -1745,16 +1838,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         EraseLastTouchedControl();
                     break ;
 
-                case IDC_Apply:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
-
-                        if (index >= 0)
-                            ApplyChanges(hwndDlg, index);
-                    }
-                    break ;
-
                 case IDC_FXAlias:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1762,7 +1845,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
                         if (s_dlgResult == IDOK)
                         {
-                            char buf[MEDBUF];
                             snprintf(buf, sizeof(buf), "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
                             SetWindowText(hwndDlg, buf);
                         }
