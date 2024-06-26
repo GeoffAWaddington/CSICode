@@ -1129,10 +1129,16 @@ static ActionContext *GetActionContext(char *widgetName, int modifier, int idx)
  */
 static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts, int modifier)
 {
+    if (contexts == NULL)
+        return;
+    
     ActionContext *paramContext = contexts->param;
     ActionContext *nameContext = contexts->name;
     ActionContext *valueContext = contexts->value;
 
+    if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
+        return;
+    
     rgba_color defaultColor;
     defaultColor.r = 237;
     defaultColor.g = 237;
@@ -1191,6 +1197,9 @@ static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts, int modifi
     else
         SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
     
+
+
+
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
 
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ParamNameDisplay), BM_SETCHECK, nameContext->GetProvideFeedback() ? BST_CHECKED : BST_UNCHECKED, 0);
