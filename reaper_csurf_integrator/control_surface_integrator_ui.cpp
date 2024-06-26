@@ -162,13 +162,75 @@ static unsigned int &GetButtonColorForID(unsigned int id)
     return s_buttonColors[0][2];
 }
 
+static ActionContext *s_editAdvancedParamContext = NULL;
+
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    char buf[MEDBUF];
+    
+    int modifier = 0;
+    
+    if (s_zoneManager)
+    {
+        const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+        
+        if (modifiers.GetSize() > 0)
+            modifier = modifiers.Get()[0];
+    }
+    
     switch (uMsg)
     {
         case WM_INITDIALOG:
         {
-           // SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias);
+            if (s_lastTouchedWidget == NULL || ! contextMap.Exists(s_lastTouchedWidget) || ! contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+                break;
+
+            s_editAdvancedParamContext = contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param;
+
+            if (s_editAdvancedParamContext == NULL)
+                break;
+
+            snprintf(buf, sizeof(buf), "%0.2f", s_editAdvancedParamContext->GetDeltaValue());
+            SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
+            
+            snprintf(buf, sizeof(buf), "%0.2f", s_editAdvancedParamContext->GetRangeMinimum());
+            SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
+            
+            snprintf(buf, sizeof(buf), "%0.2f", s_editAdvancedParamContext->GetRangeMaximum());
+            SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
+
+            
+            char tmp[MEDBUF];
+            const vector<double> &steppedValues = s_editAdvancedParamContext->GetSteppedValues();
+            string steps;
+            
+            for (int i = 0; i < steppedValues.size(); ++i)
+            {
+                steps += format_number(steppedValues[i], tmp, sizeof(tmp));
+                steps += "  ";
+            }
+            SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
+
+            const vector<double> &acceleratedDeltaValues = s_editAdvancedParamContext->GetAcceleratedDeltaValues();
+            string deltas;
+            
+            for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
+            {
+                deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
+                deltas += " ";
+            }
+            SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
+            
+            const vector<int> &acceleratedTickCounts = s_editAdvancedParamContext->GetAcceleratedTickCounts();
+            WDL_FastString ticks;
+            ticks.Set("");
+            
+            for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
+            {
+                snprintf(buf, sizeof(buf), "%d ", acceleratedTickCounts[i]);
+                ticks.Append(buf);
+            }
+            SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.Get());
         }
             break;
             
@@ -179,7 +241,42 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        //GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias, sizeof(s_fxAlias));
+                        if (s_editAdvancedParamContext == NULL)
+                            break;
+                         
+                        GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
+                        s_editAdvancedParamContext->SetDeltaValue(atof(buf));
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
+                        s_editAdvancedParamContext->SetRangeMinimum(atof(buf));
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
+                        s_editAdvancedParamContext->SetRangeMaximum(atof(buf));
+
+                        GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
+                        string_list tokens;
+                        GetTokens(tokens, buf);
+                        vector<double> deltas;
+                        for (int i = 0; i < tokens.size(); ++i)
+                            deltas.push_back(atof(tokens[i]));
+                        s_editAdvancedParamContext->SetAccelerationValues(deltas);
+                     
+                        GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
+                        tokens.clear();
+                        GetTokens(tokens, buf);
+                        vector<int> ticks;
+                        for (int i = 0; i < tokens.size(); ++i)
+                            ticks.push_back(atoi(tokens[i]));
+                        s_editAdvancedParamContext->SetTickCounts(ticks);
+                       
+                        GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
+                        tokens.clear();
+                        GetTokens(tokens, buf);
+                        vector<double> steps;
+                        for (int i = 0; i < tokens.size(); ++i)
+                            steps.push_back(atof(tokens[i]));
+                        s_editAdvancedParamContext->SetStepValues(steps);
+
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }
@@ -1030,7 +1127,7 @@ static ActionContext *GetActionContext(char *widgetName, int modifier, int idx)
         return NULL;
 }
  */
-static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
+static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts, int modifier)
 {
     ActionContext *paramContext = contexts->param;
     ActionContext *nameContext = contexts->name;
@@ -1051,66 +1148,19 @@ static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
     SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf);
     SetDlgItemText(hwndDlg, IDC_EditSteps, buf);
     
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), paramContext->GetWidget()->GetName());
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFixedTextDisplay), nameContext->GetWidget()->GetName());
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXParamValueDisplay), valueContext->GetWidget()->GetName());
+    s_modifierManager.GetModifierString(modifier, buf, sizeof(buf));
+    
+    char fullName[MEDBUF];
+    snprintf(fullName, sizeof(fullName), "%s%s", buf, paramContext->GetWidget()->GetName());
+    
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), fullName);
 
     const char *ringstyle = paramContext->GetWidgetProperties().get_prop(PropertyType_RingStyle);
     if (ringstyle)
         SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
     else
         SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
-
-    snprintf(buf, sizeof(buf), "%0.2f", paramContext->GetDeltaValue());
-    SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
     
-    snprintf(buf, sizeof(buf), "%0.2f", paramContext->GetRangeMinimum());
-    SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
-    
-    snprintf(buf, sizeof(buf), "%0.2f", paramContext->GetRangeMaximum());
-    SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
-
-    int numSteps = paramContext->GetNumberOfSteppedValues();
-    if (numSteps)
-    {
-        snprintf(buf, sizeof(buf), "%d", numSteps);
-        SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
-    }
-    else
-        SetDlgItemText(hwndDlg, IDC_PickSteps, "");
-    
-    char tmp[MEDBUF];
-    const vector<double> &steppedValues = paramContext->GetSteppedValues();
-    string steps;
-    
-    for (int i = 0; i < steppedValues.size(); ++i)
-    {
-        steps += format_number(steppedValues[i], tmp, sizeof(tmp));
-        steps += "  ";
-    }
-    SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
-
-    const vector<double> &acceleratedDeltaValues = paramContext->GetAcceleratedDeltaValues();
-    string deltas;
-    
-    for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
-    {
-        deltas += format_number(acceleratedDeltaValues[i], tmp, sizeof(tmp));
-        deltas += " ";
-    }
-    SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
-    
-    const vector<int> &acceleratedTickCounts = paramContext->GetAcceleratedTickCounts();
-    WDL_FastString ticks;
-    ticks.Set("");
-    
-    for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
-    {
-        snprintf(buf, sizeof(buf), "%d ", acceleratedTickCounts[i]);
-        ticks.Append(buf);
-    }
-    SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.Get());
-
     const char *ringcolor = paramContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
     if (ringcolor)
     {
@@ -1132,7 +1182,14 @@ static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts)
     else
         GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
 
-
+    int numSteps = paramContext->GetNumberOfSteppedValues();
+    if (numSteps)
+    {
+        snprintf(buf, sizeof(buf), "%d", numSteps);
+        SetDlgItemText(hwndDlg, IDC_PickSteps, buf);
+    }
+    else
+        SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
     
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
 
@@ -1248,7 +1305,7 @@ static void FillParams(HWND hwndDlg, int index)
         if (contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier) && contextMap.Get(widget)->Get(modifier)->param->GetParamIndex() == index)
         {
             s_lastTouchedWidget = widget;
-            FillParams(hwndDlg, contextMap.Get(widget)->Get(modifier));
+            FillParams(hwndDlg, contextMap.Get(widget)->Get(modifier), modifier);
             break;
         }
     }
@@ -1364,7 +1421,7 @@ void WidgetMoved(Widget *widget, int modifier)
 
     if (widget != s_lastTouchedWidget && contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier))
     {
-        FillParams(s_hwndLearnDlg, contextMap.Get(widget)->Get(modifier));
+        FillParams(s_hwndLearnDlg, contextMap.Get(widget)->Get(modifier), modifier);
         
         
     }
@@ -1767,72 +1824,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                    }
                    break;
          
-                    
-                    
-                    
-                   
-                    
-                case IDC_EDIT_Delta:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
-                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetDeltaValue(atof(buf));
-                    }
-                    break;
-                    /*
-                case IDC_EDIT_RangeMin:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
-                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetRangeMinimum(atof(buf));
-                    }
-                    break;
-
-                case IDC_EDIT_RangeMax:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
-                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetRangeMaximum(atof(buf));
-                    }
-                    break;
-                     */
-                case IDC_EDIT_DeltaValues:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
-                        {
-                            string_list tokens;
-                            GetTokens(tokens, buf);
-                            vector<double> steps;
-                            for (int i = 0; i < tokens.size(); ++i)
-                                steps.push_back(atof(tokens[i]));
-                            
-                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetAccelerationValues(steps);
-                        }
-                     }
-                    break;
-                    
-                case IDC_EDIT_TickValues:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
-                        if (s_lastTouchedWidget != NULL && contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
-                        {
-                            string_list tokens;
-                            GetTokens(tokens, buf);
-                            vector<int> ticks;
-                            for (int i = 0; i < tokens.size(); ++i)
-                                ticks.push_back(atoi(tokens[i]));
-                            
-                            contextMap.Get(s_lastTouchedWidget)->Get(modifier)->param->SetTickCounts(ticks);
-                        }
-                     }
-                    break;
-                   
                 case IDC_PickSteps:
                    if (HIWORD(wParam) == CBN_SELCHANGE)
                    {
@@ -1872,9 +1863,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
                 case IDC_Advanced:
                     if (HIWORD(wParam) == BN_CLICKED)
-                    {
                         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
-                    }
+                    if (s_hwndForegroundWindow)
+                        SetForegroundWindow(s_hwndForegroundWindow);
                     break;
                                        
                 case IDC_AutoMap:
