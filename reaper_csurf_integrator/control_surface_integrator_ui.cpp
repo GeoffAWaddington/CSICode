@@ -32,13 +32,13 @@ struct FXRowLayout
     }
 };
 
-struct FXParamWidgetContexts
+struct FXParamCellContexts
 {
     ActionContext *param;
     ActionContext *name;
     ActionContext *value;
     
-    FXParamWidgetContexts()
+    FXParamCellContexts()
     {
         param = NULL;
         name = NULL;
@@ -63,8 +63,8 @@ static char s_fxAlias[MEDBUF];
 static int s_numChannels = 0;
 static ptrvector<FXRowLayout> s_fxRowLayouts;
 
-static void destroyFXParamWidgetContextList(WDL_IntKeyedArray<FXParamWidgetContexts *> *l) { l->Delete(true); delete l; }
-WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXParamWidgetContexts *> *> contextMap(destroyFXParamWidgetContextList);
+static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXParamCellContexts *> *l) { l->Delete(true); delete l; }
+WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXParamCellContexts *> *> contextMap(destroyFXParamWidgetCellContextList);
 
 // t = template
 static string_list s_t_paramWidgets;
@@ -349,150 +349,82 @@ static void SaveZone()
             
             fprintf(fxFile, "\n%s\n\n", s_BeginAutoSection);
             
+            char widgetName[SMLBUF];
             char modifiers[MEDBUF];
+            char suffix[MEDBUF];
             
-            
-            
-            
-            
-            
-            /*
-            
-            for (int cell = 0; cell < s_fxParamInfo.GetSize(); ++cell)
+            for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
             {
-                modifiers[0] = 0;
-                
-                s_modifierManager.GetModifierString(s_fxParamInfo.Get(cell)->modifier, modifiers, sizeof(modifiers));
-                
-                Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo.Get(cell)->paramWidget);
-                Widget *nameDisplay = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo.Get(cell)->paramNameWidget);
-                Widget *valueDisplay = s_zoneManager->GetSurface()->GetWidgetByName(s_fxParamInfo.Get(cell)->paramValueWidget);
-                
-                if (widget == NULL || nameDisplay == NULL || valueDisplay == NULL)
-                    continue;
-                
-                Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
-                
-                if (zone == NULL ||
-                    ! zone->GetWidgets().Find(widget) ||
-                    ! zone->GetWidgets().Find(nameDisplay) ||
-                    ! zone->GetWidgets().Find(valueDisplay))
-                    continue;
-                
-                ActionContext *widgetContext = NULL;
-                ActionContext *nameDisplayContext = NULL;
-                ActionContext *valueDisplayContext = NULL;
-                
-                const WDL_PtrList<ActionContext> &widgetContexts = zone->GetActionContexts(widget, s_fxParamInfo.Get(cell)->modifier);
-                if(widgetContexts.GetSize() > 0)
-                    widgetContext = widgetContexts.Get(0);
-                
-                const WDL_PtrList<ActionContext> &nameDisplayContexts = zone->GetActionContexts(nameDisplay, s_fxParamInfo.Get(cell)->modifier);
-                if(nameDisplayContexts.GetSize() > s_fxParamInfo.Get(cell)->paramWidgetIdx)
-                    nameDisplayContext = nameDisplayContexts.Get(s_fxParamInfo.Get(cell)->paramWidgetIdx);
-                
-                const WDL_PtrList<ActionContext> &valueDisplayContexts = zone->GetActionContexts(valueDisplay, s_fxParamInfo.Get(cell)->modifier);
-                if(valueDisplayContexts.GetSize() > s_fxParamInfo.Get(cell)->paramWidgetIdx)
-                    valueDisplayContext = valueDisplayContexts.Get(s_fxParamInfo.Get(cell)->paramWidgetIdx);
-                
-                if (widgetContext == NULL || nameDisplayContext == NULL || valueDisplayContext == NULL)
-                    continue;
-                
-                const char *actionName = widgetContext->GetAction()->GetName();
-                
-                if ( ! strcmp(actionName, "NoAction"))
-                    fprintf(fxFile, "\t%s%s %s\n", modifiers, widget->GetName(), actionName);
-                else
+                int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
+                snprintf(modifiers, sizeof(modifiers), "%s", s_fxRowLayouts[rowLayoutIdx].modifiers);
+                snprintf(suffix, sizeof(suffix), "%s", s_fxRowLayouts[rowLayoutIdx].suffix);
+
+                for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size() && rowLayoutIdx < s_fxRowLayouts.size(); ++widgetTypesIdx)
                 {
-                    fprintf(fxFile, "\t%s%s %s %d ", modifiers, widget->GetName(), actionName, widgetContext->GetParamIndex());
-                    
-                    fprintf(fxFile, "[ ");
-                    
-                    if  (widgetContext->GetSteppedValues().size() > 0)
+                    for (int channel = 1; channel <= s_numChannels; ++channel)
                     {
-                        for (int i = 0; i < widgetContext->GetSteppedValues().size(); ++i)
-                            fprintf(fxFile, "%0.2f ", widgetContext->GetSteppedValues()[i]);
-                    }
+                        snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                        Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
 
-                    fprintf(fxFile, "%0.2f>%0.2f ", widgetContext->GetRangeMinimum(), widgetContext->GetRangeMaximum());
-
-                    if (widgetContext->GetAcceleratedDeltaValues().size() > 0)
-                    {
-                        fprintf(fxFile, "(");
-
-                        for (int i = 0; i < widgetContext->GetAcceleratedDeltaValues().size(); ++i)
+                        if (widget != NULL &&  contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier))
                         {
-                            fprintf(fxFile, "%0.3f", widgetContext->GetAcceleratedDeltaValues()[i]);
-                          
-                            if (i < widgetContext->GetAcceleratedDeltaValues().size() - 1)
-                                fprintf(fxFile, ",");
-                        }
-                        
-                        fprintf(fxFile, ") ");
-                    }
-                    else if (widgetContext->GetDeltaValue() != 0.0)
-                    {
-                        fprintf(fxFile, "(%0.3f) ", widgetContext->GetDeltaValue());
-                    }
-                    
-                    if (widgetContext->GetAcceleratedTickCounts().size() > 0)
-                    {
-                        if (widgetContext->GetAcceleratedTickCounts().size() == 1)
-                        {
-                            fprintf(fxFile, "(%d) ", widgetContext->GetAcceleratedTickCounts()[0]);
-                        }
-                        else
-                        {
-                            fprintf(fxFile, "(");
+                            FXParamCellContexts *contexts = contextMap.Get(widget)->Get(modifier);
 
-                            for (int i = 0; i < widgetContext->GetAcceleratedTickCounts().size(); ++i)
-                            {
-                                fprintf(fxFile, "%d", widgetContext->GetAcceleratedTickCounts()[i]);
-                              
-                                if (i < widgetContext->GetAcceleratedTickCounts().size() - 1)
-                                    fprintf(fxFile, ",");
-                            }
+                            if (contexts == NULL || contexts->param == NULL || contexts->name == NULL || contexts->value == NULL)
+                                continue;
                             
-                            fprintf(fxFile, ") ");
+                            if ( ! strcmp(contexts->param->GetAction()->GetName(), "NoAction"))
+                                fprintf(fxFile, "\t%s%s NoAction", s_fxRowLayouts[rowLayoutIdx].modifiers, widgetName);
+                            else
+                                fprintf(fxFile, "\t%s%s %s %d", s_fxRowLayouts[rowLayoutIdx].modifiers, widgetName, contexts->param->GetAction()->GetName(), contexts->param->GetParamIndex());
+                            
+                            if (contexts->param->GetSteppedValues().size() > 0)
+                            {
+                                char step[MEDBUF];
+                                WDL_FastString steps;
+                                steps.Set(" [ ");
+                                for (int i = 0; i < contexts->param->GetSteppedValues().size(); ++i)
+                                {
+                                    snprintf(step, sizeof(step), " %0.2f", contexts->param->GetSteppedValues()[i]);
+                                    steps.Append(step);
+                                }
+                                
+                                fprintf(fxFile, "%s ]\n", steps.Get());
+                            }
+                            else
+                                fprintf(fxFile, "\n");
+                            
+                            fprintf(fxFile, "\t%s%s ", s_fxRowLayouts[rowLayoutIdx].modifiers, contexts->name->GetWidget()->GetName());
+                            
+                            if ( ! strcmp(contexts->name->GetAction()->GetName(), "NoAction"))
+                            {
+                                if (widgetTypesIdx == 0)
+                                    fprintf(fxFile, "NoAction\n");
+                                else
+                                    fprintf(fxFile, "NoAction NoFeedback\n");
+                            }
+                            else
+                                fprintf(fxFile, "%s \"%s\"\n", contexts->name->GetAction()->GetName(), contexts->name->GetStringParam());
+                                  
+                            fprintf(fxFile, "\t%s%s ", s_fxRowLayouts[rowLayoutIdx].modifiers, contexts->value->GetWidget()->GetName());
+                            
+                            if ( ! strcmp(contexts->name->GetAction()->GetName(), "NoAction"))
+                            {
+                                if (widgetTypesIdx == 0)
+                                    fprintf(fxFile, "NoAction\n\n");
+                                else
+                                    fprintf(fxFile, "NoAction NoFeedback\n\n");
+                            }
+                            else
+                                fprintf(fxFile, "%s %d\n\n", contexts->value->GetAction()->GetName(), contexts->value->GetParamIndex());
                         }
                     }
                     
-                    fprintf(fxFile, "] ");
-
-                    widgetContext->GetWidgetProperties().save_list(fxFile);
-                }
-                
-                actionName = nameDisplayContext->GetAction()->GetName();
-                   
-                if ( ! nameDisplayContext->GetProvideFeedback())
-                    fprintf(fxFile, "\t%s%s %s \"\" NoFeedback\n", modifiers, nameDisplay->GetName(), actionName);
-                else if ( ! strcmp(actionName, "NoAction"))
-                    fprintf(fxFile, "\t%s%s %s\n", modifiers, nameDisplay->GetName(), actionName);
-                else
-                {
-                    fprintf(fxFile, "\t%s%s %s \"%s\" ", modifiers, nameDisplay->GetName(), actionName, nameDisplayContext->GetStringParam());
-                    nameDisplayContext->GetWidgetProperties().save_list(fxFile);
-                }
-
-                actionName = valueDisplayContext->GetAction()->GetName();
-                
-                if ( ! valueDisplayContext->GetProvideFeedback())
-                    fprintf(fxFile, "\t%s%s %s %d NoFeedback\n\n", modifiers, valueDisplay->GetName(), actionName, 0);
-                else if ( ! strcmp(actionName, "NoAction"))
-                    fprintf(fxFile, "\t%s%s %s\n\n", modifiers, valueDisplay->GetName(), actionName);
-                else
-                {
-                    fprintf(fxFile, "\t%s%s %s %d ", modifiers, valueDisplay->GetName(), actionName, valueDisplayContext->GetParamIndex());
-                    valueDisplayContext->GetWidgetProperties().save_list(fxFile);
                     fprintf(fxFile, "\n");
                 }
+                
+                fprintf(fxFile, "\n\n\n");
             }
-                 
-            
-            */
-            
-            
-            
             
             fprintf(fxFile, "\n%s\n\n", s_EndAutoSection);
 
@@ -748,14 +680,14 @@ static void CreateContextMap()
                     if (paramWidget == NULL || paramContext == NULL || nameContext == NULL || valueContext == NULL)
                         continue;
                     
-                    FXParamWidgetContexts *contexts = new FXParamWidgetContexts();
+                    FXParamCellContexts *contexts = new FXParamCellContexts();
                     contexts->param = paramContext;
                     contexts->name = nameContext;
                     contexts->value = valueContext;
                     
                     if (! contextMap.Exists(paramWidget))
                     {
-                        WDL_IntKeyedArray<FXParamWidgetContexts *> *m = new WDL_IntKeyedArray<FXParamWidgetContexts *>();
+                        WDL_IntKeyedArray<FXParamCellContexts *> *m = new WDL_IntKeyedArray<FXParamCellContexts *>();
                         contextMap.Insert(paramWidget, m);
                     }
                     
@@ -973,7 +905,7 @@ static void FillAllParamsList(HWND hwndDlg)
     }
 }
 
-static void FillParams(HWND hwndDlg, FXParamWidgetContexts *contexts, int modifier)
+static void FillParams(HWND hwndDlg, FXParamCellContexts *contexts, int modifier)
 {
     if (contexts == NULL)
         return;
@@ -1156,7 +1088,7 @@ static void FillParams(HWND hwndDlg, int index)
 
             if (contextMap.Exists(widget) && contextMap.Get(widget)->Exists(modifier))
             {
-                FXParamWidgetContexts *contexts = contextMap.Get(widget)->Get(modifier);
+                FXParamCellContexts *contexts = contextMap.Get(widget)->Get(modifier);
                 
                 if (contexts->param->GetParamIndex() == index)
                 {
@@ -1214,7 +1146,7 @@ static void EraseLastTouchedControl()
         
     if (contextMap.Exists(s_lastTouchedWidget) && contextMap.Get(s_lastTouchedWidget)->Exists(s_lastTouchedModifier))
     {
-        FXParamWidgetContexts *contexts = contextMap.Get(s_lastTouchedWidget)->Get(s_lastTouchedModifier);
+        FXParamCellContexts *contexts = contextMap.Get(s_lastTouchedWidget)->Get(s_lastTouchedModifier);
         
         contexts->param->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
         s_lastTouchedWidget->ForceClear();
@@ -1254,7 +1186,7 @@ void WidgetMoved(Widget *widget, int modifier)
     if ( ! contextMap.Exists(widget) || ! contextMap.Get(widget)->Exists(modifier))
         return;
     
-    FXParamWidgetContexts *contexts = contextMap.Get(s_lastTouchedWidget)->Get(s_lastTouchedModifier);
+    FXParamCellContexts *contexts = contextMap.Get(s_lastTouchedWidget)->Get(s_lastTouchedModifier);
 
     if ( ! strcmp(contexts->param->GetAction()->GetName(), "NoAction") && s_lastTouchedParamNum != -1)
     {
@@ -1766,8 +1698,6 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
 
 void CloseFocusedFXDialog()
 {
-    // GAW TBD -- Save here and add to ZoneManager::zoneInfo_
-        
     s_zoneManager =  NULL;
     s_focusedTrack = NULL;
     s_fxSlot = -1;
