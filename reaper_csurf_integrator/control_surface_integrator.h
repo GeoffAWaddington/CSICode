@@ -58,6 +58,8 @@
 #endif
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
+#define GET_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier))
+#define CONTEXT_EXISTS(widget, modifier) (widget != NULL && s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier) && s_contextMap.Get(widget)->Get(modifier) != NULL && s_contextMap.Get(widget)->Get(modifier)->param != NULL && s_contextMap.Get(widget)->Get(modifier)->name != NULL && s_contextMap.Get(widget)->Get(modifier)->value != NULL)
 
 class CSurfIntegrator;
 class ZoneManager;
