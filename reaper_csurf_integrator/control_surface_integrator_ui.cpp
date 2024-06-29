@@ -35,14 +35,42 @@ struct FXRowLayout
 
 static ptrvector<FXRowLayout> s_fxRowLayouts;
 
-
-struct FXParamCellContexts
+struct FXCellWidget
 {
+    Widget *widget;
+    ActionContext *context;
+    
+    FXCellWidget()
+    {
+        widget = NULL;
+        context = NULL;
+    }
+};
+
+struct FXCellDisplay
+{
+    Widget *owner;
+    ActionContext *context;
+    
+    FXCellDisplay()
+    {
+        owner = NULL;
+        context = NULL;
+    }
+};
+
+struct FXCell
+{
+    WDL_PtrList<FXCellWidget> widgets;
+    WDL_PtrList<FXCellDisplay> displays;
+    
+    
+    
     ActionContext *param;
     ActionContext *name;
     ActionContext *value;
     
-    FXParamCellContexts()
+    FXCell()
     {
         param = NULL;
         name = NULL;
@@ -50,8 +78,8 @@ struct FXParamCellContexts
     }
 };
 
-static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXParamCellContexts *> *l) { l->Delete(true); delete l; }
-WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXParamCellContexts *> *> s_contextMap(destroyFXParamWidgetCellContextList);
+static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
+WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_contextMap(destroyFXParamWidgetCellContextList);
 
 
 // t = template
@@ -546,7 +574,7 @@ static void SaveZone()
 
                         if (CONTEXT_EXISTS(widget, modifier))
                         {
-                            FXParamCellContexts *contexts = GET_CONTEXT(widget, modifier);
+                            FXCell *contexts = GET_CONTEXT(widget, modifier);
 
                             if ( ! strcmp(contexts->param->GetAction()->GetName(), "NoAction"))
                                 fprintf(fxFile, "\t%s%s NoAction", modifiers, widgetName);
@@ -682,14 +710,14 @@ static void CreateContextMap()
                     if (paramWidget == NULL || paramContext == NULL || nameContext == NULL || valueContext == NULL)
                         continue;
                     
-                    FXParamCellContexts *contexts = new FXParamCellContexts();
+                    FXCell *contexts = new FXCell();
                     contexts->param = paramContext;
                     contexts->name = nameContext;
                     contexts->value = valueContext;
                     
                     if (! s_contextMap.Exists(paramWidget))
                     {
-                        WDL_IntKeyedArray<FXParamCellContexts *> *m = new WDL_IntKeyedArray<FXParamCellContexts *>();
+                        WDL_IntKeyedArray<FXCell *> *m = new WDL_IntKeyedArray<FXCell *>();
                         s_contextMap.Insert(paramWidget, m);
                     }
                     
@@ -747,36 +775,30 @@ static void AutoMapFX(HWND hwndDlg)
                             string steps;
                             s_zoneManager->GetSteppedValuesForParam(steps, s_fxName, s_focusedTrack, s_fxSlot, currentParam);
                             fprintf(fxFile, "\t%s%s%s%d FXParam %d %s%s\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel, currentParam, steps.c_str(), s_t_paramWidgetParams);
+                            
+                            TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
+                            fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, s_t_nameWidgetParams);
+                            
+                            fprintf(fxFile, "\t%s%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, suffix, channel, currentParam, s_t_valueWidgetParams);
+                            
+                            currentParam++;
                         }
                         else
                         {
                             fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
+                            fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_nameWidget, suffix, channel);
+                            fprintf(fxFile, "\t%s%s%s%d NoAction\n\n", modifiers, s_t_valueWidget, suffix, channel);
                         }
                     }
                     else
                     {
                         fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
+                        fprintf(fxFile, "\t%s%s%s%d NoAction NoFeedback\n", modifiers, s_t_nameWidget, suffix, channel);
+                        fprintf(fxFile, "\t%s%s%s%d NoAction NoFeedback\n\n", modifiers, s_t_valueWidget, suffix, channel);
                     }
                 }
                 
-                if (currentParam < numParams)
-                {
-                    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
-                    fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, s_t_nameWidgetParams);
-                    
-                    fprintf(fxFile, "\t%s%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, suffix, channel, currentParam, s_t_valueWidgetParams);
-
-                    
-                    currentParam++;
-                }
-                else
-                {
-                    fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_nameWidget, suffix, channel);
-                    
-                    fprintf(fxFile, "\t%s%s%s%d NoAction\n\n", modifiers, s_t_valueWidget, suffix, channel);
-                }
-                
-                fprintf(fxFile, "\n");
+                fprintf(fxFile, "\n\n");
             }
             
             fprintf(fxFile, "\n\n\n");
@@ -913,7 +935,7 @@ static void FillAllParamsList(HWND hwndDlg)
     }
 }
 
-static void FillParams(HWND hwndDlg, FXParamCellContexts *contexts, int modifier)
+static void FillParams(HWND hwndDlg, FXCell *contexts, int modifier)
 {
     ActionContext *paramContext = contexts->param;
     ActionContext *nameContext = contexts->name;
@@ -1090,7 +1112,7 @@ static void FillParams(HWND hwndDlg, int index)
 
             if (s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier))
             {
-                FXParamCellContexts *contexts = s_contextMap.Get(widget)->Get(modifier);
+                FXCell *contexts = s_contextMap.Get(widget)->Get(modifier);
                 
                 if (contexts->param->GetParamIndex() == index)
                 {
@@ -1111,7 +1133,7 @@ static void HandleInitialize(HWND hwndDlg)
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
                 
     char buf[MEDBUF];
-    snprintf(buf, sizeof(buf), "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
+    snprintf(buf, sizeof(buf), "%s    %s", s_zoneManager->GetSurface()->GetName(), s_fxName);
 
     SetWindowText(hwndDlg, buf);
     SetDlgItemText(hwndDlg, IDC_EditFXAlias, s_fxAlias);
@@ -1148,7 +1170,7 @@ static void EraseLastTouchedControl()
         
     if (CONTEXT_EXISTS(s_lastTouchedWidget, s_lastTouchedModifier))
     {
-        FXParamCellContexts *contexts = GET_CONTEXT(s_lastTouchedWidget, s_lastTouchedModifier);
+        FXCell *contexts = GET_CONTEXT(s_lastTouchedWidget, s_lastTouchedModifier);
         
         contexts->param->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
         s_lastTouchedWidget->ForceClear();
@@ -1279,10 +1301,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     if (HIWORD(wParam) == EN_CHANGE)
                     {
                         GetDlgItemText(hwndDlg, IDC_EditFXAlias, s_fxAlias, sizeof(s_fxAlias));
-
-                        char buf[MEDBUF];
-                        snprintf(buf, sizeof(buf), "%s    %s    %s", s_zoneManager->GetSurface()->GetName(), s_fxAlias, s_fxName);
-                        SetWindowText(hwndDlg, buf);
                     }
                     break;
 

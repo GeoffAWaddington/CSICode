@@ -61,6 +61,7 @@
 #define IDC_PickSteps                   1108
 #define IDC_AllParams                   1139
 #define IDC_GroupFXControl              1140
+#define IDC_GroupFXControl2             1141
 #define IDC_PickRingStyle               1143
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
@@ -128,6 +129,7 @@
 #define IDC_Apply                       1282
 #define IDC_CHECK_ParamNameDisplay      1285
 #define IDC_CHECK_ParamValueDisplay     1286
+#define IDC_CHECK_Assigned              1287
 
 // Next default values for new objects
 // 
