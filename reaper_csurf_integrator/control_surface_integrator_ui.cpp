@@ -81,7 +81,6 @@ struct FXCell
 static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
 WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_contextMap(destroyFXParamWidgetCellContextList);
 
-
 // t = template
 static string_list s_t_paramWidgets;
 static string_list s_t_displayRows;
@@ -114,20 +113,21 @@ static int s_numChannels = 0;
 
 static const int s_baseControls[] =
 {
-    IDC_PickRingStyle,
-    
     IDC_FXParamNameEdit,
-    
-    IDC_PickSteps,
-    IDC_EditSteps,
-    IDC_StepsPromptGroup,
-    
     IDC_GroupFXControl,
+};
+
+static const int s_nameGroupControls[] =
+{
     IDC_GroupFixedTextDisplay,
+};
+
+static const int s_valueGroupControls[] =
+{
     IDC_GroupFXParamValueDisplay,
 };
 
-static const int s_fontControls[] =
+static const int s_nameFontControls[] =
 {
     IDC_FixedTextDisplayFontLabel,
     IDC_FixedTextDisplayPickFont,
@@ -135,6 +135,10 @@ static const int s_fontControls[] =
     IDC_Edit_FixedTextDisplayTop,
     IDC_FixedTextDisplayBottomLabel,
     IDC_Edit_FixedTextDisplayBottom,
+};
+
+static const int s_valueFontControls[] =
+{
     IDC_FXParamValueDisplayFontLabel,
     IDC_FXParamValueDisplayPickFont,
     IDC_ParamValueDisplayTopLabel,
@@ -143,16 +147,31 @@ static const int s_fontControls[] =
     IDC_Edit_ParamValueDisplayBottom
 };
 
-static const int s_colorControls[] =
+static const int s_paramBaseControls[] =
+{
+    IDC_PickRingStyle,
+    IDC_PickSteps,
+    IDC_Steps,
+};
+
+static const int s_paramColorControls[] =
 {
     IDC_FXParamRingColorBox,
     IDC_FXParamRingColor,
     IDC_FXParamIndicatorColorBox,
     IDC_FXParamIndicatorColor,
+};
+
+static const int s_nameColorControls[] =
+{
     IDC_FixedTextDisplayForegroundColor,
     IDC_FXFixedTextDisplayForegroundColorBox,
     IDC_FixedTextDisplayBackgroundColor,
     IDC_FXFixedTextDisplayBackgroundColorBox,
+};
+
+static const int s_valueColorControls[] =
+{
     IDC_FXParamDisplayForegroundColor,
     IDC_FXParamValueDisplayForegroundColorBox,
     IDC_FXParamDisplayBackgroundColor,
@@ -165,16 +184,65 @@ static void ShowBaseControls(HWND hwndDlg, bool show)
             ShowWindow(GetDlgItem(hwndDlg, s_baseControls[i]), show);
 }
 
+static void ShowParamBaseControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_paramBaseControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_paramBaseControls[i]), show);
+}
+
+static void ShowNameGroupControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_nameGroupControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_nameGroupControls[i]), show);
+}
+
+static void ShowValueGroupControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_valueGroupControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_valueGroupControls[i]), show);
+}
+
+static void ShowNameFontControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_nameFontControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_nameFontControls[i]), show);
+}
+
+static void ShowValueFontControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_valueFontControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_valueFontControls[i]), show);
+}
+
 static void ShowFontControls(HWND hwndDlg, bool show)
 {
-    for (int i = 0; i < NUM_ELEM(s_fontControls); ++i)
-            ShowWindow(GetDlgItem(hwndDlg, s_fontControls[i]), show);
+    ShowNameFontControls(hwndDlg, show);
+    ShowValueFontControls(hwndDlg, show);
+}
+
+static void ShowParamColorControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_paramColorControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_paramColorControls[i]), show);
+}
+
+static void ShowNameColorControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_nameColorControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_nameColorControls[i]), show);
+}
+
+static void ShowValueColorControls(HWND hwndDlg, bool show)
+{
+    for (int i = 0; i < NUM_ELEM(s_valueColorControls); ++i)
+            ShowWindow(GetDlgItem(hwndDlg, s_valueColorControls[i]), show);
 }
 
 static void ShowColorControls(HWND hwndDlg, bool show)
 {
-    for (int i = 0; i < NUM_ELEM(s_colorControls); ++i)
-            ShowWindow(GetDlgItem(hwndDlg, s_colorControls[i]), show);
+    ShowParamColorControls(hwndDlg, show);
+    ShowNameColorControls(hwndDlg, show);
+    ShowValueColorControls(hwndDlg, show);
 }
 
 static unsigned int s_buttonColors[][3] =
@@ -183,6 +251,40 @@ static unsigned int s_buttonColors[][3] =
     { IDC_FXParamIndicatorColor, IDC_FXParamIndicatorColorBox, 0xffffffff },
     { IDC_FixedTextDisplayForegroundColor, IDC_FXFixedTextDisplayForegroundColorBox, 0xffffffff },
     { IDC_FixedTextDisplayBackgroundColor, IDC_FXFixedTextDisplayBackgroundColorBox, 0xffffffff },
+    { IDC_FXParamDisplayForegroundColor, IDC_FXParamValueDisplayForegroundColorBox, 0xffffffff },
+    { IDC_FXParamDisplayBackgroundColor, IDC_FXParamValueDisplayBackgroundColorBox, 0xffffffff },
+};
+
+static unsigned int s_paramButtonColors[][3] =
+{
+    { IDC_FXParamRingColor, IDC_FXParamRingColorBox, 0xffffffff },
+    { IDC_FXParamIndicatorColor, IDC_FXParamIndicatorColorBox, 0xffffffff },
+};
+
+static unsigned int &GetParamButtonColorForID(unsigned int id)
+{
+    for (int x = 0; x < NUM_ELEM(s_paramButtonColors); x ++)
+        if (s_paramButtonColors[x][0] == id) return s_paramButtonColors[x][2];
+    WDL_ASSERT(false);
+    return s_paramButtonColors[0][2];
+}
+
+static unsigned int s_nameDisplayColors[][3] =
+{
+    { IDC_FixedTextDisplayForegroundColor, IDC_FXFixedTextDisplayForegroundColorBox, 0xffffffff },
+    { IDC_FixedTextDisplayBackgroundColor, IDC_FXFixedTextDisplayBackgroundColorBox, 0xffffffff },
+};
+
+static unsigned int &GetNameDisplayButtonColorForID(unsigned int id)
+{
+    for (int x = 0; x < NUM_ELEM(s_nameDisplayColors); x ++)
+        if (s_paramButtonColors[x][0] == id) return s_nameDisplayColors[x][2];
+    WDL_ASSERT(false);
+    return s_nameDisplayColors[0][2];
+}
+
+static unsigned int s_valueDisplayColors[][3] =
+{
     { IDC_FXParamDisplayForegroundColor, IDC_FXParamValueDisplayForegroundColorBox, 0xffffffff },
     { IDC_FXParamDisplayBackgroundColor, IDC_FXParamValueDisplayBackgroundColorBox, 0xffffffff },
 };
@@ -337,7 +439,6 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
 static void LoadTemplates()
 {
-    s_numChannels = s_zoneManager->GetSurface()->GetNumChannels();
     s_fxRowLayouts.clear();
     s_t_paramWidget[0] = 0;
     s_t_nameWidget[0] = 0;
@@ -1128,6 +1229,13 @@ static void FillParams(HWND hwndDlg, int index)
 
 static void HandleInitialize(HWND hwndDlg)
 {
+    ShowBaseControls(hwndDlg, true);
+    ShowParamBaseControls(hwndDlg, false);
+    ShowNameGroupControls(hwndDlg, false);
+    ShowValueGroupControls(hwndDlg, false);
+    ShowFontControls(hwndDlg, false);
+    ShowColorControls(hwndDlg, false);
+
     s_lastTouchedParamNum = -1;
             
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
@@ -1146,20 +1254,7 @@ static void HandleInitialize(HWND hwndDlg)
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
     else
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
-    
-    if (s_t_fonts.size())
-        ShowFontControls(hwndDlg, true);
-    else
-        ShowFontControls(hwndDlg, false);
 
-    if (s_t_hasColor)
-    {
-        ShowColorControls(hwndDlg, true);
-        InvalidateRect(hwndDlg, NULL, true);
-    }
-    else
-        ShowColorControls(hwndDlg, false);
-    
     FillAllParamsList(hwndDlg);
 }
 
@@ -1230,6 +1325,9 @@ void WidgetMoved(Widget *widget, int modifier)
     */
 }
 
+HBRUSH g_hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
+
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1238,7 +1336,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     char colorBuf[32];
     
     switch (uMsg)
-    { 
+    {
         case WM_USER + 1024: // initialize
             HandleInitialize(hwndDlg);
             break;
@@ -1256,9 +1354,12 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 
                 for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
                 {
+                    if (! IsWindowVisible(GetDlgItem(hwndDlg, s_buttonColors[x][0]) ))
+                        continue;
+                    
                     const int colorPickerBox = s_buttonColors[x][1];
                     const int colorValue = s_buttonColors[x][2];
-
+                    
                     HBRUSH brush = CreateSolidBrush(colorValue);
                     
                     RECT clientRect, windowRect;
@@ -1425,6 +1526,19 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
                         if (CONTEXT_EXISTS(s_lastTouchedWidget, modifier))
                             GET_CONTEXT(s_lastTouchedWidget, modifier)->name->SetProvideFeedback(isChecked);
+                        
+                        ShowNameGroupControls(hwndDlg, isChecked);
+
+                        if (! isChecked || (isChecked && s_t_fonts.size() == 0))
+                            ShowNameFontControls(hwndDlg, false);
+                        else if (isChecked && s_t_fonts.size() > 0)
+                            ShowNameFontControls(hwndDlg, true);
+
+                        if (! isChecked || (isChecked && ! s_t_hasColor))
+                            ShowNameColorControls(hwndDlg, false);
+                        else if (isChecked && s_t_hasColor)
+                            ShowNameColorControls(hwndDlg, true);
+                        
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
                     }
@@ -1482,6 +1596,19 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
                         if(CONTEXT_EXISTS(s_lastTouchedWidget, modifier))
                             GET_CONTEXT(s_lastTouchedWidget, modifier)->value->SetProvideFeedback(isChecked);
+                        
+                        ShowValueGroupControls(hwndDlg, isChecked);
+
+                        if (! isChecked || (isChecked && s_t_fonts.size() == 0))
+                            ShowValueFontControls(hwndDlg, false);
+                        else if (isChecked && s_t_fonts.size() > 0)
+                            ShowValueFontControls(hwndDlg, true);
+
+                        if (! isChecked || (isChecked && ! s_t_hasColor))
+                            ShowValueColorControls(hwndDlg, false);
+                        else if (isChecked && s_t_hasColor)
+                            ShowValueColorControls(hwndDlg, true);
+                        
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
                     }
@@ -1620,6 +1747,8 @@ static void LearnFocusedFXDialog()
     if (s_hwndLearnDlg == NULL)
         return;
     
+    s_numChannels = s_zoneManager->GetSurface()->GetNumChannels();
+
     SendMessage(s_hwndLearnDlg, WM_USER + 1024, 0, 0);
         
     ShowWindow(s_hwndLearnDlg, SW_SHOW);

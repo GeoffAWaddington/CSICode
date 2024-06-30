@@ -196,9 +196,9 @@ BEGIN
     CONTROL         "Name",IDC_CHECK_ParamNameDisplay,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,20,33,10
     CONTROL         "Value",IDC_CHECK_ParamValueDisplay,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,256,35,31,10
     EDITTEXT        IDC_EditFXAlias,29,7,87,12,ES_CENTER | ES_AUTOHSCROLL
-    LTEXT           "Alias",IDC_FXParamValueDisplayFontLabel2,9,9,16,8
+    LTEXT           "Alias",IDC_Alias,9,9,16,8
     PUSHBUTTON      "Auto Map",IDC_AutoMap,65,298,50,14
-    LTEXT           "Steps",IDC_FixedTextDisplayTopLabel2,244,71,18,8
+    LTEXT           "Steps",IDC_Steps,244,71,18,8
     CONTROL         "Assign",IDC_CHECK_Assigned,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,129,28,33,10
     GROUPBOX        "Display",IDC_GroupFXControl2,250,8,49,44
 END

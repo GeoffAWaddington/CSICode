@@ -127,6 +127,8 @@
 #define IDC_RangeMinimumLabel           1280
 #define IDC_DeltaValueLabel             1281
 #define IDC_Apply                       1282
+#define IDC_Steps                       1283
+#define IDC_Alias                       1284
 #define IDC_CHECK_ParamNameDisplay      1285
 #define IDC_CHECK_ParamValueDisplay     1286
 #define IDC_CHECK_Assigned              1287
@@ -137,7 +139,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        127
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1286
+#define _APS_NEXT_CONTROL_VALUE         1291
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
