@@ -1296,12 +1296,30 @@ void WidgetMoved(Widget *widget, int modifier)
     if (s_lastTouchedParamNum < 0)
         return;
 
-    if (widget != s_lastTouchedWidget && CONTEXT_EXISTS(widget, modifier))
-        FillParams(s_hwndLearnDlg, GET_CONTEXT(widget, modifier), modifier);
-
+    if (widget == s_lastTouchedWidget)
+        return;
+    
     s_lastTouchedWidget = widget;
     s_lastTouchedModifier = modifier;
 
+    if (string(widget->GetName()).find("Rotary") != string::npos && string(widget->GetName()).find("RotaryPush") == string::npos)
+    {
+        ShowParamBaseControls(s_hwndLearnDlg, true);
+        ShowParamColorControls(s_hwndLearnDlg, true);
+    }
+    else
+    {
+        ShowParamBaseControls(s_hwndLearnDlg, false);
+        ShowParamColorControls(s_hwndLearnDlg, false);
+    }
+
+    if (CONTEXT_EXISTS(widget, modifier))
+        FillParams(s_hwndLearnDlg, GET_CONTEXT(widget, modifier), modifier);
+
+
+    
+    
+    
     /*
     if ( ! s_contextMap.Exists(widget) || ! s_contextMap.Get(widget)->Exists(modifier))
         return;
