@@ -159,7 +159,7 @@ CAPTION "No Focused FX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Delete Map",IDC_Delete,8,298,50,14
-    PUSHBUTTON      "Advanced",IDC_Advanced,127,298,46,14
+    PUSHBUTTON      "Advanced",IDC_Advanced,138,298,46,14
     COMBOBOX        IDC_PickSteps,267,69,26,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Control",IDC_GroupFXControl,129,54,171,74
     COMBOBOX        IDC_PickRingStyle,138,69,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP

@@ -1539,6 +1539,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         else if (isChecked && s_t_hasColor)
                             ShowNameColorControls(hwndDlg, true);
                         
+                        InvalidateRect(hwndDlg, NULL, true);
+                        
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
                     }
@@ -1609,6 +1611,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         else if (isChecked && s_t_hasColor)
                             ShowValueColorControls(hwndDlg, true);
                         
+                        InvalidateRect(hwndDlg, NULL, true);
+
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
                     }
