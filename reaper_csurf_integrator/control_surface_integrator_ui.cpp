@@ -49,9 +49,10 @@ struct FXCellWidget
 
 struct FXCell
 {
+    int channel;
     WDL_TypedBuf<FXCellWidget> params;
     
-    FXCell(WDL_TypedBuf<FXCellWidget> &paramWidgets)
+    FXCell(int aChannel, WDL_TypedBuf<FXCellWidget> &paramWidgets) : channel(aChannel)
     {
         for (int i = 0; i < paramWidgets.GetSize(); ++i)
            params.Add(paramWidgets.Get()[i]);
@@ -782,7 +783,7 @@ static void CreateContextMap()
                     s_contextMap.Insert(widget, m);
                 }
 
-                s_contextMap.Get(widget)->Insert(modifier, new FXCell(cellWidgets));
+                s_contextMap.Get(widget)->Insert(modifier, new FXCell(channel, cellWidgets));
             }
         }
     }
@@ -1023,6 +1024,8 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
     
+    int channel = GET_CHANNEL(widget, modifier);
+    
     rgba_color defaultColor;
     defaultColor.r = 237;
     defaultColor.g = 237;
@@ -1042,7 +1045,6 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     
     char fullName[MEDBUF];
     snprintf(fullName, sizeof(fullName), "%s%s", buf, paramContext->GetWidget()->GetName());
-    
     SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), fullName);
 
     const char *ringstyle = paramContext->GetWidgetProperties().get_prop(PropertyType_RingStyle);
@@ -1080,9 +1082,14 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     }
     else
         SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
-    
 
-
+    SendDlgItemMessage(hwndDlg, IDC_PickNameDisplay, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+    for (int i = 0; i < s_t_displayRows.size(); ++i)
+    {
+        snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
+        SendDlgItemMessage(hwndDlg, IDC_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
+    }
 
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
 
@@ -1123,9 +1130,15 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     }
     else
         GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+    
+    SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+    for (int i = 0; i < s_t_displayRows.size(); ++i)
+    {
+        snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
+        SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
+    }
 
-    
-    
     property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
     if (property)
         SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
@@ -1192,9 +1205,10 @@ static void FillParams(HWND hwndDlg, int index)
                 if (GET_PARAM_CONTEXT(widget, modifier)->GetParamIndex() == index)
                 {
                     FillParams(hwndDlg, widget, modifier);
+                    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_CHECKED, 0);
                     //if (s_hwndForegroundWindow)
                         //SetForegroundWindow(s_hwndForegroundWindow);
-                    break;
+                    return;
                 }
             }
         }
