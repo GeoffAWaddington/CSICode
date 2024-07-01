@@ -176,12 +176,12 @@ BEGIN
     PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,138,190,47,12
     PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,138,251,47,12
     PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,138,270,47,12
-    LTEXT           "",IDC_FXParamRingColorBox,193,90,9,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox,193,109,9,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,193,173,9,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,193,192,9,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,193,272,9,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,193,253,9,8
+    LTEXT           "",IDC_FXParamRingColorBox,198,90,9,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox,198,109,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,198,173,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,198,192,9,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,198,272,9,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,198,253,9,8
     EDITTEXT        IDC_Edit_FixedTextDisplayTop,275,152,16,12,ES_CENTER | ES_NUMBER
     LTEXT           "Top",IDC_FixedTextDisplayTopLabel,244,154,13,8
     LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel,244,192,24,8

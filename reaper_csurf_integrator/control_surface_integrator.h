@@ -58,9 +58,9 @@
 #endif
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
-#define GET_PARAM_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->paramContext)
-#define GET_NAME_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->nameContext)
-#define GET_VALUE_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->valueContext)
+#define GET_PARAM_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->GetParamContext(widget))
+#define GET_NAME_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->GetNameContext(widget))
+#define GET_VALUE_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->GetValueContext(widget))
 
 #define CONTEXT_EXISTS(widget, modifier) (widget != NULL && s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier) && s_contextMap.Get(widget)->Get(modifier) != NULL && s_contextMap.Get(widget)->Get(modifier)->paramContext != NULL && s_contextMap.Get(widget)->Get(modifier)->nameContext != NULL && s_contextMap.Get(widget)->Get(modifier)->valueContext != NULL)
 
