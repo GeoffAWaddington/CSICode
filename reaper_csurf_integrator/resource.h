@@ -61,8 +61,9 @@
 #define IDC_PickSteps                   1108
 #define IDC_AllParams                   1139
 #define IDC_GroupFXControl              1140
-#define IDC_GroupFXControl2             1141
 #define IDC_PickRingStyle               1143
+#define IDC_PickNameDisplay             1144
+#define IDC_PickValueDisplay            1145
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150
@@ -79,12 +80,10 @@
 #define IDC_FixedTextDisplayForegroundColor 1179
 #define IDC_FixedTextDisplayBackgroundColor 1182
 #define IDC_FXParamDisplayForegroundColor 1185
-#define IDC_FXParamDisplayForegroundColor2 1186
 #define IDC_FXParamDisplayBackgroundColor 1188
 #define IDC_Save                        1190
 #define IDC_FixedTextDisplayFontLabel   1199
 #define IDC_FXParamValueDisplayFontLabel 1202
-#define IDC_FXParamValueDisplayFontLabel2 1203
 #define IDC_FXParamRingColorBox         1205
 #define IDC_FXParamIndicatorColorBox    1208
 #define IDC_FXFixedTextDisplayForegroundColorBox 1211
@@ -95,7 +94,6 @@
 #define IDC_FixedTextDisplayBottomLabel 1227
 #define IDC_ParamValueDisplayTopLabel   1228
 #define IDC_ParamValueDisplayBottomLabel 1229
-#define IDC_FixedTextDisplayTopLabel2   1230
 #define IDC_StepsPromptGroup            1231
 #define IDC_LIST_Listeners              1246
 #define IDC_LIST_Broadcasters           1247
@@ -129,8 +127,6 @@
 #define IDC_Apply                       1282
 #define IDC_Steps                       1283
 #define IDC_Alias                       1284
-#define IDC_CHECK_ParamNameDisplay      1285
-#define IDC_CHECK_ParamValueDisplay     1286
 #define IDC_CHECK_Assigned              1287
 
 // Next default values for new objects
