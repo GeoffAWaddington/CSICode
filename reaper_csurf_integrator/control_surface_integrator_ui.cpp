@@ -1015,10 +1015,10 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         paramContext = GET_PARAM_CONTEXT(widget, modifier);
     
     if (NAME_CONTEXT_EXISTS(widget, modifier))
-        nameContext = GET_PARAM_CONTEXT(widget, modifier);
+        nameContext = GET_NAME_CONTEXT(widget, modifier);
     
     if (VALUE_CONTEXT_EXISTS(widget, modifier))
-        valueContext = GET_PARAM_CONTEXT(widget, modifier);
+        valueContext = GET_VALUE_CONTEXT(widget, modifier);
     
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
