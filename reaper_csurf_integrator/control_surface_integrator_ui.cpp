@@ -1311,6 +1311,23 @@ void WidgetMoved(Widget *widget, int modifier)
     FillParams(s_hwndLearnDlg, widget, modifier);
 }
 
+static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shouldAssign)
+{
+    if (s_lastTouchedWidget == NULL)
+        return;
+    
+    FXCell *cell = NULL;
+    
+    if (s_contextMap.Exists(s_lastTouchedWidget) && s_contextMap.Get(s_lastTouchedWidget)->Exists(modifier))
+        cell = s_contextMap.Get(s_lastTouchedWidget)->Get(modifier);
+    
+    if (cell == NULL)
+        return;
+    
+    
+    
+}
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1593,14 +1610,33 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     break;
                     
                 case IDC_AllParams:
-                   if (HIWORD(wParam) == LBN_SELCHANGE)
-                   {
+                    if (HIWORD(wParam) == LBN_SELCHANGE)
+                    {
                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
                        if (index >= 0)
                             FillParams(hwndDlg, index);
-                   }
-                   break;
+                    }
+                    break;
          
+                case IDC_CHECK_Assigned:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int paramNum = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
+                        if (paramNum < 0)
+                            break;
+
+                        if (s_lastTouchedWidget == NULL)
+                            break;
+                        
+                        bool shouldAssign = false;
+                        
+                        if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            shouldAssign = true;
+                        
+                        HandleAssigment(hwndDlg, modifier, paramNum, shouldAssign);
+                    }
+                    break;
+                    
                 case IDC_PickSteps:
                    if (HIWORD(wParam) == CBN_SELCHANGE)
                    {
