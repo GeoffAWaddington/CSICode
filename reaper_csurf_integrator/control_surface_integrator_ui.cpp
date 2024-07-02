@@ -1024,6 +1024,19 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
     
+    HWND hwndAssigned = GetDlgItem(hwndDlg, IDC_CHECK_Assigned);
+    
+    if ( ! strcmp (paramContext->GetAction()->GetName(), "NoAction"))
+    {
+        SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
+        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
+    }
+    else
+    {
+        SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
+        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assigned");
+    }
+
     int channel = GET_CHANNEL(widget, modifier);
     
     rgba_color defaultColor;
@@ -1205,7 +1218,6 @@ static void FillParams(HWND hwndDlg, int index)
                 if (GET_PARAM_CONTEXT(widget, modifier)->GetParamIndex() == index)
                 {
                     FillParams(hwndDlg, widget, modifier);
-                    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_CHECKED, 0);
                     //if (s_hwndForegroundWindow)
                         //SetForegroundWindow(s_hwndForegroundWindow);
                     return;
