@@ -604,7 +604,7 @@ public:
     void SetIsFeedbackInverted() { isFeedbackInverted_ = true; }
     void SetHoldDelayAmount(double holdDelayAmount) { holdDelayAmount_ = (DWORD) (holdDelayAmount * 1000.0 + 0.5); } // holdDelayAmount is specified in seconds, holdDelayAmount_ is in milliseconds
     
-    void SetAction(Action *action) { action_ = action; }
+    void SetAction(Action *action) { action_ = action; RequestUpdate(); }
     void DoAction(double value);
     void DoRelativeAction(double value);
     void DoRelativeAction(int accelerationIndex, double value);

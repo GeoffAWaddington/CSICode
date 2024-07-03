@@ -1353,11 +1353,21 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
         nameContext->SetStringParam("");
         nameContext->SetAction(noAction);
         valueContext->SetAction(noAction);
-
-    }
-    else
-    {
         
+        // GAW TBD - don't forget to  check for at least one feedback action per cell->per context, to prevent bleed through from other Zones
+    }
+    else // Assign
+    {
+        paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
+        paramContext->SetParamIndex(paramNum);
+
+        nameContext->SetAction(s_zoneManager->GetCSI()->GetFixedTextDisplayAction());
+        char buf[MEDBUF];
+        SendMessage(GetDlgItem(hwndDlg, IDC_AllParams), LB_GETTEXT, paramNum, (LPARAM)(LPCTSTR)(buf));
+        nameContext->SetStringParam(buf);
+        
+        valueContext->SetAction(s_zoneManager->GetCSI()->GetFXParamValueDisplayAction());
+        valueContext->SetParamIndex(paramNum);
     }
 }
 
