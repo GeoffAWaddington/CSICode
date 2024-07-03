@@ -1350,6 +1350,7 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
         Action *noAction = s_zoneManager->GetCSI()->GetNoActionAction();
         
         paramContext->SetAction(noAction);
+        nameContext->SetStringParam("");
         nameContext->SetAction(noAction);
         valueContext->SetAction(noAction);
 
