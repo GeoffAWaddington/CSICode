@@ -15,6 +15,7 @@
 #define IDD_DIALOG_Advanced             119
 #define IDD_DIALOG_Broadcast            123
 #define IDD_DIALOG_EditAdvanced         126
+#define IDD_DIALOG_LearnDisplays        127
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -57,6 +58,7 @@
 #define IDC_FXAlias                     1102
 #define IDC_AutoMap                     1103
 #define IDC_Advanced                    1105
+#define IDC_Displays                    1106
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
 #define IDC_AllParams                   1139
@@ -133,7 +135,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        127
+#define _APS_NEXT_RESOURCE_VALUE        128
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1291
 #define _APS_NEXT_SYMED_VALUE           101

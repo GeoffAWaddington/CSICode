@@ -1371,6 +1371,35 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     }
 }
 
+static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        
+                        s_dlgResult = IDOK;
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+                    break ;
+            }
+        }
+            break;
+    }
+
+    return 0;
+}
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1720,6 +1749,13 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_Advanced:
                     if (HIWORD(wParam) == BN_CLICKED)
                         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
+                    if (s_hwndForegroundWindow)
+                        SetForegroundWindow(s_hwndForegroundWindow);
+                    break;
+                                       
+                case IDC_Displays:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnDisplays), g_hwnd, dlgProcLearnFXDisplays);
                     if (s_hwndForegroundWindow)
                         SetForegroundWindow(s_hwndForegroundWindow);
                     break;
