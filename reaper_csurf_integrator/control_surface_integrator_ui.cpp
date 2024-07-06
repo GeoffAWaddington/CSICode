@@ -1364,7 +1364,7 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     }
 }
 
-static void InitializeParamListView(HWND hwndDlg)
+static void InitializeCellListView(HWND hwndDlg)
 {
     int modifier = 0;
     
@@ -1380,7 +1380,6 @@ static void InitializeParamListView(HWND hwndDlg)
     
     HWND hwndCellList = GetDlgItem(hwndDlg, IDC_CELL_LIST);
     
-    int numColumns = 2;
     
     ListView_DeleteAllItems(hwndCellList);
     
@@ -1432,8 +1431,15 @@ static void InitializeParamListView(HWND hwndDlg)
         item.mask = LVIF_TEXT | LVIF_PARAM;
         item.iItem = rowIdx++;
         item.cchTextMax = SMLBUF;
+        
         if ( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             item.pszText = (char *)cell->params.Get()[i].nameContext->GetStringParam();
+        else if ( ! strcmp(cell->params.Get()[i].paramContext->GetAction()->GetName(), "FXParam"))
+        {
+            char fxParamName[SMLBUF];
+            TrackFX_GetParamName(s_focusedTrack, s_fxSlot, cell->params.Get()[i].paramContext->GetParamIndex(), fxParamName, sizeof(fxParamName));
+            item.pszText = fxParamName;
+        }
         else
             item.pszText = buf;
         
@@ -1444,10 +1450,11 @@ static void InitializeParamListView(HWND hwndDlg)
         item.mask = LVIF_TEXT | LVIF_PARAM;
         item.iItem = rowIdx++;
         item.cchTextMax = SMLBUF;
-        if ( ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
+        if ( ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay") ||
+             ! strcmp(cell->params.Get()[i].paramContext->GetAction()->GetName(), "FXParam"))
         {
             char fxParamValue[SMLBUF];
-            TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, fxParamValue, sizeof(fxParamValue));
+            TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, cell->params.Get()[i].paramContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
             item.pszText = fxParamValue;
         }
         else
@@ -1465,7 +1472,8 @@ static void InitializeParamListView(HWND hwndDlg)
     return;
     
     
-    
+    int numColumns = 2;
+
     
     
     int cellNumOffset = 0;
@@ -1559,7 +1567,6 @@ static void InitializeParamListView(HWND hwndDlg)
     }
 }
 
-
 static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1572,7 +1579,7 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         case WM_INITDIALOG: // initialize
         {
             HandleInitLearnFXDisplayDialog(hwndDlg);
-            InitializeParamListView(hwndDlg);
+            InitializeCellListView(hwndDlg);
         }
             break;
 
