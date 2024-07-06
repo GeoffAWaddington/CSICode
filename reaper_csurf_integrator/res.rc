@@ -159,10 +159,9 @@ CAPTION "No Focused FX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Delete Map",IDC_Delete,8,298,50,14
-    PUSHBUTTON      "Parameters",IDC_Advanced,138,165,46,14
-    COMBOBOX        IDC_PickSteps,267,140,26,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Control",IDC_GroupFXControl,129,125,171,63
-    COMBOBOX        IDC_PickRingStyle,138,140,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PickSteps,267,141,26,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Control",IDC_GroupFXControl,129,125,171,39
+    COMBOBOX        IDC_PickRingStyle,138,141,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_FXParamNameEdit,182,100,111,12,ES_CENTER | ES_AUTOHSCROLL
     PUSHBUTTON      "Cancel",IDC_ExitNoSave,255,298,46,14
     PUSHBUTTON      "Save",IDC_Save,204,298,46,14
@@ -170,9 +169,9 @@ BEGIN
     EDITTEXT        IDC_EditFXAlias,29,7,87,12,ES_CENTER | ES_AUTOHSCROLL
     LTEXT           "Alias",IDC_Alias,9,9,16,8
     PUSHBUTTON      "Auto Map",IDC_AutoMap,65,298,50,14
-    LTEXT           "Steps",IDC_Steps,244,142,18,8
+    LTEXT           "Steps",IDC_Steps,244,143,18,8
     CONTROL         "Assigned",IDC_CHECK_Assigned,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,101,44,10
-    PUSHBUTTON      "Displays",IDC_Displays,248,165,46,14
+    PUSHBUTTON      "Advanced",IDC_Displays,138,298,46,14
 END
 
 IDD_DIALOG_Broadcast DIALOGEX 0, 0, 472, 200
@@ -267,6 +266,7 @@ BEGIN
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,160,62,16,12,ES_CENTER | ES_NUMBER
     LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,129,64,24,8
     CONTROL         "",IDC_CELL_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,205,55,171,107
+    PUSHBUTTON      "Parameters",IDC_Advanced,23,170,46,14
 END
 
 

@@ -1431,7 +1431,7 @@ static void InitializeParamListView(HWND hwndDlg)
         memset(&item, 0, sizeof(item));
         item.mask = LVIF_TEXT | LVIF_PARAM;
         item.iItem = rowIdx++;
-        item.cchTextMax = 50;
+        item.cchTextMax = SMLBUF;
         if ( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             item.pszText = (char *)cell->params.Get()[i].nameContext->GetStringParam();
         else
@@ -1439,13 +1439,14 @@ static void InitializeParamListView(HWND hwndDlg)
         
         ListView_InsertItem(hwndCellList, &item);
 
+        
         memset(&item, 0, sizeof(item));
         item.mask = LVIF_TEXT | LVIF_PARAM;
         item.iItem = rowIdx++;
-        item.cchTextMax = 50;
+        item.cchTextMax = SMLBUF;
         if ( ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
         {
-            char fxParamValue[128];
+            char fxParamValue[SMLBUF];
             TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, fxParamValue, sizeof(fxParamValue));
             item.pszText = fxParamValue;
         }
@@ -1518,6 +1519,10 @@ static void InitializeParamListView(HWND hwndDlg)
                 item.iSubItem = columnIdx + 1;
                 item.cchTextMax = 20;
                 item.pszText = pszTextBuf;
+                
+                //ListView_SetItem(hwndParamList, &item);
+
+                
                 /*
                 FXParamInfo info;
                 info.row = rowIdx;
@@ -1804,6 +1809,13 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     }
                     break;
                     
+                case IDC_Advanced:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
+                    if (s_hwndForegroundWindow)
+                        SetForegroundWindow(s_hwndForegroundWindow);
+                    break;
+
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1943,13 +1955,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
                     }
                     break ;
-
-                case IDC_Advanced:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
-                    if (s_hwndForegroundWindow)
-                        SetForegroundWindow(s_hwndForegroundWindow);
-                    break;
                                        
                 case IDC_Displays:
                     if (HIWORD(wParam) == BN_CLICKED)
