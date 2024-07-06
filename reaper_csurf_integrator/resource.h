@@ -130,6 +130,7 @@
 #define IDC_Steps                       1283
 #define IDC_Alias                       1284
 #define IDC_CHECK_Assigned              1287
+#define IDC_CELL_LIST                   1291
 
 // Next default values for new objects
 // 
@@ -137,7 +138,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        128
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1291
+#define _APS_NEXT_CONTROL_VALUE         1292
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -237,37 +237,36 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,271,167,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,327,167,50,14
-    GROUPBOX        "Control",IDC_GroupFXControl,14,11,171,74
+    DEFPUSHBUTTON   "OK",IDOK,271,170,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,327,170,50,14
+    GROUPBOX        "Control",IDC_GroupFXControl,204,11,171,32
     GROUPBOX        "Param Name",IDC_GroupFixedTextDisplay,14,92,171,71
-    GROUPBOX        "Param Value",IDC_GroupFXParamValueDisplay,205,92,171,70
-    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel,320,127,15,8
-    COMBOBOX        IDC_FXParamValueDisplayPickFont,347,124,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Param Value",IDC_GroupFXParamValueDisplay,14,11,171,70
+    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel,129,46,15,8
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,156,43,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Font",IDC_FixedTextDisplayFontLabel,129,127,15,8
     COMBOBOX        IDC_FixedTextDisplayPickFont,156,125,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Ring",IDC_FXParamRingColor,23,45,47,12
-    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,23,64,47,13
-    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor,23,125,47,12
-    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,23,144,47,12
-    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,214,124,47,12
-    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,214,143,47,12
-    LTEXT           "",IDC_FXParamRingColorBox,83,47,9,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox,83,66,9,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,83,127,9,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,83,146,9,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,274,145,9,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,274,126,9,8
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor,213,23,47,12
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,292,23,47,13
+    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor,23,107,47,12
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,23,126,47,12
+    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,23,24,47,12
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,23,43,47,12
+    LTEXT           "",IDC_FXParamRingColorBox,273,25,9,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox,352,25,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,83,109,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,83,128,9,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,83,45,9,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,83,26,9,8
     EDITTEXT        IDC_Edit_FixedTextDisplayTop,160,106,16,12,ES_CENTER | ES_NUMBER
     LTEXT           "Top",IDC_FixedTextDisplayTopLabel,129,108,13,8
     LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel,129,146,24,8
     EDITTEXT        IDC_Edit_FixedTextDisplayBottom,160,144,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayTop,351,105,16,12,ES_CENTER | ES_NUMBER
-    LTEXT           "Top",IDC_ParamValueDisplayTopLabel,320,107,13,8
-    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,351,143,16,12,ES_CENTER | ES_NUMBER
-    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,320,145,24,8
-    COMBOBOX        IDC_PickNameDisplay,23,107,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_PickValueDisplay,214,106,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop,160,24,16,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_ParamValueDisplayTopLabel,129,26,13,8
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,160,62,16,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,129,64,24,8
+    CONTROL         "",IDC_CELL_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,205,55,171,107
 END
 
 

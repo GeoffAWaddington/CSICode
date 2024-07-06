@@ -1364,6 +1364,197 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     }
 }
 
+static void InitializeParamListView(HWND hwndDlg)
+{
+    int modifier = 0;
+    
+    if (s_zoneManager)
+    {
+        const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+        
+        if (modifiers.GetSize() > 0)
+            modifier = modifiers.Get()[0];
+    }
+
+    char buf[MEDBUF];
+    
+    HWND hwndCellList = GetDlgItem(hwndDlg, IDC_CELL_LIST);
+    
+    int numColumns = 2;
+    
+    ListView_DeleteAllItems(hwndCellList);
+    
+    
+    
+    //RECT r;
+    
+    //GetClientRect(hwndCellList, &r);
+
+    //int firstColumnSize = 100; // (int)((r.right - r.left) / 4.685);
+    int columnSize  = 80; // (int)((r.right - r.left) / 12.835);
+
+#ifdef WIN32
+    //firstColumnSize = (int)((r.right - r.left) / 5.065);
+    //columnSize  = (int)((r.right - r.left) / 9.967);
+#endif
+
+    
+    
+    LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
+    columnDescriptor.cx = columnSize;
+    buf[0] = 0;
+    columnDescriptor.pszText = buf;
+    ListView_InsertColumn(hwndCellList, 0, &columnDescriptor);
+    
+    for (int i = 0; i < s_t_displayRows.size(); ++i)
+    {
+        char caption[SMLBUF];
+        snprintf(caption, sizeof(caption), "%s", s_t_displayRows[i].c_str());
+        columnDescriptor.pszText = caption;
+        columnDescriptor.cx = columnSize;
+        columnDescriptor.fmt = LVCFMT_CENTER;
+        ListView_InsertColumn(hwndCellList, i + 1, &columnDescriptor);
+    }
+       
+    if ( ! s_contextMap.Exists(s_currentWidget) || ! s_contextMap.Get(s_currentWidget)->Exists(modifier))
+        return;
+    
+    buf[0] = 0;
+    
+    FXCell *cell = s_contextMap.Get(s_currentWidget)->Get(modifier);
+    
+    int rowIdx = 0;
+    
+    for (int i = 0; i < cell->params.GetSize(); ++i)
+    {
+        LVITEM item;
+        memset(&item, 0, sizeof(item));
+        item.mask = LVIF_TEXT | LVIF_PARAM;
+        item.iItem = rowIdx++;
+        item.cchTextMax = 50;
+        if ( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FixedTextDisplay"))
+            item.pszText = (char *)cell->params.Get()[i].nameContext->GetStringParam();
+        else
+            item.pszText = buf;
+        
+        ListView_InsertItem(hwndCellList, &item);
+
+        memset(&item, 0, sizeof(item));
+        item.mask = LVIF_TEXT | LVIF_PARAM;
+        item.iItem = rowIdx++;
+        item.cchTextMax = 50;
+        if ( ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
+        {
+            char fxParamValue[128];
+            TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, fxParamValue, sizeof(fxParamValue));
+            item.pszText = fxParamValue;
+        }
+        else
+            item.pszText = buf;
+
+        ListView_InsertItem(hwndCellList, &item);
+
+
+        
+    }
+    
+    
+    
+    
+    return;
+    
+    
+    
+    
+    
+    int cellNumOffset = 0;
+    
+    for (int row = 0; row < s_fxRowLayouts.size(); ++row)
+    {
+        if (row != 0)
+            cellNumOffset += numColumns;
+        
+        for (int cell = 0; cell < s_t_paramWidgets.size(); ++cell)
+        {
+            int rowIdx = row * s_t_paramWidgets.size() + cell;
+            
+            char widgetName[128];
+            
+            if(s_fxRowLayouts[row].modifier)
+                snprintf(widgetName, sizeof(widgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers, s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix);
+            else
+                snprintf(widgetName, sizeof(widgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix);
+
+            LVITEM item;
+            memset(&item, 0, sizeof(item));
+            item.mask = LVIF_TEXT | LVIF_PARAM;
+            item.iItem = rowIdx;
+            item.cchTextMax = 20;
+            item.pszText = widgetName;
+            
+            ListView_InsertItem(hwndCellList, &item);
+                        
+            for (int columnIdx = 0; columnIdx < numColumns; ++columnIdx)
+            {
+                char paramName[MEDBUF];
+                paramName[0] = 0;
+                
+                char paramWidget[MEDBUF];
+                snprintf(paramWidget, sizeof(paramWidget), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix, columnIdx + 1);
+                
+                char nameDisplayWidget[MEDBUF];
+                snprintf(nameDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_nameWidget, s_fxRowLayouts[row].suffix, columnIdx + 1);
+
+                char valueDisplayWidget[MEDBUF];
+                snprintf(valueDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_valueWidget, s_fxRowLayouts[row].suffix, columnIdx + 1);
+
+                char pszTextBuf[128];
+                pszTextBuf[0] = 0;
+                
+                LVITEM item;
+                memset(&item, 0, sizeof(item));
+                item.mask = LVIF_TEXT;
+                item.iItem = rowIdx;
+                item.iSubItem = columnIdx + 1;
+                item.cchTextMax = 20;
+                item.pszText = pszTextBuf;
+                /*
+                FXParamInfo info;
+                info.row = rowIdx;
+                info.column = columnIdx + 1;
+                info.cellNum = columnIdx + cellNumOffset + 1;
+                info.paramName[0] = 0;
+                strcpy(info.paramWidget, paramWidget);
+                strcpy(info.paramNameWidget, nameDisplayWidget);
+                strcpy(info.paramValueWidget, valueDisplayWidget);
+                info.modifier = s_fxRowLayouts[row].modifier;
+
+                for (int cellWidget = 0; cellWidget < cellWidgets.size(); ++cellWidget)
+                {
+                    FXCellWidgets &widgets = cellWidgets[cellWidget];
+                    
+                    if(!strcmp(widgets.paramWidget, paramWidget) && info.modifier == widgets.modifier)
+                    {
+                        info.paramNum = widgets.paramNum;
+                        strcpy(info.paramName, widgets.paramName);
+                        item.pszText = info.paramName;
+                        strcpy(info.paramWidget, widgets.paramWidget);
+                        strcpy(info.paramNameWidget, widgets.paramNameWidget);
+                        strcpy(info.paramValueWidget, widgets.paramValueWidget);
+
+                        break;
+                    }
+                }
+                  
+                ListView_SetItem(hwndParamList, &item);
+                s_fxParamInfo.push_back(info);
+                 */
+            }
+        }
+    }
+}
+
+
 static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1373,15 +1564,11 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
     switch(uMsg)
     {
-        case WM_USER + 1024: // initialize
-        {
-            ShowFontControls(hwndDlg, false);
-            ShowColorControls(hwndDlg, false);
-        }
-            break;
-           
         case WM_INITDIALOG: // initialize
+        {
             HandleInitLearnFXDisplayDialog(hwndDlg);
+            InitializeParamListView(hwndDlg);
+        }
             break;
 
         case WM_PAINT:
