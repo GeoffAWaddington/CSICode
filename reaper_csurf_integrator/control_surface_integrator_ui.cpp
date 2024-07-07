@@ -830,42 +830,83 @@ static void AutoMapFX(HWND hwndDlg)
 
             for (int channel = 1; channel <= s_numChannels; ++channel)
             {
+                if (currentParam < numParams)
+                {
+                    string steps;
+                    s_zoneManager->GetSteppedValuesForParam(steps, s_fxName, s_focusedTrack, s_fxSlot, currentParam);
+                    fprintf(fxFile, "\t%s%s%s%d FXParam %d %s%s\n", modifiers, s_t_paramWidgets[0].c_str(), suffix, channel, currentParam, steps.c_str(), s_t_paramWidgetParams);
+                }
+                else
+                    fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_paramWidgets[0].c_str(), suffix, channel);
+
+                
+                for (int widgetTypesIdx = 1; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
+                     fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
+                
+                
+                
+                
+                if (currentParam < numParams)
+                {
+                    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
+                    fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, s_t_nameWidgetParams);
+                    fprintf(fxFile, "\t%s%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, suffix, channel, currentParam, s_t_valueWidgetParams);
+
+                    currentParam++;
+                }
+                else
+                {
+                    fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_nameWidget, suffix, channel);
+                    fprintf(fxFile, "\t%s%s%s%d NoAction\n\n", modifiers, s_t_valueWidget, suffix, channel);
+
+                }
+
+                
+                
+                /*
+                
                 for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size() && rowLayoutIdx < s_fxRowLayouts.size(); ++widgetTypesIdx)
                 {
+                    
+                    
+                    
                     if (widgetTypesIdx == 0)
                     {
                         if (currentParam < numParams)
                         {
-                            string steps;
-                            s_zoneManager->GetSteppedValuesForParam(steps, s_fxName, s_focusedTrack, s_fxSlot, currentParam);
-                            fprintf(fxFile, "\t%s%s%s%d FXParam %d %s%s\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel, currentParam, steps.c_str(), s_t_paramWidgetParams);
-                            
-                            TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
-                            fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, s_t_nameWidgetParams);
-                            
-                            fprintf(fxFile, "\t%s%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, suffix, channel, currentParam, s_t_valueWidgetParams);
-                            
-                            currentParam++;
                         }
                         else
                         {
-                            fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
+                            fprintf(fxFile, "\t%s%s%s%d NoAction\n\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
                             fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_nameWidget, suffix, channel);
                             fprintf(fxFile, "\t%s%s%s%d NoAction\n\n", modifiers, s_t_valueWidget, suffix, channel);
                         }
                     }
                     else
                     {
-                        fprintf(fxFile, "\t%s%s%s%d NoAction\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
-                        fprintf(fxFile, "\t%s%s%s%d NoAction NoFeedback\n", modifiers, s_t_nameWidget, suffix, channel);
-                        fprintf(fxFile, "\t%s%s%s%d NoAction NoFeedback\n\n", modifiers, s_t_valueWidget, suffix, channel);
+                        fprintf(fxFile, "\t%s%s%s%d NoAction\n\n", modifiers, s_t_paramWidgets[widgetTypesIdx].c_str(), suffix, channel);
+                        //fprintf(fxFile, "\t%s%s%s%d NoAction NoFeedback\n", modifiers, s_t_nameWidget, suffix, channel);
+                        //fprintf(fxFile, "\t%s%s%s%d NoAction NoFeedback\n\n", modifiers, s_t_valueWidget, suffix, channel);
                     }
+                   
+                    if (currentParam < numParams && widgetTypesIdx == 0)
+                    {
+                        TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
+                        fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, s_t_nameWidgetParams);
+                        fprintf(fxFile, "\t%s%s%s%d FXParamValueDisplay %d %s\n\n", modifiers, s_t_valueWidget, suffix, channel, currentParam, s_t_valueWidgetParams);
+
+                        currentParam++;
+                    }
+                    
                 }
                 
                 fprintf(fxFile, "\n\n");
+                
+                
+                */
             }
             
-            fprintf(fxFile, "\n\n\n");
+            fprintf(fxFile, "\n\n");
         }
                 
         fprintf(fxFile, "%s\n\n", s_EndAutoSection);
