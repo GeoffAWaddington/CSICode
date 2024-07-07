@@ -1432,9 +1432,12 @@ static void InitializeCellListView(HWND hwndDlg)
     
     int rowIdx = 0;
     
-    for (int i = 0; i < cell->params.GetSize(); ++i)
+    for (int paramsIdx = 0; paramsIdx < cell->params.GetSize(); ++paramsIdx)
     {
         LVITEM item;
+        
+        FXCellWidget &params = cell->params.Get()[paramsIdx];
+        
         /*
         memset(&item, 0, sizeof(item));
         item.mask = LVIF_TEXT;
@@ -1464,7 +1467,7 @@ static void InitializeCellListView(HWND hwndDlg)
         item.mask = LVIF_TEXT;
         item.iItem = rowIdx;
         item.cchTextMax = SMLBUF;
-        item.pszText = (char *)cell->params.Get()[i].paramWidget->GetName();
+        item.pszText = (char *)params.paramWidget->GetName();
         ListView_InsertItem(hwndCellList, &item);
         
         memset(&item, 0, sizeof(item));
@@ -1473,14 +1476,42 @@ static void InitializeCellListView(HWND hwndDlg)
         item.iSubItem = 1;
         item.cchTextMax = SMLBUF;
         
-        if ( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FXParamValueDisplay") || ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
+        for (int i = 0; i < s_t_displayRows.size(); ++i)
         {
-            
-            
-            
-            char fxParamValue[SMLBUF];
-            TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, cell->params.Get()[i].paramContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
-            item.pszText = fxParamValue;
+            if (strstr(params.nameContext->GetWidget()->GetName(), s_t_displayRows[i]))
+            {
+                
+            }
+        }
+        
+        
+        if ( ! strcmp(params.nameContext->GetAction()->GetName(), "FXParamValueDisplay"))
+        {
+            for (int i = 0; i < s_t_displayRows.size(); ++i)
+            {
+                if (strstr(params.nameContext->GetWidget()->GetName(), s_t_displayRows[i]))
+                {
+                    item.iSubItem = i + 1;
+                    char fxParamValue[SMLBUF];
+                    TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, params.nameContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
+                    item.pszText = fxParamValue;
+                    break;
+                }
+            }
+        }
+        else if ( ! strcmp(params.valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
+        {
+            for (int i = 0; i < s_t_displayRows.size(); ++i)
+            {
+                if (strstr(params.valueContext->GetWidget()->GetName(), s_t_displayRows[i]))
+                {
+                    item.iSubItem = i + 2;
+                    char fxParamValue[SMLBUF];
+                    TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, params.valueContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
+                    item.pszText = fxParamValue;
+                    break;
+                }
+            }
         }
         
         ListView_SetItem(hwndCellList, &item);
@@ -1661,12 +1692,9 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         {
             RECT parentRect;
             RECT dlgRect;
-
             GetWindowRect(s_hwndLearnDlg, &parentRect);
             GetWindowRect(hwndDlg, &dlgRect);
-
             int offset = parentRect.right - parentRect.left + 1;
-            
             SetWindowPos(hwndDlg, 0, dlgRect.left + offset, dlgRect.top, dlgRect.right - dlgRect.left, dlgRect.bottom - dlgRect.top, 0);
         }
             break;
