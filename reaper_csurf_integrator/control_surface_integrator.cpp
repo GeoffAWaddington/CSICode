@@ -2904,8 +2904,6 @@ void ZoneManager::CheckFocusedFXState()
     int paramIndex = 0;
     
     bool retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
-
-    CheckLearnFocusedFXState(this);
     
     if (! isFocusedFXMappingEnabled_)
         return;

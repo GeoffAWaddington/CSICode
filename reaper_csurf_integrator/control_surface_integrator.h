@@ -80,7 +80,6 @@ extern void ReplaceAllWith(string &output, const char *replaceAny, const char *r
 extern int strToHex(const char *valueStr);
 
 extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
-extern void CheckLearnFocusedFXState(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow();
 extern void UpdateLearnWindow(int paramNumber);

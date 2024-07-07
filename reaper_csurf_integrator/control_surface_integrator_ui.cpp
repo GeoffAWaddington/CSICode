@@ -122,6 +122,7 @@ static char s_t_valueWidgetParams[BUFSIZ];
 
 
 static HWND s_hwndLearnDlg = NULL;
+static HWND s_hwndLearnDisplaysDlg = NULL;
 static int s_dlgResult = IDCANCEL;
 
 static HWND s_hwndForegroundWindow = NULL;
@@ -1380,8 +1381,19 @@ static void InitializeCellListView(HWND hwndDlg)
     
     HWND hwndCellList = GetDlgItem(hwndDlg, IDC_CELL_LIST);
     
+    if (hwndCellList == NULL)
+        return;
+    
+    for (int i = Header_GetItemCount(ListView_GetHeader(hwndCellList)) - 1; i >= 0; --i)
+        ListView_DeleteColumn(hwndCellList, i);
+    
     ListView_DeleteAllItems(hwndCellList);
     ListView_SetExtendedListViewStyleEx(hwndCellList, LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
+    
+    
+    
+    
+    
     
     //RECT r;
     
@@ -1463,9 +1475,6 @@ static void InitializeCellListView(HWND hwndDlg)
         
         if ( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FXParamValueDisplay") || ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
         {
-            
-            
-            
             
             
             
@@ -1641,10 +1650,24 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
     switch(uMsg)
     {
-        case WM_INITDIALOG: // initialize
+        case WM_USER + 1024: // initialize
         {
             HandleInitLearnFXDisplayDialog(hwndDlg);
             InitializeCellListView(hwndDlg);
+        }
+            break;
+            
+        case WM_INITDIALOG: // initialize
+        {
+            RECT parentRect;
+            RECT dlgRect;
+
+            GetWindowRect(s_hwndLearnDlg, &parentRect);
+            GetWindowRect(hwndDlg, &dlgRect);
+
+            int offset = parentRect.right - parentRect.left + 1;
+            
+            SetWindowPos(hwndDlg, 0, dlgRect.left + offset, dlgRect.top, dlgRect.right - dlgRect.left, dlgRect.bottom - dlgRect.top, 0);
         }
             break;
 
@@ -1899,7 +1922,7 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        EndDialog(hwndDlg, 0);
+                        ShowWindow(hwndDlg, false);
                     break ;
             }
         }
@@ -2030,7 +2053,15 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                        
                 case IDC_Displays:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnDisplays), g_hwnd, dlgProcLearnFXDisplays);
+                    {
+                        if (s_hwndLearnDisplaysDlg == NULL)
+                            s_hwndLearnDisplaysDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnDisplays), g_hwnd, dlgProcLearnFXDisplays);
+                        if (s_hwndLearnDisplaysDlg != NULL)
+                        {
+                            SendMessage(s_hwndLearnDisplaysDlg, WM_USER + 1024, 0, 0);
+                            ShowWindow(s_hwndLearnDisplaysDlg, true);
+                        }
+                    }
                     if (s_hwndForegroundWindow)
                         SetForegroundWindow(s_hwndForegroundWindow);
                     break;
@@ -2092,40 +2123,6 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     {
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
         LearnFocusedFXDialog();
-    }
-}
-
-void CheckLearnFocusedFXState(ZoneManager *zoneManager)
-{
-    if ((s_hwndLearnDlg != NULL && ! IsWindowVisible(s_hwndLearnDlg)) || s_zoneManager == NULL || zoneManager != s_zoneManager) // not the current control surface
-        return;
-    
-    int trackNumber = 0;
-    int fxSlot = 0;
-    int itemNumber = 0;
-    int takeNumber = 0;
-    int paramIndex = 0;
-        
-    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
-
-    MediaTrack *focusedTrack = NULL;
-    
-    trackNumber++;
-    
-    if (retVal && ! (paramIndex & 0x01))
-    {
-        if (trackNumber > 0)
-            focusedTrack = DAW::GetTrack(trackNumber);
-        else if (trackNumber == 0)
-            focusedTrack = GetMasterTrack(NULL);
-    }
-
-    if (focusedTrack != NULL && (focusedTrack != s_focusedTrack || (focusedTrack == s_focusedTrack && fxSlot != s_fxSlot)))
-    {
-        s_focusedTrack = focusedTrack;
-        s_fxSlot = fxSlot;
-        
-        LaunchLearnFocusedFXDialog(zoneManager);
     }
 }
 
