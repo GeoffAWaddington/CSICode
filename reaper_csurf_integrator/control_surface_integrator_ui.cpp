@@ -49,6 +49,9 @@ struct FXCellWidget
 
 struct FXCell
 {
+    WDL_PtrList<Widget> controlWidgets;
+    WDL_PtrList<Widget> displayWidgets;
+
     int channel;
     WDL_TypedBuf<FXCellWidget> params;
     
@@ -85,24 +88,6 @@ struct FXCell
         return NULL;
     }
 };
-/*
-struct FXCell
-{
-    ActionContext *paramContext;
-    ActionContext *nameContext;
-    ActionContext *valueContext;
-    
-    FXCell()
-    {
-        paramContext = NULL;
-        nameContext = NULL;
-        valueContext = NULL;
-    }
-};
-
-static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
-WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_contextMap(destroyFXParamWidgetCellContextList);
-*/
 
 static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
 WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_contextMap(destroyFXParamWidgetCellContextList);
@@ -716,6 +701,8 @@ static void CreateContextMap()
     if (zoneContexts == NULL)
         return;
     
+    char widgetName[SMLBUF];
+
     Widget *paramWidget = NULL;
     ActionContext *paramContext = NULL;
     ActionContext *nameContext = NULL;
@@ -731,8 +718,6 @@ static void CreateContextMap()
             paramContext = NULL;
             nameContext = NULL;
             valueContext = NULL;
-            
-            char widgetName[SMLBUF];
             
             WDL_TypedBuf<FXCellWidget> cellWidgets;
             
@@ -776,9 +761,25 @@ static void CreateContextMap()
                 cellWidgets.Add(FXCellWidget(paramWidget, paramContext, nameWidget, nameContext, valueWidget, valueContext));
             }
 
-            for (int i = 0; i < cellWidgets.GetSize(); ++i)
+            FXCell *cell = new FXCell(channel, cellWidgets);
+
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
             {
-                Widget *widget = cellWidgets.Get()[i].paramWidget;
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                    cell->controlWidgets.Add(widget);
+            }
+            
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                 if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                     cell->displayWidgets.Add(widget);
+            }
+            
+            for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
+            {
+                Widget *widget = cell->controlWidgets.Get(i);
                 
                 if (! s_contextMap.Exists(widget))
                 {
@@ -786,7 +787,7 @@ static void CreateContextMap()
                     s_contextMap.Insert(widget, m);
                 }
 
-                s_contextMap.Get(widget)->Insert(modifier, new FXCell(channel, cellWidgets));
+                s_contextMap.Get(widget)->Insert(modifier, cell);
             }
         }
     }
