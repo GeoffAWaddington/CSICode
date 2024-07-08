@@ -1418,6 +1418,9 @@ static void InitializeCellListView(HWND hwndDlg)
             modifier = modifiers.Get()[0];
     }
 
+    if ( ! s_contextMap.Exists(s_currentWidget) || ! s_contextMap.Get(s_currentWidget)->Exists(modifier))
+        return;
+
     char buf[MEDBUF];
     buf[0] = 0;
     
@@ -1450,8 +1453,6 @@ static void InitializeCellListView(HWND hwndDlg)
 #endif
     
     FXCell *cell = s_contextMap.Get(s_currentWidget)->Get(modifier);
-
-    
     
     LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
     columnDescriptor.cx = columnSize;
@@ -1459,18 +1460,16 @@ static void InitializeCellListView(HWND hwndDlg)
     columnDescriptor.pszText = buf;
     ListView_InsertColumn(hwndCellList, 0, &columnDescriptor);
     
-    for (int i = 0; i < s_t_displayRows.size(); ++i)
+    for (int i = 0; i < cell->displayWidgets.GetSize(); ++i)
     {
         char caption[SMLBUF];
-        snprintf(caption, sizeof(caption), "%s%d", s_t_displayRows[i].c_str(), cell->channel);
+        snprintf(caption, sizeof(caption), "%s", cell->displayWidgets.Get(i)->GetName());
         columnDescriptor.pszText = caption;
         columnDescriptor.cx = columnSize;
         columnDescriptor.fmt = LVCFMT_CENTER;
         ListView_InsertColumn(hwndCellList, i + 1, &columnDescriptor);
     }
        
-    if ( ! s_contextMap.Exists(s_currentWidget) || ! s_contextMap.Get(s_currentWidget)->Exists(modifier))
-        return;
     
     buf[0] = 0;
        
@@ -1479,35 +1478,7 @@ static void InitializeCellListView(HWND hwndDlg)
     for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
     {
         LVITEM item;
-        
-        //FXCellWidget &params = cell->params.Get()[paramsIdx];
-        
-        /*
-        memset(&item, 0, sizeof(item));
-        item.mask = LVIF_TEXT;
-        item.iItem = rowIdx;
-        item.cchTextMax = SMLBUF;
-        char fxParamName[SMLBUF];
-        TrackFX_GetParamName(s_focusedTrack, s_fxSlot, cell->params.Get()[i].paramContext->GetParamIndex(), fxParamName, sizeof(fxParamName));
-        item.pszText = fxParamName;
-        ListView_InsertItem(hwndCellList, &item);
-        
-        memset(&item, 0, sizeof(item));
-        item.mask = LVIF_TEXT;
-        item.iItem = rowIdx;
-        item.iSubItem = 1;
-        item.cchTextMax = SMLBUF;
-
-        //if( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FixedTextDisplay"))
-            item.pszText = (char *)cell->params.Get()[i].nameContext->GetStringParam();
-
-        ListView_SetItem(hwndCellList, &item);
-
-        rowIdx++;
-        
-        continue;
-        */
-        
+                
         memset(&item, 0, sizeof(item));
         item.mask = LVIF_TEXT;
         item.iItem = rowIdx;
@@ -1515,110 +1486,15 @@ static void InitializeCellListView(HWND hwndDlg)
         item.pszText = (char *)cell->controlWidgets.Get(controlIdx)->GetName();
         ListView_InsertItem(hwndCellList, &item);
         
-        
-        
-        
-        /*
-        memset(&item, 0, sizeof(item));
-        item.mask = LVIF_TEXT;
-        item.iItem = rowIdx;
-        item.iSubItem = 1;
-        item.cchTextMax = SMLBUF;
-        
-        for (int i = 0; i < s_t_displayRows.size(); ++i)
-        {
-            if (strstr(params.nameContext->GetWidget()->GetName(), s_t_displayRows[i]))
-            {
-                
-            }
-        }
-        
-        
-        if ( ! strcmp(params.nameContext->GetAction()->GetName(), "FXParamValueDisplay"))
-        {
-            for (int i = 0; i < s_t_displayRows.size(); ++i)
-            {
-                if (strstr(params.nameContext->GetWidget()->GetName(), s_t_displayRows[i]))
-                {
-                    item.iSubItem = i + 1;
-                    char fxParamValue[SMLBUF];
-                    TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, params.nameContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
-                    item.pszText = fxParamValue;
-                    break;
-                }
-            }
-        }
-        else if ( ! strcmp(params.valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
-        {
-            for (int i = 0; i < s_t_displayRows.size(); ++i)
-            {
-                if (strstr(params.valueContext->GetWidget()->GetName(), s_t_displayRows[i]))
-                {
-                    item.iSubItem = i + 2;
-                    char fxParamValue[SMLBUF];
-                    TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, params.valueContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
-                    item.pszText = fxParamValue;
-                    break;
-                }
-            }
-        }
-        
-        ListView_SetItem(hwndCellList, &item);
-        */
+
         rowIdx++;
-        
-        /*
-        memset(&item, 0, sizeof(item));
-        item.iItem = rowIdx++;
-        ListView_InsertItem(hwndCellList, &item);
-*/
-        
-
-        /*
-        memset(&item, 0, sizeof(item));
-        item.mask = LVIF_TEXT | LVIF_PARAM;
-        item.iItem = rowIdx++;
-        item.cchTextMax = SMLBUF;
-        if ( ! strcmp(cell->params.Get()[i].valueContext->GetAction()->GetName(), "FXParamValueDisplay") ||
-             ! strcmp(cell->params.Get()[i].paramContext->GetAction()->GetName(), "FXParam"))
-        {
-            char fxParamValue[SMLBUF];
-            TrackFX_GetFormattedParamValue(s_focusedTrack, s_fxSlot, cell->params.Get()[i].paramContext->GetParamIndex(), fxParamValue, sizeof(fxParamValue));
-            item.pszText = fxParamValue;
-        }
-        else
-            item.pszText = buf;
-
-        ListView_InsertItem(hwndCellList, &item);
-*/
-
-        
-        
-        
-        
-        
-        
-        /*
-        char x[2];
-        x[0] = 0;
-        x[1] = 0;
-        
-        int display = 0;
-        
-        if ( ! strcmp(cell->params.Get()[i].nameContext->GetAction()->GetName(), "FixedTextDisplay"))
-        {
-            //item.pszText = (char *)cell->params.Get()[i].nameContext->GetStringParam();
-            
-        }
-        else if ( ! strcmp(cell->params.Get()[i].paramContext->GetAction()->GetName(), "FXParam"))
-        {
-        }
-        else
-            //item.pszText = buf;
-        */
-
-        
     }
+    
+    
+    
+    
+    
+    
     
     
 
