@@ -1408,6 +1408,8 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
 
 static void InitializeCellListView(HWND hwndDlg)
 {
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+    
     int modifier = 0;
     
     if (s_zoneManager)
@@ -1435,20 +1437,9 @@ static void InitializeCellListView(HWND hwndDlg)
     ListView_DeleteAllItems(hwndCellList);
     ListView_SetExtendedListViewStyleEx(hwndCellList, LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
     
-    
-    
-    
-    
-    
-    //RECT r;
-    
-    //GetClientRect(hwndCellList, &r);
-
-    //int firstColumnSize = 100; // (int)((r.right - r.left) / 4.685);
     int columnSize  = 90; // (int)((r.right - r.left) / 12.835);
 
 #ifdef WIN32
-    //firstColumnSize = (int)((r.right - r.left) / 5.065);
     //columnSize  = (int)((r.right - r.left) / 9.967);
 #endif
     
@@ -1469,7 +1460,6 @@ static void InitializeCellListView(HWND hwndDlg)
         columnDescriptor.fmt = LVCFMT_CENTER;
         ListView_InsertColumn(hwndCellList, i + 1, &columnDescriptor);
     }
-       
     
     buf[0] = 0;
        
@@ -1486,7 +1476,24 @@ static void InitializeCellListView(HWND hwndDlg)
         item.pszText = (char *)cell->controlWidgets.Get(controlIdx)->GetName();
         ListView_InsertItem(hwndCellList, &item);
         
-
+        Widget *widget = cell->controlWidgets.Get(controlIdx);
+        
+        if ( ! zoneContexts->Exists(widget) || ! zoneContexts->Get(widget)->Exists(modifier))
+            continue;
+        
+        ActionContext *paramContext = NULL;
+        if (zoneContexts->Get(widget)->Get(modifier)->GetSize() > 0)
+            paramContext = zoneContexts->Get(widget)->Get(modifier)->Get(0);
+        if (paramContext == NULL)
+            continue;
+        
+        if ( ! strcmp(paramContext->GetAction()->GetName(), "NoAction"))
+            continue;
+        
+        
+        
+        
+        
         rowIdx++;
     }
     
