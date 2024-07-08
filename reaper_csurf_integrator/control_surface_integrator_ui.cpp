@@ -1442,12 +1442,16 @@ static void InitializeCellListView(HWND hwndDlg)
     //GetClientRect(hwndCellList, &r);
 
     //int firstColumnSize = 100; // (int)((r.right - r.left) / 4.685);
-    int columnSize  = 80; // (int)((r.right - r.left) / 12.835);
+    int columnSize  = 90; // (int)((r.right - r.left) / 12.835);
 
 #ifdef WIN32
     //firstColumnSize = (int)((r.right - r.left) / 5.065);
     //columnSize  = (int)((r.right - r.left) / 9.967);
 #endif
+    
+    FXCell *cell = s_contextMap.Get(s_currentWidget)->Get(modifier);
+
+    
     
     LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
     columnDescriptor.cx = columnSize;
@@ -1458,7 +1462,7 @@ static void InitializeCellListView(HWND hwndDlg)
     for (int i = 0; i < s_t_displayRows.size(); ++i)
     {
         char caption[SMLBUF];
-        snprintf(caption, sizeof(caption), "%s", s_t_displayRows[i].c_str());
+        snprintf(caption, sizeof(caption), "%s%d", s_t_displayRows[i].c_str(), cell->channel);
         columnDescriptor.pszText = caption;
         columnDescriptor.cx = columnSize;
         columnDescriptor.fmt = LVCFMT_CENTER;
@@ -1469,9 +1473,7 @@ static void InitializeCellListView(HWND hwndDlg)
         return;
     
     buf[0] = 0;
-    
-    FXCell *cell = s_contextMap.Get(s_currentWidget)->Get(modifier);
-    
+       
     int rowIdx = 0;
     
     for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
