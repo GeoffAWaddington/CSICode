@@ -714,6 +714,13 @@ static void CreateContextMap()
         
         for (int channel = 1; channel <= s_numChannels; ++channel)
         {
+            
+            
+            
+            
+            
+            
+            
             paramWidget = NULL;
             paramContext = NULL;
             nameContext = NULL;
@@ -761,6 +768,11 @@ static void CreateContextMap()
                 cellWidgets.Add(FXCellWidget(paramWidget, paramContext, nameWidget, nameContext, valueWidget, valueContext));
             }
 
+            
+            
+            
+            
+            
             FXCell *cell = new FXCell(channel, cellWidgets);
 
             for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
@@ -982,7 +994,17 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
 
-    SetWindowText(hwndDlg, nameContext->GetStringParam());
+    char titleBuf[MEDBUF];
+    
+    char modifierBuf[SMLBUF];
+    s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+
+    char paramName[MEDBUF];
+    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
+    
+    snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, widget->GetName(), paramName);
+    
+    SetWindowText(hwndDlg, titleBuf);
 
     int channel = GET_CHANNEL(widget, modifier);
     
@@ -1378,6 +1400,7 @@ static void InitializeCellListView(HWND hwndDlg)
     }
 
     char buf[MEDBUF];
+    buf[0] = 0;
     
     HWND hwndCellList = GetDlgItem(hwndDlg, IDC_CELL_LIST);
     
@@ -1432,11 +1455,11 @@ static void InitializeCellListView(HWND hwndDlg)
     
     int rowIdx = 0;
     
-    for (int paramsIdx = 0; paramsIdx < cell->params.GetSize(); ++paramsIdx)
+    for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
     {
         LVITEM item;
         
-        FXCellWidget &params = cell->params.Get()[paramsIdx];
+        //FXCellWidget &params = cell->params.Get()[paramsIdx];
         
         /*
         memset(&item, 0, sizeof(item));
@@ -1463,13 +1486,18 @@ static void InitializeCellListView(HWND hwndDlg)
         
         continue;
         */
+        
         memset(&item, 0, sizeof(item));
         item.mask = LVIF_TEXT;
         item.iItem = rowIdx;
         item.cchTextMax = SMLBUF;
-        item.pszText = (char *)params.paramWidget->GetName();
+        item.pszText = (char *)cell->controlWidgets.Get(controlIdx)->GetName();
         ListView_InsertItem(hwndCellList, &item);
         
+        
+        
+        
+        /*
         memset(&item, 0, sizeof(item));
         item.mask = LVIF_TEXT;
         item.iItem = rowIdx;
@@ -1515,7 +1543,7 @@ static void InitializeCellListView(HWND hwndDlg)
         }
         
         ListView_SetItem(hwndCellList, &item);
-        
+        */
         rowIdx++;
         
         /*
