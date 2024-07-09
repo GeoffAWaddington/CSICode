@@ -123,58 +123,6 @@ static char s_fxAlias[MEDBUF];
 
 static int s_numChannels = 0;
 
-static const int s_fontControls[] =
-{
-    IDC_FixedTextDisplayFontLabel,
-    IDC_FixedTextDisplayPickFont,
-    IDC_FixedTextDisplayTopLabel,
-    IDC_Edit_FixedTextDisplayTop,
-    IDC_FixedTextDisplayBottomLabel,
-    IDC_Edit_FixedTextDisplayBottom,
-
-    IDC_FXParamValueDisplayFontLabel,
-    IDC_FXParamValueDisplayPickFont,
-    IDC_ParamValueDisplayTopLabel,
-    IDC_Edit_ParamValueDisplayTop,
-    IDC_ParamValueDisplayBottomLabel,
-    IDC_Edit_ParamValueDisplayBottom
-};
-
-static const int s_paramBaseControls[] =
-{
-    IDC_PickRingStyle,
-    IDC_PickSteps,
-    IDC_Steps,
-};
-
-static const int s_colorControls[] =
-{
-    IDC_FXParamRingColorBox,
-    IDC_FXParamRingColor,
-    IDC_FXParamIndicatorColorBox,
-    IDC_FXParamIndicatorColor,
-    IDC_FixedTextDisplayForegroundColor,
-    IDC_FXFixedTextDisplayForegroundColorBox,
-    IDC_FixedTextDisplayBackgroundColor,
-    IDC_FXFixedTextDisplayBackgroundColorBox,
-    IDC_FXParamDisplayForegroundColor,
-    IDC_FXParamValueDisplayForegroundColorBox,
-    IDC_FXParamDisplayBackgroundColor,
-    IDC_FXParamValueDisplayBackgroundColorBox,
-};
-
-static void ShowFontControls(HWND hwndDlg, bool show)
-{
-    for (int i = 0; i < NUM_ELEM(s_fontControls); ++i)
-            ShowWindow(GetDlgItem(hwndDlg, s_fontControls[i]), show);
-}
-
-static void ShowColorControls(HWND hwndDlg, bool show)
-{
-    for (int i = 0; i < NUM_ELEM(s_colorControls); ++i)
-            ShowWindow(GetDlgItem(hwndDlg, s_colorControls[i]), show);
-}
-
 static unsigned int s_buttonColors[][3] =
 {
     { IDC_FXParamRingColor, IDC_FXParamRingColorBox, 0xffffffff },
@@ -1153,16 +1101,6 @@ static void HandleInitLearnFXDisplayDialog(HWND hwndDlg)
         SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
         SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
     }
-    
-    if (s_t_fonts.size() > 0)
-        ShowFontControls(hwndDlg, true);
-    else
-        ShowFontControls(hwndDlg, false);
-
-    if (s_t_hasColor)
-        ShowColorControls(hwndDlg, true);
-    else
-        ShowColorControls(hwndDlg, false);
 
     if (s_currentWidget != NULL)
         FillDisplayParams(hwndDlg, s_currentWidget, s_currentModifier);
@@ -1406,204 +1344,6 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     }
 }
 
-static void InitializeCellListView(HWND hwndDlg)
-{
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-    
-    int modifier = 0;
-    
-    if (s_zoneManager)
-    {
-        const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
-        
-        if (modifiers.GetSize() > 0)
-            modifier = modifiers.Get()[0];
-    }
-
-    if ( ! s_contextMap.Exists(s_currentWidget) || ! s_contextMap.Get(s_currentWidget)->Exists(modifier))
-        return;
-
-    char buf[MEDBUF];
-    buf[0] = 0;
-    
-    HWND hwndCellList = GetDlgItem(hwndDlg, IDC_CELL_LIST);
-    
-    if (hwndCellList == NULL)
-        return;
-    
-    for (int i = Header_GetItemCount(ListView_GetHeader(hwndCellList)) - 1; i >= 0; --i)
-        ListView_DeleteColumn(hwndCellList, i);
-    
-    ListView_DeleteAllItems(hwndCellList);
-    ListView_SetExtendedListViewStyleEx(hwndCellList, LVS_EX_GRIDLINES, LVS_EX_GRIDLINES);
-    
-    int columnSize  = 90; // (int)((r.right - r.left) / 12.835);
-
-#ifdef WIN32
-    //columnSize  = (int)((r.right - r.left) / 9.967);
-#endif
-    
-    FXCell *cell = s_contextMap.Get(s_currentWidget)->Get(modifier);
-    
-    LVCOLUMN columnDescriptor = { LVCF_TEXT | LVCF_WIDTH, LVCFMT_RIGHT, 0, (char*)"" };
-    columnDescriptor.cx = columnSize;
-    buf[0] = 0;
-    columnDescriptor.pszText = buf;
-    ListView_InsertColumn(hwndCellList, 0, &columnDescriptor);
-    
-    for (int i = 0; i < cell->displayWidgets.GetSize(); ++i)
-    {
-        char caption[SMLBUF];
-        snprintf(caption, sizeof(caption), "%s", cell->displayWidgets.Get(i)->GetName());
-        columnDescriptor.pszText = caption;
-        columnDescriptor.cx = columnSize;
-        columnDescriptor.fmt = LVCFMT_CENTER;
-        ListView_InsertColumn(hwndCellList, i + 1, &columnDescriptor);
-    }
-    
-    buf[0] = 0;
-       
-    int rowIdx = 0;
-    
-    for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
-    {
-        LVITEM item;
-                
-        memset(&item, 0, sizeof(item));
-        item.mask = LVIF_TEXT;
-        item.iItem = rowIdx;
-        item.cchTextMax = SMLBUF;
-        item.pszText = (char *)cell->controlWidgets.Get(controlIdx)->GetName();
-        ListView_InsertItem(hwndCellList, &item);
-        
-        Widget *widget = cell->controlWidgets.Get(controlIdx);
-        
-        if ( ! zoneContexts->Exists(widget) || ! zoneContexts->Get(widget)->Exists(modifier))
-            continue;
-        
-        ActionContext *paramContext = NULL;
-        if (zoneContexts->Get(widget)->Get(modifier)->GetSize() > 0)
-            paramContext = zoneContexts->Get(widget)->Get(modifier)->Get(0);
-        if (paramContext == NULL)
-            continue;
-        
-        if ( ! strcmp(paramContext->GetAction()->GetName(), "NoAction"))
-            continue;
-        
-        
-        
-        
-        
-        rowIdx++;
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-    return;
-    
-    
-    int numColumns = 2;
-
-    
-    
-    int cellNumOffset = 0;
-    
-    for (int row = 0; row < s_fxRowLayouts.size(); ++row)
-    {
-        if (row != 0)
-            cellNumOffset += numColumns;
-        
-        for (int cell = 0; cell < s_t_paramWidgets.size(); ++cell)
-        {
-            int rowIdx = row * s_t_paramWidgets.size() + cell;
-            
-            char widgetName[128];
-            
-            if(s_fxRowLayouts[row].modifier)
-                snprintf(widgetName, sizeof(widgetName), "%s+%s%s", s_fxRowLayouts[row].modifiers, s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix);
-            else
-                snprintf(widgetName, sizeof(widgetName), "%s%s", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix);
-
-            LVITEM item;
-            memset(&item, 0, sizeof(item));
-            item.mask = LVIF_TEXT | LVIF_PARAM;
-            item.iItem = rowIdx;
-            item.cchTextMax = 20;
-            item.pszText = widgetName;
-            
-            ListView_InsertItem(hwndCellList, &item);
-                        
-            for (int columnIdx = 0; columnIdx < numColumns; ++columnIdx)
-            {
-                char paramName[MEDBUF];
-                paramName[0] = 0;
-                
-                char paramWidget[MEDBUF];
-                snprintf(paramWidget, sizeof(paramWidget), "%s%s%d", s_t_paramWidgets[cell].c_str(), s_fxRowLayouts[row].suffix, columnIdx + 1);
-                
-                char nameDisplayWidget[MEDBUF];
-                snprintf(nameDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_nameWidget, s_fxRowLayouts[row].suffix, columnIdx + 1);
-
-                char valueDisplayWidget[MEDBUF];
-                snprintf(valueDisplayWidget, sizeof(paramWidget), "%s%s%d", s_t_valueWidget, s_fxRowLayouts[row].suffix, columnIdx + 1);
-
-                char pszTextBuf[128];
-                pszTextBuf[0] = 0;
-                
-                LVITEM item;
-                memset(&item, 0, sizeof(item));
-                item.mask = LVIF_TEXT;
-                item.iItem = rowIdx;
-                item.iSubItem = columnIdx + 1;
-                item.cchTextMax = 20;
-                item.pszText = pszTextBuf;
-                
-                //ListView_SetItem(hwndParamList, &item);
-
-                
-                /*
-                FXParamInfo info;
-                info.row = rowIdx;
-                info.column = columnIdx + 1;
-                info.cellNum = columnIdx + cellNumOffset + 1;
-                info.paramName[0] = 0;
-                strcpy(info.paramWidget, paramWidget);
-                strcpy(info.paramNameWidget, nameDisplayWidget);
-                strcpy(info.paramValueWidget, valueDisplayWidget);
-                info.modifier = s_fxRowLayouts[row].modifier;
-
-                for (int cellWidget = 0; cellWidget < cellWidgets.size(); ++cellWidget)
-                {
-                    FXCellWidgets &widgets = cellWidgets[cellWidget];
-                    
-                    if(!strcmp(widgets.paramWidget, paramWidget) && info.modifier == widgets.modifier)
-                    {
-                        info.paramNum = widgets.paramNum;
-                        strcpy(info.paramName, widgets.paramName);
-                        item.pszText = info.paramName;
-                        strcpy(info.paramWidget, widgets.paramWidget);
-                        strcpy(info.paramNameWidget, widgets.paramNameWidget);
-                        strcpy(info.paramValueWidget, widgets.paramValueWidget);
-
-                        break;
-                    }
-                }
-                  
-                ListView_SetItem(hwndParamList, &item);
-                s_fxParamInfo.push_back(info);
-                 */
-            }
-        }
-    }
-}
-
 static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1614,10 +1354,7 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     switch(uMsg)
     {
         case WM_USER + 1024: // initialize
-        {
             HandleInitLearnFXDisplayDialog(hwndDlg);
-            InitializeCellListView(hwndDlg);
-        }
             break;
             
         case WM_INITDIALOG: // initialize
@@ -1633,40 +1370,37 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
         case WM_PAINT:
         {
-            if (s_t_hasColor)
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwndDlg, &ps);
+            
+            for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
             {
-                PAINTSTRUCT ps;
-                HDC hdc = BeginPaint(hwndDlg, &ps);
+                if (! IsWindowVisible(GetDlgItem(hwndDlg, s_buttonColors[x][0]) ))
+                    continue;
                 
-                for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
-                {
-                    if (! IsWindowVisible(GetDlgItem(hwndDlg, s_buttonColors[x][0]) ))
-                        continue;
-                    
-                    const int colorPickerBox = s_buttonColors[x][1];
-                    const int colorValue = s_buttonColors[x][2];
-                    
-                    HBRUSH brush = CreateSolidBrush(colorValue);
-                    
-                    RECT clientRect, windowRect;
-                    POINT p;
-                    GetClientRect(GetDlgItem(hwndDlg, colorPickerBox), &clientRect);
-                    GetWindowRect(GetDlgItem(hwndDlg, colorPickerBox), &windowRect);
-                    p.x = windowRect.left;
-                    p.y = windowRect.top;
-                    ScreenToClient(hwndDlg, &p);
-                    
-                    windowRect.left = p.x;
-                    windowRect.right = windowRect.left + clientRect.right;
-                    windowRect.top = p.y;
-                    windowRect.bottom = windowRect.top + clientRect.bottom;
-                    
-                    FillRect(hdc, &windowRect, brush);
-                    DeleteObject(brush);
-                }
+                const int colorPickerBox = s_buttonColors[x][1];
+                const int colorValue = s_buttonColors[x][2];
                 
-                EndPaint(hwndDlg, &ps);
+                HBRUSH brush = CreateSolidBrush(colorValue);
+                
+                RECT clientRect, windowRect;
+                POINT p;
+                GetClientRect(GetDlgItem(hwndDlg, colorPickerBox), &clientRect);
+                GetWindowRect(GetDlgItem(hwndDlg, colorPickerBox), &windowRect);
+                p.x = windowRect.left;
+                p.y = windowRect.top;
+                ScreenToClient(hwndDlg, &p);
+                
+                windowRect.left = p.x;
+                windowRect.right = windowRect.left + clientRect.right;
+                windowRect.top = p.y;
+                windowRect.bottom = windowRect.top + clientRect.bottom;
+                
+                FillRect(hdc, &windowRect, brush);
+                DeleteObject(brush);
             }
+            
+            EndPaint(hwndDlg, &ps);
         }
             break;
                         
@@ -1864,13 +1598,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     }
                     break;
                     
-                case IDC_Advanced:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
-                    if (s_hwndForegroundWindow)
-                        SetForegroundWindow(s_hwndForegroundWindow);
-                    break;
-
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2025,7 +1752,14 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     if (s_hwndForegroundWindow)
                         SetForegroundWindow(s_hwndForegroundWindow);
                     break;
-                                       
+                      
+                case IDC_Advanced:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
+                    if (s_hwndForegroundWindow)
+                        SetForegroundWindow(s_hwndForegroundWindow);
+                    break;
+
                 case IDC_AutoMap:
                     if (HIWORD(wParam) == BN_CLICKED)
                         AutoMapFX(hwndDlg);

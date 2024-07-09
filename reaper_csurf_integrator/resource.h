@@ -69,6 +69,7 @@
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150
+#define IDC_GroupFixedTextDisplay2      1150
 #define IDC_Edit_FixedTextDisplayBottom 1151
 #define IDC_Edit_ParamValueDisplayTop   1152
 #define IDC_Edit_ParamValueDisplayBottom 1153
