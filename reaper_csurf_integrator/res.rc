@@ -159,23 +159,23 @@ CAPTION "No Focused FX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Delete Map",IDC_Delete,8,298,50,14
-    COMBOBOX        IDC_PickSteps,267,141,26,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Control",IDC_GroupFXControl,129,125,171,39
-    COMBOBOX        IDC_PickRingStyle,138,141,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_FXParamNameEdit,182,100,111,12,ES_CENTER | ES_AUTOHSCROLL
+    COMBOBOX        IDC_PickSteps,267,108,26,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Control",IDC_GroupFXControl,129,92,171,39
+    COMBOBOX        IDC_PickRingStyle,138,108,69,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_FXParamNameEdit,182,67,111,12,ES_CENTER | ES_AUTOHSCROLL
     PUSHBUTTON      "Cancel",IDC_ExitNoSave,261,298,38,14
     PUSHBUTTON      "Save",IDC_Save,217,298,38,14
     LISTBOX         IDC_AllParams,8,26,107,269,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_EditFXAlias,29,7,87,12,ES_CENTER | ES_AUTOHSCROLL
     LTEXT           "Alias",IDC_Alias,9,9,16,8
     PUSHBUTTON      "Auto Map",IDC_AutoMap,65,298,50,14
-    LTEXT           "Steps",IDC_Steps,244,143,18,8
-    CONTROL         "Assigned",IDC_CHECK_Assigned,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,101,44,10
+    LTEXT           "Steps",IDC_Steps,244,110,18,8
+    CONTROL         "Assigned",IDC_CHECK_Assigned,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,68,44,10
     PUSHBUTTON      "Displays",IDC_Displays,129,298,38,14
-    GROUPBOX        "Display Param Name",IDC_GroupFixedTextDisplay,129,179,171,39
-    COMBOBOX        IDC_COMBO_PickNameDisplay,138,195,72,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Display Param Value",IDC_GroupFixedTextDisplay2,129,234,171,39
-    COMBOBOX        IDC_COMBO_PickValueDisplay,138,251,72,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Display Param Name",IDC_GroupFixedTextDisplay,129,146,171,39
+    COMBOBOX        IDC_COMBO_PickNameDisplay,138,162,72,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Display Param Value",IDC_GroupFixedTextDisplay2,129,201,171,39
+    COMBOBOX        IDC_COMBO_PickValueDisplay,138,218,72,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Params",IDC_Advanced,173,298,38,14
 END
 

@@ -931,25 +931,6 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     char buf[MEDBUF];
     buf[0] = 0;
 
-    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
-    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
-    
-    for (int i = 0; i < s_t_displayRows.size(); ++i)
-    {
-        snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
-    
-    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
-    
-    for (int i = 0; i < s_t_displayRows.size(); ++i)
-    {
-        snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
-    
-
     ActionContext *paramContext = NULL;
     ActionContext *nameContext = NULL;
     ActionContext *valueContext = NULL;
@@ -1192,15 +1173,23 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     else
         SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
 
-    SendDlgItemMessage(hwndDlg, IDC_PickNameDisplay, CB_RESETCONTENT, 0, 0);
-    SendDlgItemMessage(hwndDlg, IDC_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
-    for (int i = 0; i < s_t_displayRows.size(); ++i)
-    {
-        snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
-        SendDlgItemMessage(hwndDlg, IDC_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
-
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
+
+    if (s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier))
+    {
+        FXCell *cell = s_contextMap.Get(widget)->Get(modifier);
+        
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+
+        for (int i = 0; i < cell->displayWidgets.GetSize(); ++i)
+        {
+            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
+            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
+        }
+    }
     
     RECT rect;
     GetClientRect(hwndDlg, &rect);
