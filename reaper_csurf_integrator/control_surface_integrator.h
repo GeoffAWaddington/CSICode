@@ -59,18 +59,6 @@
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
-#define GET_CHANNEL(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->channel)
-#define GET_PARAM_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->GetParamContext(widget))
-#define GET_NAME_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->GetNameContext(widget))
-#define GET_VALUE_CONTEXT(widget, modifier) (s_contextMap.Get(widget)->Get(modifier)->GetValueContext(widget))
-
-#define PARAM_CONTEXT_EXISTS(widget, modifier) (widget != NULL && s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier) && s_contextMap.Get(widget)->Get(modifier)->GetParamContext(widget) != NULL)
-
-#define NAME_CONTEXT_EXISTS(widget, modifier) (widget != NULL && s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier) && s_contextMap.Get(widget)->Get(modifier)->GetNameContext(widget) != NULL)
-
-#define VALUE_CONTEXT_EXISTS(widget, modifier) (widget != NULL && s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier) && s_contextMap.Get(widget)->Get(modifier)->GetValueContext(widget) != NULL)
-
-
 class CSurfIntegrator;
 class ZoneManager;
 class Widget;

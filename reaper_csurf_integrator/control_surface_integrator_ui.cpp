@@ -195,7 +195,28 @@ static unsigned int &GetButtonColorForID(unsigned int id)
     return s_buttonColors[0][2];
 }
 
-static ActionContext *s_editAdvancedParamContext = NULL;
+static ActionContext *GetContext(Widget *widget, int modifier)
+{
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+    
+    if (contexts == NULL)
+        return NULL;
+    
+    if (contexts->Exists(widget) && contexts->Get(widget)->Exists(modifier) && contexts->Get(widget)->Get(modifier)->GetSize() > 0)
+        return contexts->Get(widget)->Get(modifier)->Get(0);
+    else
+        return NULL;
+}
+
+static FXCell *GetCell(Widget *widget, int modifier)
+{
+    if (s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier))
+        return s_contextMap.Get(widget)->Get(modifier);
+    else
+        return NULL;
+}
+
+static ActionContext *context = NULL;
 
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -215,28 +236,37 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
         {
-            if ( ! PARAM_CONTEXT_EXISTS(s_currentWidget, modifier))
+            ActionContext *context = GetContext(s_currentWidget, modifier);
+            FXCell *cell = GetCell(s_currentWidget, modifier);
+            
+            if (context == NULL || cell == NULL)
                 break;
 
-            s_editAdvancedParamContext = GET_PARAM_CONTEXT(s_currentWidget, modifier);
+            char titleBuf[MEDBUF];
+            titleBuf[0] = 0;
+            
+            char modifierBuf[SMLBUF];
+            s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
-            if (s_editAdvancedParamContext == NULL)
-                break;
-
-            SetWindowText(hwndDlg, GET_NAME_CONTEXT(s_currentWidget, modifier)->GetStringParam());
-
-            snprintf(buf, sizeof(buf), "%0.2f", s_editAdvancedParamContext->GetDeltaValue());
+            char paramName[MEDBUF];
+            TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
+            
+            snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), paramName);
+            
+            SetWindowText(hwndDlg, titleBuf);
+            
+            snprintf(buf, sizeof(buf), "%0.2f", context->GetDeltaValue());
             SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
             
-            snprintf(buf, sizeof(buf), "%0.2f", s_editAdvancedParamContext->GetRangeMinimum());
+            snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMinimum());
             SetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf);
             
-            snprintf(buf, sizeof(buf), "%0.2f", s_editAdvancedParamContext->GetRangeMaximum());
+            snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMaximum());
             SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
 
             
             char tmp[MEDBUF];
-            const vector<double> &steppedValues = s_editAdvancedParamContext->GetSteppedValues();
+            const vector<double> &steppedValues = context->GetSteppedValues();
             string steps;
             
             for (int i = 0; i < steppedValues.size(); ++i)
@@ -246,7 +276,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             }
             SetDlgItemText(hwndDlg, IDC_EditSteps, steps.c_str());
 
-            const vector<double> &acceleratedDeltaValues = s_editAdvancedParamContext->GetAcceleratedDeltaValues();
+            const vector<double> &acceleratedDeltaValues = context->GetAcceleratedDeltaValues();
             string deltas;
             
             for (int i = 0; i < (int)acceleratedDeltaValues.size(); ++i)
@@ -256,7 +286,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             }
             SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             
-            const vector<int> &acceleratedTickCounts = s_editAdvancedParamContext->GetAcceleratedTickCounts();
+            const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
             WDL_FastString ticks;
             ticks.Set("");
             
@@ -276,17 +306,17 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        if (s_editAdvancedParamContext == NULL)
+                        if (context == NULL)
                             break;
                          
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
-                        s_editAdvancedParamContext->SetDeltaValue(atof(buf));
+                        context->SetDeltaValue(atof(buf));
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMin, buf, sizeof(buf));
-                        s_editAdvancedParamContext->SetRangeMinimum(atof(buf));
+                        context->SetRangeMinimum(atof(buf));
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf, sizeof(buf));
-                        s_editAdvancedParamContext->SetRangeMaximum(atof(buf));
+                        context->SetRangeMaximum(atof(buf));
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
                         string_list tokens;
@@ -294,7 +324,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         vector<double> deltas;
                         for (int i = 0; i < tokens.size(); ++i)
                             deltas.push_back(atof(tokens[i]));
-                        s_editAdvancedParamContext->SetAccelerationValues(deltas);
+                        context->SetAccelerationValues(deltas);
                      
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
                         tokens.clear();
@@ -302,7 +332,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         vector<int> ticks;
                         for (int i = 0; i < tokens.size(); ++i)
                             ticks.push_back(atoi(tokens[i]));
-                        s_editAdvancedParamContext->SetTickCounts(ticks);
+                        context->SetTickCounts(ticks);
                        
                         GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
                         tokens.clear();
@@ -310,7 +340,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         vector<double> steps;
                         for (int i = 0; i < tokens.size(); ++i)
                             steps.push_back(atof(tokens[i]));
-                        s_editAdvancedParamContext->SetStepValues(steps);
+                        context->SetStepValues(steps);
 
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
@@ -522,20 +552,11 @@ static bool DeleteZone()
     return true;
 }
 
-static bool DoesContextExist(Widget *widget, int modifier)
-{
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-
-    return contexts->Exists(widget) && contexts->Get(widget)->Exists(modifier) && contexts->Get(widget)->Get(modifier)->GetSize() > 0;
-}
-
 static void SaveZone()
 {
     if (s_zoneManager == NULL || s_focusedTrack == NULL || s_fxName[0] == 0)
         return;
     
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-
     char buf[MEDBUF];
     buf[0] = 0;
     
@@ -591,10 +612,8 @@ static void SaveZone()
                     
                     fprintf(fxFile, "\t%s%s ", buf, widget->GetName());
 
-                    if (DoesContextExist(widget, modifier))
+                    if (ActionContext *context = GetContext(widget, modifier))
                     {
-                        ActionContext *context = zoneContexts->Get(widget)->Get(modifier)->Get(0);
-                        
                         char actionName[SMLBUF];
                         snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
                         
@@ -629,10 +648,8 @@ static void SaveZone()
                     
                     fprintf(fxFile, "\t%s%s ", buf, widget->GetName());
 
-                    if (DoesContextExist(widget, modifier))
+                    if (ActionContext *context = GetContext(widget, modifier))
                     {
-                        ActionContext *context = zoneContexts->Get(widget)->Get(modifier)->Get(0);
-
                         char actionName[SMLBUF];
                         snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
                         
@@ -675,9 +692,6 @@ static void SaveZone()
     }
 }
 
-#define FXCONTEXT_EXISTS(widget, modifier) (widget != NULL && zoneContexts->Exists(widget) && zoneContexts->Get(widget)->Exists(modifier))
-#define GET_FXCONTEXT(widget, modifier) (zoneContexts->Get(widget)->Get(modifier))
-
 static void CreateContextMap()
 {
     s_contextMap.DeleteAll(true);
@@ -689,11 +703,6 @@ static void CreateContextMap()
         return;
     
     char widgetName[SMLBUF];
-
-    Widget *paramWidget = NULL;
-    ActionContext *paramContext = NULL;
-    ActionContext *nameContext = NULL;
-    ActionContext *valueContext = NULL;
     
     for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
     {
@@ -701,61 +710,6 @@ static void CreateContextMap()
         
         for (int channel = 1; channel <= s_numChannels; ++channel)
         {
-            
-            
-            
-            
-            
-            
-            
-            paramWidget = NULL;
-            paramContext = NULL;
-            nameContext = NULL;
-            valueContext = NULL;
-            
-            WDL_TypedBuf<FXCellWidget> cellWidgets;
-            
-            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
-            {
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                Widget *paramWidget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
-                if (paramWidget == NULL)
-                    continue;
-                
-                ActionContext *paramContext = NULL;
-                if (FXCONTEXT_EXISTS(paramWidget, modifier) && GET_FXCONTEXT(paramWidget, modifier)->GetSize() > 0)
-                    paramContext = GET_FXCONTEXT(paramWidget, modifier)->Get(0);
-                if  (paramContext == NULL)
-                    continue;
-
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_nameWidget, s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                Widget *nameWidget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
-                if (nameWidget == NULL)
-                    continue;
-
-                ActionContext *nameContext = NULL;
-                if (FXCONTEXT_EXISTS(nameWidget, modifier) && GET_FXCONTEXT(nameWidget, modifier)->GetSize() > widgetTypesIdx)
-                    nameContext = GET_FXCONTEXT(nameWidget, modifier)->Get(widgetTypesIdx);
-                if  (nameContext == NULL)
-                    continue;
-
-                
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_valueWidget, s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                Widget *valueWidget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName);
-                if (valueWidget == NULL)
-                    continue;
-
-                ActionContext *valueContext = NULL;
-                if (FXCONTEXT_EXISTS(valueWidget, modifier) && GET_FXCONTEXT(valueWidget, modifier)->GetSize() > widgetTypesIdx)
-                    valueContext = GET_FXCONTEXT(valueWidget, modifier)->Get(widgetTypesIdx);
-                if  (valueContext == NULL)
-                    continue;
-
-                
-                cellWidgets.Add(FXCellWidget(paramWidget, paramContext, nameWidget, nameContext, valueWidget, valueContext));
-            }
-
-            
             FXCell *cell = new FXCell();
             cell->suffix = s_fxRowLayouts[rowLayoutIdx].suffix;
             cell->modifier = modifier;
@@ -845,7 +799,7 @@ static void AutoMapFX(HWND hwndDlg)
                 if (currentParam < numParams)
                 {
                     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, currentParam, paramName, sizeof(paramName));
-                    fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, s_t_nameWidgetParams);
+                    fprintf(fxFile, "\t%s%s%s%d FixedTextDisplay \"%s\" %d %s\n", modifiers, s_t_nameWidget, suffix, channel, paramName, currentParam, s_t_nameWidgetParams);
                     fprintf(fxFile, "\t%s%s%s%d FXParamValueDisplay %d %s\n", modifiers, s_t_valueWidget, suffix, channel, currentParam, s_t_valueWidgetParams);
 
                     for (int i = 2; i < s_t_displayRows.size(); ++i)
@@ -965,35 +919,33 @@ void InitBlankLearnFocusedFXZone()
 
 static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
 {
-    int channel = GET_CHANNEL(widget, modifier);
-
-    char buf[MEDBUF];
-    buf[0] = 0;
-
-    ActionContext *paramContext = NULL;
-    ActionContext *nameContext = NULL;
-    ActionContext *valueContext = NULL;
+    FXCell *cell = GetCell(widget, modifier);
     
-    if (PARAM_CONTEXT_EXISTS(widget, modifier))
-        paramContext = GET_PARAM_CONTEXT(widget, modifier);
+    if ( cell == NULL)
+        return;
     
-    if (NAME_CONTEXT_EXISTS(widget, modifier))
-        nameContext = GET_NAME_CONTEXT(widget, modifier);
+    if (cell->displayWidgets.GetSize() < 2)
+        return;
     
-    if (VALUE_CONTEXT_EXISTS(widget, modifier))
-        valueContext = GET_VALUE_CONTEXT(widget, modifier);
+    ActionContext *paramContext = GetContext(widget, modifier);
+    ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
+    ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
     
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
 
+    char buf[MEDBUF];
+    buf[0] = 0;
+
     char titleBuf[MEDBUF];
-    
+    titleBuf[0] = 0;
+
     char modifierBuf[SMLBUF];
     s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
     char paramName[MEDBUF];
-    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
-    
+    GetDlgItemText(s_hwndLearnDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
+
     snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, widget->GetName(), paramName);
     
     SetWindowText(hwndDlg, titleBuf);
@@ -1006,7 +958,7 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     s_modifierManager.GetModifierString(modifier, buf, sizeof(buf));
 
     char fullName[MEDBUF];
-    snprintf(fullName, sizeof(fullName), "%s%s", buf, paramContext->GetWidget()->GetName());
+    snprintf(fullName, sizeof(fullName), "%s%s", buf, widget->GetName());
     SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), fullName);
 
     const char *ringcolor = paramContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
@@ -1071,7 +1023,8 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
     for (int i = 0; i < s_t_displayRows.size(); ++i)
     {
-        snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
+        /////////////////////////////////////////////////
+        //snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
         SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
     }
 
@@ -1157,19 +1110,18 @@ static void FillAllParamsList(HWND hwndDlg)
 
 static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
 {
-    ActionContext *paramContext = NULL;
-    ActionContext *nameContext = NULL;
-    ActionContext *valueContext = NULL;
+    FXCell *cell = GetCell(widget, modifier);
     
-    if (PARAM_CONTEXT_EXISTS(widget, modifier))
-        paramContext = GET_PARAM_CONTEXT(widget, modifier);
+    if ( cell == NULL)
+        return;
     
-    if (NAME_CONTEXT_EXISTS(widget, modifier))
-        nameContext = GET_NAME_CONTEXT(widget, modifier);
-    
-    if (VALUE_CONTEXT_EXISTS(widget, modifier))
-        valueContext = GET_VALUE_CONTEXT(widget, modifier);
-    
+    if (cell->displayWidgets.GetSize() < 2)
+        return;
+
+    ActionContext *paramContext = GetContext(widget, modifier);
+    ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
+    ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
+
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
     
@@ -1185,9 +1137,7 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
         SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assigned");
     }
-
-    int channel = GET_CHANNEL(widget, modifier);
-    
+   
     char buf[MEDBUF];
     buf[0] = 0;
     
@@ -1250,15 +1200,12 @@ static void FillParams(HWND hwndDlg, int index)
         {
             int modifier = s_fxRowLayouts[j].modifier;
 
-            if (PARAM_CONTEXT_EXISTS(widget, modifier))
+            if (GetContext(widget, modifier) != NULL && GetContext(widget, modifier)->GetParamIndex() == index)
             {
-                if (GET_PARAM_CONTEXT(widget, modifier)->GetParamIndex() == index)
-                {
-                    FillParams(hwndDlg, widget, modifier);
-                    //if (s_hwndForegroundWindow)
-                        //SetForegroundWindow(s_hwndForegroundWindow);
-                    return;
-                }
+                FillParams(hwndDlg, widget, modifier);
+                //if (s_hwndForegroundWindow)
+                    //SetForegroundWindow(s_hwndForegroundWindow);
+                return;
             }
         }
     }
@@ -1443,7 +1390,13 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if (modifiers.GetSize() > 0)
                     modifier = modifiers.Get()[0];
             }
-
+            
+            FXCell *cell = GetCell(s_currentWidget, modifier);
+            
+            ActionContext *paramContext = GetContext(s_currentWidget, modifier);
+            ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
+            ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
+            
             switch(LOWORD(wParam))
             {
                 case IDC_FXParamRingColor:
@@ -1453,8 +1406,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FXParamRingColor), &color.r, &color.g, &color.b);
                         
-                        if (PARAM_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_PARAM_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
+                        if (paramContext)
+                            paramContext->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
@@ -1468,8 +1421,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FXParamIndicatorColor), &color.r, &color.g, &color.b);
                         
-                        if (PARAM_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_PARAM_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
+                        if (paramContext)
+                            paramContext->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
@@ -1483,8 +1436,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
                         
-                        if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                        if (nameContext)
+                            nameContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
@@ -1498,8 +1451,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor), &color.r, &color.g, &color.b);
                         
-                        if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
+                        if (nameContext)
+                            nameContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
@@ -1513,8 +1466,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
                         
-                        if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                        if (nameContext)
+                            nameContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
@@ -1528,8 +1481,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayBackgroundColor), &color.r, &color.g, &color.b);
                         
-                        if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
+                        if (nameContext)
+                            nameContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                         if (s_hwndForegroundWindow)
                             SetForegroundWindow(s_hwndForegroundWindow);
@@ -1543,8 +1496,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_FixedTextDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_Font, buf);
+                            if (nameContext)
+                                nameContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1558,8 +1511,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_Edit_FixedTextDisplayTop, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
+                            if (nameContext)
+                                nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1573,8 +1526,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_Edit_FixedTextDisplayBottom, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_NAME_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
+                            if (nameContext)
+                                nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1588,8 +1541,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (VALUE_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_VALUE_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_Font, buf);
+                            if (valueContext)
+                                valueContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1603,8 +1556,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_Edit_ParamValueDisplayTop, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (VALUE_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_VALUE_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
+                            if (valueContext)
+                                valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1618,8 +1571,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_Edit_ParamValueDisplayBottom, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (VALUE_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_VALUE_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
+                            if (valueContext)
+                                valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1663,6 +1616,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         
         case WM_COMMAND:
         {
+            if (s_currentWidget == NULL)
+                break;
+            
             int modifier = 0;
             
             if (s_zoneManager)
@@ -1672,7 +1628,18 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 if (modifiers.GetSize() > 0)
                     modifier = modifiers.Get()[0];
             }
+            
+            ActionContext *paramContext = NULL;
+            ActionContext *nameContext = NULL;
 
+            FXCell *cell = GetCell(s_currentWidget, modifier);
+            
+            if (cell)
+            {
+                paramContext = GetContext(s_currentWidget, modifier);
+                nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
+            }
+            
             switch(LOWORD(wParam))
             {
                 case IDC_EditFXAlias:
@@ -1689,8 +1656,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (PARAM_CONTEXT_EXISTS(s_currentWidget, modifier))
-                                GET_PARAM_CONTEXT(s_currentWidget, modifier)->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
+                            if (paramContext)
+                                paramContext->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
                             if (s_hwndForegroundWindow)
                                 SetForegroundWindow(s_hwndForegroundWindow);
                         }
@@ -1701,8 +1668,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     if (HIWORD(wParam) == EN_CHANGE)
                     {
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
-                        if (NAME_CONTEXT_EXISTS(s_currentWidget, modifier))
-                            GET_NAME_CONTEXT(s_currentWidget, modifier)->SetStringParam(buf);
+                        if (nameContext)
+                            nameContext->SetStringParam(buf);
                     }
                     break;
                     
@@ -1711,7 +1678,11 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     {
                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
                        if (index >= 0)
-                            FillParams(hwndDlg, index);
+                       {
+                           FillParams(hwndDlg, index);
+                           if (s_hwndLearnDisplaysDlg != NULL && IsWindowVisible(s_hwndLearnDisplaysDlg))
+                               HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
+                       }
                     }
                     break;
          
@@ -1749,8 +1720,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            for (int i = 0; i < tokens.size(); ++i)
                                steps.push_back(atof(tokens[i]));
                            
-                           if (PARAM_CONTEXT_EXISTS(s_currentWidget, modifier))
-                               GET_PARAM_CONTEXT(s_currentWidget, modifier)->SetStepValues(steps);
+                           if (paramContext)
+                               paramContext->SetStepValues(steps);
 
                            if (s_hwndForegroundWindow)
                                SetForegroundWindow(s_hwndForegroundWindow);
@@ -1898,8 +1869,15 @@ void CloseFocusedFXDialog()
     s_currentWidget = NULL;
     s_currentModifier = -1;
 
+    if(s_hwndLearnDisplaysDlg != NULL)
+    {
+        DestroyWindow(s_hwndLearnDisplaysDlg);
+        s_hwndLearnDisplaysDlg = NULL;
+    }
+    
     if (s_hwndLearnDlg != NULL)
         ShowWindow(s_hwndLearnDlg, SW_HIDE);
+
 }
 
 void UpdateLearnWindow()
