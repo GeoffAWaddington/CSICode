@@ -173,9 +173,9 @@ BEGIN
     CONTROL         "Assigned",IDC_CHECK_Assigned,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,68,44,10
     PUSHBUTTON      "Displays",IDC_Displays,129,298,38,14
     GROUPBOX        "Display Param Name",IDC_GroupFixedTextDisplay,129,146,171,39
-    COMBOBOX        IDC_COMBO_PickNameDisplay,138,162,72,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_PickNameDisplay,138,162,72,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Display Param Value",IDC_GroupFixedTextDisplay2,129,201,171,39
-    COMBOBOX        IDC_COMBO_PickValueDisplay,138,218,72,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_PickValueDisplay,138,218,72,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Params",IDC_Advanced,173,298,38,14
 END
 
