@@ -216,7 +216,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
             char paramName[MEDBUF];
-            TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
+            GetDlgItemText(s_hwndLearnDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
             
             snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), paramName);
             
@@ -1645,6 +1645,15 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
                         if (nameContext)
                             nameContext->SetStringParam(buf);
+                        
+                        if (s_hwndLearnDisplaysDlg != NULL && IsWindowVisible(s_hwndLearnDisplaysDlg))
+                        {
+                            char modifierBuf[SMLBUF];
+                            s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+                            char titleBuf[MEDBUF];
+                            snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), buf);
+                            SetWindowText(s_hwndLearnDisplaysDlg, titleBuf);
+                        }
                     }
                     break;
                     
