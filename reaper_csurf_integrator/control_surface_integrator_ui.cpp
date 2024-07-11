@@ -50,10 +50,20 @@ struct FXCell
         modifier = 0;
         channel = 0;
     }
+    
+    Widget *GetNameWidget(Widget *widget)
+    {
+        return displayWidgets.Get(0);
+    }
+    
+    Widget *GetValueWidget(Widget *widget)
+    {
+        return displayWidgets.Get(1);
+    }
 };
 
 static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
-WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_contextMap(destroyFXParamWidgetCellContextList);
+WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_cellMap(destroyFXParamWidgetCellContextList);
 
 WDL_PtrList<FXCell> s_cells;
 
@@ -149,6 +159,9 @@ static unsigned int &GetButtonColorForID(unsigned int id)
 
 static ActionContext *GetContext(Widget *widget, int modifier)
 {
+    if (widget == NULL)
+        return NULL;
+    
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
     
     if (contexts == NULL)
@@ -162,8 +175,11 @@ static ActionContext *GetContext(Widget *widget, int modifier)
 
 static FXCell *GetCell(Widget *widget, int modifier)
 {
-    if (s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier))
-        return s_contextMap.Get(widget)->Get(modifier);
+    if (widget == NULL)
+        return NULL;
+
+    if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
+        return s_cellMap.Get(widget)->Get(modifier);
     else
         return NULL;
 }
@@ -189,9 +205,8 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
         case WM_INITDIALOG:
         {
             ActionContext *context = GetContext(s_currentWidget, modifier);
-            FXCell *cell = GetCell(s_currentWidget, modifier);
             
-            if (context == NULL || cell == NULL)
+            if (context == NULL)
                 break;
 
             char titleBuf[MEDBUF];
@@ -610,7 +625,7 @@ static void SaveZone()
                         if (strcmp(actionName, "NoAction"))
                         {
                             if ( ! strcmp(actionName, "FixedTextDisplay"))
-                                fprintf(fxFile, "\"%s\" ", context->GetStringParam());
+                                fprintf(fxFile, "\"%s\" %d", context->GetStringParam(), context->GetParamIndex());
                             else if ( ! strcmp(actionName, "FXParamValueDisplay"))
                                 fprintf(fxFile, "%d ", context->GetParamIndex());
                         }
@@ -646,7 +661,7 @@ static void SaveZone()
 
 static void CreateContextMap()
 {
-    s_contextMap.DeleteAll(true);
+    s_cellMap.DeleteAll(true);
     s_cells.Empty();
     
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
@@ -686,13 +701,13 @@ static void CreateContextMap()
             {
                 Widget *widget = cell->controlWidgets.Get(i);
                 
-                if (! s_contextMap.Exists(widget))
+                if (! s_cellMap.Exists(widget))
                 {
                     WDL_IntKeyedArray<FXCell *> *m = new WDL_IntKeyedArray<FXCell *>();
-                    s_contextMap.Insert(widget, m);
+                    s_cellMap.Insert(widget, m);
                 }
 
-                s_contextMap.Get(widget)->Insert(modifier, cell);
+                s_cellMap.Get(widget)->Insert(modifier, cell);
             }
         }
     }
@@ -880,10 +895,10 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
         return;
     
     ActionContext *paramContext = GetContext(widget, modifier);
-    ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
-    ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
+    ActionContext *nameContext = GetContext(cell->GetNameWidget(widget), modifier);
+    ActionContext *valueContext = GetContext(cell->GetValueWidget(widget), modifier);
     
-    if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
+    if (paramContext == NULL)
         return;
 
     char buf[MEDBUF];
@@ -933,90 +948,100 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     else
         GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
 
-    const char *property = nameContext->GetWidgetProperties().get_prop(PropertyType_Font);
-    if (property)
-        SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
-    else
-        SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
+    const char *property;
+    const char *foreground;
+    const char *background;
     
-    property = nameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin);
-    if (property)
-        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
-    else
-        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
-    
-    property = nameContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
-    if (property)
-        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
-    else
-        SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
-    
-    const char *foreground = nameContext->GetWidgetProperties().get_prop(PropertyType_TextColor);
-    if (foreground)
+    if (nameContext)
     {
-        rgba_color color;
-        GetColorValue(foreground, color);
-        GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+        property = nameContext->GetWidgetProperties().get_prop(PropertyType_Font);
+        if (property)
+            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, property);
+        else
+            SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
+        
+        property = nameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+        if (property)
+            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, property);
+        else
+            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, "");
+        
+        property = nameContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+        if (property)
+            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, property);
+        else
+            SetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, "");
+        
+        foreground = nameContext->GetWidgetProperties().get_prop(PropertyType_TextColor);
+        if (foreground)
+        {
+            rgba_color color;
+            GetColorValue(foreground, color);
+            GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+        }
+        else
+            GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+        
+        background = nameContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+        if (background)
+        {
+            rgba_color color;
+            GetColorValue(background, color);
+            GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+        }
+        else
+            GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
     }
-    else
-        GetButtonColorForID(IDC_FixedTextDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
     
-    const char *background = nameContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
-    if (background)
+    if (valueContext)
     {
-        rgba_color color;
-        GetColorValue(background, color);
-        GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
-    }
-    else
-        GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-    
-    SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-    SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
-    for (int i = 0; i < s_t_displayRows.size(); ++i)
-    {
-        /////////////////////////////////////////////////
-        //snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
-        SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
+        SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+        for (int i = 0; i < s_t_displayRows.size(); ++i)
+        {
+            /////////////////////////////////////////////////
+            //snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
+            SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
+        }
 
-    property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
-    if (property)
-        SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
-    else
-        SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
-    
-    property = valueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin);
-    if (property)
-        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
-    else
-        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
-    
-    property = valueContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
-    if (property)
-        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
-    else
-        SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
-    
-    foreground = valueContext->GetWidgetProperties().get_prop(PropertyType_TextColor);
-    if (foreground)
-    {
-        rgba_color color;
-        GetColorValue(foreground, color);
-        GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+        property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
+        if (property)
+            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
+        else
+            SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
+        
+        property = valueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin);
+        if (property)
+            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, property);
+        else
+            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, "");
+        
+        property = valueContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin);
+        if (property)
+            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, property);
+        else
+            SetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, "");
+        
+        foreground = valueContext->GetWidgetProperties().get_prop(PropertyType_TextColor);
+        if (foreground)
+        {
+            rgba_color color;
+            GetColorValue(foreground, color);
+            GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(color.r, color.g, color.b);
+        }
+        else
+            GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
+        
+        background = valueContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
+        if (background)
+        {
+            rgba_color color;
+            GetColorValue(background, color);
+            GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
+        }
+        else
+            GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
     }
-    else
-        GetButtonColorForID(IDC_FXParamDisplayForegroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
-    
-    background = valueContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor);
-    if (background)
-    {
-        rgba_color color;
-        GetColorValue(background, color);
-        GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(color.r, color.g, color.b);
-    }
-    else
-        GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
 }
 
 static void HandleInitLearnFXDisplayDialog(HWND hwndDlg)
@@ -1116,9 +1141,9 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
 
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
 
-    if (s_contextMap.Exists(widget) && s_contextMap.Get(widget)->Exists(modifier))
+    if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
     {
-        FXCell *cell = s_contextMap.Get(widget)->Get(modifier);
+        FXCell *cell = s_cellMap.Get(widget)->Get(modifier);
         
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
@@ -1214,8 +1239,8 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     
     FXCell *cell = NULL;
     
-    if (s_contextMap.Exists(s_currentWidget) && s_contextMap.Get(s_currentWidget)->Exists(modifier))
-        cell = s_contextMap.Get(s_currentWidget)->Get(modifier);
+    if (s_cellMap.Exists(s_currentWidget) && s_cellMap.Get(s_currentWidget)->Exists(modifier))
+        cell = s_cellMap.Get(s_currentWidget)->Get(modifier);
     
     if (cell == NULL)
         return;

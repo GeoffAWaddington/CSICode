@@ -1712,7 +1712,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         stringParam_ = params[1];
         intParam_= atol(params[2].c_str());
     }
-    
+        
     // Action with param index, must be positive
     if (params.size() > 1 && isdigit(params[1][0]))  // C++ 2003 says empty strings can be queried without catastrophe :)
     {
@@ -1772,6 +1772,12 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         
         if (params.size() > 2 && params[2] != "{" && params[2] != "[")
                fxParamDisplayName_ = params[2];
+    }
+    
+    if (!strcmp(actionName, "FixedTextDisplay") && (params.size() > 2 && (isdigit(params[2][0]))))  // C++ 2003 says empty strings can be queried without catastrophe :)
+    {
+        stringParam_ = params[1];
+        paramIndex_= atol(params[2].c_str());
     }
     
     if (params.size() > 0)
