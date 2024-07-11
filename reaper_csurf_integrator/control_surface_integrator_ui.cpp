@@ -35,18 +35,6 @@ struct FXRowLayout
 
 static ptrvector<FXRowLayout> s_fxRowLayouts;
 
-struct FXCellWidget
-{
-    Widget *paramWidget;
-    ActionContext *paramContext;
-    Widget *nameWidget;
-    ActionContext *nameContext;
-    Widget *valueWidget;
-    ActionContext *valueContext;
-
-    FXCellWidget(Widget *aParamWidget, ActionContext *aParamContext, Widget *aNameWidget, ActionContext *aNameContext, Widget *aValueWidget, ActionContext *aValueContext) : paramWidget(aParamWidget), paramContext(aParamContext), nameWidget(aNameWidget), nameContext(aNameContext), valueWidget(aValueWidget), valueContext(aValueContext)  {}
-};
-
 struct FXCell
 {
     WDL_PtrList<Widget> controlWidgets;
@@ -61,42 +49,6 @@ struct FXCell
     {
         modifier = 0;
         channel = 0;
-    }
-    
-    
-    WDL_TypedBuf<FXCellWidget> params;
-
-    FXCell(int aChannel, WDL_TypedBuf<FXCellWidget> &paramWidgets) : channel(aChannel)
-    {
-        for (int i = 0; i < paramWidgets.GetSize(); ++i)
-           params.Add(paramWidgets.Get()[i]);
-    }
-    
-    ActionContext *GetParamContext(Widget *widget)
-    {
-        for (int i = 0; i < params.GetSize(); ++i)
-           if (params.Get()[i].paramWidget == widget)
-               return params.Get()[i].paramContext;
-        
-        return NULL;
-    }
-    
-    ActionContext *GetNameContext(Widget *widget)
-    {
-        for (int i = 0; i < params.GetSize(); ++i)
-           if (params.Get()[i].paramWidget == widget)
-               return params.Get()[i].nameContext;
-        
-        return NULL;
-    }
-    
-    ActionContext *GetValueContext(Widget *widget)
-    {
-        for (int i = 0; i < params.GetSize(); ++i)
-           if (params.Get()[i].paramWidget == widget)
-               return params.Get()[i].valueContext;
-        
-        return NULL;
     }
 };
 
@@ -1270,9 +1222,9 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     
     int index = -1;
     
-    for (int i = 0; i < cell->params.GetSize(); ++i)
+    for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
     {
-        if (cell->params.Get()[i].paramWidget == s_currentWidget)
+        if (cell->controlWidgets.Get(i) == s_currentWidget)
         {
             index = i;
             break;
@@ -1282,9 +1234,9 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
     if (index < 0)
         return;
     
-    ActionContext *paramContext = cell->params.Get()[index].paramContext;
-    ActionContext *nameContext = cell->params.Get()[index].nameContext;
-    ActionContext *valueContext = cell->params.Get()[index].valueContext;
+    ActionContext *paramContext = GetContext(s_currentWidget, modifier);
+    ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
+    ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
 
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
@@ -1301,8 +1253,6 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
         paramContext->GetWidget()->ForceClear();
         nameContext->GetWidget()->ForceClear();
         valueContext->GetWidget()->ForceClear();
-
-        // GAW TBD - don't forget to  check for at least one feedback action per cell->per context, to prevent bleed through from other Zones
     }
     else // Assign
     {
@@ -1897,6 +1847,8 @@ void UpdateLearnWindow()
             SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, s_lastTouchedParamNum, 0);
 #ifdef WIN32
             FillParams(s_hwndLearnDlg, s_lastTouchedParamNum);
+            if (s_hwndLearnDisplaysDlg != NULL && IsWindowVisible(s_hwndLearnDisplaysDlg))
+                HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
 #endif
         }
     }
@@ -1910,6 +1862,8 @@ void UpdateLearnWindow(int paramNumber)
     SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_AllParams), LB_SETCURSEL, paramNumber, 0);
 #ifdef WIN32
     FillParams(s_hwndLearnDlg, paramNumber);
+    if (s_hwndLearnDisplaysDlg != NULL && IsWindowVisible(s_hwndLearnDisplaysDlg))
+        HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
 #endif
 }
 
