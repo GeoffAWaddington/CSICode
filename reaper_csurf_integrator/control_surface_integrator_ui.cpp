@@ -17,56 +17,6 @@ extern int g_maxNumParamSteps;
 static Widget *s_currentWidget;
 static int s_currentModifier;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct FXRowLayout
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-    char suffix[SMLBUF];
-    char modifiers[SMLBUF];
-    int modifier;
-    
-    FXRowLayout()
-    {
-        suffix[0] = 0;
-        modifiers[0] = 0;
-        modifier = 0;
-    }
-};
-
-static ptrvector<FXRowLayout> s_fxRowLayouts;
-
-struct FXCell
-{
-    WDL_PtrList<Widget> controlWidgets;
-    WDL_PtrList<Widget> displayWidgets;
-
-    string suffix;
-    int modifier;
-    
-    int channel;
-    
-    FXCell()
-    {
-        modifier = 0;
-        channel = 0;
-    }
-    
-    Widget *GetNameWidget(Widget *widget)
-    {
-        return displayWidgets.Get(0);
-    }
-    
-    Widget *GetValueWidget(Widget *widget)
-    {
-        return displayWidgets.Get(1);
-    }
-};
-
-static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
-WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_cellMap(destroyFXParamWidgetCellContextList);
-
-WDL_PtrList<FXCell> s_cells;
-
 // t = template
 static string_list s_t_paramWidgets;
 static string_list s_t_displayRows;
@@ -96,6 +46,107 @@ static char s_fxName[MEDBUF];
 static char s_fxAlias[MEDBUF];
 
 static int s_numChannels = 0;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct FXRowLayout
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    char suffix[SMLBUF];
+    char modifiers[SMLBUF];
+    int modifier;
+    
+    FXRowLayout()
+    {
+        suffix[0] = 0;
+        modifiers[0] = 0;
+        modifier = 0;
+    }
+};
+
+static ptrvector<FXRowLayout> s_fxRowLayouts;
+
+static ActionContext *GetContext(Widget *widget, int modifier)
+{
+    if (widget == NULL)
+        return NULL;
+    
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+    
+    if (contexts == NULL)
+        return NULL;
+    
+    if (contexts->Exists(widget) && contexts->Get(widget)->Exists(modifier) && contexts->Get(widget)->Get(modifier)->GetSize() > 0)
+        return contexts->Get(widget)->Get(modifier)->Get(0);
+    else
+        return NULL;
+}
+
+struct FXCell
+{
+    WDL_PtrList<Widget> controlWidgets;
+    WDL_PtrList<Widget> displayWidgets;
+
+    string suffix;
+    int modifier;
+    
+    int channel;
+    
+    FXCell()
+    {
+        modifier = 0;
+        channel = 0;
+    }
+    
+    Widget *GetNameWidget(Widget *widget)
+    {
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            ActionContext *paramContext = GetContext(widget, modifier);
+            ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+            
+            if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
+            {
+                if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
+                    return displayWidgets.Get(i);
+            }
+        }
+
+        return NULL;
+    }
+    
+    Widget *GetValueWidget(Widget *widget)
+    {
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            ActionContext *paramContext = GetContext(widget, modifier);
+            ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
+            
+            if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
+            {
+                if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
+                    return displayWidgets.Get(i);
+            }
+        }
+        
+        return NULL;
+    }
+};
+
+static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
+WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_cellMap(destroyFXParamWidgetCellContextList);
+
+WDL_PtrList<FXCell> s_cells;
+
+static FXCell *GetCell(Widget *widget, int modifier)
+{
+    if (widget == NULL)
+        return NULL;
+
+    if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
+        return s_cellMap.Get(widget)->Get(modifier);
+    else
+        return NULL;
+}
 
 static unsigned int s_buttonColors[][3] =
 {
@@ -155,33 +206,6 @@ static unsigned int &GetButtonColorForID(unsigned int id)
         if (s_buttonColors[x][0] == id) return s_buttonColors[x][2];
     WDL_ASSERT(false);
     return s_buttonColors[0][2];
-}
-
-static ActionContext *GetContext(Widget *widget, int modifier)
-{
-    if (widget == NULL)
-        return NULL;
-    
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-    
-    if (contexts == NULL)
-        return NULL;
-    
-    if (contexts->Exists(widget) && contexts->Get(widget)->Exists(modifier) && contexts->Get(widget)->Get(modifier)->GetSize() > 0)
-        return contexts->Get(widget)->Get(modifier)->Get(0);
-    else
-        return NULL;
-}
-
-static FXCell *GetCell(Widget *widget, int modifier)
-{
-    if (widget == NULL)
-        return NULL;
-
-    if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
-        return s_cellMap.Get(widget)->Get(modifier);
-    else
-        return NULL;
 }
 
 static ActionContext *context = NULL;
@@ -1146,15 +1170,37 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         FXCell *cell = s_cellMap.Get(widget)->Get(modifier);
         
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
 
         for (int i = 0; i < cell->displayWidgets.GetSize(); ++i)
         {
             SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
             SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
         }
+        
+        if (cell->GetNameWidget(widget))
+        {
+            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetNameWidget(widget)->GetName());
+            if (index >= 0)
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, index, 0);
+            else
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+        }
+        else
+            SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+
+        if (cell->GetValueWidget(widget))
+        {
+            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetValueWidget(widget)->GetName());
+            if (index >= 0)
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, index, 0);
+            else
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+        }
+        else
+            SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
     }
     
     RECT rect;
@@ -1779,10 +1825,11 @@ static void LearnFocusedFXDialog()
         return;
     
     s_numChannels = s_zoneManager->GetSurface()->GetNumChannels();
-
+    
     SendMessage(s_hwndLearnDlg, WM_USER + 1024, 0, 0);
-        
+    
     ShowWindow(s_hwndLearnDlg, SW_SHOW);
+    SetForegroundWindow(s_hwndForegroundWindow);
 }
 
 void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
