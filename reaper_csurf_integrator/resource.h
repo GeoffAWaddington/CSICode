@@ -64,8 +64,6 @@
 #define IDC_AllParams                   1139
 #define IDC_GroupFXControl              1140
 #define IDC_PickRingStyle               1143
-#define IDC_PickNameDisplay             1144
-#define IDC_PickValueDisplay            1145
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150

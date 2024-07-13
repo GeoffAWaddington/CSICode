@@ -130,6 +130,90 @@ struct FXCell
         
         return NULL;
     }
+    
+    void SetNameWidget(Widget *parent, const char *displayWidgetName, const char *paramName)
+    {
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            if( ! strcmp (displayWidgets.Get(i)->GetName(), displayWidgetName))
+            {
+                ActionContext *paramContext = GetContext(parent, modifier);
+                ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+
+                if (nameContext != NULL && paramContext != NULL)
+                {
+                    nameContext->SetAction(s_zoneManager->GetCSI()->GetFixedTextDisplayAction());
+                    nameContext->SetParamIndex(paramContext->GetParamIndex());
+                    nameContext->SetStringParam(paramName);
+                }
+                
+                break;
+            }
+        }
+    }
+    
+    void SetValueWidget(Widget *parent, const char *displayWidgetName)
+    {
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            if( ! strcmp (displayWidgets.Get(i)->GetName(), displayWidgetName))
+            {
+                ActionContext *paramContext = GetContext(parent, modifier);
+                ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+
+                if (nameContext != NULL && paramContext != NULL)
+                {
+                    nameContext->SetAction(s_zoneManager->GetCSI()->GetFXParamValueDisplayAction());
+                    nameContext->SetParamIndex(paramContext->GetParamIndex());
+                    nameContext->SetStringParam("");
+                }
+                
+                break;
+            }
+        }
+    }
+    
+    void ClearNameDisplayWidget(Widget *parent)
+    {
+        ActionContext *paramContext = GetContext(parent, modifier);
+        if (paramContext == NULL)
+            return;
+
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+            
+            if (nameContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
+            {
+                nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+                nameContext->SetParamIndex(0);
+                nameContext->SetStringParam("");
+                
+                break;
+            }
+        }
+    }
+    
+    void ClearValueDisplayWidget(Widget *parent)
+    {
+        ActionContext *paramContext = GetContext(parent, modifier);
+        if (paramContext == NULL)
+            return;
+        
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
+            
+            if (valueContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
+            {
+                valueContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+                valueContext->SetParamIndex(0);
+                valueContext->SetStringParam("");
+                
+                break;
+            }
+        }
+    }
 };
 
 static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
@@ -1019,13 +1103,13 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     
     if (valueContext)
     {
-        SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
         for (int i = 0; i < s_t_displayRows.size(); ++i)
         {
             /////////////////////////////////////////////////
             //snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
-            SendDlgItemMessage(hwndDlg, IDC_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
+            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
         }
 
         property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
@@ -1753,6 +1837,54 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            if (paramContext)
                                paramContext->SetStepValues(steps);
 
+                           if (s_hwndForegroundWindow)
+                               SetForegroundWindow(s_hwndForegroundWindow);
+                       }
+                   }
+                   break;
+                    
+                case IDC_COMBO_PickNameDisplay:
+                   if (HIWORD(wParam) == CBN_SELCHANGE)
+                   {
+                       int index = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_GETCURSEL, 0, 0);
+                       if (index >= 0)
+                       {
+                           char displayWidgetName[MEDBUF];
+                           displayWidgetName[0] = 0;
+                           SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, index, (LPARAM)displayWidgetName);
+                           
+                           if ( ! strcmp(displayWidgetName, ""))
+                               cell->ClearNameDisplayWidget(s_currentWidget);
+                           else
+                           {
+                               char paramName[MEDBUF];
+                               paramName[0] = 0;
+                               GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
+
+                               cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
+                           }
+
+                           if (s_hwndForegroundWindow)
+                               SetForegroundWindow(s_hwndForegroundWindow);
+                       }
+                   }
+                   break;
+                    
+                case IDC_COMBO_PickValueDisplay:
+                   if (HIWORD(wParam) == CBN_SELCHANGE)
+                   {
+                       int index = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_GETCURSEL, 0, 0);
+                       if (index >= 0)
+                       {
+                           char displayWidgetName[MEDBUF];
+                           displayWidgetName[0] = 0;
+                           SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, index, (LPARAM)displayWidgetName);
+
+                           if ( ! strcmp(displayWidgetName, ""))
+                               cell->ClearValueDisplayWidget(s_currentWidget);
+                           else
+                               cell->SetValueWidget(s_currentWidget, displayWidgetName);
+                           
                            if (s_hwndForegroundWindow)
                                SetForegroundWindow(s_hwndForegroundWindow);
                        }
