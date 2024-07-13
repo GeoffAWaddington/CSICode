@@ -183,7 +183,7 @@ struct FXCell
         {
             ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
             
-            if (nameContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
+            if (nameContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex() && ! strcmp (nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
                 nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
                 nameContext->SetParamIndex(0);
@@ -204,7 +204,7 @@ struct FXCell
         {
             ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
             
-            if (valueContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
+            if (valueContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex() && ! strcmp (valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
                 valueContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
                 valueContext->SetParamIndex(0);
