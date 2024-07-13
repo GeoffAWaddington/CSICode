@@ -1362,7 +1362,7 @@ void WidgetMoved(Widget *widget, int modifier)
     FillParams(s_hwndLearnDlg, widget, modifier);
 }
 
-static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shouldAssign)
+static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shouldAssign)
 {
     if (s_currentWidget == NULL)
         return;
@@ -1390,38 +1390,29 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramNum, bool shoul
         return;
     
     ActionContext *paramContext = GetContext(s_currentWidget, modifier);
-    ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
-    ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
-
-    if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
+    
+    if (paramContext == NULL)
         return;
     
-    if ( ! shouldAssign) // Unassign
-    {
-        Action *noAction = s_zoneManager->GetCSI()->GetNoActionAction();
-        
-        paramContext->SetAction(noAction);
-        nameContext->SetStringParam("");
-        nameContext->SetAction(noAction);
-        valueContext->SetAction(noAction);
-        
-        paramContext->GetWidget()->ForceClear();
-        nameContext->GetWidget()->ForceClear();
-        valueContext->GetWidget()->ForceClear();
-    }
-    else // Assign
+    cell->ClearNameDisplayWidget(s_currentWidget);
+    cell->ClearValueDisplayWidget(s_currentWidget);
+
+    if (shouldAssign)
     {
         paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
-        paramContext->SetParamIndex(paramNum);
-
-        nameContext->SetAction(s_zoneManager->GetCSI()->GetFixedTextDisplayAction());
-        char buf[MEDBUF];
-        SendMessage(GetDlgItem(hwndDlg, IDC_AllParams), LB_GETTEXT, paramNum, (LPARAM)(LPCTSTR)(buf));
-        nameContext->SetStringParam(buf);
-        
-        valueContext->SetAction(s_zoneManager->GetCSI()->GetFXParamValueDisplayAction());
-        valueContext->SetParamIndex(paramNum);
+        paramContext->SetParamIndex(paramIdx);
+        paramContext->SetStringParam("");
     }
+    else
+    {
+        paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+        paramContext->SetParamIndex(0);
+        paramContext->SetStringParam("");
+    }
+    
+    SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_SETCURSEL, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 0, 0);
 }
 
 static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
