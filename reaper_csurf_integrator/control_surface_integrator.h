@@ -461,6 +461,23 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class FixedTrackNavigator : public Navigator
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+private:
+    MediaTrack *const track_;
+    
+public:
+    FixedTrackNavigator(CSurfIntegrator *const csi, Page *page, MediaTrack *const track) : Navigator(csi, page), track_(track) {}
+    virtual ~FixedTrackNavigator() {}
+    
+    virtual const char *GetName() override { return "FixedTrackNavigator"; }
+   
+    virtual MediaTrack *GetTrack() override { return track_; } ;
+
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class MasterTrackNavigator : public Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -1331,6 +1348,7 @@ public:
       
     void SetHoldDelayAmount(double value) { holdDelayAmount_ = value; }
 
+    Navigator *GetNavigatorForTrack(MediaTrack* track);
     Navigator *GetMasterTrackNavigator();
     Navigator *GetSelectedTrackNavigator();
     Navigator *GetFocusedFXNavigator();
@@ -1455,7 +1473,7 @@ public:
 
         if(zoneInfo_.Exists(fxName))
         {
-            learnFocusedFXZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
+            learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
             LoadZoneFile(learnFocusedFXZone_, "");
             
             learnFocusedFXZone_->Activate();
@@ -1477,7 +1495,7 @@ public:
             snprintf(fxFullFilePath, sizeof(fxFullFilePath), "%s/%s.zon", fxFilePath, fxFileName.c_str());
             info.filePath = fxFullFilePath;
             
-            learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, info.alias, info.filePath);
+            learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, info.alias, info.filePath);
             InitBlankLearnFocusedFXZone();
             learnFocusedFXZone_->Activate();
         }
@@ -3003,17 +3021,18 @@ protected:
     WDL_PtrList<MediaTrack> selectedTracks_;
     
     WDL_PtrList<MediaTrack> vcaTopLeadTracks_;
-    MediaTrack *            vcaLeadTrack_;
+    MediaTrack             *vcaLeadTrack_;
     WDL_PtrList<MediaTrack> vcaLeadTracks_;
     WDL_PtrList<MediaTrack> vcaSpillTracks_;
     
     WDL_PtrList<MediaTrack> folderTopParentTracks_;
-    MediaTrack *            folderParentTrack_;
+    MediaTrack             *folderParentTrack_;
     WDL_PtrList<MediaTrack> folderParentTracks_;
     WDL_PtrList<MediaTrack> folderSpillTracks_;
     WDL_PointerKeyedArray<MediaTrack*, WDL_PtrList<MediaTrack>* > folderDictionary_;
     static void disposeFolderParents(WDL_PtrList<MediaTrack> *parent) { delete parent;  }
  
+    WDL_PtrList<Navigator> fixedTrackNavigators_;
     WDL_PtrList<Navigator> trackNavigators_;
     Navigator *const masterTrackNavigator_;
     Navigator *selectedTrackNavigator_;
@@ -3081,6 +3100,7 @@ public:
         delete selectedTrackNavigator_;
         delete focusedFXNavigator_;
         
+        fixedTrackNavigators_.Empty(true);
         trackNavigators_.Empty(true);
     }
     
@@ -3360,6 +3380,19 @@ public:
         TrackNavigator *newNavigator = new TrackNavigator(csi_, page_, this, channelNum);
         
         trackNavigators_.Add(newNavigator);
+            
+        return newNavigator;
+    }
+    
+    Navigator *GetNavigatorForTrack(MediaTrack *track)
+    {
+        for (int i = 0; i < fixedTrackNavigators_.GetSize(); ++i)
+            if (fixedTrackNavigators_.Get(i)->GetTrack() == track)
+                return fixedTrackNavigators_.Get(i);
+          
+        FixedTrackNavigator *newNavigator = new FixedTrackNavigator(csi_, page_, track);
+        
+        fixedTrackNavigators_.Add(newNavigator);
             
         return newNavigator;
     }
@@ -3918,6 +3951,7 @@ public:
     void FolderModeDeactivated() { trackNavigationManager_->FolderModeDeactivated(); }
     void SelectedTracksModeActivated() { trackNavigationManager_->SelectedTracksModeActivated(); }
     void SelectedTracksModeDeactivated() { trackNavigationManager_->SelectedTracksModeDeactivated(); }
+    Navigator * GetNavigatorForTrack(MediaTrack *track) { return trackNavigationManager_->GetNavigatorForTrack(track); }
     Navigator * GetNavigatorForChannel(int channelNum) { return trackNavigationManager_->GetNavigatorForChannel(channelNum); }
     MediaTrack *GetTrackFromId(int trackNumber) { return trackNavigationManager_->GetTrackFromId(trackNumber); }
     int GetIdFromTrack(MediaTrack *track) { return trackNavigationManager_->GetIdFromTrack(track); }
