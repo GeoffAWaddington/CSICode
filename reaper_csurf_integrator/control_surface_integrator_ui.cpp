@@ -95,6 +95,26 @@ struct FXCell
         channel = 0;
     }
     
+    ActionContext *GetNameContext(Widget *widget)
+    {
+        if (widget == NULL)
+            return NULL;
+        
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            ActionContext *paramContext = GetContext(widget, modifier);
+            ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+            
+            if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
+            {
+                if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
+                    return nameContext;
+            }
+        }
+
+        return NULL;
+    }
+        
     Widget *GetNameWidget(Widget *widget)
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
@@ -1707,7 +1727,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             if (cell)
             {
                 paramContext = GetContext(s_currentWidget, modifier);
-                nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
+                nameContext = cell->GetNameContext(s_currentWidget);
             }
             
             switch(LOWORD(wParam))
