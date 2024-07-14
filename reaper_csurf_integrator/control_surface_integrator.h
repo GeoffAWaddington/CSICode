@@ -4,10 +4,6 @@
 //
 //
 
-//  Note for Windows environments:
-//  use std::byte for C++17 byte
-//  use ::byte for Windows byte
-
 #ifndef control_surface_integrator
 #define control_surface_integrator
 
@@ -107,7 +103,7 @@ bool getline(fpistream &fp, string &str); // mimic C++ getline()
 static char *format_number(double v, char *buf, int bufsz)
 {
   snprintf(buf,bufsz,"%.12f", v);
-  WDL_remove_trailing_decimal_zeros(buf,2); // trim 1.0000 down to 1.0
+  WDL_remove_trailing_decimal_zeros(buf,2); // trim 1.0000 down to 1.00
   return buf;
 }
 
@@ -1448,7 +1444,7 @@ public:
         }
     }
 
-    void LoadLearnFocusedFXZone(const char *fxName, int fxIndex)
+    void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
     {
         if (learnFocusedFXZone_ != NULL)
         {
@@ -1459,7 +1455,7 @@ public:
 
         if(zoneInfo_.Exists(fxName))
         {
-            learnFocusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
+            learnFocusedFXZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
             LoadZoneFile(learnFocusedFXZone_, "");
             
             learnFocusedFXZone_->Activate();
@@ -3078,6 +3074,7 @@ public:
         vcaLeadTrack_ = NULL;
         folderParentTrack_ = NULL;
     }
+    
     ~TrackNavigationManager()
     {
         delete masterTrackNavigator_;

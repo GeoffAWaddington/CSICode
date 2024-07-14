@@ -297,6 +297,7 @@ void string_list::clear()
     buf_.Resize(0);
     offsets_.Resize(0);
 }
+
 char *string_list::add_raw(const char *str, size_t len)
 {
     offsets_.Add(buf_.GetSize());

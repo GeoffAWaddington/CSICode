@@ -34,8 +34,6 @@ static HWND s_hwndLearnDlg = NULL;
 static HWND s_hwndLearnDisplaysDlg = NULL;
 static int s_dlgResult = IDCANCEL;
 
-static HWND s_hwndForegroundWindow = NULL;
-
 static ModifierManager s_modifierManager(NULL);
 
 static ZoneManager *s_zoneManager = NULL;
@@ -1330,7 +1328,7 @@ static void HandleInitialize(HWND hwndDlg)
     SetWindowText(hwndDlg, buf);
     SetDlgItemText(hwndDlg, IDC_EditFXAlias, s_fxAlias);
     
-    s_zoneManager->LoadLearnFocusedFXZone(s_fxName, s_fxSlot);
+    s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
 
     CreateContextMap();
     
@@ -1505,8 +1503,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (paramContext)
                             paramContext->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
-                        if (s_hwndForegroundWindow)
-                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
                     
@@ -1520,8 +1516,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (paramContext)
                             paramContext->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
-                        if (s_hwndForegroundWindow)
-                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
 
@@ -1535,8 +1529,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (nameContext)
                             nameContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
-                        if (s_hwndForegroundWindow)
-                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
 
@@ -1550,8 +1542,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (nameContext)
                             nameContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
-                        if (s_hwndForegroundWindow)
-                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
 
@@ -1565,8 +1555,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (nameContext)
                             nameContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
-                        if (s_hwndForegroundWindow)
-                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
 
@@ -1580,8 +1568,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (nameContext)
                             nameContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
-                        if (s_hwndForegroundWindow)
-                            SetForegroundWindow(s_hwndForegroundWindow);
                     }
                     break;
 
@@ -1594,8 +1580,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             SendDlgItemMessage(hwndDlg,IDC_FixedTextDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (nameContext)
                                 nameContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1609,8 +1593,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             SendDlgItemMessage(hwndDlg,IDC_Edit_FixedTextDisplayTop, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (nameContext)
                                 nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1624,8 +1606,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             SendDlgItemMessage(hwndDlg,IDC_Edit_FixedTextDisplayBottom, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (nameContext)
                                 nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1639,8 +1619,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             SendDlgItemMessage(hwndDlg,IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (valueContext)
                                 valueContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1654,8 +1632,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             SendDlgItemMessage(hwndDlg,IDC_Edit_ParamValueDisplayTop, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (valueContext)
                                 valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1669,8 +1645,6 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                             SendDlgItemMessage(hwndDlg,IDC_Edit_ParamValueDisplayBottom, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (valueContext)
                                 valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1754,8 +1728,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (paramContext)
                                 paramContext->GetWidgetProperties().set_prop(PropertyType_RingStyle, buf);
-                            if (s_hwndForegroundWindow)
-                                SetForegroundWindow(s_hwndForegroundWindow);
                         }
                     }
                     break;
@@ -1827,9 +1799,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            
                            if (paramContext)
                                paramContext->SetStepValues(steps);
-
-                           if (s_hwndForegroundWindow)
-                               SetForegroundWindow(s_hwndForegroundWindow);
                        }
                    }
                    break;
@@ -1854,9 +1823,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
                                cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
                            }
-
-                           if (s_hwndForegroundWindow)
-                               SetForegroundWindow(s_hwndForegroundWindow);
                        }
                    }
                    break;
@@ -1875,9 +1841,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                cell->ClearValueDisplayWidget(s_currentWidget);
                            else
                                cell->SetValueWidget(s_currentWidget, displayWidgetName);
-                           
-                           if (s_hwndForegroundWindow)
-                               SetForegroundWindow(s_hwndForegroundWindow);
                        }
                    }
                    break;
@@ -1901,15 +1864,11 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             ShowWindow(s_hwndLearnDisplaysDlg, true);
                         }
                     }
-                    if (s_hwndForegroundWindow)
-                        SetForegroundWindow(s_hwndForegroundWindow);
                     break;
                       
                 case IDC_Advanced:
                     if (HIWORD(wParam) == BN_CLICKED)
                         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
-                    if (s_hwndForegroundWindow)
-                        SetForegroundWindow(s_hwndForegroundWindow);
                     break;
 
                 case IDC_AutoMap:
@@ -1935,8 +1894,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 static void LearnFocusedFXDialog()
 {
-    s_hwndForegroundWindow = GetForegroundWindow();
-    
     if (s_hwndLearnDlg == NULL)
     {
         // initialize
@@ -1952,7 +1909,6 @@ static void LearnFocusedFXDialog()
     SendMessage(s_hwndLearnDlg, WM_USER + 1024, 0, 0);
     
     ShowWindow(s_hwndLearnDlg, SW_SHOW);
-    SetForegroundWindow(s_hwndForegroundWindow);
 }
 
 void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
