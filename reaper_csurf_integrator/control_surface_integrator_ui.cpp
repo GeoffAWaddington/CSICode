@@ -1423,17 +1423,24 @@ void WidgetMoved(Widget *widget, int modifier)
     
     if (! IsWindowVisible(s_hwndLearnDlg))
         return;
-
+    
     if (s_lastTouchedParamNum < 0)
         return;
-
+    
     if (widget == s_currentWidget)
         return;
     
     s_currentWidget = widget;
     s_currentModifier = modifier;
-
+    
     FillParams(s_hwndLearnDlg, widget, modifier);
+    if (s_hwndLearnDisplaysDlg != NULL)
+    {
+        HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);        
+        RECT rect;
+        GetClientRect(s_hwndLearnDisplaysDlg, &rect);
+        InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
+    }
 }
 
 static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shouldAssign)
@@ -1815,7 +1822,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                        if (index >= 0)
                        {
                            FillParams(hwndDlg, index);
-                           if (s_hwndLearnDisplaysDlg != NULL && IsWindowVisible(s_hwndLearnDisplaysDlg))
+                           if (s_hwndLearnDisplaysDlg != NULL)
                                HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
                        }
                     }
