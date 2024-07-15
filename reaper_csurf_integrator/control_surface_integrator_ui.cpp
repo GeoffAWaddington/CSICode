@@ -1278,10 +1278,8 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         return;
 
     ActionContext *paramContext = GetContext(widget, modifier);
-    ActionContext *nameContext = cell->GetNameContext(widget);
-    ActionContext *valueContext = cell->GetValueContext(widget);
-
-    if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
+ 
+    if (paramContext == NULL)
         return;
     
     HWND hwndAssigned = GetDlgItem(hwndDlg, IDC_CHECK_Assigned);
@@ -1321,7 +1319,8 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     else
         SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
 
-    SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
+    if (ActionContext *nameContext = cell->GetNameContext(widget))
+        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
 
     if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
     {
