@@ -14,8 +14,8 @@ extern void GetParamStepsString(string &outputString, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
-static Widget *s_currentWidget;
-static int s_currentModifier;
+static Widget *s_currentWidget = NULL;
+static int s_currentModifier = 0;
 
 // t = template
 static string_list s_t_paramWidgets;
@@ -109,6 +109,26 @@ struct FXCell
             {
                 if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
                     return nameContext;
+            }
+        }
+
+        return NULL;
+    }
+        
+    ActionContext *GetValueContext(Widget *widget)
+    {
+        if (widget == NULL)
+            return NULL;
+        
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            ActionContext *paramContext = GetContext(widget, modifier);
+            ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
+            
+            if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
+            {
+                if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
+                    return valueContext;
             }
         }
 
@@ -400,8 +420,12 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         if (context == NULL)
-                            break;
-                         
+                        {
+                            s_dlgResult = IDCANCEL;
+                            EndDialog(hwndDlg, 0);
+                            return 0;
+                        }
+
                         GetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf, sizeof(buf));
                         context->SetDeltaValue(atof(buf));
 
@@ -1536,12 +1560,16 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if (modifiers.GetSize() > 0)
                     modifier = modifiers.Get()[0];
             }
-            
-            FXCell *cell = GetCell(s_currentWidget, modifier);
-            
+                        
             ActionContext *paramContext = GetContext(s_currentWidget, modifier);
-            ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
-            ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
+            ActionContext *nameContext = NULL;
+            ActionContext *valueContext = NULL;
+            
+            if (FXCell *cell = GetCell(s_currentWidget, modifier))
+            {
+                nameContext = cell->GetNameContext(s_currentWidget);
+                valueContext = cell->GetValueContext(s_currentWidget);
+            }
             
             switch(LOWORD(wParam))
             {
@@ -1722,9 +1750,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         
         case WM_COMMAND:
         {
-            if (s_currentWidget == NULL)
-                break;
-            
             int modifier = 0;
             
             if (s_zoneManager)
@@ -1735,16 +1760,13 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     modifier = modifiers.Get()[0];
             }
             
-            ActionContext *paramContext = NULL;
+            ActionContext *paramContext = GetContext(s_currentWidget, modifier);
             ActionContext *nameContext = NULL;
 
             FXCell *cell = GetCell(s_currentWidget, modifier);
             
             if (cell)
-            {
-                paramContext = GetContext(s_currentWidget, modifier);
                 nameContext = cell->GetNameContext(s_currentWidget);
-            }
             
             switch(LOWORD(wParam))
             {
@@ -1769,7 +1791,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     break;
                    
                 case IDC_FXParamNameEdit:
-                    if (HIWORD(wParam) == EN_CHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE && s_currentWidget != NULL)
                     {
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
                         if (nameContext)
@@ -1840,7 +1862,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                    break;
                     
                 case IDC_COMBO_PickNameDisplay:
-                   if (HIWORD(wParam) == CBN_SELCHANGE)
+                   if (HIWORD(wParam) == CBN_SELCHANGE && cell != NULL)
                    {
                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_GETCURSEL, 0, 0);
                        if (index >= 0)
@@ -1864,7 +1886,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                    break;
                     
                 case IDC_COMBO_PickValueDisplay:
-                   if (HIWORD(wParam) == CBN_SELCHANGE)
+                   if (HIWORD(wParam) == CBN_SELCHANGE && cell != NULL)
                    {
                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_GETCURSEL, 0, 0);
                        if (index >= 0)
