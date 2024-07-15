@@ -1278,8 +1278,8 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         return;
 
     ActionContext *paramContext = GetContext(widget, modifier);
-    ActionContext *nameContext = GetContext(cell->displayWidgets.Get(0), modifier);
-    ActionContext *valueContext = GetContext(cell->displayWidgets.Get(1), modifier);
+    ActionContext *nameContext = cell->GetNameContext(widget);
+    ActionContext *valueContext = cell->GetValueContext(widget);
 
     if (paramContext == NULL || nameContext == NULL || valueContext == NULL)
         return;
@@ -1360,10 +1360,6 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         else
             SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
     }
-    
-    RECT rect;
-    GetClientRect(hwndDlg, &rect);
-    InvalidateRect(hwndDlg, &rect, 0);
 }
 
 static void FillParams(HWND hwndDlg, int index)
@@ -1380,12 +1376,27 @@ static void FillParams(HWND hwndDlg, int index)
         for (int j = 0; j < s_fxRowLayouts.size(); ++j)
         {
             int modifier = s_fxRowLayouts[j].modifier;
-
-            if (GetContext(widget, modifier) != NULL && GetContext(widget, modifier)->GetParamIndex() == index)
+            
+            if (GetContext(widget, modifier) != NULL
+                && ! strcmp(GetContext(widget, modifier)->GetAction()->GetName(), "FXParam")
+                && GetContext(widget, modifier)->GetParamIndex() == index)
             {
+                s_currentModifier = modifier;
+                s_zoneManager->GetSurface()->ClearModifiers();
+                if (modifier == 4)
+                    s_zoneManager->GetSurface()->SetShift(true);
+                
+                s_currentWidget = widget;
+                s_lastTouchedParamNum = index;
                 FillParams(hwndDlg, widget, modifier);
-                //if (s_hwndForegroundWindow)
-                    //SetForegroundWindow(s_hwndForegroundWindow);
+                if (s_hwndLearnDisplaysDlg != NULL)
+                {
+                    HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
+                    RECT rect;
+                    GetClientRect(s_hwndLearnDisplaysDlg, &rect);
+                    InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
+                }
+                
                 return;
             }
         }
@@ -1436,7 +1447,7 @@ void WidgetMoved(Widget *widget, int modifier)
     FillParams(s_hwndLearnDlg, widget, modifier);
     if (s_hwndLearnDisplaysDlg != NULL)
     {
-        HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);        
+        HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
         RECT rect;
         GetClientRect(s_hwndLearnDisplaysDlg, &rect);
         InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
