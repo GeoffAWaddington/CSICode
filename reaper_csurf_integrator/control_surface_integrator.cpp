@@ -3727,6 +3727,22 @@ bool ControlSurface::GetScrub()
         return page_->GetModifierManager()->GetScrub();
 }
 
+void ControlSurface::SetModifierValue(int value)
+{
+    if (zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)
+    {
+        modifierManager_->SetModifierValue(value);
+        
+        for (int i = 0; i < zoneManager_->GetListeners().size(); ++i)
+            if (zoneManager_->GetListeners()[i]->GetSurface()->GetListensToModifiers() && ! zoneManager_->GetListeners()[i]->GetSurface()->GetUsesLocalModifiers() && zoneManager_->GetListeners()[i]->GetSurface()->GetName() != name_)
+                zoneManager_->GetListeners()[i]->GetSurface()->GetModifierManager()->SetShift(value, latchTime_);
+    }
+    else if (usesLocalModifiers_)
+        modifierManager_->SetModifierValue(value);
+    else
+        page_->GetModifierManager()->SetModifierValue(value);
+}
+
 void ControlSurface::SetShift(bool value)
 {
     if (zoneManager_->GetIsBroadcaster() && usesLocalModifiers_)

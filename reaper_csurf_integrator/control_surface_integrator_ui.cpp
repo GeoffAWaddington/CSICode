@@ -1381,9 +1381,7 @@ static void FillParams(HWND hwndDlg, int index)
                 && GetContext(widget, modifier)->GetParamIndex() == index)
             {
                 s_currentModifier = modifier;
-                s_zoneManager->GetSurface()->ClearModifiers();
-                if (modifier == 4)
-                    s_zoneManager->GetSurface()->SetShift(true);
+                s_zoneManager->GetSurface()->SetModifierValue(modifier);
                 
                 s_currentWidget = widget;
                 s_lastTouchedParamNum = index;

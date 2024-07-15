@@ -1981,6 +1981,43 @@ public:
         return modifierValue;
     }
 
+    void SetModifierValue(int value)
+    {
+        ClearModifiers();
+         
+        if (value & maskFromModifier(Shift))
+            modifiers_[Shift].isEngaged = true;
+     
+        if (value & maskFromModifier(Option))
+            modifiers_[Option].isEngaged = true;
+     
+        if (value & maskFromModifier(Control))
+            modifiers_[Control].isEngaged = true;
+     
+        if (value & maskFromModifier(Alt))
+            modifiers_[Alt].isEngaged = true;
+     
+        if (value & maskFromModifier(Flip))
+            modifiers_[Flip].isEngaged = true;
+        
+        if (value & maskFromModifier(Global))
+            modifiers_[Global].isEngaged = true;
+     
+        if (value & maskFromModifier(Marker))
+            modifiers_[Marker].isEngaged = true;
+     
+        if (value & maskFromModifier(Nudge))
+            modifiers_[Nudge].isEngaged = true;
+     
+        if (value & maskFromModifier(Zoom))
+            modifiers_[Zoom].isEngaged = true;
+     
+        if (value & maskFromModifier(Scrub))
+            modifiers_[Scrub].isEngaged = true;
+        
+        RecalculateModifiers();
+    }
+    
     void SetShift(bool value, int latchTime)
     {
         SetLatchModifier(value, Shift, latchTime);
@@ -2500,6 +2537,7 @@ public:
     bool GetZoom();
     bool GetScrub();
 
+    void SetModifierValue(int value);
     void SetShift(bool value);
     void SetOption(bool value);
     void SetControl(bool value);
