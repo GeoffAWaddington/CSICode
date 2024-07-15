@@ -715,20 +715,50 @@ static void SaveZone()
                         if (strcmp(actionName, "NoAction"))
                         {
                             fprintf(fxFile, "%d ", context->GetParamIndex());
+                            
+                            context->GetWidgetProperties().save_list(fxFile);
+                            
+                            fprintf(fxFile, "[ %0.2f>%0.2f ", context->GetRangeMinimum(), context->GetRangeMaximum());
+                            
+                            fprintf(fxFile, "(");
+                            
+                            if (context->GetAcceleratedDeltaValues().size() > 0)
+                            {
+                                for (int i = 0; i < context->GetAcceleratedDeltaValues().size(); ++i)
+                                {
+                                    if ( i < context->GetAcceleratedDeltaValues().size() - 1)
+                                        fprintf(fxFile, "%0.2f,", context->GetAcceleratedDeltaValues()[i]);
+                                    else
+                                        fprintf(fxFile, "%0.2f", context->GetAcceleratedDeltaValues()[i]);
+                                }
+                            }
+                            else
+                                fprintf(fxFile, "%0.2f", context->GetDeltaValue());
+                                
+                            fprintf(fxFile, ") ");
 
+                            fprintf(fxFile, "(");
+                            
+                            if (context->GetAcceleratedTickCounts().size() > 0)
+                            {
+                                for (int i = 0; i < context->GetAcceleratedTickCounts().size(); ++i)
+                                {
+                                    if ( i < context->GetAcceleratedTickCounts().size() - 1)
+                                        fprintf(fxFile, "%d,", context->GetAcceleratedTickCounts()[i]);
+                                    else
+                                        fprintf(fxFile, "%d", context->GetAcceleratedTickCounts()[i]);
+                                }
+                            }
+                                
+                            fprintf(fxFile, ") ");
+                            
                             if (context->GetSteppedValues().size() > 0)
                             {
-                                char step[MEDBUF];
-                                WDL_FastString steps;
-                                steps.Set("[");
                                 for (int i = 0; i < context->GetSteppedValues().size(); ++i)
-                                {
-                                    snprintf(step, sizeof(step), " %0.2f", context->GetSteppedValues()[i]);
-                                    steps.Append(step);
-                                }
-                                
-                                fprintf(fxFile, "%s ]", steps.Get());
+                                    fprintf(fxFile, "%0.2f ", context->GetSteppedValues()[i]);
                             }
+                            
+                            fprintf(fxFile, " ]");
                         }
                     }
                     
@@ -751,9 +781,11 @@ static void SaveZone()
                         if (strcmp(actionName, "NoAction"))
                         {
                             if ( ! strcmp(actionName, "FixedTextDisplay"))
-                                fprintf(fxFile, "\"%s\" %d", context->GetStringParam(), context->GetParamIndex());
+                                fprintf(fxFile, "\"%s\" %d ", context->GetStringParam(), context->GetParamIndex());
                             else if ( ! strcmp(actionName, "FXParamValueDisplay"))
                                 fprintf(fxFile, "%d ", context->GetParamIndex());
+                            
+                            context->GetWidgetProperties().save_list(fxFile);
                         }
                         
                         fprintf(fxFile, "\n");
@@ -1572,8 +1604,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
                         
-                        if (nameContext)
-                            nameContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                        if (valueContext)
+                            valueContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1585,8 +1617,8 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         
                         ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayBackgroundColor), &color.r, &color.g, &color.b);
                         
-                        if (nameContext)
-                            nameContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
+                        if (valueContext)
+                            valueContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1605,28 +1637,20 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     break;
 
                 case IDC_Edit_FixedTextDisplayTop:
-                    if (HIWORD(wParam) == CBN_SELCHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_Edit_FixedTextDisplayTop, CB_GETCURSEL, 0, 0);
-                        if (index >= 0)
-                        {
-                            SendDlgItemMessage(hwndDlg,IDC_Edit_FixedTextDisplayTop, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (nameContext)
-                                nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
-                        }
+                        GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, buf, sizeof(buf));
+                        if (nameContext)
+                            nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
                     }
                     break;
 
                 case IDC_Edit_FixedTextDisplayBottom:
-                    if (HIWORD(wParam) == CBN_SELCHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_Edit_FixedTextDisplayBottom, CB_GETCURSEL, 0, 0);
-                        if (index >= 0)
-                        {
-                            SendDlgItemMessage(hwndDlg,IDC_Edit_FixedTextDisplayBottom, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (nameContext)
-                                nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
-                        }
+                        GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, buf, sizeof(buf));
+                        if (nameContext)
+                            nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
                     }
                     break;
 
@@ -1644,28 +1668,20 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     break;
 
                 case IDC_Edit_ParamValueDisplayTop:
-                    if (HIWORD(wParam) == CBN_SELCHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_Edit_ParamValueDisplayTop, CB_GETCURSEL, 0, 0);
-                        if (index >= 0)
-                        {
-                            SendDlgItemMessage(hwndDlg,IDC_Edit_ParamValueDisplayTop, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (valueContext)
-                                valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
-                        }
+                        GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, buf, sizeof(buf));
+                        if (valueContext)
+                            valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
                     }
                     break;
 
                 case IDC_Edit_ParamValueDisplayBottom:
-                    if (HIWORD(wParam) == CBN_SELCHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_Edit_ParamValueDisplayBottom, CB_GETCURSEL, 0, 0);
-                        if (index >= 0)
-                        {
-                            SendDlgItemMessage(hwndDlg,IDC_Edit_ParamValueDisplayBottom, CB_GETLBTEXT, index, (LPARAM)buf);
-                            if (valueContext)
-                                valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
-                        }
+                        GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, buf, sizeof(buf));
+                        if (valueContext)
+                            valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
                     }
                     break;
                     

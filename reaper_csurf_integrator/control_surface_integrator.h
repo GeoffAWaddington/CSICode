@@ -335,11 +335,11 @@ class PropertyList
             const char *key = string_from_prop(props_[x]);
             
             if (key && value)
-                fprintf(fxFile, " %s=%s", key, value);
+                fprintf(fxFile, "%s=%s ", key, value);
             //else if (WDL_NORMALLY(props_[x] == PropertyType_Unknown && value && strstr(value,"=")))
                 //fprintf(fxFile, " %s", value);
         }
-        fprintf(fxFile,"\n");
+        //fprintf(fxFile,"\n");
     }
 
     void print_to_buf(char * buf, int buf_size, PropertyType prop)
