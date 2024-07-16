@@ -991,71 +991,35 @@ void InitBlankLearnFocusedFXZone()
     
     if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
         s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str(), "");
-    
-    int modifier = 0;
-    char buf[MEDBUF];
-    
+      
+    char widgetName[MEDBUF];
+
     string_list blankParams;
     
-    string_list nameParams;
-    nameParams.push_back("NoFeedback");
-    
-    string_list valueParams;
-    valueParams.push_back("NoFeedback");
-
-    for (int row = 0; row < s_fxRowLayouts.size(); ++row)
+    for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
     {
-        modifier = s_fxRowLayouts[row].modifier;
+        int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
         
         for (int channel = 1; channel <= s_numChannels; ++channel)
         {
-            snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidget, channel);
-            if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
             {
-                zone->AddWidget(widget);
-                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                zone->AddActionContext(widget, modifier, context);
-            }
-            
-            snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget, channel);
-            if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
-            {
-                zone->AddWidget(widget);
-                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                zone->AddActionContext(widget, modifier, context);
-            }
-            
-            snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget, channel);
-            if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
-            {
-                zone->AddWidget(widget);
-                ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                zone->AddActionContext(widget, modifier, context);
-            }
-            
-            for (int cell = 1; cell < s_t_paramWidgets.size(); ++cell)
-            {
-                snprintf(buf, sizeof(buf), "%s%d", s_t_paramWidgets[cell].c_str(), channel);
-                if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
                 {
                     zone->AddWidget(widget);
                     ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
                     zone->AddActionContext(widget, modifier, context);
                 }
-
-                snprintf(buf, sizeof(buf), "%s%d", s_t_nameWidget, channel );
-                if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
+            }
+            
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
                 {
                     zone->AddWidget(widget);
-                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, nameParams);
-                    zone->AddActionContext(widget, modifier, context);
-                }
-
-                snprintf(buf, sizeof(buf), "%s%d", s_t_valueWidget, channel);
-                if (Widget* widget = s_zoneManager->GetSurface()->GetWidgetByName(buf))
-                {
-                    zone->AddWidget(widget);
-                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, valueParams);
+                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
                     zone->AddActionContext(widget, modifier, context);
                 }
             }
@@ -1431,10 +1395,7 @@ void WidgetMoved(Widget *widget, int modifier)
     
     if (! IsWindowVisible(s_hwndLearnDlg))
         return;
-    
-    if (s_lastTouchedParamNum < 0)
-        return;
-    
+        
     if (widget == s_currentWidget)
         return;
     
