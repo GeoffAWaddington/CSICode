@@ -1465,11 +1465,7 @@ public:
     void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
     {
         if (learnFocusedFXZone_ != NULL)
-        {
-            // GAW TBD -- save here and add to zoneInfo_
-            
             ClearLearnFocusedFXZone();
-        }
 
         if(zoneInfo_.Exists(fxName))
         {
