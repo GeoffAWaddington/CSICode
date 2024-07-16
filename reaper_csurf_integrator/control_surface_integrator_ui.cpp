@@ -981,6 +981,8 @@ static void AutoMapFX(HWND hwndDlg)
     }
     
     EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
+    
+    s_zoneManager->PreProcessZoneFile(fxFullFilePath);
 }
 
 void InitBlankLearnFocusedFXZone()
@@ -1028,6 +1030,8 @@ void InitBlankLearnFocusedFXZone()
     
     if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
         s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
+    
+    CreateContextMap();
 }
 
 static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
@@ -1348,7 +1352,6 @@ static void FillParams(HWND hwndDlg, int index)
                 s_zoneManager->GetSurface()->SetModifierValue(modifier);
                 
                 s_currentWidget = widget;
-                s_lastTouchedParamNum = index;
                 FillParams(hwndDlg, widget, modifier);
                 if (s_hwndLearnDisplaysDlg != NULL)
                 {
@@ -1907,7 +1910,10 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
                 case IDC_AutoMap:
                     if (HIWORD(wParam) == BN_CLICKED)
+                    {
                         AutoMapFX(hwndDlg);
+                        s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
+                    }
                     break ;
                                         
                 case IDC_Save:
