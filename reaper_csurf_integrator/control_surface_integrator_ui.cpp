@@ -1560,7 +1560,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         ColorFromNative(GetButtonColorForID(IDC_FXParamRingColor), &color.r, &color.g, &color.b);
                         
                         if (paramContext)
+                        {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
+                            paramContext->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                        }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1573,7 +1576,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         ColorFromNative(GetButtonColorForID(IDC_FXParamIndicatorColor), &color.r, &color.g, &color.b);
                         
                         if (paramContext)
+                        {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
+                            paramContext->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                        }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1586,7 +1592,11 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayForegroundColor), &color.r, &color.g, &color.b);
                         
                         if (nameContext)
+                        {
                             nameContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                            nameContext->GetWidget()->UpdateColorValue(color);
+                            nameContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1599,7 +1609,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         ColorFromNative(GetButtonColorForID(IDC_FixedTextDisplayBackgroundColor), &color.r, &color.g, &color.b);
                         
                         if (nameContext)
+                        {
                             nameContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
+                            nameContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1612,7 +1625,11 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayForegroundColor), &color.r, &color.g, &color.b);
                         
                         if (valueContext)
+                        {
                             valueContext->GetWidgetProperties().set_prop(PropertyType_TextColor, color.rgba_to_string(colorBuf));
+                            valueContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
+
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1625,7 +1642,11 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         ColorFromNative(GetButtonColorForID(IDC_FXParamDisplayBackgroundColor), &color.r, &color.g, &color.b);
                         
                         if (valueContext)
+                        {
                             valueContext->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, color.rgba_to_string(colorBuf));
+                            valueContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
+
                         InvalidateRect(hwndDlg, NULL, true);
                     }
                     break;
@@ -1638,7 +1659,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         {
                             SendDlgItemMessage(hwndDlg,IDC_FixedTextDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (nameContext)
+                            {
                                 nameContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
+                                nameContext->ForceWidgetValue(nameContext->GetStringParam());
+                            }
                         }
                     }
                     break;
@@ -1648,7 +1672,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, buf, sizeof(buf));
                         if (nameContext)
+                        {
                             nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
+                            nameContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
                     }
                     break;
 
@@ -1657,7 +1684,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, buf, sizeof(buf));
                         if (nameContext)
+                        {
                             nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
+                            nameContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
                     }
                     break;
 
@@ -1669,7 +1699,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         {
                             SendDlgItemMessage(hwndDlg,IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (valueContext)
+                            {
                                 valueContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
+                                valueContext->ForceWidgetValue(nameContext->GetStringParam());
+                            }
                         }
                     }
                     break;
@@ -1679,7 +1712,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, buf, sizeof(buf));
                         if (valueContext)
+                        {
                             valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
+                            valueContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
                     }
                     break;
 
@@ -1688,14 +1724,16 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, buf, sizeof(buf));
                         if (valueContext)
+                        {
                             valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
+                            valueContext->ForceWidgetValue(nameContext->GetStringParam());
+                        }
                     }
                     break;
                     
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }

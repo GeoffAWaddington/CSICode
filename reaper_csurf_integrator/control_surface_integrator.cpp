@@ -1899,6 +1899,11 @@ void ActionContext::UpdateWidgetValue(const char *value)
     widget_->UpdateValue(widgetProperties_, value ? value : "");
 }
 
+void ActionContext::ForceWidgetValue(const char *value)
+{
+    widget_->ForceValue(widgetProperties_, value ? value : "");
+}
+
 void ActionContext::DoAction(double value)
 {
     if (holdDelayAmount_ != 0)
@@ -2405,6 +2410,12 @@ void  Widget::UpdateValue(const PropertyList &properties, const char * const &va
 {
     for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
         feedbackProcessors_.Get(i)->SetValue(properties, value);
+}
+
+void  Widget::ForceValue(const PropertyList &properties, const char * const &value)
+{
+    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
+        feedbackProcessors_.Get(i)->ForceValue(properties, value);
 }
 
 void Widget::RunDeferredActions()

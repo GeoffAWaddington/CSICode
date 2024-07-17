@@ -614,6 +614,7 @@ public:
     void ClearWidget();
     void UpdateWidgetValue(double value); // note: if passing the constant 0, must be 0.0 to avoid ambiguous type vs pointer
     void UpdateWidgetValue(const char *value);
+    void ForceWidgetValue(const char *value);
     void UpdateJSFXWidgetSteppedValue(double value);
     void UpdateColorValue(double value);
 
@@ -1010,6 +1011,7 @@ public:
     void Configure(const WDL_PtrList<ActionContext> &contexts);
     void UpdateValue(const PropertyList &properties, double value);
     void UpdateValue(const PropertyList &properties, const char * const &value);
+    void ForceValue(const PropertyList &properties, const char * const &value);
     void RunDeferredActions();
     void UpdateColorValue(const rgba_color &color);
     void SetXTouchDisplayColors(const char *colors);

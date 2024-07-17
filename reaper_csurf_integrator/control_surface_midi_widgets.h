@@ -673,16 +673,14 @@ public:
 
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        ForceValue(properties, inputText);
+        if (lastStringSent_ != inputText)
+            ForceValue(properties, inputText);
     }
     
     virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
         char tmp[MEDBUF];
         const char *displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
-        
-        if (lastStringSent_ == displayText)
-            return;
         
         lastStringSent_ = displayText;
                   
