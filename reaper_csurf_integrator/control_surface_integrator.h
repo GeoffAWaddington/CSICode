@@ -1981,8 +1981,9 @@ public:
 
     void SetModifierValue(int value)
     {
-        ClearModifiers();
-         
+        for (int i = 0; i < MaxModifiers; ++i)
+            modifiers_[i].isEngaged = false;
+
         if (value & maskFromModifier(Shift))
             modifiers_[Shift].isEngaged = true;
      
@@ -2012,8 +2013,6 @@ public:
      
         if (value & maskFromModifier(Scrub))
             modifiers_[Scrub].isEngaged = true;
-        
-        RecalculateModifiers();
     }
     
     void SetShift(bool value, int latchTime)
@@ -2685,7 +2684,6 @@ public:
     
     int surfaceRefreshRate_;
 
-    
     const char *GetName() { return name_.c_str(); }
     
     void HandleExternalInput(Midi_ControlSurface *surface);

@@ -1196,6 +1196,9 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
 
 static void HandleInitLearnFXDisplayDialog(HWND hwndDlg)
 {
+    SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
+
     for (int i = 0; i < s_t_fonts.size(); ++i)
     {
         SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
@@ -1393,6 +1396,18 @@ static void HandleInitialize(HWND hwndDlg)
 
 void WidgetMoved(Widget *widget, int modifier)
 {
+    if (s_focusedTrack == NULL)
+        return;
+    
+    if (s_zoneManager == NULL)
+        return;
+  
+    if (s_zoneManager->GetLearnedFocusedFXZone() == NULL)
+        return;
+    
+    if (s_zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
+        return;
+    
     if (s_hwndLearnDlg == NULL)
         return;
     
