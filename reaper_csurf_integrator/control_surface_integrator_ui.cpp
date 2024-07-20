@@ -1250,10 +1250,19 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
 
     ActionContext *paramContext = GetContext(widget, modifier);
  
-    if (paramContext == NULL)
-        return;
-    
     HWND hwndAssigned = GetDlgItem(hwndDlg, IDC_CHECK_Assigned);
+
+    char buf[MEDBUF];
+    buf[0] = 0;
+    
+    if (paramContext == NULL)
+    {
+        SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
+        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
+        SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+        return;
+    }
+    
     
     if ( ! strcmp (paramContext->GetAction()->GetName(), "NoAction"))
     {
@@ -1266,8 +1275,6 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assigned");
     }
    
-    char buf[MEDBUF];
-    buf[0] = 0;
     
     s_modifierManager.GetModifierString(modifier, buf, sizeof(buf));
     
@@ -1292,6 +1299,8 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
 
     if (ActionContext *nameContext = cell->GetNameContext(widget))
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
+    else
+        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
 
     if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
     {
@@ -1467,20 +1476,62 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
 
     if (shouldAssign)
     {
+        char buf[MEDBUF];
+
         paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
         paramContext->SetParamIndex(paramIdx);
         paramContext->SetStringParam("");
+        SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETTEXT, paramIdx, (LPARAM)buf);
+        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), buf);
+
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 1, 0);
+        char displayWidgetName[MEDBUF];
+        SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, 1, (LPARAM)displayWidgetName);
+        
+        if ( ! strcmp(displayWidgetName, ""))
+            cell->ClearNameDisplayWidget(s_currentWidget);
+        else
+        {
+            char paramName[MEDBUF];
+            GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
+
+            cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
+        }
+
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 2, 0);
+        char valueWidgetName[MEDBUF];
+        SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, 2, (LPARAM)valueWidgetName);
+
+        if ( ! strcmp(valueWidgetName, ""))
+            cell->ClearValueDisplayWidget(s_currentWidget);
+        else
+            cell->SetValueWidget(s_currentWidget, valueWidgetName);
     }
     else
     {
         paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
         paramContext->SetParamIndex(0);
         paramContext->SetStringParam("");
+        SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
+        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 0, 0);
+        
+        if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
+        {
+            nameContext->SetParamIndex(0);
+            nameContext->SetStringParam("");
+        }
+
+        if (ActionContext *valueContext = cell->GetNameContext(s_currentWidget))
+        {
+            valueContext->SetParamIndex(0);
+            valueContext->SetStringParam("");
+        }
     }
     
     SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_SETCURSEL, 0, 0);
-    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 0, 0);
-    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 0, 0);
 }
 
 static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1712,7 +1763,7 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         int index = SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
-                            SendDlgItemMessage(hwndDlg,IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
+                            SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
                             if (valueContext)
                             {
                                 valueContext->GetWidgetProperties().set_prop(PropertyType_Font, buf);
@@ -1900,7 +1951,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                        if (index >= 0)
                        {
                            char displayWidgetName[MEDBUF];
-                           displayWidgetName[0] = 0;
                            SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, index, (LPARAM)displayWidgetName);
                            
                            if ( ! strcmp(displayWidgetName, ""))
@@ -1908,7 +1958,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            else
                            {
                                char paramName[MEDBUF];
-                               paramName[0] = 0;
                                GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
 
                                cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
@@ -1923,14 +1972,13 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_GETCURSEL, 0, 0);
                        if (index >= 0)
                        {
-                           char displayWidgetName[MEDBUF];
-                           displayWidgetName[0] = 0;
-                           SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, index, (LPARAM)displayWidgetName);
+                           char valueWidgetName[MEDBUF];
+                           SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, index, (LPARAM)valueWidgetName);
 
-                           if ( ! strcmp(displayWidgetName, ""))
+                           if ( ! strcmp(valueWidgetName, ""))
                                cell->ClearValueDisplayWidget(s_currentWidget);
                            else
-                               cell->SetValueWidget(s_currentWidget, displayWidgetName);
+                               cell->SetValueWidget(s_currentWidget, valueWidgetName);
                        }
                    }
                    break;
