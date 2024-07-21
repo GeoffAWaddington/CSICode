@@ -1543,6 +1543,10 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
     switch(uMsg)
     {
+        case WM_CLOSE:
+            ShowWindow(hwndDlg, false);
+            break;
+
         case WM_USER + 1024: // initialize
             HandleInitLearnFXDisplayDialog(hwndDlg);
             break;
@@ -1823,6 +1827,10 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         
     switch (uMsg)
     {
+        case WM_CLOSE:
+            CloseFocusedFXDialog();
+            break;
+            
         case WM_USER + 1024: // initialize
             HandleInitialize(hwndDlg);
             break;
