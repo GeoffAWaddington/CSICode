@@ -1286,7 +1286,7 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     if (ringstyle)
         SetDlgItemText(hwndDlg, IDC_PickRingStyle, ringstyle);
     else
-        SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+        SendMessage(GetDlgItem(hwndDlg, IDC_PickRingStyle), CB_SETCURSEL, 0, 0);
 
     int numSteps = paramContext->GetNumberOfSteppedValues();
     if (numSteps)
@@ -1334,7 +1334,7 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
             if (index >= 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, index, 0);
             else
-                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
         }
         else
             SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
@@ -1347,7 +1347,7 @@ static void FillParams(HWND hwndDlg, int index)
     
     if (zone == NULL)
         return;
-    
+
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
@@ -1356,9 +1356,9 @@ static void FillParams(HWND hwndDlg, int index)
         {
             int modifier = s_fxRowLayouts[j].modifier;
             
-            if (GetContext(widget, modifier) != NULL
-                && ! strcmp(GetContext(widget, modifier)->GetAction()->GetName(), "FXParam")
-                && GetContext(widget, modifier)->GetParamIndex() == index)
+            ActionContext *context = GetContext(widget, modifier);
+            
+            if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == index)
             {
                 s_currentModifier = modifier;
                 s_zoneManager->GetSurface()->SetModifierValue(modifier);
@@ -1376,6 +1376,23 @@ static void FillParams(HWND hwndDlg, int index)
                 return;
             }
         }
+    }
+
+    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_CHECKED)
+    {
+        s_currentWidget = NULL;
+        SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
+        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
+        SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), "");
+        SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
+        SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
+        SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
     }
 }
 
