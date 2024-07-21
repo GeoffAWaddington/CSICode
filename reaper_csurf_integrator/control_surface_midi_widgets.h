@@ -679,11 +679,11 @@ public:
     
     virtual void ForceValue(const PropertyList &properties, const char * const &inputText) override
     {
+        lastStringSent_ = inputText;
+
         char tmp[MEDBUF];
         const char *displayText = GetWidget()->GetSurface()->GetRestrictedLengthText(inputText, tmp, sizeof(tmp));
         
-        lastStringSent_ = displayText;
-                  
         rgba_color backgroundColor;
         rgba_color textColor;
 
