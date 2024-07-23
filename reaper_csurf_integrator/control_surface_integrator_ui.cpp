@@ -1274,7 +1274,7 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
         SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
         SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assigned");
     }
-   
+
     
     s_modifierManager.GetModifierString(modifier, buf, sizeof(buf));
     
@@ -1393,6 +1393,24 @@ static void FillParams(HWND hwndDlg, int index)
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
         SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
+        
+        if (s_hwndLearnDisplaysDlg)
+        {
+            for (int i = 0; i < 6; ++i)
+                s_buttonColors[i][2] = 0xedededff;
+            
+            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayTop), "");
+            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayBottom), "");
+            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_FixedTextDisplayPickFont), "");
+
+            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_ParamValueDisplayTop), "");
+            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_ParamValueDisplayBottom), "");
+            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_FXParamValueDisplayPickFont), "");
+            
+            RECT rect;
+            GetClientRect(s_hwndLearnDisplaysDlg, &rect);
+            InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
+        }
     }
 }
 
@@ -1456,6 +1474,21 @@ void WidgetMoved(Widget *widget, int modifier)
     }
 }
 
+static void SetWidgetProperties(ActionContext *context, const char *params)
+{
+    string_list tokens;
+    GetTokens(tokens, params);
+    
+    for (int i = 0; i < tokens.size(); ++i)
+    {
+        string_list kvps;
+        GetSubTokens(kvps, tokens.get(i), '=');
+        
+        if (kvps.size() == 2)
+            context->GetWidgetProperties().set_prop(PropertyList::prop_from_string(kvps.get(0)), kvps.get(1));
+    }
+}
+
 static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shouldAssign)
 {
     if (s_currentWidget == NULL)
@@ -1498,9 +1531,11 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
         paramContext->SetParamIndex(paramIdx);
         paramContext->SetStringParam("");
+        
         SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETTEXT, paramIdx, (LPARAM)buf);
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), buf);
 
+        
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 1, 0);
         char displayWidgetName[MEDBUF];
         SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, 1, (LPARAM)displayWidgetName);
@@ -1523,6 +1558,18 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
             cell->ClearValueDisplayWidget(s_currentWidget);
         else
             cell->SetValueWidget(s_currentWidget, valueWidgetName);
+
+        SetWidgetProperties(paramContext, s_t_paramWidgetParams);
+        
+        if (ActionContext *context = cell->GetNameContext(s_currentWidget))
+            SetWidgetProperties(context, s_t_nameWidgetParams);
+        
+        if (ActionContext *context = cell->GetValueContext(s_currentWidget))
+            SetWidgetProperties(context, s_t_valueWidgetParams);
+        
+        FillParams(hwndDlg, s_currentWidget, modifier);
+        if (s_hwndLearnDisplaysDlg != NULL)
+            HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
     }
     else
     {
