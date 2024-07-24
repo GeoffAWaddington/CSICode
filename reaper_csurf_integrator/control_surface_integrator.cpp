@@ -1451,8 +1451,8 @@ void CSurfIntegrator::Init()
             
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 5)
-                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4])));
+                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 6)
+                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4]), atoi(tokens[5])));
                 else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 6)
                     oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
                 else if (tokens[0] == s_OSCX32SurfaceToken && tokens.size() == 6)
@@ -4012,9 +4012,7 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
 
 void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
 {
-    Sleep(1);
-
-    surfaceIO_->SendMidiMessage(midiMessage);
+    surfaceIO_->QueueMidiMessage(midiMessage);
     
     if (g_surfaceOutDisplay)
     {

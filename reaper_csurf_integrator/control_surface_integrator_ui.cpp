@@ -1396,7 +1396,7 @@ static void FillParams(HWND hwndDlg, int index)
         
         if (s_hwndLearnDisplaysDlg)
         {
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
                 s_buttonColors[i][2] = 0xedededff;
             
             SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayTop), "");
@@ -2292,8 +2292,9 @@ static int s_surfaceRefreshRate = 0;
 static int s_surfaceDefaultRefreshRate = 15;
 static int s_surfaceMaxPacketsPerRun = 0;
 static int s_surfaceDefaultMaxPacketsPerRun = 0;  // No restriction, send all queued packets
+static int s_surfaceMaxSysExMessagesPerRun = 0;
+static int s_surfaceDefaultMaxSysExMessagesPerRun = 200;
 static string s_surfaceRemoteDeviceIP;
-
 static int s_pageIndex = 0;
 static bool s_followMCP = false;
 static bool s_synchPages = true;
@@ -2317,6 +2318,7 @@ struct SurfaceLine
     int outPort;
     int surfaceRefreshRate;
     int surfaceMaxPacketsPerRun;
+    int surfaceMaxSysExMessagesPerRun;
     string remoteDeviceIP;
     
     SurfaceLine()
@@ -2325,6 +2327,7 @@ struct SurfaceLine
         outPort = 0;
         surfaceRefreshRate = s_surfaceDefaultRefreshRate;
         surfaceMaxPacketsPerRun = s_surfaceDefaultMaxPacketsPerRun;
+        surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
     }
 };
 
@@ -2759,10 +2762,12 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, s_surfaceName.c_str());
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceRefreshRate, true);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun, s_surfaceMaxSysExMessagesPerRun, true);
             }
             else
             {
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceDefaultRefreshRate, true);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun, s_surfaceDefaultMaxSysExMessagesPerRun, true);
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, "");
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn), CB_SETCURSEL, 0, 0);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut), CB_SETCURSEL, 0, 0);
@@ -2784,6 +2789,8 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         BOOL translated;
                         s_surfaceRefreshRate = GetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, &translated, true);
 
+                        s_surfaceMaxSysExMessagesPerRun = GetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun, &translated, true);
+                        
                         int currentSelection = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiIn, CB_GETCURSEL, 0, 0);
                         if (currentSelection >= 0)
                             s_surfaceInPort = (int)SendDlgItemMessage(hwndDlg, IDC_COMBO_MidiIn, CB_GETITEMDATA, currentSelection, 0);
@@ -3467,6 +3474,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
                                 s_surfaceRefreshRate = s_surfaces.Get(index)->surfaceRefreshRate;
                                 s_surfaceMaxPacketsPerRun = s_surfaces.Get(index)->surfaceMaxPacketsPerRun;
+                                s_surfaceMaxSysExMessagesPerRun = s_surfaces.Get(index)->surfaceMaxSysExMessagesPerRun;
 
                                 s_dlgResult = false;
                                 s_editMode = true;
@@ -3487,6 +3495,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_surfaces.Get(index)->outPort = s_surfaceOutPort;
                                     s_surfaces.Get(index)->surfaceRefreshRate = s_surfaceRefreshRate;
                                     s_surfaces.Get(index)->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
+                                    s_surfaces.Get(index)->surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
                                 }
                                 
                                 s_editMode = false;
@@ -3675,7 +3684,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         surface->type = tokens[0];
                         surface->name = tokens[1];
                         
-                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken) && (tokens.size() == 4 || tokens.size() == 5 || tokens.size() == 6))
+                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken) && tokens.size() == 6)
                         {
                             surface->inPort = atoi(tokens[2].c_str());
                             surface->outPort = atoi(tokens[3].c_str());
@@ -3684,18 +3693,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             
                             if (surface->type == s_MidiSurfaceToken)
                             {
-                                if (tokens.size() == 5)
-                                    surface->surfaceRefreshRate = atoi(tokens[4]);
-                                else
-                                    surface->surfaceRefreshRate = s_surfaceDefaultRefreshRate;
+                                surface->surfaceRefreshRate = atoi(tokens[4]);
+                                surface->surfaceMaxSysExMessagesPerRun = atoi(tokens[5]);
                             }
                             else if (surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken)
-                            {
-                                if (tokens.size() == 6)
-                                    surface->surfaceMaxPacketsPerRun = atoi(tokens[5]);
-                                else
-                                    surface->surfaceMaxPacketsPerRun = s_surfaceDefaultMaxPacketsPerRun;
-                            }
+                                surface->surfaceMaxPacketsPerRun = atoi(tokens[5]);
                         }
                         
                         s_surfaces.Add(surface);
@@ -3866,6 +3868,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     {
                         int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
                         fprintf(iniFile, "%d ", refreshRate);
+                        
+                        int maxSysExMessagesPerRun = s_surfaces.Get(i)->surfaceMaxSysExMessagesPerRun < 1 ? s_surfaceDefaultMaxSysExMessagesPerRun : s_surfaces.Get(i)->surfaceMaxSysExMessagesPerRun;
+                        fprintf(iniFile, "%d ", maxSysExMessagesPerRun);
                     }
                     
                     else if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)

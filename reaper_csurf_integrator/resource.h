@@ -29,6 +29,7 @@
 #define IDC_EDIT_MidiSurfaceName        1022
 #define IDC_EDIT_MidiSurfaceRefreshRate 1023
 #define IDC_LIST_Pages                  1024
+#define IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun 1024
 #define IDC_BUTTON_AddPage              1025
 #define IDC_BUTTON_EditPage             1026
 #define IDC_BUTTON_RemovePage           1027

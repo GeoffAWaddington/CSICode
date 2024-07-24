@@ -2672,9 +2672,11 @@ protected:
     string const name_;
     midi_Input *const midiInput_;
     midi_Output *const midiOutput_;
-    
+    WDL_Queue messageQueue_;
+    const int maxMesssagesPerRun_;
+
 public:
-    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput, int surfaceRefreshRate) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput), surfaceRefreshRate_(surfaceRefreshRate) {}
+    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput, int surfaceRefreshRate, int maxMesssagesPerRun) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput), surfaceRefreshRate_(surfaceRefreshRate), maxMesssagesPerRun_(maxMesssagesPerRun) {}
 
     ~Midi_ControlSurfaceIO()
     {
@@ -2694,10 +2696,47 @@ public:
             midiOutput_->SendMsg(midiMessage, -1);
     }
 
+    void QueueMidiMessage(MIDI_event_ex_t *midiMessage)
+    {
+        if (WDL_NOT_NORMALLY(midiMessage->size > 255)) return;
+
+        unsigned char size = (unsigned char)midiMessage->size;
+        messageQueue_.Add(&size, 1);
+        messageQueue_.Add(midiMessage->midi_message, midiMessage->size);
+    }
+
     void SendMidiMessage(int first, int second, int third)
     {
         if (midiOutput_)
             midiOutput_->Send(first, second, third, -1);
+    }
+    
+    void Run()
+    {
+        int numSent = 0;
+        
+        while ((maxMesssagesPerRun_ == 0 || numSent < maxMesssagesPerRun_) && messageQueue_.Available() >= 1)
+        {
+            const unsigned char *msg = (const unsigned char *)messageQueue_.Get();
+            const int msg_len = (int) *msg;
+            if (WDL_NOT_NORMALLY(messageQueue_.Available() < 1 + msg_len)) // not enough data in queue, should not happen
+                break;
+            
+            struct
+            {
+                MIDI_event_ex_t evt;
+                char data[256];
+            } midiSysExData;
+
+            midiSysExData.evt.frame_offset = 0;
+            midiSysExData.evt.size = msg_len;
+            memcpy(midiSysExData.evt.midi_message, msg + 1, msg_len);
+            messageQueue_.Advance(1 + msg_len);
+            SendMidiMessage(&midiSysExData.evt);
+            numSent++;
+        }
+        
+        messageQueue_.Compact();
     }
 };
 
@@ -2768,6 +2807,8 @@ public:
         if ((now - lastRun_) < (1000/max((surfaceIO_->surfaceRefreshRate_),1))) return;
         lastRun_=now;
 
+        surfaceIO_->Run();
+        
         ControlSurface::RequestUpdate();
     }
 };
