@@ -17,6 +17,8 @@ extern int g_maxNumParamSteps;
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
 
+static int s_swapIndexes[2];
+
 // t = template
 static string_list s_t_paramWidgets;
 static string_list s_t_displayRows;
@@ -1078,21 +1080,21 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     snprintf(fullName, sizeof(fullName), "%s%s", buf, widget->GetName());
     SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), fullName);
 
-    const char *ringcolor = paramContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
-    if (ringcolor)
+    const char *ringColor = paramContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor);
+    if (ringColor)
     {
         rgba_color color;
-        GetColorValue(ringcolor, color);
+        GetColorValue(ringColor, color);
         GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(color.r, color.g, color.b);
     }
     else
         GetButtonColorForID(IDC_FXParamRingColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
     
-    const char *pushcolor = paramContext->GetWidgetProperties().get_prop(PropertyType_PushColor);
-    if (pushcolor)
+    const char *pushColor = paramContext->GetWidgetProperties().get_prop(PropertyType_PushColor);
+    if (pushColor)
     {
         rgba_color color;
-        GetColorValue(pushcolor, color);
+        GetColorValue(pushColor, color);
         GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(color.r, color.g, color.b);
     }
     else
@@ -1238,6 +1240,42 @@ static void FillAllParamsList(HWND hwndDlg)
     }
 }
 
+static void ClearParams(HWND hwndDlg)
+{
+    s_currentWidget = NULL;
+    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
+    SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
+    SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), "");
+    SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
+    SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
+    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
+    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
+    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
+    
+    if (s_hwndLearnDisplaysDlg)
+    {
+        for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
+            s_buttonColors[i][2] = 0xedededff;
+        
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_GroupFXControl), "Control");
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayTop), "");
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayBottom), "");
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_FixedTextDisplayPickFont), "");
+
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_ParamValueDisplayTop), "");
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_ParamValueDisplayBottom), "");
+        SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_FXParamValueDisplayPickFont), "");
+        
+        RECT rect;
+        GetClientRect(s_hwndLearnDisplaysDlg, &rect);
+        InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
+    }
+}
+
 static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
 {
     FXCell *cell = GetCell(widget, modifier);
@@ -1347,7 +1385,7 @@ static void FillParams(HWND hwndDlg, int index)
     
     if (zone == NULL)
         return;
-
+    
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
@@ -1377,41 +1415,9 @@ static void FillParams(HWND hwndDlg, int index)
             }
         }
     }
-
+    
     if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_CHECKED)
-    {
-        s_currentWidget = NULL;
-        SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
-        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
-        SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
-        SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), "");
-        SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
-        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
-        SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
-        SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
-        
-        if (s_hwndLearnDisplaysDlg)
-        {
-            for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
-                s_buttonColors[i][2] = 0xedededff;
-            
-            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayTop), "");
-            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_FixedTextDisplayBottom), "");
-            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_FixedTextDisplayPickFont), "");
-
-            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_ParamValueDisplayTop), "");
-            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_Edit_ParamValueDisplayBottom), "");
-            SetWindowText(GetDlgItem(s_hwndLearnDisplaysDlg, IDC_FXParamValueDisplayPickFont), "");
-            
-            RECT rect;
-            GetClientRect(s_hwndLearnDisplaysDlg, &rect);
-            InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
-        }
-    }
+        ClearParams(hwndDlg);
 }
 
 static void HandleInitialize(HWND hwndDlg)
@@ -1434,6 +1440,8 @@ static void HandleInitialize(HWND hwndDlg)
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), false);
     else
         EnableWindow(GetDlgItem(hwndDlg, IDC_AutoMap), true);
+
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Swap), false);
 
     FillAllParamsList(hwndDlg);
 }
@@ -1598,6 +1606,87 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
     SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_SETCURSEL, 0, 0);
 }
 
+static void ApplyToAll(HWND hwndDlg, Widget *widget, int modifier, ActionContext *sourceParamContext, ActionContext *sourceNameContext, ActionContext *sourceValueContext)
+{
+    for (int cell = 0; cell < s_cells.GetSize(); ++cell)
+    {
+        for (int i = 0; i < s_cells.Get(cell)->controlWidgets.GetSize(); ++i)
+        {
+            if (sourceParamContext != NULL)
+            {
+                if (ActionContext *context = GetContext(s_cells.Get(cell)->controlWidgets.Get(i), modifier))
+                {
+                    if (const char *sourceRingColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
+                            context->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, sourceRingColor);
+ 
+                    if (const char *sourcePushColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_PushColor))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_PushColor))
+                            context->GetWidgetProperties().set_prop(PropertyType_PushColor, sourcePushColor);
+                    
+                    context->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                }
+            }
+            
+            if (sourceNameContext != NULL)
+            {
+                if (ActionContext *context = s_cells.Get(cell)->GetNameContext(s_cells.Get(cell)->controlWidgets.Get(i)))
+                {
+                    if (const char *sourceTextColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                            context->GetWidgetProperties().set_prop(PropertyType_TextColor, sourceTextColor);
+ 
+                    if (const char *sourceBackgroundColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                            context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, sourceBackgroundColor);
+
+                    if (const char *sourceTopMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                            context->GetWidgetProperties().set_prop(PropertyType_TopMargin, sourceTopMargin);
+
+                    if (const char *sourceBottomMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                            context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, sourceBottomMargin);
+
+                    if (const char *sourceFont = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_Font))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_Font))
+                            context->GetWidgetProperties().set_prop(PropertyType_Font, sourceFont);
+                    
+                    context->ForceWidgetValue(context->GetStringParam());
+                }
+            }
+            
+            if (sourceValueContext != NULL)
+            {
+                if (ActionContext *context = s_cells.Get(cell)->GetValueContext(s_cells.Get(cell)->controlWidgets.Get(i)))
+                {
+                    if (const char *sourceTextColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                        if (const char *textColor = context->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                            context->GetWidgetProperties().set_prop(PropertyType_TextColor, sourceTextColor);
+ 
+                    if (const char *sourceBackgroundColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                        if (const char *backgroundColor = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                            context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, sourceBackgroundColor);
+
+                    if (const char *sourceTopMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                            context->GetWidgetProperties().set_prop(PropertyType_TopMargin, sourceTopMargin);
+
+                    if (const char *sourceBottomMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                            context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, sourceBottomMargin);
+
+                    if (const char *sourceFont = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_Font))
+                        if (context->GetWidgetProperties().get_prop(PropertyType_Font))
+                            context->GetWidgetProperties().set_prop(PropertyType_Font, sourceFont);
+                    
+                    context->ForceWidgetValue(context->GetStringParam());
+                }
+            }
+        }
+    }
+}
+
 static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1686,6 +1775,11 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             switch(LOWORD(wParam))
             {
+                case IDC_ApplyToAll:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        ApplyToAll(hwndDlg, s_currentWidget, modifier, paramContext, nameContext, valueContext);
+                    break;
+                    
                 case IDC_FXParamRingColor:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1962,17 +2056,42 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         }
                     }
                     break;
-                    
+
                 case IDC_AllParams:
                     if (HIWORD(wParam) == LBN_SELCHANGE)
                     {
-                       int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
-                       if (index >= 0)
-                       {
-                           FillParams(hwndDlg, index);
-                           if (s_hwndLearnDisplaysDlg != NULL)
-                               HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
-                       }
+                        int numSelected = SendMessage(GetDlgItem(hwndDlg, IDC_AllParams), LB_GETSELCOUNT, 0, 0);
+                        
+                        if (numSelected == 0)
+                        {
+                            ClearParams(hwndDlg);
+                            EnableWindow(GetDlgItem(hwndDlg, IDC_Swap), false);
+                        }
+                        else if (numSelected == 1)
+                        {
+                            int index = (int)SendDlgItemMessage(hwndDlg, IDC_AllParams, LB_GETCURSEL, 0, 0);
+                            if (index >= 0)
+                            {
+                                FillParams(hwndDlg, index);
+                                if (s_hwndLearnDisplaysDlg != NULL)
+                                    HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
+                            }
+
+                            EnableWindow(GetDlgItem(hwndDlg, IDC_Swap), false);
+                        }
+                        else if (numSelected == 2) // eligible for Swap
+                        {
+                            HWND hwndAllParams = GetDlgItem(hwndDlg, IDC_AllParams);
+                            
+                            int currentSwapIdx = 0;
+                            int count = SendMessage(hwndAllParams, LB_GETCOUNT, 0, 0);
+ 
+                            for (int i = 0; i < count; i++)
+                                if (SendMessage(hwndAllParams, LB_GETSEL, i, 0) > 0)
+                                    s_swapIndexes[currentSwapIdx++] = i;
+                            
+                            EnableWindow(GetDlgItem(hwndDlg, IDC_Swap), true);
+                        }
                     }
                     break;
          

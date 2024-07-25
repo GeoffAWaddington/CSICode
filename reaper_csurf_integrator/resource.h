@@ -58,6 +58,7 @@
 #define IDC_RADIO_TCP                   1098
 #define IDC_FXAlias                     1102
 #define IDC_AutoMap                     1103
+#define IDC_Swap                        1104
 #define IDC_Advanced                    1105
 #define IDC_Displays                    1106
 #define IDC_EditSteps                   1107
@@ -133,6 +134,7 @@
 #define IDC_CELL_LIST                   1291
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
+#define IDC_ApplyToAll                  1295
 
 // Next default values for new objects
 // 
@@ -140,7 +142,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        128
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1294
+#define _APS_NEXT_CONTROL_VALUE         1296
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
