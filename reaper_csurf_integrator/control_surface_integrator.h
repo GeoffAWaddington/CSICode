@@ -2272,6 +2272,7 @@ public:
 
     virtual void HandleExternalInput() {}
     virtual void UpdateTimeDisplay() {}
+    virtual void FlushIO() {}
     
     virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
@@ -2412,6 +2413,8 @@ public:
     {
         for (int i = 0; i < widgets_.GetSize(); ++i)
             widgets_.Get(i)->ForceClear();
+        
+        FlushIO();
     }
            
     void TrackFXListChanged(MediaTrack *track)
@@ -2738,6 +2741,31 @@ public:
         
         messageQueue_.Compact();
     }
+    
+    void FlushIO()
+    {
+        while (messageQueue_.Available() >= 1)
+        {
+            Sleep(2);
+            
+            const unsigned char *msg = (const unsigned char *)messageQueue_.Get();
+            const int msg_len = (int) *msg;
+            if (WDL_NOT_NORMALLY(messageQueue_.Available() < 1 + msg_len)) // not enough data in queue, should not happen
+                break;
+            
+            struct
+            {
+                MIDI_event_ex_t evt;
+                char data[256];
+            } midiSysExData;
+
+            midiSysExData.evt.frame_offset = 0;
+            midiSysExData.evt.size = msg_len;
+            memcpy(midiSysExData.evt.midi_message, msg + 1, msg_len);
+            messageQueue_.Advance(1 + msg_len);
+            SendMidiMessage(&midiSysExData.evt);
+        }
+    }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2795,6 +2823,11 @@ public:
         surfaceIO_->HandleExternalInput(this);
     }
         
+    virtual void FlushIO() override
+    {
+        surfaceIO_->FlushIO();
+    }
+    
     void AddCSIMessageGenerator(int messageKey, Midi_CSIMessageGenerator *messageGenerator)
     {
         if (WDL_NOT_NORMALLY(!messageGenerator)) return;

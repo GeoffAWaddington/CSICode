@@ -1100,6 +1100,8 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     else
         GetButtonColorForID(IDC_FXParamIndicatorColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
 
+    paramContext->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+    
     const char *property;
     const char *foreground;
     const char *background;

@@ -617,21 +617,36 @@ public:
     
     virtual void ForceClear() override
     {
-        char buf[SMLBUF];
-
-        PropertyList properties;
-        properties.set_prop(PropertyType_DisplayText, "");
-        snprintf(buf, sizeof(buf), "%d", topMargin_);
-        properties.set_prop(PropertyType_TopMargin, buf);
-        //properties.set_prop(PropertyType_TopMargin, int_to_string(topMargin_).c_str());
-        snprintf(buf, sizeof(buf), "%d", bottomMargin_);
-        properties.set_prop(PropertyType_BottomMargin, buf);
-        //properties.set_prop(PropertyType_BottomMargin, int_to_string(bottomMargin_).c_str());
-        snprintf(buf, sizeof(buf), "%d", font_);
-        properties.set_prop(PropertyType_Font, buf);
-        //properties.set_prop(PropertyType_Font, int_to_string(font_).c_str());
+        struct
+        {
+            MIDI_event_ex_t evt;
+            char data[256];
+        } midiSysExData;
+         
+        midiSysExData.evt.frame_offset=0;
+        midiSysExData.evt.size=0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x00;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x02;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x38;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x01;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = midiFeedbackMessage1_->midi_message[1];
         
-        FeedbackProcessor::ForceValue(properties, "");
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 63;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0;
+        
+        midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
+         
+        SendMidiSysExMessage(&midiSysExData.evt);
     }
 
     virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
