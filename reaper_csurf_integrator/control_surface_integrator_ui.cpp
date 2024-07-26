@@ -1198,8 +1198,8 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     }
     
     RECT rect;
-    GetClientRect(s_hwndLearnDisplaysDlg, &rect);
-    InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
+    GetClientRect(hwndDlg, &rect);
+    InvalidateRect(hwndDlg, &rect, 0);
 }
 
 static void HandleInitLearnFXDisplayDialog(HWND hwndDlg)
@@ -1248,7 +1248,6 @@ static void FillAllParamsList(HWND hwndDlg)
 
 static void ClearParams(HWND hwndDlg)
 {
-    s_currentWidget = NULL;
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
     SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
     SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
@@ -1280,6 +1279,12 @@ static void ClearParams(HWND hwndDlg)
         GetClientRect(s_hwndLearnDisplaysDlg, &rect);
         InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
     }
+}
+
+static void ClearParamsAndCurrentWidget(HWND hwndDlg)
+{
+    s_currentWidget = NULL;
+    ClearParams(hwndDlg);
 }
 
 static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
@@ -1418,7 +1423,7 @@ static void FillParams(HWND hwndDlg, int index)
     }
     
     if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_CHECKED)
-        ClearParams(hwndDlg);
+        ClearParamsAndCurrentWidget(hwndDlg);
 }
 
 static void HandleInitialize(HWND hwndDlg)
@@ -1580,11 +1585,6 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
         paramContext->SetParamIndex(0);
         paramContext->SetStringParam("");
-        SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
-        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
-        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 0, 0);
         
         if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
         {
@@ -1597,6 +1597,8 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
             valueContext->SetParamIndex(0);
             valueContext->SetStringParam("");
         }
+            
+        ClearParams(hwndDlg);
     }
     
     SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_SETCURSEL, 0, 0);
@@ -2060,7 +2062,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
                         if (numSelected == 0)
                         {
-                            ClearParams(hwndDlg);
+                            ClearParamsAndCurrentWidget(hwndDlg);
                             EnableWindow(GetDlgItem(hwndDlg, IDC_Swap), false);
                         }
                         else if (numSelected == 1)
