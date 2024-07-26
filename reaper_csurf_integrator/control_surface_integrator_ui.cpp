@@ -1196,6 +1196,10 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
         else
             GetButtonColorForID(IDC_FXParamDisplayBackgroundColor) = ColorToNative(defaultColor.r, defaultColor.g, defaultColor.b);
     }
+    
+    RECT rect;
+    GetClientRect(s_hwndLearnDisplaysDlg, &rect);
+    InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
 }
 
 static void HandleInitLearnFXDisplayDialog(HWND hwndDlg)
@@ -1406,12 +1410,7 @@ static void FillParams(HWND hwndDlg, int index)
                 s_currentWidget = widget;
                 FillParams(hwndDlg, widget, modifier);
                 if (s_hwndLearnDisplaysDlg != NULL)
-                {
                     HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
-                    RECT rect;
-                    GetClientRect(s_hwndLearnDisplaysDlg, &rect);
-                    InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
-                }
                 
                 return;
             }
@@ -1476,12 +1475,7 @@ void WidgetMoved(Widget *widget, int modifier)
     
     FillParams(s_hwndLearnDlg, widget, modifier);
     if (s_hwndLearnDisplaysDlg != NULL)
-    {
         HandleInitLearnFXDisplayDialog(s_hwndLearnDisplaysDlg);
-        RECT rect;
-        GetClientRect(s_hwndLearnDisplaysDlg, &rect);
-        InvalidateRect(s_hwndLearnDisplaysDlg, &rect, 0);
-    }
 }
 
 static void SetWidgetProperties(ActionContext *context, const char *params)
