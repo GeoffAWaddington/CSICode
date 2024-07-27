@@ -2971,14 +2971,6 @@ void ZoneManager::CheckFocusedFXState()
 
 void ZoneManager::GoSelectedTrackFX()
 {
-    if (homeZone_ != NULL)
-    {
-        ClearFXMapping();
-        ResetOffsets();
-                
-        GoZone("SelectedTrackFX");
-    }
-
     selectedTrackFXZones_.clear();
     
     if (MediaTrack *selectedTrack = surface_->GetPage()->GetSelectedTrack())

@@ -1512,7 +1512,7 @@ public:
     {
         ClearFXMapping();
         ResetOffsets();
-
+        
         for (int i = 0; i < goZones_.size(); ++i)
         {
             if (!strcmp(zoneName, goZones_[i]->GetName()))
@@ -1535,6 +1535,9 @@ public:
         for (int i = 0; i < goZones_.size(); ++i)
             if (!strcmp(zoneName, goZones_[i]->GetName()))
                goZones_[i]->Activate();
+        
+        if ( ! strcmp(zoneName, "SelectedTrackFX"))
+            GoSelectedTrackFX();
     }
     
     void DeclareClearFXZone(const char *zoneName)
