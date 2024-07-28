@@ -2680,6 +2680,12 @@ protected:
     midi_Output *const midiOutput_;
     WDL_Queue messageQueue_;
     const int maxMesssagesPerRun_;
+    
+    void SendMidiSysexMessage(MIDI_event_ex_t *midiMessage)
+    {
+        if (midiOutput_)
+            midiOutput_->SendMsg(midiMessage, -1);
+    }
 
 public:
     Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput, int surfaceRefreshRate, int maxMesssagesPerRun) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput), surfaceRefreshRate_(surfaceRefreshRate), maxMesssagesPerRun_(maxMesssagesPerRun) {}
@@ -2696,13 +2702,7 @@ public:
     
     void HandleExternalInput(Midi_ControlSurface *surface);
     
-    void SendMidiMessage(MIDI_event_ex_t *midiMessage)
-    {
-        if (midiOutput_)
-            midiOutput_->SendMsg(midiMessage, -1);
-    }
-
-    void QueueMidiMessage(MIDI_event_ex_t *midiMessage)
+    void QueueMidiSysexMessage(MIDI_event_ex_t *midiMessage)
     {
         if (WDL_NOT_NORMALLY(midiMessage->size > 255)) return;
 
@@ -2738,14 +2738,14 @@ public:
             midiSysExData.evt.size = msg_len;
             memcpy(midiSysExData.evt.midi_message, msg + 1, msg_len);
             messageQueue_.Advance(1 + msg_len);
-            SendMidiMessage(&midiSysExData.evt);
+            SendMidiSysexMessage(&midiSysExData.evt);
             numSent++;
         }
         
         messageQueue_.Compact();
     }
     
-    void FlushIO()
+    void Flush()
     {
         while (messageQueue_.Available() >= 1)
         {
@@ -2766,7 +2766,7 @@ public:
             midiSysExData.evt.size = msg_len;
             memcpy(midiSysExData.evt.midi_message, msg + 1, msg_len);
             messageQueue_.Advance(1 + msg_len);
-            SendMidiMessage(&midiSysExData.evt);
+            SendMidiSysexMessage(&midiSysExData.evt);
         }
     }
 };
@@ -2828,7 +2828,7 @@ public:
         
     virtual void FlushIO() override
     {
-        surfaceIO_->FlushIO();
+        surfaceIO_->Flush();
     }
     
     void AddCSIMessageGenerator(int messageKey, Midi_CSIMessageGenerator *messageGenerator)

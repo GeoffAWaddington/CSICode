@@ -4004,7 +4004,7 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
 
 void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
 {
-    surfaceIO_->QueueMidiMessage(midiMessage);
+    surfaceIO_->QueueMidiSysexMessage(midiMessage);
     
     if (g_surfaceOutDisplay)
     {
