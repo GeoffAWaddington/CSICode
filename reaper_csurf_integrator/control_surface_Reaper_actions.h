@@ -1240,7 +1240,7 @@ public:
         int trackIndex = 0;
         
        
-        for (int i = 1; i <= context->GetPage()->GetNumTracks(); i++)
+        for (int i = 1; i <= context->GetPage()->GetNumTracks(); ++i)
         {
             MediaTrack *currentTrack = context->GetPage()->GetTrackFromId(i);
            
@@ -1263,7 +1263,7 @@ public:
         int lowerBound = trackIndex < selectedTrackIndex ? trackIndex : selectedTrackIndex;
         int upperBound = trackIndex > selectedTrackIndex ? trackIndex : selectedTrackIndex;
 
-        for (int i = lowerBound; i <= upperBound; i++)
+        for (int i = lowerBound; i <= upperBound; ++i)
         {
             MediaTrack *currentTrack = context->GetPage()->GetTrackFromId(i);
             

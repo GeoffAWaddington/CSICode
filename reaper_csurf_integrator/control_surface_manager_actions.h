@@ -95,7 +95,7 @@ public:
             midiSysExData.evt.frame_offset = 0;
             midiSysExData.evt.size = 0;
             
-            for (int i = 0; i < tokens.size(); i++)
+            for (int i = 0; i < tokens.size(); ++i)
                 midiSysExData.evt.midi_message[midiSysExData.evt.size++] = strToHex(tokens[i]);
             
             context->GetSurface()->SendMidiSysExMessage(&midiSysExData.evt);

@@ -29,7 +29,7 @@ bool g_fxParamsWrite;
 
 void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties)
 {
-    for (int i = start; i < finish; i++)
+    for (int i = start; i < finish; ++i)
     {
         const char *tok = tokens.get(i);
         const char *eq = strstr(tok,"=");
@@ -148,7 +148,7 @@ static double EnumSteppedValues(int numSteps, int stepNumber)
 
 void GetParamStepsString(string &outputString, int numSteps) // appends to string
 {
-    for (int i = 0; i < numSteps; i++)
+    for (int i = 0; i < numSteps; ++i)
     {
         char tmp[128];
         snprintf(tmp,sizeof(tmp), "%.2f", EnumSteppedValues(numSteps, i));
@@ -162,7 +162,7 @@ void GetParamStepsValues(vector<double> &outputVector, int numSteps)
 {
     outputVector.clear();
 
-    for (int i = 0; i < numSteps; i++)
+    for (int i = 0; i < numSteps; ++i)
         outputVector.push_back(EnumSteppedValues(numSteps, i));
 }
 
@@ -733,7 +733,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
     if (tokenLines.size() < 1)
         return;
     
-    for (int i = 0; i < tokenLines.size(); i++)
+    for (int i = 0; i < tokenLines.size(); ++i)
     {
         int size = (int)tokenLines[i].size();
         
@@ -1101,7 +1101,7 @@ void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
                 {
                     
                     if (lines[i][1] == "Dec")
-                        for (int j = 2; j < lines[i].size(); j++)
+                        for (int j = 2; j < lines[i].size(); ++j)
                         {
                             if ( ! accelerationValuesForDecrement_.Exists(widgetClass))
                                 accelerationValuesForDecrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
@@ -1110,7 +1110,7 @@ void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
                                 accelerationValuesForDecrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
                         }
                     else if (lines[i][1] == "Inc")
-                        for (int j = 2; j < lines[i].size(); j++)
+                        for (int j = 2; j < lines[i].size(); ++j)
                         {
                             if ( ! accelerationValuesForIncrement_.Exists(widgetClass))
                                 accelerationValuesForIncrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
@@ -1119,7 +1119,7 @@ void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
                                 accelerationValuesForIncrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
                         }
                     else if (lines[i][1] == "Val")
-                        for (int j = 2; j < lines[i].size(); j++)
+                        for (int j = 2; j < lines[i].size(); ++j)
                         {
                             if ( ! accelerationValues_.Exists(widgetClass))
                                 accelerationValues_.Insert(widgetClass, new vector<double>());
@@ -1470,7 +1470,7 @@ void CSurfIntegrator::Init()
                     {
                         if (tokens.size() > 2)
                         {
-                            for (int i = 2; i < tokens.size(); i++)
+                            for (int i = 2; i < tokens.size(); ++i)
                             {
                                 if (tokens[i] == "FollowTCP")
                                     followMCP = false;
@@ -2127,7 +2127,7 @@ void Zone::Activate()
 
 void Zone::Deactivate()
 {    
-    for (int i = 0; i < widgets_.GetSize(); i ++)
+    for (int i = 0; i < widgets_.GetSize(); ++i)
     {
         for (int j = 0; j < GetActionContexts(widgets_.Get(i)).GetSize(); ++j)
         {
@@ -2166,7 +2166,7 @@ void Zone::RequestUpdate()
     for (int i =  0; i < includedZones_.size(); ++i)
         includedZones_[i]->RequestUpdate();
     
-    for (int i = 0; i < widgets_.GetSize(); i ++)
+    for (int i = 0; i < widgets_.GetSize(); ++i)
     {
         if ( ! widgets_.Get(i)->GetHasBeenUsedByUpdate())
         {
@@ -2681,7 +2681,7 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
     if (!strcmp(navigatorName, "MasterTrackNavigator") || !strcmp(zoneName, "MasterTrack"))
         navigators.push_back(GetMasterTrackNavigator());
     else if (!strcmp(zoneName, "MasterTrackFXMenu"))
-        for (int i = 0; i < GetNumChannels(); i++)
+        for (int i = 0; i < GetNumChannels(); ++i)
             navigators.push_back(GetMasterTrackNavigator());
     else if (!strcmp(navigatorName, "TrackNavigator") ||
              !strcmp(zoneName, "Track") ||
@@ -2691,7 +2691,7 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
              !strcmp(zoneName, "TrackSend") ||
              !strcmp(zoneName, "TrackReceive") ||
              !strcmp(zoneName, "TrackFXMenu"))
-        for (int i = 0; i < GetNumChannels(); i++)
+        for (int i = 0; i < GetNumChannels(); ++i)
         {
             Navigator *channelNavigator = GetSurface()->GetPage()->GetNavigatorForChannel(i + GetSurface()->GetChannelOffset());
             if (channelNavigator)
@@ -2701,7 +2701,7 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
              !strcmp(zoneName, "SelectedTrackSend") ||
              !strcmp(zoneName, "SelectedTrackReceive") ||
              !strcmp(zoneName, "SelectedTrackFXMenu"))
-        for (int i = 0; i < GetNumChannels(); i++)
+        for (int i = 0; i < GetNumChannels(); ++i)
             navigators.push_back(GetSelectedTrackNavigator());
     else if (!strcmp(navigatorName, "FocusedFXNavigator"))
         navigators.push_back(GetFocusedFXNavigator());
@@ -2975,7 +2975,7 @@ void ZoneManager::GoSelectedTrackFX()
     
     if (MediaTrack *selectedTrack = surface_->GetPage()->GetSelectedTrack())
     {
-        for (int i = 0; i < TrackFX_GetCount(selectedTrack); i++)
+        for (int i = 0; i < TrackFX_GetCount(selectedTrack); ++i)
         {
             char fxName[MEDBUF];
             
@@ -3117,10 +3117,10 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
 
     vector<double> currentValues;
 
-    for (int i = 0; i < numParams; i++)
+    for (int i = 0; i < numParams; ++i)
         currentValues.push_back(TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
     
-    for (int i = 0; i < numParams; i++)
+    for (int i = 0; i < numParams; ++i)
     {
         int stepCount = 1;
         double stepValue = 0.0;
@@ -3142,7 +3142,7 @@ void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track
             csi_->SetSteppedValueCount(fxName.c_str(), i, stepCount);
     }
     
-    for (int i = 0; i < numParams; i++)
+    for (int i = 0; i < numParams; ++i)
         TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
     
     if ( ! wasMuted)
@@ -3393,7 +3393,7 @@ void ModifierManager::RecalculateModifiers()
     Modifiers activeModifierIndices[MaxModifiers];
     int activeModifierIndices_cnt = 0;
     
-    for (int i = 0; i < MaxModifiers; i++)
+    for (int i = 0; i < MaxModifiers; ++i)
         if (modifiers_[i].isEngaged)
             activeModifierIndices[activeModifierIndices_cnt++] = (Modifiers)i;
     
@@ -3451,7 +3451,7 @@ void TrackNavigationManager::RebuildTracks()
     
     tracks_.Empty();
     
-    for (int i = 1; i <= GetNumTracks(); i++)
+    for (int i = 1; i <= GetNumTracks(); ++i)
     {
         if (MediaTrack *track = CSurf_TrackFromID(i, followMCP_))
             if (IsTrackVisible(track, followMCP_))
@@ -3477,7 +3477,7 @@ void TrackNavigationManager::RebuildSelectedTracks()
     
     selectedTracks_.Empty();
     
-    for (int i = 0; i < CountSelectedTracks2(NULL, false); i++)
+    for (int i = 0; i < CountSelectedTracks2(NULL, false); ++i)
         selectedTracks_.Add(DAW::GetSelectedTrack(i));
 
     if (selectedTracks_.GetSize() < oldTracksSize)
@@ -4016,7 +4016,7 @@ void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
 
         char buf[32];
 
-        for (int i = 0; i < midiMessage->size; i++)
+        for (int i = 0; i < midiMessage->size; ++i)
         {
             snprintf(buf, sizeof(buf), "%02x ", midiMessage->midi_message[i]);
             output.Append(buf);
@@ -4087,7 +4087,7 @@ OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
     Sleep(33);
     
     int count = 0;
-    while (packetQueue_.GetSize()>=sizeof(int) && count++ < 100)
+    while (packetQueue_.GetSize()>=sizeof(int) && ++count < 100)
     {
         BeginRun();
         if (count) Sleep(33);
@@ -4095,7 +4095,7 @@ OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
 
     if (inSocket_)
     {
-        for (int x = 0; x < s_inputSockets.GetSize(); x ++)
+        for (int x = 0; x < s_inputSockets.GetSize(); ++x)
         {
             if (s_inputSockets.Get(x)->socket == inSocket_)
             {
@@ -4107,7 +4107,7 @@ OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
     }
     if (outSocket_ && outSocket_ != inSocket_)
     {
-        for (int x = 0; x < s_outputSockets.GetSize(); x ++)
+        for (int x = 0; x < s_outputSockets.GetSize(); ++x)
         {
             if (s_outputSockets.Get(x)->socket == outSocket_)
             {

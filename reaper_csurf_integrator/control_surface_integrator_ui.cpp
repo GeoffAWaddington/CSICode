@@ -290,7 +290,7 @@ static unsigned int s_paramButtonColors[][3] =
 
 static unsigned int &GetParamButtonColorForID(unsigned int id)
 {
-    for (int x = 0; x < NUM_ELEM(s_paramButtonColors); x ++)
+    for (int x = 0; x < NUM_ELEM(s_paramButtonColors); ++x)
         if (s_paramButtonColors[x][0] == id) return s_paramButtonColors[x][2];
     WDL_ASSERT(false);
     return s_paramButtonColors[0][2];
@@ -304,7 +304,7 @@ static unsigned int s_nameDisplayColors[][3] =
 
 static unsigned int &GetNameDisplayButtonColorForID(unsigned int id)
 {
-    for (int x = 0; x < NUM_ELEM(s_nameDisplayColors); x ++)
+    for (int x = 0; x < NUM_ELEM(s_nameDisplayColors); ++x)
         if (s_paramButtonColors[x][0] == id) return s_nameDisplayColors[x][2];
     WDL_ASSERT(false);
     return s_nameDisplayColors[0][2];
@@ -318,7 +318,7 @@ static unsigned int s_valueDisplayColors[][3] =
 
 static unsigned int &GetValueDisplayButtonColorForID(unsigned int id)
 {
-    for (int x = 0; x < NUM_ELEM(s_valueDisplayColors); x ++)
+    for (int x = 0; x < NUM_ELEM(s_valueDisplayColors); ++x)
         if (s_paramButtonColors[x][0] == id) return s_valueDisplayColors[x][2];
     WDL_ASSERT(false);
     return s_nameDisplayColors[0][2];
@@ -326,7 +326,7 @@ static unsigned int &GetValueDisplayButtonColorForID(unsigned int id)
 
 static unsigned int &GetButtonColorForID(unsigned int id)
 {
-    for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
+    for (int x = 0; x < NUM_ELEM(s_buttonColors); ++x)
         if (s_buttonColors[x][0] == id) return s_buttonColors[x][2];
     WDL_ASSERT(false);
     return s_buttonColors[0][2];
@@ -1224,7 +1224,7 @@ static void HandleInitLearnFXDialog(HWND hwndDlg)
     
     SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)"0");
     
-    for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; j++)
+    for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; ++j)
     {
         char buf[SMLBUF];
         snprintf(buf, sizeof(buf), "%d", j);
@@ -1718,7 +1718,7 @@ static WDL_DLGRET dlgProcLearnFXDisplays(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwndDlg, &ps);
             
-            for (int x = 0; x < NUM_ELEM(s_buttonColors); x ++)
+            for (int x = 0; x < NUM_ELEM(s_buttonColors); ++x)
             {
                 if (! IsWindowVisible(GetDlgItem(hwndDlg, s_buttonColors[x][0]) ))
                     continue;
@@ -2084,7 +2084,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             int currentSwapIdx = 0;
                             int count = SendMessage(hwndAllParams, LB_GETCOUNT, 0, 0);
  
-                            for (int i = 0; i < count; i++)
+                            for (int i = 0; i < count; ++i)
                                 if (SendMessage(hwndAllParams, LB_GETSEL, i, 0) > 0)
                                     s_swapIndexes[currentSwapIdx++] = i;
                             
@@ -2751,7 +2751,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                                 
                                 GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buffer, sizeof(buffer));
                                 
-                                for (int i = 0; i < sizeof(buffer); i++)
+                                for (int i = 0; i < sizeof(buffer); ++i)
                                 {
                                     if (buffer[i] == '.')
                                     {
@@ -2855,7 +2855,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn));
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut));
             
-            for (int i = 0; i < GetNumMIDIInputs(); i++)
+            for (int i = 0; i < GetNumMIDIInputs(); ++i)
                 if (GetMIDIInputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiIn);
@@ -2866,7 +2866,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             
             currentIndex = 0;
             
-            for (int i = 0; i < GetNumMIDIOutputs(); i++)
+            for (int i = 0; i < GetNumMIDIOutputs(); ++i)
                 if (GetMIDIOutputName(i, buf, sizeof(buf)))
                 {
                     AddComboEntry(hwndDlg, i, buf, IDC_COMBO_MidiOut);
@@ -3828,7 +3828,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         bool isScrollLinkEnabled = false;
                         bool scrollSynch = false;
 
-                        for (int i = 2; i < tokens.size(); i++)
+                        for (int i = 2; i < tokens.size(); ++i)
                         {
                             if (tokens[i] == "FollowTCP")
                                 followMCP = false;

@@ -587,7 +587,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
-        for (int i = 0; displayText[i]; i++)
+        for (int i = 0; displayText[i]; ++i)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -749,7 +749,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.g / 2;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = textColor.b / 2;
         
-        for (int i = 0; i < displayText[i]; i++)
+        for (int i = 0; i < displayText[i]; ++i)
             midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayText[i];
         
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0xF7;
@@ -797,7 +797,7 @@ static const vector<LEDRingRangeColor> &GetColorValues(const string &inputProper
             
             GetColorValue(rangeDefs[2], color.ringColor);
 
-            for (int i = atoi(rangeDefs[0].c_str()); i <= atoi(rangeDefs[1].c_str()); i++)
+            for (int i = atoi(rangeDefs[0].c_str()); i <= atoi(rangeDefs[1].c_str()); ++i)
             {
                 if (i < 7)
                     color.ringRangeLow += 1 << i;
@@ -2001,7 +2001,7 @@ public:
         
         rgba_color color;
         
-        for (int i = 0; i < surface_->GetNumChannels(); i++)
+        for (int i = 0; i < surface_->GetNumChannels(); ++i)
             currentTrackColors_.Add(color);
     }
         
@@ -2034,7 +2034,7 @@ public:
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = displayType_;
         midiSysExData.evt.midi_message[midiSysExData.evt.size++] = 0x72;
         
-        for (int i = 0; i < surface_->GetNumChannels(); i++)
+        for (int i = 0; i < surface_->GetNumChannels(); ++i)
         {
             int surfaceColor = 7; // White
             
@@ -2105,10 +2105,10 @@ public:
           
         vector<rgba_color> trackColors;
         
-        for (int i = 0; i < currentTrackColors_.GetSize(); i++)
+        for (int i = 0; i < currentTrackColors_.GetSize(); ++i)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
         
-        for (int i = 0; i < trackColors.size(); i++)
+        for (int i = 0; i < trackColors.size(); ++i)
         {
             if (trackColors[i] != currentTrackColors_.Get()[i])
             {
@@ -2142,10 +2142,10 @@ public:
 
         vector<rgba_color> trackColors;
         
-        for (int i = 0; i < surface_->GetNumChannels(); i++)
+        for (int i = 0; i < surface_->GetNumChannels(); ++i)
             trackColors.push_back(surface_->GetTrackColorForChannel(i));
 
-        for (int i = 0; i < trackColors.size(); i++)
+        for (int i = 0; i < trackColors.size(); ++i)
         {
             if (lastStringSent_ == "")
             {
@@ -2500,7 +2500,7 @@ public:
         const PropertyList properties;
         ForceValue(properties, 0.0);
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; ++i)
             SendMidiMessage(0xB0, 0x40 + i, 0x20);
     }
     
@@ -2638,7 +2638,7 @@ public:
             SendMidiMessage(0x90, 0x72, m_mackie_lasttime_mode>0 && tmode<3?0x7F:0); // set beats light
             
             // Blank display on mode change
-            for (int x = 0 ; x < sizeof(bla) ; x++)
+            for (int x = 0; x < sizeof(bla); ++x)
                 SendMidiMessage(0xB0,0x40+x,0x20);
             
         }
@@ -2652,7 +2652,7 @@ public:
                 force=true;
             }
             
-            for (int x =0 ; x < sizeof(bla) ; x ++)
+            for (int x = 0; x < sizeof(bla); ++x)
             {
                 int idx=sizeof(bla)-x-1;
                 if (bla[idx]!=m_mackie_lasttime[idx]||force)
@@ -2811,37 +2811,37 @@ int GetColorIntFromRGB(int r, int g, int b)
         return 127;
     else if (b == 255 && r == 0)
     {
-        for (int i = 1; i < 22; i++)
+        for (int i = 1; i < 22; ++i)
             if (g > s_colorMap7[i - 1][1] && g <= s_colorMap7[i][1])
                 return i;
     }
     else if (g == 255 && r == 0)
     {
-        for (int i = 22; i < 44; i++)
+        for (int i = 22; i < 44; ++i)
             if (b < s_colorMap7[i - 1][0] && b >= s_colorMap7[i][0])
                 return i;
     }
     else if (b == 0 && g == 255)
     {
-        for (int i = 44; i < 65; i++)
+        for (int i = 44; i < 65; ++i)
             if (r > s_colorMap7[i - 1][2] && r <= s_colorMap7[i][2])
                 return i;
     }
     else if (b == 0 && r == 255)
     {
-        for (int i = 65; i < 86; i++)
+        for (int i = 65; i < 86; ++i)
             if (g < s_colorMap7[i - 1][1] && g >= s_colorMap7[i][1])
                 return i;
     }
     else if (g == 0 && r == 255)
     {
-        for (int i = 86; i < 108; i++)
+        for (int i = 86; i < 108; ++i)
             if (b > s_colorMap7[i - 1][0] && b <= s_colorMap7[i][0])
                 return i;
     }
     else if (b == 255 && g == 0)
     {
-        for (int i = 108; i < 127; i++)
+        for (int i = 108; i < 127; ++i)
             if (r < s_colorMap7[i - 1][2] && r >= s_colorMap7[i][2])
                 return i;
     }

@@ -163,7 +163,7 @@ template<class T> class ptrvector : public WDL_PtrList<T>
     ptrvector() { }
     ptrvector(const ptrvector &cp)
     {
-        for (int x = 0; x < cp.GetSize(); x ++)
+        for (int x = 0; x < cp.GetSize(); ++x)
             push_back(cp[x]);
     }
     ~ptrvector() { WDL_PtrList<T>::Empty(true); }
@@ -171,7 +171,7 @@ template<class T> class ptrvector : public WDL_PtrList<T>
     ptrvector &operator=(const ptrvector &cp)
     {
         WDL_PtrList<T>::Empty(true);
-        for (int x = 0; x < cp.GetSize(); x ++)
+        for (int x = 0; x < cp.GetSize(); ++x)
             push_back(cp[x]);
         return *this;
     }
@@ -255,7 +255,7 @@ class PropertyList
     PropertyList() : nprops_(0) { }
     ~PropertyList()
     {
-        for (int x = 0; x < nprops_; x ++) free(get_item_ptr(&vals_[x][0]));
+        for (int x = 0; x < nprops_; ++x) free(get_item_ptr(&vals_[x][0]));
     }
 
     void set_prop(PropertyType prop, const char *val)
@@ -264,7 +264,7 @@ class PropertyList
         if (prop == PropertyType_Unknown)
             x = nprops_;
         else
-            for (x = 0; x < nprops_ && props_[x] != prop; x ++);
+            for (x = 0; x < nprops_ && props_[x] != prop; ++x);
 
         if (WDL_NOT_NORMALLY(x >= MAX_PROP)) return;
 
@@ -295,7 +295,7 @@ class PropertyList
 
     const char *get_prop(PropertyType prop) const
     {
-        for (int x = 0; x < nprops_; x ++)
+        for (int x = 0; x < nprops_; ++x)
             if (props_[x] == prop)
             {
                 char *p = get_item_ptr((char *) (&vals_[x][0]));
@@ -328,7 +328,7 @@ class PropertyList
 
     void save_list(FILE *fxFile) const
     {
-        for (int x = 0; x < nprops_; x ++)
+        for (int x = 0; x < nprops_; ++x)
         {
             //const char *value = get_item_ptr((char *)&vals_[x][0]), *key = string_from_prop(props_[x]);
             const char *value = get_prop(props_[x]);
@@ -676,7 +676,7 @@ public:
         int index = 0;
         double delta = 100000000.0;
         
-        for (int i = 0; i < steppedValues_.size(); i++)
+        for (int i = 0; i < steppedValues_.size(); ++i)
             if (fabs(steppedValues_[i] - value) < delta)
             {
                 delta = fabs(steppedValues_[i] - value);
@@ -1598,7 +1598,7 @@ public:
           
     void HideAllFXWindows()
     {
-        for (int i = -1; i < GetNumTracks(); i++)
+        for (int i = -1; i < GetNumTracks(); ++i)
         {
             MediaTrack *tr = i < 0 ? GetMasterTrack(NULL) : GetTrack(NULL, i);
             if (WDL_NOT_NORMALLY(tr == NULL)) continue;
@@ -1899,11 +1899,11 @@ private:
     
     void GetCombinations(const Modifiers *indices, int num_indices, WDL_TypedBuf<int> &combinations)
     {
-        for (int mask = 0; mask < (1 << num_indices); mask++)
+        for (int mask = 0; mask < (1 << num_indices); ++mask)
         {
             int combination = 0;
             
-            for (int position = 0; position < num_indices; position++)
+            for (int position = 0; position < num_indices; ++position)
                 if (mask & (1 << position))
                     combination |= maskFromModifier(indices[position]);
             
@@ -1955,7 +1955,7 @@ public:
     static char *GetModifierString(int modifierValue, char *buf, int bufsz)
     {
         buf[0]=0;
-        for (int x = 0; x < MaxModifiers; x++)
+        for (int x = 0; x < MaxModifiers; ++x)
             if (modifierValue & maskFromModifier((Modifiers)x))
                 snprintf_append(buf, bufsz, "%s+",stringFromModifier((Modifiers)x));
 
@@ -1972,7 +1972,7 @@ public:
     int GetModifierValue(const string_list &tokens)
     {
         int modifierValue = 0;
-        for (int i = 0; i < tokens.size(); i++)
+        for (int i = 0; i < tokens.size(); ++i)
         {
             Modifiers m = modifierFromString(tokens[i].c_str());
             if (m != ErrorModifier)
@@ -2200,7 +2200,7 @@ protected:
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
         
-        for (int i = 1 ; i <= numChannels; i++)
+        for (int i = 1 ; i <= numChannels; ++i)
         {
             ChannelTouch channelTouch;
             channelTouch.channelNum = i;
@@ -2386,7 +2386,7 @@ public:
               " \t\r\n`~!@#$%^&*:()_|=?;:'\",aeiou"
             };
 
-            for (int pass = 0; pass < 3; pass ++)
+            for (int pass = 0; pass < 3; ++pass)
             {
                 const char *rd = textc;
                 int l = 0;
@@ -3160,7 +3160,7 @@ protected:
                 if (selectedTrack == trackNavigators_.Get(i)->GetTrack())
                     return;
             
-            for (int i = 1; i <= GetNumTracks(); i++)
+            for (int i = 1; i <= GetNumTracks(); ++i)
             {
                 if (selectedTrack == GetTrackFromId(i))
                 {
@@ -3376,7 +3376,7 @@ public:
     {
         selectedTracks_.Empty();
         
-        for (int i = 0; i < CountSelectedTracks2(NULL, false); i++)
+        for (int i = 0; i < CountSelectedTracks2(NULL, false); ++i)
             selectedTracks_.Add(DAW::GetSelectedTrack(i));
         
         return selectedTracks_;
@@ -3775,7 +3775,7 @@ public:
         }
         
         // Get Visible Tracks
-        for (int tidx = 1; tidx <= GetNumTracks(); tidx++)
+        for (int tidx = 1; tidx <= GetNumTracks(); ++tidx)
         {
             MediaTrack *track = CSurf_TrackFromID(tidx, followMCP_);
             
@@ -3816,7 +3816,7 @@ public:
        
         vector<WDL_PtrList<MediaTrack>*> currentDepthTracks;
         
-        for (int i = 1; i <= GetNumTracks(); i++)
+        for (int i = 1; i <= GetNumTracks(); ++i)
         {
             MediaTrack *track = CSurf_TrackFromID(i, followMCP_);
 
@@ -3845,7 +3845,7 @@ public:
                 
                 int folderBackTrack = (int)-GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
-                for (int t = 0; t < folderBackTrack && currentDepthTracks.size() > 0; t++)
+                for (int t = 0; t < folderBackTrack && currentDepthTracks.size() > 0; ++t)
                     currentDepthTracks.pop_back();
             }
         }
@@ -4388,7 +4388,7 @@ public:
     
     void GoToPage(const char *pageName)
     {
-        for (int i = 0; i < pages_.GetSize(); i++)
+        for (int i = 0; i < pages_.GetSize(); ++i)
         {
             if (pages_.Get(i)->GetName() == pageName)
             {
@@ -4422,7 +4422,7 @@ public:
         {
             char fxName[MEDBUF];
             
-            for (int i = 0; i < TrackFX_GetCount(track); i++)
+            for (int i = 0; i < TrackFX_GetCount(track); ++i)
             {
                 TrackFX_GetFXName(track, i, fxName, sizeof(fxName));
                 FILE *fxFile = NULL;
@@ -4438,7 +4438,7 @@ public:
                         fprintf(fxFile, "Zone \"%s\"\n", fxName);
                 }
 
-                for (int j = 0; j < TrackFX_GetNumParams(track, i); j++)
+                for (int j = 0; j < TrackFX_GetNumParams(track, i); ++j)
                 {
                     char fxParamName[MEDBUF];
                     TrackFX_GetParamName(track, i, j, fxParamName, sizeof(fxParamName));
