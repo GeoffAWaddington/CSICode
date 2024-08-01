@@ -55,14 +55,11 @@
 
 #define NUM_ELEM(array) (int(sizeof(array)/sizeof(array[0])))
 
-class CSurfIntegrator;
-class ZoneManager;
-class Widget;
-
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
 extern int strToHex(const char *valueStr);
 
+class ZoneManager;
 extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow();
@@ -353,6 +350,8 @@ class PropertyList
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class CSurfIntegrator;
+class Widget;
 class Page;
 class ControlSurface;
 class Midi_ControlSurface;
@@ -393,7 +392,7 @@ class Navigator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    CSurfIntegrator *const csi_;
+    const CSurfIntegrator *const csi_;
     Page *const page_;
     bool isVolumeTouched_;
     bool isPanTouched_;
@@ -402,7 +401,7 @@ protected:
     bool isPanRightTouched_;
     bool isMCUTrackPanWidth_;
 
-    Navigator(CSurfIntegrator *const csi, Page * page) : csi_(csi), page_(page)
+    Navigator(const CSurfIntegrator *const csi, Page * page) : csi_(csi), page_(page)
     {
         // protected:
         isVolumeTouched_ = false;
