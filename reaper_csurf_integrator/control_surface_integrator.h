@@ -2702,7 +2702,7 @@ public:
     
     void HandleExternalInput(Midi_ControlSurface *surface);
     
-    void QueueMidiSysexMessage(MIDI_event_ex_t *midiMessage)
+    void QueueMidiSysExMessage(MIDI_event_ex_t *midiMessage)
     {
         if (WDL_NOT_NORMALLY(midiMessage->size > 255)) return;
 
