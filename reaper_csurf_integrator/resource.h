@@ -15,7 +15,7 @@
 #define IDD_DIALOG_Advanced             119
 #define IDD_DIALOG_Broadcast            123
 #define IDD_DIALOG_EditAdvanced         126
-#define IDD_DIALOG_LearnDisplays        127
+#define IDD_DIALOG_LearnAdvanced        127
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -57,14 +57,12 @@
 #define IDC_RADIO_MCP                   1097
 #define IDC_RADIO_TCP                   1098
 #define IDC_FXAlias                     1102
-#define IDC_AutoMap                     1103
-#define IDC_Swap                        1104
-#define IDC_Advanced                    1105
-#define IDC_Displays                    1106
+#define IDC_Params                      1105
+#define IDC_Advanced                    1106
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
-#define IDC_AllParams                   1139
 #define IDC_GroupFXControl              1140
+#define IDC_GroupFXAlias                1141
 #define IDC_PickRingStyle               1143
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
@@ -74,6 +72,8 @@
 #define IDC_Edit_ParamValueDisplayTop   1152
 #define IDC_Edit_ParamValueDisplayBottom 1153
 #define IDC_EditFXAlias                 1154
+#define IDC_ParamName                   1155
+#define IDC_WidgetName                  1156
 #define IDC_FXParamValueDisplayPickFont 1163
 #define IDC_FixedTextDisplayPickFont    1166
 #define IDC_GroupFXParamValueDisplay    1169
