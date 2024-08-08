@@ -986,8 +986,6 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     char paramName[MEDBUF];
     GetDlgItemText(s_hwndLearnDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
 
-    snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, widget->GetName(), paramName);
-    
     SetWindowText(hwndDlg, titleBuf);
     
     s_modifierManager.GetModifierString(modifier, buf, sizeof(buf));
@@ -1273,7 +1271,17 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     {
         SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
         SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assigned");
+        TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
+        SetDlgItemText(hwndDlg, IDC_ParamName, buf);
     }
+    
+    char modifierBuf[SMLBUF];
+    s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+
+    char widgetBuf[MEDBUF];
+    snprintf(widgetBuf, sizeof(widgetBuf), "%s%s", modifierBuf, widget->GetName());
+
+    SetDlgItemText(hwndDlg, IDC_WidgetName, widgetBuf);
 }
 
 static void FillParams(HWND hwndDlg, int index)
@@ -1297,7 +1305,7 @@ static void FillParams(HWND hwndDlg, int index)
             {
                 s_currentModifier = modifier;
                 s_zoneManager->GetSurface()->SetModifierValue(modifier);
-                
+                s_lastTouchedParamNum = index;
                 s_currentWidget = widget;
                 FillParams(hwndDlg, widget, modifier);
                 if (s_hwndLearnFXAdvancedDlg != NULL)
@@ -1960,8 +1968,6 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    char buf[MEDBUF];
-        
     switch (uMsg)
     {
         case WM_CLOSE:
