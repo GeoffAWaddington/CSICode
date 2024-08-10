@@ -165,7 +165,7 @@ BEGIN
     EDITTEXT        IDC_WidgetName,8,8,83,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
     EDITTEXT        IDC_ParamName,153,8,83,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
     CONTROL         "Assigned",IDC_CHECK_Assigned,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,100,8,44,12
-    PUSHBUTTON      "Advanced",IDC_Advanced,8,32,38,14
+    CONTROL         "Show Advanced",IDC_Advanced,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,33,82,12
 END
 
 IDD_DIALOG_Broadcast DIALOGEX 0, 0, 472, 200
@@ -225,49 +225,48 @@ BEGIN
     GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,19,14,500,111
 END
 
-IDD_DIALOG_LearnAdvanced DIALOGEX 0, 0, 172, 362
+IDD_DIALOG_LearnAdvanced DIALOGEX 0, 0, 193, 367
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Close",IDCANCEL,113,331,50,14
-    GROUPBOX        "Control",IDC_GroupFXControl,5,48,157,54
-    GROUPBOX        "Param Name",IDC_GroupFixedTextDisplay,5,111,157,114
-    GROUPBOX        "Param Value",IDC_GroupFXParamValueDisplay,5,235,157,89
-    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel,43,289,15,8
-    COMBOBOX        IDC_FXParamValueDisplayPickFont,14,287,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Font",IDC_FixedTextDisplayFontLabel,43,191,15,8
-    COMBOBOX        IDC_FixedTextDisplayPickFont,14,189,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Ring",IDC_FXParamRingColor,108,62,47,12
-    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,108,80,47,13
-    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor,108,169,47,12
-    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,108,188,47,12
-    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,108,266,47,12
-    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,108,286,47,12
-    LTEXT           "",IDC_FXParamRingColorBox,95,64,9,8
-    LTEXT           "",IDC_FXParamIndicatorColorBox,95,83,9,8
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,95,171,9,8
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,95,190,9,8
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,95,288,9,8
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,95,269,9,8
-    EDITTEXT        IDC_Edit_FixedTextDisplayTop,14,170,16,12,ES_CENTER | ES_NUMBER
-    LTEXT           "Top",IDC_FixedTextDisplayTopLabel,43,172,13,8
-    LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel,43,210,24,8
-    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,14,208,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayTop,14,267,16,12,ES_CENTER | ES_NUMBER
-    LTEXT           "Top",IDC_ParamValueDisplayTopLabel,43,270,13,8
-    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,14,305,16,12,ES_CENTER | ES_NUMBER
-    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,43,307,24,8
-    DEFPUSHBUTTON   "Apply To All",IDC_ApplyToAll,5,331,50,14,BS_CENTER
-    COMBOBOX        IDC_PickSteps,14,81,26,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "FX Alias",IDC_GroupFXAlias,7,7,157,30
-    COMBOBOX        IDC_PickRingStyle,14,62,47,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_FXParamNameEdit,14,126,72,12,ES_CENTER | ES_AUTOHSCROLL
-    LTEXT           "Steps",IDC_Steps,45,83,18,8
-    COMBOBOX        IDC_COMBO_PickNameDisplay,14,148,72,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_COMBO_PickValueDisplay,14,249,72,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Params",IDC_Params,59,331,50,14
-    EDITTEXT        IDC_EditFXAlias,40,20,87,12,ES_CENTER | ES_AUTOHSCROLL
+    GROUPBOX        "Control",IDC_GroupFXControl,5,48,173,54
+    GROUPBOX        "Param Name",IDC_GroupFixedTextDisplay,5,111,173,114
+    GROUPBOX        "Param Value",IDC_GroupFXParamValueDisplay,5,235,173,107
+    LTEXT           "Font",IDC_FXParamValueDisplayFontLabel,111,308,15,8
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,151,306,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Font",IDC_FixedTextDisplayFontLabel,111,191,15,8
+    COMBOBOX        IDC_FixedTextDisplayPickFont,151,189,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor,110,62,47,12
+    PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor,110,125,47,12
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,110,144,47,12
+    PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,110,248,47,12
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,110,266,47,12
+    LTEXT           "",IDC_FXParamRingColorBox,162,62,9,8
+    LTEXT           "",IDC_FXParamIndicatorColorBox,162,83,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,162,127,9,8
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,162,149,9,8
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,162,269,9,8
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,162,251,9,8
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop,155,170,16,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_FixedTextDisplayTopLabel,111,172,13,8
+    LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel,111,210,24,8
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,155,208,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop,155,287,16,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Top",IDC_ParamValueDisplayTopLabel,111,289,13,8
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,155,324,16,12,ES_CENTER | ES_NUMBER
+    LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,111,326,24,8
+    DEFPUSHBUTTON   "Apply To All",IDC_ApplyToAll,110,346,63,14,BS_CENTER
+    COMBOBOX        IDC_PickSteps,14,81,43,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "FX Alias",IDC_GroupFXAlias,7,7,178,30
+    COMBOBOX        IDC_PickRingStyle,14,62,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_FXParamNameEdit,14,125,70,12,ES_CENTER | ES_AUTOHSCROLL
+    LTEXT           "Steps",IDC_Steps,66,83,18,8
+    COMBOBOX        IDC_COMBO_PickNameDisplay,14,145,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_PickValueDisplay,14,249,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Params",IDC_Params,14,346,70,14
+    EDITTEXT        IDC_EditFXAlias,52,19,87,12,ES_CENTER | ES_AUTOHSCROLL
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,110,80,47,13
 END
 
 
@@ -290,9 +289,9 @@ BEGIN
     IDD_DIALOG_LearnAdvanced, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 164
+        RIGHTMARGIN, 185
         TOPMARGIN, 7
-        BOTTOMMARGIN, 355
+        BOTTOMMARGIN, 360
     END
 END
 #endif    // APSTUDIO_INVOKED

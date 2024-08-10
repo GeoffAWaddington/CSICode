@@ -35,6 +35,7 @@ static char s_t_valueWidgetParams[BUFSIZ];
 static HWND s_hwndLearnDlg = NULL;
 static HWND s_hwndLearnFXAdvancedDlg = NULL;
 static int s_dlgResult = IDCANCEL;
+static bool s_isAdvanceShown = false;
 
 static ModifierManager s_modifierManager(NULL);
 
@@ -1577,7 +1578,9 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     switch(uMsg)
     {
         case WM_CLOSE:
-            ShowWindow(hwndDlg, false);
+            ShowWindow(hwndDlg, SW_HIDE);
+            SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_Advanced), BM_SETCHECK, 0, 0);
+            s_isAdvanceShown = false;
             break;
 
         case WM_USER + 1024: // initialize
@@ -1953,11 +1956,6 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         EndDialog(hwndDlg, 0);
                     }
                     break ;
-                    
-                case IDCANCEL:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                        ShowWindow(hwndDlg, false);
-                    break ;
             }
         }
             break;
@@ -2018,20 +2016,33 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_Advanced:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        if (s_hwndLearnFXAdvancedDlg == NULL)
-                            s_hwndLearnFXAdvancedDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnAdvanced), g_hwnd, dlgProcLearnFXAdvanced);
-                        if (s_hwndLearnFXAdvancedDlg != NULL)
+                        if (SendMessage(GetDlgItem(hwndDlg, IDC_Advanced), BM_GETCHECK, 0, 0) == BST_CHECKED)
                         {
-                            SendMessage(s_hwndLearnFXAdvancedDlg, WM_USER + 1024, 0, 0);
-                            ShowWindow(s_hwndLearnFXAdvancedDlg, true);
-                            SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_EditFXAlias, s_fxAlias);
+                            s_isAdvanceShown = true;
+                            
+                            if (s_hwndLearnFXAdvancedDlg == NULL)
+                                s_hwndLearnFXAdvancedDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnAdvanced), g_hwnd, dlgProcLearnFXAdvanced);
+                            if (s_hwndLearnFXAdvancedDlg != NULL)
+                            {
+                                SendMessage(s_hwndLearnFXAdvancedDlg, WM_USER + 1024, 0, 0);
+                                ShowWindow(s_hwndLearnFXAdvancedDlg, SW_SHOW);
+                                SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_EditFXAlias, s_fxAlias);
+                            }
+                        }
+                        else  if (s_hwndLearnFXAdvancedDlg != NULL)
+                        {
+                            ShowWindow(s_hwndLearnFXAdvancedDlg, SW_HIDE);
+                            s_isAdvanceShown = false;
                         }
                     }
                     break;
                                                               
                 case IDC_Save:
                     if (HIWORD(wParam) == BN_CLICKED)
+                    {
                         SaveZone();
+                        CloseFocusedFXDialog();
+                    }
                     break ;
                                         
                 case IDC_ExitNoSave:
@@ -2062,6 +2073,13 @@ static void LearnFocusedFXDialog()
     SendMessage(s_hwndLearnDlg, WM_USER + 1024, 0, 0);
     
     ShowWindow(s_hwndLearnDlg, SW_SHOW);
+    
+    if (s_hwndLearnFXAdvancedDlg != NULL && s_isAdvanceShown)
+    {
+        HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
+        ShowWindow(s_hwndLearnFXAdvancedDlg, SW_SHOW);
+    }
+
 }
 
 void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
@@ -2133,14 +2151,10 @@ void CloseFocusedFXDialog()
     s_currentModifier = -1;
 
     if(s_hwndLearnFXAdvancedDlg != NULL)
-    {
-        DestroyWindow(s_hwndLearnFXAdvancedDlg);
-        s_hwndLearnFXAdvancedDlg = NULL;
-    }
-    
+        ShowWindow(s_hwndLearnFXAdvancedDlg, SW_HIDE);
+
     if (s_hwndLearnDlg != NULL)
         ShowWindow(s_hwndLearnDlg, SW_HIDE);
-
 }
 
 void UpdateLearnWindow()
