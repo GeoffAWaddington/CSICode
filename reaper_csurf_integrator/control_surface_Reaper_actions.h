@@ -20,8 +20,6 @@ public:
     {
         if (MediaTrack *track = context->GetTrack())
             TrackFX_SetParam(track, context->GetSlotIndex(), context->GetParamIndex(), value);
-        
-        UpdateLearnWindow(context->GetParamIndex());
     }
     
     virtual void Touch(ActionContext *context, double value) override

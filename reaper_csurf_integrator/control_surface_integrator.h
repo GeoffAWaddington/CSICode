@@ -63,7 +63,6 @@ class ZoneManager;
 extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow();
-extern void UpdateLearnWindow(int paramNumber);
 extern void InitBlankLearnFocusedFXZone();
 
 extern bool g_surfaceRawInDisplay;

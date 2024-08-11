@@ -934,7 +934,7 @@ void InitBlankLearnFocusedFXZone()
     CreateContextMap();
 }
 
-static void HandleInitLearnFXAdvancedDialog(HWND hwndDlg)
+static void HandleInitAdvancedLearnFXDialog(HWND hwndDlg)
 {
     for (int i = 0; i < s_t_ringStyles.size(); ++i)
         SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_t_ringStyles[i].c_str());
@@ -958,7 +958,7 @@ static void HandleInitLearnFXAdvancedDialog(HWND hwndDlg)
     }
 }
 
-static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
+static void FillAdvancedParams(HWND hwndDlg, Widget *widget, int modifier)
 {
     FXCell *cell = GetCell(widget, modifier);
     
@@ -1185,51 +1185,51 @@ static void FillDisplayParams(HWND hwndDlg, Widget *widget, int modifier)
     InvalidateRect(hwndDlg, &rect, 0);
 }
 
-static void HandleInitLearnFXDisplayDialog(HWND hwndDlg)
+static void HandlePopulateAdvancedLearnFXDialog(HWND hwndDlg)
 {
     if (s_currentWidget != NULL)
-        FillDisplayParams(hwndDlg, s_currentWidget, s_currentModifier);
+        FillAdvancedParams(hwndDlg, s_currentWidget, s_currentModifier);
 }
 
-static void HandleInitLearnFXDialog(HWND hwndDlg)
+static void HandleInitBasicLearnFXDialog(HWND hwndDlg)
 {
     
 }
 
 static void ClearParams(HWND hwndDlg)
 {
+    if (s_hwndLearnFXAdvancedDlg == NULL)
+        return;
+    
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
     SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
     
-    if (s_hwndLearnFXAdvancedDlg)
-    {
-        SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_PickRingStyle, "");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl), "");
-        SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_PickSteps, "0");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_FXParamNameEdit), "");
-        SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
-        SendMessage(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
-        SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
-        SendMessage(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
+    SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_PickRingStyle, "");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl), "");
+    SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_PickSteps, "0");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_FXParamNameEdit), "");
+    SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
+    SendMessage(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
+    SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
+    SendMessage(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
 
-        for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
-            s_buttonColors[i][2] = 0xedededff;
-        
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl), "Control");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_FixedTextDisplayTop), "");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_FixedTextDisplayBottom), "");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_FixedTextDisplayPickFont), "");
+    for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
+        s_buttonColors[i][2] = 0xedededff;
+    
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl), "Control");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_FixedTextDisplayTop), "");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_FixedTextDisplayBottom), "");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_FixedTextDisplayPickFont), "");
 
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_ParamValueDisplayTop), "");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_ParamValueDisplayBottom), "");
-        SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_FXParamValueDisplayPickFont), "");
-        
-        RECT rect;
-        GetClientRect(s_hwndLearnFXAdvancedDlg, &rect);
-        InvalidateRect(s_hwndLearnFXAdvancedDlg, &rect, 0);
-    }
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_ParamValueDisplayTop), "");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_Edit_ParamValueDisplayBottom), "");
+    SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_FXParamValueDisplayPickFont), "");
+    
+    RECT rect;
+    GetClientRect(s_hwndLearnFXAdvancedDlg, &rect);
+    InvalidateRect(s_hwndLearnFXAdvancedDlg, &rect, 0);
 }
 
 static void ClearParamsAndCurrentWidget(HWND hwndDlg)
@@ -1238,7 +1238,7 @@ static void ClearParamsAndCurrentWidget(HWND hwndDlg)
     ClearParams(hwndDlg);
 }
 
-static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
+static void FillBasicParams(HWND hwndDlg, Widget *widget, int modifier)
 {
     FXCell *cell = GetCell(widget, modifier);
     
@@ -1283,10 +1283,15 @@ static void FillParams(HWND hwndDlg, Widget *widget, int modifier)
     snprintf(widgetBuf, sizeof(widgetBuf), "%s%s", modifierBuf, widget->GetName());
 
     SetDlgItemText(hwndDlg, IDC_WidgetName, widgetBuf);
+    
+    HandlePopulateAdvancedLearnFXDialog(s_hwndLearnFXAdvancedDlg);
 }
 
 static void FillParams(HWND hwndDlg, int index)
 {
+    if (s_hwndLearnFXAdvancedDlg == NULL)
+        return;
+    
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
     
     if (zone == NULL)
@@ -1308,20 +1313,18 @@ static void FillParams(HWND hwndDlg, int index)
                 s_zoneManager->GetSurface()->SetModifierValue(modifier);
                 s_lastTouchedParamNum = index;
                 s_currentWidget = widget;
-                FillParams(hwndDlg, widget, modifier);
-                if (s_hwndLearnFXAdvancedDlg != NULL)
-                    HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
+                FillBasicParams(hwndDlg, widget, modifier);
                 
                 return;
             }
         }
     }
     
-    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_CHECKED)
+    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_UNCHECKED)
         ClearParamsAndCurrentWidget(hwndDlg);
 }
 
-static void HandleInitialize(HWND hwndDlg)
+static void HandlePopulateBasicLearnFXDialog(HWND hwndDlg)
 {
     s_lastTouchedParamNum = -1;
             
@@ -1354,6 +1357,9 @@ void WidgetMoved(Widget *widget, int modifier)
     if (s_hwndLearnDlg == NULL)
         return;
     
+    if (s_hwndLearnFXAdvancedDlg == NULL)
+        return;
+    
     if (! IsWindowVisible(s_hwndLearnDlg))
         return;
         
@@ -1363,9 +1369,7 @@ void WidgetMoved(Widget *widget, int modifier)
     s_currentWidget = widget;
     s_currentModifier = modifier;
     
-    FillParams(s_hwndLearnDlg, widget, modifier);
-    if (s_hwndLearnFXAdvancedDlg != NULL)
-        HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
+    FillBasicParams(s_hwndLearnDlg, widget, modifier);
 }
 
 static void SetWidgetProperties(ActionContext *context, const char *params)
@@ -1385,6 +1389,9 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
 
 static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shouldAssign)
 {
+    if (s_hwndLearnFXAdvancedDlg == NULL)
+        return;
+
     if (s_currentWidget == NULL)
         return;
     
@@ -1459,9 +1466,7 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         if (ActionContext *context = cell->GetValueContext(s_currentWidget))
             SetWidgetProperties(context, s_t_valueWidgetParams);
         
-        FillParams(hwndDlg, s_currentWidget, modifier);
-        if (s_hwndLearnFXAdvancedDlg != NULL)
-            HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
+        FillBasicParams(hwndDlg, s_currentWidget, modifier);
     }
     else
     {
@@ -1584,7 +1589,7 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             break;
 
         case WM_USER + 1024: // initialize
-            HandleInitLearnFXDisplayDialog(hwndDlg);
+            HandlePopulateAdvancedLearnFXDialog(hwndDlg);
             break;
             
         case WM_INITDIALOG: // initialize
@@ -1595,7 +1600,7 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             GetWindowRect(hwndDlg, &dlgRect);
             int offset = parentRect.right - parentRect.left + 1;
             SetWindowPos(hwndDlg, 0, dlgRect.left + offset, dlgRect.top, dlgRect.right - dlgRect.left, dlgRect.bottom - dlgRect.top, 0);
-            HandleInitLearnFXAdvancedDialog(hwndDlg);
+            HandleInitAdvancedLearnFXDialog(hwndDlg);
         }
             break;
 
@@ -1693,14 +1698,11 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (nameContext)
                             nameContext->SetStringParam(buf);
                         
-                        if (s_hwndLearnFXAdvancedDlg != NULL && IsWindowVisible(s_hwndLearnFXAdvancedDlg))
-                        {
-                            char modifierBuf[SMLBUF];
-                            s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
-                            char titleBuf[MEDBUF];
-                            snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), buf);
-                            SetWindowText(s_hwndLearnFXAdvancedDlg, titleBuf);
-                        }
+                        char modifierBuf[SMLBUF];
+                        s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+                        char titleBuf[MEDBUF];
+                        snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), buf);
+                        SetWindowText(hwndDlg, titleBuf);
                     }
                     break;
 
@@ -1973,11 +1975,11 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             break;
             
         case WM_USER + 1024: // initialize
-            HandleInitialize(hwndDlg);
+            HandlePopulateBasicLearnFXDialog(hwndDlg);
             break;
            
         case WM_INITDIALOG: // initialize
-            HandleInitLearnFXDialog(hwndDlg);
+            HandleInitBasicLearnFXDialog(hwndDlg);
             break;
         
         case WM_COMMAND:
@@ -2019,9 +2021,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (SendMessage(GetDlgItem(hwndDlg, IDC_Advanced), BM_GETCHECK, 0, 0) == BST_CHECKED)
                         {
                             s_isAdvanceShown = true;
-                            
-                            if (s_hwndLearnFXAdvancedDlg == NULL)
-                                s_hwndLearnFXAdvancedDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnAdvanced), g_hwnd, dlgProcLearnFXAdvanced);
                             if (s_hwndLearnFXAdvancedDlg != NULL)
                             {
                                 SendMessage(s_hwndLearnFXAdvancedDlg, WM_USER + 1024, 0, 0);
@@ -2058,28 +2057,29 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 static void LearnFocusedFXDialog()
 {
-    if (s_hwndLearnDlg == NULL)
+    if (s_hwndLearnDlg == NULL && s_hwndLearnFXAdvancedDlg == NULL)
     {
         // initialize
         LoadTemplates();
         s_hwndLearnDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
+        s_hwndLearnFXAdvancedDlg = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnAdvanced), g_hwnd, dlgProcLearnFXAdvanced);
     }
     
     if (s_hwndLearnDlg == NULL)
         return;
     
+    if (s_hwndLearnFXAdvancedDlg == NULL)
+        return;
+    
     s_numChannels = s_zoneManager->GetSurface()->GetNumChannels();
     
     SendMessage(s_hwndLearnDlg, WM_USER + 1024, 0, 0);
-    
+    SendMessage(s_hwndLearnFXAdvancedDlg, WM_USER + 1024, 0, 0);
+
     ShowWindow(s_hwndLearnDlg, SW_SHOW);
     
-    if (s_hwndLearnFXAdvancedDlg != NULL && s_isAdvanceShown)
-    {
-        HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
+    if (s_isAdvanceShown)
         ShowWindow(s_hwndLearnFXAdvancedDlg, SW_SHOW);
-    }
-
 }
 
 void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
@@ -2173,20 +2173,9 @@ void UpdateLearnWindow()
             s_lastTouchedParamNum = paramnumberOut;
 
             FillParams(s_hwndLearnDlg, s_lastTouchedParamNum);
-            if (s_hwndLearnFXAdvancedDlg != NULL && IsWindowVisible(s_hwndLearnFXAdvancedDlg))
-                HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
+            HandlePopulateAdvancedLearnFXDialog(s_hwndLearnFXAdvancedDlg);
         }
     }
-}
-
-void UpdateLearnWindow(int paramNumber)
-{
-    if (s_hwndLearnDlg == NULL || ! IsWindowVisible(s_hwndLearnDlg))
-        return;
-
-    FillParams(s_hwndLearnDlg, paramNumber);
-    if (s_hwndLearnFXAdvancedDlg != NULL && IsWindowVisible(s_hwndLearnFXAdvancedDlg))
-        HandleInitLearnFXDisplayDialog(s_hwndLearnFXAdvancedDlg);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
