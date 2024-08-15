@@ -98,6 +98,20 @@ struct FXCell
         channel = 0;
     }
     
+    ActionContext *GetNameContext(const char *name)
+    {
+        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        {
+            if ( ! strcmp(displayWidgets.Get(i)->GetName(), name))
+            {
+                ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+
+            }
+        }
+
+        return NULL;
+    }
+    
     ActionContext *GetNameContext(Widget *widget)
     {
         if (widget == NULL)
@@ -1331,6 +1345,8 @@ static void UpdateLearnWindowParams(HWND hwndDlg, int index)
     if (zone == NULL)
         return;
     
+    s_lastTouchedParamNum = index;
+
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
@@ -1345,7 +1361,6 @@ static void UpdateLearnWindowParams(HWND hwndDlg, int index)
             {
                 s_currentModifier = modifier;
                 s_zoneManager->GetSurface()->SetModifierValue(modifier);
-                s_lastTouchedParamNum = index;
                 s_currentWidget = widget;
                 
                 FillBasicParams(hwndDlg, widget, modifier);
@@ -1443,6 +1458,12 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
 
     if (s_currentWidget == NULL)
         return;
+
+    if (paramIdx < 0)
+        return;
+    
+    if (s_fxSlot < 0)
+        return;
     
     FXCell *cell = NULL;
     
@@ -1451,6 +1472,9 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
     
     if (cell == NULL)
         return;
+    
+    char buf[MEDBUF];
+    buf[0] = 0;
     
     int index = -1;
     
@@ -1471,30 +1495,42 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
     if (paramContext == NULL)
         return;
     
-    cell->ClearNameDisplayWidget(s_currentWidget);
-    cell->ClearValueDisplayWidget(s_currentWidget);
+    //cell->ClearNameDisplayWidget(s_currentWidget);
+    //cell->ClearValueDisplayWidget(s_currentWidget);
 
     if (shouldAssign)
     {
+        paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
+        paramContext->SetParamIndex(paramIdx);
+        paramContext->SetStringParam("");
+
+        SetWidgetProperties(paramContext, s_t_paramWidgetParams);
+        
+        TrackFX_GetParamName(s_focusedTrack, s_fxSlot, paramIdx, buf, sizeof(buf));
+        
+        char fullWidgetName[MEDBUF];
+        snprintf(fullWidgetName, sizeof(fullWidgetName), "%s%s%d",  s_t_nameWidget, cell->suffix.c_str(), cell->channel);
+        cell->SetNameWidget(s_currentWidget, fullWidgetName, buf);
+        
+        snprintf(fullWidgetName, sizeof(fullWidgetName), "%s%s%d",  s_t_valueWidget, cell->suffix.c_str(), cell->channel);
+        cell->SetValueWidget(s_currentWidget, fullWidgetName);
+
+        if (ActionContext *context = cell->GetNameContext(s_currentWidget))
+            SetWidgetProperties(context, s_t_nameWidgetParams);
+        
+        if (ActionContext *context = cell->GetValueContext(s_currentWidget))
+            SetWidgetProperties(context, s_t_valueWidgetParams);
+
+        
+        
+        
+        
+        
+       /*
         char buf[MEDBUF];
         
         HandleInitAdvancedLearnFXDialog(s_hwndLearnFXAdvancedDlg);
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
-        paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
-        paramContext->SetParamIndex(paramIdx);
-        paramContext->SetStringParam("");
-        
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), buf);
         
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 1, 0);
@@ -1512,7 +1548,6 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
             char paramName[MEDBUF];
             GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
 
-            cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
         }
 
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 2, 0);
@@ -1521,19 +1556,14 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
 
         if ( ! strcmp(valueWidgetName, ""))
             cell->ClearValueDisplayWidget(s_currentWidget);
-        else
-            cell->SetValueWidget(s_currentWidget, valueWidgetName);
+        //else
+            //cell->SetValueWidget(s_currentWidget, valueWidgetName);
 
-        SetWidgetProperties(paramContext, s_t_paramWidgetParams);
         
-        if (ActionContext *context = cell->GetNameContext(s_currentWidget))
-            SetWidgetProperties(context, s_t_nameWidgetParams);
-        
-        if (ActionContext *context = cell->GetValueContext(s_currentWidget))
-            SetWidgetProperties(context, s_t_valueWidgetParams);
         
         
         FillBasicParams(hwndDlg, s_currentWidget, modifier);
+        */
     }
     else
     {
