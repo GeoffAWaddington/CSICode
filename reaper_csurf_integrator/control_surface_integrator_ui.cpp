@@ -14,6 +14,8 @@ extern void GetParamStepsString(string &outputString, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
+static bool isClearingAdvancedParameters = false;
+
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
 
@@ -97,21 +99,7 @@ struct FXCell
         modifier = 0;
         channel = 0;
     }
-    
-    ActionContext *GetNameContext(const char *name)
-    {
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
-        {
-            if ( ! strcmp(displayWidgets.Get(i)->GetName(), name))
-            {
-                ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
-
-            }
-        }
-
-        return NULL;
-    }
-    
+        
     ActionContext *GetNameContext(Widget *widget)
     {
         if (widget == NULL)
@@ -974,6 +962,8 @@ static void HandleInitAdvancedLearnFXDialog(HWND hwndDlg)
 
 static void ClearAdvancedParams()
 {
+    isClearingAdvancedParameters = true;
+    
     HWND hwndDlg = s_hwndLearnFXAdvancedDlg;
     
     if (hwndDlg == NULL)
@@ -1007,7 +997,6 @@ static void ClearAdvancedParams()
     SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
     EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), false);
     SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), false);
     SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
     EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), false);
     EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), false);
@@ -1022,6 +1011,8 @@ static void ClearAdvancedParams()
     RECT rect;
     GetClientRect(hwndDlg, &rect);
     InvalidateRect(hwndDlg, &rect, 0);
+    
+    isClearingAdvancedParameters = false;
 }
 
 static void EnableEdit()
@@ -1053,14 +1044,6 @@ static void EnableEdit()
     
     EnableWindow(GetDlgItem(hwndDlg, IDC_Params), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), true);
-}
-
-static void ClearParams(HWND hwndDlg)
-{
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
-    SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
-    
-    ClearAdvancedParams();
 }
 
 static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, int bufSize)
@@ -1337,7 +1320,7 @@ static void FillBasicParams(HWND hwndDlg, Widget *widget, int modifier)
 static void UpdateLearnWindowParams(HWND hwndDlg, int index)
 {
     char paramName[SMLBUF];
-    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
+    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, index, paramName, sizeof(paramName));
     SetDlgItemText(hwndDlg, IDC_ParamName, paramName);
     
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
@@ -1523,14 +1506,15 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
 
         
         
-        
+        //HandleInitAdvancedLearnFXDialog(s_hwndLearnFXAdvancedDlg);
+        //FillBasicParams(hwndDlg, s_currentWidget, modifier);
+
         
         
        /*
         char buf[MEDBUF];
         
-        HandleInitAdvancedLearnFXDialog(s_hwndLearnFXAdvancedDlg);
-
+ 
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), buf);
         
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 1, 0);
@@ -1562,7 +1546,6 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         
         
         
-        FillBasicParams(hwndDlg, s_currentWidget, modifier);
         */
     }
     else
@@ -1573,20 +1556,23 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         
         if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
         {
+            nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
             nameContext->SetParamIndex(0);
             nameContext->SetStringParam("");
         }
 
         if (ActionContext *valueContext = cell->GetNameContext(s_currentWidget))
         {
+            valueContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
             valueContext->SetParamIndex(0);
             valueContext->SetStringParam("");
         }
-            
-        ClearParams(hwndDlg);
+           
+        SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
+        SetDlgItemText(hwndDlg, IDC_CHECK_Assigned, "Assign");
+        
+        ClearAdvancedParams();
     }
-    
-    SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_SETCURSEL, 0, 0);
 }
 
 static void ApplyToAll(HWND hwndDlg, Widget *widget, int modifier, ActionContext *sourceParamContext, ActionContext *sourceNameContext, ActionContext *sourceValueContext)
@@ -1980,7 +1966,7 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     break;
 
                 case IDC_Edit_FixedTextDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, buf, sizeof(buf));
                         if (nameContext)
@@ -1992,7 +1978,7 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     break;
 
                 case IDC_Edit_FixedTextDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, buf, sizeof(buf));
                         if (nameContext)
@@ -2020,7 +2006,7 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     break;
 
                 case IDC_Edit_ParamValueDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, buf, sizeof(buf));
                         if (valueContext)
@@ -2032,7 +2018,7 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     break;
 
                 case IDC_Edit_ParamValueDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE)
+                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
                         GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, buf, sizeof(buf));
                         if (valueContext)
