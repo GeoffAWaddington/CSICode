@@ -13,6 +13,7 @@
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_Advanced             119
+#define IDD_DIALOG_LearnProperties      119
 #define IDD_DIALOG_Broadcast            123
 #define IDD_DIALOG_EditAdvanced         126
 #define IDD_DIALOG_LearnAdvanced        127
@@ -135,14 +136,16 @@
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_ApplyToAll                  1295
+#define IDC_CHECK1                      1296
+#define IDC_CHECK_ShowProperties        1297
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        128
+#define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1296
+#define _APS_NEXT_CONTROL_VALUE         1298
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
