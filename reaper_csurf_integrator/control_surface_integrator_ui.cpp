@@ -1708,7 +1708,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
             GetWindowRect(s_hwndLearnFXAdvancedDlg, &parentRect);
             GetWindowRect(hwndDlg, &dlgRect);
             int offset = parentRect.right - parentRect.left + 1;
-            SetWindowPos(hwndDlg, 0, dlgRect.left + offset, dlgRect.top, dlgRect.right - dlgRect.left, dlgRect.bottom - dlgRect.top, 0);
+            SetWindowPos(hwndDlg, 0, parentRect.left + offset, dlgRect.top - 42, dlgRect.right - dlgRect.left, dlgRect.bottom - dlgRect.top, 0);
         }
             break;
 
