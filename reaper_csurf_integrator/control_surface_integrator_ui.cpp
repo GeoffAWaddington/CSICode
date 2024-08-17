@@ -867,8 +867,8 @@ static void CreateContextMap()
             for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
             {
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                 if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                     cell->displayWidgets.Add(widget);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                    cell->displayWidgets.Add(widget);
             }
             
             for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
@@ -943,10 +943,10 @@ static void HandleInitAdvancedLearnFXDialog(HWND hwndDlg)
     
     SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)"0");
     
-    for (int j = g_minNumParamSteps; j <= g_maxNumParamSteps; ++j)
+    for (int step = g_minNumParamSteps; step <= g_maxNumParamSteps; ++step)
     {
         char buf[SMLBUF];
-        snprintf(buf, sizeof(buf), "%d", j);
+        snprintf(buf, sizeof(buf), "%d", step);
         SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)buf);
     }
 
