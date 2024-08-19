@@ -962,6 +962,42 @@ static void HandleInitAdvancedLearnFXDialog(HWND hwndDlg)
     }
 }
 
+static void ClearProperties()
+{
+    HWND hwndDlg = s_hwndLearnFXPropertiesDlg;
+    
+    if (hwndDlg == NULL)
+        return;
+    
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), false);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), false);
+    SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont), false);
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), false);
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), false);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), false);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), false);
+
+    SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), false);
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), false);
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), false);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), false);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayBackgroundColor), false);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), false);
+
+    for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
+        s_buttonColors[i][2] = 0xedededff;
+    
+    RECT rect;
+    GetClientRect(hwndDlg, &rect);
+    InvalidateRect(hwndDlg, &rect, 0);
+}
+
 static void ClearAdvancedParams()
 {
     isClearingAdvancedParameters = true;
@@ -978,43 +1014,45 @@ static void ClearAdvancedParams()
     EnableWindow(GetDlgItem(hwndDlg, IDC_PickRingStyle), false);
     SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_RESETCONTENT, 0, 0);
     EnableWindow(GetDlgItem(hwndDlg, IDC_PickSteps), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), false);
 
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
     EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), false);
     SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
     EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), false);
-    SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont), false);
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), false);
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), false);
-
     SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
     EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), false);
-    SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), false);
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayBackgroundColor), false);
-    
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Params), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), false);
 
-    for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
-        s_buttonColors[i][2] = 0xedededff;
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Params), false);
     
-    RECT rect;
-    GetClientRect(hwndDlg, &rect);
-    InvalidateRect(hwndDlg, &rect, 0);
+    ClearProperties();
     
     isClearingAdvancedParameters = false;
+}
+
+static void EnableEditProperties()
+{
+    HWND hwndDlg = s_hwndLearnFXPropertiesDlg;
+ 
+    if (hwndDlg == NULL)
+        return;
+
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), true);
+
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), true);
+
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayBackgroundColor), true);
+    
+    EnableWindow(GetDlgItem(hwndDlg, IDC_Params), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), true);
 }
 
 static void EnableEdit()
@@ -1026,8 +1064,6 @@ static void EnableEdit()
 
     EnableWindow(GetDlgItem(hwndDlg, IDC_PickRingStyle), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_PickSteps), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), true);
 
     EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), true);
@@ -1037,6 +1073,8 @@ static void EnableEdit()
     EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), true);
 
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), true);
+    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), true);
@@ -1046,6 +1084,8 @@ static void EnableEdit()
     
     EnableWindow(GetDlgItem(hwndDlg, IDC_Params), true);
     EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), true);
+    
+    EnableEditProperties();
 }
 
 static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, int bufSize)
@@ -1219,8 +1259,6 @@ static void FillAdvancedParams(HWND hwndDlg, Widget *widget, int modifier)
         return;
     
     ActionContext *paramContext = GetContext(widget, modifier);
-    ActionContext *nameContext = GetContext(cell->GetNameWidget(widget), modifier);
-    ActionContext *valueContext = GetContext(cell->GetValueWidget(widget), modifier);
     
     if (paramContext == NULL)
         return;
@@ -1697,7 +1735,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
     {
         case WM_CLOSE:
             ShowWindow(hwndDlg, SW_HIDE);
-            SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_Advanced), BM_SETCHECK, 0, 0);
+            SendMessage(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_CHECK_ShowProperties), BM_SETCHECK, 0, 0);
             s_isPropertiesShown = false;
             break;
             
