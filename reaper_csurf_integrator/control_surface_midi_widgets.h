@@ -1178,7 +1178,7 @@ public:
         timeZeroValueReceived_ = 0;
     }
     
-    virtual const char *GetName() override { return "Fader14Bit_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "FaderportClassicFader14Bit_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {
@@ -1875,7 +1875,7 @@ public:
     {
     }
     
-    virtual const char *GetName() override { return "MCUDisplay_Midi_FeedbackProcessor"; }
+    virtual const char *GetName() override { return "AsparionDisplay_Midi_FeedbackProcessor"; }
 
     virtual void ForceClear() override
     {

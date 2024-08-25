@@ -984,6 +984,8 @@ public:
       feedbackProcessors_.Empty(true);
     }
     
+    const WDL_PtrList<FeedbackProcessor> &GetFeedbackProcessors() { return feedbackProcessors_; }
+    
     void ClearHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = false; }
     void SetHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = true; }
     bool GetHasBeenUsedByUpdate() { return hasBeenUsedByUpdate_; }
