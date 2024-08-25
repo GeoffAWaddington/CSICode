@@ -956,6 +956,8 @@ protected:
     
     bool hasBeenUsedByUpdate_;
     
+    bool isTwoState_;
+    
 public:
     // all Widgets are owned by their ControlSurface!
     Widget(CSurfIntegrator *const csi,  ControlSurface *surface, const char *name) : csi_(csi), surface_(surface), name_(name)
@@ -966,6 +968,7 @@ public:
         lastIncomingDelta_ = 0.0;
         stepSize_ = 0.0;
         hasBeenUsedByUpdate_ = false;
+        isTwoState_ = false;
 
         int index = (int)strlen(name) - 1;
         if (isdigit(name[index]))
@@ -997,6 +1000,8 @@ public:
     
     void SetStepSize(double stepSize) { stepSize_ = stepSize; }
     double GetStepSize() { return stepSize_; }
+    bool GetIsTwoState() { return isTwoState_; }
+    void SetIsTwoState() { isTwoState_ = true; }
     
     void SetAccelerationValues(const vector<double> *accelerationValues) { accelerationValues_ = *accelerationValues; }
     const vector<double> &GetAccelerationValues() { return accelerationValues_; }

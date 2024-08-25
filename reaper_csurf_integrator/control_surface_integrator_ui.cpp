@@ -1502,26 +1502,6 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
     }
 }
 
-static bool IsWidgetTwoState(Widget * widget)
-{
-    const WDL_PtrList<FeedbackProcessor> &processors = widget->GetFeedbackProcessors();
-
-    for (int i = 0; i < processors.GetSize(); ++i)
-    {
-        const char *name =  processors.Get(i)->GetName();
-        
-        if (   !strcmp(name, "TwoState_Midi_FeedbackProcessor")
-            || !strcmp(name, "FPTwoStateRGB_Midi_FeedbackProcessor")
-            || !strcmp(name, "SCE24TwoStateLED_Midi_FeedbackProcessor")
-            || !strcmp(name, "SCE24OLED_Midi_FeedbackProcessor"))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shouldAssign)
 {
     if (s_hwndLearnFXAdvancedDlg == NULL)
@@ -1592,9 +1572,9 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         if (ActionContext *context = cell->GetValueContext(s_currentWidget))
             SetWidgetProperties(context, s_t_valueWidgetParams);
 
-        if (IsWidgetTwoState(s_currentWidget))
+        if (s_currentWidget->GetIsTwoState())
         {
-            vector<double> steps;            
+            vector<double> steps;
             steps.push_back(0.0);
             steps.push_back(1.0);
             paramContext->SetStepValues(steps);

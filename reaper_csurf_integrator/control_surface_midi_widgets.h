@@ -22,10 +22,16 @@ protected:
 public:
     virtual ~PressRelease_Midi_CSIMessageGenerator() {}
 
-    PressRelease_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(csi, widget), press_(press) {}
+    PressRelease_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(csi, widget), press_(press) 
+    {
+        widget->SetIsTwoState();
+    }
     
-    PressRelease_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release) {}
-    
+    PressRelease_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release)
+    {
+        widget->SetIsTwoState();
+    }
+
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         widget_->GetZoneManager()->DoAction(widget_, midiMessage->IsEqualTo(press_) ? 1 : 0);
@@ -43,7 +49,10 @@ protected:
 public:
     virtual ~Touch_Midi_CSIMessageGenerator() {}
     
-    Touch_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release) {}
+    Touch_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release)
+    {
+        widget->SetIsTwoState();
+    }
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -60,7 +69,10 @@ protected:
 
 public:
     virtual ~AnyPress_Midi_CSIMessageGenerator() {}
-    AnyPress_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(csi, widget), press_(press) {}
+    AnyPress_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press) : Midi_CSIMessageGenerator(csi, widget), press_(press)
+    {
+        widget->SetIsTwoState();
+    }
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
@@ -83,6 +95,7 @@ public:
     }
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FaderportClassicFader14Bit_Midi_CSIMessageGenerator : public Midi_CSIMessageGenerator
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
