@@ -10,6 +10,7 @@
 
 extern void TrimLine(string &line);
 extern void GetParamStepsString(string &outputString, int numSteps);
+extern void GetParamStepsValues(vector<double> &outputVector, int numSteps);
 
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
@@ -18,8 +19,6 @@ static bool isClearingAdvancedParameters = false;
 
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
-
-static int s_swapIndexes[2];
 
 // t = template
 static string_list s_t_paramWidgets;
@@ -1090,6 +1089,9 @@ static void EnableEdit()
 
 static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, int bufSize)
 {
+    if (widget == NULL)
+        return;
+    
     char modifierBuf[SMLBUF];
     s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
     snprintf(widgetNamBuf, bufSize, "%s%s", modifierBuf, widget->GetName());
@@ -1331,6 +1333,9 @@ static void FillAdvancedParams(HWND hwndDlg, Widget *widget, int modifier)
 
 static void FillBasicParams(HWND hwndDlg, Widget *widget, int modifier)
 {
+    if (widget == NULL)
+        return;
+    
     char buf[MEDBUF];
     GetFullWidgetName(widget, modifier, buf, sizeof(buf));
     SetDlgItemText(hwndDlg, IDC_WidgetName, buf);
@@ -1572,13 +1577,24 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         if (ActionContext *context = cell->GetValueContext(s_currentWidget))
             SetWidgetProperties(context, s_t_valueWidgetParams);
 
-        if (s_currentWidget->GetIsTwoState())
+        s_zoneManager->GetCSI()->CalculateSteppedValues(s_fxName, s_focusedTrack, s_fxSlot);
+        
+        int stepCount = s_zoneManager->GetCSI()->GetSteppedValueCount(s_fxName, paramIdx);
+
+        vector<double> steps;
+
+        if (stepCount > 0)
         {
-            vector<double> steps;
+            GetParamStepsValues(steps, stepCount);
+            paramContext->SetStepValues(steps);
+        }
+        else if (s_currentWidget->GetIsTwoState())
+        {
             steps.push_back(0.0);
             steps.push_back(1.0);
             paramContext->SetStepValues(steps);
         }
+        
         
         
         //if (Widget *widget = )

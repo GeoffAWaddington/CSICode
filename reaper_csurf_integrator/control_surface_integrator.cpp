@@ -1787,7 +1787,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     GetSteppedValues(widget, action_, zone_, paramIndex_, params, widgetProperties_, deltaValue_, acceleratedDeltaValues_, rangeMinimum_, rangeMaximum_, steppedValues_, acceleratedTickValues_);
 
     if (acceleratedTickValues_.size() < 1)
-        acceleratedTickValues_.push_back(10);
+        acceleratedTickValues_.push_back(0);
 }
 
 Page *ActionContext::GetPage()
@@ -2839,6 +2839,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
                 for (int i = 1; i < tokens.size(); ++i)
                     memberParams.push_back(tokens[i]);
                 
+                // For legacy .zon definitions
                 if (!strcmp(tokens[1], "NullDisplay"))
                     continue;
                 
@@ -3005,7 +3006,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
         ClearFXSlot();
         
-        CalculateSteppedValues(fxName, track, fxSlot);
+        csi_->CalculateSteppedValues(fxName, track, fxSlot);
         
         fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
         LoadZoneFile(fxSlotZone_, "");
@@ -3071,82 +3072,6 @@ void ZoneManager::PreProcessZones()
         for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
             PreProcessZoneFile(zoneFilesToProcess[i]);
     }
-}
-
-void ZoneManager::GetSteppedValuesForParam(string &output, const char *fxName, MediaTrack *track, int fxIndex, int paramIndex)
-{
-    CalculateSteppedValues(fxName, track, fxIndex);
-    
-    int stepCount = csi_->GetSteppedValueCount(fxName, paramIndex);
-    
-    if (stepCount)
-    {
-        string steps;
-        GetParamStepsString(steps, stepCount);
-
-        char buf[BUFSIZ];
-        buf[0] = 0;
-
-        snprintf(buf, sizeof(buf), "[ %s] ", steps.c_str());
-
-        output = buf;
-    }
-}
-
-void ZoneManager::CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
-{
-    if (csi_->HaveFXSteppedValuesBeenCalculated(fxName.c_str()))
-        return;
-    
-    csi_->SetSteppedValueCount(fxName.c_str(), -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
-
-    // Check for UAD / Plugin Alliance and bail if neither
-    if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
-        return;
-    
-    bool wasMuted = false;
-    GetTrackUIMute(track, &wasMuted);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
-
-    double minvalOut = 0.0;
-    double maxvalOut = 0.0;
-
-    int numParams = TrackFX_GetNumParams(track, fxIndex);
-
-    vector<double> currentValues;
-
-    for (int i = 0; i < numParams; ++i)
-        currentValues.push_back(TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
-    
-    for (int i = 0; i < numParams; ++i)
-    {
-        int stepCount = 1;
-        double stepValue = 0.0;
-        
-        for (double value = 0.0; value < 1.01; value += .01)
-        {
-            TrackFX_SetParam(track, fxIndex, i, value);
-            
-            double fxValue = TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
-            
-            if (stepValue != fxValue)
-            {
-                stepValue = fxValue;
-                stepCount++;
-            }
-        }
-        
-        if (stepCount > 1 && stepCount < 31)
-            csi_->SetSteppedValueCount(fxName.c_str(), i, stepCount);
-    }
-    
-    for (int i = 0; i < numParams; ++i)
-        TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
-    
-    if ( ! wasMuted)
-        CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
 }
 
 void ZoneManager::DoAction(Widget *widget, double value)

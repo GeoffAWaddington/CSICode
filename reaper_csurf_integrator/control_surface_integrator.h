@@ -1375,9 +1375,6 @@ public:
     
     int  GetNumChannels();
     
-    void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex);
-    void GetSteppedValuesForParam(string &output, const char *fxName, MediaTrack *track, int fxIndex, int paramIndex);
-
     void PreProcessZones();
     void PreProcessZoneFile(const char *filePath);
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
@@ -4227,6 +4224,23 @@ private:
         return strtod (tmp, NULL);
     }
     
+    bool HaveFXSteppedValuesBeenCalculated(const char *fxName)
+    {
+        if (fxParamSteppedValueCounts_.Exists(fxName))
+            return true;
+        else
+            return false;
+    }
+
+    void SetSteppedValueCount(const char *fxName, int paramIndex, int steppedValueCount)
+    {
+        if ( ! fxParamSteppedValueCounts_.Exists(fxName))
+            fxParamSteppedValueCounts_.Insert(fxName, new WDL_IntKeyedArray<int>());
+        
+        if (fxParamSteppedValueCounts_.Exists(fxName))
+            fxParamSteppedValueCounts_.Get(fxName)->Insert(paramIndex, steppedValueCount);
+    }
+        
 public:
     CSurfIntegrator();
     
@@ -4486,28 +4500,68 @@ public:
         return buf;
     }
     
-    void SetSteppedValueCount(const char *fxName, int paramIndex, int steppedValueCount)
-    {
-        if ( ! fxParamSteppedValueCounts_.Exists(fxName))
-            fxParamSteppedValueCounts_.Insert(fxName, new WDL_IntKeyedArray<int>());
-        
-        if (fxParamSteppedValueCounts_.Exists(fxName))
-            fxParamSteppedValueCounts_.Get(fxName)->Insert(paramIndex, steppedValueCount);
-    }
-    
-    bool HaveFXSteppedValuesBeenCalculated(const char *fxName)
-    {
-        if (fxParamSteppedValueCounts_.Exists(fxName))
-            return true;
-        else
-            return false;
-    }
-    
     int GetSteppedValueCount(const char *fxName, int paramIndex)
     {
         WDL_IntKeyedArray<int> *r = fxParamSteppedValueCounts_.Get(fxName);
         return r ? r->Get(paramIndex, 0) : 0;
     }
+    
+    void CalculateSteppedValues(const string &fxName, MediaTrack *track, int fxIndex)
+    {
+        if (HaveFXSteppedValuesBeenCalculated(fxName.c_str()))
+            return;
+        
+        SetSteppedValueCount(fxName.c_str(), -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+
+        // Check for UAD / Plugin Alliance and bail if neither
+        if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
+            return;
+        
+        bool wasMuted = false;
+        GetTrackUIMute(track, &wasMuted);
+        
+        if ( ! wasMuted)
+            CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, true), NULL);
+
+        double minvalOut = 0.0;
+        double maxvalOut = 0.0;
+
+        int numParams = TrackFX_GetNumParams(track, fxIndex);
+
+        vector<double> currentValues;
+
+        for (int i = 0; i < numParams; ++i)
+            currentValues.push_back(TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut));
+        
+        for (int i = 0; i < numParams; ++i)
+        {
+            int stepCount = 1;
+            double stepValue = 0.0;
+            
+            for (double value = 0.0; value < 1.01; value += .01)
+            {
+                TrackFX_SetParam(track, fxIndex, i, value);
+                
+                double fxValue = TrackFX_GetParam(track, fxIndex, i, &minvalOut, &maxvalOut);
+                
+                if (stepValue != fxValue)
+                {
+                    stepValue = fxValue;
+                    stepCount++;
+                }
+            }
+            
+            if (stepCount > 1 && stepCount < 31)
+                SetSteppedValueCount(fxName.c_str(), i, stepCount);
+        }
+        
+        for (int i = 0; i < numParams; ++i)
+            TrackFX_SetParam(track, fxIndex, i, currentValues[i]);
+        
+        if ( ! wasMuted)
+            CSurf_SetSurfaceMute(track, CSurf_OnMuteChange(track, false), NULL);
+    }
+
     
     //int repeats = 0;
     
