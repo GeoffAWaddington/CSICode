@@ -968,26 +968,13 @@ static void ClearProperties()
     if (hwndDlg == NULL)
         return;
     
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), false);
     SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont), false);
     SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), false);
     SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), false);
 
     SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), false);
     SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), false);
     SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayBackgroundColor), false);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), false);
 
     for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
         s_buttonColors[i][2] = 0xedededff;
@@ -1010,18 +997,11 @@ static void ClearAdvancedParams()
     SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXControl), "Control");
     
     SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_PickRingStyle), false);
     SendDlgItemMessage(hwndDlg, IDC_PickSteps, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_PickSteps), false);
 
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), false);
     SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), false);
     SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), false);
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Params), false);
     
     ClearProperties();
     
@@ -1034,24 +1014,6 @@ static void EnableEditProperties()
  
     if (hwndDlg == NULL)
         return;
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), true);
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), true);
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayBackgroundColor), true);
-    
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Params), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), true);
 }
 
 static void EnableEdit()
@@ -1060,29 +1022,6 @@ static void EnableEdit()
  
     if (hwndDlg == NULL)
         return;
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_PickRingStyle), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_PickSteps), true);
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayPickFont), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayForegroundColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FixedTextDisplayBackgroundColor), true);
-
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamRingColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamIndicatorColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamValueDisplayPickFont), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayForegroundColor), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_FXParamDisplayBackgroundColor), true);
-    
-    EnableWindow(GetDlgItem(hwndDlg, IDC_Params), true);
-    EnableWindow(GetDlgItem(hwndDlg, IDC_ApplyToAll), true);
     
     EnableEditProperties();
 }
@@ -1485,9 +1424,21 @@ void WidgetMoved(Widget *widget, int modifier)
     s_currentWidget = widget;
     s_currentModifier = modifier;
     
-    char widgetNameBuf[MEDBUF];
-    GetFullWidgetName(widget, modifier, widgetNameBuf, sizeof(widgetNameBuf));
-    SetDlgItemText(s_hwndLearnDlg, IDC_WidgetName, widgetNameBuf);
+    char buf[MEDBUF];
+    GetFullWidgetName(widget, modifier, buf, sizeof(buf));
+    SetDlgItemText(s_hwndLearnDlg, IDC_WidgetName, buf);
+    
+    if (ActionContext *context = GetContext(widget, modifier))
+    {
+        if (! strcmp(context->GetAction()->GetName(), "NoAction"))
+        {
+            buf[0] = 0;
+            SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, buf);
+            ClearAdvancedParams();
+        }
+        else if (FXCell *cell = GetCell(widget, modifier))
+            SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, cell->GetNameContext(widget)->GetStringParam());
+    }
 }
 
 static void SetWidgetProperties(ActionContext *context, const char *params)
