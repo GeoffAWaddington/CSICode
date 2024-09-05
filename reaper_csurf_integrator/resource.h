@@ -86,6 +86,7 @@
 #define IDC_FXParamDisplayForegroundColor 1185
 #define IDC_FXParamDisplayBackgroundColor 1188
 #define IDC_Save                        1190
+#define IDC_Unassign                    1191
 #define IDC_FixedTextDisplayFontLabel   1199
 #define IDC_FXParamValueDisplayFontLabel 1202
 #define IDC_FXParamRingColorBox         1205
@@ -131,12 +132,10 @@
 #define IDC_Apply                       1282
 #define IDC_Steps                       1283
 #define IDC_Alias                       1284
-#define IDC_CHECK_Assigned              1287
 #define IDC_CELL_LIST                   1291
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_ApplyToAll                  1295
-#define IDC_CHECK1                      1296
 #define IDC_CHECK_ShowProperties        1297
 
 // Next default values for new objects

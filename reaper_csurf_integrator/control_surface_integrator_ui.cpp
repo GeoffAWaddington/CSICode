@@ -1292,30 +1292,30 @@ static void FillBasicParams()
     char modifierBuf[SMLBUF];
     s_modifierManager.GetModifierString(s_currentModifier, modifierBuf, sizeof(modifierBuf));
 
-    HWND hwndAssigned = GetDlgItem(s_hwndLearnDlg, IDC_CHECK_Assigned);
+    //HWND hwndAssigned = GetDlgItem(s_hwndLearnDlg, IDC_CHECK_Assigned);
 
     buf[0] = 0;
     
     if (paramContext == NULL)
     {
-        SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
-        SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
+        //SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
+        //SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
         ClearAdvancedParams();
         return;
     }
         
     if ( ! strcmp (paramContext->GetAction()->GetName(), "NoAction"))
     {
-        SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
-        SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
+        //SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
+        //SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
         SetWindowText(s_hwndLearnFXAdvancedDlg, "Advanced");
         SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl, "Control");
         ClearAdvancedParams();
     }
     else
     {
-        SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
-        SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assigned");
+        //SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
+        //SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assigned");
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
         SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, buf);
 
@@ -1326,54 +1326,6 @@ static void FillBasicParams()
         SetWindowText(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl), fullName);
         SetWindowText(GetDlgItem(s_hwndLearnFXPropertiesDlg, IDC_GroupFXControl), fullName);
         FillAdvancedParams();
-    }
-}
-
-static void UpdateLearnWindowParams()
-{
-    char paramName[SMLBUF];
-    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
-    SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, paramName);
-    
-    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
-    
-    if (zone == NULL)
-        return;
-    
-    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
-    {
-        Widget *widget = zone->GetWidgets().Get(i);
-        
-        for (int j = 0; j < s_fxRowLayouts.size(); ++j)
-        {
-            int modifier = s_fxRowLayouts[j].modifier;
-            
-            ActionContext *context = GetContext(widget, modifier);
-            
-            if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == s_lastTouchedParamNum)
-            {
-                s_currentModifier = modifier;
-                s_zoneManager->GetSurface()->SetModifierValue(modifier);
-                s_currentWidget = widget;
-                
-                FillBasicParams();
-                
-                return;
-            }
-        }
-    }
-    
-    SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
-    
-    if (s_currentWidget != NULL)
-    {
-        ActionContext *context = GetContext(s_currentWidget, s_currentModifier);
-
-        if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam"))
-        {
-            s_currentWidget = NULL;
-            SetDlgItemText(s_hwndLearnDlg, IDC_WidgetName, "");
-        }
     }
 }
 
@@ -1436,8 +1388,8 @@ void WidgetMoved(Widget *widget, int modifier)
             SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, buf);
             ClearAdvancedParams();
         }
-        else if (FXCell *cell = GetCell(widget, modifier))
-            SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, cell->GetNameContext(widget)->GetStringParam());
+        //else if (FXCell *cell = GetCell(widget, modifier))
+            //SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, cell->GetNameContext(widget)->GetStringParam());
     }
 }
 
@@ -1609,11 +1561,59 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             valueContext->SetParamIndex(0);
             valueContext->SetStringParam("");
         }
-           
-        SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_CHECK_Assigned), BM_SETCHECK, BST_UNCHECKED, 0);
-        SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
         
         ClearAdvancedParams();
+    }
+}
+
+static void UpdateLearnWindowParams()
+{
+    char paramName[SMLBUF];
+    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
+    SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, paramName);
+    
+    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
+    
+    if (zone == NULL)
+        return;
+    
+    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
+    {
+        Widget *widget = zone->GetWidgets().Get(i);
+        
+        for (int j = 0; j < s_fxRowLayouts.size(); ++j)
+        {
+            int modifier = s_fxRowLayouts[j].modifier;
+            
+            ActionContext *context = GetContext(widget, modifier);
+            
+            if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == s_lastTouchedParamNum)
+            {
+                s_currentModifier = modifier;
+                s_zoneManager->GetSurface()->SetModifierValue(modifier);
+                s_currentWidget = widget;
+                
+                FillBasicParams();
+                
+                return;
+            }
+        }
+    }
+    
+    if (s_currentWidget != NULL)
+    {
+        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
+        /*
+        ActionContext *context = GetContext(s_currentWidget, s_currentModifier);
+
+        if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam"))
+        {
+            s_currentWidget = NULL;
+            SetDlgItemText(s_hwndLearnDlg, IDC_WidgetName, "");
+        }
+        */
+        
+        
     }
 }
 
@@ -2177,7 +2177,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
             switch(LOWORD(wParam))
             {
-                case IDC_CHECK_Assigned:
+                case IDC_Unassign:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         int paramNum = s_lastTouchedParamNum;
@@ -2187,12 +2187,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (s_currentWidget == NULL)
                             break;
                         
-                        bool shouldAssign = false;
-                        
-                        if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Assigned), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                            shouldAssign = true;
-                        
-                        HandleAssigment(modifier, paramNum, shouldAssign);
+                        HandleAssigment(modifier, paramNum, false);
                     }
                     break;
 
