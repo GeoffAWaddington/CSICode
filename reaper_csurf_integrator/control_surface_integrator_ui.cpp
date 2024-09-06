@@ -961,29 +961,6 @@ static void HandleInitAdvancedLearnFXDialog()
     }
 }
 
-static void ClearProperties()
-{
-    HWND hwndDlg = s_hwndLearnFXPropertiesDlg;
-    
-    if (hwndDlg == NULL)
-        return;
-    
-    SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
-
-    SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
-
-    for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
-        s_buttonColors[i][2] = 0xedededff;
-    
-    RECT rect;
-    GetClientRect(hwndDlg, &rect);
-    InvalidateRect(hwndDlg, &rect, 0);
-}
-
 static void ClearAdvancedParams()
 {
     isClearingAdvancedParameters = true;
@@ -1001,8 +978,26 @@ static void ClearAdvancedParams()
     SetDlgItemText(hwndDlg, IDC_COMBO_PickNameDisplay, "");
     SetDlgItemText(hwndDlg, IDC_COMBO_PickValueDisplay, "");
     
-    ClearProperties();
+    hwndDlg = s_hwndLearnFXPropertiesDlg;
     
+    if (hwndDlg == NULL)
+        return;
+    
+    SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
+
+    SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
+    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
+
+    for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
+        s_buttonColors[i][2] = 0xedededff;
+    
+    RECT rect;
+    GetClientRect(hwndDlg, &rect);
+    InvalidateRect(hwndDlg, &rect, 0);
+
     isClearingAdvancedParameters = false;
 }
 
@@ -1270,30 +1265,22 @@ static void FillBasicParams()
     char modifierBuf[SMLBUF];
     s_modifierManager.GetModifierString(s_currentModifier, modifierBuf, sizeof(modifierBuf));
 
-    //HWND hwndAssigned = GetDlgItem(s_hwndLearnDlg, IDC_CHECK_Assigned);
-
     buf[0] = 0;
     
     if (paramContext == NULL)
     {
-        //SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
-        //SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
         ClearAdvancedParams();
         return;
     }
         
     if ( ! strcmp (paramContext->GetAction()->GetName(), "NoAction"))
     {
-        //SendMessage(hwndAssigned, BM_SETCHECK, BST_UNCHECKED, 0);
-        //SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assign");
         SetWindowText(s_hwndLearnFXAdvancedDlg, "Advanced");
         SetDlgItemText(s_hwndLearnFXAdvancedDlg, IDC_GroupFXControl, "Control");
         ClearAdvancedParams();
     }
     else
     {
-        //SendMessage(hwndAssigned, BM_SETCHECK, BST_CHECKED, 0);
-        //SetDlgItemText(s_hwndLearnDlg, IDC_CHECK_Assigned, "Assigned");
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
         SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, buf);
 
@@ -1365,6 +1352,14 @@ void WidgetMoved(Widget *widget, int modifier)
             buf[0] = 0;
             SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, buf);
             ClearAdvancedParams();
+        }
+        else if (FXCell *cell = GetCell(widget, modifier))
+        {
+            if (ActionContext *context = cell->GetNameContext(widget))
+            {
+                SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, context->GetStringParam());
+                FillAdvancedParams();
+            }
         }
     }
 }
