@@ -1423,9 +1423,6 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
     if (paramContext == NULL)
         return;
     
-    //cell->ClearNameDisplayWidget(s_currentWidget);
-    //cell->ClearValueDisplayWidget(s_currentWidget);
-
     if (shouldAssign)
     {
         paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
@@ -1515,7 +1512,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
         paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
         paramContext->SetParamIndex(0);
         paramContext->SetStringParam("");
-        
+ 
         if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
         {
             nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
@@ -1523,7 +1520,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             nameContext->SetStringParam("");
         }
 
-        if (ActionContext *valueContext = cell->GetNameContext(s_currentWidget))
+        if (ActionContext *valueContext = cell->GetValueContext(s_currentWidget))
         {
             valueContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
             valueContext->SetParamIndex(0);
