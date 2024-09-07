@@ -136,7 +136,9 @@
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_ApplyToAll                  1295
-#define IDC_CHECK_ShowProperties        1297
+#define IDC_ShowProperties              1297
+#define IDC_RADIO_Learn                 1298
+#define IDC_RADIO_Edit                  1299
 
 // Next default values for new objects
 // 
@@ -144,7 +146,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1298
+#define _APS_NEXT_CONTROL_VALUE         1300
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

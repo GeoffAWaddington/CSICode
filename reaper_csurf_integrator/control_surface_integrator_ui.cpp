@@ -1464,48 +1464,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             paramContext->SetStepValues(steps);
         }
         
-        
         HandleInitAdvancedLearnFXDialog();
-        //FillBasicParams();
-
-        
-        
-       /*
-        char buf[MEDBUF];
-        
- 
-        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), buf);
-        
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_SETCURSEL, 1, 0);
-        char displayWidgetName[MEDBUF];
-        SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, 1, (LPARAM)displayWidgetName);
-        
-        if ( ! strcmp(displayWidgetName, ""))
-            cell->ClearNameDisplayWidget(s_currentWidget);
-        else
-        {
-            
-            
-            
-            
-            char paramName[MEDBUF];
-            GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
-
-        }
-
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_SETCURSEL, 2, 0);
-        char valueWidgetName[MEDBUF];
-        SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, 2, (LPARAM)valueWidgetName);
-
-        if ( ! strcmp(valueWidgetName, ""))
-            cell->ClearValueDisplayWidget(s_currentWidget);
-        //else
-            //cell->SetValueWidget(s_currentWidget, valueWidgetName);
-
-        
-        
-        
-        */
     }
     else
     {
@@ -1664,7 +1623,6 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
     {
         case WM_CLOSE:
             ShowWindow(hwndDlg, SW_HIDE);
-            SendMessage(GetDlgItem(s_hwndLearnFXAdvancedDlg, IDC_CHECK_ShowProperties), BM_SETCHECK, 0, 0);
             s_isPropertiesShown = false;
             break;
             
@@ -1940,9 +1898,9 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_CLOSE:
             ShowWindow(hwndDlg, SW_HIDE);
-            ShowWindow(s_hwndLearnFXPropertiesDlg, SW_HIDE);
-            SendMessage(GetDlgItem(s_hwndLearnDlg, IDC_Advanced), BM_SETCHECK, 0, 0);
             s_isAdvanceShown = false;
+            ShowWindow(s_hwndLearnFXPropertiesDlg, SW_HIDE);
+            s_isPropertiesShown = false;
             break;
             
         case WM_INITDIALOG: // initialize
@@ -2083,22 +2041,13 @@ static WDL_DLGRET dlgProcLearnFXAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                    }
                    break;
                     
-                case IDC_CHECK_ShowProperties:
+                case IDC_ShowProperties:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        if (s_hwndLearnFXAdvancedDlg != NULL && SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ShowProperties), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                        {
-                            ShowWindow(s_hwndLearnFXPropertiesDlg, SW_SHOW);
-                            s_isPropertiesShown = true;
-                        }
-                        else  if (s_hwndLearnFXAdvancedDlg != NULL)
-                        {
-                            ShowWindow(s_hwndLearnFXPropertiesDlg, SW_HIDE);
-                            s_isPropertiesShown = false;
-                        }
+                        ShowWindow(s_hwndLearnFXPropertiesDlg, SW_SHOW);
+                        s_isPropertiesShown = true;
                     }
                     break;
-                    
             }
         }
             break;
@@ -2150,17 +2099,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_Advanced:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        if (s_hwndLearnFXAdvancedDlg != NULL && SendMessage(GetDlgItem(hwndDlg, IDC_Advanced), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                        {
-                            ClearAdvancedParams();
-                            ShowWindow(s_hwndLearnFXAdvancedDlg, SW_SHOW);
-                            s_isAdvanceShown = true;
-                        }
-                        else  if (s_hwndLearnFXAdvancedDlg != NULL)
-                        {
-                            ShowWindow(s_hwndLearnFXAdvancedDlg, SW_HIDE);
-                            s_isAdvanceShown = false;
-                        }
+                        ShowWindow(s_hwndLearnFXAdvancedDlg, SW_SHOW);
+                        s_isAdvanceShown = true;
                     }
                     break;
                                                               
@@ -2170,12 +2110,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         SaveZone();
                         CloseFocusedFXDialog();
                     }
-                    break ;
-                                        
-                case IDC_ExitNoSave:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                        CloseFocusedFXDialog();
-                    break ;
+                    break ;                                        
             }
         }
     }
