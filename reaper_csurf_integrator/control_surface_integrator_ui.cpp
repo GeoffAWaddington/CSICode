@@ -16,6 +16,7 @@ extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
 static bool isClearingAdvancedParameters = false;
+static bool s_isLearnMode = false;
 
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
@@ -44,6 +45,7 @@ static ModifierManager s_modifierManager(NULL);
 
 static ZoneManager *s_zoneManager = NULL;
 static int s_lastTouchedParamNum = -1;
+static double s_lastTouchedParamValue = -1.0;
 static MediaTrack *s_focusedTrack = NULL;
 static int s_fxSlot = 0;
 static char s_fxName[MEDBUF];
@@ -2103,7 +2105,17 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         s_isAdvanceShown = true;
                     }
                     break;
-                                                              
+                    
+                case IDC_RADIO_Learn:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        s_isLearnMode = true;
+                    break;
+
+                case IDC_RADIO_Edit:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        s_isLearnMode = false;
+                    break;
+
                 case IDC_Save:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2161,11 +2173,15 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     {
         lstrcpyn_safe(s_fxAlias, zoneInfo.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
         LearnFocusedFXDialog();
+        CheckDlgButton(s_hwndLearnDlg, IDC_RADIO_Edit, true);
+        s_isLearnMode = false;
     }
     else
     {
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
         LearnFocusedFXDialog();
+        CheckDlgButton(s_hwndLearnDlg, IDC_RADIO_Learn, true);
+        s_isLearnMode = true;
     }
 }
 
@@ -2234,15 +2250,20 @@ void UpdateLearnWindow()
     if (s_hwndLearnDlg == NULL || ! IsWindowVisible(s_hwndLearnDlg))
         return;
 
-    int tracknumberOut;
-    int fxnumberOut;
-    int paramnumberOut;
+    int trackNumberOut;
+    int fxNumberOut;
+    int paramNumberOut;
     
-    if (GetLastTouchedFX(&tracknumberOut, &fxnumberOut, &paramnumberOut))
+    if (GetLastTouchedFX(&trackNumberOut, &fxNumberOut, &paramNumberOut))
     {
-        if (s_lastTouchedParamNum != paramnumberOut)
+        double minvalOut = 0.0;
+        double maxvalOut = 0.0;
+        double currentParamValue = TrackFX_GetParam(DAW::GetTrack(trackNumberOut), fxNumberOut, paramNumberOut, &minvalOut, &maxvalOut);
+        
+        if (s_lastTouchedParamNum != paramNumberOut || s_lastTouchedParamValue != currentParamValue)
         {
-            s_lastTouchedParamNum = paramnumberOut;
+            s_lastTouchedParamNum = paramNumberOut;
+            s_lastTouchedParamValue = currentParamValue;
             UpdateLearnWindowParams();
         }
     }
