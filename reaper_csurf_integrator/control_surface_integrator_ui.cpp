@@ -2108,12 +2108,18 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     
                 case IDC_RADIO_Learn:
                     if (HIWORD(wParam) == BN_CLICKED)
+                    {
                         s_isLearnMode = true;
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_Unassign) , true);
+                    }
                     break;
 
                 case IDC_RADIO_Edit:
                     if (HIWORD(wParam) == BN_CLICKED)
+                    {
                         s_isLearnMode = false;
+                        EnableWindow(GetDlgItem(hwndDlg, IDC_Unassign) , false);
+                    }
                     break;
 
                 case IDC_Save:
@@ -2175,6 +2181,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
         LearnFocusedFXDialog();
         CheckDlgButton(s_hwndLearnDlg, IDC_RADIO_Edit, true);
         s_isLearnMode = false;
+        EnableWindow(GetDlgItem(s_hwndLearnDlg, IDC_Unassign) , false);
     }
     else
     {
@@ -2182,6 +2189,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
         LearnFocusedFXDialog();
         CheckDlgButton(s_hwndLearnDlg, IDC_RADIO_Learn, true);
         s_isLearnMode = true;
+        EnableWindow(GetDlgItem(s_hwndLearnDlg, IDC_Unassign) , true);
     }
 }
 
