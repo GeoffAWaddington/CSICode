@@ -944,6 +944,7 @@ static void HandleInitAdvancedLearnFXDialog()
     for (int i = 0; i < s_t_ringStyles.size(); ++i)
         SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_t_ringStyles[i].c_str());
     
+    SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_PickSteps, CB_RESETCONTENT, 0, 0);
     SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)"0");
     
     for (int step = g_minNumParamSteps; step <= g_maxNumParamSteps; ++step)
@@ -1470,10 +1471,6 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
     }
     else
     {
-        paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
-        paramContext->SetParamIndex(0);
-        paramContext->SetStringParam("");
- 
         if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
         {
             nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
@@ -1488,7 +1485,12 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             valueContext->SetStringParam("");
         }
         
+        paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+        paramContext->SetParamIndex(0);
+        paramContext->SetStringParam("");
+
         ClearAdvancedParams();
+        SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, "");
     }
 }
 
@@ -1497,12 +1499,19 @@ static void UpdateLearnWindowParams()
     char paramName[SMLBUF];
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
     SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, paramName);
-    
+        
+    if (s_currentWidget != NULL && s_isLearnMode)
+    {
+        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
+        FillBasicParams();
+        return;
+    }
+
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
     
     if (zone == NULL)
         return;
-    
+
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
@@ -1524,12 +1533,6 @@ static void UpdateLearnWindowParams()
                 return;
             }
         }
-    }
-    
-    if (s_currentWidget != NULL)
-    {
-        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
-        FillBasicParams();
     }
 }
 
