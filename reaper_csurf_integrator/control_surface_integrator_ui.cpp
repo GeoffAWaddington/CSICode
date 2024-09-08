@@ -941,6 +941,8 @@ void InitBlankLearnFocusedFXZone()
 
 static void HandleInitAdvancedLearnFXDialog()
 {
+    SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_PickRingStyle, CB_RESETCONTENT, 0, 0);
+
     for (int i = 0; i < s_t_ringStyles.size(); ++i)
         SendDlgItemMessage(s_hwndLearnFXAdvancedDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_t_ringStyles[i].c_str());
     
