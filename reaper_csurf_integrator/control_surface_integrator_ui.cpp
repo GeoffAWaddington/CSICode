@@ -1829,10 +1829,13 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                 case IDC_Edit_FixedTextDisplayTop:
                     if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
+                        buf[0] = 0;
+                        
                         GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayTop, buf, sizeof(buf));
                         if (nameContext)
                         {
-                            nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
+                            if (buf[0] != 0)
+                                nameContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
                             nameContext->ForceWidgetValue(nameContext->GetStringParam());
                         }
                     }
@@ -1841,10 +1844,13 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                 case IDC_Edit_FixedTextDisplayBottom:
                     if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
+                        buf[0] = 0;
+                        
                         GetDlgItemText(hwndDlg, IDC_Edit_FixedTextDisplayBottom, buf, sizeof(buf));
                         if (nameContext)
                         {
-                            nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
+                            if (buf[0] != 0)
+                                nameContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
                             nameContext->ForceWidgetValue(nameContext->GetStringParam());
                         }
                     }
@@ -1869,10 +1875,13 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                 case IDC_Edit_ParamValueDisplayTop:
                     if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
+                        buf[0] = 0;
+                        
                         GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayTop, buf, sizeof(buf));
                         if (valueContext)
                         {
-                            valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
+                            if (buf[0] != 0)
+                                valueContext->GetWidgetProperties().set_prop(PropertyType_TopMargin, buf);
                             valueContext->ForceWidgetValue(nameContext->GetStringParam());
                         }
                     }
@@ -1881,10 +1890,13 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                 case IDC_Edit_ParamValueDisplayBottom:
                     if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
                     {
+                        buf[0] = 0;
+
                         GetDlgItemText(hwndDlg, IDC_Edit_ParamValueDisplayBottom, buf, sizeof(buf));
                         if (valueContext)
                         {
-                            valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
+                            if (buf[0] != 0)
+                                valueContext->GetWidgetProperties().set_prop(PropertyType_BottomMargin, buf);
                             valueContext->ForceWidgetValue(nameContext->GetStringParam());
                         }
                     }
