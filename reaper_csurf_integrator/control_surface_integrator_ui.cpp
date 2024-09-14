@@ -1439,7 +1439,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             {
                 snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
 
-                for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRowParams.size(); ++i)
+                for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRows.size(); ++i)
                 {
                     if ( ! strcmp(s_t_displayRows[i], rawWidgetName))
                     {
@@ -1456,7 +1456,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             {
                 snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
 
-                for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRowParams.size(); ++i)
+                for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRows.size(); ++i)
                 {
                     if ( ! strcmp(s_t_displayRows[i], rawWidgetName))
                     {
