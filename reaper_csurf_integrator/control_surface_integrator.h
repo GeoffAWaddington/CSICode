@@ -252,6 +252,12 @@ class PropertyList
     {
         for (int x = 0; x < nprops_; ++x) free(get_item_ptr(&vals_[x][0]));
     }
+    
+    void delete_props()
+    {
+        for (int x = 0; x < nprops_; ++x) free(get_item_ptr(&vals_[x][0]));
+        nprops_ = 0;
+    }
 
     void set_prop(PropertyType prop, const char *val)
     {

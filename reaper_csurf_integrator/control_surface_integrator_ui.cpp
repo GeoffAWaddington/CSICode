@@ -32,8 +32,6 @@ static bool s_t_hasColor = false;
 static char s_t_paramWidget[SMLBUF];
 static char s_t_nameWidget[SMLBUF];
 static char s_t_valueWidget[SMLBUF];
-static char s_t_nameWidgetParams[BUFSIZ];
-static char s_t_valueWidgetParams[BUFSIZ];
 
 static HWND s_hwndLearnDlg = NULL;
 static HWND s_hwndLearnFXAdvancedDlg = NULL;
@@ -500,9 +498,6 @@ static void LoadTemplates()
     s_t_nameWidget[0] = 0;
     s_t_valueWidget[0] = 0;
 
-    s_t_nameWidgetParams[0] = 0;
-    s_t_valueWidgetParams[0] = 0;
-
     s_t_paramWidgets.clear();
     s_t_displayRows.clear();
     s_t_ringStyles.clear();
@@ -584,45 +579,21 @@ static void LoadTemplates()
                             if (tokens.size() > 2)
                                 s_t_displayRowParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
-                        
-                        else if (tokens[0] == "#RingStyles")
-                        {
-                            for (int i = 1; i < tokens.size(); ++i)
-                                s_t_ringStyles.push_back(tokens[i]);
-                        }
-                        
-                        else if (tokens[0] == "#DisplayFonts")
-                        {
-                            for (int i = 1; i < tokens.size(); ++i)
-                                s_t_fonts.push_back(tokens[i]);
-                        }
+                        else if (tokens[0] == "#RingStyle" && tokens.size() > 1)
+                            s_t_ringStyles.push_back(tokens[1]);
+                        else if (tokens[0] == "#DisplayFont" && tokens.size() > 1)
+                            s_t_fonts.push_back(tokens[1]);
                         else if (tokens[0] == "#SupportsColor")
-                        {
                             s_t_hasColor = true;
-                        }
                     }
                     else
                     {
                         if (tokens.size() > 1 && tokens[1] == "FXParam")
                             strcpy(s_t_paramWidget, tokens[0]);
-                         if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
-                        {
+                        if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
                             strcpy(s_t_nameWidget, tokens[0]);
-                            
-                            
-                            if (tokens.size() > 2)
-                                strcpy(s_t_nameWidgetParams, line.substr(line.find(tokens[2]), line.length() - 1).c_str());
-                            
-                        }
                         if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
-                        {
                             strcpy(s_t_valueWidget, tokens[0]);
-                            
-                            
-                            if (tokens.size() > 2)
-                                strcpy(s_t_valueWidgetParams, line.substr(line.find(tokens[2]), line.length() - 1).c_str());
-                            
-                        }
                     }
                 }
             }
@@ -1374,7 +1345,7 @@ void WidgetMoved(Widget *widget, int modifier)
 
 static void SetWidgetProperties(ActionContext *context, const char *params)
 {
-    // GAW TBD clear current properties
+    context->GetWidgetProperties().delete_props();
     
     string_list tokens;
     GetTokens(tokens, params);
@@ -1464,12 +1435,36 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
 
         if (ActionContext *context = cell->GetNameContext(s_currentWidget))
         {
-            SetWidgetProperties(context, s_t_nameWidgetParams);
+            if (Widget *widget = cell->GetNameWidget(s_currentWidget))
+            {
+                snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
+
+                for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRowParams.size(); ++i)
+                {
+                    if ( ! strcmp(s_t_displayRows[i], rawWidgetName))
+                    {
+                        SetWidgetProperties(context, s_t_displayRowParams[i]);
+                        break;
+                    }
+                }
+            }
         }
         
         if (ActionContext *context = cell->GetValueContext(s_currentWidget))
         {
-            SetWidgetProperties(context, s_t_valueWidgetParams);
+            if (Widget *widget = cell->GetValueWidget(s_currentWidget))
+            {
+                snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
+
+                for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRowParams.size(); ++i)
+                {
+                    if ( ! strcmp(s_t_displayRows[i], rawWidgetName))
+                    {
+                        SetWidgetProperties(context, s_t_displayRowParams[i]);
+                        break;
+                    }
+                }
+            }
         }
 
         s_zoneManager->GetCSI()->CalculateSteppedValues(s_fxName, s_focusedTrack, s_fxSlot);
