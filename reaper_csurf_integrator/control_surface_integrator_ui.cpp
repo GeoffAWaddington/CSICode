@@ -2195,15 +2195,11 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     const WDL_StringKeyedArray<CSIZoneInfo*> &zoneInfo = s_zoneManager->GetZoneInfo();
 
     if (zoneInfo.Exists(s_fxName))
-    {
         lstrcpyn_safe(s_fxAlias, zoneInfo.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
-        LearnFocusedFXDialog();
-    }
     else
-    {
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
-        LearnFocusedFXDialog();
-    }
+    
+    LearnFocusedFXDialog();
 }
 
 void LearnFocusedFXDialog(ZoneManager *zoneManager)
