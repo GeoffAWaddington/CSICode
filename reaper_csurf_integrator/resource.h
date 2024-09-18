@@ -137,8 +137,6 @@
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_ApplyToAll                  1295
 #define IDC_ShowProperties              1297
-#define IDC_RADIO_Learn                 1298
-#define IDC_RADIO_Edit                  1299
 
 // Next default values for new objects
 // 

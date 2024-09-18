@@ -15,8 +15,7 @@ extern void GetParamStepsValues(vector<double> &outputVector, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
-static bool isClearingAdvancedParameters = false;
-static bool s_isLearnMode = false;
+static bool s_isClearingAdvancedParameters = false;
 
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
@@ -942,7 +941,7 @@ static void HandleInitAdvancedLearnFXDialog()
 
 static void ClearAdvancedParams()
 {
-    isClearingAdvancedParameters = true;
+    s_isClearingAdvancedParameters = true;
     
     HWND hwndDlg = s_hwndLearnFXAdvancedDlg;
     
@@ -977,7 +976,7 @@ static void ClearAdvancedParams()
     GetClientRect(hwndDlg, &rect);
     InvalidateRect(hwndDlg, &rect, 0);
 
-    isClearingAdvancedParameters = false;
+    s_isClearingAdvancedParameters = false;
 }
 
 static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, int bufSize)
@@ -1222,7 +1221,7 @@ static void FillAdvancedParams()
     paramContext->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
 }
 
-static void FillBasicParams()
+static void FillParams()
 {
     if (s_currentWidget == NULL)
         return;
@@ -1404,7 +1403,33 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
     if (paramContext == NULL)
         return;
     
-    if (shouldAssign)
+    if ( ! shouldAssign)
+    {
+        if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
+        {
+            nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+            nameContext->SetParamIndex(0);
+            nameContext->SetStringParam("");
+            nameContext->GetWidgetProperties().delete_props();
+        }
+
+        if (ActionContext *valueContext = cell->GetValueContext(s_currentWidget))
+        {
+            valueContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+            valueContext->SetParamIndex(0);
+            valueContext->SetStringParam("");
+            valueContext->GetWidgetProperties().delete_props();
+        }
+        
+        paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+        paramContext->SetParamIndex(0);
+        paramContext->SetStringParam("");
+        paramContext->GetWidgetProperties().delete_props();
+        
+        ClearAdvancedParams();
+        SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, "");
+    }
+    else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
     {
         paramContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
         paramContext->SetParamIndex(paramIdx);
@@ -1486,29 +1511,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
         }
         
         HandleInitAdvancedLearnFXDialog();
-    }
-    else
-    {
-        if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
-        {
-            nameContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
-            nameContext->SetParamIndex(0);
-            nameContext->SetStringParam("");
-        }
-
-        if (ActionContext *valueContext = cell->GetValueContext(s_currentWidget))
-        {
-            valueContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
-            valueContext->SetParamIndex(0);
-            valueContext->SetStringParam("");
-        }
-        
-        paramContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
-        paramContext->SetParamIndex(0);
-        paramContext->SetStringParam("");
-
-        ClearAdvancedParams();
-        SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, "");
+        FillParams();
     }
 }
 
@@ -1518,10 +1521,9 @@ static void UpdateLearnWindowParams()
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
     SetDlgItemText(s_hwndLearnDlg, IDC_ParamName, paramName);
         
-    if (s_currentWidget != NULL && s_isLearnMode)
+    if (s_currentWidget != NULL)
     {
         HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
-        FillBasicParams();
         return;
     }
 
@@ -1546,7 +1548,7 @@ static void UpdateLearnWindowParams()
                 s_zoneManager->GetSurface()->SetModifierValue(modifier);
                 s_currentWidget = widget;
                 
-                FillBasicParams();
+                FillParams();
                 
                 return;
             }
@@ -1843,7 +1845,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_FixedTextDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
                     {
                         buf[0] = 0;
                         
@@ -1858,7 +1860,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_FixedTextDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
                     {
                         buf[0] = 0;
                         
@@ -1889,7 +1891,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_ParamValueDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
                     {
                         buf[0] = 0;
                         
@@ -1904,7 +1906,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_ParamValueDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE && ! isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
                     {
                         buf[0] = 0;
 
@@ -2139,22 +2141,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     }
                     break;
                     
-                case IDC_RADIO_Learn:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        s_isLearnMode = true;
-                        EnableWindow(GetDlgItem(hwndDlg, IDC_Unassign) , true);
-                    }
-                    break;
-
-                case IDC_RADIO_Edit:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        s_isLearnMode = false;
-                        EnableWindow(GetDlgItem(hwndDlg, IDC_Unassign) , false);
-                    }
-                    break;
-
                 case IDC_Save:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2212,17 +2198,11 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     {
         lstrcpyn_safe(s_fxAlias, zoneInfo.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
         LearnFocusedFXDialog();
-        CheckDlgButton(s_hwndLearnDlg, IDC_RADIO_Edit, true);
-        s_isLearnMode = false;
-        EnableWindow(GetDlgItem(s_hwndLearnDlg, IDC_Unassign) , false);
     }
     else
     {
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
         LearnFocusedFXDialog();
-        CheckDlgButton(s_hwndLearnDlg, IDC_RADIO_Learn, true);
-        s_isLearnMode = true;
-        EnableWindow(GetDlgItem(s_hwndLearnDlg, IDC_Unassign) , true);
     }
 }
 

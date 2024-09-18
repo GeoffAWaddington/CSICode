@@ -4517,7 +4517,7 @@ public:
         if (HaveFXSteppedValuesBeenCalculated(fxName.c_str()))
             return;
         
-        SetSteppedValueCount(fxName.c_str(), -1, 0); // Add dummy value to show the calculation has beeen performed, even though there may be no stepped values for this FX
+        SetSteppedValueCount(fxName.c_str(), -1, 0); // Add dummy value to show the calculation has been performed, even though there may be no stepped values for this FX
 
         // Check for UAD / Plugin Alliance and bail if neither
         if (fxName.find("UAD") == string::npos && fxName.find("Plugin Alliance") == string::npos)
