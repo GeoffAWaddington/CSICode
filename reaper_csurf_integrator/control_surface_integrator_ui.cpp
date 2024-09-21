@@ -1516,17 +1516,14 @@ static void UpdateLearnWindowParams()
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
     SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, paramName);
         
-    if (s_currentWidget != NULL)
-    {
-        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
-        return;
-    }
-
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
     
     if (zone == NULL)
         return;
 
+    if (s_currentWidget != NULL)
+        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
+    
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
@@ -1922,6 +1919,37 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
     return 0;
 }
 
+static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+        case WM_INITDIALOG:
+            SetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias);
+            break;
+            
+        case WM_COMMAND:
+        {
+            switch(LOWORD(wParam))
+            {
+                case IDOK:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        GetDlgItemText(hwndDlg, IDC_EDIT_FXAlias, s_fxAlias, sizeof(s_fxAlias));
+                        SetWindowText(s_hwndLearnFXDlg, s_fxAlias);
+                        EndDialog(hwndDlg, 0);
+                    }
+                    break ;
+                    
+                case IDCANCEL:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        EndDialog(hwndDlg, 0);
+            }
+        }
+    }
+    
+    return 0;
+}
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1930,7 +1958,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
         case WM_NCLBUTTONDBLCLK:
             {
-                
+                DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
             }
             break;
                         
