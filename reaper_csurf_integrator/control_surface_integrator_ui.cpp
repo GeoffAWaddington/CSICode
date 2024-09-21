@@ -108,11 +108,12 @@ struct FXCell
         
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *paramContext = GetContext(widget, modifier);
             ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
             
             if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
+                ActionContext *paramContext = GetContext(widget, modifier);
+
                 if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
                     return nameContext;
             }
@@ -128,11 +129,12 @@ struct FXCell
         
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *paramContext = GetContext(widget, modifier);
             ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
             
             if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
+                ActionContext *paramContext = GetContext(widget, modifier);
+
                 if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
                     return valueContext;
             }
@@ -145,11 +147,12 @@ struct FXCell
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *paramContext = GetContext(widget, modifier);
             ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
             
             if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
+                ActionContext *paramContext = GetContext(widget, modifier);
+
                 if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
                     return displayWidgets.Get(i);
             }
@@ -162,11 +165,12 @@ struct FXCell
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *paramContext = GetContext(widget, modifier);
             ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
             
             if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
+                ActionContext *paramContext = GetContext(widget, modifier);
+
                 if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
                     return displayWidgets.Get(i);
             }
@@ -714,18 +718,26 @@ static void SaveZone()
                             
                             fprintf(fxFile, "(");
                             
+                            char numBuf[MEDBUF];
+
                             if (context->GetAcceleratedDeltaValues().size() > 0)
                             {
+                                
                                 for (int i = 0; i < context->GetAcceleratedDeltaValues().size(); ++i)
                                 {
+                                    format_number(context->GetAcceleratedDeltaValues()[i], numBuf, sizeof(numBuf));
+
                                     if ( i < context->GetAcceleratedDeltaValues().size() - 1)
-                                        fprintf(fxFile, "%0.2f,", context->GetAcceleratedDeltaValues()[i]);
+                                        fprintf(fxFile, "%s,", numBuf);
                                     else
-                                        fprintf(fxFile, "%0.2f", context->GetAcceleratedDeltaValues()[i]);
+                                        fprintf(fxFile, "%s", numBuf);
                                 }
                             }
                             else
-                                fprintf(fxFile, "%0.2f", context->GetDeltaValue());
+                            {
+                                format_number(context->GetDeltaValue(), numBuf, sizeof(numBuf));
+                                fprintf(fxFile, "%s", numBuf);
+                            }
                                 
                             fprintf(fxFile, ") ");
 
