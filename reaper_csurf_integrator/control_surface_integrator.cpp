@@ -3004,10 +3004,7 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
 
     if (zoneInfo_.Exists(fxName))
     {
-        ClearFXSlot();
-        
-        csi_->CalculateSteppedValues(fxName, track, fxSlot);
-        
+        ClearFXSlot();        
         fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
         LoadZoneFile(fxSlotZone_, "");
         fxSlotZone_->Activate();

@@ -1504,24 +1504,15 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             }
         }
 
-        s_zoneManager->GetCSI()->CalculateSteppedValues(s_fxName, s_focusedTrack, s_fxSlot);
-        
-        int stepCount = s_zoneManager->GetCSI()->GetSteppedValueCount(s_fxName, paramIdx);
-
         vector<double> steps;
 
-        if (stepCount > 0)
-        {
-            GetParamStepsValues(steps, stepCount);
-            paramContext->SetStepValues(steps);
-        }
-        else if (s_currentWidget->GetIsTwoState())
+        if (s_currentWidget->GetIsTwoState())
         {
             steps.push_back(0.0);
             steps.push_back(1.0);
             paramContext->SetStepValues(steps);
         }
-        
+
         HandleInitAdvancedLearnFXDialog();
         FillParams();
     }
