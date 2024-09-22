@@ -228,6 +228,8 @@ BEGIN
     PUSHBUTTON      "Properties",IDC_ShowProperties,195,110,70,14
     PUSHBUTTON      "Save",IDC_Save,14,110,70,14
     PUSHBUTTON      "Unlink",IDC_Unassign,14,65,70,14
+    LTEXT           "name",IDC_STATIC,126,24,18,8
+    LTEXT           "value",IDC_STATIC,218,24,17,8
 END
 
 IDD_DIALOG_LearnProperties DIALOGEX 0, 0, 178, 248

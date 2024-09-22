@@ -15,7 +15,7 @@ extern void GetParamStepsValues(vector<double> &outputVector, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
-static bool s_isClearingAdvancedParameters = false;
+static bool s_isClearingParameters = false;
 
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
@@ -954,44 +954,39 @@ static void HandleInitAdvancedLearnFXDialog()
     }
 }
 
-static void ClearAdvancedParams()
+static void ClearParams()
 {
-    s_isClearingAdvancedParameters = true;
+    s_isClearingParameters = true;
     
-    HWND hwndDlg = s_hwndLearnFXDlg;
+    if (HWND hwndDlg = s_hwndLearnFXDlg)
+    {
+        SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXWidget), "Widget");
+        SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
+        SetDlgItemText(hwndDlg, IDC_PickSteps, "");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
+        SetDlgItemText(hwndDlg, IDC_COMBO_PickNameDisplay, "");
+        SetDlgItemText(hwndDlg, IDC_COMBO_PickValueDisplay, "");
+    }
     
-    if (hwndDlg == NULL)
-        return;
- 
-    SetWindowText(hwndDlg, "Advanced");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXWidget), "Control");
-    SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
-    SetDlgItemText(hwndDlg, IDC_PickSteps, "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
-    SetDlgItemText(hwndDlg, IDC_COMBO_PickNameDisplay, "");
-    SetDlgItemText(hwndDlg, IDC_COMBO_PickValueDisplay, "");
-    
-    hwndDlg = s_hwndLearnFXPropertiesDlg;
-    
-    if (hwndDlg == NULL)
-        return;
-    
-    SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
+    if (HWND hwndDlg = s_hwndLearnFXPropertiesDlg)
+    {
+        SetDlgItemText(hwndDlg, IDC_FixedTextDisplayPickFont, "");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayTop), "");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_FixedTextDisplayBottom), "");
+        
+        SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
+        SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
+        
+        for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
+            s_buttonColors[i][2] = 0xedededff;
+        
+        RECT rect;
+        GetClientRect(hwndDlg, &rect);
+        InvalidateRect(hwndDlg, &rect, 0);
+    }
 
-    SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayTop), "");
-    SetWindowText(GetDlgItem(hwndDlg, IDC_Edit_ParamValueDisplayBottom), "");
-
-    for (int i = 0; i < NUM_ELEM(s_buttonColors); ++i)
-        s_buttonColors[i][2] = 0xedededff;
-    
-    RECT rect;
-    GetClientRect(hwndDlg, &rect);
-    InvalidateRect(hwndDlg, &rect, 0);
-
-    s_isClearingAdvancedParameters = false;
+    s_isClearingParameters = false;
 }
 
 static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, int bufSize)
@@ -1262,31 +1257,24 @@ static void FillParams()
     
     if (paramContext == NULL)
     {
-        ClearAdvancedParams();
+        ClearParams();
         return;
     }
         
     if ( ! strcmp (paramContext->GetAction()->GetName(), "NoAction"))
     {
         SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, "Widget");
-        ClearAdvancedParams();
+        ClearParams();
     }
     else
     {
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
         SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
-
-        //char fullName[MEDBUF];
-        //snprintf(fullName, sizeof(fullName), "%s%s", modifierBuf, s_currentWidget->GetName());
-        //SetWindowText(s_hwndLearnFXDlg, fullName);
-        //SetWindowText(s_hwndLearnFXPropertiesDlg, fullName);
-        //SetWindowText(GetDlgItem(s_hwndLearnFXDlg, IDC_GroupFXWidget), fullName);
-        //SetWindowText(GetDlgItem(s_hwndLearnFXPropertiesDlg, IDC_GroupFXWidget), fullName);
         FillAdvancedParams();
     }
 }
 
-static void HandlePopulateBasicLearnFXDialog()
+static void InitLearnFXDialog()
 {
     s_lastTouchedParamNum = -1;
             
@@ -1333,7 +1321,7 @@ void WidgetMoved(Widget *widget, int modifier)
         {
             buf[0] = 0;
             SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
-            ClearAdvancedParams();
+            ClearParams();
         }
         else if (FXCell *cell = GetCell(widget, modifier))
         {
@@ -1430,7 +1418,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
         paramContext->SetStringParam("");
         paramContext->GetWidgetProperties().delete_props();
         
-        ClearAdvancedParams();
+        ClearParams();
         SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, "");
     }
     else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
@@ -1837,7 +1825,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_FixedTextDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
                     {
                         buf[0] = 0;
                         
@@ -1852,7 +1840,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_FixedTextDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
                     {
                         buf[0] = 0;
                         
@@ -1883,7 +1871,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_ParamValueDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
                     {
                         buf[0] = 0;
                         
@@ -1898,7 +1886,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_ParamValueDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingAdvancedParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
                     {
                         buf[0] = 0;
 
@@ -1966,8 +1954,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             CloseFocusedFXDialog();
             break;
 
-        case WM_USER + 1024: // initialize
-            HandlePopulateBasicLearnFXDialog();
+        case WM_USER + 1024:
+            InitLearnFXDialog();
             break;
 
         case WM_COMMAND:
