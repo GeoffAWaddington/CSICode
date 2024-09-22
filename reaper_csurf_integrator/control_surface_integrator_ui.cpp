@@ -927,33 +927,6 @@ void InitBlankLearnFocusedFXZone()
     CreateContextMap();
 }
 
-static void InitLearnFXDialog()
-{
-    SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickRingStyle, CB_RESETCONTENT, 0, 0);
-
-    for (int i = 0; i < s_t_ringStyles.size(); ++i)
-        SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_t_ringStyles[i].c_str());
-    
-    SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickSteps, CB_RESETCONTENT, 0, 0);
-    SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)"0");
-    
-    for (int step = g_minNumParamSteps; step <= g_maxNumParamSteps; ++step)
-    {
-        char buf[SMLBUF];
-        snprintf(buf, sizeof(buf), "%d", step);
-        SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)buf);
-    }
-
-    SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
-    SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
-
-    for (int i = 0; i < s_t_fonts.size(); ++i)
-    {
-        SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
-        SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
-    }
-}
-
 static void ClearParams()
 {
     s_isClearingParameters = true;
@@ -1233,7 +1206,29 @@ static void FillAdvancedParams()
 
 static void FillParams()
 {
-    InitLearnFXDialog();
+    SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickRingStyle, CB_RESETCONTENT, 0, 0);
+
+    for (int i = 0; i < s_t_ringStyles.size(); ++i)
+        SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickRingStyle, CB_ADDSTRING, 0, (LPARAM)s_t_ringStyles[i].c_str());
+    
+    SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickSteps, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)"0");
+    
+    for (int step = g_minNumParamSteps; step <= g_maxNumParamSteps; ++step)
+    {
+        char buf[SMLBUF];
+        snprintf(buf, sizeof(buf), "%d", step);
+        SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickSteps, CB_ADDSTRING, 0, (LPARAM)buf);
+    }
+
+    SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FixedTextDisplayPickFont, CB_RESETCONTENT, 0, 0);
+    SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FXParamValueDisplayPickFont, CB_RESETCONTENT, 0, 0);
+
+    for (int i = 0; i < s_t_fonts.size(); ++i)
+    {
+        SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FixedTextDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
+        SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
+    }
 
     if (s_currentWidget == NULL)
         return;
@@ -2067,7 +2062,7 @@ void WidgetMoved(Widget *widget, int modifier)
             if (ActionContext *context = cell->GetNameContext(widget))
             {
                 SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, context->GetStringParam());
-                FillAdvancedParams();
+                FillParams();
             }
         }
     }
