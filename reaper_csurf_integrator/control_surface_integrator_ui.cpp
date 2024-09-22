@@ -927,7 +927,7 @@ void InitBlankLearnFocusedFXZone()
     CreateContextMap();
 }
 
-static void HandleInitAdvancedLearnFXDialog()
+static void InitLearnFXDialog()
 {
     SendDlgItemMessage(s_hwndLearnFXDlg, IDC_PickRingStyle, CB_RESETCONTENT, 0, 0);
 
@@ -1233,6 +1233,8 @@ static void FillAdvancedParams()
 
 static void FillParams()
 {
+    InitLearnFXDialog();
+
     if (s_currentWidget == NULL)
         return;
     
@@ -1271,66 +1273,6 @@ static void FillParams()
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
         SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
         FillAdvancedParams();
-    }
-}
-
-static void InitLearnFXDialog()
-{
-    s_lastTouchedParamNum = -1;
-            
-    SetWindowText(s_hwndLearnFXDlg, s_fxAlias);
-    
-    s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
-    
-    CreateContextMap();
-}
-
-void WidgetMoved(Widget *widget, int modifier)
-{
-    if (s_focusedTrack == NULL)
-        return;
-    
-    if (s_zoneManager == NULL)
-        return;
-  
-    if (s_zoneManager->GetLearnedFocusedFXZone() == NULL)
-        return;
-    
-    if (s_zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
-        return;
-        
-    if (s_hwndLearnFXDlg == NULL)
-        return;
-    
-    if (! IsWindowVisible(s_hwndLearnFXDlg))
-        return;
-        
-    if (widget == s_currentWidget)
-        return;
-    
-    s_currentWidget = widget;
-    s_currentModifier = modifier;
-    
-    char buf[MEDBUF];
-    GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-    SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
-    
-    if (ActionContext *context = GetContext(widget, modifier))
-    {
-        if (! strcmp(context->GetAction()->GetName(), "NoAction"))
-        {
-            buf[0] = 0;
-            SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
-            ClearParams();
-        }
-        else if (FXCell *cell = GetCell(widget, modifier))
-        {
-            if (ActionContext *context = cell->GetNameContext(widget))
-            {
-                SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, context->GetStringParam());
-                FillAdvancedParams();
-            }
-        }
     }
 }
 
@@ -1493,46 +1435,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             paramContext->SetStepValues(steps);
         }
 
-        HandleInitAdvancedLearnFXDialog();
         FillParams();
-    }
-}
-
-static void UpdateLearnWindowParams()
-{
-    char paramName[SMLBUF];
-    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
-    SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, paramName);
-        
-    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
-    
-    if (zone == NULL)
-        return;
-
-    if (s_currentWidget != NULL)
-        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
-    
-    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
-    {
-        Widget *widget = zone->GetWidgets().Get(i);
-        
-        for (int j = 0; j < s_fxRowLayouts.size(); ++j)
-        {
-            int modifier = s_fxRowLayouts[j].modifier;
-            
-            ActionContext *context = GetContext(widget, modifier);
-            
-            if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == s_lastTouchedParamNum)
-            {
-                s_currentModifier = modifier;
-                s_zoneManager->GetSurface()->SetModifierValue(modifier);
-                s_currentWidget = widget;
-                
-                FillParams();
-                
-                return;
-            }
-        }
     }
 }
 
@@ -1955,7 +1858,12 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             break;
 
         case WM_USER + 1024:
-            InitLearnFXDialog();
+            {
+                s_lastTouchedParamNum = -1;
+                SetWindowText(s_hwndLearnFXDlg, s_fxAlias);
+                s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
+                CreateContextMap();
+            }
             break;
 
         case WM_COMMAND:
@@ -2116,6 +2024,55 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     return 0;
 }
 
+void WidgetMoved(Widget *widget, int modifier)
+{
+    if (s_focusedTrack == NULL)
+        return;
+    
+    if (s_zoneManager == NULL)
+        return;
+  
+    if (s_zoneManager->GetLearnedFocusedFXZone() == NULL)
+        return;
+    
+    if (s_zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
+        return;
+        
+    if (s_hwndLearnFXDlg == NULL)
+        return;
+    
+    if (! IsWindowVisible(s_hwndLearnFXDlg))
+        return;
+        
+    if (widget == s_currentWidget)
+        return;
+    
+    s_currentWidget = widget;
+    s_currentModifier = modifier;
+    
+    char buf[MEDBUF];
+    GetFullWidgetName(widget, modifier, buf, sizeof(buf));
+    SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
+    
+    if (ActionContext *context = GetContext(widget, modifier))
+    {
+        if (! strcmp(context->GetAction()->GetName(), "NoAction"))
+        {
+            buf[0] = 0;
+            SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
+            ClearParams();
+        }
+        else if (FXCell *cell = GetCell(widget, modifier))
+        {
+            if (ActionContext *context = cell->GetNameContext(widget))
+            {
+                SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, context->GetStringParam());
+                FillAdvancedParams();
+            }
+        }
+    }
+}
+
 static void LearnFocusedFXDialog()
 {
     if (s_hwndLearnFXDlg == NULL)
@@ -2212,6 +2169,44 @@ void CloseFocusedFXDialog()
 
     if(s_hwndLearnFXDlg != NULL)
         ShowWindow(s_hwndLearnFXDlg, SW_HIDE);
+}
+
+static void UpdateLearnWindowParams()
+{
+    char paramName[SMLBUF];
+    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
+    SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, paramName);
+        
+    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
+    
+    if (zone == NULL)
+        return;
+
+    if (s_currentWidget != NULL)
+        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
+    
+    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
+    {
+        Widget *widget = zone->GetWidgets().Get(i);
+        
+        for (int j = 0; j < s_fxRowLayouts.size(); ++j)
+        {
+            int modifier = s_fxRowLayouts[j].modifier;
+            
+            ActionContext *context = GetContext(widget, modifier);
+            
+            if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == s_lastTouchedParamNum)
+            {
+                s_currentModifier = modifier;
+                s_zoneManager->GetSurface()->SetModifierValue(modifier);
+                s_currentWidget = widget;
+                
+                FillParams();
+                
+                return;
+            }
+        }
+    }
 }
 
 void UpdateLearnWindow()
