@@ -369,17 +369,12 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             char modifierBuf[SMLBUF];
             s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
-            
-            
-            
             char paramName[MEDBUF];
             GetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
             
             snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), paramName);
             
             SetWindowText(hwndDlg, titleBuf);
-            
-            
             
             snprintf(buf, sizeof(buf), "%0.2f", context->GetDeltaValue());
             SetDlgItemText(hwndDlg, IDC_EDIT_Delta, buf);
@@ -389,7 +384,6 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             
             snprintf(buf, sizeof(buf), "%0.2f", context->GetRangeMaximum());
             SetDlgItemText(hwndDlg, IDC_EDIT_RangeMax, buf);
-
             
             char tmp[MEDBUF];
             const vector<double> &steppedValues = context->GetSteppedValues();
@@ -824,109 +818,6 @@ static void SaveZone()
     }
 }
 
-static void CreateContextMap()
-{
-    s_cellMap.DeleteAll(true);
-    s_cells.Empty();
-    
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
-
-    if (zoneContexts == NULL)
-        return;
-    
-    char widgetName[SMLBUF];
-    
-    for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
-    {
-        int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
-        
-        for (int channel = 1; channel <= s_numChannels; ++channel)
-        {
-            FXCell *cell = new FXCell();
-            cell->suffix = s_fxRowLayouts[rowLayoutIdx].suffix;
-            cell->modifier = modifier;
-            cell->channel = channel;
-            s_cells.Add(cell);
-
-            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
-            {
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                    cell->controlWidgets.Add(widget);
-            }
-            
-            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
-            {
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                    cell->displayWidgets.Add(widget);
-            }
-            
-            for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
-            {
-                Widget *widget = cell->controlWidgets.Get(i);
-                
-                if (! s_cellMap.Exists(widget))
-                {
-                    WDL_IntKeyedArray<FXCell *> *m = new WDL_IntKeyedArray<FXCell *>();
-                    s_cellMap.Insert(widget, m);
-                }
-
-                s_cellMap.Get(widget)->Insert(modifier, cell);
-            }
-        }
-    }
-}
-
-void InitBlankLearnFocusedFXZone()
-{
-    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
-    if (zone == NULL)
-        return;
-    
-    if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
-        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str(), "");
-      
-    char widgetName[MEDBUF];
-
-    string_list blankParams;
-    
-    for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
-    {
-        int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
-        
-        for (int channel = 1; channel <= s_numChannels; ++channel)
-        {
-            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
-            {
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                {
-                    zone->AddWidget(widget);
-                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                    zone->AddActionContext(widget, modifier, context);
-                }
-            }
-            
-            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
-            {
-                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
-                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                {
-                    zone->AddWidget(widget);
-                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                    zone->AddActionContext(widget, modifier, context);
-                }
-            }
-        }
-    }
-    
-    if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
-        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
-    
-    CreateContextMap();
-}
-
 static void ClearParams()
 {
     s_isClearingParameters = true;
@@ -1259,10 +1150,7 @@ static void FillParams()
     }
         
     if ( ! strcmp (paramContext->GetAction()->GetName(), "NoAction"))
-    {
-        SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, "Widget");
         ClearParams();
-    }
     else
     {
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
@@ -1836,6 +1724,60 @@ static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
+static void CreateContextMap()
+{
+    s_cellMap.DeleteAll(true);
+    s_cells.Empty();
+    
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+
+    if (zoneContexts == NULL)
+        return;
+    
+    char widgetName[SMLBUF];
+    
+    for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
+    {
+        int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
+        
+        for (int channel = 1; channel <= s_numChannels; ++channel)
+        {
+            FXCell *cell = new FXCell();
+            cell->suffix = s_fxRowLayouts[rowLayoutIdx].suffix;
+            cell->modifier = modifier;
+            cell->channel = channel;
+            s_cells.Add(cell);
+
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                    cell->controlWidgets.Add(widget);
+            }
+            
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                    cell->displayWidgets.Add(widget);
+            }
+            
+            for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
+            {
+                Widget *widget = cell->controlWidgets.Get(i);
+                
+                if (! s_cellMap.Exists(widget))
+                {
+                    WDL_IntKeyedArray<FXCell *> *m = new WDL_IntKeyedArray<FXCell *>();
+                    s_cellMap.Insert(widget, m);
+                }
+
+                s_cellMap.Get(widget)->Insert(modifier, cell);
+            }
+        }
+    }
+}
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -2046,8 +1988,6 @@ void WidgetMoved(Widget *widget, int modifier)
     s_currentModifier = modifier;
     
     char buf[MEDBUF];
-    GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-    SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
     
     if (ActionContext *context = GetContext(widget, modifier))
     {
@@ -2056,6 +1996,8 @@ void WidgetMoved(Widget *widget, int modifier)
             buf[0] = 0;
             SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
             ClearParams();
+            GetFullWidgetName(widget, modifier, buf, sizeof(buf));
+            SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
         }
         else if (FXCell *cell = GetCell(widget, modifier))
         {
@@ -2176,9 +2118,6 @@ static void UpdateLearnWindowParams()
     
     if (zone == NULL)
         return;
-
-    if (s_currentWidget != NULL)
-        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
     
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
@@ -2202,6 +2141,9 @@ static void UpdateLearnWindowParams()
             }
         }
     }
+    
+    if (s_currentWidget != NULL)
+        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
 }
 
 void UpdateLearnWindow()
@@ -2226,6 +2168,58 @@ void UpdateLearnWindow()
             UpdateLearnWindowParams();
         }
     }
+}
+
+void InitBlankLearnFocusedFXZone()
+{
+    if (s_zoneManager == NULL)
+        return;
+    
+    Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
+    if (zone == NULL)
+        return;
+    
+    if (s_zoneManager->GetZoneInfo().Exists("FXPrologue"))
+        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str(), "");
+      
+    char widgetName[MEDBUF];
+
+    string_list blankParams;
+    
+    for (int rowLayoutIdx = 0; rowLayoutIdx < s_fxRowLayouts.size(); ++rowLayoutIdx)
+    {
+        int modifier = s_fxRowLayouts[rowLayoutIdx].modifier;
+        
+        for (int channel = 1; channel <= s_numChannels; ++channel)
+        {
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                {
+                    zone->AddWidget(widget);
+                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
+                    zone->AddActionContext(widget, modifier, context);
+                }
+            }
+            
+            for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_displayRows.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = s_zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                {
+                    zone->AddWidget(widget);
+                    ActionContext *context = s_zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
+                    zone->AddActionContext(widget, modifier, context);
+                }
+            }
+        }
+    }
+    
+    if (s_zoneManager->GetZoneInfo().Exists("FXEpilogue"))
+        s_zoneManager->LoadZoneFile(zone, s_zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
+    
+    CreateContextMap();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
