@@ -3258,7 +3258,7 @@ void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
         
-    if (surface_->GetModifiers().GetSize() > 0)
+    if (surface_->GetModifiers().GetSize() > 0 && value != 0.0) // ignore touch releases for Learn mode
         WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)

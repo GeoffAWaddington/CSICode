@@ -15,7 +15,7 @@ extern void GetParamStepsValues(vector<double> &outputVector, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
-static bool s_isClearingParameters = false;
+static bool s_isUpdatingParameters = false;
 
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
@@ -820,7 +820,7 @@ static void SaveZone()
 
 static void ClearParams()
 {
-    s_isClearingParameters = true;
+    s_isUpdatingParameters = true;
     
     if (HWND hwndDlg = s_hwndLearnFXDlg)
     {
@@ -850,7 +850,7 @@ static void ClearParams()
         InvalidateRect(hwndDlg, &rect, 0);
     }
 
-    s_isClearingParameters = false;
+    s_isUpdatingParameters = false;
 }
 
 static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, int bufSize)
@@ -882,6 +882,8 @@ static void FillPropertiesParams()
     
     if (paramContext == NULL)
         return;
+
+    s_isUpdatingParameters = true;
 
     char buf[MEDBUF];
     buf[0] = 0;
@@ -1009,6 +1011,8 @@ static void FillPropertiesParams()
     RECT rect;
     GetClientRect(s_hwndLearnFXPropertiesDlg, &rect);
     InvalidateRect(s_hwndLearnFXPropertiesDlg, &rect, 0);
+    
+    s_isUpdatingParameters = false;
 }
 
 static void FillAdvancedParams()
@@ -1611,7 +1615,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_FixedTextDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isUpdatingParameters)
                     {
                         buf[0] = 0;
                         
@@ -1626,7 +1630,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_FixedTextDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isUpdatingParameters)
                     {
                         buf[0] = 0;
                         
@@ -1657,7 +1661,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_ParamValueDisplayTop:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isUpdatingParameters)
                     {
                         buf[0] = 0;
                         
@@ -1672,7 +1676,7 @@ static WDL_DLGRET dlgProcLearnFXProperties(HWND hwndDlg, UINT uMsg, WPARAM wPara
                     break;
 
                 case IDC_Edit_ParamValueDisplayBottom:
-                    if (HIWORD(wParam) == EN_CHANGE && ! s_isClearingParameters)
+                    if (HIWORD(wParam) == EN_CHANGE && ! s_isUpdatingParameters)
                     {
                         buf[0] = 0;
 
@@ -2118,7 +2122,10 @@ static void UpdateLearnWindowParams()
     
     if (zone == NULL)
         return;
-    
+        
+    if (s_currentWidget != NULL)
+        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
+
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
@@ -2141,9 +2148,6 @@ static void UpdateLearnWindowParams()
             }
         }
     }
-    
-    if (s_currentWidget != NULL)
-        HandleAssigment(s_currentModifier, s_lastTouchedParamNum, true);
 }
 
 void UpdateLearnWindow()
