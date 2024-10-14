@@ -1108,7 +1108,6 @@ private:
     void GoSelectedTrackFX();
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
-    void Initialize();
     void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators);
     void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
          
@@ -1357,7 +1356,9 @@ public:
 
         selectedTrackFXZones_.Empty(true);
     }
-      
+    
+    void Initialize();
+    
     void SetHoldDelayAmount(double value) { holdDelayAmount_ = value; }
 
     Navigator *GetNavigatorForTrack(MediaTrack* track);
@@ -1365,16 +1366,7 @@ public:
     Navigator *GetSelectedTrackNavigator();
     Navigator *GetFocusedFXNavigator();
     
-    bool GetIsBroadcaster() 
-    { 
-        ptrvector<ZoneManager *> *addr = &listeners_;
-        
-        // GAW TBD -- remove this hack when the problem of how there is such a low address gets solved
-        if (addr < (ptrvector<ZoneManager *> *)0x111000)
-            return false;
-
-        return  ! (listeners_.size() == 0);        
-    }
+    bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(ControlSurface *surface);
     void SetListenerCategories(const char *categoryList);
     const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }

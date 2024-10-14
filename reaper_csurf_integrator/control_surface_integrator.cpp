@@ -2565,8 +2565,6 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     selectedTrackReceiveOffset_ = 0;
     selectedTrackFXMenuOffset_ = 0;
     masterTrackFXMenuOffset_ = 0;
-    
-    Initialize();
 }
 
 Navigator *ZoneManager::GetNavigatorForTrack(MediaTrack *track) { return surface_->GetPage()->GetNavigatorForTrack(track); }
@@ -3900,6 +3898,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     InitHardwiredWidgets(this);
     InitializeMeters();
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
+    zoneManager_->Initialize();
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
@@ -4123,6 +4122,7 @@ OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, c
     ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
     InitHardwiredWidgets(this);
     zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
+    zoneManager_->Initialize();
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(const char *message, double value)
