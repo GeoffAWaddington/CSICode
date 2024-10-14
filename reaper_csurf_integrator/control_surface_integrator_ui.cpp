@@ -1248,6 +1248,9 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
         paramContext->GetWidgetProperties().delete_props();
         
         ClearParams();
+        GetFullWidgetName(s_currentWidget, modifier, buf, sizeof(buf));
+        SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
+
         SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, "");
     }
     else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
@@ -2014,7 +2017,7 @@ void WidgetMoved(Widget *widget, int modifier)
     }
 }
 
-static void LearnFocusedFXDialog()
+static void InitLearnFocusedFXDialog()
 {
     if (s_hwndLearnFXDlg == NULL)
     {
@@ -2051,7 +2054,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     else
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
     
-    LearnFocusedFXDialog();
+    InitLearnFocusedFXDialog();
 }
 
 void LearnFocusedFXDialog(ZoneManager *zoneManager)
