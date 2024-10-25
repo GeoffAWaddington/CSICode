@@ -3897,8 +3897,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     ProcessMIDIWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
     InitHardwiredWidgets(this);
     InitializeMeters();
-    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
-    zoneManager_->Initialize();
+    InitZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 }
 
 void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
@@ -4121,8 +4120,7 @@ OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, c
 {
     ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
     InitHardwiredWidgets(this);
-    zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
-    zoneManager_->Initialize();
+    InitZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 }
 
 void OSC_ControlSurface::ProcessOSCMessage(const char *message, double value)

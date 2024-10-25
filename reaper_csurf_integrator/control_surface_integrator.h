@@ -2220,6 +2220,13 @@ protected:
         }
     }
     
+    void InitZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder)
+    {
+        zoneManager_ = new ZoneManager(csi_, this, zoneFolder, fxZoneFolder);
+        if (zoneManager_)
+            zoneManager_->Initialize();
+    }
+    
     void StopRewinding()
     {
         isRewinding_ = false;
