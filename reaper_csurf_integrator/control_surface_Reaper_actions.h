@@ -2134,6 +2134,8 @@ public:
                 context->GetSurface()->GetZoneManager()->GetName(track, context->GetSlotIndex(), alias, sizeof(alias));
                 context->UpdateWidgetValue(alias);
             }
+            else
+                context->ClearWidget();
         }
         else
             context->ClearWidget();

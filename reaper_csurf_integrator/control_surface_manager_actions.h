@@ -680,7 +680,7 @@ class GoZone : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "GoAssociatedZone"; }
+    virtual const char *GetName() override { return "GoZone"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
