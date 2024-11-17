@@ -1229,8 +1229,6 @@ public:
 
     virtual void Do(ActionContext *context, double value) override
     {
-        // GAW TBD  fix highest track bug
-        
         if (value == 0.0) return; // ignore button releases
 
         int currentlySelectedCount = 0;

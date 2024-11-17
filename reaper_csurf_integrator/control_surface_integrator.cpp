@@ -724,7 +724,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
         string_list tokens;
         GetTokens(tokens, line.c_str());
 
-        if (tokens[0] == "WidgetEnd")    // finito baybay - Widget list complete
+        if (tokens[0] == "WidgetEnd")    // Widget list complete
             break;
         
         tokenLines.push_back(tokens);
@@ -4227,9 +4227,6 @@ void OSC_ControlSurface::SendOSCMessage(OSC_FeedbackProcessor *feedbackProcessor
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// GAW TBD -- try to come up with something more elegant
-
 static struct
 {
     MIDI_event_ex_t evt;

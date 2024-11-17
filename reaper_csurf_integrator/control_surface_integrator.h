@@ -1594,15 +1594,6 @@ public:
         else
             GetAlias(fxName, name, namesz);
     }
-        
-    void ClearLearnedFXParams()
-    {
-        if (learnFocusedFXZone_ != NULL)
-        {
-            // GAW TDB -- clear UI vars
-            
-        }
-    }
           
     void HideAllFXWindows()
     {
@@ -1633,7 +1624,6 @@ public:
     void GoHome()
     {
         HideAllFXWindows();
-        ClearLearnedFXParams();
         ClearFXMapping();
         ResetOffsets();
 
