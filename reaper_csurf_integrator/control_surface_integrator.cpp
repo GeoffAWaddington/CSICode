@@ -1427,19 +1427,37 @@ void CSurfIntegrator::Init()
             
             if (lineNumber == 0)
             {
-                if (line != s_MajorVersionToken)
-                {
-                    char tmp[MEDBUF];
-                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
-                    MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
+                PropertyList pList;
+                string_list properties;
+                properties.push_back(line.c_str());
+                GetPropertiesFromTokens(0, 1, properties, pList);
 
-                    iniFile.close();
-                    return;
+                const char *version = pList.get_prop(PropertyType_Version);
+                if (version)
+                {
+                    if (strcmp(version, s_MajorVersionToken))
+                    {
+                        char tmp[MEDBUF];
+                        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
+                        MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
+
+                        iniFile.close();
+                        return;
+                    }
+                    else
+                    {
+                        lineNumber++;
+                        continue;
+                    }
                 }
                 else
                 {
-                    lineNumber++;
-                    continue;
+                    char tmp[MEDBUF];
+                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Cannot read version %s.","csi_mbox"), "");
+                    MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini no version","csi_mbox"), MB_OK);
+
+                    iniFile.close();
+                    return;
                 }
             }
             
