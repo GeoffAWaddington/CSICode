@@ -1516,10 +1516,14 @@ void CSurfIntegrator::Init()
                 }
                 else
                 {
-                    if (currentPage && (tokens.size() == 6 || tokens.size() == 7))
+                    if (currentPage && tokens.size() == 4)
                     {
-                        string_list::string_ref zoneFolder = tokens[4];
-                        string_list::string_ref fxZoneFolder = tokens[5];
+                        string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + string(tokens[3]);
+                        
+                        string surfaceFile = baseDir + "/Surface";
+                        
+                        string zoneFolder = baseDir + "/Zones";
+                        string fxZoneFolder = baseDir + "/FXZones";
                         
                         bool foundIt = false;
                         
@@ -1530,7 +1534,7 @@ void CSurfIntegrator::Init()
                             if (tokens[0] == io->GetName())
                             {
                                 foundIt = true;
-                                currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
+                                currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                 break;
                             }
                         }
@@ -1544,7 +1548,7 @@ void CSurfIntegrator::Init()
                                 if (tokens[0] == io->GetName())
                                 {
                                     foundIt = true;
-                                    currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), tokens[3], zoneFolder, fxZoneFolder, io));
+                                    currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                     break;
                                 }
                             }
@@ -3044,7 +3048,7 @@ void ZoneManager::PreProcessZones()
     }
     
     string_list zoneFilesToProcess;
-    listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
+    listFilesOfType(zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
        
     if (zoneFilesToProcess.size() == 0)
     {
@@ -3054,19 +3058,11 @@ void ZoneManager::PreProcessZones()
 
         return;
     }
-      
+          
+    listFilesOfType(fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
+     
     for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
         PreProcessZoneFile(zoneFilesToProcess[i]);
-    
-    if (zoneFolder_ != fxZoneFolder_)
-    {
-        zoneFilesToProcess.clear();
-        
-        listFilesOfType(GetResourcePath() + string("/CSI/Zones/") + fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
-         
-        for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-            PreProcessZoneFile(zoneFilesToProcess[i]);
-    }
 }
 
 void ZoneManager::DoAction(Widget *widget, double value)
@@ -3885,7 +3881,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
+Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
 : ControlSurface(csi, page, name, numChannels, channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
@@ -3894,7 +3890,7 @@ Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page,
     displayType_ = 0x14;
     lastRun_ = 0;
     
-    ProcessMIDIWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/Midi/" + templateFilename, this);
+    ProcessMIDIWidgetFile(surfaceFile, this);
     InitHardwiredWidgets(this);
     InitializeMeters();
     InitZoneManager(csi_, this, zoneFolder, fxZoneFolder);

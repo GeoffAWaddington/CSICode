@@ -2812,7 +2812,7 @@ private:
     void SendSysexInitData(int line[], int numElem);
     
 public:
-    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
+    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -4437,7 +4437,7 @@ public:
                     string fxNameNoBadChars(fxName);
                     ReplaceAllWith(fxNameNoBadChars, s_BadFileChars, "_");
 
-                    fxFile = fopenUTF8((string(GetResourcePath()) + "/CSI/Zones/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
+                    fxFile = fopenUTF8((string(GetResourcePath()) + "/CSI/ZoneRawFXFiles/" + fxNameNoBadChars + ".txt").c_str(), "wb");
                     
                     if (fxFile)
                         fprintf(fxFile, "Zone \"%s\"\n", fxName);
