@@ -1467,7 +1467,13 @@ void CSurfIntegrator::Init()
             string_list tokens;
             GetTokens(tokens, line.c_str());
             
-            if (tokens.size() > 1) // ignore comment lines and blank lines
+            vector<string> tmp;
+            
+            for (int i = 0; i < tokens.size(); ++i)
+                tmp.push_back(string(tokens[i]));
+            
+            
+            if (tokens.size() > 0) // ignore comment lines and blank lines
             {
                 PropertyList pList;
                 GetPropertiesFromTokens(0, tokens.size(), tokens, pList);
@@ -1516,7 +1522,7 @@ void CSurfIntegrator::Init()
                         }
                     }
                 }
-                else if (const char *pageName = pList.get_prop(PropertyType_PageName))
+                else if (const char *pageNameProp = pList.get_prop(PropertyType_PageName))
                 {
                     bool followMCP = true;
                     bool synchPages = true;
@@ -1551,13 +1557,13 @@ void CSurfIntegrator::Init()
                                 isScrollSynchEnabled = true;
                         }
                         
-                        currentPage = new Page(this, pageName, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+                        currentPage = new Page(this, pageNameProp, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.Add(currentPage);
                     }
                 }
-                else if (currentPage && tokens.size() > 1 && tokens[0] == "Broadcaster")
+                else if (const char *broadcasterProp = pList.get_prop(PropertyType_Broadcaster))
                 {
-                    currentBroadcaster = tokens[1];
+                    currentBroadcaster = broadcasterProp;
                 }
                 else if (currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
                 {
@@ -1586,13 +1592,13 @@ void CSurfIntegrator::Init()
                 {
                     if (currentPage && tokens.size() == 2)
                     {
-                        if (const char *assignmentNameProp = pList.get_prop(PropertyType_AssignedSurfaceName))
+                        if (const char *assignedSurfaceNameProp = pList.get_prop(PropertyType_AssignedSurfaceName))
                         {
                             if (const char *assignmentStartChannelProp = pList.get_prop(PropertyType_AssignedSurfaceStartChannel))
                             {
                                 int startChannel = atoi(assignmentStartChannelProp);
                                 
-                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + string(assignmentNameProp);
+                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + assignedSurfaceNameProp;
                                 
                                 string surfaceFile = baseDir + "/Surface";
                                 
@@ -1605,10 +1611,10 @@ void CSurfIntegrator::Init()
                                 {
                                     Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
                                     
-                                    if ( ! strcmp (assignmentNameProp, io->GetName()))
+                                    if ( ! strcmp (assignedSurfaceNameProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignmentNameProp, startChannel, (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignedSurfaceNameProp, startChannel, (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
                                     }
                                 }
@@ -1622,7 +1628,7 @@ void CSurfIntegrator::Init()
                                         if ( ! strcmp (tokens[0], io->GetName()))
                                         {
                                             foundIt = true;
-                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignmentNameProp, startChannel, (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignedSurfaceNameProp, startChannel, (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                             break;
                                         }
                                     }

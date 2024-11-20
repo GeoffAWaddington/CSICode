@@ -2429,16 +2429,29 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
 
 static WDL_PtrList<PageLine> s_pages;
 
-void AddComboEntry(HWND hwndDlg, int x, char  *buf, int comboId)
+static void AddComboEntry(HWND hwndDlg, int x, char  *buf, int comboId)
 {
     int a = (int)SendDlgItemMessage(hwndDlg,comboId,CB_ADDSTRING,0,(LPARAM)buf);
     SendDlgItemMessage(hwndDlg,comboId,CB_SETITEMDATA,a,x);
 }
 
-void AddListEntry(HWND hwndDlg, string buf, int comboId)
+static void AddListEntry(HWND hwndDlg, string buf, int comboId)
 {
     SendDlgItemMessage(hwndDlg, comboId, LB_ADDSTRING, 0, (LPARAM)buf.c_str());
 }
+
+static void RestrictCharacters(char *buf, int bufSize)
+{
+    string temp = "";
+    
+    for (int i = 0; i < strlen(buf); ++i)
+        if (isdigit(buf[i]) || isalpha(buf[i]) || buf[i] == '_' )
+            temp += buf[i];
+    
+    snprintf(buf, bufSize, "%s", temp.c_str());
+}
+
+static bool s_isRestricting = false;
 
 static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -2464,6 +2477,23 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
             switch(LOWORD(wParam))
             {
+                case IDC_EDIT_PageName:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        if (s_isRestricting)
+                            s_isRestricting = false;
+                        else
+                        {
+                            s_isRestricting = true;
+                            char buf[SMLBUF];
+                            buf[0] = 0;
+                            GetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf, sizeof(buf));
+                            RestrictCharacters(buf, sizeof(buf));
+                            SetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf);
+                        }
+                    }
+                    break;
+
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2492,7 +2522,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
             }
         }
             break ;
-            
+
         case WM_CLOSE:
             DestroyWindow(hwndDlg) ;
             break ;
@@ -2768,6 +2798,23 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             switch(LOWORD(wParam))
             {
+                case IDC_EDIT_MidiSurfaceName:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        if (s_isRestricting)
+                            s_isRestricting = false;
+                        else
+                        {
+                            s_isRestricting = true;
+                            char buf[SMLBUF];
+                            buf[0] = 0;
+                            GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
+                            RestrictCharacters(buf, sizeof(buf));
+                            SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf);
+                        }
+                    }
+                    break;
+
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2851,6 +2898,23 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         {
             switch(LOWORD(wParam))
             {
+                case IDC_EDIT_OSCSurfaceName:
+                    if (HIWORD(wParam) == EN_CHANGE)
+                    {
+                        if (s_isRestricting)
+                            s_isRestricting = false;
+                        else
+                        {
+                            s_isRestricting = true;
+                            char buf[SMLBUF];
+                            buf[0] = 0;
+                            GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf, sizeof(buf));
+                            RestrictCharacters(buf, sizeof(buf));
+                            SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf);
+                        }
+                    }
+                    break;
+
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
