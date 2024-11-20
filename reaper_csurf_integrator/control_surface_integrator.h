@@ -243,6 +243,15 @@ enum PropertyType {
   D(Listener) \
   D(AssignedSurfaceName) \
   D(AssignedSurfaceStartChannel) \
+  D(GoHome) \
+  D(LocalFXSlot) \
+  D(Modifiers) \
+  D(FXMenu) \
+  D(FocusedFX) \
+  D(FocusedFXParam) \
+  D(SelectedTrackFX) \
+  D(SelectedTrackSends) \
+  D(SelectedTrackReceives) \
 
   PropertyType_Unknown = 0, // in this case, string is type=value pair
 #define DEFPT(x) PropertyType_##x ,

@@ -2379,7 +2379,7 @@ struct PageLine
     bool followMCP;
     bool synchPages;
     bool isScrollLinkEnabled;
-    bool scrollSynch;
+    bool isScrollSynchEnabled;
     WDL_PtrList<PageSurfaceLine> surfaces;
     WDL_PtrList<Broadcaster> broadcasters;
     
@@ -2388,7 +2388,7 @@ struct PageLine
         followMCP = true;
         synchPages = true;
         isScrollLinkEnabled = false;
-        scrollSynch = false;
+        isScrollSynchEnabled = false;
     }
 };
 
@@ -3479,7 +3479,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 page->followMCP = s_followMCP;
                                 page->synchPages = s_synchPages;
                                 page->isScrollLinkEnabled = s_isScrollLinkEnabled;
-                                page->scrollSynch = s_scrollSynch;
+                                page->isScrollSynchEnabled = s_scrollSynch;
 
                                 s_pages.Add(page);
                                 AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Pages);
@@ -3572,7 +3572,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_followMCP = s_pages.Get(index)->followMCP;
                                 s_synchPages = s_pages.Get(index)->synchPages;
                                 s_isScrollLinkEnabled = s_pages.Get(index)->isScrollLinkEnabled;
-                                s_scrollSynch = s_pages.Get(index)->scrollSynch;
+                                s_scrollSynch = s_pages.Get(index)->isScrollSynchEnabled;
                                 
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                                 if (s_dlgResult == IDOK)
@@ -3581,7 +3581,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_pages.Get(index)->followMCP = s_followMCP;
                                     s_pages.Get(index)->synchPages = s_synchPages;
                                     s_pages.Get(index)->isScrollLinkEnabled = s_isScrollLinkEnabled;
-                                    s_pages.Get(index)->scrollSynch = s_scrollSynch;
+                                    s_pages.Get(index)->isScrollSynchEnabled = s_scrollSynch;
 
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
                                     for (int i = 0; i < s_pages.GetSize(); ++i)
@@ -3793,73 +3793,93 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         }
                     }
 
-                    else if (tokens[0] == s_PageToken && tokens.size() > 1)
+                    else if (const char *pageNameProp = pList.get_prop(PropertyType_PageName))
                     {
                         bool followMCP = true;
                         bool synchPages = true;
                         bool isScrollLinkEnabled = false;
-                        bool scrollSynch = false;
+                        bool isScrollSynchEnabled = false;
 
-                        for (int i = 2; i < tokens.size(); ++i)
+                        if (const char *pageFollowsMCPProp = pList.get_prop(PropertyType_PageFollowsMCP))
                         {
-                            if (tokens[i] == "FollowTCP")
+                            if ( ! strcmp(pageFollowsMCPProp, "No"))
                                 followMCP = false;
-                            else if (tokens[i] == "NoSynchPages")
+                        }
+                        
+                        if (const char *synchPagesProp = pList.get_prop(PropertyType_SynchPages))
+                        {
+                            if ( ! strcmp(synchPagesProp, "No"))
                                 synchPages = false;
-                            else if (tokens[i] == "UseScrollLink")
+                        }
+                        
+                        if (const char *scrollLinkProp = pList.get_prop(PropertyType_ScrollLink))
+                        {
+                            if ( ! strcmp(scrollLinkProp, "Yes"))
                                 isScrollLinkEnabled = true;
-                            else if (tokens[i] == "UseScrollSynch")
-                                scrollSynch = true;
+                        }
+                        
+                        if (const char *scrollSynchProp = pList.get_prop(PropertyType_ScrollSynch))
+                        {
+                            if ( ! strcmp(scrollSynchProp, "Yes"))
+                                isScrollSynchEnabled = true;
                         }
 
                         PageLine *page = new PageLine();
-                        page->name = tokens[1];
+                        page->name = pageNameProp;
                         page->followMCP = followMCP;
                         page->synchPages = synchPages;
                         page->isScrollLinkEnabled = isScrollLinkEnabled;
-                        page->scrollSynch = scrollSynch;
+                        page->isScrollSynchEnabled = isScrollSynchEnabled;
  
                         s_pages.Add(page);
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
-                    else if (tokens[0] == "Broadcaster" && tokens.size() == 2 && s_pages.GetSize() > 0)
+                    else if (const char *broadcasterNameProp = pList.get_prop(PropertyType_Broadcaster))
                     {
-                        Broadcaster *broadcaster = new Broadcaster();
-                        broadcaster->name = tokens[1];
-                        s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Add(broadcaster);
-                    }
-                    else if (tokens[0] == "Listener" && tokens.size() == 3 && s_pages.GetSize() > 0 && s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() > 0)
-                    {
-                        Listener *listener = new Listener();
-                        listener->name = tokens[1];
-
-                        string_list categoryTokens;
-                        GetTokens(categoryTokens, tokens[2]);
-                        
-                        for (int i = 0; i < (int)categoryTokens.size(); ++i)
+                        if (s_pages.GetSize() > 0)
                         {
-                            if (categoryTokens[i] == "GoHome")
-                                listener->goHome = true;
-                            if (categoryTokens[i] == "Sends")
-                                listener->sends = true;
-                            if (categoryTokens[i] == "Receives")
-                                listener->receives = true;
-                            if (categoryTokens[i] == "FocusedFX")
-                                listener->focusedFX = true;
-                            if (categoryTokens[i] == "FocusedFXParam")
-                                listener->focusedFXParam = true;
-                            if (categoryTokens[i] == "FXMenu")
-                                listener->fxMenu = true;
-                            if (categoryTokens[i] == "LocalFXSlot")
-                                listener->localFXSlot = true;
-                            if (categoryTokens[i] == "Modifiers")
-                                listener->modifiers = true;
-                            if (categoryTokens[i] == "SelectedTrackFX")
-                                listener->selectedTrackFX = true;
+                            Broadcaster *broadcaster = new Broadcaster();
+                            broadcaster->name = broadcasterNameProp;
+                            s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Add(broadcaster);
                         }
-                        
-                        s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Get(s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() - 1)->listeners.Add(listener);
+                    }
+                    else if (const char *listenerProp = pList.get_prop(PropertyType_Listener))
+                    {
+                        if (tokens.size() > 0 && s_pages.GetSize() > 0 && s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() > 0)
+                        {
+                            Listener *listener = new Listener();
+                            listener->name = listenerProp;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_GoHome))
+                                listener->goHome = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_LocalFXSlot))
+                                listener->localFXSlot = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_Modifiers))
+                                listener->modifiers = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_FXMenu))
+                                listener->fxMenu = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_FocusedFX))
+                                listener->focusedFX = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_FocusedFXParam))
+                                listener->focusedFXParam = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackFX))
+                                listener->selectedTrackFX = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackSends))
+                                listener->sends = true;
+                            
+                            if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackReceives))
+                                listener->receives = true;
+                            
+                            s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Get(s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() - 1)->listeners.Add(listener);
+                        }
                     }
                     else if (tokens.size() == 6 || tokens.size() == 7)
                     {
@@ -3891,7 +3911,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 page->followMCP = false;
                 page->synchPages = false;
                 page->isScrollLinkEnabled = false;
-                page->scrollSynch = false;
+                page->isScrollSynchEnabled = false;
 
                 s_pages.Add(page);
                 
@@ -3988,7 +4008,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     if (s_pages.Get(i)->isScrollLinkEnabled == true)
                         fprintf(iniFile, " UseScrollLink");
                     
-                    if (s_pages.Get(i)->scrollSynch == true)
+                    if (s_pages.Get(i)->isScrollSynchEnabled == true)
                         fprintf(iniFile, " UseScrollSynch");
 
                     fprintf(iniFile, "\n");
