@@ -2293,9 +2293,6 @@ static bool s_scrollSynch = false;
 
 static string s_pageSurfaceName;
 static int s_channelOffset = 0;
-static string s_templateFilename;
-static string s_zoneTemplateFolder;
-static string s_fxZoneTemplateFolder;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // structs
@@ -2329,9 +2326,6 @@ struct PageSurfaceLine
 {
     string pageSurfaceName;
     int channelOffset;
-    string templateFilename;
-    string zoneTemplateFolder;
-    string fxZoneTemplateFolder;
     
     PageSurfaceLine()
     {
@@ -2589,7 +2583,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
                 for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
                     AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
-
+/*
                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)s_templateFilename.c_str());
                 if (index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_SETCURSEL, index, 0);
@@ -2601,6 +2595,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_FINDSTRINGEXACT, -1, (LPARAM)s_fxZoneTemplateFolder.c_str());
                 if (index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates), CB_SETCURSEL, index, 0);
+ */
             }
             else
             {
@@ -2712,7 +2707,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         s_channelOffset = atoi(buf);
-                                                
+                         /*
                         GetDlgItemText(hwndDlg, IDC_COMBO_SurfaceTemplate, buf, sizeof(buf));
                         s_templateFilename = buf;
                         
@@ -2721,7 +2716,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         
                         GetDlgItemText(hwndDlg, IDC_COMBO_FXZoneTemplates, buf, sizeof(buf));
                         s_fxZoneTemplateFolder = buf;
-
+*/
                         s_dlgResult = IDOK;
                         EndDialog(hwndDlg, 0);
                     }
@@ -3499,9 +3494,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 PageSurfaceLine *pageSurface = new PageSurfaceLine();
                                 pageSurface->pageSurfaceName = s_pageSurfaceName;
                                 pageSurface->channelOffset = s_channelOffset;
-                                pageSurface->templateFilename = s_templateFilename;
-                                pageSurface->zoneTemplateFolder = s_zoneTemplateFolder;
-                                pageSurface->fxZoneTemplateFolder = s_fxZoneTemplateFolder;
 
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                                 if (index >= 0)
@@ -3616,18 +3608,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 if (pageIndex >= 0)
                                 {
                                     s_channelOffset = s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset;
-                                    
-                                    s_templateFilename = s_pages.Get(pageIndex)->surfaces.Get(index)->templateFilename;
-                                    s_zoneTemplateFolder  = s_pages.Get(pageIndex)->surfaces.Get(index)->zoneTemplateFolder;
-                                    s_fxZoneTemplateFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->fxZoneTemplateFolder;
 
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
                                     if (s_dlgResult == IDOK)
                                     {
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->templateFilename = s_templateFilename;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->zoneTemplateFolder = s_zoneTemplateFolder;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->fxZoneTemplateFolder = s_fxZoneTemplateFolder;
                                     }
                                 }
                                 
@@ -3852,53 +3837,59 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             listener->name = listenerProp;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_GoHome))
-                                listener->goHome = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->goHome = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_LocalFXSlot))
-                                listener->localFXSlot = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->localFXSlot = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_Modifiers))
-                                listener->modifiers = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->modifiers = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_FXMenu))
-                                listener->fxMenu = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->fxMenu = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_FocusedFX))
-                                listener->focusedFX = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->focusedFX = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_FocusedFXParam))
-                                listener->focusedFXParam = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->focusedFXParam = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackFX))
-                                listener->selectedTrackFX = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->selectedTrackFX = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackSends))
-                                listener->sends = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->sends = true;
                             
                             if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackReceives))
-                                listener->receives = true;
+                                if ( ! strcmp(listenerProp, "Yes"))
+                                    listener->receives = true;
                             
                             s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Get(s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() - 1)->listeners.Add(listener);
                         }
                     }
-                    else if (tokens.size() == 6 || tokens.size() == 7)
+                    else if (const char *assignedSurfaceNameProp = pList.get_prop(PropertyType_AssignedSurfaceName))
                     {
-                        if (tokens[0] == "LocalModifiers")
-                        {
-                            tokens.erase(tokens.begin()); // pop front
-                        }
-
                         PageSurfaceLine *surface = new PageSurfaceLine();
                         
                         if (s_pages.GetSize() > 0)
                         {
                             s_pages.Get(s_pages.GetSize() - 1)->surfaces.Add(surface);
                             
-                            surface->pageSurfaceName = tokens[0];
-                            surface->channelOffset = atoi(tokens[2].c_str());
-                            surface->templateFilename = tokens[3];
-                            surface->zoneTemplateFolder = tokens[4];
-                            surface->fxZoneTemplateFolder = tokens[5];
+                            surface->pageSurfaceName = assignedSurfaceNameProp;
+                            if (const char *assignedSurfaceStartChannelProp = pList.get_prop(PropertyType_AssignedSurfaceStartChannel))
+                                surface->channelOffset = atoi(assignedSurfaceStartChannelProp);
+                            
+                            //surface->templateFilename = tokens[3];
+                            //surface->zoneTemplateFolder = tokens[4];
+                            //surface->fxZoneTemplateFolder = tokens[5];
                         }
                     }
                 }
@@ -4015,12 +4006,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                     for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
-                        fprintf(iniFile, "\t\"%s\" %d \"%s\" \"%s\" \"%s\"\n",
+                        fprintf(iniFile, "\t\"%s\" %d \n",
                             s_pages.Get(i)->surfaces.Get(j)->pageSurfaceName.c_str(),
-                            s_pages.Get(i)->surfaces.Get(j)->channelOffset,
-                            s_pages.Get(i)->surfaces.Get(j)->templateFilename.c_str(),
-                            s_pages.Get(i)->surfaces.Get(j)->zoneTemplateFolder.c_str(),
-                            s_pages.Get(i)->surfaces.Get(j)->fxZoneTemplateFolder.c_str());
+                                s_pages.Get(i)->surfaces.Get(j)->channelOffset);
                     }
                     
                     fprintf(iniFile, "\n");
