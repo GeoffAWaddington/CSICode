@@ -2530,8 +2530,9 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-static void FillSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
-{
+//static void FillSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
+//{
+    /*
     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_RESETCONTENT, 0, 0);
     
     char buf[MEDBUF];
@@ -2555,7 +2556,8 @@ static void FillSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
             break;
         }
     }
-}
+    */
+//}
 
 static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -2576,13 +2578,13 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemInt(hwndDlg, IDC_EDIT_NumChannels, s_numChannels, false);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, s_channelOffset, false);
                
-                FillSurfaceTemplateCombo(hwndDlg, resourcePath);
+                //FillSurfaceTemplateCombo(hwndDlg, resourcePath);
                 
-                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
-                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
+                //for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    //AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
 
-                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
-                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
+                //for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    //AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
 /*
                 int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_FINDSTRINGEXACT, -1, (LPARAM)s_templateFilename.c_str());
                 if (index >= 0)
@@ -2607,13 +2609,13 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
                 
-                FillSurfaceTemplateCombo(hwndDlg, resourcePath);
+                //FillSurfaceTemplateCombo(hwndDlg, resourcePath);
                             
-                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
-                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
+                //for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    //AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_ZoneTemplates);
                 
-                for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
-                    AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
+                //for (int i = 0; i < (int)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/").size(); ++i)
+                    //AddComboEntry(hwndDlg, 0, (char *)FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Zones/")[i].c_str(), IDC_COMBO_FXZoneTemplates);
             }
         }
             break;
@@ -2629,13 +2631,13 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         case CBN_SELCHANGE:
                         {
                             const string resourcePath(GetResourcePath());
-                            FillSurfaceTemplateCombo(hwndDlg, resourcePath);
+                            //FillSurfaceTemplateCombo(hwndDlg, resourcePath);
                         }
                     }
                     
                     break;
                 }
-
+/*
                 case IDC_COMBO_SurfaceTemplate:
                 {
                     switch (HIWORD(wParam))
@@ -2693,7 +2695,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     
                     break;
                 }
-
+*/
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2776,6 +2778,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, s_surfaceName.c_str());
+                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(s_surfaceChannelCount).c_str());
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceRefreshRate, true);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun, s_surfaceMaxSysExMessagesPerRun, true);
             }
@@ -2784,6 +2787,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceDefaultRefreshRate, true);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun, s_surfaceDefaultMaxSysExMessagesPerRun, true);
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, "");
+                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiIn), CB_SETCURSEL, 0, 0);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_MidiOut), CB_SETCURSEL, 0, 0);
             }
@@ -2873,6 +2877,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 else
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_SETCURSEL, 1, 0);
 
+                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(s_surfaceChannelCount).c_str());
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, s_surfaceRemoteDeviceIP.c_str());
                 SetDlgItemInt(hwndDlg, IDC_EDIT_OSCInPort, s_surfaceInPort, false);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_OSCOutPort, s_surfaceOutPort, false);
@@ -2880,6 +2885,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
             }
             else
             {
+                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, "0");
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, "");
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_SETCURSEL, 0, 0);
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, "");

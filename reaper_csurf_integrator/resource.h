@@ -21,9 +21,9 @@
 #define IDD_DIALOG_OSCSurface           269
 #define IDD_DIALOG_PageSurface          270
 #define IDC_EDIT_PageName               1003
-#define IDC_COMBO_ZoneTemplates         1017
-#define IDC_COMBO_FXZoneTemplates       1018
-#define IDC_COMBO_SurfaceTemplate       1019
+//#define IDC_COMBO_ZoneTemplates         1017
+//#define IDC_COMBO_FXZoneTemplates       1018
+//#define IDC_COMBO_SurfaceTemplate       1019
 #define IDC_COMBO_MidiIn                1020
 #define IDC_COMBO_MidiOut               1021
 #define IDC_EDIT_MidiSurfaceName        1022
