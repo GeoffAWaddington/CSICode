@@ -1611,7 +1611,7 @@ void CSurfIntegrator::Init()
                                 {
                                     Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
                                     
-                                    if ( ! strcmp (assignedSurfaceNameProp, io->GetName()))
+                                    if ( ! strcmp(assignedSurfaceNameProp, io->GetName()))
                                     {
                                         foundIt = true;
                                         currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignedSurfaceNameProp, startChannel, (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
@@ -1625,7 +1625,7 @@ void CSurfIntegrator::Init()
                                     {
                                         OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
                                         
-                                        if ( ! strcmp (tokens[0], io->GetName()))
+                                        if ( ! strcmp(assignedSurfaceNameProp, io->GetName()))
                                         {
                                             foundIt = true;
                                             currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignedSurfaceNameProp, startChannel, (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));

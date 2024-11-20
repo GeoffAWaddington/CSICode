@@ -2277,6 +2277,7 @@ static string s_surfaceName;
 static string s_surfaceType;
 static int s_surfaceInPort = 0;
 static int s_surfaceOutPort = 0;
+static int s_surfaceChannelCount = 0;
 static int s_surfaceRefreshRate = 0;
 static int s_surfaceDefaultRefreshRate = 15;
 static int s_surfaceMaxPacketsPerRun = 0;
@@ -2303,6 +2304,7 @@ struct SurfaceLine
 {
     string type ;
     string name;
+    int channelCount;
     int inPort;
     int outPort;
     int surfaceRefreshRate;
@@ -2312,6 +2314,7 @@ struct SurfaceLine
     
     SurfaceLine()
     {
+        channelCount = 0;
         inPort = 0;
         outPort = 0;
         surfaceRefreshRate = s_surfaceDefaultRefreshRate;
@@ -2325,7 +2328,6 @@ static WDL_PtrList<SurfaceLine> s_surfaces;
 struct PageSurfaceLine
 {
     string pageSurfaceName;
-    int numChannels;
     int channelOffset;
     string templateFilename;
     string zoneTemplateFolder;
@@ -2333,7 +2335,6 @@ struct PageSurfaceLine
     
     PageSurfaceLine()
     {
-        numChannels = 0;
         channelOffset = 0;
     }
 };
@@ -3497,7 +3498,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             {
                                 PageSurfaceLine *pageSurface = new PageSurfaceLine();
                                 pageSurface->pageSurfaceName = s_pageSurfaceName;
-                                pageSurface->numChannels = s_numChannels;
                                 pageSurface->channelOffset = s_channelOffset;
                                 pageSurface->templateFilename = s_templateFilename;
                                 pageSurface->zoneTemplateFolder = s_zoneTemplateFolder;
@@ -3522,6 +3522,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             {
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(s_surfaceName.c_str()));
                                 s_surfaceType = s_surfaces.Get(index)->type;
+                                s_surfaceChannelCount = s_surfaces.Get(index)->channelCount;
                                 s_surfaceInPort = s_surfaces.Get(index)->inPort;
                                 s_surfaceOutPort = s_surfaces.Get(index)->outPort;
                                 s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
@@ -3543,6 +3544,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 {
                                     s_surfaces.Get(index)->name = s_surfaceName;
                                     s_surfaces.Get(index)->type = s_surfaceType;
+                                    s_surfaces.Get(index)->channelCount = s_surfaceChannelCount;
                                     s_surfaces.Get(index)->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                     s_surfaces.Get(index)->inPort = s_surfaceInPort;
                                     s_surfaces.Get(index)->outPort = s_surfaceOutPort;
@@ -3613,7 +3615,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 int pageIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                                 if (pageIndex >= 0)
                                 {
-                                    s_numChannels = s_pages.Get(pageIndex)->surfaces.Get(index)->numChannels;
                                     s_channelOffset = s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset;
                                     
                                     s_templateFilename = s_pages.Get(pageIndex)->surfaces.Get(index)->templateFilename;
@@ -3624,8 +3625,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     
                                     if (s_dlgResult == IDOK)
                                     {
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->numChannels = s_numChannels;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset = s_channelOffset;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->templateFilename = s_templateFilename;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->zoneTemplateFolder = s_zoneTemplateFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->fxZoneTemplateFolder = s_fxZoneTemplateFolder;
@@ -3713,16 +3712,25 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 if (lineNumber == 1)
                 {
-                    if (line != s_MajorVersionToken)
+                    PropertyList pList;
+                    string_list properties;
+                    properties.push_back(line.c_str());
+                    GetPropertiesFromTokens(0, 1, properties, pList);
+
+                    const char *versionProp = pList.get_prop(PropertyType_Version);
+                    if (versionProp)
                     {
-                        char tmp[MEDBUF];
-                        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
-                        MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
-                        iniFile.close();
-                        break;
+                        if (strcmp(versionProp, s_MajorVersionToken))
+                        {
+                            char tmp[MEDBUF];
+                            snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
+                            MessageBox(g_hwnd, tmp, __LOCALIZE("CSI.ini version mismatch","csi_mbox"), MB_OK);
+                            iniFile.close();
+                            break;
+                        }
+                        else
+                            continue;
                     }
-                    else
-                        continue;
                 }
                 
                 if (line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
@@ -3730,33 +3738,61 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     string_list tokens;
                     GetTokens(tokens, line.c_str());
                     
-                    if (tokens[0] == s_MidiSurfaceToken || tokens[0] == s_OSCSurfaceToken || tokens[0] == s_OSCX32SurfaceToken)
+                    PropertyList pList;
+                    string_list properties;
+                    properties.push_back(line.c_str());
+                    GetPropertiesFromTokens(0, tokens.size(), tokens, pList);
+
+                    if (const char *surfaceTypeProp = pList.get_prop(PropertyType_SurfaceType))
                     {
-                        SurfaceLine *surface = new SurfaceLine();
-                        
-                        surface->type = tokens[0];
-                        surface->name = tokens[1];
-                        
-                        if ((surface->type == s_MidiSurfaceToken || surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken) && tokens.size() == 6)
+                        if (const char *surfaceNameProp = pList.get_prop(PropertyType_SurfaceName))
                         {
-                            surface->inPort = atoi(tokens[2].c_str());
-                            surface->outPort = atoi(tokens[3].c_str());
-                            if ((surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken) && tokens.size() > 4)
-                                surface->remoteDeviceIP = tokens[4];
-                            
-                            if (surface->type == s_MidiSurfaceToken)
+                            if (const char *surfaceChannelCountProp = pList.get_prop(PropertyType_SurfaceChannelCount))
                             {
-                                surface->surfaceRefreshRate = atoi(tokens[4]);
-                                surface->surfaceMaxSysExMessagesPerRun = atoi(tokens[5]);
+                                SurfaceLine *surface = new SurfaceLine();
+                                
+                                surface->type = surfaceTypeProp;
+                                surface->name = surfaceNameProp;
+                                surface->channelCount = atoi(surfaceChannelCountProp);
+                                
+                                if ( ! strcmp(surfaceTypeProp, s_MidiSurfaceToken) && tokens.size() == 7)
+                                {
+                                    if (pList.get_prop(PropertyType_MidiInput) != NULL &&
+                                        pList.get_prop(PropertyType_MidiOutput) != NULL &&
+                                        pList.get_prop(PropertyType_MIDISurfaceRefreshRate) != NULL &&
+                                        pList.get_prop(PropertyType_MaxMIDIMesssagesPerRun) != NULL)
+                                    {
+                                        surface->inPort = atoi(pList.get_prop(PropertyType_MidiInput));
+                                        surface->outPort = atoi(pList.get_prop(PropertyType_MidiOutput));
+                                        surface->surfaceRefreshRate = atoi(pList.get_prop(PropertyType_MIDISurfaceRefreshRate));
+                                        surface->surfaceMaxSysExMessagesPerRun = atoi(pList.get_prop(PropertyType_MaxMIDIMesssagesPerRun));
+
+                                        s_surfaces.Add(surface);
+                                        
+                                        AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
+                                    }
+                                }
+                                else if (( ! strcmp(surfaceTypeProp, s_OSCSurfaceToken) || ! strcmp(surfaceTypeProp, s_OSCX32SurfaceToken)) && tokens.size() == 7)
+                                {
+                                    if (pList.get_prop(PropertyType_ReceiveOnPort) != NULL &&
+                                        pList.get_prop(PropertyType_TransmitToPort) != NULL &&
+                                        pList.get_prop(PropertyType_TransmitToIPAddress) != NULL &&
+                                        pList.get_prop(PropertyType_MaxPacketsPerRun) != NULL)
+                                    {
+                                        surface->inPort = atoi(pList.get_prop(PropertyType_ReceiveOnPort));
+                                        surface->outPort = atoi(pList.get_prop(PropertyType_TransmitToPort));
+                                        surface->remoteDeviceIP = pList.get_prop(PropertyType_TransmitToIPAddress);
+                                        surface->surfaceMaxPacketsPerRun = atoi(pList.get_prop(PropertyType_MaxPacketsPerRun));
+                                        
+                                        s_surfaces.Add(surface);
+                                        
+                                        AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
+                                    }
+                                }
                             }
-                            else if (surface->type == s_OSCSurfaceToken || surface->type == s_OSCX32SurfaceToken)
-                                surface->surfaceMaxPacketsPerRun = atoi(tokens[5]);
                         }
-                        
-                        s_surfaces.Add(surface);
-                        
-                        AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                     }
+
                     else if (tokens[0] == s_PageToken && tokens.size() > 1)
                     {
                         bool followMCP = true;
@@ -3839,7 +3875,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             s_pages.Get(s_pages.GetSize() - 1)->surfaces.Add(surface);
                             
                             surface->pageSurfaceName = tokens[0];
-                            surface->numChannels = atoi(tokens[1].c_str());
                             surface->channelOffset = atoi(tokens[2].c_str());
                             surface->templateFilename = tokens[3];
                             surface->zoneTemplateFolder = tokens[4];
@@ -3960,9 +3995,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                     for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
-                        fprintf(iniFile, "\t\"%s\" %d %d \"%s\" \"%s\" \"%s\"\n",
+                        fprintf(iniFile, "\t\"%s\" %d \"%s\" \"%s\" \"%s\"\n",
                             s_pages.Get(i)->surfaces.Get(j)->pageSurfaceName.c_str(),
-                            s_pages.Get(i)->surfaces.Get(j)->numChannels,
                             s_pages.Get(i)->surfaces.Get(j)->channelOffset,
                             s_pages.Get(i)->surfaces.Get(j)->templateFilename.c_str(),
                             s_pages.Get(i)->surfaces.Get(j)->zoneTemplateFolder.c_str(),
