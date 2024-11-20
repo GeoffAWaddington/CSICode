@@ -1432,10 +1432,10 @@ void CSurfIntegrator::Init()
                 properties.push_back(line.c_str());
                 GetPropertiesFromTokens(0, 1, properties, pList);
 
-                const char *version = pList.get_prop(PropertyType_Version);
-                if (version)
+                const char *versionProp = pList.get_prop(PropertyType_Version);
+                if (versionProp)
                 {
-                    if (strcmp(version, s_MajorVersionToken))
+                    if (strcmp(versionProp, s_MajorVersionToken))
                     {
                         char tmp[MEDBUF];
                         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Version mismatch -- Your CSI.ini file is not %s.","csi_mbox"), s_MajorVersionToken);
@@ -1472,22 +1472,47 @@ void CSurfIntegrator::Init()
                 PropertyList pList;
                 GetPropertiesFromTokens(0, tokens.size(), tokens, pList);
                 
-                if (const char *type = pList.get_prop(PropertyType_SurfaceType))
+                if (const char *typeProp = pList.get_prop(PropertyType_SurfaceType))
                 {
-                    if (const char *name = pList.get_prop(PropertyType_SurfaceName))
+                    if (const char *nameProp = pList.get_prop(PropertyType_SurfaceName))
                     {
-                        if (const char *channelCountStr = pList.get_prop(PropertyType_SurfaceChannelCount))
+                        if (const char *channelCountProp = pList.get_prop(PropertyType_SurfaceChannelCount))
                         {
-                            int channelCount = atoi(channelCountStr);
+                            int channelCount = atoi(channelCountProp);
                             
-                            if ( ! strcmp(type, s_MidiSurfaceToken) && tokens.size() == 7)
+                            if ( ! strcmp(typeProp, s_MidiSurfaceToken) && tokens.size() == 7)
                             {
-                                midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, name, channelCount, GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4]), atoi(tokens[5])));
+                                if (pList.get_prop(PropertyType_MidiInput) != NULL &&
+                                    pList.get_prop(PropertyType_MidiOutput) != NULL &&
+                                    pList.get_prop(PropertyType_MIDISurfaceRefreshRate) != NULL &&
+                                    pList.get_prop(PropertyType_MaxMIDIMesssagesPerRun) != NULL)
+                                {
+                                    int midiIn = atoi(pList.get_prop(PropertyType_MidiInput));
+                                    int midiOut = atoi(pList.get_prop(PropertyType_MidiOutput));
+                                    int surfaceRefreshRate = atoi(pList.get_prop(PropertyType_MIDISurfaceRefreshRate));
+                                    int maxMIDIMesssagesPerRun = atoi(pList.get_prop(PropertyType_MaxMIDIMesssagesPerRun));
+                                    
+                                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, nameProp, channelCount, GetMidiInputForPort(midiIn), GetMidiOutputForPort(midiOut), surfaceRefreshRate, maxMIDIMesssagesPerRun));
+                                }
                             }
-                            else if ( ! strcmp(type, s_OSCSurfaceToken) && tokens.size() == 7)
-                                oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, name, channelCount, tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
-                            else if ( ! strcmp(type, s_OSCX32SurfaceToken) && tokens.size() == 7)
-                                oscSurfacesIO_.Add(new OSC_X32ControlSurfaceIO(this, name, channelCount, tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
+                            else if (( ! strcmp(typeProp, s_OSCSurfaceToken) || ! strcmp(typeProp, s_OSCX32SurfaceToken)) && tokens.size() == 7)
+                            {
+                                if (pList.get_prop(PropertyType_ReceiveOnPort) != NULL &&
+                                    pList.get_prop(PropertyType_TransmitToPort) != NULL &&
+                                    pList.get_prop(PropertyType_TransmitToIPAddress) != NULL &&
+                                    pList.get_prop(PropertyType_MaxPacketsPerRun) != NULL)
+                                {
+                                    const char *receiveOnPort = pList.get_prop(PropertyType_ReceiveOnPort);
+                                    const char *transmitToPort = pList.get_prop(PropertyType_TransmitToPort);
+                                    const char *transmitToIPAddress = pList.get_prop(PropertyType_TransmitToIPAddress);
+                                    int maxPacketsPerRun = atoi(pList.get_prop(PropertyType_MaxPacketsPerRun));
+                                    
+                                    if ( ! strcmp(typeProp, s_OSCSurfaceToken))
+                                        oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, nameProp, channelCount, receiveOnPort, transmitToPort, transmitToIPAddress, maxPacketsPerRun));
+                                    else if ( ! strcmp(typeProp, s_OSCX32SurfaceToken))
+                                        oscSurfacesIO_.Add(new OSC_X32ControlSurfaceIO(this, nameProp, channelCount, receiveOnPort, transmitToPort, transmitToIPAddress, maxPacketsPerRun));
+                                }
+                            }
                         }
                     }
                 }
@@ -1502,9 +1527,9 @@ void CSurfIntegrator::Init()
                     
                     if (tokens.size() > 1)
                     {
-                        if (const char *pageFollowsMCP = pList.get_prop(PropertyType_PageFollowsMCP))
+                        if (const char *pageFollowsMCPProp = pList.get_prop(PropertyType_PageFollowsMCP))
                         {
-                            if ( ! strcmp(pageFollowsMCP, "No"))
+                            if ( ! strcmp(pageFollowsMCPProp, "No"))
                                 followMCP = false;
                         }
                         
@@ -1561,13 +1586,13 @@ void CSurfIntegrator::Init()
                 {
                     if (currentPage && tokens.size() == 2)
                     {
-                        if (const char *assignmentName = pList.get_prop(PropertyType_AssignedSurfaceName))
+                        if (const char *assignmentNameProp = pList.get_prop(PropertyType_AssignedSurfaceName))
                         {
-                            if (const char *assignmentStartChannel = pList.get_prop(PropertyType_AssignedSurfaceStartChannel))
+                            if (const char *assignmentStartChannelProp = pList.get_prop(PropertyType_AssignedSurfaceStartChannel))
                             {
-                                int startChannel = atoi(assignmentStartChannel);
+                                int startChannel = atoi(assignmentStartChannelProp);
                                 
-                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + string(assignmentName);
+                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + string(assignmentNameProp);
                                 
                                 string surfaceFile = baseDir + "/Surface";
                                 
@@ -1580,10 +1605,10 @@ void CSurfIntegrator::Init()
                                 {
                                     Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
                                     
-                                    if ( ! strcmp (assignmentName, io->GetName()))
+                                    if ( ! strcmp (assignmentNameProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignmentName, startChannel, (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignmentNameProp, startChannel, (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
                                     }
                                 }
@@ -1597,7 +1622,7 @@ void CSurfIntegrator::Init()
                                         if ( ! strcmp (tokens[0], io->GetName()))
                                         {
                                             foundIt = true;
-                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignmentName, startChannel, (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignmentNameProp, startChannel, (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                             break;
                                         }
                                     }
