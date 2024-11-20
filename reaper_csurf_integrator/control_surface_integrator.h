@@ -76,9 +76,9 @@ static const char * const s_CSIName = "CSI";
 static const char * const s_CSIVersionDisplay = "v7.0";
 static const char * const s_MajorVersionToken = "7.0";
 static const char * const s_PageToken = "Page";
-static const char * const s_MidiSurfaceToken = "MidiSurface";
-static const char * const s_OSCSurfaceToken = "OSCSurface";
-static const char * const s_OSCX32SurfaceToken = "OSCX32Surface";
+static const char * const s_MidiSurfaceToken = "MIDI";
+static const char * const s_OSCSurfaceToken = "OSC";
+static const char * const s_OSCX32SurfaceToken = "OSCX32";
 
 static const char * const s_BadFileChars = " \\:*?<>|.,()/";
 static const char * const s_BeginAutoSection = "#Begin auto generated section";
@@ -223,6 +223,26 @@ enum PropertyType {
   D(Foreground) \
   D(Feedback) \
   D(Version) \
+  D(SurfaceType) \
+  D(SurfaceName) \
+  D(SurfaceChannelCount) \
+  D(MidiInput) \
+  D(MidiOutput) \
+  D(MIDISurfaceRefreshRate) \
+  D(MaxMIDIMesssagesPerRun) \
+  D(ReceiveOnPort) \
+  D(TransmitToPort) \
+  D(TransmitToIPAddress) \
+  D(MaxPacketsPerRun) \
+  D(PageName) \
+  D(PageFollowsMCP) \
+  D(SynchPages) \
+  D(ScrollLink) \
+  D(ScrollSynch) \
+  D(Broadcaster) \
+  D(Listener) \
+  D(AssignedSurfaceName) \
+  D(AssignedSurfaceStartChannel) \
 
   PropertyType_Unknown = 0, // in this case, string is type=value pair
 #define DEFPT(x) PropertyType_##x ,
@@ -2682,6 +2702,7 @@ class Midi_ControlSurfaceIO
 protected:
     CSurfIntegrator *const csi_;
     string const name_;
+    int const channelCount_;
     midi_Input *const midiInput_;
     midi_Output *const midiOutput_;
     WDL_Queue messageQueue_;
@@ -2694,7 +2715,7 @@ protected:
     }
 
 public:
-    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, midi_Input *midiInput, midi_Output *midiOutput, int surfaceRefreshRate, int maxMesssagesPerRun) : csi_(csi), name_(name), midiInput_(midiInput), midiOutput_(midiOutput), surfaceRefreshRate_(surfaceRefreshRate), maxMesssagesPerRun_(maxMesssagesPerRun) {}
+    Midi_ControlSurfaceIO(CSurfIntegrator *csi, const char *name, int channelCount, midi_Input *midiInput, midi_Output *midiOutput, int surfaceRefreshRate, int maxMesssagesPerRun) : csi_(csi), name_(name), channelCount_(channelCount), midiInput_(midiInput), midiOutput_(midiOutput), surfaceRefreshRate_(surfaceRefreshRate), maxMesssagesPerRun_(maxMesssagesPerRun) {}
 
     ~Midi_ControlSurfaceIO()
     {
@@ -2706,6 +2727,8 @@ public:
 
     const char *GetName() { return name_.c_str(); }
     
+    const int GetChannelCount() { return channelCount_; }
+
     void HandleExternalInput(Midi_ControlSurface *surface);
     
     void QueueMidiSysExMessage(MIDI_event_ex_t *midiMessage)
@@ -2813,7 +2836,7 @@ private:
     void SendSysexInitData(int line[], int numElem);
     
 public:
-    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
+    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -2896,6 +2919,7 @@ class OSC_ControlSurfaceIO
 protected:
     CSurfIntegrator *const csi_;
     string const name_;
+    int const channelCount_;
     oscpkt::UdpSocket *inSocket_;
     oscpkt::UdpSocket *outSocket_;
     oscpkt::PacketReader packetReader_;
@@ -2907,11 +2931,13 @@ protected:
     WDL_Queue packetQueue_;
     
 public:
-    OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
+    OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, int channelCount, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
     virtual ~OSC_ControlSurfaceIO();
 
     const char *GetName() { return name_.c_str(); }
 
+    const int GetChannelCount() { return channelCount_; }
+    
     virtual void HandleExternalInput(OSC_ControlSurface *surface);
 
     void QueuePacket(const void *p, int sz)
@@ -3063,7 +3089,7 @@ protected:
     DWORD X32HeartBeatLastRefreshTime_;
     
 public:
-    OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
+    OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, int channelCount, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
     virtual ~OSC_X32ControlSurfaceIO() {}
 
     virtual void HandleExternalInput(OSC_ControlSurface *surface) override;
@@ -3091,7 +3117,7 @@ private:
     void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
-    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
+    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     

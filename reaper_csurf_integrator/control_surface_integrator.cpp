@@ -1469,13 +1469,29 @@ void CSurfIntegrator::Init()
             
             if (tokens.size() > 1) // ignore comment lines and blank lines
             {
-                if (tokens[0] == s_MidiSurfaceToken && tokens.size() == 6)
-                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, tokens[1], GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4]), atoi(tokens[5])));
-                else if (tokens[0] == s_OSCSurfaceToken && tokens.size() == 6)
-                    oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
-                else if (tokens[0] == s_OSCX32SurfaceToken && tokens.size() == 6)
-                    oscSurfacesIO_.Add(new OSC_X32ControlSurfaceIO(this, tokens[1], tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
-                else if (tokens[0] == s_PageToken)
+                PropertyList pList;
+                GetPropertiesFromTokens(0, tokens.size(), tokens, pList);
+                
+                if (const char *type = pList.get_prop(PropertyType_SurfaceType))
+                {
+                    if (const char *name = pList.get_prop(PropertyType_SurfaceName))
+                    {
+                        if (const char *channelCountStr = pList.get_prop(PropertyType_SurfaceChannelCount))
+                        {
+                            int channelCount = atoi(channelCountStr);
+                            
+                            if ( ! strcmp(type, s_MidiSurfaceToken) && tokens.size() == 7)
+                            {
+                                midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, name, channelCount, GetMidiInputForPort(atoi(tokens[2].c_str())), GetMidiOutputForPort(atoi(tokens[3].c_str())), atoi(tokens[4]), atoi(tokens[5])));
+                            }
+                            else if ( ! strcmp(type, s_OSCSurfaceToken) && tokens.size() == 7)
+                                oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, name, channelCount, tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
+                            else if ( ! strcmp(type, s_OSCX32SurfaceToken) && tokens.size() == 7)
+                                oscSurfacesIO_.Add(new OSC_X32ControlSurfaceIO(this, name, channelCount, tokens[2], tokens[3], tokens[4], atoi(tokens[5].c_str())));
+                        }
+                    }
+                }
+                else if (const char *pageName = pList.get_prop(PropertyType_PageName))
                 {
                     bool followMCP = true;
                     bool synchPages = true;
@@ -1486,22 +1502,31 @@ void CSurfIntegrator::Init()
                     
                     if (tokens.size() > 1)
                     {
-                        if (tokens.size() > 2)
+                        if (const char *pageFollowsMCP = pList.get_prop(PropertyType_PageFollowsMCP))
                         {
-                            for (int i = 2; i < tokens.size(); ++i)
-                            {
-                                if (tokens[i] == "FollowTCP")
-                                    followMCP = false;
-                                else if (tokens[i] == "NoSynchPages")
-                                    synchPages = false;
-                                else if (tokens[i] == "UseScrollLink")
-                                    isScrollLinkEnabled = true;
-                                else if (tokens[i] == "UseScrollSynch")
-                                    isScrollSynchEnabled = true;
-                            }
+                            if ( ! strcmp(pageFollowsMCP, "No"))
+                                followMCP = false;
                         }
-                            
-                        currentPage = new Page(this, tokens[1], followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
+                        
+                        if (const char *synchPagesProp = pList.get_prop(PropertyType_SynchPages))
+                        {
+                            if ( ! strcmp(synchPagesProp, "No"))
+                                synchPages = false;
+                        }
+                        
+                        if (const char *scrollLinkProp = pList.get_prop(PropertyType_ScrollLink))
+                        {
+                            if ( ! strcmp(scrollLinkProp, "Yes"))
+                                isScrollLinkEnabled = true;
+                        }
+                        
+                        if (const char *scrollSynchProp = pList.get_prop(PropertyType_ScrollSynch))
+                        {
+                            if ( ! strcmp(scrollSynchProp, "Yes"))
+                                isScrollSynchEnabled = true;
+                        }
+                        
+                        currentPage = new Page(this, pageName, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
                         pages_.Add(currentPage);
                     }
                 }
@@ -1534,40 +1559,48 @@ void CSurfIntegrator::Init()
                 }
                 else
                 {
-                    if (currentPage && tokens.size() == 4)
+                    if (currentPage && tokens.size() == 2)
                     {
-                        string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + string(tokens[3]);
-                        
-                        string surfaceFile = baseDir + "/Surface";
-                        
-                        string zoneFolder = baseDir + "/Zones";
-                        string fxZoneFolder = baseDir + "/FXZones";
-                        
-                        bool foundIt = false;
-                        
-                        for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
+                        if (const char *assignmentName = pList.get_prop(PropertyType_AssignedSurfaceName))
                         {
-                            Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
-                            
-                            if (tokens[0] == io->GetName())
+                            if (const char *assignmentStartChannel = pList.get_prop(PropertyType_AssignedSurfaceStartChannel))
                             {
-                                foundIt = true;
-                                currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
-                                break;
-                            }
-                        }
-                        
-                        if ( ! foundIt)
-                        {
-                            for (int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
-                            {
-                                OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
+                                int startChannel = atoi(assignmentStartChannel);
                                 
-                                if (tokens[0] == io->GetName())
+                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + string(assignmentName);
+                                
+                                string surfaceFile = baseDir + "/Surface";
+                                
+                                string zoneFolder = baseDir + "/Zones";
+                                string fxZoneFolder = baseDir + "/FXZones";
+                                
+                                bool foundIt = false;
+                                
+                                for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
                                 {
-                                    foundIt = true;
-                                    currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, tokens[0], atoi(tokens[1].c_str()), atoi(tokens[2].c_str()), (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
-                                    break;
+                                    Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
+                                    
+                                    if ( ! strcmp (assignmentName, io->GetName()))
+                                    {
+                                        foundIt = true;
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignmentName, startChannel, (surfaceFile + ".mst").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        break;
+                                    }
+                                }
+                                
+                                if ( ! foundIt)
+                                {
+                                    for (int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
+                                    {
+                                        OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
+                                        
+                                        if ( ! strcmp (tokens[0], io->GetName()))
+                                        {
+                                            foundIt = true;
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignmentName, startChannel, (surfaceFile + ".ost").c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3899,8 +3932,8 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
-: ControlSurface(csi, page, name, numChannels, channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
+Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
+: ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
     // special processing for MCU meters
@@ -3978,13 +4011,13 @@ void Midi_ControlSurface::SendMidiMessage(int first, int second, int third)
  // OSC_ControlSurfaceIO
  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OSC_X32ControlSurfaceIO::OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : OSC_ControlSurfaceIO(csi, surfaceName, receiveOnPort, transmitToPort, transmitToIpAddress, maxPacketsPerRun)
+OSC_X32ControlSurfaceIO::OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, int channelCount, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : OSC_ControlSurfaceIO(csi, surfaceName, channelCount, receiveOnPort, transmitToPort, transmitToIpAddress, maxPacketsPerRun)
 {
     X32HeartBeatRefreshInterval_ = 5000; // must be less than 10000
     X32HeartBeatLastRefreshTime_ = GetTickCount()-30000;
 }
 
-OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : csi_(csi), name_(surfaceName)
+OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, int channelCount, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : csi_(csi), name_(surfaceName), channelCount_(channelCount)
 {
     // private:
     inSocket_ = NULL;
@@ -4129,7 +4162,7 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int numChannels, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, numChannels, channelOffset), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO)
 
 {
     ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
