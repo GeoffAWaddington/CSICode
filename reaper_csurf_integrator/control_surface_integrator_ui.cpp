@@ -3902,7 +3902,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_Modifiers), listener->modifiers == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_SelectedTrackFX), listener->selectedTrackFX == true ? "Yes" : "No");
 
-                            fprintf(iniFile, "\"\n");
+                            fprintf(iniFile, "\n");
                         }
                         
                         fprintf(iniFile, "\n");
