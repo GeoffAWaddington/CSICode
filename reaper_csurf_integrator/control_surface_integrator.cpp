@@ -1158,14 +1158,11 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
             string_list tokens;
             GetTokens(tokens, line.c_str());
 
-            if (filePath[filePath.length() - 3] == 'm')
-            {
-                if (tokens.size() > 0 && tokens[0] != "Widget")
-                    valueLines.push_back(tokens);
-                
-                if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines);
-            }
+            if (tokens.size() > 0 && tokens[0] != "Widget")
+                valueLines.push_back(tokens);
+            
+            if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
+                ProcessValues(valueLines);
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
                 ProcessMidiWidget(lineNumber, file, tokens);
@@ -1205,14 +1202,11 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
             string_list tokens;
             GetTokens(tokens, line.c_str());
 
-            if (filePath[filePath.length() - 3] == 'm')
-            {
-                if (tokens.size() > 0 && tokens[0] != "Widget")
-                    valueLines.push_back(tokens);
-                
-                if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
-                    ProcessValues(valueLines);
-            }
+            if (tokens.size() > 0 && tokens[0] != "Widget")
+                valueLines.push_back(tokens);
+            
+            if (tokens.size() > 0 && tokens[0] == "AccelerationValuesEnd")
+                ProcessValues(valueLines);
 
             if (tokens.size() > 0 && (tokens[0] == "Widget"))
                 ProcessOSCWidget(lineNumber, file, tokens);

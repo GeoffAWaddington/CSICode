@@ -2560,19 +2560,6 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             switch(LOWORD(wParam))
             {
-                case IDC_COMBO_PageSurface:
-                {
-                    switch (HIWORD(wParam))
-                    {
-                        case CBN_SELCHANGE:
-                        {
-                            // GAW TBD -- update model
-                        }
-                    }
-                    
-                    break;
-                }
-
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
