@@ -1882,13 +1882,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
                         if (nameContext)
                             nameContext->SetStringParam(buf);
-                        /*
-                        char modifierBuf[SMLBUF];
-                        s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
-                        char titleBuf[MEDBUF];
-                        snprintf(titleBuf, sizeof(titleBuf), "%s%s - %s", modifierBuf, s_currentWidget->GetName(), buf);
-                        SetWindowText(hwndDlg, titleBuf);
-                         */
                     }
                     break;
 
@@ -2530,35 +2523,6 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-//static void FillSurfaceTemplateCombo(HWND hwndDlg, const string &resourcePath)
-//{
-    /*
-    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate), CB_RESETCONTENT, 0, 0);
-    
-    char buf[MEDBUF];
-    
-    GetDlgItemText(hwndDlg, IDC_COMBO_PageSurface, buf, sizeof(buf));
-    
-    for (int i = 0; i < s_surfaces.GetSize(); ++i)
-    {
-        if (s_surfaces.Get(i)->name == string(buf))
-        {
-            string type = s_surfaces.Get(i)->type;
-            
-            if (type == s_MidiSurfaceToken)
-                for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/").size(); ++j)
-                    AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/Midi/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
-
-            if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)
-                for (int j = 0; j < (int)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/").size(); ++j)
-                    AddComboEntry(hwndDlg, 0, (char*)FileSystem::GetDirectoryFilenames(resourcePath + "/CSI/Surfaces/OSC/")[j].c_str(), IDC_COMBO_SurfaceTemplate);
-            
-            break;
-        }
-    }
-    */
-//}
-
 static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -2566,24 +2530,27 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         case WM_INITDIALOG:
         {
             const string resourcePath(GetResourcePath());
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_SurfaceTemplate));
+            
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface));
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_ZoneTemplates));
-            WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_FXZoneTemplates));
+               
+            string_list list = FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Surfaces");
+
+            for (int i = 0; i < list.size(); ++i)
+                AddComboEntry(hwndDlg, 0, (char *)list.get(i), IDC_COMBO_PageSurface);
+            
             if (s_editMode)
             {
-                AddComboEntry(hwndDlg, 0, (char *)s_pageSurfaceName.c_str(), IDC_COMBO_PageSurface);
-                SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
+                int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_FINDSTRINGEXACT, -1, (LPARAM)s_pageSurfaceName.c_str());
+                if (index >= 0)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, index, 0);
+                else
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
 
                 SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, s_channelOffset, false);
             }
             else
             {
-                for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                    AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_COMBO_PageSurface);
-                
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
-                
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
             }
         }
@@ -2599,8 +2566,7 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     {
                         case CBN_SELCHANGE:
                         {
-                            const string resourcePath(GetResourcePath());
-                            //FillSurfaceTemplateCombo(hwndDlg, resourcePath);
+                            // GAW TBD -- update model
                         }
                     }
                     
@@ -2757,6 +2723,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     
     return 0;
 }
+
 static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -3519,6 +3486,17 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     if (s_dlgResult == IDOK)
                                     {
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset = s_channelOffset;
+                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceName = s_pageSurfaceName;
+                                        
+                                        int pageSurfaceNameIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_PageSurfaces, LB_GETCURSEL, 0, 0);
+                                        
+                                        SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
+
+                                        for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
+                                            AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurfaceName, IDC_LIST_PageSurfaces);
+                                        
+                                        if (s_pages.Get(pageIndex)->surfaces.GetSize() > 0)
+                                            SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, pageSurfaceNameIndex, 0);
                                     }
                                 }
                                 
