@@ -2682,7 +2682,7 @@ void ZoneManager::Initialize()
         LoadZoneFile(focusedFXParamZone_, "");
     }
         
-    GoHome();
+    homeZone_->Activate();
 }
 
 void ZoneManager::PreProcessZoneFile(const char *filePath)
