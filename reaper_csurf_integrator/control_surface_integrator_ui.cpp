@@ -2630,7 +2630,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             if (s_editMode)
             {
                 SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, s_surfaceName.c_str());
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(s_surfaceChannelCount).c_str());
+                SetDlgItemInt(hwndDlg, IDC_EDIT_NumChannels, s_surfaceChannelCount, true);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, s_surfaceRefreshRate, true);
                 SetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun, s_surfaceMaxSysExMessagesPerRun, true);
             }
@@ -2730,11 +2730,11 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                 else
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_SETCURSEL, 1, 0);
 
-                SetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, to_string(s_surfaceChannelCount).c_str());
+                SetDlgItemInt(hwndDlg, IDC_EDIT_NumChannels, s_surfaceChannelCount, true);
                 SetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, s_surfaceRemoteDeviceIP.c_str());
-                SetDlgItemInt(hwndDlg, IDC_EDIT_OSCInPort, s_surfaceInPort, false);
-                SetDlgItemInt(hwndDlg, IDC_EDIT_OSCOutPort, s_surfaceOutPort, false);
-                SetDlgItemInt(hwndDlg, IDC_EDIT_MaxPackets, s_surfaceMaxPacketsPerRun, false);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_OSCInPort, s_surfaceInPort, true);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_OSCOutPort, s_surfaceOutPort, true);
+                SetDlgItemInt(hwndDlg, IDC_EDIT_MaxPackets, s_surfaceMaxPacketsPerRun, true);
             }
             else
             {
