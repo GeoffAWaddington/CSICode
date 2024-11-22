@@ -2674,6 +2674,9 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
                         
+                        GetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, buf, sizeof(buf));
+                        s_surfaceChannelCount = atoi(buf);
+
                         BOOL translated;
                         s_surfaceRefreshRate = GetDlgItemInt(hwndDlg, IDC_EDIT_MidiSurfaceRefreshRate, &translated, true);
 
@@ -2787,6 +2790,9 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                 s_surfaceType = s_OSCX32SurfaceToken;
                         }
                         
+                        GetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, buf, sizeof(buf));
+                        s_surfaceChannelCount = atoi(buf);
+
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCRemoteDeviceIP, buf, sizeof(buf));
                         s_surfaceRemoteDeviceIP = buf;
                         
