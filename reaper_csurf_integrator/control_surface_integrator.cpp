@@ -1590,13 +1590,13 @@ void CSurfIntegrator::Init()
                 {
                     if (const char *surfaceProp = pList.get_prop(PropertyType_Surface))
                     {
-                        if (const char *zoneProp = pList.get_prop(PropertyType_Zone))
+                        if (const char *zonesProp = pList.get_prop(PropertyType_Zones))
                         {
                             if (const char *startChannelProp = pList.get_prop(PropertyType_StartChannel))
                             {
                                 int startChannel = atoi(startChannelProp);
                                 
-                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + zoneProp;
+                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + zonesProp;
                                 
                                 string surfaceFile = baseDir + "/Surface.txt";
                                 
@@ -1612,7 +1612,7 @@ void CSurfIntegrator::Init()
                                     if ( ! strcmp(surfaceProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, zoneProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, zonesProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
                                     }
                                 }
@@ -1626,7 +1626,7 @@ void CSurfIntegrator::Init()
                                         if ( ! strcmp(surfaceProp, io->GetName()))
                                         {
                                             foundIt = true;
-                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, zoneProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, zonesProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                             break;
                                         }
                                     }

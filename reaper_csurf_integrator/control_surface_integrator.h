@@ -242,7 +242,7 @@ enum PropertyType {
   D(Broadcaster) \
   D(Listener) \
   D(Surface) \
-  D(Zone) \
+  D(Zones) \
   D(StartChannel) \
   D(GoHome) \
   D(LocalFXSlot) \
