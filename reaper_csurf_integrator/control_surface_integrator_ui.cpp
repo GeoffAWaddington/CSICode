@@ -2430,13 +2430,15 @@ static void AddListEntry(HWND hwndDlg, string buf, int comboId)
     SendDlgItemMessage(hwndDlg, comboId, LB_ADDSTRING, 0, (LPARAM)buf.c_str());
 }
 
-static void RestrictCharacters(char *buf, int bufSize)
+static void RestrictCharacters(HWND hwndDlg, char *buf, int bufSize)
 {
     string temp = "";
     
     for (int i = 0; i < strlen(buf); ++i)
         if (isdigit(buf[i]) || isalpha(buf[i]) || buf[i] == '_' )
             temp += buf[i];
+        else
+            SendMessage(hwndDlg, EM_SETSEL, i, i);
     
     snprintf(buf, bufSize, "%s", temp.c_str());
 }
@@ -2478,7 +2480,7 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                             char buf[SMLBUF];
                             buf[0] = 0;
                             GetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf, sizeof(buf));
-                            RestrictCharacters(buf, sizeof(buf));
+                            RestrictCharacters(GetDlgItem(hwndDlg, IDC_EDIT_PageName), buf, sizeof(buf));
                             SetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf);
                         }
                     }
@@ -2676,7 +2678,7 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                             char buf[SMLBUF];
                             buf[0] = 0;
                             GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
-                            RestrictCharacters(buf, sizeof(buf));
+                            RestrictCharacters(GetDlgItem(hwndDlg, IDC_EDIT_MidiSurfaceName), buf, sizeof(buf));
                             SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf);
                         }
                     }
@@ -2782,7 +2784,7 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                             char buf[SMLBUF];
                             buf[0] = 0;
                             GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf, sizeof(buf));
-                            RestrictCharacters(buf, sizeof(buf));
+                            RestrictCharacters(GetDlgItem(hwndDlg, IDC_EDIT_OSCSurfaceName), buf, sizeof(buf));
                             SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf);
                         }
                     }
