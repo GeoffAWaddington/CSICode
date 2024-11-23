@@ -1586,48 +1586,49 @@ void CSurfIntegrator::Init()
                         }
                     }
                 }
-                else if (currentPage && tokens.size() == 2)
+                else if (currentPage && tokens.size() == 3)
                 {
-                    if (const char *assignedSurfaceNameProp = pList.get_prop(PropertyType_AssignedSurfaceName))
+                    if (const char *surfaceProp = pList.get_prop(PropertyType_Surface))
                     {
-                        if (const char *assignmentStartChannelProp = pList.get_prop(PropertyType_AssignedSurfaceStartChannel))
+                        if (const char *zoneProp = pList.get_prop(PropertyType_Zone))
                         {
-                            int startChannel = atoi(assignmentStartChannelProp);
-                            
-                            string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + assignedSurfaceNameProp;
-                            
-                            string surfaceFile = baseDir + "/Surface.txt";
-                            
-                            string zoneFolder = baseDir + "/Zones";
-                            string fxZoneFolder = baseDir + "/FXZones";
-                            
-                            // assignedSurfaceNameProp MUST start with an IO Name -- MCU, MCUAlt, SCE24_SendLayout, etc.
-                            
-                            bool foundIt = false;
-                            
-                            for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
+                            if (const char *startChannelProp = pList.get_prop(PropertyType_StartChannel))
                             {
-                                Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
+                                int startChannel = atoi(startChannelProp);
                                 
-                                if ( ! strncmp(assignedSurfaceNameProp, io->GetName(), strlen(io->GetName())))
+                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + zoneProp;
+                                
+                                string surfaceFile = baseDir + "/Surface.txt";
+                                
+                                string zoneFolder = baseDir + "/Zones";
+                                string fxZoneFolder = baseDir + "/FXZones";
+                                
+                                bool foundIt = false;
+                                
+                                for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
                                 {
-                                    foundIt = true;
-                                    currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, assignedSurfaceNameProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
-                                    break;
-                                }
-                            }
-                            
-                            if ( ! foundIt)
-                            {
-                                for (int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
-                                {
-                                    OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
+                                    Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
                                     
-                                    if ( ! strncmp(assignedSurfaceNameProp, io->GetName(), strlen(io->GetName())))
+                                    if ( ! strcmp(surfaceProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, assignedSurfaceNameProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, zoneProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
+                                    }
+                                }
+                                
+                                if ( ! foundIt)
+                                {
+                                    for (int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
+                                    {
+                                        OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
+                                        
+                                        if ( ! strcmp(surfaceProp, io->GetName()))
+                                        {
+                                            foundIt = true;
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, zoneProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            break;
+                                        }
                                     }
                                 }
                             }

@@ -241,8 +241,9 @@ enum PropertyType {
   D(ScrollSynch) \
   D(Broadcaster) \
   D(Listener) \
-  D(AssignedSurfaceName) \
-  D(AssignedSurfaceStartChannel) \
+  D(Surface) \
+  D(Zone) \
+  D(StartChannel) \
   D(GoHome) \
   D(LocalFXSlot) \
   D(Modifiers) \

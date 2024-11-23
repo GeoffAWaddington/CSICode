@@ -47,7 +47,9 @@
 #define IDC_EDIT_OSCInPort              1045
 #define IDC_EDIT_NumChannels            1085
 #define IDC_EDIT_ChannelOffset          1088
+#define IDC_COMBO_SurfaceHardware       1089
 #define IDC_COMBO_PageSurface           1091
+#define IDC_COMBO_Surface               1092
 #define IDC_CHECK_SynchPages            1093
 #define IDC_CHECK_ScrollLink            1094
 #define IDC_CHECK_ScrollSynch           1096
