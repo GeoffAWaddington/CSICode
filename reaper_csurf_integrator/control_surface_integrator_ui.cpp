@@ -2540,23 +2540,23 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
             for (int i = 0; i < list.size(); ++i)
                 AddComboEntry(hwndDlg, 0, (char *)list.get(i), IDC_COMBO_PageSurfaceFolder);
                         
-            for (int i = 0; i < s_pages.Get(s_pageIndex)->surfaces.GetSize(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurface.c_str(), IDC_COMBO_PageSurface);
+            for (int i = 0; i < s_surfaces.GetSize(); ++i)
+                AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_COMBO_PageSurface);
             
             if (s_editMode)
             {
-                int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_FINDSTRINGEXACT, -1, (LPARAM)s_pageSurface.c_str());
-                if (index >= 0)
-                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, index, 0);
-                else
-                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
-
-                index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurfaceFolder), CB_FINDSTRINGEXACT, -1, (LPARAM)s_pageSurfaceFolder.c_str());
+                int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurfaceFolder), CB_FINDSTRINGEXACT, -1, (LPARAM)s_pageSurfaceFolder.c_str());
                 if (index >= 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurfaceFolder), CB_SETCURSEL, index, 0);
                 else
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurfaceFolder), CB_SETCURSEL, 0, 0);
 
+                index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_FINDSTRINGEXACT, -1, (LPARAM)s_pageSurface.c_str());
+                if (index >= 0)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, index, 0);
+                else
+                    SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
+                
                 SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, s_channelOffset, false);
             }
             else
@@ -3261,8 +3261,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                                 s_pageIndex = index;
 
-                                for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_PageSurfaces);
+                                for (int i = 0; i < s_surfaces.GetSize(); ++i)
+                                    AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_PageSurfaces);
                                 
                                 if (s_pages.Get(index)->surfaces.GetSize() > 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
@@ -3491,6 +3491,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 {
                                     s_channelOffset = s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset;
                                     s_pageSurface = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface;
+                                    s_pageSurfaceFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder;
                                     
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
@@ -3499,6 +3500,13 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset = s_channelOffset;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder = s_pageSurfaceFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface = s_pageSurface;
+                                        
+                                        SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
+
+                                        for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
+                                            AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_PageSurfaces);
+                                        
+                                        SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                     }
                                 }
                                 
