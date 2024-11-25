@@ -2430,20 +2430,17 @@ static void AddListEntry(HWND hwndDlg, string buf, int comboId)
     SendDlgItemMessage(hwndDlg, comboId, LB_ADDSTRING, 0, (LPARAM)buf.c_str());
 }
 
-static void RestrictCharacters(HWND hwndDlg, char *buf, int bufSize)
+static bool CharsOK(HWND hwndDlg, string chars)
 {
-    string temp = "";
+    for (int i = 0; i < chars.length(); ++i)
+        if ( ! (isdigit(chars[i]) || isalpha(chars[i]) || chars[i] == '_'))
+        {
+            MessageBox(g_hwnd, __LOCALIZE("Alphnumeric and Underscore only","csi_mbox"), __LOCALIZE("Character Check Failed","csi_mbox"), MB_OK);
+            return false;
+        };
     
-    for (int i = 0; i < strlen(buf); ++i)
-        if (isdigit(buf[i]) || isalpha(buf[i]) || buf[i] == '_' )
-            temp += buf[i];
-        else
-            SendMessage(hwndDlg, EM_SETSEL, i, i);
-    
-    snprintf(buf, bufSize, "%s", temp.c_str());
+    return true;
 }
-
-static bool s_isRestricting = false;
 
 static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -2469,29 +2466,15 @@ static WDL_DLGRET dlgProcPage(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
             switch(LOWORD(wParam))
             {
-                case IDC_EDIT_PageName:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        if (s_isRestricting)
-                            s_isRestricting = false;
-                        else
-                        {
-                            s_isRestricting = true;
-                            char buf[SMLBUF];
-                            buf[0] = 0;
-                            GetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf, sizeof(buf));
-                            RestrictCharacters(GetDlgItem(hwndDlg, IDC_EDIT_PageName), buf, sizeof(buf));
-                            SetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf);
-                        }
-                    }
-                    break;
-
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         char buf[MEDBUF];
                         GetDlgItemText(hwndDlg, IDC_EDIT_PageName, buf, sizeof(buf));
                         s_surfaceName = buf;
+                        
+                        if ( ! CharsOK(hwndDlg, buf))
+                            break;
                         
                         if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_TCP))
                            s_followMCP = false;
@@ -2667,29 +2650,15 @@ static WDL_DLGRET dlgProcMidiSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
         {
             switch(LOWORD(wParam))
             {
-                case IDC_EDIT_MidiSurfaceName:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        if (s_isRestricting)
-                            s_isRestricting = false;
-                        else
-                        {
-                            s_isRestricting = true;
-                            char buf[SMLBUF];
-                            buf[0] = 0;
-                            GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
-                            RestrictCharacters(GetDlgItem(hwndDlg, IDC_EDIT_MidiSurfaceName), buf, sizeof(buf));
-                            SetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf);
-                        }
-                    }
-                    break;
-
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         char buf[MEDBUF];
                         GetDlgItemText(hwndDlg, IDC_EDIT_MidiSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
+                        
+                        if ( ! CharsOK(hwndDlg, buf))
+                            break;
                         
                         GetDlgItemText(hwndDlg, IDC_EDIT_NumChannels, buf, sizeof(buf));
                         s_surfaceChannelCount = atoi(buf);
@@ -2773,23 +2742,6 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
         {
             switch(LOWORD(wParam))
             {
-                case IDC_EDIT_OSCSurfaceName:
-                    if (HIWORD(wParam) == EN_CHANGE)
-                    {
-                        if (s_isRestricting)
-                            s_isRestricting = false;
-                        else
-                        {
-                            s_isRestricting = true;
-                            char buf[SMLBUF];
-                            buf[0] = 0;
-                            GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf, sizeof(buf));
-                            RestrictCharacters(GetDlgItem(hwndDlg, IDC_EDIT_OSCSurfaceName), buf, sizeof(buf));
-                            SetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf);
-                        }
-                    }
-                    break;
-
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2797,6 +2749,9 @@ static WDL_DLGRET dlgProcOSCSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
                                             
                         GetDlgItemText(hwndDlg, IDC_EDIT_OSCSurfaceName, buf, sizeof(buf));
                         s_surfaceName = buf;
+                        
+                        if ( ! CharsOK(hwndDlg, buf))
+                            break;
                         
                         int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_Type), CB_GETCURSEL, 0, 0);
                         if (index >= 0)
@@ -3262,12 +3217,13 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
                                 s_pageIndex = index;
-
-                                for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_PageSurfaces);
+                               
+                                for (int i = 0; i < s_pages.Get(s_pageIndex)->surfaces.GetSize(); ++i)
+                                    AddListEntry(hwndDlg, s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_PageSurfaces);
                                 
                                 if (s_pages.Get(index)->surfaces.GetSize() > 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
+                                
                             }
                             else
                             {
@@ -3307,8 +3263,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 SurfaceLine *surface = new SurfaceLine();
                                 surface->type = s_MidiSurfaceToken;
                                 surface->name = s_surfaceName;
+                                surface->channelCount = s_surfaceChannelCount;
                                 surface->inPort = s_surfaceInPort;
                                 surface->outPort = s_surfaceOutPort;
+                                surface->surfaceRefreshRate = s_surfaceRefreshRate;
+                                surface->surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
 
                                 s_surfaces.Add(surface);
                                 
@@ -3330,11 +3289,13 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             
                                 surface->name = s_surfaceName;
                                 surface->type = s_surfaceType;
+                                surface->channelCount = s_surfaceChannelCount;
                                 surface->remoteDeviceIP = s_surfaceRemoteDeviceIP;
                                 surface->inPort = s_surfaceInPort;
                                 surface->outPort = s_surfaceOutPort;
+                                surface->surfaceRefreshRate = s_surfaceRefreshRate;
                                 surface->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
-
+                                
                                 s_surfaces.Add(surface);
                                 
                                 AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
