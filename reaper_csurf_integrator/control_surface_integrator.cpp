@@ -3133,7 +3133,7 @@ void ZoneManager::PreProcessZones()
     if (zoneFilesToProcess.size() == 0)
     {
         char tmp[2048];
-        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find Zone files for %s in:\r\n\r\n%s/CSI/Zones/","csi_mbox"), GetSurface()->GetName(), GetResourcePath());
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find Zone files for %s in:\r\n\r\n%s","csi_mbox"), GetSurface()->GetName(), zoneFolder_.c_str());
         MessageBox(g_hwnd, tmp, __LOCALIZE("Zone folder is missing or empty","csi_mbox"), MB_OK);
 
         return;

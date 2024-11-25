@@ -108,9 +108,9 @@ BEGIN
     EDITTEXT        IDC_EDIT_MidiSurfaceName,48,9,163,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,107,134,50,14
     EDITTEXT        IDC_EDIT_MidiSurfaceRefreshRate,25,92,19,14,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Hz - Surface display refresh rate - default is 15",IDC_STATIC,51,95,147,8
+    LTEXT           "Hz - Display refresh rate - default is 15",IDC_STATIC,51,95,147,8
     EDITTEXT        IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun,25,112,19,14,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Max SysEx messages per run - default is 200",IDC_STATIC,51,115,141,8
+    LTEXT           "Max messages per run - default is 200",IDC_STATIC,51,115,141,8
     LTEXT           "Number of Channels",IDC_STATIC,51,74,67,8,WS_TABSTOP
     EDITTEXT        IDC_EDIT_NumChannels,25,72,19,12,ES_AUTOHSCROLL
 END
