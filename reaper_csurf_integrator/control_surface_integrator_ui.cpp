@@ -570,14 +570,14 @@ static void LoadTemplates()
                             s_t_paramWidgets.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
-                                s_t_paramWidgetParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
+                                s_t_paramWidgets.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                         else if (tokens[0] == "#DisplayRows" && tokens.size() > 1)
                         {
                             s_t_displayRows.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
-                                s_t_displayRowParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
+                                s_t_displayRows.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                         else if (tokens[0] == "#RingStyles" && tokens.size() > 1)
                             s_t_ringStyles.push_back(tokens[1]);
