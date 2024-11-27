@@ -548,7 +548,7 @@ static void LoadTemplates()
     try
     {
         fpistream file(zoneInfo.Get("FXWidgetLayout")->filePath.c_str());
-
+        
         for (string line; getline(file, line) ; )
         {
             TrimLine(line);
@@ -560,28 +560,30 @@ static void LoadTemplates()
             {
                 string_list tokens;
                 GetTokens(tokens, line.c_str());
-                
+                                
                 if (line.find("Zone") == string::npos)
                 {
                     if (tokens[0][0] == '#')
                     {
-                        if (tokens[0] == "#WidgetTypes" && tokens.size() > 1)
+                        if (tokens[0] == "#WidgetType" && tokens.size() > 1)
                         {
                             s_t_paramWidgets.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
-                                s_t_paramWidgets.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
+                                for (int i = 2; i < tokens.size(); ++i)
+                                    s_t_paramWidgetParams.push_back(line.substr(line.find(tokens[i]), line.length() - 1).c_str());
                         }
-                        else if (tokens[0] == "#DisplayRows" && tokens.size() > 1)
+                        else if (tokens[0] == "#DisplayRow" && tokens.size() > 1)
                         {
                             s_t_displayRows.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
-                                s_t_displayRows.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
+                                for (int i = 2; i < tokens.size(); ++i)
+                                    s_t_displayRowParams.push_back(line.substr(line.find(tokens[i]), line.length() - 1).c_str());
                         }
-                        else if (tokens[0] == "#RingStyles" && tokens.size() > 1)
+                        else if (tokens[0] == "#RingStyle" && tokens.size() > 1)
                             s_t_ringStyles.push_back(tokens[1]);
-                        else if (tokens[0] == "#DisplayFonts" && tokens.size() > 1)
+                        else if (tokens[0] == "#DisplayFont" && tokens.size() > 1)
                             s_t_fonts.push_back(tokens[1]);
                         else if (tokens[0] == "#SupportsColor")
                             s_t_hasColor = true;
