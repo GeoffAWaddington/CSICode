@@ -565,23 +565,23 @@ static void LoadTemplates()
                 {
                     if (tokens[0][0] == '#')
                     {
-                        if (tokens[0] == "#WidgetType" && tokens.size() > 1)
+                        if (tokens[0] == "#WidgetTypes" && tokens.size() > 1)
                         {
                             s_t_paramWidgets.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
                                 s_t_paramWidgetParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
-                        else if (tokens[0] == "#DisplayRow" && tokens.size() > 1)
+                        else if (tokens[0] == "#DisplayRows" && tokens.size() > 1)
                         {
                             s_t_displayRows.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
                                 s_t_displayRowParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
-                        else if (tokens[0] == "#RingStyle" && tokens.size() > 1)
+                        else if (tokens[0] == "#RingStyles" && tokens.size() > 1)
                             s_t_ringStyles.push_back(tokens[1]);
-                        else if (tokens[0] == "#DisplayFont" && tokens.size() > 1)
+                        else if (tokens[0] == "#DisplayFonts" && tokens.size() > 1)
                             s_t_fonts.push_back(tokens[1]);
                         else if (tokens[0] == "#SupportsColor")
                             s_t_hasColor = true;
@@ -2042,6 +2042,8 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     
     const WDL_StringKeyedArray<CSIZoneInfo*> &zoneInfo = s_zoneManager->GetZoneInfo();
 
+    memset(s_fxAlias, 0, sizeof(s_fxAlias));
+    
     if (zoneInfo.Exists(s_fxName))
         lstrcpyn_safe(s_fxAlias, zoneInfo.Get(s_fxName)->alias.c_str(), sizeof(s_fxAlias));
     else
