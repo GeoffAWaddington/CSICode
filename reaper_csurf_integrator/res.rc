@@ -237,10 +237,12 @@ BEGIN
     GROUPBOX        "Param Name",IDC_GroupFixedTextDisplay,5,68,160,71
     GROUPBOX        "Param Value",IDC_GroupFXParamValueDisplay,5,148,160,71
     LTEXT           "Font",IDC_FXParamValueDisplayFontLabel,105,183,15,8
-    COMBOBOX        IDC_FXParamValueDisplayPickFont,126,182,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Font",IDC_FixedTextDisplayFontLabel,105,105,15,8
-    COMBOBOX        IDC_FixedTextDisplayPickFont,126,104,22,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop,134,86,16,12,ES_CENTER | ES_NUMBER
+    COMBOBOX        IDC_FixedTextDisplayPickFont,126,104,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,126,182,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Ring",IDC_FXParamRingColor,15,22,47,12
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,15,40,47,13
     PUSHBUTTON      "Foreground",IDC_FixedTextDisplayForegroundColor,15,85,47,12
     PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,15,104,47,12
     PUSHBUTTON      "Foreground",IDC_FXParamDisplayForegroundColor,15,164,47,12
@@ -251,7 +253,6 @@ BEGIN
     LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,67,106,9,8
     LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,67,182,9,8
     LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,67,164,9,8
-    EDITTEXT        IDC_Edit_FixedTextDisplayTop,134,86,16,12,ES_CENTER | ES_NUMBER
     LTEXT           "Top",IDC_FixedTextDisplayTopLabel,104,88,13,8
     LTEXT           "Bottom",IDC_FixedTextDisplayBottomLabel,107,119,24,8
     EDITTEXT        IDC_Edit_FixedTextDisplayBottom,134,120,16,12,ES_CENTER | ES_NUMBER
@@ -260,7 +261,6 @@ BEGIN
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,134,200,16,12,ES_CENTER | ES_NUMBER
     LTEXT           "Bottom",IDC_ParamValueDisplayBottomLabel,105,201,24,8
     DEFPUSHBUTTON   "Apply To All",IDC_ApplyToAll,102,226,63,14,BS_CENTER
-    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,15,40,47,13
 END
 
 IDD_DIALOG_EditFXAlias DIALOGEX 0, 0, 132, 60

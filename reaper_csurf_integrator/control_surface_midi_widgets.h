@@ -49,10 +49,7 @@ protected:
 public:
     virtual ~Touch_Midi_CSIMessageGenerator() {}
     
-    Touch_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release)
-    {
-        widget->SetIsTwoState();
-    }
+    Touch_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, MIDI_event_ex_t *press, MIDI_event_ex_t *release) : Midi_CSIMessageGenerator(csi, widget), press_(press), release_(release) {}
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {

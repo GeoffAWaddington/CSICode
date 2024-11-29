@@ -1303,6 +1303,8 @@ private:
                 zonesToBeDeleted_.Add(learnFocusedFXZone_);
             learnFocusedFXZone_ = NULL;
         }
+        
+        CloseFocusedFXDialog();
     }
     
     void ClearFocusedFX()

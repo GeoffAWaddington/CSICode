@@ -570,16 +570,14 @@ static void LoadTemplates()
                             s_t_paramWidgets.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
-                                for (int i = 2; i < tokens.size(); ++i)
-                                    s_t_paramWidgetParams.push_back(line.substr(line.find(tokens[i]), line.length() - 1).c_str());
+                                s_t_paramWidgetParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                         else if (tokens[0] == "#DisplayRow" && tokens.size() > 1)
                         {
                             s_t_displayRows.push_back(tokens[1]);
 
                             if (tokens.size() > 2)
-                                for (int i = 2; i < tokens.size(); ++i)
-                                    s_t_displayRowParams.push_back(line.substr(line.find(tokens[i]), line.length() - 1).c_str());
+                                s_t_displayRowParams.push_back(line.substr(line.find(tokens[2]), line.length() - 1).c_str());
                         }
                         else if (tokens[0] == "#RingStyle" && tokens.size() > 1)
                             s_t_ringStyles.push_back(tokens[1]);
@@ -965,11 +963,7 @@ static void FillPropertiesParams()
         SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
         SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
         for (int i = 0; i < s_t_displayRows.size(); ++i)
-        {
-            /////////////////////////////////////////////////
-            //snprintf(buf, sizeof(buf), "%s%d", s_t_displayRows[i].c_str(), channel);
             SendDlgItemMessage(s_hwndLearnFXPropertiesDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
-        }
 
         property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
         if (property)
@@ -1295,6 +1289,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
                     if ( ! strcmp(s_t_displayRows[i], rawWidgetName))
                     {
                         SetWidgetProperties(context, s_t_displayRowParams[i]);
+                        context->ForceWidgetValue(context->GetStringParam());
                         break;
                     }
                 }
