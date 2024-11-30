@@ -656,9 +656,11 @@ static void SaveZone()
         string trimmedFXName = s_fxName;
         ReplaceAllWith(trimmedFXName, s_BadFileChars, "_");
         
-        snprintf(path, sizeof(path), "%s/%s.zon", path, trimmedFXName.c_str());
+        char filePath[BUFSIZ];
         
-        FILE *fxFile = fopenUTF8(path,"wb");
+        snprintf(filePath, sizeof(filePath), "%s/%s.zon", path, trimmedFXName.c_str());
+        
+        FILE *fxFile = fopenUTF8(filePath,"wb");
         
         if (fxFile)
         {
@@ -1154,7 +1156,7 @@ static void FillParams()
     else
     {
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
-        SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
+        SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, buf);
         FillAdvancedParams();
     }
 }
@@ -1247,7 +1249,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
         GetFullWidgetName(s_currentWidget, modifier, buf, sizeof(buf));
         SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
 
-        SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, "");
+        SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, "");
     }
     else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
     {
@@ -1991,7 +1993,7 @@ void WidgetMoved(Widget *widget, int modifier)
         if (! strcmp(context->GetAction()->GetName(), "NoAction"))
         {
             buf[0] = 0;
-            SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, buf);
+            SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, buf);
             ClearParams();
             GetFullWidgetName(widget, modifier, buf, sizeof(buf));
             SetDlgItemText(s_hwndLearnFXDlg, IDC_GroupFXWidget, buf);
@@ -2000,7 +2002,7 @@ void WidgetMoved(Widget *widget, int modifier)
         {
             if (ActionContext *context = cell->GetNameContext(widget))
             {
-                SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, context->GetStringParam());
+                SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, context->GetStringParam());
                 FillParams();
             }
         }
@@ -2111,7 +2113,7 @@ static void UpdateLearnWindowParams()
 {
     char paramName[SMLBUF];
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
-    SetDlgItemText(s_hwndLearnFXDlg, IDC_ParamName, paramName);
+    SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, paramName);
         
     Zone *zone = s_zoneManager->GetLearnedFocusedFXZone();
     
