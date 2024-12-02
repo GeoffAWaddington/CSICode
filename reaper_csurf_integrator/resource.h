@@ -62,15 +62,17 @@
 #define IDC_PickSteps                   1108
 #define IDC_GroupFXWidget               1140
 #define IDC_GroupFXAlias                1141
+#define IDC_GroupAdvanced               1141
 #define IDC_PickRingStyle               1143
 #define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150
-#define IDC_GroupFixedTextDisplay2      1150
 #define IDC_Edit_FixedTextDisplayBottom 1151
 #define IDC_Edit_ParamValueDisplayTop   1152
 #define IDC_Edit_ParamValueDisplayBottom 1153
 #define IDC_WidgetName                  1156
+#define IDC_AutoResetValueEdit          1157
+#define IDC_STATIC_ToResetTo            1158
 #define IDC_FXParamValueDisplayPickFont 1163
 #define IDC_FixedTextDisplayPickFont    1166
 #define IDC_GroupFXParamValueDisplay    1169
@@ -131,10 +133,13 @@
 #define IDC_CELL_LIST                   1291
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
+#define IDC_COMBO_PickAutoResetWidget   1294
 #define IDC_ApplyToAll                  1295
 #define IDC_ShowProperties              1297
 #define IDC_EDIT1                       1300
 #define IDC_EDIT_FXAlias                1300
+#define IDC_CHECK_AutoReset             1301
+#define IDC_CHECK_ShowAdvanced          1302
 
 // Next default values for new objects
 // 
@@ -142,7 +147,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1301
+#define _APS_NEXT_CONTROL_VALUE         1302
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

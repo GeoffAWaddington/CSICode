@@ -208,24 +208,30 @@ BEGIN
     GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,19,14,500,111
 END
 
-IDD_DIALOG_LearnFX DIALOGEX 0, 0, 290, 141
+IDD_DIALOG_LearnFX DIALOGEX 0, 0, 282, 188
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "LearnFX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Widget",IDC_GroupFXWidget,5,12,274,80
+    GROUPBOX        "Widget",IDC_GroupFXWidget,5,12,269,80
     COMBOBOX        IDC_PickSteps,131,66,43,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_PickRingStyle,194,66,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_FXParamNameEdit,14,36,70,12,ES_CENTER | ES_AUTOHSCROLL
     LTEXT           "Steps",IDC_Steps,104,67,18,8
     COMBOBOX        IDC_COMBO_PickNameDisplay,104,36,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PickValueDisplay,194,36,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Params",IDC_Params,104,110,70,14
-    PUSHBUTTON      "Properties",IDC_ShowProperties,195,110,70,14
-    PUSHBUTTON      "Save",IDC_Save,14,110,70,14
+    PUSHBUTTON      "Params",IDC_Params,104,159,70,14
+    PUSHBUTTON      "Properties",IDC_ShowProperties,196,159,78,14
+    PUSHBUTTON      "Save",IDC_Save,7,159,78,14
     PUSHBUTTON      "Unlink",IDC_Unassign,14,65,70,14
     LTEXT           "name",IDC_STATIC,126,24,18,8
     LTEXT           "value",IDC_STATIC,218,24,17,8
+    CONTROL         "Automatically add",IDC_CHECK_AutoReset,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,136,75,10
+    COMBOBOX        IDC_COMBO_PickAutoResetWidget,104,133,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "to reset to",IDC_STATIC_ToResetTo,197,136,35,8
+    EDITTEXT        IDC_AutoResetValueEdit,240,133,24,12,ES_CENTER | ES_AUTOHSCROLL
+    CONTROL         "Show Advanced",IDC_CHECK_ShowAdvanced,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,100,75,10
+    GROUPBOX        "Auto Add Reset Button",IDC_GroupAdvanced,7,118,267,31
 END
 
 IDD_DIALOG_LearnProperties DIALOGEX 0, 0, 178, 248
@@ -294,9 +300,9 @@ BEGIN
     IDD_DIALOG_LearnFX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 282
+        RIGHTMARGIN, 274
         TOPMARGIN, 7
-        BOTTOMMARGIN, 134
+        BOTTOMMARGIN, 181
     END
 
     IDD_DIALOG_LearnProperties, DIALOG
