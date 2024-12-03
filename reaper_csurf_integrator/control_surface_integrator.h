@@ -1294,19 +1294,6 @@ private:
             focusedFXParamZone_->Deactivate();
     }
     
-    void ClearLearnFocusedFXZone()
-    {
-        if (learnFocusedFXZone_ != NULL)
-        {
-            learnFocusedFXZone_->Deactivate();
-            if (zonesToBeDeleted_.Find(learnFocusedFXZone_) == -1)
-                zonesToBeDeleted_.Add(learnFocusedFXZone_);
-            learnFocusedFXZone_ = NULL;
-        }
-        
-        CloseFocusedFXDialog();
-    }
-    
     void ClearFocusedFX()
     {
         if (focusedFXZone_ != NULL)
@@ -1505,6 +1492,19 @@ public:
         }
     }
 
+    void ClearLearnFocusedFXZone()
+    {
+        if (learnFocusedFXZone_ != NULL)
+        {
+            learnFocusedFXZone_->Deactivate();
+            if (zonesToBeDeleted_.Find(learnFocusedFXZone_) == -1)
+                zonesToBeDeleted_.Add(learnFocusedFXZone_);
+            learnFocusedFXZone_ = NULL;
+        }
+        
+        CloseFocusedFXDialog();
+    }
+    
     void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
     {
         if (learnFocusedFXZone_ != NULL)

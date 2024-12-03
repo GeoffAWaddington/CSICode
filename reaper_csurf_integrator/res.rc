@@ -226,12 +226,12 @@ BEGIN
     PUSHBUTTON      "Unlink",IDC_Unassign,14,65,70,14
     LTEXT           "name",IDC_STATIC,126,24,18,8
     LTEXT           "value",IDC_STATIC,218,24,17,8
-    CONTROL         "Automatically add",IDC_CHECK_AutoReset,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,136,75,10
     COMBOBOX        IDC_COMBO_PickAutoResetWidget,104,133,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to reset to",IDC_STATIC_ToResetTo,197,136,35,8
+    LTEXT           "reset to",IDC_STATIC_ToResetTo,197,136,26,8
     EDITTEXT        IDC_AutoResetValueEdit,240,133,24,12,ES_CENTER | ES_AUTOHSCROLL
     CONTROL         "Show Advanced",IDC_CHECK_ShowAdvanced,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,100,75,10
-    GROUPBOX        "Auto Add Reset Button",IDC_GroupAdvanced,7,118,267,31
+    GROUPBOX        "Reset Button",IDC_GroupAdvanced,7,118,267,31
+    PUSHBUTTON      "Add/Remove",IDC_AddRemoveReset,7,132,78,14
 END
 
 IDD_DIALOG_LearnProperties DIALOGEX 0, 0, 178, 248

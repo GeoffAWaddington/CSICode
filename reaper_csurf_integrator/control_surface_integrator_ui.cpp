@@ -1178,6 +1178,69 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
     }
 }
 
+static void AddRemoveResetWidget(int modifier, int paramIdx)
+{
+    if (s_currentWidget == NULL)
+        return;
+    
+    FXCell *cell = GetCell(s_currentWidget, modifier);
+    
+    if (cell == NULL)
+        return;
+
+    char suffix[SMLBUF];
+    snprintf(suffix, sizeof(suffix), "%s%d", cell->suffix.c_str(), s_currentWidget->GetChannelNumber());
+
+    char rawResetWidgetName[SMLBUF];
+    rawResetWidgetName[0] = 0;
+    GetDlgItemText(s_hwndLearnFXDlg, IDC_COMBO_PickAutoResetWidget, rawResetWidgetName, sizeof(rawResetWidgetName));
+
+    char resetValueText[SMLBUF];
+    resetValueText[0] = 0;
+    GetDlgItemText(s_hwndLearnFXDlg, IDC_AutoResetValueEdit, resetValueText, sizeof(resetValueText));
+
+    if (rawResetWidgetName[0] != 0 && resetValueText[0] != 0)
+    {
+        char fullResetWidgetName[SMLBUF];
+        snprintf(fullResetWidgetName, sizeof(fullResetWidgetName), "%s%s", rawResetWidgetName, suffix);
+
+        for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
+        {
+            if ( ! strcmp(cell->controlWidgets.Get(i)->GetName(), fullResetWidgetName))
+            {
+                vector<double> steps;
+                
+                Widget *resetWidget = s_zoneManager->GetSurface()->GetWidgetByName(fullResetWidgetName);
+                
+                if (resetWidget)
+                {
+                    if (ActionContext *resetContext = GetContext(resetWidget, modifier))
+                    {
+                        if ( ! strcmp(resetContext->GetAction()->GetName(), "NoAction"))
+                        {
+                            steps.push_back(atof(resetValueText));
+
+                            resetContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
+                            resetContext->SetParamIndex(paramIdx);
+                            resetContext->SetStepValues(steps);
+                            resetContext->SetStringParam("");
+                        }
+                        else
+                        {
+                            resetContext->SetAction(s_zoneManager->GetCSI()->GetNoActionAction());
+                            resetContext->SetParamIndex(0);
+                            resetContext->SetStepValues(steps);
+                            resetContext->SetStringParam("");
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
 {
     if (s_hwndLearnFXDlg == NULL)
@@ -1199,21 +1262,7 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
     
     char buf[MEDBUF];
     buf[0] = 0;
-    
-    int index = -1;
-    
-    for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
-    {
-        if (cell->controlWidgets.Get(i) == s_currentWidget)
-        {
-            index = i;
-            break;
-        }
-    }
-    
-    if (index < 0)
-        return;
-    
+
     ActionContext *paramContext = GetContext(s_currentWidget, modifier);
     
     if (paramContext == NULL)
@@ -1265,47 +1314,6 @@ static void HandleAssigment(int modifier, int paramIdx, bool shouldAssign)
             {
                 SetWidgetProperties(paramContext, s_t_paramWidgetParams[i]);
                 break;
-            }
-        }
-                
-        if (SendMessage(GetDlgItem(s_hwndLearnFXDlg, IDC_CHECK_AutoReset), BM_GETCHECK, 0, 0) == BST_CHECKED)
-        {
-            char resetWidgetName[SMLBUF];
-            resetWidgetName[0] = 0;
-            GetDlgItemText(s_hwndLearnFXDlg, IDC_COMBO_PickAutoResetWidget, resetWidgetName, sizeof(resetWidgetName));
-
-            char resetValueText[SMLBUF];
-            resetValueText[0] = 0;
-            GetDlgItemText(s_hwndLearnFXDlg, IDC_AutoResetValueEdit, resetValueText, sizeof(resetValueText));
-
-            if (resetWidgetName[0] != 0 && resetValueText[0] != 0)
-            {
-                char fullResetWidgetName[SMLBUF];
-                snprintf(fullResetWidgetName, sizeof(fullResetWidgetName), "%s%s", resetWidgetName, suffix);
-
-                for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
-                {
-                    if ( ! strcmp(cell->controlWidgets.Get(i)->GetName(), fullResetWidgetName))
-                    {
-                        vector<double> steps;
-                        steps.push_back(atof(resetValueText));
-                        
-                        Widget *resetWidget = s_zoneManager->GetSurface()->GetWidgetByName(fullResetWidgetName);
-                        
-                        if (resetWidget)
-                        {
-                            if (ActionContext *resetContext = GetContext(resetWidget, modifier))
-                            {
-                                resetContext->SetAction(s_zoneManager->GetCSI()->GetFXParamAction());
-                                resetContext->SetParamIndex(paramIdx);
-                                resetContext->SetStepValues(steps);
-                                resetContext->SetStringParam("");
-                                
-                                break;
-                            }
-                        }
-                    }
-                }
             }
         }
         
@@ -1828,7 +1836,7 @@ static void CreateContextMap()
 static void ShowAdvanced(HWND hwndDlg, bool shouldShow)
 {
     ShowWindow(GetDlgItem(hwndDlg, IDC_GroupAdvanced), shouldShow);
-    ShowWindow(GetDlgItem(hwndDlg, IDC_CHECK_AutoReset), shouldShow);
+    ShowWindow(GetDlgItem(hwndDlg, IDC_AddRemoveReset), shouldShow);
     ShowWindow(GetDlgItem(hwndDlg, IDC_COMBO_PickAutoResetWidget), shouldShow);
     ShowWindow(GetDlgItem(hwndDlg, IDC_STATIC_ToResetTo), shouldShow);
     ShowWindow(GetDlgItem(hwndDlg, IDC_AutoResetValueEdit), shouldShow);
@@ -1847,7 +1855,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             break;
                         
         case WM_CLOSE:
-            CloseFocusedFXDialog();
+            s_zoneManager->ClearLearnFocusedFXZone();
             break;
 
         case WM_USER + 1024:
@@ -1912,6 +1920,20 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     }
                     break;
                     
+                case IDC_AddRemoveReset:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int paramNum = s_lastTouchedParamNum;
+                        if (paramNum < 0)
+                            break;
+
+                        if (s_currentWidget == NULL)
+                            break;
+
+                        AddRemoveResetWidget(modifier, paramNum);
+                    }
+                    break ;
+
                 case IDC_Save:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -2174,6 +2196,8 @@ void CloseFocusedFXDialog()
 
     if(s_hwndLearnFXDlg != NULL)
         ShowWindow(s_hwndLearnFXDlg, SW_HIDE);
+    
+    // GAW TBD -- dump Learn Zone
 }
 
 static void UpdateLearnWindowParams()
