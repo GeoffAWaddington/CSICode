@@ -136,10 +136,7 @@
 #define IDC_COMBO_PickAutoResetWidget   1294
 #define IDC_ApplyToAll                  1295
 #define IDC_ShowProperties              1297
-#define IDC_EDIT1                       1300
 #define IDC_EDIT_FXAlias                1300
-#define IDC_CHECK_ShowAdvanced          1302
-#define IDC_AddRemoveReset              1303
 
 // Next default values for new objects
 // 

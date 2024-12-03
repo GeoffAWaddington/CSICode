@@ -208,7 +208,7 @@ BEGIN
     GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,19,14,500,111
 END
 
-IDD_DIALOG_LearnFX DIALOGEX 0, 0, 282, 188
+IDD_DIALOG_LearnFX DIALOGEX 0, 0, 282, 137
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "LearnFX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -220,18 +220,12 @@ BEGIN
     LTEXT           "Steps",IDC_Steps,104,67,18,8
     COMBOBOX        IDC_COMBO_PickNameDisplay,104,36,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PickValueDisplay,194,36,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Params",IDC_Params,104,159,70,14
-    PUSHBUTTON      "Properties",IDC_ShowProperties,196,159,78,14
-    PUSHBUTTON      "Save",IDC_Save,7,159,78,14
+    PUSHBUTTON      "Params",IDC_Params,104,104,70,14
+    PUSHBUTTON      "Properties",IDC_ShowProperties,196,104,78,14
+    PUSHBUTTON      "Save",IDC_Save,7,104,78,14
     PUSHBUTTON      "Unlink",IDC_Unassign,14,65,70,14
     LTEXT           "name",IDC_STATIC,126,24,18,8
     LTEXT           "value",IDC_STATIC,218,24,17,8
-    COMBOBOX        IDC_COMBO_PickAutoResetWidget,104,133,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "reset to",IDC_STATIC_ToResetTo,197,136,26,8
-    EDITTEXT        IDC_AutoResetValueEdit,240,133,24,12,ES_CENTER | ES_AUTOHSCROLL
-    CONTROL         "Show Advanced",IDC_CHECK_ShowAdvanced,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,100,75,10
-    GROUPBOX        "Reset Button",IDC_GroupAdvanced,7,118,267,31
-    PUSHBUTTON      "Add/Remove",IDC_AddRemoveReset,7,132,78,14
 END
 
 IDD_DIALOG_LearnProperties DIALOGEX 0, 0, 178, 248
@@ -302,7 +296,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 274
         TOPMARGIN, 7
-        BOTTOMMARGIN, 181
+        BOTTOMMARGIN, 130
     END
 
     IDD_DIALOG_LearnProperties, DIALOG
