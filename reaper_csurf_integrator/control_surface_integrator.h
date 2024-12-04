@@ -821,16 +821,6 @@ protected:
 
     void UpdateCurrentActionContextModifier(Widget *widget);
         
-    bool IsTrackLocked()
-    {
-        MediaTrack *tr = navigator_->GetTrack();
-        char buf[MEDBUF];
-        snprintf(buf, sizeof(buf), "%s", "LOCK 1");
-        if (GetTrackStateChunk(tr, buf, sizeof(buf), true) &&  strstr(buf, "LOCK 1") != NULL)
-                return true;
-        return false;
-    }
-    
 public:
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), actionContextDictionary_(destroyActionContextListArray)
     {

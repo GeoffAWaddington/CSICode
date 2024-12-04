@@ -1691,13 +1691,7 @@ MediaTrack *MasterTrackNavigator::GetTrack()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 MediaTrack *SelectedTrackNavigator::GetTrack()
 {
-    MediaTrack *selectedTrack = page_->GetSelectedTrack();
-    char buf[MEDBUF];
-    snprintf(buf, sizeof(buf), "%s", "LOCK 1");
-    if (GetTrackStateChunk(selectedTrack, buf, sizeof(buf), true) &&  strstr(buf, "LOCK 1") != NULL)
-            return NULL;
-    else
-        return selectedTrack;
+    return page_->GetSelectedTrack();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2280,9 +2274,6 @@ void Zone::RestoreXTouchDisplayColors()
 
 void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 {
-    if (IsTrackLocked())
-        return;
-    
     if (! isActive_ || isUsed)
         return;
         
@@ -2315,9 +2306,6 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 
 void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
 {
-    if (IsTrackLocked())
-        return;
-
     if (! isActive_ || isUsed)
         return;
     
@@ -2350,9 +2338,6 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
 
 void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta)
 {
-    if (IsTrackLocked())
-        return;
-
     if (! isActive_ || isUsed)
         return;
 
@@ -2385,9 +2370,6 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
 
 void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value)
 {
-    if (IsTrackLocked())
-        return;
-
     if (! isActive_ || isUsed)
         return;
 
