@@ -1783,7 +1783,15 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             break;
                         
         case WM_CLOSE:
-            s_zoneManager->ClearLearnFocusedFXZone();
+            if (s_zoneManager != NULL)
+                s_zoneManager->ClearLearnFocusedFXZone();
+            
+            if(s_hwndLearnFXPropertiesDlg != NULL)
+                ShowWindow(s_hwndLearnFXPropertiesDlg, SW_HIDE);
+
+            if(s_hwndLearnFXDlg != NULL)
+                ShowWindow(s_hwndLearnFXDlg, SW_HIDE);
+
             break;
 
         case WM_USER + 1024:
@@ -2099,6 +2107,9 @@ void CloseFocusedFXDialog()
 
 static void UpdateLearnWindowParams()
 {
+    if (s_zoneManager == NULL)
+        return;
+    
     char paramName[SMLBUF];
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
     SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, paramName);
