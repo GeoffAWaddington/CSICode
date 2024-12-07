@@ -12,7 +12,6 @@
 #define IDC_ExitNoSave                  6
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_LearnFX              117
-#define IDD_DIALOG_LearnProperties      119
 #define IDD_DIALOG_Broadcast            123
 #define IDD_DIALOG_EditAdvanced         126
 #define IDD_DIALOG_EditFXAlias          129
@@ -135,8 +134,8 @@
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_COMBO_PickAutoResetWidget   1294
 #define IDC_ApplyToAll                  1295
-#define IDC_ShowProperties              1297
 #define IDC_EDIT_FXAlias                1300
+#define IDC_SurfaceName                 1304
 
 // Next default values for new objects
 // 
@@ -144,7 +143,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1304
+#define _APS_NEXT_CONTROL_VALUE         1305
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
