@@ -136,6 +136,7 @@
 #define IDC_ApplyToAll                  1295
 #define IDC_EDIT_FXAlias                1300
 #define IDC_SurfaceName                 1304
+#define IDC_CHECK_ShowAdvanced          1306
 
 // Next default values for new objects
 // 
@@ -143,7 +144,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1305
+#define _APS_NEXT_CONTROL_VALUE         1307
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

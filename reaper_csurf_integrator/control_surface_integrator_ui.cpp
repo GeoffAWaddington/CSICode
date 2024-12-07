@@ -1474,6 +1474,23 @@ static void CreateContextMap()
     }
 }
 
+static void ShowAdvanced(HWND hwndDlg, bool shouldShow)
+{
+    static unsigned int advancedControls[] = {
+        IDC_FXParamRingColor, IDC_FXParamRingColorBox,
+        IDC_FXParamIndicatorColor, IDC_FXParamIndicatorColorBox,
+        IDC_FixedTextDisplayForegroundColor, IDC_FXFixedTextDisplayForegroundColorBox,
+        IDC_FixedTextDisplayBackgroundColor, IDC_FXFixedTextDisplayBackgroundColorBox,
+        IDC_FXParamDisplayForegroundColor, IDC_FXParamValueDisplayForegroundColorBox,
+        IDC_FXParamDisplayBackgroundColor, IDC_FXParamValueDisplayBackgroundColorBox,
+        IDC_FixedTextDisplayPickFont, IDC_Edit_FixedTextDisplayTop, IDC_Edit_FixedTextDisplayBottom,
+        IDC_FXParamValueDisplayPickFont, IDC_Edit_ParamValueDisplayTop, IDC_Edit_ParamValueDisplayBottom
+    };
+    
+    for (int i = 0; i < NUM_ELEM(advancedControls); ++i)
+        ShowWindow(GetDlgItem(hwndDlg, advancedControls[i]), shouldShow);
+}
+
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     char buf[MEDBUF];
@@ -1504,6 +1521,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 SetWindowText(s_hwndLearnFXDlg, s_fxAlias);
                 s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
                 CreateContextMap();
+                ShowAdvanced(hwndDlg, false);
             }
             break;
 
@@ -1569,6 +1587,16 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
             switch(LOWORD(wParam))
             {
+                case IDC_CHECK_ShowAdvanced:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ShowAdvanced), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                            ShowAdvanced(hwndDlg, true);
+                        else
+                            ShowAdvanced(hwndDlg, false);
+                    }
+                    break;
+                    
                 case IDC_Unassign:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
