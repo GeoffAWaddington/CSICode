@@ -230,22 +230,22 @@ BEGIN
     EDITTEXT        IDC_Edit_FixedTextDisplayTop,44,237,16,12,ES_CENTER | ES_NUMBER
     COMBOBOX        IDC_FixedTextDisplayPickFont,16,250,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FXParamValueDisplayPickFont,17,331,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "",IDC_FXParamRingColorBox,12,133,54,18
-    PUSHBUTTON      "Ring",IDC_FXParamRingColor,15,137,47,12
-    LTEXT           "",IDC_FXParamIndicatorColorBox,12,152,54,18
-    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,15,155,47,12
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,12,196,54,18
-    PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,15,200,47,12
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,12,215,54,18
-    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,15,218,47,12
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,12,275,54,18
-    PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,15,279,47,12
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,12,294,54,18
-    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,15,297,47,12
+    LTEXT           "",IDC_FXParamRingColorBox,14,120,70,18
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor,20,124,57,12
+    LTEXT           "",IDC_FXParamIndicatorColorBox,14,139,70,18
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,20,142,56,12
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,104,120,70,18
+    PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,110,124,57,12
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,104,139,70,18
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,110,142,57,12
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,194,120,70,18
+    PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,200,124,57,12
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,194,139,70,18
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,200,142,57,12
     EDITTEXT        IDC_Edit_FixedTextDisplayBottom,44,255,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayTop,45,317,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,45,335,16,12,ES_CENTER | ES_NUMBER
-    PUSHBUTTON      "Apply To All",IDC_ApplyToAll,102,341,63,14,BS_CENTER
+    PUSHBUTTON      "Apply To All",IDC_ApplyToAll,102,341,78,14,BS_CENTER
     CTEXT           "Surface Name",IDC_SurfaceName,7,14,267,8
 END
 
