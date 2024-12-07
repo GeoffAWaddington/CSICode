@@ -1489,6 +1489,9 @@ static void ShowAdvanced(HWND hwndDlg, bool shouldShow)
     
     for (int i = 0; i < NUM_ELEM(advancedControls); ++i)
         ShowWindow(GetDlgItem(hwndDlg, advancedControls[i]), shouldShow);
+    
+    if (shouldShow)
+        InvalidateRect(hwndDlg, NULL, true);
 }
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
