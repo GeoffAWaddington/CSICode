@@ -2087,6 +2087,16 @@ void LearnFocusedFXDialog(ZoneManager *zoneManager)
     LaunchLearnFocusedFXDialog(zoneManager);
 }
 
+void ShutdownLearn()
+{
+    CloseFocusedFXDialog();
+    
+    if(s_hwndLearnFXDlg != NULL)
+        DestroyWindow(s_hwndLearnFXDlg);
+    
+    s_hwndLearnFXDlg = NULL;
+}
+
 void CloseFocusedFXDialog()
 {
     s_zoneManager =  NULL;

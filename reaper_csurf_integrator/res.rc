@@ -244,7 +244,7 @@ BEGIN
     EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,201,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,201,16,12,ES_CENTER | ES_NUMBER
     PUSHBUTTON      "Apply Colors To All",IDC_ApplyColorsToAll,104,178,70,14,BS_CENTER
-    PUSHBUTTON      "Apply Fonts  To All",IDC_ApplyFontsAndMarginsToAll,14,200,70,14,BS_CENTER
+    PUSHBUTTON      "Apply Fonts To All",IDC_ApplyFontsAndMarginsToAll,14,200,70,14,BS_CENTER
     CTEXT           "Surface Name",IDC_SurfaceName,7,14,267,10
 END
 

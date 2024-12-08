@@ -64,6 +64,7 @@ extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow();
 extern void InitBlankLearnFocusedFXZone();
+extern void ShutdownLearn();
 
 extern bool g_surfaceRawInDisplay;
 extern bool g_surfaceInDisplay;
@@ -4278,6 +4279,8 @@ public:
         // Zero out all Widgets before shutting down
         if (pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->ForceClear();
+        
+        ShutdownLearn();
     }
     
     void Init();
