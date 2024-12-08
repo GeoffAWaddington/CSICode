@@ -209,7 +209,7 @@ BEGIN
 END
 
 IDD_DIALOG_LearnFX DIALOGEX 0, 0, 282, 235
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "LearnFX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -228,18 +228,18 @@ BEGIN
     EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,175,16,12,ES_CENTER | ES_NUMBER
     COMBOBOX        IDC_FixedTextDisplayPickFont,104,175,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_FXParamValueDisplayPickFont,194,175,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "",IDC_FXParamRingColorBox,14,133,70,18
-    PUSHBUTTON      "Ring",IDC_FXParamRingColor,15,134,67,16
-    LTEXT           "",IDC_FXParamIndicatorColorBox,14,152,70,18
-    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,15,153,67,16
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,104,133,70,18
-    PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,105,134,67,16
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,104,152,70,18
-    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,105,153,67,16
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,194,133,70,18
-    PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,195,134,67,16
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,194,152,70,18
-    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,195,153,67,16
+    LTEXT           "",IDC_FXParamRingColorBox,82,134,4,14
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor,14,134,67,14
+    LTEXT           "",IDC_FXParamIndicatorColorBox,82,153,4,14
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,14,153,67,14
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,171,134,4,14
+    PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,104,134,67,14
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,171,153,4,14
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,104,153,67,14
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,261,134,4,14
+    PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,194,134,67,14
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,153,4,14
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,194,153,67,14
     EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,175,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,175,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,175,16,12,ES_CENTER | ES_NUMBER
@@ -247,7 +247,7 @@ BEGIN
     CTEXT           "Surface Name",IDC_SurfaceName,7,14,267,10
     CONTROL         "Show Advanced",IDC_CHECK_ShowAdvanced,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,16,114,67,10
     CONTROL         "Apply fonts/margins", IDC_CHECK_ApplyFontsAndMargins,"Button", BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,175,100,10
-    CONTROL         "Apply colors", IDC_CHECK_ApplyColors,"Button", BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,188,100,10
+    CONTROL         "Apply colors", IDC_CHECK_ApplyColors,"Button", BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,192,100,10
 END
 
 IDD_DIALOG_EditFXAlias DIALOGEX 0, 0, 132, 60
