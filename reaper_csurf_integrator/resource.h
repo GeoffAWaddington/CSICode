@@ -117,12 +117,11 @@
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_COMBO_PickAutoResetWidget   1294
-#define IDC_ApplyToAll                  1295
+#define IDC_ApplyColorsToAll            1295
 #define IDC_EDIT_FXAlias                1300
 #define IDC_SurfaceName                 1304
 #define IDC_CHECK_ShowAdvanced          1306
-#define IDC_CHECK_ApplyColors           1307
-#define IDC_CHECK_ApplyFontsAndMargins  1308
+#define IDC_ApplyFontsAndMarginsToAll  1307
 
 // Next default values for new objects
 // 
@@ -130,7 +129,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1309
+#define _APS_NEXT_CONTROL_VALUE         1308
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
