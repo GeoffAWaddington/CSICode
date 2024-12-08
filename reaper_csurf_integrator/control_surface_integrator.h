@@ -60,9 +60,10 @@ extern void ReplaceAllWith(string &output, const char *replaceAny, const char *r
 extern int strToHex(const char *valueStr);
 
 class ZoneManager;
+class Zone;
 extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
-extern void UpdateLearnWindow();
+extern void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone);
 extern void InitBlankLearnFocusedFXZone();
 extern void ShutdownLearn();
 
@@ -1782,7 +1783,7 @@ public:
           
         if (learnFocusedFXZone_ != NULL)
         {
-            UpdateLearnWindow();
+            UpdateLearnWindow(this, learnFocusedFXZone_);
             learnFocusedFXZone_->RequestUpdate();
         }
 
