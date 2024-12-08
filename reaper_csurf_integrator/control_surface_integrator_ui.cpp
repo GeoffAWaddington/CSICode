@@ -1315,15 +1315,18 @@ static void ApplyToAll(HWND hwndDlg, Widget *widget, int modifier, ActionContext
             {
                 if (ActionContext *context = GetContext(s_cells.Get(cell)->controlWidgets.Get(i), modifier))
                 {
-                    if (const char *sourceRingColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
-                            context->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, sourceRingColor);
- 
-                    if (const char *sourcePushColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_PushColor))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_PushColor))
-                            context->GetWidgetProperties().set_prop(PropertyType_PushColor, sourcePushColor);
-                    
-                    context->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyColors), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
+                        if (const char *sourceRingColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
+                                context->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, sourceRingColor);
+                        
+                        if (const char *sourcePushColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_PushColor))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_PushColor))
+                                context->GetWidgetProperties().set_prop(PropertyType_PushColor, sourcePushColor);
+                        
+                        context->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                    }
                 }
             }
             
@@ -1331,27 +1334,35 @@ static void ApplyToAll(HWND hwndDlg, Widget *widget, int modifier, ActionContext
             {
                 if (ActionContext *context = s_cells.Get(cell)->GetNameContext(s_cells.Get(cell)->controlWidgets.Get(i)))
                 {
-                    if (const char *sourceTextColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_TextColor))
-                            context->GetWidgetProperties().set_prop(PropertyType_TextColor, sourceTextColor);
- 
-                    if (const char *sourceBackgroundColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
-                            context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, sourceBackgroundColor);
-
-                    if (const char *sourceTopMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
-                            context->GetWidgetProperties().set_prop(PropertyType_TopMargin, sourceTopMargin);
-
-                    if (const char *sourceBottomMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
-                            context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, sourceBottomMargin);
-
-                    if (const char *sourceFont = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_Font))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_Font))
-                            context->GetWidgetProperties().set_prop(PropertyType_Font, sourceFont);
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyColors), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
+                        if (const char *sourceTextColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                                context->GetWidgetProperties().set_prop(PropertyType_TextColor, sourceTextColor);
+                        
+                        if (const char *sourceBackgroundColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                                context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, sourceBackgroundColor);
+                    }
                     
-                    context->ForceWidgetValue(context->GetStringParam());
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyFontsAndMargins), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
+                        
+                        if (const char *sourceTopMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                                context->GetWidgetProperties().set_prop(PropertyType_TopMargin, sourceTopMargin);
+                        
+                        if (const char *sourceBottomMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                                context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, sourceBottomMargin);
+                        
+                        if (const char *sourceFont = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_Font))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_Font))
+                                context->GetWidgetProperties().set_prop(PropertyType_Font, sourceFont);
+                    }
+                    
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyColors), BM_GETCHECK, 0, 0) == BST_CHECKED || SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyFontsAndMargins), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                        context->ForceWidgetValue(context->GetStringParam());
                 }
             }
             
@@ -1359,27 +1370,35 @@ static void ApplyToAll(HWND hwndDlg, Widget *widget, int modifier, ActionContext
             {
                 if (ActionContext *context = s_cells.Get(cell)->GetValueContext(s_cells.Get(cell)->controlWidgets.Get(i)))
                 {
-                    if (const char *sourceTextColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
-                        if (const char *textColor = context->GetWidgetProperties().get_prop(PropertyType_TextColor))
-                            context->GetWidgetProperties().set_prop(PropertyType_TextColor, sourceTextColor);
- 
-                    if (const char *sourceBackgroundColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
-                        if (const char *backgroundColor = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
-                            context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, sourceBackgroundColor);
-
-                    if (const char *sourceTopMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
-                            context->GetWidgetProperties().set_prop(PropertyType_TopMargin, sourceTopMargin);
-
-                    if (const char *sourceBottomMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
-                            context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, sourceBottomMargin);
-
-                    if (const char *sourceFont = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_Font))
-                        if (context->GetWidgetProperties().get_prop(PropertyType_Font))
-                            context->GetWidgetProperties().set_prop(PropertyType_Font, sourceFont);
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyColors), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
+                        if (const char *sourceTextColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                            if (const char *textColor = context->GetWidgetProperties().get_prop(PropertyType_TextColor))
+                                context->GetWidgetProperties().set_prop(PropertyType_TextColor, sourceTextColor);
+                        
+                        if (const char *sourceBackgroundColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                            if (const char *backgroundColor = context->GetWidgetProperties().get_prop(PropertyType_BackgroundColor))
+                                context->GetWidgetProperties().set_prop(PropertyType_BackgroundColor, sourceBackgroundColor);
+                    }
                     
-                    context->ForceWidgetValue(context->GetStringParam());
+
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyFontsAndMargins), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    {
+                        if (const char *sourceTopMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
+                                context->GetWidgetProperties().set_prop(PropertyType_TopMargin, sourceTopMargin);
+                        
+                        if (const char *sourceBottomMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_BottomMargin))
+                                context->GetWidgetProperties().set_prop(PropertyType_BottomMargin, sourceBottomMargin);
+                        
+                        if (const char *sourceFont = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_Font))
+                            if (context->GetWidgetProperties().get_prop(PropertyType_Font))
+                                context->GetWidgetProperties().set_prop(PropertyType_Font, sourceFont);
+                    }
+                    
+                    if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyColors), BM_GETCHECK, 0, 0) == BST_CHECKED || SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_ApplyFontsAndMargins), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                        context->ForceWidgetValue(context->GetStringParam());
                 }
             }
         }
@@ -1477,14 +1496,15 @@ static void CreateContextMap()
 static void ShowAdvanced(HWND hwndDlg, bool shouldShow)
 {
     static unsigned int advancedControls[] = {
-        IDC_FXParamRingColor, IDC_FXParamRingColorBox,
+        IDC_FXParamRingColor, IDC_FXParamRingColorBox, IDC_ApplyToAll,
         IDC_FXParamIndicatorColor, IDC_FXParamIndicatorColorBox,
         IDC_FixedTextDisplayForegroundColor, IDC_FXFixedTextDisplayForegroundColorBox,
         IDC_FixedTextDisplayBackgroundColor, IDC_FXFixedTextDisplayBackgroundColorBox,
         IDC_FXParamDisplayForegroundColor, IDC_FXParamValueDisplayForegroundColorBox,
         IDC_FXParamDisplayBackgroundColor, IDC_FXParamValueDisplayBackgroundColorBox,
         IDC_FixedTextDisplayPickFont, IDC_Edit_FixedTextDisplayTop, IDC_Edit_FixedTextDisplayBottom,
-        IDC_FXParamValueDisplayPickFont, IDC_Edit_ParamValueDisplayTop, IDC_Edit_ParamValueDisplayBottom
+        IDC_FXParamValueDisplayPickFont, IDC_Edit_ParamValueDisplayTop, IDC_Edit_ParamValueDisplayBottom,
+        IDC_CHECK_ApplyColors, IDC_CHECK_ApplyFontsAndMargins
     };
     
     for (int i = 0; i < NUM_ELEM(advancedControls); ++i)
@@ -1493,6 +1513,9 @@ static void ShowAdvanced(HWND hwndDlg, bool shouldShow)
     if (shouldShow)
         InvalidateRect(hwndDlg, NULL, true);
 }
+
+static HFONT hFont16 = NULL;
+static HFONT hFont14 = NULL;
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1503,6 +1526,46 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     
     switch(uMsg)
     {
+        case WM_INITDIALOG:
+            {
+                hFont16 = CreateFont(16,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   ANSI_CHARSET,
+                                   OUT_DEFAULT_PRECIS,
+                                   CLIP_DEFAULT_PRECIS,
+                                   DEFAULT_QUALITY,
+                                   DEFAULT_PITCH,
+                                   "Arial");
+                
+                if (hFont16)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_SurfaceName), WM_SETFONT, (WPARAM) hFont16, 0);
+                
+                hFont14 = CreateFont(14,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   ANSI_CHARSET,
+                                   OUT_DEFAULT_PRECIS,
+                                   CLIP_DEFAULT_PRECIS,
+                                   DEFAULT_QUALITY,
+                                   DEFAULT_PITCH,
+                                   "Arial");
+                
+                if (hFont14)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), WM_SETFONT, (WPARAM) hFont14, 0);
+            }
+            break;
+            
         case WM_NCLBUTTONDBLCLK:
             {
                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
@@ -1516,6 +1579,12 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             if(s_hwndLearnFXDlg != NULL)
                 ShowWindow(s_hwndLearnFXDlg, SW_HIDE);
 
+            if (hFont16)
+                DeleteObject(hFont16);
+            
+            if (hFont14)
+                DeleteObject(hFont14);
+            
             break;
 
         case WM_USER + 1024:
