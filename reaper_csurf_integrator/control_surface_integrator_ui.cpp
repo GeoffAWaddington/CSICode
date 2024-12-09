@@ -17,22 +17,6 @@ extern int g_maxNumParamSteps;
 
 static bool s_isUpdatingParameters = false;
 
-static ModifierManager s_modifierManager(NULL);
-
-
-
-// t = template
-static string_list s_t_paramWidgets;
-static string_list s_t_paramWidgetParams;
-static string_list s_t_displayRows;
-static string_list s_t_displayRowParams;
-static string_list s_t_ringStyles;
-static string_list s_t_fonts;
-static bool s_t_hasColor = false;
-static char s_t_paramWidget[SMLBUF];
-static char s_t_nameWidget[SMLBUF];
-static char s_t_valueWidget[SMLBUF];
-
 static HWND s_hwndLearnFXDlg = NULL;
 static int s_dlgResult = IDCANCEL;
 
@@ -65,12 +49,50 @@ struct FXRowLayout
 
 static ptrvector<FXRowLayout> s_fxRowLayouts;
 
-static ActionContext *GetContext(Widget *widget, int modifier)
+
+
+
+
+// t = template
+static string_list s_t_paramWidgets;
+static string_list s_t_paramWidgetParams;
+static string_list s_t_displayRows;
+static string_list s_t_displayRowParams;
+static string_list s_t_ringStyles;
+static string_list s_t_fonts;
+static bool s_t_hasColor = false;
+static char s_t_paramWidget[SMLBUF];
+static char s_t_nameWidget[SMLBUF];
+static char s_t_valueWidget[SMLBUF];
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct CellTemplate
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+    ZoneManager *zoneManager;
+    string_list paramWidgets;
+    string_list paramWidgetParams;
+    string_list displayRows;
+    string_list displayRowParams;
+    string_list ringStyles;
+    string_list fonts;
+    bool hasColor = false;
+    char paramWidget[SMLBUF];
+    char nameWidget[SMLBUF];
+    char valueWidget[SMLBUF];
+    
+    CellTemplate(ZoneManager *aZoneManager)
+    {
+        zoneManager = aZoneManager;
+    }
+};
+
+static ActionContext *GetContext(ZoneManager *zoneManager, Widget *widget, int modifier)
 {
     if (widget == NULL)
         return NULL;
     
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = s_zoneManager->GetLearnFocusedFXActionContextDictionary();
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
     
     if (contexts == NULL)
         return NULL;
@@ -83,16 +105,18 @@ static ActionContext *GetContext(Widget *widget, int modifier)
 
 struct FXCell
 {
+    ZoneManager *zoneManager;
+    
     WDL_PtrList<Widget> controlWidgets;
     WDL_PtrList<Widget> displayWidgets;
 
     string suffix;
     int modifier;
-    
     int channel;
     
-    FXCell()
+    FXCell(ZoneManager *aZoneManager)
     {
+        zoneManager = aZoneManager;
         modifier = 0;
         channel = 0;
     }
@@ -104,11 +128,11 @@ struct FXCell
         
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+            ActionContext *nameContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
             
             if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
-                ActionContext *paramContext = GetContext(widget, modifier);
+                ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
 
                 if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
                     return nameContext;
@@ -125,11 +149,11 @@ struct FXCell
         
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
+            ActionContext *valueContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
             
             if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
-                ActionContext *paramContext = GetContext(widget, modifier);
+                ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
 
                 if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
                     return valueContext;
@@ -143,11 +167,11 @@ struct FXCell
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+            ActionContext *nameContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
             
             if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
-                ActionContext *paramContext = GetContext(widget, modifier);
+                ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
 
                 if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
                     return displayWidgets.Get(i);
@@ -161,11 +185,11 @@ struct FXCell
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
+            ActionContext *valueContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
             
             if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
-                ActionContext *paramContext = GetContext(widget, modifier);
+                ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
 
                 if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
                     return displayWidgets.Get(i);
@@ -175,14 +199,14 @@ struct FXCell
         return NULL;
     }
     
-    void SetNameWidget(ZoneManager *zoneManager, Widget *widget, const char *displayWidgetName, const char *paramName)
+    void SetNameWidget(Widget *widget, const char *displayWidgetName, const char *paramName)
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
             if( ! strcmp (displayWidgets.Get(i)->GetName(), displayWidgetName))
             {
-                ActionContext *paramContext = GetContext(widget, modifier);
-                ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+                ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
+                ActionContext *nameContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
 
                 if (nameContext != NULL && paramContext != NULL)
                 {
@@ -196,14 +220,14 @@ struct FXCell
         }
     }
     
-    void SetValueWidget(ZoneManager *zoneManager, Widget *widget, const char *displayWidgetName)
+    void SetValueWidget(Widget *widget, const char *displayWidgetName)
     {
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
             if( ! strcmp (displayWidgets.Get(i)->GetName(), displayWidgetName))
             {
-                ActionContext *paramContext = GetContext(widget, modifier);
-                ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+                ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
+                ActionContext *nameContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
 
                 if (nameContext != NULL && paramContext != NULL)
                 {
@@ -217,15 +241,15 @@ struct FXCell
         }
     }
     
-    void ClearNameDisplayWidget(ZoneManager *zoneManager, Widget *widget)
+    void ClearNameDisplayWidget(Widget *widget)
     {
-        ActionContext *paramContext = GetContext(widget, modifier);
+        ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
         if (paramContext == NULL)
             return;
 
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *nameContext = GetContext(displayWidgets.Get(i), modifier);
+            ActionContext *nameContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
             
             if (nameContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex() && ! strcmp (nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
@@ -238,15 +262,15 @@ struct FXCell
         }
     }
     
-    void ClearValueDisplayWidget(ZoneManager *zoneManager, Widget *widget)
+    void ClearValueDisplayWidget(Widget *widget)
     {
-        ActionContext *paramContext = GetContext(widget, modifier);
+        ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
         if (paramContext == NULL)
             return;
         
         for (int i = 0; i < displayWidgets.GetSize(); ++i)
         {
-            ActionContext *valueContext = GetContext(displayWidgets.Get(i), modifier);
+            ActionContext *valueContext = GetContext(zoneManager, displayWidgets.Get(i), modifier);
             
             if (valueContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex() && ! strcmp (valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
@@ -340,23 +364,23 @@ static ActionContext *context = NULL;
 
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    if (s_zoneManager ==  NULL)
+        return 0;
+    
     char buf[MEDBUF];
-    
+
     int modifier = 0;
-    
-    if (s_zoneManager)
-    {
-        const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+
+    const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
         
-        if (modifiers.GetSize() > 0)
-            modifier = modifiers.Get()[0];
-    }
+    if (modifiers.GetSize() > 0)
+        modifier = modifiers.Get()[0];
         
     switch (uMsg)
     {
         case WM_INITDIALOG:
         {
-            ActionContext *context = GetContext(s_currentWidget, modifier);
+            ActionContext *context = GetContext(s_zoneManager, s_currentWidget, modifier);
             
             if (context == NULL)
                 break;
@@ -365,7 +389,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             titleBuf[0] = 0;
             
             char modifierBuf[SMLBUF];
-            s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+            s_zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
             char paramName[MEDBUF];
             GetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
@@ -492,6 +516,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 static void LoadTemplates(ZoneManager *zoneManager)
 {
     s_fxRowLayouts.clear();
+    
     s_t_paramWidget[0] = 0;
     s_t_nameWidget[0] = 0;
     s_t_valueWidget[0] = 0;
@@ -690,7 +715,7 @@ static void SaveZone(ZoneManager *zoneManager)
                     previousChannel++;
 
                 int modifier = cell->modifier;
-                s_modifierManager.GetModifierString(modifier, buf, sizeof(buf));
+                zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, buf, sizeof(buf));
                 
                 for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
                 {
@@ -698,7 +723,7 @@ static void SaveZone(ZoneManager *zoneManager)
                     
                     fprintf(fxFile, "\t%s%s ", buf, widget->GetName());
 
-                    if (ActionContext *context = GetContext(widget, modifier))
+                    if (ActionContext *context = GetContext(zoneManager, widget, modifier))
                     {
                         char actionName[SMLBUF];
                         snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
@@ -772,7 +797,7 @@ static void SaveZone(ZoneManager *zoneManager)
                     
                     fprintf(fxFile, "\t%s%s ", buf, widget->GetName());
 
-                    if (ActionContext *context = GetContext(widget, modifier))
+                    if (ActionContext *context = GetContext(zoneManager, widget, modifier))
                     {
                         char actionName[SMLBUF];
                         snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
@@ -852,16 +877,13 @@ static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, 
         return;
     
     char modifierBuf[SMLBUF];
-    s_modifierManager.GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+    widget->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
     snprintf(widgetNamBuf, bufSize, "%s%s", modifierBuf, widget->GetName());
 }
 
-static void FillPropertiesParams(HWND hwndDlg)
+static void FillPropertiesParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *widget, int modifier)
 {
-    if (s_currentWidget == NULL)
-        return;
-    
-    FXCell *cell = GetCell(s_cellMap, s_currentWidget, s_currentModifier);
+    FXCell *cell = GetCell(s_cellMap, widget, modifier);
     
     if ( cell == NULL)
         return;
@@ -869,9 +891,9 @@ static void FillPropertiesParams(HWND hwndDlg)
     if (cell->displayWidgets.GetSize() < 2)
         return;
     
-    ActionContext *paramContext = GetContext(s_currentWidget, s_currentModifier);
-    ActionContext *nameContext = GetContext(cell->GetNameWidget(s_currentWidget), s_currentModifier);
-    ActionContext *valueContext = GetContext(cell->GetValueWidget(s_currentWidget), s_currentModifier);
+    ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
+    ActionContext *nameContext = GetContext(zoneManager, cell->GetNameWidget(widget), modifier);
+    ActionContext *valueContext = GetContext(zoneManager, cell->GetValueWidget(widget), modifier);
     
     if (paramContext == NULL)
         return;
@@ -1004,12 +1026,9 @@ static void FillPropertiesParams(HWND hwndDlg)
     s_isUpdatingParameters = false;
 }
 
-static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager)
+static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *widget, int modifier)
 {
-    if (s_currentWidget == NULL)
-        return;
-    
-    FXCell *cell = GetCell(s_cellMap, s_currentWidget, s_currentModifier);
+    FXCell *cell = GetCell(s_cellMap, widget, modifier);
     
     if ( cell == NULL)
         return;
@@ -1017,7 +1036,7 @@ static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager)
     if (cell->displayWidgets.GetSize() < 2)
         return;
     
-    ActionContext *paramContext = GetContext(s_currentWidget, s_currentModifier);
+    ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
     
     if (paramContext == NULL)
         return;
@@ -1040,14 +1059,14 @@ static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager)
     else
         SetDlgItemText(hwndDlg, IDC_PickSteps, "0");
 
-    if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
+    if (ActionContext *nameContext = cell->GetNameContext(widget))
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), nameContext->GetStringParam());
     else
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
 
-    if (s_cellMap.Exists(s_currentWidget) && s_cellMap.Get(s_currentWidget)->Exists(s_currentModifier))
+    if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
     {
-        FXCell *cell = s_cellMap.Get(s_currentWidget)->Get(s_currentModifier);
+        FXCell *cell = s_cellMap.Get(widget)->Get(modifier);
         
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
@@ -1060,9 +1079,9 @@ static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager)
             SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
         }
         
-        if (cell->GetNameWidget(s_currentWidget))
+        if (cell->GetNameWidget(widget))
         {
-            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetNameWidget(s_currentWidget)->GetName());
+            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetNameWidget(widget)->GetName());
             if (index >= 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, index, 0);
             else
@@ -1071,9 +1090,9 @@ static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager)
         else
             SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, 0, 0);
 
-        if (cell->GetValueWidget(s_currentWidget))
+        if (cell->GetValueWidget(widget))
         {
-            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetValueWidget(s_currentWidget)->GetName());
+            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetValueWidget(widget)->GetName());
             if (index >= 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, index, 0);
             else
@@ -1083,12 +1102,12 @@ static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager)
             SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, 0, 0);
     }
     
-    FillPropertiesParams(hwndDlg);
+    FillPropertiesParams(hwndDlg, zoneManager, widget, modifier);
 
-    paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+    paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
 }
 
-static void FillParams(HWND hwndDlg, ZoneManager *zoneManager)
+static void FillParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *widget, int modifier)
 {
     SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_RESETCONTENT, 0, 0);
 
@@ -1114,14 +1133,14 @@ static void FillParams(HWND hwndDlg, ZoneManager *zoneManager)
         SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_ADDSTRING, 0, (LPARAM)s_t_fonts[i].c_str());
     }
 
-    if (s_currentWidget == NULL)
+    if (widget == NULL)
         return;
     
     char buf[MEDBUF];
-    GetFullWidgetName(s_currentWidget, s_currentModifier, buf, sizeof(buf));
+    GetFullWidgetName(widget, modifier, buf, sizeof(buf));
     SetDlgItemText(hwndDlg, IDC_GroupFXWidget, buf);
     
-    FXCell *cell = GetCell(s_cellMap, s_currentWidget, s_currentModifier);
+    FXCell *cell = GetCell(s_cellMap, widget, modifier);
     
     if ( cell == NULL)
         return;
@@ -1129,10 +1148,10 @@ static void FillParams(HWND hwndDlg, ZoneManager *zoneManager)
     if (cell->displayWidgets.GetSize() < 2)
         return;
 
-    ActionContext *paramContext = GetContext(s_currentWidget, s_currentModifier);
+    ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
  
     char modifierBuf[SMLBUF];
-    s_modifierManager.GetModifierString(s_currentModifier, modifierBuf, sizeof(modifierBuf));
+    zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
     buf[0] = 0;
     
@@ -1148,7 +1167,7 @@ static void FillParams(HWND hwndDlg, ZoneManager *zoneManager)
     {
         TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, buf, sizeof(buf));
         SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf);
-        FillAdvancedParams(hwndDlg, zoneManager);
+        FillAdvancedParams(hwndDlg, zoneManager, widget, modifier);
     }
 }
 
@@ -1169,11 +1188,11 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
     }
 }
 
-static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shouldAssign)
+static void HandleAssigment(HWND hwndDlg, Widget *widget, int modifier, int paramIdx, bool shouldAssign)
 {
     ZoneManager *zoneManager = s_zoneManager;
     
-    if (s_currentWidget == NULL)
+    if (zoneManager == NULL)
         return;
 
     if (paramIdx < 0)
@@ -1182,7 +1201,7 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
     if (s_fxSlot < 0)
         return;
     
-    FXCell *cell = GetCell(s_cellMap, s_currentWidget, modifier);
+    FXCell *cell = GetCell(s_cellMap, widget, modifier);
     
     if (cell == NULL)
         return;
@@ -1190,14 +1209,14 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
     char buf[MEDBUF];
     buf[0] = 0;
 
-    ActionContext *paramContext = GetContext(s_currentWidget, modifier);
+    ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
     
     if (paramContext == NULL)
         return;
     
     if ( ! shouldAssign)
     {
-        if (ActionContext *nameContext = cell->GetNameContext(s_currentWidget))
+        if (ActionContext *nameContext = cell->GetNameContext(widget))
         {
             nameContext->SetAction(zoneManager->GetCSI()->GetNoActionAction());
             nameContext->SetParamIndex(0);
@@ -1205,7 +1224,7 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
             nameContext->GetWidgetProperties().delete_props();
         }
 
-        if (ActionContext *valueContext = cell->GetValueContext(s_currentWidget))
+        if (ActionContext *valueContext = cell->GetValueContext(widget))
         {
             valueContext->SetAction(zoneManager->GetCSI()->GetNoActionAction());
             valueContext->SetParamIndex(0);
@@ -1219,7 +1238,7 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         paramContext->GetWidgetProperties().delete_props();
         
         ClearParams(hwndDlg);
-        GetFullWidgetName(s_currentWidget, modifier, buf, sizeof(buf));
+        GetFullWidgetName(widget, modifier, buf, sizeof(buf));
         SetDlgItemText(hwndDlg, IDC_GroupFXWidget, buf);
 
         SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, "");
@@ -1231,9 +1250,9 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         paramContext->SetStringParam("");
 
         char suffix[SMLBUF];
-        snprintf(suffix, sizeof(suffix), "%s%d", cell->suffix.c_str(), s_currentWidget->GetChannelNumber());
+        snprintf(suffix, sizeof(suffix), "%s%d", cell->suffix.c_str(), widget->GetChannelNumber());
         char rawWidgetName[SMLBUF];
-        snprintf(rawWidgetName, strlen(s_currentWidget->GetName()) - strlen(suffix) + 1, "%s", s_currentWidget->GetName());
+        snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
         
         for (int i = 0; i < s_t_paramWidgetParams.size() && i < s_t_paramWidgets.size(); ++i)
         {
@@ -1248,16 +1267,16 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
         
         char fullWidgetName[MEDBUF];
         snprintf(fullWidgetName, sizeof(fullWidgetName), "%s%s%d",  s_t_nameWidget, cell->suffix.c_str(), cell->channel);
-        cell->SetNameWidget(zoneManager, s_currentWidget, fullWidgetName, buf);
+        cell->SetNameWidget(widget, fullWidgetName, buf);
         
         snprintf(fullWidgetName, sizeof(fullWidgetName), "%s%s%d",  s_t_valueWidget, cell->suffix.c_str(), cell->channel);
-        cell->SetValueWidget(zoneManager, s_currentWidget, fullWidgetName);
+        cell->SetValueWidget(widget, fullWidgetName);
         
-        if (ActionContext *context = cell->GetNameContext(s_currentWidget))
+        if (ActionContext *context = cell->GetNameContext(widget))
         {
-            if (Widget *widget = cell->GetNameWidget(s_currentWidget))
+            if (Widget *nameWidget = cell->GetNameWidget(widget))
             {
-                snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
+                snprintf(rawWidgetName, strlen(nameWidget->GetName()) - strlen(suffix) + 1, "%s", nameWidget->GetName());
 
                 for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRows.size(); ++i)
                 {
@@ -1271,11 +1290,11 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
             }
         }
         
-        if (ActionContext *context = cell->GetValueContext(s_currentWidget))
+        if (ActionContext *context = cell->GetValueContext(widget))
         {
-            if (Widget *widget = cell->GetValueWidget(s_currentWidget))
+            if (Widget *valueWidget = cell->GetValueWidget(widget))
             {
-                snprintf(rawWidgetName, strlen(widget->GetName()) - strlen(suffix) + 1, "%s", widget->GetName());
+                snprintf(rawWidgetName, strlen(valueWidget->GetName()) - strlen(suffix) + 1, "%s", valueWidget->GetName());
 
                 for (int i = 0; i < s_t_displayRowParams.size() && i < s_t_displayRows.size(); ++i)
                 {
@@ -1290,14 +1309,14 @@ static void HandleAssigment(HWND hwndDlg, int modifier, int paramIdx, bool shoul
 
         vector<double> steps;
 
-        if (s_currentWidget->GetIsTwoState())
+        if (widget->GetIsTwoState())
         {
             steps.push_back(0.0);
             steps.push_back(1.0);
             paramContext->SetStepValues(steps);
         }
 
-        FillParams(hwndDlg, zoneManager);
+        FillParams(hwndDlg, zoneManager, widget, modifier);
     }
 }
 
@@ -1309,7 +1328,7 @@ static void ApplyColorsToAll(HWND hwndDlg, Widget *widget, int modifier, ActionC
         {
             if (sourceParamContext != NULL)
             {
-                if (ActionContext *context = GetContext(s_cells.Get(cell)->controlWidgets.Get(i), modifier))
+                if (ActionContext *context = GetContext(zoneManager, s_cells.Get(cell)->controlWidgets.Get(i), modifier))
                 {
                     if (const char *sourceRingColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
                         if (context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
@@ -1319,7 +1338,7 @@ static void ApplyColorsToAll(HWND hwndDlg, Widget *widget, int modifier, ActionC
                         if (context->GetWidgetProperties().get_prop(PropertyType_PushColor))
                             context->GetWidgetProperties().set_prop(PropertyType_PushColor, sourcePushColor);
                     
-                    context->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                    context->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
                 }
             }
             
@@ -1457,7 +1476,7 @@ static void CreateContextMap(ZoneManager *zoneManager, WDL_PointerKeyedArray<Wid
         
         for (int channel = 1; channel <= zoneManager->GetSurface()->GetNumChannels(); ++channel)
         {
-            FXCell *cell = new FXCell();
+            FXCell *cell = new FXCell(zoneManager);
             cell->suffix = s_fxRowLayouts[rowLayoutIdx].suffix;
             cell->modifier = modifier;
             cell->channel = channel;
@@ -1625,7 +1644,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     modifier = modifiers.Get()[0];
             }
                         
-            ActionContext *paramContext = GetContext(s_currentWidget, modifier);
+            ActionContext *paramContext = GetContext(s_zoneManager, s_currentWidget, modifier);
             ActionContext *nameContext = NULL;
             ActionContext *valueContext = NULL;
                         
@@ -1649,7 +1668,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (s_currentWidget == NULL)
                             break;
                         
-                        HandleAssigment(hwndDlg, modifier, paramNum, false);
+                        HandleAssigment(hwndDlg, s_currentWidget, modifier, paramNum, false);
                     }
                     break;
                     
@@ -1720,13 +1739,13 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, index, (LPARAM)displayWidgetName);
                            
                            if ( ! strcmp(displayWidgetName, ""))
-                               cell->ClearNameDisplayWidget(s_zoneManager, s_currentWidget);
+                               cell->ClearNameDisplayWidget(s_currentWidget);
                            else
                            {
                                char paramName[MEDBUF];
                                GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
 
-                               cell->SetNameWidget(s_zoneManager, s_currentWidget, displayWidgetName, paramName);
+                               cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
                            }
                        }
                    }
@@ -1742,9 +1761,9 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, index, (LPARAM)valueWidgetName);
 
                            if ( ! strcmp(valueWidgetName, ""))
-                               cell->ClearValueDisplayWidget(s_zoneManager, s_currentWidget);
+                               cell->ClearValueDisplayWidget(s_currentWidget);
                            else
-                               cell->SetValueWidget(s_zoneManager, s_currentWidget, valueWidgetName);
+                               cell->SetValueWidget(s_currentWidget, valueWidgetName);
                        }
                    }
                    break;
@@ -1983,7 +2002,7 @@ void WidgetMoved(Widget *widget, int modifier)
     
     char buf[MEDBUF];
     
-    if (ActionContext *context = GetContext(widget, modifier))
+    if (ActionContext *context = GetContext(s_zoneManager, widget, modifier))
     {
         if (! strcmp(context->GetAction()->GetName(), "NoAction"))
         {
@@ -1998,7 +2017,7 @@ void WidgetMoved(Widget *widget, int modifier)
             if (ActionContext *context = cell->GetNameContext(widget))
             {
                 SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, context->GetStringParam());
-                FillParams(hwndDlg, s_zoneManager);
+                FillParams(hwndDlg, s_zoneManager, widget, modifier);
             }
         }
     }
@@ -2104,17 +2123,14 @@ void CloseFocusedFXDialog()
     // GAW TBD -- dump Learn Zone
 }
 
-static void UpdateLearnWindowParams(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
+static void UpdateLearnWindowParams(HWND hwndDlg, ZoneManager *zoneManager, Zone *learnFocusedFXZone)
 {
-    if (s_hwndLearnFXDlg == NULL)
-        return;
-    
     char paramName[SMLBUF];
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
-    SetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, paramName);
+    SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName);
         
     if (s_currentWidget != NULL)
-        HandleAssigment(s_hwndLearnFXDlg, s_currentModifier, s_lastTouchedParamNum, true);
+        HandleAssigment(hwndDlg, s_currentWidget, s_currentModifier, s_lastTouchedParamNum, true);
 
     for (int i = 0; i < learnFocusedFXZone->GetWidgets().GetSize(); ++i)
     {
@@ -2124,7 +2140,7 @@ static void UpdateLearnWindowParams(ZoneManager *zoneManager, Zone *learnFocused
         {
             int modifier = s_fxRowLayouts[j].modifier;
             
-            ActionContext *context = GetContext(widget, modifier);
+            ActionContext *context = GetContext(zoneManager, widget, modifier);
             
             if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == s_lastTouchedParamNum)
             {
@@ -2132,7 +2148,7 @@ static void UpdateLearnWindowParams(ZoneManager *zoneManager, Zone *learnFocused
                 zoneManager->GetSurface()->SetModifierValue(modifier);
                 s_currentWidget = widget;
                 
-                FillParams(s_hwndLearnFXDlg, zoneManager);
+                FillParams(hwndDlg, zoneManager, widget, modifier);
                 
                 return;
             }
@@ -2159,7 +2175,7 @@ void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
         {
             s_lastTouchedParamNum = paramNumberOut;
             s_lastTouchedParamValue = currentParamValue;
-            UpdateLearnWindowParams(zoneManager, learnFocusedFXZone);
+            UpdateLearnWindowParams(s_hwndLearnFXDlg, zoneManager, learnFocusedFXZone);
         }
     }
 }

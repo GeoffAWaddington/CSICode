@@ -221,7 +221,7 @@ BEGIN
     COMBOBOX        IDC_COMBO_PickNameDisplay,104,50,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PickValueDisplay,194,50,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Params",IDC_Params,104,114,70,14
-    PUSHBUTTON      "Save",IDC_Save,196,114,70,14
+    PUSHBUTTON      "Save",IDC_Save,194,114,70,14
     PUSHBUTTON      "Unlink",IDC_Unassign,14,79,70,14
     LTEXT           "name",IDC_STATIC,126,38,18,8
     LTEXT           "value",IDC_STATIC,218,38,17,8
