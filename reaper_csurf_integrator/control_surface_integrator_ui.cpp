@@ -1439,10 +1439,10 @@ static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
-static void CreateContextMap(ZoneManager *zoneManager)
+static void CreateContextMap(ZoneManager *zoneManager, WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> &cellMap, WDL_PtrList<FXCell> &cells)
 {
-    s_cellMap.DeleteAll(true);
-    s_cells.Empty();
+    cellMap.DeleteAll(true);
+    cells.Empty();
     
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
 
@@ -1461,7 +1461,7 @@ static void CreateContextMap(ZoneManager *zoneManager)
             cell->suffix = s_fxRowLayouts[rowLayoutIdx].suffix;
             cell->modifier = modifier;
             cell->channel = channel;
-            s_cells.Add(cell);
+            cells.Add(cell);
 
             for (int widgetTypesIdx = 0; widgetTypesIdx < s_t_paramWidgets.size(); ++widgetTypesIdx)
             {
@@ -1481,13 +1481,13 @@ static void CreateContextMap(ZoneManager *zoneManager)
             {
                 Widget *widget = cell->controlWidgets.Get(i);
                 
-                if (! s_cellMap.Exists(widget))
+                if (! cellMap.Exists(widget))
                 {
                     WDL_IntKeyedArray<FXCell *> *m = new WDL_IntKeyedArray<FXCell *>();
-                    s_cellMap.Insert(widget, m);
+                    cellMap.Insert(widget, m);
                 }
 
-                s_cellMap.Get(widget)->Insert(modifier, cell);
+                cellMap.Get(widget)->Insert(modifier, cell);
             }
         }
     }
@@ -1576,7 +1576,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 s_lastTouchedParamNum = -1;
                 SetWindowText(hwndDlg, s_fxAlias);
                 s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
-                CreateContextMap(s_zoneManager);
+                CreateContextMap(s_zoneManager, s_cellMap, s_cells);
             }
             break;
                         
@@ -2164,14 +2164,10 @@ void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
     }
 }
 
-void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager)
+void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot)
 {
-    Zone *zone = zoneManager->GetLearnedFocusedFXZone();
-    if (zone == NULL)
-        return;
-    
     if (zoneManager->GetZoneInfo().Exists("FXPrologue"))
-        zoneManager->LoadZoneFile(zone, zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str(), "");
+        zoneManager->LoadZoneFile(fxZone, zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str(), "");
       
     char widgetName[MEDBUF];
 
@@ -2188,9 +2184,9 @@ void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager)
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_paramWidgets[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
                 if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
                 {
-                    zone->AddWidget(widget);
-                    ActionContext *context = zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                    zone->AddActionContext(widget, modifier, context);
+                    fxZone->AddWidget(widget);
+                    ActionContext *context = zoneManager->GetCSI()->GetActionContext("NoAction", widget, fxZone, blankParams);
+                    fxZone->AddActionContext(widget, modifier, context);
                 }
             }
             
@@ -2199,18 +2195,18 @@ void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager)
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
                 if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
                 {
-                    zone->AddWidget(widget);
-                    ActionContext *context = zoneManager->GetCSI()->GetActionContext("NoAction", widget, zone, blankParams);
-                    zone->AddActionContext(widget, modifier, context);
+                    fxZone->AddWidget(widget);
+                    ActionContext *context = zoneManager->GetCSI()->GetActionContext("NoAction", widget, fxZone, blankParams);
+                    fxZone->AddActionContext(widget, modifier, context);
                 }
             }
         }
     }
     
     if (zoneManager->GetZoneInfo().Exists("FXEpilogue"))
-        zoneManager->LoadZoneFile(zone, zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
+        zoneManager->LoadZoneFile(fxZone, zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
     
-    CreateContextMap(zoneManager);
+    CreateContextMap(zoneManager, s_cellMap, s_cells);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
