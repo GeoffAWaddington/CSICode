@@ -1503,8 +1503,6 @@ public:
                 zonesToBeDeleted_.Add(learnFocusedFXZone_);
             learnFocusedFXZone_ = NULL;
         }
-        
-        CloseFocusedFXDialog();
     }
     
     void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
@@ -1743,6 +1741,7 @@ public:
     void ClearFXMapping()
     {
         ClearLearnFocusedFXZone();
+        CloseFocusedFXDialog();
         ClearFocusedFX();
         ClearSelectedTrackFX();
         ClearFXSlot();

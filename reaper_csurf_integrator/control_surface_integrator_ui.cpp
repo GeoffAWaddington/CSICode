@@ -364,14 +364,14 @@ static ActionContext *context = NULL;
 
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (s_zoneManager ==  NULL)
-        return 0;
+    ZoneManager *zoneManager = s_zoneManager;
+    Widget *widget = s_currentWidget;
     
     char buf[MEDBUF];
 
     int modifier = 0;
 
-    const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+    const WDL_TypedBuf<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
         
     if (modifiers.GetSize() > 0)
         modifier = modifiers.Get()[0];
@@ -380,7 +380,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
         {
-            ActionContext *context = GetContext(s_zoneManager, s_currentWidget, modifier);
+            ActionContext *context = GetContext(zoneManager, widget, modifier);
             
             if (context == NULL)
                 break;
@@ -389,12 +389,12 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             titleBuf[0] = 0;
             
             char modifierBuf[SMLBUF];
-            s_zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+            zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
 
             char paramName[MEDBUF];
             GetDlgItemText(s_hwndLearnFXDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
             
-            snprintf(titleBuf, sizeof(titleBuf), "%s - %s%s - %s", s_currentWidget->GetSurface()->GetName(), modifierBuf, s_currentWidget->GetName(), paramName);
+            snprintf(titleBuf, sizeof(titleBuf), "%s - %s%s - %s", widget->GetSurface()->GetName(), modifierBuf, widget->GetName(), paramName);
             
             SetWindowText(hwndDlg, titleBuf);
             
@@ -1518,6 +1518,9 @@ static HFONT hFont14 = NULL;
 
 static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    ZoneManager *zoneManager = s_zoneManager;
+    Widget *widget = s_currentWidget;
+    
     char buf[MEDBUF];
     
     rgba_color color;
@@ -1576,8 +1579,14 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
         case WM_CLOSE:
         {
-            if (s_zoneManager != NULL)
-                s_zoneManager->ClearLearnFocusedFXZone();
+            zoneManager->ClearLearnFocusedFXZone();
+
+            s_zoneManager =  NULL;
+            s_focusedTrack = NULL;
+            s_fxSlot = -1;
+            s_lastTouchedParamNum = -1;
+            s_currentWidget = NULL;
+            s_currentModifier = -1;
             
             if (hFont16)
                 DeleteObject(hFont16);
@@ -1594,8 +1603,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             {
                 s_lastTouchedParamNum = -1;
                 SetWindowText(hwndDlg, s_fxAlias);
-                s_zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
-                CreateContextMap(s_zoneManager, s_cellMap, s_cells);
+                zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
+                CreateContextMap(zoneManager, s_cellMap, s_cells);
             }
             break;
                         
@@ -1636,24 +1645,24 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
             int modifier = 0;
             
-            if (s_zoneManager)
+            if (zoneManager)
             {
-                const WDL_TypedBuf<int> &modifiers = s_zoneManager->GetSurface()->GetModifiers();
+                const WDL_TypedBuf<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
                 
                 if (modifiers.GetSize() > 0)
                     modifier = modifiers.Get()[0];
             }
                         
-            ActionContext *paramContext = GetContext(s_zoneManager, s_currentWidget, modifier);
+            ActionContext *paramContext = GetContext(zoneManager, widget, modifier);
             ActionContext *nameContext = NULL;
             ActionContext *valueContext = NULL;
                         
-            FXCell *cell = GetCell(s_cellMap, s_currentWidget, modifier);
+            FXCell *cell = GetCell(s_cellMap, widget, modifier);
             
             if (cell)
             {
-                nameContext = cell->GetNameContext(s_currentWidget);
-                valueContext = cell->GetValueContext(s_currentWidget);
+                nameContext = cell->GetNameContext(widget);
+                valueContext = cell->GetValueContext(widget);
             }
 
             switch(LOWORD(wParam))
@@ -1665,17 +1674,17 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (paramNum < 0)
                             break;
 
-                        if (s_currentWidget == NULL)
+                        if (widget == NULL)
                             break;
                         
-                        HandleAssigment(hwndDlg, s_currentWidget, modifier, paramNum, false);
+                        HandleAssigment(hwndDlg, widget, modifier, paramNum, false);
                     }
                     break;
                     
                 case IDC_Save:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        SaveZone(s_zoneManager);
+                        SaveZone(zoneManager);
                         CloseFocusedFXDialog();
                     }
                     break ;
@@ -1699,7 +1708,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     break;
                    
                 case IDC_FXParamNameEdit:
-                    if (HIWORD(wParam) == EN_CHANGE && s_currentWidget != NULL)
+                    if (HIWORD(wParam) == EN_CHANGE && widget != NULL)
                     {
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
                         if (nameContext)
@@ -1739,13 +1748,13 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            SendDlgItemMessage(hwndDlg,IDC_COMBO_PickNameDisplay, CB_GETLBTEXT, index, (LPARAM)displayWidgetName);
                            
                            if ( ! strcmp(displayWidgetName, ""))
-                               cell->ClearNameDisplayWidget(s_currentWidget);
+                               cell->ClearNameDisplayWidget(widget);
                            else
                            {
                                char paramName[MEDBUF];
                                GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, paramName, sizeof(paramName));
 
-                               cell->SetNameWidget(s_currentWidget, displayWidgetName, paramName);
+                               cell->SetNameWidget(widget, displayWidgetName, paramName);
                            }
                        }
                    }
@@ -1761,21 +1770,21 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                            SendDlgItemMessage(hwndDlg,IDC_COMBO_PickValueDisplay, CB_GETLBTEXT, index, (LPARAM)valueWidgetName);
 
                            if ( ! strcmp(valueWidgetName, ""))
-                               cell->ClearValueDisplayWidget(s_currentWidget);
+                               cell->ClearValueDisplayWidget(widget);
                            else
-                               cell->SetValueWidget(s_currentWidget, valueWidgetName);
+                               cell->SetValueWidget(widget, valueWidgetName);
                        }
                    }
                    break;
                     
                 case IDC_ApplyColorsToAll:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        ApplyColorsToAll(hwndDlg, s_currentWidget, modifier, paramContext, nameContext, valueContext, s_zoneManager);
+                        ApplyColorsToAll(hwndDlg, widget, modifier, paramContext, nameContext, valueContext, zoneManager);
                     break;
                     
                 case IDC_ApplyFontsAndMarginsToAll:
                     if (HIWORD(wParam) == BN_CLICKED)
-                        ApplyFontsAndMarginsToAll(hwndDlg, s_currentWidget, modifier, paramContext, nameContext, valueContext);
+                        ApplyFontsAndMarginsToAll(hwndDlg, widget, modifier, paramContext, nameContext, valueContext);
                     break;
                     
                 case IDC_FXParamRingColor:
@@ -1788,7 +1797,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (paramContext)
                         {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
-                            paramContext->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
                         }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
@@ -1804,7 +1813,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (paramContext)
                         {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
-                            paramContext->GetWidget()->Configure(s_zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(s_currentWidget));
+                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
                         }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
@@ -1978,6 +1987,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 void WidgetMoved(Widget *widget, int modifier)
 {
+    ZoneManager *zoneManager = s_zoneManager;
+    
     HWND hwndDlg = s_hwndLearnFXDlg;
     if (hwndDlg == NULL)
         return;
@@ -1985,13 +1996,13 @@ void WidgetMoved(Widget *widget, int modifier)
     if (s_focusedTrack == NULL)
         return;
     
-    if (s_zoneManager == NULL)
+    if (zoneManager == NULL)
         return;
   
-    if (s_zoneManager->GetLearnedFocusedFXZone() == NULL)
+    if (zoneManager->GetLearnedFocusedFXZone() == NULL)
         return;
     
-    if (s_zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
+    if (zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
         return;
         
     if (widget == s_currentWidget)
@@ -2002,7 +2013,7 @@ void WidgetMoved(Widget *widget, int modifier)
     
     char buf[MEDBUF];
     
-    if (ActionContext *context = GetContext(s_zoneManager, widget, modifier))
+    if (ActionContext *context = GetContext(zoneManager, widget, modifier))
     {
         if (! strcmp(context->GetAction()->GetName(), "NoAction"))
         {
@@ -2017,7 +2028,7 @@ void WidgetMoved(Widget *widget, int modifier)
             if (ActionContext *context = cell->GetNameContext(widget))
             {
                 SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, context->GetStringParam());
-                FillParams(hwndDlg, s_zoneManager, widget, modifier);
+                FillParams(hwndDlg, zoneManager, widget, modifier);
             }
         }
     }
@@ -2064,9 +2075,6 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 
 void LearnFocusedFXDialog(ZoneManager *zoneManager)
 {
-    if (s_zoneManager != NULL && zoneManager != s_zoneManager) // not the current control surface
-        return;
-    
     if (s_hwndLearnFXDlg != NULL)
     {
         CloseFocusedFXDialog();
@@ -2110,13 +2118,6 @@ void ShutdownLearn()
 
 void CloseFocusedFXDialog()
 {
-    s_zoneManager =  NULL;
-    s_focusedTrack = NULL;
-    s_fxSlot = -1;
-    s_lastTouchedParamNum = -1;
-    s_currentWidget = NULL;
-    s_currentModifier = -1;
-
     if(s_hwndLearnFXDlg != NULL)
         SendMessage(s_hwndLearnFXDlg, WM_CLOSE, 0, 0);
     
