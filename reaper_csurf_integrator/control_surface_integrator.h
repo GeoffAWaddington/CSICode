@@ -64,7 +64,7 @@ class Zone;
 extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone);
-extern void InitBlankLearnFocusedFXZone();
+extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager);
 extern void ShutdownLearn();
 
 extern bool g_surfaceRawInDisplay;
@@ -1509,9 +1509,6 @@ public:
     
     void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
     {
-        if (learnFocusedFXZone_ != NULL)
-            ClearLearnFocusedFXZone();
-
         if(zoneInfo_.Exists(fxName))
         {
             learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
@@ -1537,7 +1534,7 @@ public:
             info.filePath = fxFullFilePath;
             
             learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, info.alias, info.filePath);
-            InitBlankLearnFocusedFXZone();
+            InitBlankLearnFocusedFXZone(this);
             learnFocusedFXZone_->Activate();
         }
     }
