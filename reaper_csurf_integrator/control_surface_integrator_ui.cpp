@@ -20,7 +20,6 @@ static bool s_isUpdatingParameters = false;
 static HWND s_hwndLearnFXDlg = NULL;
 static int s_dlgResult = IDCANCEL;
 
-static ZoneManager *s_zoneManager = NULL;
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
 
@@ -335,7 +334,12 @@ static ActionContext *context = NULL;
 
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    ZoneManager *zoneManager = s_zoneManager;
+    SurfaceFXTemplate *t = GetSurfaceFXTemplate(hwndDlg);
+    
+    if ( ! t)
+        return 0;
+
+    ZoneManager *zoneManager = t->zoneManager;
     Widget *widget = s_currentWidget;
     
     char buf[MEDBUF];
@@ -2057,16 +2061,15 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 
 static void ReleaseFX()
 {
-    s_zoneManager =  NULL;
     s_focusedTrack = NULL;
     s_fxSlot = -1;
     s_lastTouchedParamNum = -1;
+    s_lastTouchedParamValue = -1.0;
     s_surfaceFXTemplates.clear();
 }
 
 static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, int lastTouchedParamNum)
 {
-    s_zoneManager =  zoneManager;
     s_focusedTrack = track;
     s_fxSlot = fxSlot;
     s_lastTouchedParamNum = lastTouchedParamNum;
@@ -2115,7 +2118,7 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
     }
     else
     {
-        // find this one and close
+        LaunchLearnFocusedFXDialog(zoneManager);
     }
 }
 
