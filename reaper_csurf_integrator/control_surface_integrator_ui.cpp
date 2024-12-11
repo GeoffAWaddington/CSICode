@@ -323,24 +323,6 @@ static unsigned int s_buttonColors[][3] =
     { IDC_FXParamDisplayBackgroundColor, IDC_FXParamValueDisplayBackgroundColorBox, 0xffffffff },
 };
 
-static unsigned int s_paramButtonColors[][3] =
-{
-    { IDC_FXParamRingColor, IDC_FXParamRingColorBox, 0xffffffff },
-    { IDC_FXParamIndicatorColor, IDC_FXParamIndicatorColorBox, 0xffffffff },
-};
-
-static unsigned int s_nameDisplayColors[][3] =
-{
-    { IDC_FixedTextDisplayForegroundColor, IDC_FXFixedTextDisplayForegroundColorBox, 0xffffffff },
-    { IDC_FixedTextDisplayBackgroundColor, IDC_FXFixedTextDisplayBackgroundColorBox, 0xffffffff },
-};
-
-static unsigned int s_valueDisplayColors[][3] =
-{
-    { IDC_FXParamDisplayForegroundColor, IDC_FXParamValueDisplayForegroundColorBox, 0xffffffff },
-    { IDC_FXParamDisplayBackgroundColor, IDC_FXParamValueDisplayBackgroundColorBox, 0xffffffff },
-};
-
 static unsigned int &GetButtonColorForID(unsigned int id)
 {
     for (int x = 0; x < NUM_ELEM(s_buttonColors); ++x)
@@ -507,6 +489,7 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
     ZoneManager *zoneManager = fxTemplate->zoneManager;
     
     fxTemplate->fxRowLayouts.clear();
+    fxTemplate->cells.Empty();
     fxTemplate->paramWidget[0] = 0;
     fxTemplate->nameWidget[0] = 0;
     fxTemplate->valueWidget[0] = 0;
