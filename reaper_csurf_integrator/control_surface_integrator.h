@@ -61,7 +61,7 @@ extern int strToHex(const char *valueStr);
 
 class ZoneManager;
 class Zone;
-extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
+extern void RequestFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone);
 extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot);

@@ -66,24 +66,28 @@ static char s_t_nameWidget[SMLBUF];
 static char s_t_valueWidget[SMLBUF];
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct CellTemplate
+struct SurfaceFXTemplate
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     ZoneManager *zoneManager;
+    ptrvector<FXRowLayout> fxRowLayouts;
     string_list paramWidgets;
     string_list paramWidgetParams;
     string_list displayRows;
     string_list displayRowParams;
     string_list ringStyles;
     string_list fonts;
-    bool hasColor = false;
+    bool hasColor;
     char paramWidget[SMLBUF];
     char nameWidget[SMLBUF];
     char valueWidget[SMLBUF];
-    
-    CellTemplate(ZoneManager *aZoneManager)
+    HWND hwnd;
+
+    SurfaceFXTemplate(ZoneManager *aZoneManager)
     {
         zoneManager = aZoneManager;
+        hasColor = false;
+        hwnd = NULL;
     }
 };
 
@@ -284,20 +288,26 @@ struct FXCell
     }
 };
 
-static void destroyFXParamWidgetCellContextList(WDL_IntKeyedArray<FXCell *> *l) { l->Delete(true); delete l; }
-WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> s_cellMap(destroyFXParamWidgetCellContextList);
-
 WDL_PtrList<FXCell> s_cells;
 
-static FXCell *GetCell(WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> &cellMap, Widget *widget, int modifier)
+static FXCell *GetCell(Widget *widget, int modifier)
 {
     if (widget == NULL)
         return NULL;
 
-    if (cellMap.Exists(widget) && cellMap.Get(widget)->Exists(modifier))
-        return cellMap.Get(widget)->Get(modifier);
-    else
-        return NULL;
+    
+    for (int i = 0; i < s_cells.GetSize(); ++i)
+    {
+        for (int j = 0; j < s_cells.Get(i)->controlWidgets.GetSize(); ++j)
+        {
+            FXCell *cell = s_cells.Get(i);
+            
+            if (cell->controlWidgets.Get(j) == widget && cell->modifier == modifier)
+                return cell;
+        }
+    }
+
+    return NULL;
 }
 
 static unsigned int s_buttonColors[][3] =
@@ -551,7 +561,7 @@ static void LoadTemplates(ZoneManager *zoneManager)
                 
                 if (tokens.size() == 2)
                 {
-                    FXRowLayout t = FXRowLayout();
+                    FXRowLayout t;
                     
                     strcpy(t.suffix, tokens[1]);
                     strcpy(t.modifiers, tokens[0]);
@@ -883,7 +893,7 @@ static void GetFullWidgetName(Widget* widget, int modifier, char *widgetNamBuf, 
 
 static void FillPropertiesParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *widget, int modifier)
 {
-    FXCell *cell = GetCell(s_cellMap, widget, modifier);
+    FXCell *cell = GetCell(widget, modifier);
     
     if ( cell == NULL)
         return;
@@ -1028,7 +1038,7 @@ static void FillPropertiesParams(HWND hwndDlg, ZoneManager *zoneManager, Widget 
 
 static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *widget, int modifier)
 {
-    FXCell *cell = GetCell(s_cellMap, widget, modifier);
+    FXCell *cell = GetCell(widget, modifier);
     
     if ( cell == NULL)
         return;
@@ -1064,10 +1074,8 @@ static void FillAdvancedParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *w
     else
         SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
 
-    if (s_cellMap.Exists(widget) && s_cellMap.Get(widget)->Exists(modifier))
+    if (FXCell *cell =  GetCell(widget, modifier))
     {
-        FXCell *cell = s_cellMap.Get(widget)->Get(modifier);
-        
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_RESETCONTENT, 0, 0);
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)"");
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
@@ -1140,7 +1148,7 @@ static void FillParams(HWND hwndDlg, ZoneManager *zoneManager, Widget *widget, i
     GetFullWidgetName(widget, modifier, buf, sizeof(buf));
     SetDlgItemText(hwndDlg, IDC_GroupFXWidget, buf);
     
-    FXCell *cell = GetCell(s_cellMap, widget, modifier);
+    FXCell *cell = GetCell(widget, modifier);
     
     if ( cell == NULL)
         return;
@@ -1201,7 +1209,7 @@ static void HandleAssigment(HWND hwndDlg, Widget *widget, int modifier, int para
     if (s_fxSlot < 0)
         return;
     
-    FXCell *cell = GetCell(s_cellMap, widget, modifier);
+    FXCell *cell = GetCell(widget, modifier);
     
     if (cell == NULL)
         return;
@@ -1458,9 +1466,8 @@ static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     return 0;
 }
 
-static void CreateContextMap(ZoneManager *zoneManager, WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<FXCell *> *> &cellMap, WDL_PtrList<FXCell> &cells)
+static void CreateContextMap(ZoneManager *zoneManager, WDL_PtrList<FXCell> &cells)
 {
-    cellMap.DeleteAll(true);
     cells.Empty();
     
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
@@ -1494,19 +1501,6 @@ static void CreateContextMap(ZoneManager *zoneManager, WDL_PointerKeyedArray<Wid
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", s_t_displayRows[widgetTypesIdx].c_str(), s_fxRowLayouts[rowLayoutIdx].suffix, channel);
                 if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
                     cell->displayWidgets.Add(widget);
-            }
-            
-            for (int i = 0; i < cell->controlWidgets.GetSize(); ++i)
-            {
-                Widget *widget = cell->controlWidgets.Get(i);
-                
-                if (! cellMap.Exists(widget))
-                {
-                    WDL_IntKeyedArray<FXCell *> *m = new WDL_IntKeyedArray<FXCell *>();
-                    cellMap.Insert(widget, m);
-                }
-
-                cellMap.Get(widget)->Insert(modifier, cell);
             }
         }
     }
@@ -1581,10 +1575,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
             zoneManager->ClearLearnFocusedFXZone();
 
-            s_zoneManager =  NULL;
-            s_focusedTrack = NULL;
-            s_fxSlot = -1;
-            s_lastTouchedParamNum = -1;
             s_currentWidget = NULL;
             s_currentModifier = -1;
             
@@ -1604,7 +1594,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 s_lastTouchedParamNum = -1;
                 SetWindowText(hwndDlg, s_fxAlias);
                 zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
-                CreateContextMap(zoneManager, s_cellMap, s_cells);
+                CreateContextMap(zoneManager, s_cells);
             }
             break;
                         
@@ -1657,7 +1647,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             ActionContext *nameContext = NULL;
             ActionContext *valueContext = NULL;
                         
-            FXCell *cell = GetCell(s_cellMap, widget, modifier);
+            FXCell *cell = GetCell(widget, modifier);
             
             if (cell)
             {
@@ -2023,7 +2013,7 @@ void WidgetMoved(Widget *widget, int modifier)
             GetFullWidgetName(widget, modifier, buf, sizeof(buf));
             SetDlgItemText(hwndDlg, IDC_GroupFXWidget, buf);
         }
-        else if (FXCell *cell = GetCell(s_cellMap, widget, modifier))
+        else if (FXCell *cell = GetCell(widget, modifier))
         {
             if (ActionContext *context = cell->GetNameContext(widget))
             {
@@ -2073,42 +2063,69 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     InitLearnFocusedFXDialog(zoneManager);
 }
 
-void LearnFocusedFXDialog(ZoneManager *zoneManager)
+static ptrvector<SurfaceFXTemplate *> s_surfaceFXTemplates;
+
+static void ReleaseFX()
 {
-    if (s_hwndLearnFXDlg != NULL)
-    {
-        CloseFocusedFXDialog();
-        return;
-    }
-    
-    int trackNumber = 0;
-    int fxSlot = 0;
-    int itemNumber = 0;
-    int takeNumber = 0;
-    int paramIndex = 0;
-        
-    int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+    s_zoneManager =  NULL;
+    s_focusedTrack = NULL;
+    s_fxSlot = -1;
+    s_lastTouchedParamNum = -1;
+}
 
-    MediaTrack *focusedTrack = NULL;
-    
-    trackNumber++;
-    
-    if (retVal && ! (paramIndex & 0x01))
-    {
-        if (trackNumber > 0)
-            focusedTrack = DAW::GetTrack(trackNumber);
-        else if (trackNumber == 0)
-            focusedTrack = GetMasterTrack(NULL);
-    }
-
-    if (focusedTrack == NULL)
-        return;
-    
-    s_zoneManager = zoneManager;
-    s_focusedTrack = focusedTrack;
+static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, int lastTouchedParamNum)
+{
+    s_zoneManager =  zoneManager;
+    s_focusedTrack = track;
     s_fxSlot = fxSlot;
+    s_lastTouchedParamNum = lastTouchedParamNum;
+}
+
+void RequestFocusedFXDialog(ZoneManager *zoneManager)
+{
+    if (s_focusedTrack == NULL)
+    {
+        int trackNumber = 0;
+        int fxSlot = 0;
+        int itemNumber = 0;
+        int takeNumber = 0;
+        int paramIndex = 0;
+            
+        int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
+
+        MediaTrack *focusedTrack = NULL;
         
-    LaunchLearnFocusedFXDialog(zoneManager);
+        trackNumber++;
+        
+        if (retVal && ! (paramIndex & 0x01))
+        {
+            if (trackNumber > 0)
+                focusedTrack = DAW::GetTrack(trackNumber);
+            else if (trackNumber == 0)
+                focusedTrack = GetMasterTrack(NULL);
+        }
+
+        if (focusedTrack != NULL)
+        {
+            CaptureFX(zoneManager, focusedTrack, fxSlot, -1);
+        
+            LaunchLearnFocusedFXDialog(zoneManager);
+        }
+            
+    }
+    else if (s_focusedTrack != NULL && s_surfaceFXTemplates.size() == 1 && s_surfaceFXTemplates[0]->zoneManager == zoneManager)
+    {   // If only this one, release and close
+
+        ReleaseFX();
+
+        SurfaceFXTemplate const *t = s_surfaceFXTemplates[0];
+        if (t->hwnd != NULL)
+            SendMessage(t->hwnd, WM_CLOSE, 0, 0);
+    }
+    else
+    {
+        // find this one and close
+    }
 }
 
 void ShutdownLearn()
@@ -2120,8 +2137,6 @@ void CloseFocusedFXDialog()
 {
     if(s_hwndLearnFXDlg != NULL)
         SendMessage(s_hwndLearnFXDlg, WM_CLOSE, 0, 0);
-    
-    // GAW TBD -- dump Learn Zone
 }
 
 static void UpdateLearnWindowParams(HWND hwndDlg, ZoneManager *zoneManager, Zone *learnFocusedFXZone)
@@ -2223,7 +2238,7 @@ void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTr
     if (zoneManager->GetZoneInfo().Exists("FXEpilogue"))
         zoneManager->LoadZoneFile(fxZone, zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str(), "");
     
-    CreateContextMap(zoneManager, s_cellMap, s_cells);
+    CreateContextMap(zoneManager, s_cells);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
