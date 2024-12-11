@@ -18,7 +18,7 @@ extern WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
 
-extern void WidgetMoved(Widget *widget, int modifier);
+extern void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier);
 
 int g_minNumParamSteps = 2;
 int g_maxNumParamSteps = 30;
@@ -3160,7 +3160,7 @@ void ZoneManager::DoAction(Widget *widget, double value)
 void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
 {
     if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
     
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoAction(widget, isUsed, value);
@@ -3217,7 +3217,7 @@ void ZoneManager::DoRelativeAction(Widget *widget, double delta)
 void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
 {
     if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoRelativeAction(widget, isUsed, delta);
@@ -3274,7 +3274,7 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
 void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed)
 {
     if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
@@ -3333,7 +3333,7 @@ void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)
     surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
         
     if (surface_->GetModifiers().GetSize() > 0 && value != 0.0) // ignore touch releases for Learn mode
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
