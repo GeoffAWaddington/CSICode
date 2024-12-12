@@ -237,15 +237,15 @@ BEGIN
     PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,194,139,67,14
     LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,158,4,14
     PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,194,158,67,14
-    COMBOBOX        IDC_FixedTextDisplayPickFont,104,201,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_FXParamValueDisplayPickFont,194,201,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,201,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,201,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,201,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,201,16,12,ES_CENTER | ES_NUMBER
-    GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,175,77,38
-    PUSHBUTTON      "Colors",IDC_ApplyColorsToAll,17,187,68,11,BS_CENTER
-    PUSHBUTTON      "Fonts and Margins",IDC_ApplyFontsAndMarginsToAll,17,200,68,11,BS_CENTER
+    COMBOBOX        IDC_FixedTextDisplayPickFont,104,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,194,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,203,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,203,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,203,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,203,16,12,ES_CENTER | ES_NUMBER
+    GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,175,77,42
+    PUSHBUTTON      "Colors",IDC_ApplyColorsToAll,17,187,67,12,BS_CENTER
+    PUSHBUTTON      "Fonts and Margins",IDC_ApplyFontsAndMarginsToAll,17,202,67,13,BS_CENTER
     CTEXT           "Surface Name",IDC_SurfaceName,7,14,267,10
 END
 

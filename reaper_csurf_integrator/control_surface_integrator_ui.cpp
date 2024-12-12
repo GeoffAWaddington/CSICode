@@ -1637,15 +1637,20 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 
                 paramContext = GetFirstContext(zoneManager, widget, modifier);
             }
-                        
-            FXCell *cell = GetCell(t, widget, modifier);
             
-            if (cell)
+            FXCell *cell = NULL;
+              
+            if (t)
             {
-                nameContext = cell->GetNameContext(widget);
-                valueContext = cell->GetValueContext(widget);
+                cell = GetCell(t, widget, modifier);
+                
+                if (cell)
+                {
+                    nameContext = cell->GetNameContext(widget);
+                    valueContext = cell->GetValueContext(widget);
+                }
             }
-
+            
             switch(LOWORD(wParam))
             {                    
                 case IDC_Unassign:
@@ -1979,6 +1984,8 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     if ( ! t->hwnd)
         return;
 
+    SetFocus(t->hwnd);
+    
     if (s_focusedTrack == NULL)
         return;
     
@@ -1990,19 +1997,12 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     
     if (zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
         return;
-        
-    
-    
-    
+
     if (widget == s_currentWidget)
         return;
     
     s_currentWidget = widget;
-    s_currentModifier = modifier;
-    
-    
-    
-    
+    s_currentModifier = modifier; 
     
     char buf[MEDBUF];
     
