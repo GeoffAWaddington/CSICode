@@ -687,6 +687,8 @@ static void SaveZone(SurfaceFXTemplate *t)
             
             for (int cellIdx = 0; cellIdx < t->cells.GetSize(); ++cellIdx)
             {
+                char modifierBuf[SMLBUF];
+                
                 FXCell *cell = t->cells.Get(cellIdx);
                
                 if (previousChannel > cell->channel)
@@ -698,14 +700,14 @@ static void SaveZone(SurfaceFXTemplate *t)
                     previousChannel++;
 
                 int modifier = cell->modifier;
-                zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, buf, sizeof(buf));
+                zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
                 
                 for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
                 {
                     Widget *widget = cell->controlWidgets.Get(controlIdx);
                     
-                    fprintf(fxFile, "\t%s%s ", buf, widget->GetName());
-
+                    fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
+                    
                     if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
                     {
                         char actionName[SMLBUF];
@@ -778,7 +780,7 @@ static void SaveZone(SurfaceFXTemplate *t)
                 {
                     Widget *widget = cell->displayWidgets.Get(displayIdx);
                     
-                    fprintf(fxFile, "\t%s%s ", buf, widget->GetName());
+                    fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
 
                     if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
                     {
@@ -801,7 +803,7 @@ static void SaveZone(SurfaceFXTemplate *t)
                     }
                 }
 
-                fprintf(fxFile, "\n");
+                fprintf(fxFile, "\n\n");
             }
             
             fprintf(fxFile, "\n%s\n\n", s_EndAutoSection);
@@ -1986,8 +1988,6 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     
     if ( ! t->hwnd)
         return;
-
-    SetFocus(t->hwnd);
     
     if (s_focusedTrack == NULL)
         return;
@@ -2001,9 +2001,6 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     if (zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
         return;
 
-    if (widget == s_currentWidget)
-        return;
-    
     s_currentWidget = widget;
     s_currentModifier = modifier; 
     
@@ -2013,12 +2010,13 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     {
         if (! strcmp(context->GetAction()->GetName(), "NoAction"))
         {
-            buf[0] = 0;
-            SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, buf);
-            GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-            SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
             if (s_lastTouchedParamNum >= 0)
+            {
+                GetFullWidgetName(widget, modifier, buf, sizeof(buf));
+                SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
+                
                 HandleAssigment(t, widget, modifier, s_lastTouchedParamNum, true);
+            }
         }
         else if (FXCell *cell = GetCell(t, widget, modifier))
         {
@@ -2071,7 +2069,6 @@ static void ReleaseFX()
     s_fxSlot = -1;
     s_lastTouchedParamNum = -1;
     s_lastTouchedParamValue = -1.0;
-    s_surfaceFXTemplates.clear();
 }
 
 static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, int lastTouchedParamNum)
@@ -2090,9 +2087,9 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
         int itemNumber = 0;
         int takeNumber = 0;
         int paramIndex = 0;
-            
+        
         int retVal = GetTouchedOrFocusedFX(1, &trackNumber, &itemNumber, &takeNumber, &fxSlot, &paramIndex);
-
+        
         MediaTrack *focusedTrack = NULL;
         
         trackNumber++;
@@ -2104,27 +2101,25 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
             else if (trackNumber == 0)
                 focusedTrack = GetMasterTrack(NULL);
         }
-
+        
         if (focusedTrack != NULL)
         {
             CaptureFX(zoneManager, focusedTrack, fxSlot, -1);
-        
+            
             LaunchLearnFocusedFXDialog(zoneManager);
         }
-            
+        
     }
     else if (s_focusedTrack != NULL && s_surfaceFXTemplates.size() == 1 && s_surfaceFXTemplates[0]->zoneManager == zoneManager)
-    {   // If only this one, release and close
-
+    {   // If this is only one, release and close -- always true -- for now...
+        
         ReleaseFX();
-
+        
         SurfaceFXTemplate const *t = s_surfaceFXTemplates[0];
         if (t->hwnd != NULL)
             SendMessage(t->hwnd, WM_CLOSE, 0, 0);
-    }
-    else
-    {
-        LaunchLearnFocusedFXDialog(zoneManager);
+        
+        s_surfaceFXTemplates.clear();
     }
 }
 
@@ -2150,17 +2145,6 @@ static void UpdateLearnWindowParams(SurfaceFXTemplate *t)
     char paramName[SMLBUF];
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
     SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, paramName);
-     
-    
-    
-    
-    
-    //if (s_currentWidget != NULL && zone->IsWidgetInZone(s_currentWidget))
-        //HandleAssigment(t, s_currentWidget, s_currentModifier, s_lastTouchedParamNum, true);
-
-    
-    
-    
     
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
