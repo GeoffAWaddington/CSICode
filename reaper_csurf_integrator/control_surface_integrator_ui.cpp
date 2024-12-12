@@ -1569,6 +1569,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
         case WM_CLOSE:
         {
+            s_surfaceFXTemplates.clear();
+
             if (zoneManager)
                 zoneManager->ClearLearnFocusedFXZone();
 
@@ -1688,7 +1690,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (zoneManager)
                         {
                             SaveZone(t);
-                            CloseFocusedFXDialog();
+                            SendMessage(hwndDlg, WM_CLOSE, 0, 0);
                         }
                     }
                     break ;
@@ -2118,8 +2120,6 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
         SurfaceFXTemplate const *t = s_surfaceFXTemplates[0];
         if (t->hwnd != NULL)
             SendMessage(t->hwnd, WM_CLOSE, 0, 0);
-        
-        s_surfaceFXTemplates.clear();
     }
 }
 
