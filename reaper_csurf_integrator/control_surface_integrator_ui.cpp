@@ -1489,6 +1489,14 @@ static void CreateContextMap(SurfaceFXTemplate *t)
     }
 }
 
+static void ReleaseFX()
+{
+    s_focusedTrack = NULL;
+    s_fxSlot = -1;
+    s_lastTouchedParamNum = -1;
+    s_lastTouchedParamValue = -1.0;
+}
+
 static HFONT hFont16 = NULL;
 static HFONT hFont14 = NULL;
 
@@ -1564,6 +1572,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             if (zoneManager)
                 zoneManager->ClearLearnFocusedFXZone();
 
+            ReleaseFX();
+            
             s_currentWidget = NULL;
             s_currentModifier = -1;
             
@@ -2063,14 +2073,6 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     InitLearnFocusedFXDialog(zoneManager);
 }
 
-static void ReleaseFX()
-{
-    s_focusedTrack = NULL;
-    s_fxSlot = -1;
-    s_lastTouchedParamNum = -1;
-    s_lastTouchedParamValue = -1.0;
-}
-
 static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, int lastTouchedParamNum)
 {
     s_focusedTrack = track;
@@ -2112,9 +2114,7 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
     }
     else if (s_focusedTrack != NULL && s_surfaceFXTemplates.size() == 1 && s_surfaceFXTemplates[0]->zoneManager == zoneManager)
     {   // If this is only one, release and close -- always true -- for now...
-        
-        ReleaseFX();
-        
+
         SurfaceFXTemplate const *t = s_surfaceFXTemplates[0];
         if (t->hwnd != NULL)
             SendMessage(t->hwnd, WM_CLOSE, 0, 0);
