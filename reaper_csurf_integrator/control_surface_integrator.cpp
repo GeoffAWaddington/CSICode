@@ -3331,9 +3331,10 @@ void ZoneManager::DoTouch(Widget *widget, double value)
 void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
-        
-    if (surface_->GetModifiers().GetSize() > 0 && value != 0.0) // ignore touch releases for Learn mode
-        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
+       
+    // GAW -- temporary
+    //if (surface_->GetModifiers().GetSize() > 0 && value != 0.0) // ignore touch releases for Learn mode
+        //WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);

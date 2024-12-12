@@ -248,6 +248,9 @@ struct SurfaceFXTemplate
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
     ZoneManager *zoneManager;
+    Widget *currentWidget;
+    int currentModifier;
+
     WDL_PtrList<FXCell> cells;
     ptrvector<FXRowLayout> fxRowLayouts;
     string_list paramWidgets;
@@ -265,6 +268,8 @@ struct SurfaceFXTemplate
     SurfaceFXTemplate(ZoneManager *aZoneManager)
     {
         zoneManager = aZoneManager;
+        currentWidget = NULL;
+        currentModifier = 0;
         hasColor = false;
         paramWidget[0] = 0;
         nameWidget[0] = 0;
@@ -1165,18 +1170,16 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
     }
 }
 
-static void HandleAssigment(HWND hwndDlg, Widget *widget, int modifier, int paramIdx, bool shouldAssign)
+static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, int paramIdx, bool shouldAssign)
 {
-    SurfaceFXTemplate *t = GetSurfaceFXTemplate(hwndDlg);
-
     if ( ! t)
         return;
     
     ZoneManager *zoneManager = t->zoneManager;
-    
+        
     if (zoneManager == NULL)
         return;
-
+    
     if (paramIdx < 0)
         return;
     
@@ -1219,11 +1222,10 @@ static void HandleAssigment(HWND hwndDlg, Widget *widget, int modifier, int para
         paramContext->SetStringParam("");
         paramContext->GetWidgetProperties().delete_props();
         
-        ClearParams(hwndDlg);
-        GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-        SetDlgItemText(hwndDlg, IDC_GroupFXWidget, buf);
+        ClearParams(t->hwnd);
+        SetDlgItemText(t->hwnd, IDC_GroupFXWidget, "Widget");
 
-        SetDlgItemText(hwndDlg, IDC_FXParamNameEdit, "");
+        SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, "");
     }
     else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
     {
@@ -1663,7 +1665,8 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (widget == NULL)
                             break;
                         
-                        HandleAssigment(hwndDlg, widget, modifier, paramNum, false);
+                        if (t)
+                            HandleAssigment(t, widget, modifier, paramNum, false);
                     }
                     break;
                     
@@ -2012,9 +2015,10 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
         {
             buf[0] = 0;
             SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, buf);
-            ClearParams(t->hwnd);
             GetFullWidgetName(widget, modifier, buf, sizeof(buf));
             SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
+            if (s_lastTouchedParamNum >= 0)
+                HandleAssigment(t, widget, modifier, s_lastTouchedParamNum, true);
         }
         else if (FXCell *cell = GetCell(t, widget, modifier))
         {
@@ -2024,6 +2028,8 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
                 FillParams(t, widget, modifier);
             }
         }
+        else
+            ClearParams(t->hwnd);
     }
 }
 
@@ -2133,23 +2139,32 @@ void CloseFocusedFXDialog()
         SendMessage(s_hwndLearnFXDlg, WM_CLOSE, 0, 0);
 }
 
-static void UpdateLearnWindowParams(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
+static void UpdateLearnWindowParams(SurfaceFXTemplate *t)
 {
-    SurfaceFXTemplate *t = GetSurfaceFXTemplate(zoneManager);
-
     if ( ! t)
         return;
+    
+    ZoneManager *zoneManager = t->zoneManager;
+    Zone *zone = t->zoneManager->GetLearnedFocusedFXZone();
     
     char paramName[SMLBUF];
     TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
     SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, paramName);
-        
-    if (s_currentWidget != NULL)
-        HandleAssigment(t->hwnd, s_currentWidget, s_currentModifier, s_lastTouchedParamNum, true);
+     
+    
+    
+    
+    
+    //if (s_currentWidget != NULL && zone->IsWidgetInZone(s_currentWidget))
+        //HandleAssigment(t, s_currentWidget, s_currentModifier, s_lastTouchedParamNum, true);
 
-    for (int i = 0; i < learnFocusedFXZone->GetWidgets().GetSize(); ++i)
+    
+    
+    
+    
+    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
-        Widget *widget = learnFocusedFXZone->GetWidgets().Get(i);
+        Widget *widget = zone->GetWidgets().Get(i);
         
         for (int j = 0; j < t->fxRowLayouts.size(); ++j)
         {
@@ -2171,7 +2186,7 @@ static void UpdateLearnWindowParams(ZoneManager *zoneManager, Zone *learnFocused
     }
 }
 
-void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
+void UpdateLearnWindow(ZoneManager *zoneManager)
 {
     SurfaceFXTemplate *t = GetSurfaceFXTemplate(zoneManager);
 
@@ -2180,7 +2195,7 @@ void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
 
     if ( ! t->hwnd)
         return;
-
+    
     int trackNumberOut;
     int fxNumberOut;
     int paramNumberOut;
@@ -2195,7 +2210,7 @@ void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone)
         {
             s_lastTouchedParamNum = paramNumberOut;
             s_lastTouchedParamValue = currentParamValue;
-            UpdateLearnWindowParams(zoneManager, learnFocusedFXZone);
+            UpdateLearnWindowParams(t);
         }
     }
 }

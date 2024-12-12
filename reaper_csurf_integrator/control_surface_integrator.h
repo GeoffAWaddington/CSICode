@@ -63,7 +63,7 @@ class ZoneManager;
 class Zone;
 extern void RequestFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
-extern void UpdateLearnWindow(ZoneManager *zoneManager, Zone *learnFocusedFXZone);
+extern void UpdateLearnWindow(ZoneManager *zoneManager);
 extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot);
 extern void ShutdownLearn();
 
@@ -1783,7 +1783,7 @@ public:
           
         if (learnFocusedFXZone_ != NULL)
         {
-            UpdateLearnWindow(this, learnFocusedFXZone_);
+            UpdateLearnWindow(this);
             learnFocusedFXZone_->RequestUpdate();
         }
 
