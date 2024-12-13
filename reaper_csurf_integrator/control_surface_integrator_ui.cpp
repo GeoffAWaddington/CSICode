@@ -339,7 +339,7 @@ static ActionContext *context = NULL;
 
 static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    SurfaceFXTemplate *t = GetSurfaceFXTemplate(hwndDlg);
+    SurfaceFXTemplate *t = GetSurfaceFXTemplate(s_hwndLearnFXDlg);
     
     if ( ! t)
         return 0;
@@ -2053,6 +2053,7 @@ static void InitLearnFocusedFXDialog(ZoneManager *zoneManager)
 
     if (t->hwnd)
     {
+        s_hwndLearnFXDlg = t->hwnd;
         SendMessage(t->hwnd, WM_USER + 1024, 0, 0);
         ShowWindow(t->hwnd, SW_SHOW);
         SetDlgItemText(t->hwnd, IDC_SurfaceName, t->zoneManager->GetSurface()->GetName());
