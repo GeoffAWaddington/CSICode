@@ -2141,11 +2141,7 @@ static void UpdateLearnWindowParams(SurfaceFXTemplate *t)
     
     ZoneManager *zoneManager = t->zoneManager;
     Zone *zone = t->zoneManager->GetLearnedFocusedFXZone();
-    
-    char paramName[SMLBUF];
-    TrackFX_GetParamName(s_focusedTrack, s_fxSlot, s_lastTouchedParamNum, paramName, sizeof(paramName));
-    SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, paramName);
-    
+
     for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
     {
         Widget *widget = zone->GetWidgets().Get(i);
