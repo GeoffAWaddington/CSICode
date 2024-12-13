@@ -56,23 +56,23 @@ IDD_SURFACEEDIT_CSI DIALOGEX 0, 0, 368, 192
 STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
+    LISTBOX         IDC_LIST_Surfaces,3,19,137,121,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LISTBOX         IDC_LIST_Pages,144,19,107,122,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_PageSurfaces,255,19,107,122,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add MIDI",IDC_BUTTON_AddMidiSurface,3,147,34,14
+    PUSHBUTTON      "Add OSC",IDC_BUTTON_AddOSCSurface,38,147,34,14
+    PUSHBUTTON      "Edit",IDC_BUTTON_EditSurface,73,147,34,14
+    PUSHBUTTON      "Remove",IDC_BUTTON_RemoveSurface,108,147,34,14
     PUSHBUTTON      "Add",IDC_BUTTON_AddPage,144,147,31,14
     PUSHBUTTON      "Edit",IDC_BUTTON_EditPage,179,147,29,14
     PUSHBUTTON      "Remove",IDC_BUTTON_RemovePage,213,147,39,14
-    LISTBOX         IDC_LIST_Surfaces,3,19,137,121,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Add MIDI",IDC_BUTTON_AddMidiSurface,3,147,34,14
-    PUSHBUTTON      "Edit",IDC_BUTTON_EditSurface,73,147,34,14
-    PUSHBUTTON      "Remove",IDC_BUTTON_RemoveSurface,108,147,34,14
-    PUSHBUTTON      "Add OSC",IDC_BUTTON_AddOSCSurface,38,147,34,14
-    LISTBOX         IDC_LIST_PageSurfaces,255,19,107,122,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Add",IDC_BUTTON_AddPageSurface,255,147,31,14
     PUSHBUTTON      "Edit",IDC_BUTTON_EditPageSurface,291,147,29,14
     PUSHBUTTON      "Remove",IDC_BUTTON_RemovePageSurface,325,147,37,14
+    PUSHBUTTON      "Advanced",IDC_BUTTON_Advanced,324,3,37,14
     LTEXT           "Surfaces",IDC_STATIC,4,6,29,8
     LTEXT           "Pages",IDC_STATIC,145,6,20,8
     LTEXT           "Zones",IDC_STATIC,255,6,41,8
-    PUSHBUTTON      "Advanced",IDC_BUTTON_Advanced,324,3,37,14
 END
 
 IDD_DIALOG_Page DIALOGEX 0, 0, 199, 145
@@ -80,18 +80,18 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Page"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,97,119,44,14
-    PUSHBUTTON      "Cancel",IDCANCEL,145,119,44,14
     EDITTEXT        IDC_EDIT_PageName,50,5,111,14,ES_AUTOHSCROLL
-    RTEXT           "Page Name",IDC_STATIC,3,8,39,9
+    CONTROL         " MCP",IDC_RADIO_MCP,"Button",BS_AUTORADIOBUTTON,7,39,32,10
+    CONTROL         " TCP",IDC_RADIO_TCP,"Button",BS_AUTORADIOBUTTON,7,54,31,10
     CONTROL         " Bank with Other Pages",IDC_CHECK_SynchPages,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,89,10
     CONTROL         " Ensure Selected Track Visible in both CSI and Reaper",IDC_CHECK_ScrollLink,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,90,185,10
     CONTROL         " Surface and Reaper Mixer Scroll Together",IDC_CHECK_ScrollSynch,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,105,148,10
+    DEFPUSHBUTTON   "OK",IDOK,97,119,44,14
+    PUSHBUTTON      "Cancel",IDCANCEL,145,119,44,14
+    RTEXT           "Page Name",IDC_STATIC,3,8,39,9
     GROUPBOX        "CSI Follows Track Manager Show/Hide",IDC_STATIC,2,26,190,44
-    CONTROL         " MCP",IDC_RADIO_MCP,"Button",BS_AUTORADIOBUTTON,7,39,32,10
-    CONTROL         " TCP",IDC_RADIO_TCP,"Button",BS_AUTORADIOBUTTON,7,54,31,10
 END
 
 IDD_DIALOG_MidiSurface DIALOGEX 0, 0, 220, 151
@@ -99,20 +99,20 @@ STYLE DS_LOCALEDIT | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CA
 CAPTION "MIDI Surface"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,161,134,50,14
-    COMBOBOX        IDC_COMBO_MidiIn,48,31,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "MIDI In",IDC_STATIC,14,33,28,8
-    COMBOBOX        IDC_COMBO_MidiOut,50,51,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "MIDI Out",IDC_STATIC,14,54,31,8
-    LTEXT           "Name",IDC_STATIC,13,13,19,8
     EDITTEXT        IDC_EDIT_MidiSurfaceName,48,9,163,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,107,134,50,14
-    EDITTEXT        IDC_EDIT_MidiSurfaceRefreshRate,25,92,19,14,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Hz - Display refresh rate - default is 15",IDC_STATIC,51,95,147,8
-    EDITTEXT        IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun,25,112,19,14,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Max messages per run - default is 200",IDC_STATIC,51,115,141,8
-    LTEXT           "Number of Channels",IDC_STATIC,51,74,67,8,WS_TABSTOP
+    COMBOBOX        IDC_COMBO_MidiIn,48,31,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_MidiOut,50,51,163,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_EDIT_NumChannels,25,72,19,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_MidiSurfaceRefreshRate,25,92,19,14,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_MidiSurfaceMaxSysExMessagesPerRun,25,112,19,14,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,107,134,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,161,134,50,14
+    LTEXT           "Name",IDC_STATIC,13,13,19,8
+    LTEXT           "MIDI In",IDC_STATIC,14,33,28,8
+    LTEXT           "MIDI Out",IDC_STATIC,14,54,31,8
+    LTEXT           "Number of Channels",IDC_STATIC,51,74,67,8,WS_TABSTOP
+    LTEXT           "Hz - Display refresh rate - default is 15",IDC_STATIC,51,95,147,8
+    LTEXT           "Max messages per run - default is 200",IDC_STATIC,51,115,141,8
 END
 
 IDD_DIALOG_OSCSurface DIALOGEX 0, 0, 220, 172
@@ -120,22 +120,22 @@ STYLE DS_LOCALEDIT | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CA
 CAPTION "OSC Surface"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
+    EDITTEXT        IDC_EDIT_OSCSurfaceName,41,11,170,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO_Type,41,34,101,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_NumChannels,80,55,19,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_OSCRemoteDeviceIP,80,74,62,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_OSCInPort,80,92,62,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_OSCOutPort,80,111,63,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_MaxPackets,80,130,63,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
     DEFPUSHBUTTON   "OK",IDOK,107,153,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,161,153,50,14
+    LTEXT           "Name",IDC_STATIC,13,13,19,8
+    LTEXT           "Type",IDC_STATIC,13,36,17,8
+    LTEXT           "Number of Channels",IDC_STATIC,13,57,67,8,WS_TABSTOP
     LTEXT           "Remote device IP",IDC_STATIC,13,76,58,8
     LTEXT           "CSI receives on port",IDC_STATIC,13,94,69,8
-    LTEXT           "Name",IDC_STATIC,13,13,19,8
-    EDITTEXT        IDC_EDIT_OSCSurfaceName,41,11,170,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_OSCRemoteDeviceIP,80,74,62,12,ES_AUTOHSCROLL
     LTEXT           "CSI sends to port",IDC_STATIC,13,113,66,8
-    EDITTEXT        IDC_EDIT_OSCOutPort,80,111,63,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_EDIT_OSCInPort,80,92,62,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Maximum packets",IDC_STATIC,13,132,66,8
-    EDITTEXT        IDC_EDIT_MaxPackets,80,130,63,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "Type",IDC_STATIC,13,36,17,8
-    COMBOBOX        IDC_COMBO_Type,41,34,101,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Number of Channels",IDC_STATIC,13,57,67,8,WS_TABSTOP
-    EDITTEXT        IDC_EDIT_NumChannels,80,55,19,12,ES_AUTOHSCROLL
 END
 
 IDD_DIALOG_PageSurface DIALOGEX 0, 0, 220, 61
@@ -143,12 +143,12 @@ STYLE DS_LOCALEDIT | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CA
 CAPTION "Zone and Surface"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,161,43,50,14
     COMBOBOX        IDC_COMBO_PageSurfaceFolder,17,8,193,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,107,43,50,14
-    LTEXT           "Channel Offset",-1,136,26,53,8,WS_TABSTOP
-    EDITTEXT        IDC_EDIT_ChannelOffset,192,24,19,12,ES_AUTOHSCROLL
     COMBOBOX        IDC_COMBO_PageSurface,17,24,113,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_ChannelOffset,192,24,19,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,107,43,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,161,43,50,14
+    LTEXT           "Channel Offset",-1,136,26,53,8,WS_TABSTOP
 END
 
 IDD_DIALOG_Broadcast DIALOGEX 0, 0, 472, 200
@@ -156,26 +156,21 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Broadcast and Listen Setup"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,386,176,37,14
-    PUSHBUTTON      "Cancel",IDCANCEL,428,176,37,14
-    GROUPBOX        "Surface Listens to",IDC_ListenCheckboxes,250,24,215,87
+    COMBOBOX        IDC_AddBroadcaster,7,23,107,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_AddListener,133,23,107,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_Broadcasters,6,39,107,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LISTBOX         IDC_LIST_Listeners,133,39,107,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "GoHome",IDC_CHECK_GoHome,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,47,44,10
+    DEFPUSHBUTTON   "Add",ID_BUTTON_AddBroadcaster,6,116,37,14,BS_FLAT
+    DEFPUSHBUTTON   "Remove",ID_RemoveBroadcaster,77,117,37,14,BS_FLAT
+    DEFPUSHBUTTON   "Add",ID_BUTTON_AddListener,132,116,37,14,BS_FLAT
+    DEFPUSHBUTTON   "Remove",ID_RemoveListener,204,117,37,14,BS_FLAT
+    CONTROL         "SelectedTrackFX",IDC_CHECK_SelectedTrackFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,255,47,66,10
     CONTROL         "SelectedTrackSends",IDC_CHECK_Sends,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,255,69,78,10
     CONTROL         "SelectedTrackReceives",IDC_CHECK_Receives,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,255,91,86,10
     CONTROL         "FXMenu",IDC_CHECK_FXMenu,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,47,36,10
-    LISTBOX         IDC_LIST_Broadcasters,6,39,107,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Broadcasters",IDC_STATIC,37,8,41,8
-    DEFPUSHBUTTON   "Remove",ID_RemoveListener,204,117,37,14,BS_FLAT
-    DEFPUSHBUTTON   "Remove",ID_RemoveBroadcaster,77,117,37,14,BS_FLAT
-    LTEXT           "Listeners",IDC_STATIC,170,8,29,8
-    COMBOBOX        IDC_AddBroadcaster,7,23,107,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_AddListener,133,23,107,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "Add",ID_BUTTON_AddBroadcaster,6,116,37,14,BS_FLAT
-    DEFPUSHBUTTON   "Add",ID_BUTTON_AddListener,132,116,37,14,BS_FLAT
     CONTROL         "FocusedFX",IDC_CHECK_FocusedFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,69,49,10
     CONTROL         "FocusedFXParam",IDC_CHECK_FocusedFXParam,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,343,91,66,10
-    CONTROL         "SelectedTrackFX",IDC_CHECK_SelectedTrackFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,255,47,66,10
+    CONTROL         "GoHome",IDC_CHECK_GoHome,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,47,44,10
     CONTROL         "LocalFXSlot",IDC_CHECK_LocalFXSlot,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,69,49,10
     CONTROL         "Modifiers",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,411,91,44,10
     CONTROL         "Show MIDI input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,154,65,10
@@ -183,6 +178,11 @@ BEGIN
     CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,133,154,53,10
     CONTROL         "Write params to /CSI/Zones/ZoneRawFXFiles when FX inserted",IDC_CHECK_WriteFXParams,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,154,247,10
+    DEFPUSHBUTTON   "OK",IDOK,386,176,37,14
+    PUSHBUTTON      "Cancel",IDCANCEL,428,176,37,14
+    LTEXT           "Broadcasters",IDC_STATIC,37,8,41,8
+    LTEXT           "Listeners",IDC_STATIC,170,8,29,8
+    GROUPBOX        "Surface Listens to",IDC_ListenCheckboxes,250,24,215,87
     GROUPBOX        "Monitoring",IDC_STATIC,5,139,460,32
 END
 
@@ -191,21 +191,21 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,399,128,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,456,128,50,14
-    EDITTEXT        IDC_EditSteps,112,99,393,12,ES_AUTOHSCROLL
-    LTEXT           "Custom steps",IDC_StepsPromptGroup,62,101,43,8
-    LTEXT           "Accelerated delta values",IDC_AcceleratedDeltaValuesLabel,28,59,76,8
-    LTEXT           "Accelerated tick values",IDC_AcceleratedTickValuesLabel,33,80,72,8
-    LTEXT           "Delta value",IDC_DeltaValueLabel,31,37,36,8
-    LTEXT           "Range maximum",IDC_RangeMaximumLabel,427,36,54,8
     EDITTEXT        IDC_EDIT_Delta,72,35,20,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_RangeMin,386,35,21,12,ES_AUTOHSCROLL | WS_GROUP
+    EDITTEXT        IDC_EDIT_RangeMax,485,34,20,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_DeltaValues,112,57,393,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_TickValues,112,78,393,12,ES_AUTOHSCROLL
-    LTEXT           "Range minimum",IDC_RangeMinimumLabel,329,37,53,8
-    EDITTEXT        IDC_EDIT_RangeMax,485,34,20,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EditSteps,112,99,393,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,399,128,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,456,128,50,14
     GROUPBOX        "FX Param Values",IDC_GroupFXParamValues,19,14,500,111
+    LTEXT           "Delta value",IDC_DeltaValueLabel,31,37,36,8
+    LTEXT           "Range minimum",IDC_RangeMinimumLabel,329,37,53,8
+    LTEXT           "Range maximum",IDC_RangeMaximumLabel,427,36,54,8
+    LTEXT           "Accelerated delta values",IDC_AcceleratedDeltaValuesLabel,28,59,76,8
+    LTEXT           "Accelerated tick values",IDC_AcceleratedTickValuesLabel,33,80,72,8
+    LTEXT           "Custom steps",IDC_StepsPromptGroup,41,101,43,8
 END
 
 IDD_DIALOG_LearnFX DIALOGEX 0, 0, 282, 138
@@ -213,39 +213,39 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "LearnFX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Widget",IDC_GroupFXWidget,5,26,269,80
-    COMBOBOX        IDC_PickSteps,131,80,43,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_PickRingStyle,194,80,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_FXParamNameEdit,14,47,70,16,ES_CENTER | ES_AUTOHSCROLL
-    LTEXT           "Steps",IDC_Steps,104,81,18,8
     COMBOBOX        IDC_COMBO_PickNameDisplay,104,50,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PickValueDisplay,194,50,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Unlink",IDC_Unassign,14,79,70,14
+    COMBOBOX        IDC_PickSteps,131,80,43,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PickRingStyle,194,80,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Params",IDC_Params,104,114,70,14
     PUSHBUTTON      "Save",IDC_Save,194,114,70,14
-    PUSHBUTTON      "Unlink",IDC_Unassign,14,79,70,14
-    LTEXT           "name",IDC_STATIC,126,38,18,8
-    LTEXT           "value",IDC_STATIC,218,38,17,8
-    LTEXT           "",IDC_FXParamRingColorBox,82,139,4,14
     PUSHBUTTON      "Ring",IDC_FXParamRingColor,14,139,67,14
-    LTEXT           "",IDC_FXParamIndicatorColorBox,82,158,4,14
     PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,14,158,67,14
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,171,139,4,14
     PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,104,139,67,14
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,171,158,4,14
     PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,104,158,67,14
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,261,139,4,14
     PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,194,139,67,14
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,158,4,14
     PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,194,158,67,14
-    COMBOBOX        IDC_FixedTextDisplayPickFont,104,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_FXParamValueDisplayPickFont,194,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,203,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,203,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,203,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,203,16,12,ES_CENTER | ES_NUMBER
-    GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,175,77,42
     PUSHBUTTON      "Colors",IDC_ApplyColorsToAll,17,187,67,12,BS_CENTER
     PUSHBUTTON      "Fonts and Margins",IDC_ApplyFontsAndMarginsToAll,17,202,67,13,BS_CENTER
+    COMBOBOX        IDC_FixedTextDisplayPickFont,104,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,203,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,203,16,12,ES_CENTER | ES_NUMBER
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,194,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,203,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,203,16,12,ES_CENTER | ES_NUMBER
+    GROUPBOX        "Widget",IDC_GroupFXWidget,5,26,269,80
+    LTEXT           "name",IDC_STATIC,126,38,18,8
+    LTEXT           "value",IDC_STATIC,218,38,17,8
+    LTEXT           "Steps",IDC_Steps,104,81,18,8
+    LTEXT           "",IDC_FXParamRingColorBox,82,139,4,14
+    LTEXT           "",IDC_FXParamIndicatorColorBox,82,158,4,14
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,171,139,4,14
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,171,158,4,14
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,261,139,4,14
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,158,4,14
+    GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,175,77,42
     CTEXT           "Surface Name",IDC_SurfaceName,7,14,267,10
 END
 
@@ -254,10 +254,10 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "FX Alias"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
+    EDITTEXT        IDC_EDIT_FXAlias,46,14,66,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,10,33,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,64,33,50,14
     LTEXT           "FX Alias",IDC_STATIC,15,16,26,8
-    EDITTEXT        IDC_EDIT_FXAlias,46,14,66,12,ES_AUTOHSCROLL
 END
 
 
@@ -282,7 +282,6 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 274
         TOPMARGIN, 7
-        BOTTOMMARGIN, 228
     END
 
     IDD_DIALOG_EditFXAlias, DIALOG
