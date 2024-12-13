@@ -1559,7 +1559,7 @@ void CSurfIntegrator::Init()
                 {
                     currentBroadcaster = broadcasterProp;
                 }
-                else if (currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
+                else if (currentPage && tokens.size() > 2 && currentBroadcaster != "" && pList.get_prop(PropertyType_Listener) != NULL)
                 {
                     if (currentPage && tokens.size() > 2 && currentBroadcaster != "")
                     {
@@ -1569,20 +1569,20 @@ void CSurfIntegrator::Init()
                         
                         const WDL_PtrList<ControlSurface> &list = currentPage->GetSurfaces();
                         
-                        string currentSurface = string(tokens[1]);
+                        string currentSurface = string(pList.get_prop(PropertyType_Listener));
                         
                         for (int i = 0; i < list.GetSize(); ++i)
                         {
                             if (list.Get(i)->GetName() == currentBroadcaster)
                                 broadcaster = list.Get(i);
                             if (list.Get(i)->GetName() == currentSurface)
-                                listener = list.Get(i);
+                                 listener = list.Get(i);
                         }
                         
                         if (broadcaster != NULL && listener != NULL)
                         {
                             broadcaster->GetZoneManager()->AddListener(listener);
-                            listener->GetZoneManager()->SetListenerCategories(tokens[2]);
+                            listener->GetZoneManager()->SetListenerCategories(pList);
                         }
                     }
                 }
@@ -2969,32 +2969,43 @@ void ZoneManager::AddListener(ControlSurface *surface)
     listeners_.push_back(surface->GetZoneManager());
 }
 
-void ZoneManager::SetListenerCategories(const char *categoryList)
+void ZoneManager::SetListenerCategories(PropertyList &pList)
 {
-    string_list categoryTokens;
-    GetTokens(categoryTokens, categoryList);
-    
-    for (int i = 0; i < (int)categoryTokens.size(); ++i)
-    {
-        if (categoryTokens[i] == "GoHome")
+    if (const char *property =  pList.get_prop(PropertyType_GoHome))
+        if (! strcmp(property, "Yes"))
             listensToGoHome_ = true;
-        if (categoryTokens[i] == "Sends")
+    
+    if (const char *property =  pList.get_prop(PropertyType_SelectedTrackSends))
+        if (! strcmp(property, "Yes"))
             listensToSends_ = true;
-        if (categoryTokens[i] == "Receives")
+    
+    if (const char *property =  pList.get_prop(PropertyType_SelectedTrackReceives))
+        if (! strcmp(property, "Yes"))
             listensToReceives_ = true;
-        if (categoryTokens[i] == "FocusedFX")
+    
+    if (const char *property =  pList.get_prop(PropertyType_FocusedFX))
+        if (! strcmp(property, "Yes"))
             listensToFocusedFX_ = true;
-        if (categoryTokens[i] == "FocusedFXParam")
+    
+    if (const char *property =  pList.get_prop(PropertyType_FocusedFXParam))
+        if (! strcmp(property, "Yes"))
             listensToFocusedFXParam_ = true;
-        if (categoryTokens[i] == "FXMenu")
+    
+    if (const char *property =  pList.get_prop(PropertyType_FXMenu))
+        if (! strcmp(property, "Yes"))
             listensToFXMenu_ = true;
-        if (categoryTokens[i] == "LocalFXSlot")
+    
+    if (const char *property =  pList.get_prop(PropertyType_LocalFXSlot))
+        if (! strcmp(property, "Yes"))
             listensToLocalFXSlot_ = true;
-        if (categoryTokens[i] == "SelectedTrackFX")
-            listensToSelectedTrackFX_ = true;        
-        if (categoryTokens[i] == "Modifiers")
-            surface_->SetListensToModifiers();
-    }
+    
+    if (const char *property =  pList.get_prop(PropertyType_SelectedTrackFX))
+        if (! strcmp(property, "Yes"))
+            listensToSelectedTrackFX_ = true;
+    
+    if (const char *property =  pList.get_prop(PropertyType_Modifiers))
+        if (! strcmp(property, "Yes"))
+            surface_->SetListensToModifiers();;
 }
 
 void ZoneManager::CheckFocusedFXState()

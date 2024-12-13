@@ -1390,7 +1390,7 @@ public:
     
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(ControlSurface *surface);
-    void SetListenerCategories(const char *categoryList);
+    void SetListenerCategories(PropertyList &pList);
     const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
