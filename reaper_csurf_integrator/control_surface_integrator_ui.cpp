@@ -3846,17 +3846,17 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 {
-                    fprintf(iniFile, "%s=%s %s=%s %s=%d %s=%d %s=%d ",
-                        plist.string_from_prop(PropertyType_SurfaceType), s_surfaces.Get(i)->type.c_str(),
-                        plist.string_from_prop(PropertyType_SurfaceName), s_surfaces.Get(i)->name.c_str(),
-                        plist.string_from_prop(PropertyType_SurfaceChannelCount), s_surfaces.Get(i)->channelCount,
-                        plist.string_from_prop(PropertyType_MidiInput), s_surfaces.Get(i)->inPort,
-                        plist.string_from_prop(PropertyType_MidiOutput), s_surfaces.Get(i)->outPort);
-
                     string type = s_surfaces.Get(i)->type;
-                    
+                                        
                     if (type == s_MidiSurfaceToken)
                     {
+                        fprintf(iniFile, "%s=%s %s=%s %s=%d %s=%d %s=%d ",
+                            plist.string_from_prop(PropertyType_SurfaceType), s_surfaces.Get(i)->type.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceName), s_surfaces.Get(i)->name.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceChannelCount), s_surfaces.Get(i)->channelCount,
+                            plist.string_from_prop(PropertyType_MidiInput), s_surfaces.Get(i)->inPort,
+                            plist.string_from_prop(PropertyType_MidiOutput), s_surfaces.Get(i)->outPort);
+                        
                         int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
                         fprintf(iniFile, "%s=%d ", plist.string_from_prop(PropertyType_MIDISurfaceRefreshRate), refreshRate);
                         
@@ -3866,6 +3866,13 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     
                     else if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)
                     {
+                        fprintf(iniFile, "%s=%s %s=%s %s=%d %s=%d %s=%d ",
+                            plist.string_from_prop(PropertyType_SurfaceType), s_surfaces.Get(i)->type.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceName), s_surfaces.Get(i)->name.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceChannelCount), s_surfaces.Get(i)->channelCount,
+                            plist.string_from_prop(PropertyType_ReceiveOnPort), s_surfaces.Get(i)->inPort,
+                            plist.string_from_prop(PropertyType_TransmitToPort), s_surfaces.Get(i)->outPort);
+
                         fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_TransmitToIPAddress), s_surfaces.Get(i)->remoteDeviceIP.c_str());
                         
                         int maxPacketsPerRun = s_surfaces.Get(i)->surfaceMaxPacketsPerRun < 0 ? s_surfaceDefaultMaxPacketsPerRun : s_surfaces.Get(i)->surfaceMaxPacketsPerRun;
