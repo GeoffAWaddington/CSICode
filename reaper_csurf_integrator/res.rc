@@ -136,6 +136,7 @@ BEGIN
     LTEXT           "CSI receives on port",IDC_STATIC,13,94,69,8
     LTEXT           "CSI sends to port",IDC_STATIC,13,113,66,8
     LTEXT           "Maximum packets",IDC_STATIC,13,132,66,8
+    LTEXT           "Default is 0",IDC_STATIC,160,132,66,8
 END
 
 IDD_DIALOG_PageSurface DIALOGEX 0, 0, 220, 61

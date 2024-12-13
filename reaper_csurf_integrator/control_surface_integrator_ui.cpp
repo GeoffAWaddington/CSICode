@@ -2342,7 +2342,7 @@ struct SurfaceLine
         outPort = 0;
         surfaceRefreshRate = s_surfaceDefaultRefreshRate;
         surfaceMaxPacketsPerRun = s_surfaceDefaultMaxPacketsPerRun;
-        surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
+        surfaceMaxSysExMessagesPerRun = s_surfaceDefaultMaxSysExMessagesPerRun;
     }
 };
 
