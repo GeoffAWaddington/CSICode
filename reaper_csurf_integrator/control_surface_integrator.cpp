@@ -18,7 +18,7 @@ extern WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPAR
 
 extern reaper_plugin_info_t *g_reaper_plugin_info;
 
-extern void WidgetMoved(Widget *widget, int modifier);
+extern void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier);
 
 int g_minNumParamSteps = 2;
 int g_maxNumParamSteps = 30;
@@ -537,19 +537,7 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
     return NULL;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-// Parsing
-//////////////////////////////////////////////////////////////////////////////////////////////
+// files
 static void listFilesOfType(const string &path, string_list &results, const char *type)
 {
     WDL_PtrList<char> stack;
@@ -584,115 +572,8 @@ static void listFilesOfType(const string &path, string_list &results, const char
     }
 }
 
-void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string_list &colors)
-{
-    for (int i = 0; i < (int)colors.size(); ++i)
-    {
-        rgba_color colorValue;
-        
-        if (GetColorValue(colors[i], colorValue))
-            colorValues.push_back(colorValue);
-    }
-}
-
-void ActionContext::SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
-{
-    vector<int> rawValues;
-    string_list hexColors;
-
-    int openCurlyIndex = 0;
-    int closeCurlyIndex = 0;
-    
-    for (int i = 0; i < params.size(); ++i)
-        if (params[i] == "{")
-        {
-            openCurlyIndex = i;
-            break;
-        }
-    
-    for (int i = 0; i < params.size(); ++i)
-        if (params[i] == "}")
-        {
-            closeCurlyIndex = i;
-            break;
-        }
-   
-    if (openCurlyIndex != 0 && closeCurlyIndex != 0)
-    {
-        for (int i = openCurlyIndex + 1; i < closeCurlyIndex; ++i)
-        {
-            const char *strVal = params[i];
-            
-            if (strVal[0] == '#')
-            {
-                hexColors.push_back(strVal);
-                continue;
-            }
-            
-            if (!strcmp(strVal, "Track"))
-            {
-                supportsTrackColor = true;
-                break;
-            }
-            else if (strVal[0])
-            {
-                char *ep = NULL;
-                const int value = strtol(strVal, &ep, 10);
-                if (ep && !*ep)
-                    rawValues.push_back(wdl_clamp(value, 0, 255));
-            }
-        }
-        
-        if (hexColors.size() > 0)
-        {
-            supportsColor = true;
-
-            GetColorValues(colorValues, hexColors);
-        }
-        else if (rawValues.size() % 3 == 0 && rawValues.size() > 2)
-        {
-            supportsColor = true;
-            
-            for (int i = 0; i < rawValues.size(); i += 3)
-            {
-                rgba_color color;
-                
-                color.r = rawValues[i];
-                color.g = rawValues[i + 1];
-                color.b = rawValues[i + 2];
-                
-                colorValues.push_back(color);
-            }
-        }
-    }
-}
-
-void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
-{
-    ::GetSteppedValues(params, 0, deltaValue, acceleratedDeltaValues, rangeMinimum, rangeMaximum, steppedValues, acceleratedTickValues);
-    
-    if (deltaValue == 0.0 && widget->GetStepSize() != 0.0)
-        deltaValue = widget->GetStepSize();
-    
-    if (acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
-        acceleratedDeltaValues = widget->GetAccelerationValues();
-         
-    if (steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
-    {
-        double stepSize = deltaValue;
-        
-        if (stepSize != 0.0)
-        {
-            stepSize *= 10000.0;
-            int baseTickCount = csi_->GetBaseTickCount((int)steppedValues.size());
-            int tickCount = int(baseTickCount / stepSize + 0.5);
-            acceleratedTickValues.push_back(tickCount);
-        }
-    }
-}
-
 //////////////////////////////////////////////////////////////////////////////
-// Widgets
+// Midi_ControlSurface
 //////////////////////////////////////////////////////////////////////////////
 void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens)
 {
@@ -1007,6 +888,9 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// OSC_ControlSurface
+//////////////////////////////////////////////////////////////////////////////
 void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens)
 {
     if (in_tokens.size() < 2)
@@ -1061,6 +945,9 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTem
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// ControlSurface
+//////////////////////////////////////////////////////////////////////////////
 void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
 {
     bool inStepSizes = false;
@@ -1132,6 +1019,9 @@ void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Midi_ControlSurface
+//////////////////////////////////////////////////////////////////////////////
 void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
@@ -1176,6 +1066,9 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// OSC_ControlSurface
+//////////////////////////////////////////////////////////////////////////////
 void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
@@ -1221,7 +1114,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Manager
+// CSurfIntegrator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CSurfIntegrator::InitActionsDictionary()
 {
@@ -1560,7 +1453,7 @@ void CSurfIntegrator::Init()
                 {
                     currentBroadcaster = broadcasterProp;
                 }
-                else if (currentPage && tokens.size() > 2 && currentBroadcaster != "" && tokens[0] == "Listener")
+                else if (currentPage && tokens.size() > 2 && currentBroadcaster != "" && pList.get_prop(PropertyType_Listener) != NULL)
                 {
                     if (currentPage && tokens.size() > 2 && currentBroadcaster != "")
                     {
@@ -1570,20 +1463,20 @@ void CSurfIntegrator::Init()
                         
                         const WDL_PtrList<ControlSurface> &list = currentPage->GetSurfaces();
                         
-                        string currentSurface = string(tokens[1]);
+                        string currentSurface = string(pList.get_prop(PropertyType_Listener));
                         
                         for (int i = 0; i < list.GetSize(); ++i)
                         {
                             if (list.Get(i)->GetName() == currentBroadcaster)
                                 broadcaster = list.Get(i);
                             if (list.Get(i)->GetName() == currentSurface)
-                                listener = list.Get(i);
+                                 listener = list.Get(i);
                         }
                         
                         if (broadcaster != NULL && listener != NULL)
                         {
                             broadcaster->GetZoneManager()->AddListener(listener);
-                            listener->GetZoneManager()->SetListenerCategories(tokens[2]);
+                            listener->GetZoneManager()->SetListenerCategories(pList);
                         }
                     }
                 }
@@ -1659,17 +1552,6 @@ void CSurfIntegrator::Init()
         pages_.Get(i)->OnInitialization();
     }
 }
-//////////////////////////////////////////////////////////////////////////////////////////////
-// Parsing end
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TrackNavigator
@@ -2132,6 +2014,113 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
         DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) + acceleratedDeltaValues_[accelerationIndex]);
     else
         DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) - acceleratedDeltaValues_[accelerationIndex]);
+}
+
+void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string_list &colors)
+{
+    for (int i = 0; i < (int)colors.size(); ++i)
+    {
+        rgba_color colorValue;
+        
+        if (GetColorValue(colors[i], colorValue))
+            colorValues.push_back(colorValue);
+    }
+}
+
+void ActionContext::SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+{
+    vector<int> rawValues;
+    string_list hexColors;
+
+    int openCurlyIndex = 0;
+    int closeCurlyIndex = 0;
+    
+    for (int i = 0; i < params.size(); ++i)
+        if (params[i] == "{")
+        {
+            openCurlyIndex = i;
+            break;
+        }
+    
+    for (int i = 0; i < params.size(); ++i)
+        if (params[i] == "}")
+        {
+            closeCurlyIndex = i;
+            break;
+        }
+   
+    if (openCurlyIndex != 0 && closeCurlyIndex != 0)
+    {
+        for (int i = openCurlyIndex + 1; i < closeCurlyIndex; ++i)
+        {
+            const char *strVal = params[i];
+            
+            if (strVal[0] == '#')
+            {
+                hexColors.push_back(strVal);
+                continue;
+            }
+            
+            if (!strcmp(strVal, "Track"))
+            {
+                supportsTrackColor = true;
+                break;
+            }
+            else if (strVal[0])
+            {
+                char *ep = NULL;
+                const int value = strtol(strVal, &ep, 10);
+                if (ep && !*ep)
+                    rawValues.push_back(wdl_clamp(value, 0, 255));
+            }
+        }
+        
+        if (hexColors.size() > 0)
+        {
+            supportsColor = true;
+
+            GetColorValues(colorValues, hexColors);
+        }
+        else if (rawValues.size() % 3 == 0 && rawValues.size() > 2)
+        {
+            supportsColor = true;
+            
+            for (int i = 0; i < rawValues.size(); i += 3)
+            {
+                rgba_color color;
+                
+                color.r = rawValues[i];
+                color.g = rawValues[i + 1];
+                color.b = rawValues[i + 2];
+                
+                colorValues.push_back(color);
+            }
+        }
+    }
+}
+
+void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+{
+    ::GetSteppedValues(params, 0, deltaValue, acceleratedDeltaValues, rangeMinimum, rangeMaximum, steppedValues, acceleratedTickValues);
+    
+    if (deltaValue == 0.0 && widget->GetStepSize() != 0.0)
+        deltaValue = widget->GetStepSize();
+    
+    if (acceleratedDeltaValues.size() == 0 && widget->GetAccelerationValues().size() != 0)
+        acceleratedDeltaValues = widget->GetAccelerationValues();
+         
+    if (steppedValues.size() > 0 && acceleratedTickValues.size() == 0)
+    {
+        double stepSize = deltaValue;
+        
+        if (stepSize != 0.0)
+        {
+            stepSize *= 10000.0;
+            int baseTickCount = csi_->GetBaseTickCount((int)steppedValues.size());
+            int tickCount = int(baseTickCount / stepSize + 0.5);
+            acceleratedTickValues.push_back(tickCount);
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2693,8 +2682,8 @@ void ZoneManager::PreProcessZoneFile(const char *filePath)
     {
         fpistream file(filePath);
         
-        CSIZoneInfo *info = new CSIZoneInfo();
-        info->filePath = filePath;
+        CSIZoneInfo info;
+        info.filePath = filePath;
                  
         for (string line; getline(file, line) ; )
         {
@@ -2708,7 +2697,7 @@ void ZoneManager::PreProcessZoneFile(const char *filePath)
 
             if (tokens[0] == "Zone" && tokens.size() > 1)
             {
-                info->alias = tokens.size() > 2 ? tokens[2] : tokens[1];
+                info.alias = tokens.size() > 2 ? tokens[2] : tokens[1];
                 AddZoneFilePath(tokens[1].c_str(), info);
             }
 
@@ -2970,32 +2959,43 @@ void ZoneManager::AddListener(ControlSurface *surface)
     listeners_.push_back(surface->GetZoneManager());
 }
 
-void ZoneManager::SetListenerCategories(const char *categoryList)
+void ZoneManager::SetListenerCategories(PropertyList &pList)
 {
-    string_list categoryTokens;
-    GetTokens(categoryTokens, categoryList);
-    
-    for (int i = 0; i < (int)categoryTokens.size(); ++i)
-    {
-        if (categoryTokens[i] == "GoHome")
+    if (const char *property =  pList.get_prop(PropertyType_GoHome))
+        if (! strcmp(property, "Yes"))
             listensToGoHome_ = true;
-        if (categoryTokens[i] == "Sends")
+    
+    if (const char *property =  pList.get_prop(PropertyType_SelectedTrackSends))
+        if (! strcmp(property, "Yes"))
             listensToSends_ = true;
-        if (categoryTokens[i] == "Receives")
+    
+    if (const char *property =  pList.get_prop(PropertyType_SelectedTrackReceives))
+        if (! strcmp(property, "Yes"))
             listensToReceives_ = true;
-        if (categoryTokens[i] == "FocusedFX")
+    
+    if (const char *property =  pList.get_prop(PropertyType_FocusedFX))
+        if (! strcmp(property, "Yes"))
             listensToFocusedFX_ = true;
-        if (categoryTokens[i] == "FocusedFXParam")
+    
+    if (const char *property =  pList.get_prop(PropertyType_FocusedFXParam))
+        if (! strcmp(property, "Yes"))
             listensToFocusedFXParam_ = true;
-        if (categoryTokens[i] == "FXMenu")
+    
+    if (const char *property =  pList.get_prop(PropertyType_FXMenu))
+        if (! strcmp(property, "Yes"))
             listensToFXMenu_ = true;
-        if (categoryTokens[i] == "LocalFXSlot")
+    
+    if (const char *property =  pList.get_prop(PropertyType_LocalFXSlot))
+        if (! strcmp(property, "Yes"))
             listensToLocalFXSlot_ = true;
-        if (categoryTokens[i] == "SelectedTrackFX")
-            listensToSelectedTrackFX_ = true;        
-        if (categoryTokens[i] == "Modifiers")
-            surface_->SetListensToModifiers();
-    }
+    
+    if (const char *property =  pList.get_prop(PropertyType_SelectedTrackFX))
+        if (! strcmp(property, "Yes"))
+            listensToSelectedTrackFX_ = true;
+    
+    if (const char *property =  pList.get_prop(PropertyType_Modifiers))
+        if (! strcmp(property, "Yes"))
+            surface_->SetListensToModifiers();;
 }
 
 void ZoneManager::CheckFocusedFXState()
@@ -3161,7 +3161,7 @@ void ZoneManager::DoAction(Widget *widget, double value)
 void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
 {
     if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
     
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoAction(widget, isUsed, value);
@@ -3218,7 +3218,7 @@ void ZoneManager::DoRelativeAction(Widget *widget, double delta)
 void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
 {
     if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoRelativeAction(widget, isUsed, delta);
@@ -3275,7 +3275,7 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
 void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed)
 {
     if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
@@ -3332,12 +3332,13 @@ void ZoneManager::DoTouch(Widget *widget, double value)
 void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)
 {
     surface_->TouchChannel(widget->GetChannelNumber(), value != 0);
-        
-    if (surface_->GetModifiers().GetSize() > 0 && value != 0.0) // ignore touch releases for Learn mode
-        WidgetMoved(widget, surface_->GetModifiers().Get()[0]);
+       
+    // GAW -- temporary
+    //if (surface_->GetModifiers().GetSize() > 0 && value != 0.0) // ignore touch releases for Learn mode
+        //WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
 
-    if (learnFocusedFXZone_ != NULL)
-        learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
+    //if (learnFocusedFXZone_ != NULL)
+        //learnFocusedFXZone_->DoTouch(widget, widget->GetName(), isUsed, value);
 
     if (isUsed)
         return;

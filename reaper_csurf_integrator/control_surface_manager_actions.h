@@ -671,7 +671,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        LearnFocusedFXDialog(context->GetSurface()->GetZoneManager());
+        RequestFocusedFXDialog(context->GetSurface()->GetZoneManager());
     }
 };
 

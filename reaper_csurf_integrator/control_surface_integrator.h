@@ -60,10 +60,12 @@ extern void ReplaceAllWith(string &output, const char *replaceAny, const char *r
 extern int strToHex(const char *valueStr);
 
 class ZoneManager;
-extern void LearnFocusedFXDialog(ZoneManager *zoneManager);
+class Zone;
+extern void RequestFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
-extern void UpdateLearnWindow();
-extern void InitBlankLearnFocusedFXZone();
+extern void UpdateLearnWindow(ZoneManager *zoneManager);
+extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot);
+extern void ShutdownLearn();
 
 extern bool g_surfaceRawInDisplay;
 extern bool g_surfaceInDisplay;
@@ -854,8 +856,6 @@ public:
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
     ptrvector<Zone *> &GetIncludedZones() { return includedZones_; }
 
-    virtual const char *GetType() { return "Zone"; }
-    
     Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
@@ -967,8 +967,6 @@ public:
 
     virtual ~SubZone() {}
     
-    virtual const char *GetType() override { return "SubZone"; }
-
     virtual void GoSubZone(const char *subZoneName) override
     {
         enclosingZone_->GoSubZone(subZoneName);
@@ -1388,7 +1386,7 @@ public:
     
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(ControlSurface *surface);
-    void SetListenerCategories(const char *categoryList);
+    void SetListenerCategories(PropertyList &pList);
     const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
     
     int  GetNumChannels();
@@ -1482,16 +1480,6 @@ public:
         if (p) *p = 0;
     }
     
-    void LoadAndActivateFocusedFXZone(const char *fxName, int fxSlot)
-    {
-        if(zoneInfo_.Exists(fxName))
-        {
-            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath.c_str());
-            LoadZoneFile(focusedFXParamZone_, "");
-            focusedFXZone_->Activate();
-        }
-    }
-
     void ClearLearnFocusedFXZone()
     {
         if (learnFocusedFXZone_ != NULL)
@@ -1501,15 +1489,10 @@ public:
                 zonesToBeDeleted_.Add(learnFocusedFXZone_);
             learnFocusedFXZone_ = NULL;
         }
-        
-        CloseFocusedFXDialog();
     }
     
     void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
     {
-        if (learnFocusedFXZone_ != NULL)
-            ClearLearnFocusedFXZone();
-
         if(zoneInfo_.Exists(fxName))
         {
             learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
@@ -1535,8 +1518,12 @@ public:
             info.filePath = fxFullFilePath;
             
             learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, info.alias, info.filePath);
-            InitBlankLearnFocusedFXZone();
-            learnFocusedFXZone_->Activate();
+            
+            if (learnFocusedFXZone_)
+            {
+                InitBlankLearnFocusedFXZone(this, learnFocusedFXZone_, track, fxIndex);
+                learnFocusedFXZone_->Activate();
+            }
         }
     }
                 
@@ -1740,6 +1727,7 @@ public:
     void ClearFXMapping()
     {
         ClearLearnFocusedFXZone();
+        CloseFocusedFXDialog();
         ClearFocusedFX();
         ClearSelectedTrackFX();
         ClearFXSlot();
@@ -1763,25 +1751,25 @@ public:
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
                 
-    void AddZoneFilePath(const char *name, CSIZoneInfo *info)
+    void AddZoneFilePath(const char *name, CSIZoneInfo &zoneInfo)
     {
-        if (name && *name)
+        CSIZoneInfo *info = new CSIZoneInfo();
+        info->alias = zoneInfo.alias;
+        info->filePath = zoneInfo.filePath;
+        
+        if ( ! zoneInfo_.Exists(name) && name && *name)
             zoneInfo_.Insert(name, info);
+        else
+            zoneInfo_.Get(name)->alias = info->alias;
     }
-    
-    void AddZoneFilePath(const char *fxZoneFolder, const char *name, CSIZoneInfo *info)
-    {
-        if (!strcmp(fxZoneFolder, fxZoneFolder_.c_str()))
-            AddZoneFilePath(name, info);
-    }
-               
+
     void RequestUpdate()
     {
         CheckFocusedFXState();
           
         if (learnFocusedFXZone_ != NULL)
         {
-            UpdateLearnWindow();
+            UpdateLearnWindow(this);
             learnFocusedFXZone_->RequestUpdate();
         }
 
@@ -2305,7 +2293,6 @@ public:
     void ForceClearTrack(int trackNum);
     void ForceUpdateTrackColors();
     void OnTrackSelection(MediaTrack *track);
-    virtual void SetHasMCUMeters(int displayType) {}
     virtual void SendOSCMessage(const char *zoneName) {}
     virtual void SendOSCMessage(const char *zoneName, int value) {}
     virtual void SendOSCMessage(const char *zoneName, double value) {}
@@ -2856,7 +2843,7 @@ public:
     virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) override;
     virtual void SendMidiMessage(int first, int second, int third) override;
 
-    virtual void SetHasMCUMeters(int displayType) override
+    virtual void SetHasMCUMeters(int displayType)
     {
         hasMCUMeters_ = true;
         displayType_ = displayType;
@@ -4278,6 +4265,8 @@ public:
         // Zero out all Widgets before shutting down
         if (pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->ForceClear();
+        
+        ShutdownLearn();
     }
     
     void Init();

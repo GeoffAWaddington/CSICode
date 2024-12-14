@@ -3,18 +3,18 @@
 // Used by res.rc
 //
 #define ID_RemoveListener               3
-#define IDC_Delete                      4
 #define ID_RemoveBroadcaster            4
 #define ID_BUTTON_AddBroadcaster        5
 #define IDC_EraseControl                5
-#define ID_BUTTON_AddBroadcaster2       6
 #define ID_BUTTON_AddListener           6
-#define IDC_ExitNoSave                  6
+#define ID_BUTTON_SymLinkFolder         9
+#define ID_BUTTON_SymLinkFXFolder       10
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_LearnFX              117
-#define IDD_DIALOG_Broadcast            123
+#define IDD_DIALOG_AdvancedSetup        123
 #define IDD_DIALOG_EditAdvanced         126
 #define IDD_DIALOG_EditFXAlias          129
+#define IDD_DIALOG_AdvancedSharing      130
 #define IDD_SURFACEEDIT_CSI             265
 #define IDD_DIALOG_MidiSurface          268
 #define IDD_DIALOG_OSCSurface           269
@@ -60,21 +60,14 @@
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
 #define IDC_GroupFXWidget               1140
-#define IDC_GroupFXAlias                1141
-#define IDC_GroupAdvanced               1141
 #define IDC_PickRingStyle               1143
-#define IDC_GroupFixedTextDisplay       1148
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150
 #define IDC_Edit_FixedTextDisplayBottom 1151
 #define IDC_Edit_ParamValueDisplayTop   1152
 #define IDC_Edit_ParamValueDisplayBottom 1153
-#define IDC_WidgetName                  1156
-#define IDC_AutoResetValueEdit          1157
-#define IDC_STATIC_ToResetTo            1158
 #define IDC_FXParamValueDisplayPickFont 1163
 #define IDC_FixedTextDisplayPickFont    1166
-#define IDC_GroupFXParamValueDisplay    1169
 #define IDC_GroupFXParamValues          1170
 #define IDC_FXParamRingColor            1173
 #define IDC_FXParamIndicatorColor       1174
@@ -84,18 +77,13 @@
 #define IDC_FXParamDisplayBackgroundColor 1188
 #define IDC_Save                        1190
 #define IDC_Unassign                    1191
-#define IDC_FixedTextDisplayFontLabel   1199
-#define IDC_FXParamValueDisplayFontLabel 1202
+#define IDC_Alias                       1192
 #define IDC_FXParamRingColorBox         1205
 #define IDC_FXParamIndicatorColorBox    1208
 #define IDC_FXFixedTextDisplayForegroundColorBox 1211
 #define IDC_FXFixedTextDisplayBackgroundColorBox 1214
 #define IDC_FXParamValueDisplayBackgroundColorBox 1218
 #define IDC_FXParamValueDisplayForegroundColorBox 1221
-#define IDC_FixedTextDisplayTopLabel    1226
-#define IDC_FixedTextDisplayBottomLabel 1227
-#define IDC_ParamValueDisplayTopLabel   1228
-#define IDC_ParamValueDisplayBottomLabel 1229
 #define IDC_StepsPromptGroup            1231
 #define IDC_LIST_Listeners              1246
 #define IDC_LIST_Broadcasters           1247
@@ -126,24 +114,28 @@
 #define IDC_RangeMaximumLabel           1279
 #define IDC_RangeMinimumLabel           1280
 #define IDC_DeltaValueLabel             1281
-#define IDC_Apply                       1282
 #define IDC_Steps                       1283
-#define IDC_Alias                       1284
-#define IDC_CELL_LIST                   1291
 #define IDC_COMBO_PickNameDisplay       1292
 #define IDC_COMBO_PickValueDisplay      1293
 #define IDC_COMBO_PickAutoResetWidget   1294
-#define IDC_ApplyToAll                  1295
+#define IDC_ApplyColorsToAll            1295
 #define IDC_EDIT_FXAlias                1300
 #define IDC_SurfaceName                 1304
+#define IDC_CHECK_ShowAdvanced          1306
+#define IDC_ApplyFontsAndMarginsToAll   1307
+#define IDC_GroupApplyToAll             1308
+#define IDC_LIST_Sources                1309
+#define IDC_LIST_Links                  1310
+#define ID_BUTTON_SymLink               1311
+#define ID_BUTTON_SymUnlink             1312
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
+#define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1305
+#define _APS_NEXT_CONTROL_VALUE         1313
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
