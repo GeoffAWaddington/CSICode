@@ -413,6 +413,7 @@ public:
     virtual void RequestUpdate(ActionContext *context) {}
     virtual void Do(ActionContext *context, double value) {}
     virtual double GetCurrentNormalizedValue(ActionContext *context) { return 0.0; }
+    virtual double GetCurrentDBValue(ActionContext *context) { return 0.0; }
 
     int GetPanMode(MediaTrack *track)
     {
@@ -966,8 +967,6 @@ public:
 
     virtual ~SubZone() {}
     
-    virtual const char *GetType() override { return "SubZone"; }
-
     virtual void GoSubZone(const char *subZoneName) override
     {
         enclosingZone_->GoSubZone(subZoneName);
@@ -2844,7 +2843,7 @@ public:
     virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) override;
     virtual void SendMidiMessage(int first, int second, int third) override;
 
-    virtual void SetHasMCUMeters(int displayType) override
+    virtual void SetHasMCUMeters(int displayType)
     {
         hasMCUMeters_ = true;
         displayType_ = displayType;
