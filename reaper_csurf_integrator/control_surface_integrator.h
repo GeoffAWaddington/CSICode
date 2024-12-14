@@ -1765,18 +1765,18 @@ public:
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
                 
-    void AddZoneFilePath(const char *name, CSIZoneInfo *info)
+    void AddZoneFilePath(const char *name, CSIZoneInfo &zoneInfo)
     {
-        if (name && *name)
+        CSIZoneInfo *info = new CSIZoneInfo();
+        info->alias = zoneInfo.alias;
+        info->filePath = zoneInfo.filePath;
+        
+        if ( ! zoneInfo_.Exists(name) && name && *name)
             zoneInfo_.Insert(name, info);
+        else
+            zoneInfo_.Get(name)->alias = info->alias;
     }
-    
-    void AddZoneFilePath(const char *fxZoneFolder, const char *name, CSIZoneInfo *info)
-    {
-        if (!strcmp(fxZoneFolder, fxZoneFolder_.c_str()))
-            AddZoneFilePath(name, info);
-    }
-               
+
     void RequestUpdate()
     {
         CheckFocusedFXState();

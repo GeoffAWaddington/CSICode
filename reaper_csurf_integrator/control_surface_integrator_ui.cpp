@@ -819,6 +819,12 @@ static void SaveZone(SurfaceFXTemplate *t)
 
             fclose(fxFile);
         }
+        
+        CSIZoneInfo info;
+        info.filePath = filePath;
+        info.alias = s_fxAlias;
+        
+        zoneManager->AddZoneFilePath(s_fxName, info);
     }
     catch (exception)
     {
@@ -1558,15 +1564,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             }
             break;
             
-        case WM_NCLBUTTONDBLCLK:
-            {
-                DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
-                
-                if (s_dlgResult == IDOK)
-                    SetWindowText(hwndDlg, s_fxAlias);
-            }
-            break;
-                        
         case WM_CLOSE:
         {
             s_surfaceFXTemplates.clear();
@@ -1668,7 +1665,17 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             }
             
             switch(LOWORD(wParam))
-            {                    
+            {
+                case IDC_Alias:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
+                        
+                        if (s_dlgResult == IDOK)
+                            SetWindowText(hwndDlg, s_fxAlias);
+                    }
+                    break;
+                    
                 case IDC_Unassign:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {

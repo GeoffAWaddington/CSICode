@@ -77,6 +77,7 @@
 #define IDC_FXParamDisplayBackgroundColor 1188
 #define IDC_Save                        1190
 #define IDC_Unassign                    1191
+#define IDC_Alias                       1192
 #define IDC_FXParamRingColorBox         1205
 #define IDC_FXParamIndicatorColorBox    1208
 #define IDC_FXFixedTextDisplayForegroundColorBox 1211
