@@ -2877,33 +2877,54 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, BST_UNCHECKED, 0);
 }
 
+HWND s_hwndMainDlg;
+
 static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
 {
-    char sourceBuf[MEDBUF];
-    sourceBuf[0] = 0;
+    string folder = "";
     
-    char linkBuf[MEDBUF];
-    linkBuf[0] = 0;
+    if (SendMessage(GetDlgItem(hwndDlg, IDC_RADIO_Folder), BM_GETCHECK, 0, 0) == BST_CHECKED)
+        folder = "Zones";
+    else if (SendMessage(GetDlgItem(hwndDlg, IDC_RADIO_FXFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
+        folder = "FXZones";
+
+    if (folder == "")
+        return;
     
     int sourceIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Sources, LB_GETCURSEL, 0, 0);
     if (sourceIndex >= 0)
     {
-        SendDlgItemMessage(hwndDlg, IDC_LIST_Sources, LB_GETTEXT, sourceIndex, (LPARAM)sourceBuf);
-        int blah = 0;
+        char sourcePath[BUFSIZ];
+        snprintf(sourcePath, sizeof(sourcePath),  "%s%s%s/%s", GetResourcePath(), "/CSI/Surfaces/", s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceFolder.c_str(),
+                 folder.c_str());
+        
+        char destPath[BUFSIZ];
+        HWND hwndLinks = GetDlgItem(hwndDlg, IDC_LIST_Links);
+        int count = SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
 
+        // go through the items and find the first selected one
+        for (int i = 0; i < count; i++)
+        {
+            if (SendMessage(hwndLinks, LB_GETSEL, i, 0) > 0)
+            {
+                snprintf(destPath, sizeof(destPath),  "%s%s%s/%s", GetResourcePath(), "/CSI/Surfaces/", s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder.c_str(),
+                         folder.c_str());
+            
+#ifdef WIN32
+                if (shouldLink)
+                    CreateSymbolicLinkA(sourcePath, destPath, 1);
+                else
+                    RemoveDirectoryA(destPath);
+#else
+                if (shouldLink)
+                    symlink(sourcePath, destPath);
+                else
+                    unlink(destPath);
+#endif
+
+            }
+        }
     }
-    
-    
-    
-    
-    
-   
-    
-    
- 
-    //symlink("", "");
-    //unlink("");
-    
 }
 
 static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -2912,11 +2933,15 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_INITDIALOG:
         {
-            for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_Sources);
-
-            for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_Links);
+            int index = (int)SendDlgItemMessage(s_hwndMainDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
+            if (index >= 0)
+            {
+                for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
+                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_Sources);
+                
+                for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
+                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_Links);
+            }
         }
             break;
             
@@ -2942,7 +2967,7 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 case ID_BUTTON_SymUnlink:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        SymLinkFolders(hwndDlg, true);
+                        SymLinkFolders(hwndDlg, false);
                     }
                     break;
             }
@@ -3667,6 +3692,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
             
         case WM_INITDIALOG:
         {
+            s_hwndMainDlg = hwndDlg;
+            
             string iniFilePath = string(GetResourcePath()) + "/CSI/CSI.ini";
             
             fpistream iniFile(iniFilePath.c_str());

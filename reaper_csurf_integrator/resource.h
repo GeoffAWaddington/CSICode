@@ -120,13 +120,14 @@
 #define IDC_ApplyColorsToAll            1295
 #define IDC_EDIT_FXAlias                1300
 #define IDC_SurfaceName                 1304
-#define IDC_CHECK_ShowAdvanced          1306
 #define IDC_ApplyFontsAndMarginsToAll   1307
 #define IDC_GroupApplyToAll             1308
 #define IDC_LIST_Sources                1309
 #define IDC_LIST_Links                  1310
 #define ID_BUTTON_SymLink               1311
 #define ID_BUTTON_SymUnlink             1312
+#define IDC_RADIO_Folder                1313
+#define IDC_RADIO_FXFolder              1314
 
 // Next default values for new objects
 // 
@@ -134,7 +135,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1313
+#define _APS_NEXT_CONTROL_VALUE         1314
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
