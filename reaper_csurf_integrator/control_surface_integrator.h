@@ -413,7 +413,6 @@ public:
     virtual void RequestUpdate(ActionContext *context) {}
     virtual void Do(ActionContext *context, double value) {}
     virtual double GetCurrentNormalizedValue(ActionContext *context) { return 0.0; }
-    virtual double GetCurrentDBValue(ActionContext *context) { return 0.0; }
 
     int GetPanMode(MediaTrack *track)
     {
@@ -856,8 +855,6 @@ public:
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
     ptrvector<Zone *> &GetIncludedZones() { return includedZones_; }
 
-    virtual const char *GetType() { return "Zone"; }
-    
     Navigator *GetNavigator() { return navigator_; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
@@ -1484,16 +1481,6 @@ public:
         if (p) *p = 0;
     }
     
-    void LoadAndActivateFocusedFXZone(const char *fxName, int fxSlot)
-    {
-        if(zoneInfo_.Exists(fxName))
-        {
-            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath.c_str());
-            LoadZoneFile(focusedFXParamZone_, "");
-            focusedFXZone_->Activate();
-        }
-    }
-
     void ClearLearnFocusedFXZone()
     {
         if (learnFocusedFXZone_ != NULL)
@@ -2307,7 +2294,6 @@ public:
     void ForceClearTrack(int trackNum);
     void ForceUpdateTrackColors();
     void OnTrackSelection(MediaTrack *track);
-    virtual void SetHasMCUMeters(int displayType) {}
     virtual void SendOSCMessage(const char *zoneName) {}
     virtual void SendOSCMessage(const char *zoneName, int value) {}
     virtual void SendOSCMessage(const char *zoneName, double value) {}
