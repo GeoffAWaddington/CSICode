@@ -2877,7 +2877,34 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, BST_UNCHECKED, 0);
 }
 
-static string s_AdvancedSharingCaption = "";
+static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
+{
+    char sourceBuf[MEDBUF];
+    sourceBuf[0] = 0;
+    
+    char linkBuf[MEDBUF];
+    linkBuf[0] = 0;
+    
+    int sourceIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Sources, LB_GETCURSEL, 0, 0);
+    if (sourceIndex >= 0)
+    {
+        SendDlgItemMessage(hwndDlg, IDC_LIST_Sources, LB_GETTEXT, sourceIndex, (LPARAM)sourceBuf);
+        int blah = 0;
+
+    }
+    
+    
+    
+    
+    
+   
+    
+    
+ 
+    //symlink("", "");
+    //unlink("");
+    
+}
 
 static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -2885,8 +2912,6 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     {
         case WM_INITDIALOG:
         {
-            SetWindowText(hwndDlg, s_AdvancedSharingCaption.c_str());
-
             for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_Sources);
 
@@ -2897,10 +2922,8 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
         case WM_COMMAND:
         {
-            
             switch(LOWORD(wParam))
             {
-                case IDOK:
                 case WM_CLOSE:
                 case IDCANCEL:
                     if (HIWORD(wParam) == BN_CLICKED)
@@ -2909,6 +2932,19 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     }
                     break;
                     
+                case ID_BUTTON_SymLink:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        SymLinkFolders(hwndDlg, true);
+                    }
+                    break;
+                    
+                case ID_BUTTON_SymUnlink:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        SymLinkFolders(hwndDlg, true);
+                    }
+                    break;
             }
         }
     }
@@ -3248,21 +3284,6 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                 {
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        s_AdvancedSharingCaption = "Folder Sharing";
-                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_AdvancedSharing), hwndDlg, dlgProcAdvancedSharing);
-                        if (s_dlgResult == IDOK)
-                        {
-                            
-                        }
-                    }
-                }
-                    break;
-
-                case ID_BUTTON_SymLinkFXFolder:
-                {
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        s_AdvancedSharingCaption = "FX Folder Sharing";
                         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_AdvancedSharing), hwndDlg, dlgProcAdvancedSharing);
                         if (s_dlgResult == IDOK)
                         {

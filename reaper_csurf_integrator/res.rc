@@ -83,13 +83,13 @@ BEGIN
     EDITTEXT        IDC_EDIT_PageName,50,5,111,14,ES_AUTOHSCROLL
     CONTROL         " MCP",IDC_RADIO_MCP,"Button",BS_AUTORADIOBUTTON,7,39,32,10
     CONTROL         " TCP",IDC_RADIO_TCP,"Button",BS_AUTORADIOBUTTON,7,54,31,10
-    CONTROL         " Bank with Other Pages",IDC_CHECK_SynchPages,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,89,10
+    CONTROL         " Bank with Other Pages",IDC_CHECK_SynchPages,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,77,89,10
     CONTROL         " Ensure Selected Track Visible in both CSI and Reaper",IDC_CHECK_ScrollLink,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,90,185,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,92,185,10
     CONTROL         " Surface and Reaper Mixer Scroll Together",IDC_CHECK_ScrollSynch,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,105,148,10
-    DEFPUSHBUTTON   "OK",IDOK,97,119,44,14
-    PUSHBUTTON      "Cancel",IDCANCEL,145,119,44,14
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,107,148,10
+    DEFPUSHBUTTON   "OK",IDOK,97,125,44,14
+    PUSHBUTTON      "Cancel",IDCANCEL,145,125,44,14
     RTEXT           "Page Name",IDC_STATIC,3,8,39,9
     GROUPBOX        "CSI Follows Track Manager Show/Hide",IDC_STATIC,2,26,190,44
 END
@@ -152,7 +152,7 @@ BEGIN
     LTEXT           "Channel Offset",-1,136,26,53,8,WS_TABSTOP
 END
 
-IDD_DIALOG_AdvancedSetup DIALOGEX 0, 0, 489, 249
+IDD_DIALOG_AdvancedSetup DIALOGEX 0, 0, 489, 234
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Advanced Setup -- Use With Caution"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -179,16 +179,14 @@ BEGIN
     CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,142,180,53,10
     CONTROL         "Write params to /CSI/Zones/ZoneRawFXFiles when FX inserted",IDC_CHECK_WriteFXParams,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,180,247,10
-    DEFPUSHBUTTON   "OK",IDOK,361,223,52,14
-    PUSHBUTTON      "Cancel",IDCANCEL,423,223,52,14
+    DEFPUSHBUTTON   "OK",IDOK,364,210,52,14
+    PUSHBUTTON      "Cancel",IDCANCEL,426,210,52,14
+    PUSHBUTTON      "Advanced Sharing",ID_BUTTON_SymLinkFolder,11,210,64,14
     LTEXT           "Broadcasters",IDC_STATIC,45,21,41,8
     LTEXT           "Listeners",IDC_STATIC,178,21,29,8
     GROUPBOX        "Surface Listens to",IDC_ListenCheckboxes,258,37,215,87
     GROUPBOX        "Monitoring",IDC_STATIC,9,165,470,32
     GROUPBOX        "Broadcasting",IDC_STATIC,9,8,470,144
-    GROUPBOX        "Advanced Sharing",IDC_STATIC,9,208,134,32
-    PUSHBUTTON      "Folder",ID_BUTTON_SymLinkFolder,19,223,52,14,BS_FLAT
-    PUSHBUTTON      "FX Folder",ID_BUTTON_SymLinkFXFolder,82,223,52,14,BS_FLAT
 END
 
 IDD_DIALOG_EditAdvanced DIALOGEX 0, 0, 537, 149
@@ -266,19 +264,18 @@ BEGIN
     LTEXT           "FX Alias",IDC_STATIC,15,16,26,8
 END
 
-IDD_DIALOG_AdvancedSharing DIALOGEX 0, 0, 264, 151
+IDD_DIALOG_AdvancedSharing DIALOGEX 0, 0, 260, 128
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Advanced Sharing"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,140,130,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,198,130,50,14
     LISTBOX         IDC_LIST_Sources,13,25,107,72,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LISTBOX         IDC_LIST_Links,140,25,107,72,LBS_EXTENDEDSEL | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     CTEXT           "Source",IDC_STATIC,13,12,107,8
     CTEXT           "Link",IDC_STATIC,140,12,107,8
-    PUSHBUTTON      "Link",ID_BUTTON_SymLink,140,103,50,14,BS_FLAT
-    PUSHBUTTON      "Unlink",ID_BUTTON_SymUnlink,198,103,50,14,BS_FLAT
+    PUSHBUTTON      "Link",ID_BUTTON_SymLink,140,105,32,14,BS_FLAT
+    PUSHBUTTON      "Unlink",ID_BUTTON_SymUnlink,179,105,32,14,BS_FLAT
+    PUSHBUTTON      "Done",IDCANCEL,218,105,30,14
 END
 
 

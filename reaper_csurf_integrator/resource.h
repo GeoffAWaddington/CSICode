@@ -8,7 +8,6 @@
 #define IDC_EraseControl                5
 #define ID_BUTTON_AddListener           6
 #define ID_BUTTON_SymLinkFolder         9
-#define ID_BUTTON_SymLinkFXFolder       10
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_AdvancedSetup        123
