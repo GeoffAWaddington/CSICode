@@ -2916,7 +2916,7 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     return 0;
 }
 
-static WDL_DLGRET dlgProcBroadcast(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -3540,7 +3540,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     case IDC_BUTTON_Advanced:
                         if (HIWORD(wParam) == BN_CLICKED)
                         {
-                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Broadcast), hwndDlg, dlgProcBroadcast);
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_AdvancedSetup), hwndDlg, dlgProcAdvancedSetup);
                         }
                         break;
                         
