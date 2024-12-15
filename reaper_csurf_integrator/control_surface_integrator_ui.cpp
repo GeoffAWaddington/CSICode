@@ -1710,7 +1710,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_PickRingStyle:
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
+                        int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
@@ -1902,7 +1902,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_FixedTextDisplayPickFont:
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_GETCURSEL, 0, 0);
+                        int index = SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_FixedTextDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
@@ -1948,7 +1948,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_FXParamValueDisplayPickFont:
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETCURSEL, 0, 0);
+                        int index = SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
@@ -2900,7 +2900,7 @@ static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
         
         char destPath[BUFSIZ];
         HWND hwndLinks = GetDlgItem(hwndDlg, IDC_LIST_Links);
-        int count = (int)SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
+        int count = SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
 
         // go through the items and find the first selected one
         for (int i = 0; i < count; i++)
