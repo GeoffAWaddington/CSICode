@@ -244,7 +244,6 @@ enum PropertyType {
   D(Broadcaster) \
   D(Listener) \
   D(Surface) \
-  D(Zones) \
   D(StartChannel) \
   D(GoHome) \
   D(LocalFXSlot) \
@@ -255,6 +254,9 @@ enum PropertyType {
   D(SelectedTrackFX) \
   D(SelectedTrackSends) \
   D(SelectedTrackReceives) \
+  D(SurfaceFolder) \
+  D(ZoneFolder) \
+  D(FXZoneFolder) \
 
   PropertyType_Unknown = 0, // in this case, string is type=value pair
 #define DEFPT(x) PropertyType_##x ,

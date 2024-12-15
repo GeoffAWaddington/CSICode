@@ -1710,7 +1710,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_PickRingStyle:
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
+                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_PickRingStyle, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_PickRingStyle, CB_GETLBTEXT, index, (LPARAM)buf);
@@ -1902,7 +1902,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_FixedTextDisplayPickFont:
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_GETCURSEL, 0, 0);
+                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_FixedTextDisplayPickFont, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg,IDC_FixedTextDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
@@ -1948,7 +1948,7 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case IDC_FXParamValueDisplayPickFont:
                     if (HIWORD(wParam) == CBN_SELCHANGE)
                     {
-                        int index = SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETCURSEL, 0, 0);
+                        int index = (int)SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETCURSEL, 0, 0);
                         if (index >= 0)
                         {
                             SendDlgItemMessage(hwndDlg, IDC_FXParamValueDisplayPickFont, CB_GETLBTEXT, index, (LPARAM)buf);
@@ -2326,6 +2326,8 @@ static bool s_scrollSynch = false;
 
 static string s_pageSurface;
 static string s_pageSurfaceFolder;
+static string s_pageSurfaceZoneFolder;
+static string s_pageSurfaceFXZoneFolder;
 static int s_channelOffset = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2360,6 +2362,8 @@ struct PageSurfaceLine
 {
     string pageSurface;
     string pageSurfaceFolder;
+    string pageSurfaceZoneFolder;
+    string pageSurfaceFXZoneFolder;
     int channelOffset;
     
     PageSurfaceLine()
@@ -2607,6 +2611,8 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         
                         GetDlgItemText(hwndDlg, IDC_COMBO_PageSurfaceFolder, buf, sizeof(buf));
                         s_pageSurfaceFolder = buf;
+                        s_pageSurfaceZoneFolder = buf;
+                        s_pageSurfaceFXZoneFolder = buf;
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         s_channelOffset = atoi(buf);
@@ -2900,7 +2906,7 @@ static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
         
         char destPath[BUFSIZ];
         HWND hwndLinks = GetDlgItem(hwndDlg, IDC_LIST_Links);
-        int count = SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
+        int count = (int)SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
 
         // go through the items and find the first selected one
         for (int i = 0; i < count; i++)
@@ -2909,7 +2915,7 @@ static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
             {
                 snprintf(destPath, sizeof(destPath),  "%s%s%s/%s", GetResourcePath(), "/CSI/Surfaces/", s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder.c_str(),
                          folder.c_str());
-            
+/*
 #ifdef WIN32
                 if (shouldLink)
                     CreateSymbolicLinkA(sourcePath, destPath, 1);
@@ -2921,6 +2927,7 @@ static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
                 else
                     unlink(destPath);
 #endif
+ */
 
             }
         }
@@ -3490,6 +3497,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 PageSurfaceLine *pageSurface = new PageSurfaceLine();
                                 pageSurface->pageSurface = s_pageSurface;
                                 pageSurface->pageSurfaceFolder = s_pageSurfaceFolder;
+                                pageSurface->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
+                                pageSurface->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
                                 pageSurface->channelOffset = s_channelOffset;
 
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
@@ -3607,13 +3616,17 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_channelOffset = s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset;
                                     s_pageSurface = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface;
                                     s_pageSurfaceFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder;
-                                    
+                                    s_pageSurfaceZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder;
+                                    s_pageSurfaceFXZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder;
+
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
                                     if (s_dlgResult == IDOK)
                                     {
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset = s_channelOffset;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder = s_pageSurfaceFolder;
+                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
+                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface = s_pageSurface;
                                         
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
@@ -3888,7 +3901,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (const char *surfaceProp = pList.get_prop(PropertyType_Surface))
                     {
-                        if (const char *zonesProp = pList.get_prop(PropertyType_Zones))
+                        if (const char *surfaceFolderProp = pList.get_prop(PropertyType_SurfaceFolder))
                         {
                             PageSurfaceLine *surface = new PageSurfaceLine();
                             
@@ -3897,7 +3910,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_pages.Get(s_pages.GetSize() - 1)->surfaces.Add(surface);
                                 
                                 surface->pageSurface = surfaceProp;
-                                surface->pageSurfaceFolder = zonesProp;
+                                surface->pageSurfaceFolder = surfaceFolderProp;
+                                surface->pageSurfaceZoneFolder = surfaceFolderProp;
+                                surface->pageSurfaceFXZoneFolder = surfaceFolderProp;
                                 if (const char *assignedSurfaceStartChannelProp = pList.get_prop(PropertyType_StartChannel))
                                     surface->channelOffset = atoi(assignedSurfaceStartChannelProp);
                             }
@@ -4023,9 +4038,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                     for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
-                        fprintf(iniFile, "\t%s=%s %s=%s %s=%d \n",
+                        fprintf(iniFile, "\t%s=%s %s=%s %s=%s %s=%s %s=%d \n",
                             plist.string_from_prop(PropertyType_Surface), s_pages.Get(i)->surfaces.Get(j)->pageSurface.c_str(),
-                            plist.string_from_prop(PropertyType_Zones), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFolder.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFolder.c_str(),
+                            plist.string_from_prop(PropertyType_ZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceZoneFolder.c_str(),
+                            plist.string_from_prop(PropertyType_FXZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFXZoneFolder.c_str(),
                             plist.string_from_prop(PropertyType_StartChannel), s_pages.Get(i)->surfaces.Get(j)->channelOffset);
                     }
                     

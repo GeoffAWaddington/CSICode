@@ -1479,23 +1479,28 @@ void CSurfIntegrator::Init()
                         }
                     }
                 }
-                else if (currentPage && tokens.size() == 3)
+                else if (currentPage && tokens.size() == 5)
                 {
                     if (const char *surfaceProp = pList.get_prop(PropertyType_Surface))
                     {
-                        if (const char *zonesProp = pList.get_prop(PropertyType_Zones))
+                        if (const char *surfaceFolderProp = pList.get_prop(PropertyType_SurfaceFolder))
                         {
                             if (const char *startChannelProp = pList.get_prop(PropertyType_StartChannel))
                             {
                                 int startChannel = atoi(startChannelProp);
                                 
-                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/") + zonesProp;
+                                string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/");
                                 
-                                string surfaceFile = baseDir + "/Surface.txt";
+                                string surfaceFile = baseDir + surfaceFolderProp + "/Surface.txt";
                                 
-                                string zoneFolder = baseDir + "/Zones";
-                                string fxZoneFolder = baseDir + "/FXZones";
+                                string zoneFolder = baseDir + surfaceFolderProp + "/Zones";
+                                if (const char *zoneFolderProp = pList.get_prop(PropertyType_ZoneFolder))
+                                    zoneFolder = baseDir + zoneFolderProp + "/Zones";
                                 
+                                string fxZoneFolder = baseDir + surfaceFolderProp + "/FXZones";
+                                if (const char *fxZoneFolderProp = pList.get_prop(PropertyType_FXZoneFolder))
+                                    zoneFolder = baseDir + fxZoneFolderProp + "/Zones";
+
                                 bool foundIt = false;
                                 
                                 for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
@@ -1505,7 +1510,7 @@ void CSurfIntegrator::Init()
                                     if ( ! strcmp(surfaceProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, zonesProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, surfaceFolderProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
                                     }
                                 }
@@ -1519,7 +1524,7 @@ void CSurfIntegrator::Init()
                                         if ( ! strcmp(surfaceProp, io->GetName()))
                                         {
                                             foundIt = true;
-                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, zonesProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, surfaceFolderProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                             break;
                                         }
                                     }
