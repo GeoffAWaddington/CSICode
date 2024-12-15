@@ -7,7 +7,7 @@
 #define ID_BUTTON_AddBroadcaster        5
 #define IDC_EraseControl                5
 #define ID_BUTTON_AddListener           6
-#define ID_BUTTON_SymLinkFolder         9
+#define ID_BUTTON_AdvancedFolderSharing 9
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_AdvancedSetup        123
@@ -124,10 +124,10 @@
 #define IDC_GroupApplyToAll             1308
 #define IDC_LIST_Sources                1309
 #define IDC_LIST_Links                  1310
-#define ID_BUTTON_SymLink               1311
-#define ID_BUTTON_SymUnlink             1312
-#define IDC_RADIO_Folder                1313
-#define IDC_RADIO_FXFolder              1314
+#define ID_BUTTON_LinkFolder            1311
+#define IDC_CHECK_SurfaceFolder         1313
+#define IDC_CHECK_SurfaceZoneFolder     1314
+#define IDC_CHECK_SurfaceFXZoneFolder   1315
 
 // Next default values for new objects
 // 
@@ -135,7 +135,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1314
+#define _APS_NEXT_CONTROL_VALUE         1316
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

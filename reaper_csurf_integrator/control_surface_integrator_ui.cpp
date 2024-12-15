@@ -2360,6 +2360,7 @@ static WDL_PtrList<SurfaceLine> s_surfaces;
 
 struct PageSurfaceLine
 {
+    string surface;
     string pageSurface;
     string pageSurfaceFolder;
     string pageSurfaceZoneFolder;
@@ -2885,50 +2886,24 @@ static void ClearCheckBoxes(HWND hwndDlg)
 
 HWND s_hwndMainDlg;
 
-static void SymLinkFolders(HWND hwndDlg, bool shouldLink)
+static void LinkFolders(HWND hwndDlg)
 {
-    string folder = "";
-    
-    if (SendMessage(GetDlgItem(hwndDlg, IDC_RADIO_Folder), BM_GETCHECK, 0, 0) == BST_CHECKED)
-        folder = "Zones";
-    else if (SendMessage(GetDlgItem(hwndDlg, IDC_RADIO_FXFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
-        folder = "FXZones";
-
-    if (folder == "")
-        return;
-    
     int sourceIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Sources, LB_GETCURSEL, 0, 0);
     if (sourceIndex >= 0)
     {
-        char sourcePath[BUFSIZ];
-        snprintf(sourcePath, sizeof(sourcePath),  "%s%s%s/%s", GetResourcePath(), "/CSI/Surfaces/", s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceFolder.c_str(),
-                 folder.c_str());
-        
-        char destPath[BUFSIZ];
         HWND hwndLinks = GetDlgItem(hwndDlg, IDC_LIST_Links);
         int count = (int)SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
 
-        // go through the items and find the first selected one
         for (int i = 0; i < count; i++)
         {
             if (SendMessage(hwndLinks, LB_GETSEL, i, 0) > 0)
             {
-                snprintf(destPath, sizeof(destPath),  "%s%s%s/%s", GetResourcePath(), "/CSI/Surfaces/", s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder.c_str(),
-                         folder.c_str());
-/*
-#ifdef WIN32
-                if (shouldLink)
-                    CreateSymbolicLinkA(sourcePath, destPath, 1);
-                else
-                    RemoveDirectoryA(destPath);
-#else
-                if (shouldLink)
-                    symlink(sourcePath, destPath);
-                else
-                    unlink(destPath);
-#endif
- */
-
+                if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SurfaceFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder = s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceFolder;
+                if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SurfaceZoneFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceZoneFolder = s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceZoneFolder;
+                if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SurfaceFXZoneFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
+                    s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFXZoneFolder = s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceFXZoneFolder;
             }
         }
     }
@@ -2944,10 +2919,10 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             if (index >= 0)
             {
                 for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
-                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_Sources);
+                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurface, IDC_LIST_Sources);
                 
                 for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
-                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_Links);
+                    AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurface, IDC_LIST_Links);
             }
         }
             break;
@@ -2964,17 +2939,10 @@ static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     }
                     break;
                     
-                case ID_BUTTON_SymLink:
+                case ID_BUTTON_LinkFolder:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
-                        SymLinkFolders(hwndDlg, true);
-                    }
-                    break;
-                    
-                case ID_BUTTON_SymUnlink:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        SymLinkFolders(hwndDlg, false);
+                        LinkFolders(hwndDlg);
                     }
                     break;
             }
@@ -3312,7 +3280,7 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                     }
                     break;
 
-                case ID_BUTTON_SymLinkFolder:
+                case ID_BUTTON_AdvancedFolderSharing:
                 {
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -3378,7 +3346,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_pageIndex = index;
                                
                                 for (int i = 0; i < s_pages.Get(s_pageIndex)->surfaces.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_PageSurfaces);
+                                    AddListEntry(hwndDlg, s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
                                 
                                 if (s_pages.Get(index)->surfaces.GetSize() > 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
@@ -3495,6 +3463,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             if (s_dlgResult == IDOK)
                             {
                                 PageSurfaceLine *pageSurface = new PageSurfaceLine();
+
                                 pageSurface->pageSurface = s_pageSurface;
                                 pageSurface->pageSurfaceFolder = s_pageSurfaceFolder;
                                 pageSurface->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
@@ -3505,7 +3474,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 if (index >= 0)
                                 {
                                     s_pages.Get(index)->surfaces.Add(pageSurface);
-                                    AddListEntry(hwndDlg, s_pageSurfaceFolder, IDC_LIST_PageSurfaces);
+                                    AddListEntry(hwndDlg, s_pageSurface, IDC_LIST_PageSurfaces);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, s_pages.Get(index)->surfaces.GetSize() - 1, 0);
                                 }
                             }
@@ -3632,7 +3601,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
                                         for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
-                                            AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_PageSurfaces);
+                                            AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
                                         
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                     }
@@ -3693,7 +3662,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
                                     for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
-                                        AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurfaceFolder, IDC_LIST_PageSurfaces);
+                                        AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                 }
                             }
