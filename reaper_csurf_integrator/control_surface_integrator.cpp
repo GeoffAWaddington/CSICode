@@ -1354,12 +1354,6 @@ void CSurfIntegrator::Init()
             string_list tokens;
             GetTokens(tokens, line.c_str());
             
-            vector<string> tmp;
-            
-            for (int i = 0; i < tokens.size(); ++i)
-                tmp.push_back(string(tokens[i]));
-            
-            
             if (tokens.size() > 0) // ignore comment lines and blank lines
             {
                 PropertyList pList;
@@ -1510,7 +1504,7 @@ void CSurfIntegrator::Init()
                                     if ( ! strcmp(surfaceProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, surfaceFolderProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, surfaceProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
                                     }
                                 }
@@ -1524,7 +1518,7 @@ void CSurfIntegrator::Init()
                                         if ( ! strcmp(surfaceProp, io->GetName()))
                                         {
                                             foundIt = true;
-                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, surfaceFolderProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, surfaceProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                             break;
                                         }
                                     }
