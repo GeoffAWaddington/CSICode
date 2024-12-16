@@ -2406,9 +2406,7 @@ void Zone::UpdateCurrentActionContextModifiers()
         includedZones_[i]->UpdateCurrentActionContextModifiers();
 
     for (int i = 0; i < subZones_.size(); ++i)
-    {
         subZones_[i]->UpdateCurrentActionContextModifiers();
-    }
 }
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
@@ -4203,7 +4201,7 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
 OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO)
 
 {
-    ProcessOSCWidgetFile(string(GetResourcePath()) + "/CSI/Surfaces/OSC/" + templateFilename);
+    ProcessOSCWidgetFile(templateFilename);
     InitHardwiredWidgets(this);
     InitZoneManager(csi_, this, zoneFolder, fxZoneFolder);
 }
