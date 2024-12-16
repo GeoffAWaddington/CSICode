@@ -3119,6 +3119,9 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     
     if (homeZone_ != NULL)
         homeZone_->UpdateCurrentActionContextModifiers();
+    
+    for (int i = 0; i < goZones_.size(); ++i)
+        goZones_[i]->UpdateCurrentActionContextModifiers();
 }
 
 void ZoneManager::PreProcessZones()
