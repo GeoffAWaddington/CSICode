@@ -1499,7 +1499,7 @@ void CSurfIntegrator::Init()
                                 
                                 string fxZoneFolder = baseDir + surfaceFolderProp + "/FXZones";
                                 if (const char *fxZoneFolderProp = pList.get_prop(PropertyType_FXZoneFolder))
-                                    zoneFolder = baseDir + fxZoneFolderProp + "/Zones";
+                                    fxZoneFolder = baseDir + fxZoneFolderProp + "/FXZones";
 
                                 bool foundIt = false;
                                 
