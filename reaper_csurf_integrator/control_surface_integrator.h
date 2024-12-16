@@ -1699,6 +1699,11 @@ public:
                 listeners_[i]->ListenToToggleEnableFocusedFXParamMapping();
     }
 
+    void DisableFocusedFXParamMapping()
+    {
+        isFocusedFXParamMappingEnabled_ = false;
+    }
+    
     void DeclareToggleEnableFocusedFXMapping()
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
@@ -1706,6 +1711,11 @@ public:
         else
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToToggleEnableFocusedFXMapping();
+    }
+    
+    void DisableFocusedFXMapping()
+    {
+        isFocusedFXMappingEnabled_ = false;
     }
     
     bool GetIsGoZoneActive(const char *zoneName)

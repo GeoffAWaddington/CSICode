@@ -641,6 +641,26 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class DisableFocusedFXMapping  : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual const char *GetName() override { return "DisableFocusedFXMapping"; }
+
+    void RequestUpdate(ActionContext *context) override
+    {
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXMappingEnabled());
+    }
+    
+    void Do(ActionContext *context, double value) override
+    {
+        if (value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->DisableFocusedFXMapping();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class ToggleEnableFocusedFXParamMapping  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
@@ -657,6 +677,26 @@ public:
         if (value == 0.0) return; // ignore button releases
         
         context->GetSurface()->GetZoneManager()->DeclareToggleEnableFocusedFXParamMapping();
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class DisableFocusedFXParamMapping  : public Action
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual const char *GetName() override { return "DisableFocusedFXParamMapping"; }
+
+    void RequestUpdate(ActionContext *context) override
+    {
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXParamMappingEnabled());
+    }
+    
+    void Do(ActionContext *context, double value) override
+    {
+        if (value == 0.0) return; // ignore button releases
+        
+        context->GetSurface()->GetZoneManager()->DisableFocusedFXParamMapping();
     }
 };
 

@@ -1171,7 +1171,9 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("SetLatchTime", new SetLatchTime());
     actions_.Insert("SetHoldTime", new SetHoldTime());
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
+    actions_.Insert("DisableFocusedFXMapping", new DisableFocusedFXMapping());
     actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
+    actions_.Insert("DisableFocusedFXParamMapping", new DisableFocusedFXParamMapping());
     actions_.Insert("LearnFocusedFX", new LearnFocusedFX());
     actions_.Insert("GoZone", new GoZone());
     actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
@@ -2624,8 +2626,7 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     listensToLocalFXSlot_ = false;
     listensToSelectedTrackFX_ = false;
 
-    isFocusedFXParamMappingEnabled_ = false;
-    
+    isFocusedFXParamMappingEnabled_ = true;
     isFocusedFXMappingEnabled_ = true;
     
     trackSendOffset_ = 0;
