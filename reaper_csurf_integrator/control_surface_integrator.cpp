@@ -2620,10 +2620,7 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     listensToGoHome_ = false;
     listensToSends_ = false;
     listensToReceives_ = false;
-    listensToFocusedFX_ = false;
-    listensToFocusedFXParam_ = false;
     listensToFXMenu_ = false;
-    listensToLocalFXSlot_ = false;
     listensToSelectedTrackFX_ = false;
 
     isFocusedFXParamMappingEnabled_ = true;
@@ -2970,21 +2967,9 @@ void ZoneManager::SetListenerCategories(PropertyList &pList)
         if (! strcmp(property, "Yes"))
             listensToReceives_ = true;
     
-    if (const char *property =  pList.get_prop(PropertyType_FocusedFX))
-        if (! strcmp(property, "Yes"))
-            listensToFocusedFX_ = true;
-    
-    if (const char *property =  pList.get_prop(PropertyType_FocusedFXParam))
-        if (! strcmp(property, "Yes"))
-            listensToFocusedFXParam_ = true;
-    
     if (const char *property =  pList.get_prop(PropertyType_FXMenu))
         if (! strcmp(property, "Yes"))
             listensToFXMenu_ = true;
-    
-    if (const char *property =  pList.get_prop(PropertyType_LocalFXSlot))
-        if (! strcmp(property, "Yes"))
-            listensToLocalFXSlot_ = true;
     
     if (const char *property =  pList.get_prop(PropertyType_SelectedTrackFX))
         if (! strcmp(property, "Yes"))

@@ -99,9 +99,6 @@
 #define IDC_CHECK_FXMenu                1260
 #define IDC_AddBroadcaster              1261
 #define IDC_AddListener                 1262
-#define IDC_CHECK_FocusedFX             1263
-#define IDC_CHECK_FocusedFXParam        1264
-#define IDC_CHECK_LocalFXSlot           1266
 #define IDC_CHECK_Modifiers             1267
 #define IDC_CHECK_ShowRawInput          1268
 #define IDC_CHECK_ShowInput             1269

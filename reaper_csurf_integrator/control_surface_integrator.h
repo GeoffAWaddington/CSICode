@@ -246,11 +246,8 @@ enum PropertyType {
   D(Surface) \
   D(StartChannel) \
   D(GoHome) \
-  D(LocalFXSlot) \
   D(Modifiers) \
   D(FXMenu) \
-  D(FocusedFX) \
-  D(FocusedFXParam) \
   D(SelectedTrackFX) \
   D(SelectedTrackSends) \
   D(SelectedTrackReceives) \
@@ -1110,10 +1107,7 @@ private:
     bool listensToGoHome_;
     bool listensToSends_;
     bool listensToReceives_;
-    bool listensToFocusedFX_;
-    bool listensToFocusedFXParam_;
     bool listensToFXMenu_;
-    bool listensToLocalFXSlot_;
     bool listensToSelectedTrackFX_;
 
     Zone *focusedFXParamZone_;
@@ -1209,7 +1203,7 @@ private:
    
     bool GetIsListener()
     {
-        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFocusedFX_ || listensToFocusedFXParam_ || listensToFXMenu_ || listensToLocalFXSlot_ || listensToSelectedTrackFX_;
+        return listensToGoHome_ || listensToSends_ || listensToReceives_ || listensToFXMenu_ || listensToSelectedTrackFX_;
     }
     
     void ListenToGoZone(const char *zoneName)
@@ -1232,10 +1226,10 @@ private:
     
     void ListenToClearFXZone(const char *zoneToClear)
     {
-        if (!strcmp("FocusedFXParam", zoneToClear) && listensToFocusedFXParam_)
+        if (!strcmp("FocusedFXParam", zoneToClear))
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ClearFocusedFXParam();
-        else if (!strcmp("FocusedFX", zoneToClear) && listensToFocusedFX_)
+        else if (!strcmp("FocusedFX", zoneToClear))
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ClearFocusedFX();
         else if (!strcmp("SelectedTrackFX", zoneToClear) && listensToSelectedTrackFX_)
@@ -1260,8 +1254,7 @@ private:
 
     void ListenToToggleEnableFocusedFXParamMapping()
     {
-        if (listensToFocusedFXParam_)
-            ToggleEnableFocusedFXParamMapping();
+        ToggleEnableFocusedFXParamMapping();
     }
 
     void ToggleEnableFocusedFXParamMapping()
@@ -1279,8 +1272,7 @@ private:
 
     void ListenToToggleEnableFocusedFXMapping()
     {
-        if (listensToFocusedFX_)
-            ToggleEnableFocusedFXMapping();
+        ToggleEnableFocusedFXMapping();
     }
 
     void ToggleEnableFocusedFXMapping()
@@ -1590,9 +1582,9 @@ public:
     
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
-        if (listensToLocalFXSlot_ || (! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
+        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
-        else
+        else if (listensToFXMenu_)
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
     }

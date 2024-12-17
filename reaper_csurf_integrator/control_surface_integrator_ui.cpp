@@ -2380,10 +2380,7 @@ struct Listener
     bool goHome;
     bool sends;
     bool receives;
-    bool focusedFX;
-    bool focusedFXParam;
     bool fxMenu;
-    bool localFXSlot;
     bool selectedTrackFX;
     bool modifiers;
     
@@ -2392,10 +2389,7 @@ struct Listener
         goHome = false;
         sends = false;
         receives = false;
-        focusedFX = false;
-        focusedFXParam = false;
         fxMenu = false;
-        localFXSlot = false;
         selectedTrackFX = false;
         modifiers = false;
     }
@@ -2448,10 +2442,7 @@ static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<B
             destinationListener->goHome = source.Get(i)->listeners.Get(j)->goHome;
             destinationListener->sends = source.Get(i)->listeners.Get(j)->sends;
             destinationListener->receives = source.Get(i)->listeners.Get(j)->receives;
-            destinationListener->focusedFX = source.Get(i)->listeners.Get(j)->focusedFX;
-            destinationListener->focusedFXParam = source.Get(i)->listeners.Get(j)->focusedFXParam;
             destinationListener->fxMenu = source.Get(i)->listeners.Get(j)->fxMenu;
-            destinationListener->localFXSlot = source.Get(i)->listeners.Get(j)->localFXSlot;
             destinationListener->modifiers = source.Get(i)->listeners.Get(j)->modifiers;
             destinationListener->selectedTrackFX = source.Get(i)->listeners.Get(j)->selectedTrackFX;
             
@@ -2861,10 +2852,7 @@ static void SetCheckBoxes(HWND hwndDlg, Listener *listener)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, listener->goHome ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, listener->sends ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, listener->receives ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, listener->focusedFX ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, listener->focusedFXParam ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, listener->fxMenu ? BST_CHECKED : BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_SETCHECK, listener->localFXSlot ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_SETCHECK, listener->modifiers ? BST_CHECKED : BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, listener->selectedTrackFX ? BST_CHECKED : BST_UNCHECKED, 0);
 }
@@ -2876,10 +2864,7 @@ static void ClearCheckBoxes(HWND hwndDlg)
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_SETCHECK, BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_SETCHECK, BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_SETCHECK, BST_UNCHECKED, 0);
-    SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_SETCHECK, BST_UNCHECKED, 0);
     SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_SETCHECK, BST_UNCHECKED, 0);
 }
@@ -3132,38 +3117,6 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                     }
                     break;
                                         
-                case IDC_CHECK_FocusedFX:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
-                        int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
-
-                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFX = true;
-                            else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFX = false;
-                        }
-                    }
-                    break;
-                    
-                case IDC_CHECK_FocusedFXParam:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
-                        int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
-
-                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FocusedFXParam), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFXParam = true;
-                            else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->focusedFXParam = false;
-                        }
-                    }
-                    break;
-                    
                 case IDC_CHECK_FXMenu:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -3179,23 +3132,7 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         }
                     }
                     break;
-                 
-                case IDC_CHECK_LocalFXSlot:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int broadcasterIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Broadcasters, LB_GETCURSEL, 0, 0);
-                        int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
-
-                        if (broadcasterIndex >= 0 && listenerIndex >= 0)
-                        {
-                            if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_LocalFXSlot), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->localFXSlot = true;
-                            else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->localFXSlot = false;
-                        }
-                    }
-                    break;
-                 
+                                  
                 case IDC_CHECK_Modifiers:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -3832,11 +3769,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             if (const char *listenerProp = pList.get_prop(PropertyType_GoHome))
                                 if ( ! strcmp(listenerProp, "Yes"))
                                     listener->goHome = true;
-                            
-                            if (const char *listenerProp = pList.get_prop(PropertyType_LocalFXSlot))
-                                if ( ! strcmp(listenerProp, "Yes"))
-                                    listener->localFXSlot = true;
-                            
+                                                        
                             if (const char *listenerProp = pList.get_prop(PropertyType_Modifiers))
                                 if ( ! strcmp(listenerProp, "Yes"))
                                     listener->modifiers = true;
@@ -3844,15 +3777,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             if (const char *listenerProp = pList.get_prop(PropertyType_FXMenu))
                                 if ( ! strcmp(listenerProp, "Yes"))
                                     listener->fxMenu = true;
-                            
-                            if (const char *listenerProp = pList.get_prop(PropertyType_FocusedFX))
-                                if ( ! strcmp(listenerProp, "Yes"))
-                                    listener->focusedFX = true;
-                            
-                            if (const char *listenerProp = pList.get_prop(PropertyType_FocusedFXParam))
-                                if ( ! strcmp(listenerProp, "Yes"))
-                                    listener->focusedFXParam = true;
-                            
+                                                        
                             if (const char *listenerProp = pList.get_prop(PropertyType_SelectedTrackFX))
                                 if ( ! strcmp(listenerProp, "Yes"))
                                     listener->selectedTrackFX = true;
@@ -4033,10 +3958,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_GoHome), listener->goHome == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_SelectedTrackSends), listener->sends == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_SelectedTrackReceives), listener->receives == true ? "Yes" : "No");
-                            fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_FocusedFX), listener->focusedFX == true ? "Yes" : "No");
-                            fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_FocusedFXParam), listener->focusedFXParam == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_FXMenu), listener->fxMenu == true ? "Yes" : "No");
-                            fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_LocalFXSlot), listener->localFXSlot == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_Modifiers), listener->modifiers == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_SelectedTrackFX), listener->selectedTrackFX == true ? "Yes" : "No");
 
