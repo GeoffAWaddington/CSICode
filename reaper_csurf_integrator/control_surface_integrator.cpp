@@ -1168,6 +1168,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("ShowFXSlot", new ShowFXSlot());
     actions_.Insert("HideFXSlot", new HideFXSlot());
     actions_.Insert("ToggleUseLocalModifiers", new ToggleUseLocalModifiers());
+    actions_.Insert("ToggleUseLocalFXSlot", new ToggleUseLocalFXSlot());
     actions_.Insert("SetLatchTime", new SetLatchTime());
     actions_.Insert("SetHoldTime", new SetHoldTime());
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
@@ -2621,6 +2622,7 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     listensToSends_ = false;
     listensToReceives_ = false;
     listensToFXMenu_ = false;
+    usesLocalFXSlot_ = false;
     listensToSelectedTrackFX_ = false;
 
     isFocusedFXParamMappingEnabled_ = true;

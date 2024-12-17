@@ -1108,6 +1108,7 @@ private:
     bool listensToSends_;
     bool listensToReceives_;
     bool listensToFXMenu_;
+    bool usesLocalFXSlot_;
     bool listensToSelectedTrackFX_;
 
     Zone *focusedFXParamZone_;
@@ -1382,7 +1383,8 @@ public:
     void AddListener(ControlSurface *surface);
     void SetListenerCategories(PropertyList &pList);
     const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
-    
+    void ToggleUseLocalFXSlot() { usesLocalFXSlot_ = ! usesLocalFXSlot_; }
+
     int  GetNumChannels();
     
     void PreProcessZones();
@@ -1582,9 +1584,9 @@ public:
     
     void DeclareGoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     {
-        if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
+        if (usesLocalFXSlot_ || ( ! GetIsBroadcaster() && ! GetIsListener())) // No Broadcasters/Listeners relationships defined
             GoFXSlot(track, navigator, fxSlot);
-        else if (listensToFXMenu_)
+        else
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
     }
@@ -2160,7 +2162,7 @@ private:
     
     bool usesLocalModifiers_;
     bool listensToModifiers_;
-    
+        
     int latchTime_;
         
     WDL_PtrList<FeedbackProcessor> trackColorFeedbackProcessors_; // does not own pointers
