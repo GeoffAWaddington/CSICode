@@ -1384,6 +1384,7 @@ public:
     void SetListenerCategories(PropertyList &pList);
     const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
     void ToggleUseLocalFXSlot() { usesLocalFXSlot_ = ! usesLocalFXSlot_; }
+    bool GetToggleUseLocalFXSlot() { return usesLocalFXSlot_; }
 
     int  GetNumChannels();
     
