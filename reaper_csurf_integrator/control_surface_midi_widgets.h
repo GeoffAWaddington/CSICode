@@ -1102,12 +1102,6 @@ public:
         SendMidiMessage(0x93, midiFeedbackMessage1_->midi_message[1], color.b / 2);
     }
     
-    virtual void UpdateTrackColors() override
-    {
-        if (surface_->GetTrackColorForChannel(widget_->GetChannelNumber() - 1) != lastColor_)
-            ForceUpdateTrackColors();
-    }
-    
     virtual void ForceUpdateTrackColors() override
     {
         if (preventUpdateTrackColors_)
