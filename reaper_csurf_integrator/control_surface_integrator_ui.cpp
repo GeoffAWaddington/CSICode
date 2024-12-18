@@ -780,15 +780,27 @@ static void SaveZone(SurfaceFXTemplate *t)
                 {
                     Widget *widget = cell->displayWidgets.Get(displayIdx);
                     
-                    fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
-
+                    if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
+                    {
+                        if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                            fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
+                    }
+                    else
+                        fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
+ 
                     if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
                     {
                         char actionName[SMLBUF];
                         snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
                         
-                        fprintf(fxFile, "%s ", actionName);
-
+                        if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
+                        {
+                            if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                fprintf(fxFile, "%s ", actionName);
+                        }
+                        else
+                            fprintf(fxFile, "%s ", actionName);
+                        
                         if (strcmp(actionName, "NoAction"))
                         {
                             if ( ! strcmp(actionName, "FixedTextDisplay"))
@@ -799,7 +811,13 @@ static void SaveZone(SurfaceFXTemplate *t)
                             context->GetWidgetProperties().save_list(fxFile);
                         }
                         
-                        fprintf(fxFile, "\n");
+                        if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
+                        {
+                            if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                fprintf(fxFile, "\n");
+                        }
+                        else
+                            fprintf(fxFile, "\n");
                     }
                 }
 

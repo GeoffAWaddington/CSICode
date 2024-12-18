@@ -170,7 +170,7 @@ BEGIN
     CONTROL         "SelectedTrackReceives",IDC_CHECK_Receives,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,263,104,86,10
     CONTROL         "FXMenu",IDC_CHECK_FXMenu,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,347,60,36,10
     CONTROL         "GoHome",IDC_CHECK_GoHome,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,347,82,44,10
-    CONTROL         "Modifiers",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,347,104,44,10
+    CONTROL         "Mod Group",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,347,104,44,10
     CONTROL         "Show MIDI input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,180,65,10
     CONTROL         "Show input",IDC_CHECK_ShowInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,88,180,47,10
     CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,142,180,53,10
