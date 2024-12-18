@@ -661,7 +661,7 @@ public:
 
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (lastStringSent_ != inputText)
+        if (strcmp(inputText, lastStringSent_.c_str()))
             ForceValue(properties, inputText);
     }
     
@@ -1161,8 +1161,8 @@ public:
         else
             shouldSetToZero_ = false;
     
-        int volint = int(value  *16383.0);
-        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volint&0x7f, (volint>>7)&0x7f);
+        int volInt = int(value  *16383.0);
+        SendMidiMessage(midiFeedbackMessage1_->midi_message[0], volInt&0x7f, (volInt>>7)&0x7f);
     }
     
     virtual void ForceValue(const PropertyList &properties, double value) override
@@ -1761,7 +1761,7 @@ public:
 
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (inputText != lastStringSent_) // changes since last send
+        if (strcmp(inputText, lastStringSent_.c_str())) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -1829,7 +1829,7 @@ public:
 
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (inputText != lastStringSent_) // changes since last send
+        if (strcmp(inputText, lastStringSent_.c_str())) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -1895,7 +1895,7 @@ public:
 
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (inputText != lastStringSent_) // changes since last send
+        if (strcmp(inputText, lastStringSent_.c_str())) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2032,7 +2032,7 @@ public:
     
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (inputText != lastStringSent_) // changes since last send
+        if (strcmp(inputText, lastStringSent_.c_str())) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2070,28 +2070,6 @@ public:
         SendMidiSysExMessage(&midiSysExData.evt);
         
         ForceUpdateTrackColors();
-    }
-
-    virtual void UpdateTrackColors() override
-    {
-        bool shouldUpdate = false;
-          
-        vector<rgba_color> trackColors;
-        
-        for (int i = 0; i < currentTrackColors_.GetSize(); ++i)
-            trackColors.push_back(surface_->GetTrackColorForChannel(i));
-        
-        for (int i = 0; i < trackColors.size(); ++i)
-        {
-            if (trackColors[i] != currentTrackColors_.Get()[i])
-            {
-                shouldUpdate = true;
-                break;
-            }
-        }
-        
-        if (shouldUpdate)
-            ForceUpdateTrackColors();
     }
     
     virtual void ForceUpdateTrackColors() override
@@ -2213,7 +2191,7 @@ public:
     
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (inputText != lastStringSent_) // changes since last send
+        if (strcmp(inputText, lastStringSent_.c_str())) // changes since last send
             ForceValue(properties, inputText);
     }
     
@@ -2371,7 +2349,7 @@ public:
     
     virtual void SetValue(const PropertyList &properties, const char * const &inputText) override
     {
-        if (inputText != lastStringSent_) // changes since last send
+        if (strcmp(inputText, lastStringSent_.c_str())) // changes since last send
             ForceValue(properties, inputText);
     }
     

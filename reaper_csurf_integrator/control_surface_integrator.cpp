@@ -3572,9 +3572,6 @@ rgba_color ControlSurface::GetTrackColorForChannel(int channel)
 
 void ControlSurface::RequestUpdate()
 {
-    for (int i = 0; i < trackColorFeedbackProcessors_.GetSize(); ++i)
-        trackColorFeedbackProcessors_.Get(i)->UpdateTrackColors();
-    
     for (int i = 0; i < widgets_.GetSize(); ++i)
         widgets_.Get(i)->ClearHasBeenUsedByUpdate();
     

@@ -2623,7 +2623,6 @@ public:
     virtual void RunDeferredActions() {}
     virtual void ForceClear() {}
     
-    virtual void UpdateTrackColors() {}
     virtual void SetXTouchDisplayColors(const char *colors) {}
     virtual void RestoreXTouchDisplayColors() {}
 
