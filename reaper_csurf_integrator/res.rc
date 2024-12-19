@@ -131,7 +131,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,161,153,50,14
     LTEXT           "Name",IDC_STATIC,13,13,19,8
     LTEXT           "Type",IDC_STATIC,13,36,17,8
-    LTEXT           "Number of Channels",IDC_STATIC,13,57,67,8,WS_TABSTOP
+    LTEXT           "Number of Channels",IDC_STATIC,13,57,64,8,WS_TABSTOP
     LTEXT           "Remote device IP",IDC_STATIC,13,76,58,8
     LTEXT           "CSI receives on port",IDC_STATIC,13,94,69,8
     LTEXT           "CSI sends to port",IDC_STATIC,13,113,66,8
