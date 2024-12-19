@@ -181,7 +181,7 @@ BEGIN
     PUSHBUTTON      "Advanced Sharing",ID_BUTTON_AdvancedFolderSharing,11,210,64,14
     LTEXT           "Broadcasters",IDC_STATIC,45,21,41,8
     LTEXT           "Listeners",IDC_STATIC,178,21,29,8
-    LTEXT           "Broadcasters do not listen to themselves by default",IDC_STATIC,214,21,150,8
+    LTEXT           "Broadcasters do not listen to themselves by default",IDC_STATIC,214,21,180,8
     GROUPBOX        "Surface Listens to",IDC_ListenCheckboxes,258,37,137,87
     GROUPBOX        "Monitoring",IDC_STATIC,9,165,393,32
     GROUPBOX        "Broadcasting",IDC_STATIC,7,8,393,144
@@ -274,7 +274,7 @@ BEGIN
     PUSHBUTTON      "Link",ID_BUTTON_LinkFolder,140,105,52,14,BS_FLAT
     PUSHBUTTON      "Done",IDCANCEL,196,105,52,14
     CONTROL         "Surface",IDC_CHECK_SurfaceFolder,"Button",BS_AUTOCHECKBOX,11,108,36,10
-    CONTROL         "Folder",IDC_CHECK_SurfaceZoneFolder,"Button",BS_AUTOCHECKBOX,48,108,36,10
+    CONTROL         "Folder",IDC_CHECK_SurfaceZoneFolder,"Button",BS_AUTOCHECKBOX,48,108,31,10
     CONTROL         "FX Folder",IDC_CHECK_SurfaceFXZoneFolder,"Button",BS_AUTOCHECKBOX,81,108,46,10
 END
 
@@ -287,11 +287,6 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO 
 BEGIN
-    IDD_DIALOG_AdvancedSetup, DIALOG
-    BEGIN
-        BOTTOMMARGIN, 248
-    END
-
     IDD_DIALOG_EditAdvanced, DIALOG
     BEGIN
         LEFTMARGIN, 7
