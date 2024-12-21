@@ -223,31 +223,31 @@ BEGIN
     PUSHBUTTON      "Alias",IDC_Alias,14,114,70,14
     PUSHBUTTON      "Params",IDC_Params,104,114,70,14
     PUSHBUTTON      "Save",IDC_Save,194,114,70,14
-    PUSHBUTTON      "Ring",IDC_FXParamRingColor,14,139,67,14
-    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,14,158,67,14
-    PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,104,139,67,14
-    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,104,158,67,14
-    PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,194,139,67,14
-    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,194,158,67,14
-    PUSHBUTTON      "Colors",IDC_ApplyColorsToAll,17,187,67,12,BS_CENTER
-    PUSHBUTTON      "Fonts and Margins",IDC_ApplyFontsAndMarginsToAll,17,202,67,13,BS_CENTER
-    COMBOBOX        IDC_FixedTextDisplayPickFont,104,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,203,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,203,16,12,ES_CENTER | ES_NUMBER
-    COMBOBOX        IDC_FXParamValueDisplayPickFont,194,203,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,203,16,12,ES_CENTER | ES_NUMBER
-    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,203,16,12,ES_CENTER | ES_NUMBER
+    PUSHBUTTON      "Ring",IDC_FXParamRingColor,14,149,67,14
+    PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,14,168,67,14
+    PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,104,149,67,14
+    PUSHBUTTON      "Background",IDC_FixedTextDisplayBackgroundColor,104,168,67,14
+    PUSHBUTTON      "Param Value",IDC_FXParamDisplayForegroundColor,194,149,67,14
+    PUSHBUTTON      "Background",IDC_FXParamDisplayBackgroundColor,194,168,67,14
+    PUSHBUTTON      "Colors",IDC_ApplyColorsToAll,17,200,64,12,BS_CENTER
+    PUSHBUTTON      "Fonts and Margins",IDC_ApplyFontsAndMarginsToAll,17,215,64,13,BS_CENTER
+    COMBOBOX        IDC_FixedTextDisplayPickFont,104,216,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_FixedTextDisplayTop,135,216,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_FixedTextDisplayBottom,159,216,16,12,ES_CENTER | ES_NUMBER
+    COMBOBOX        IDC_FXParamValueDisplayPickFont,194,216,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,216,16,12,ES_CENTER | ES_NUMBER
+    EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,216,16,12,ES_CENTER | ES_NUMBER
     GROUPBOX        "Widget",IDC_GroupFXWidget,5,26,269,80
     LTEXT           "name",IDC_STATIC,126,38,18,8
     LTEXT           "value",IDC_STATIC,218,38,17,8
     LTEXT           "Steps",IDC_Steps,104,81,18,8
-    LTEXT           "",IDC_FXParamRingColorBox,82,139,4,14
-    LTEXT           "",IDC_FXParamIndicatorColorBox,82,158,4,14
-    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,171,139,4,14
-    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,171,158,4,14
-    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,261,139,4,14
-    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,158,4,14
-    GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,175,77,42
+    LTEXT           "",IDC_FXParamRingColorBox,82,149,4,14
+    LTEXT           "",IDC_FXParamIndicatorColorBox,82,168,4,14
+    LTEXT           "",IDC_FXFixedTextDisplayForegroundColorBox,171,149,4,14
+    LTEXT           "",IDC_FXFixedTextDisplayBackgroundColorBox,171,168,4,14
+    LTEXT           "",IDC_FXParamValueDisplayForegroundColorBox,261,149,4,14
+    LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,168,4,14
+    GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,188,74,42
     CTEXT           "Surface Name",IDC_SurfaceName,7,14,267,10
 END
 
