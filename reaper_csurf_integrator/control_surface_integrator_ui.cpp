@@ -1470,11 +1470,11 @@ static WDL_DLGRET dlgProcEditFXAlias(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
 
 static void CreateContextMap(SurfaceFXTemplate *t)
 {
-    ZoneManager *zoneManager = t->zoneManager;
-    
     if ( ! t)
         return;
-        
+
+    ZoneManager *zoneManager = t->zoneManager;
+    
     t->cells.Empty();
     
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
