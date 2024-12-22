@@ -64,7 +64,7 @@ static ActionContext *GetFirstContext(ZoneManager *zoneManager, Widget *widget, 
 
 struct FXCell
 {
-    ZoneManager *zoneManager;
+    ZoneManager *const zoneManager;
     
     WDL_PtrList<Widget> controlWidgets;
     WDL_PtrList<Widget> displayWidgets;
@@ -73,9 +73,8 @@ struct FXCell
     int modifier;
     int channel;
     
-    FXCell(ZoneManager *aZoneManager)
+    FXCell(ZoneManager *const aZoneManager) : zoneManager(aZoneManager)
     {
-        zoneManager = aZoneManager;
         modifier = 0;
         channel = 0;
     }
@@ -247,7 +246,7 @@ struct FXCell
 struct SurfaceFXTemplate
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
-    ZoneManager *zoneManager;
+    ZoneManager *const zoneManager;
     Widget *currentWidget;
     int currentModifier;
 
@@ -265,9 +264,8 @@ struct SurfaceFXTemplate
     char valueWidget[SMLBUF];
     HWND hwnd;
 
-    SurfaceFXTemplate(ZoneManager *aZoneManager)
+    SurfaceFXTemplate(ZoneManager *const aZoneManager) : zoneManager(aZoneManager)
     {
-        zoneManager = aZoneManager;
         currentWidget = NULL;
         currentModifier = 0;
         hasColor = false;
