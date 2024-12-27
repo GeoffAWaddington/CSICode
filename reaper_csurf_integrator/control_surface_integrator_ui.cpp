@@ -854,7 +854,6 @@ static void ClearParams(HWND hwndDlg)
 {
     s_isUpdatingParameters = true;
     
-    SetWindowText(GetDlgItem(hwndDlg, IDC_GroupFXWidget), "Widget");
     SetDlgItemText(hwndDlg, IDC_PickRingStyle, "");
     SetDlgItemText(hwndDlg, IDC_PickSteps, "");
     SetWindowText(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), "");
@@ -1144,7 +1143,7 @@ static void FillParams(SurfaceFXTemplate *t, Widget *widget, int modifier)
     
     char buf[MEDBUF];
     GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-    SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
+    //SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
     
     FXCell *cell = GetCell(t, widget, modifier);
     
@@ -1247,7 +1246,7 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
         paramContext->GetWidgetProperties().delete_props();
         
         ClearParams(t->hwnd);
-        SetDlgItemText(t->hwnd, IDC_GroupFXWidget, "Widget");
+        //SetDlgItemText(t->hwnd, IDC_GroupFXWidget, "Widget");
 
         SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, "");
     }
@@ -2048,7 +2047,7 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
             if (s_lastTouchedParamNum >= 0)
             {
                 GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-                SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
+                //SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
                 
                 HandleAssigment(t, widget, modifier, s_lastTouchedParamNum, true);
             }
@@ -2066,13 +2065,21 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     }
 }
 
-static void InitLearnFocusedFXDialog(ZoneManager *zoneManager)
+static void InitLearnFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel)
 {
     SurfaceFXTemplate *t = new SurfaceFXTemplate(zoneManager);
     s_surfaceFXTemplates.push_back(t);
     LoadTemplates(t);
     
-    t->hwnd = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
+    int dlgID = IDD_DIALOG_LearnFXLevel1;
+    
+    if (fxLearnLevel == "FXLearnLevel2")
+        dlgID = IDD_DIALOG_LearnFXLevel2;
+    
+    else if (fxLearnLevel == "FXLearnLevel3")
+        dlgID = IDD_DIALOG_LearnFXLevel3;
+    
+    t->hwnd = CreateDialog(g_hInst, MAKEINTRESOURCE(dlgID), g_hwnd, dlgProcLearnFX);
 
     if (t->hwnd)
     {
@@ -2080,10 +2087,12 @@ static void InitLearnFocusedFXDialog(ZoneManager *zoneManager)
         SendMessage(t->hwnd, WM_USER + 1024, 0, 0);
         ShowWindow(t->hwnd, SW_SHOW);
         SetDlgItemText(t->hwnd, IDC_SurfaceName, t->zoneManager->GetSurface()->GetName());
+        
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Assign),  false);
     }
 }
 
-void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
+void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel)
 {
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
     
@@ -2096,7 +2105,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
     else
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
     
-    InitLearnFocusedFXDialog(zoneManager);
+    InitLearnFocusedFXDialog(zoneManager, fxLearnLevel);
 }
 
 static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, int lastTouchedParamNum)
@@ -2106,7 +2115,7 @@ static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, i
     s_lastTouchedParamNum = lastTouchedParamNum;
 }
 
-void RequestFocusedFXDialog(ZoneManager *zoneManager)
+void RequestFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel)
 {
     if (s_focusedTrack == NULL)
     {
@@ -2134,7 +2143,7 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
         {
             CaptureFX(zoneManager, focusedTrack, fxSlot, -1);
             
-            LaunchLearnFocusedFXDialog(zoneManager);
+            LaunchLearnFocusedFXDialog(zoneManager, fxLearnLevel);
         }
         
     }
@@ -2346,6 +2355,7 @@ static string s_pageSurface;
 static string s_pageSurfaceFolder;
 static string s_pageSurfaceZoneFolder;
 static string s_pageSurfaceFXZoneFolder;
+static string s_pageSurfaceFXLearnLevel;
 static int s_channelOffset = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2383,6 +2393,7 @@ struct PageSurfaceLine
     string pageSurfaceFolder;
     string pageSurfaceZoneFolder;
     string pageSurfaceFXZoneFolder;
+    string pageSurfaceFXLearnLevel;
     int channelOffset;
     
     PageSurfaceLine()
@@ -2597,9 +2608,18 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
                 
                 SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, s_channelOffset, false);
+                
+                if (s_pageSurfaceFXLearnLevel == "FXLearnLevel1")
+                    CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel1, true);
+                else if (s_pageSurfaceFXLearnLevel == "FXLearnLevel2")
+                    CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel2, true);
+                else if (s_pageSurfaceFXLearnLevel == "FXLearnLevel3")
+                    CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel3, true);
+
             }
             else
             {
+                CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel1, true);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurfaceFolder), CB_SETCURSEL, 0, 0);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
@@ -2623,6 +2643,13 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         s_pageSurfaceFolder = buf;
                         s_pageSurfaceZoneFolder = buf;
                         s_pageSurfaceFXZoneFolder = buf;
+                        
+                        if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_FXLearnLevel1))
+                            s_pageSurfaceFXLearnLevel = "FXLearnLevel1";
+                        else if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_FXLearnLevel2))
+                            s_pageSurfaceFXLearnLevel = "FXLearnLevel2";
+                        else if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_FXLearnLevel3))
+                            s_pageSurfaceFXLearnLevel = "FXLearnLevel3";
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         s_channelOffset = atoi(buf);
@@ -3428,6 +3455,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 pageSurface->pageSurfaceFolder = s_pageSurfaceFolder;
                                 pageSurface->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
                                 pageSurface->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
+                                pageSurface->pageSurfaceFXLearnLevel = s_pageSurfaceFXLearnLevel;
                                 pageSurface->channelOffset = s_channelOffset;
 
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
@@ -3585,6 +3613,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_pageSurfaceFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder;
                                     s_pageSurfaceZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder;
                                     s_pageSurfaceFXZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder;
+                                    s_pageSurfaceFXLearnLevel = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXLearnLevel;
 
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
@@ -3595,7 +3624,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface = s_pageSurface;
-                                        
+                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXLearnLevel = s_pageSurfaceFXLearnLevel;
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
                                         for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
@@ -3900,6 +3929,8 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 surface->pageSurfaceFolder = surfaceFolderProp;
                                 surface->pageSurfaceZoneFolder = surfaceFolderProp;
                                 surface->pageSurfaceFXZoneFolder = surfaceFolderProp;
+                                if (const char *pageSurfaceFXLearnLevelProp = pList.get_prop(PropertyType_FXLearnLevel))
+                                    surface->pageSurfaceFXLearnLevel = pageSurfaceFXLearnLevelProp;
                                 if (const char *assignedSurfaceStartChannelProp = pList.get_prop(PropertyType_StartChannel))
                                     surface->channelOffset = atoi(assignedSurfaceStartChannelProp);
                             }
@@ -4025,12 +4056,13 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                     for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
-                        fprintf(iniFile, "\t%s=%s %s=%s %s=%s %s=%s %s=%d \n",
+                        fprintf(iniFile, "\t%s=%s %s=%s %s=%s %s=%s %s=%d %s=%s\n",
                             plist.string_from_prop(PropertyType_Surface), s_pages.Get(i)->surfaces.Get(j)->pageSurface.c_str(),
                             plist.string_from_prop(PropertyType_SurfaceFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFolder.c_str(),
                             plist.string_from_prop(PropertyType_ZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceZoneFolder.c_str(),
                             plist.string_from_prop(PropertyType_FXZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFXZoneFolder.c_str(),
-                            plist.string_from_prop(PropertyType_StartChannel), s_pages.Get(i)->surfaces.Get(j)->channelOffset);
+                            plist.string_from_prop(PropertyType_StartChannel), s_pages.Get(i)->surfaces.Get(j)->channelOffset,
+                            plist.string_from_prop(PropertyType_FXLearnLevel), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFXLearnLevel.c_str());
                     }
                     
                     fprintf(iniFile, "\n");

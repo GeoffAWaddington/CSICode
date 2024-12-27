@@ -61,7 +61,7 @@ extern int strToHex(const char *valueStr);
 
 class ZoneManager;
 class Zone;
-extern void RequestFocusedFXDialog(ZoneManager *zoneManager);
+extern void RequestFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow(ZoneManager *zoneManager);
 extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot);
@@ -251,6 +251,7 @@ enum PropertyType {
   D(SelectedTrackFX) \
   D(SelectedTrackSends) \
   D(SelectedTrackReceives) \
+  D(FXLearnLevel) \
   D(SurfaceFolder) \
   D(ZoneFolder) \
   D(FXZoneFolder) \
@@ -2186,6 +2187,7 @@ protected:
     CSurfIntegrator *const csi_;
     Page *const page_;
     string const name_;
+    string const learnLevel_;
     ZoneManager *zoneManager_;
     ModifierManager *modifierManager_;
     
@@ -2200,7 +2202,7 @@ protected:
 
     bool speedX5_;
 
-    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
+    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, const string &learnLevel, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), learnLevel_(learnLevel), numChannels_(numChannels), channelOffset_(channelOffset), CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
         accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
     {
         //private:
@@ -2311,6 +2313,8 @@ public:
     
     virtual void SendMidiSysExMessage(MIDI_event_ex_t *midiMessage) {}
     virtual void SendMidiMessage(int first, int second, int third) {}
+    
+    const string &GetFXLearnLevel() { return learnLevel_; }
     
     ModifierManager *GetModifierManager() { return modifierManager_; }
     ZoneManager *GetZoneManager() { return zoneManager_; }
@@ -2841,7 +2845,7 @@ private:
     void SendSysexInitData(int line[], int numElem);
     
 public:
-    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
+    Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, const string &learnLevel, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO);
 
     virtual ~Midi_ControlSurface() {}
     
@@ -3122,7 +3126,7 @@ private:
     void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
-    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
+    OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, const string &learnLevel, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
 
     virtual ~OSC_ControlSurface() {}
     
