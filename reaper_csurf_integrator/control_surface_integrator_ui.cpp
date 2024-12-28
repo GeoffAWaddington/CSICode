@@ -15,11 +15,17 @@ extern void GetParamStepsValues(vector<double> &outputVector, int numSteps);
 extern int g_minNumParamSteps;
 extern int g_maxNumParamSteps;
 
-static bool s_isUpdatingParameters = false;
-
-static HWND s_hwndLearnFXDlg = NULL;
 static int s_dlgResult = IDCANCEL;
 
+
+
+
+
+
+
+
+static bool s_isUpdatingParameters = false;
+static HWND s_hwndLearnFXDlg = NULL;
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
 
@@ -29,6 +35,10 @@ static MediaTrack *s_focusedTrack = NULL;
 static int s_fxSlot = 0;
 static char s_fxName[MEDBUF];
 static char s_fxAlias[MEDBUF];
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXRowLayout
@@ -2287,6 +2297,22 @@ void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTr
     CreateContextMap(t);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class FileSystem
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2916,76 +2942,6 @@ static void ClearCheckBoxes(HWND hwndDlg)
 
 HWND s_hwndMainDlg;
 
-static void LinkFolders(HWND hwndDlg)
-{
-    int sourceIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Sources, LB_GETCURSEL, 0, 0);
-    if (sourceIndex >= 0)
-    {
-        HWND hwndLinks = GetDlgItem(hwndDlg, IDC_LIST_Links);
-        int count = (int)SendMessage(hwndLinks, LB_GETCOUNT, 0, 0);
-
-        for (int i = 0; i < count; i++)
-        {
-            if (SendMessage(hwndLinks, LB_GETSEL, i, 0) > 0)
-            {
-                if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SurfaceFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                    s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFolder = s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceFolder;
-                if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SurfaceZoneFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                    s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceZoneFolder = s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceZoneFolder;
-                if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SurfaceFXZoneFolder), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                    s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurfaceFXZoneFolder = s_pages.Get(s_pageIndex)->surfaces.Get(sourceIndex)->pageSurfaceFXZoneFolder;
-            }
-        }
-    }
-}
-
-static WDL_DLGRET dlgProcAdvancedSharing(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-        case WM_INITDIALOG:
-        {
-            int index = (int)SendDlgItemMessage(s_hwndMainDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
-            if (index >= 0)
-            {
-                if (s_pages.Get(index) == NULL)
-                    MessageBox(g_hwnd, "This is a new CSI.ini", "Refresh Surfaces, then return here to finish setup.", MB_OK);
-                else
-                {
-                    for (int i = 0; i < s_pages.Get(index)->surfaces.GetSize(); ++i)
-                    {
-                        AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurface, IDC_LIST_Sources);
-                        AddListEntry(hwndDlg, s_pages.Get(index)->surfaces.Get(i)->pageSurface, IDC_LIST_Links);
-                    }
-                }
-            }
-        }
-            break;
-            
-        case WM_COMMAND:
-        {
-            switch(LOWORD(wParam))
-            {
-                case WM_CLOSE:
-                case IDCANCEL:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        EndDialog(hwndDlg, 0);
-                    }
-                    break;
-                    
-                case ID_BUTTON_LinkFolder:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        LinkFolders(hwndDlg);
-                    }
-                    break;
-            }
-        }
-    }
-    
-    return 0;
-}
 
 static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -3265,19 +3221,6 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                             }
                         }
                     }
-                    break;
-
-                case ID_BUTTON_AdvancedFolderSharing:
-                {
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_AdvancedSharing), hwndDlg, dlgProcAdvancedSharing);
-                        if (s_dlgResult == IDOK)
-                        {
-                            
-                        }
-                    }
-                }
                     break;
                     
                 case IDCANCEL:
@@ -3927,10 +3870,20 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 
                                 surface->pageSurface = surfaceProp;
                                 surface->pageSurfaceFolder = surfaceFolderProp;
-                                surface->pageSurfaceZoneFolder = surfaceFolderProp;
-                                surface->pageSurfaceFXZoneFolder = surfaceFolderProp;
+                                
+                                if (const char *surfaceZoneFolderProp = pList.get_prop(PropertyType_ZoneFolder))
+                                    surface->pageSurfaceZoneFolder = surfaceZoneFolderProp;
+                                else
+                                    surface->pageSurfaceZoneFolder = surfaceFolderProp;
+                                
+                                if (const char *surfaceFXZoneFolderProp = pList.get_prop(PropertyType_FXZoneFolder))
+                                    surface->pageSurfaceFXZoneFolder = surfaceFXZoneFolderProp;
+                                else
+                                    surface->pageSurfaceFXZoneFolder = surfaceFolderProp;
+                                
                                 if (const char *pageSurfaceFXLearnLevelProp = pList.get_prop(PropertyType_FXLearnLevel))
                                     surface->pageSurfaceFXLearnLevel = pageSurfaceFXLearnLevelProp;
+                                
                                 if (const char *assignedSurfaceStartChannelProp = pList.get_prop(PropertyType_StartChannel))
                                     surface->channelOffset = atoi(assignedSurfaceStartChannelProp);
                             }

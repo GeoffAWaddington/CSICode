@@ -7,7 +7,6 @@
 #define ID_BUTTON_AddBroadcaster        5
 #define IDC_EraseControl                5
 #define ID_BUTTON_AddListener           6
-#define ID_BUTTON_AdvancedFolderSharing 9
 #define IDD_DIALOG_Page                 103
 #define IDD_DIALOG_LearnFXLevel1        117
 #define IDD_DIALOG_LearnFXLevel2        118
@@ -129,12 +128,6 @@
 #define IDC_SurfaceName                 1304
 #define IDC_ApplyFontsAndMarginsToAll   1307
 #define IDC_GroupApplyToAll             1308
-#define IDC_LIST_Sources                1309
-#define IDC_LIST_Links                  1310
-#define ID_BUTTON_LinkFolder            1311
-#define IDC_CHECK_SurfaceFolder         1313
-#define IDC_CHECK_SurfaceZoneFolder     1314
-#define IDC_CHECK_SurfaceFXZoneFolder   1315
 
 // Next default values for new objects
 // 
