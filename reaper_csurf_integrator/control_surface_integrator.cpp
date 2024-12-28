@@ -1476,7 +1476,7 @@ void CSurfIntegrator::Init()
                         }
                     }
                 }
-                else if (currentPage && tokens.size() == 6)
+                else if (currentPage && tokens.size() == 5)
                 {
                     if (const char *surfaceProp = pList.get_prop(PropertyType_Surface))
                     {
@@ -1500,10 +1500,6 @@ void CSurfIntegrator::Init()
 
                                 bool foundIt = false;
                                 
-                                string fxLearnLevel;
-                                if (const char *fxLearnLevelProp = pList.get_prop(PropertyType_FXLearnLevel))
-                                    fxLearnLevel = fxLearnLevelProp;
-                                
                                 for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
                                 {
                                     Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
@@ -1511,7 +1507,7 @@ void CSurfIntegrator::Init()
                                     if ( ! strcmp(surfaceProp, io->GetName()))
                                     {
                                         foundIt = true;
-                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, surfaceProp, fxLearnLevel, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                        currentPage->AddSurface(new Midi_ControlSurface(this, currentPage, surfaceProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                         break;
                                     }
                                 }
@@ -1525,7 +1521,7 @@ void CSurfIntegrator::Init()
                                         if ( ! strcmp(surfaceProp, io->GetName()))
                                         {
                                             foundIt = true;
-                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, surfaceProp, fxLearnLevel, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
+                                            currentPage->AddSurface(new OSC_ControlSurface(this, currentPage, surfaceProp, startChannel, surfaceFile.c_str(), zoneFolder.c_str(), fxZoneFolder.c_str(), io));
                                             break;
                                         }
                                     }
@@ -3951,8 +3947,8 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, const string &learnLevel, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
-: ControlSurface(csi, page, name, learnLevel, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
+Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
+: ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
     // private:
     // special processing for MCU meters
@@ -4181,7 +4177,7 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, const string &learnLevel, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, learnLevel, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO)
+OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO) : ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO)
 
 {
     ProcessOSCWidgetFile(templateFilename);

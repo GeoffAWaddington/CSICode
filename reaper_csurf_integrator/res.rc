@@ -139,7 +139,7 @@ BEGIN
     LTEXT           "Default is 0",IDC_STATIC,160,132,66,8
 END
 
-IDD_DIALOG_PageSurface DIALOGEX 0, 0, 221, 121
+IDD_DIALOG_PageSurface DIALOGEX 0, 0, 221, 67
 STYLE DS_LOCALEDIT | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Surface and Zones"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -147,15 +147,9 @@ BEGIN
     COMBOBOX        IDC_COMBO_PageSurfaceFolder,10,26,200,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PageSurface,10,8,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_EDIT_ChannelOffset,192,8,19,12,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,107,101,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,161,101,50,14
+    DEFPUSHBUTTON   "OK",IDOK,107,45,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,161,45,50,14
     LTEXT           "Channel Offset",-1,136,10,53,8,WS_TABSTOP
-    CONTROL         "Level 1 Basic ",IDC_RADIO_FXLearnLevel1,"Button",BS_AUTORADIOBUTTON,18,54,58,10
-    CONTROL         "Level 2 Dropdowns for displays, steps, ring style",IDC_RADIO_FXLearnLevel2,
-                    "Button",BS_AUTORADIOBUTTON,18,68,168,10
-    CONTROL         "Level 3 Advanced font and color support",IDC_RADIO_FXLearnLevel3,
-                    "Button",BS_AUTORADIOBUTTON,18,82,143,10
-    GROUPBOX        "FX Learn Level",IDC_GroupFXAssign,10,42,200,52
 END
 
 IDD_DIALOG_AdvancedSetup DIALOGEX 0, 0, 410, 234
@@ -214,67 +208,52 @@ BEGIN
     LTEXT           "Custom steps",IDC_StepsPromptGroup,41,101,43,8
 END
 
-
-
-
-
-
-
-IDD_DIALOG_LearnFXLevel1 DIALOGEX 0, 0, 282, 104
+IDD_DIALOG_LearnFX DIALOGEX 0, 0, 282, 104
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "LearnFX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Unlink",IDC_Unassign,104,44,70,14
-    PUSHBUTTON      "Alias",IDC_Alias,15,76,70,14
-    PUSHBUTTON      "Params",IDC_Params,104,76,70,14
-    PUSHBUTTON      "Save",IDC_Save,195,76,70,14
+    PUSHBUTTON      "Unlink",IDC_Unassign,122,44,36,14
+    PUSHBUTTON      "Edit",IDC_DeepEdit,185,76,36,14
+    PUSHBUTTON      "Save",IDC_Save,229,76,36,14
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10
-    GROUPBOX        "Assign",IDC_GroupFXAssign,7,30,267,36
-    EDITTEXT        IDC_AssignWidgetDisplay,14,43,70,16,ES_CENTER | ES_AUTOHSCROLL
-    EDITTEXT        IDC_AssignFXParamDisplay,194,43,70,16,ES_CENTER | ES_AUTOHSCROLL
-    PUSHBUTTON      "Link",IDC_Assign,104,25,70,14
+    EDITTEXT        IDC_AssignWidgetDisplay,14,43,100,16,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_AssignFXParamDisplay,165,43,100,16,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "Link",IDC_Assign,122,76,36,14
 END
 
 IDD_DIALOG_LearnFXLevel2 DIALOGEX 0, 0, 282, 181
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "LearnFX"
+CAPTION "Level2"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        IDC_FXParamNameEdit,14,98,70,16,ES_CENTER | ES_AUTOHSCROLL
     COMBOBOX        IDC_COMBO_PickNameDisplay,104,101,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PickValueDisplay,194,101,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Unlink",IDC_Unassign,104,44,70,14
     COMBOBOX        IDC_PickSteps,131,126,43,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_PickRingStyle,194,126,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Alias",IDC_Alias,9,155,70,14
     PUSHBUTTON      "Params",IDC_Params,104,155,70,14
-    PUSHBUTTON      "Save",IDC_Save,202,155,70,14
-    GROUPBOX        "Edit",IDC_GroupFXEdit,7,79,267,69
+    PUSHBUTTON      "Done",IDC_Done,202,155,70,14
     LTEXT           "name",IDC_STATIC,126,89,18,8
     LTEXT           "value",IDC_STATIC,218,89,17,8
     LTEXT           "Steps",IDC_Steps,104,127,18,8
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10
-    GROUPBOX        "Assign",IDC_GroupFXAssign,7,30,267,36
-    EDITTEXT        IDC_AssignWidgetDisplay,14,43,70,16,ES_CENTER | ES_AUTOHSCROLL
-    EDITTEXT        IDC_AssignFXParamDisplay,194,43,70,16,ES_CENTER | ES_AUTOHSCROLL
-    PUSHBUTTON      "Link",IDC_Assign,104,67,70,14
 END
 
 IDD_DIALOG_LearnFXLevel3 DIALOGEX 0, 0, 282, 298
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "LearnFX"
+CAPTION "Level3"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        IDC_FXParamNameEdit,14,98,70,16,ES_CENTER | ES_AUTOHSCROLL
     COMBOBOX        IDC_COMBO_PickNameDisplay,104,101,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBO_PickValueDisplay,194,101,70,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Unlink",IDC_Unassign,104,44,70,14
     COMBOBOX        IDC_PickSteps,131,126,43,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_PickRingStyle,194,126,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Alias",IDC_Alias,9,274,70,14
     PUSHBUTTON      "Params",IDC_Params,104,274,70,14
-    PUSHBUTTON      "Save",IDC_Save,202,274,70,14
+    PUSHBUTTON      "Done",IDC_Done,202,274,70,14
     PUSHBUTTON      "Ring",IDC_FXParamRingColor,14,160,67,14
     PUSHBUTTON      "Indicator",IDC_FXParamIndicatorColor,14,186,67,14
     PUSHBUTTON      "Param Name",IDC_FixedTextDisplayForegroundColor,104,160,67,14
@@ -289,7 +268,6 @@ BEGIN
     COMBOBOX        IDC_FXParamValueDisplayPickFont,194,243,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,243,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,243,16,12,ES_CENTER | ES_NUMBER
-    GROUPBOX        "Edit",IDC_GroupFXEdit,7,79,267,188
     LTEXT           "name",IDC_STATIC,126,89,18,8
     LTEXT           "value",IDC_STATIC,218,89,17,8
     LTEXT           "Steps",IDC_Steps,104,127,18,8
@@ -301,10 +279,6 @@ BEGIN
     LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,186,8,14
     GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,215,74,42
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10
-    GROUPBOX        "Assign",IDC_GroupFXAssign,7,30,267,36
-    EDITTEXT        IDC_AssignWidgetDisplay,14,43,70,16,ES_CENTER | ES_AUTOHSCROLL
-    EDITTEXT        IDC_AssignFXParamDisplay,194,43,70,16,ES_CENTER | ES_AUTOHSCROLL
-    PUSHBUTTON      "Link",IDC_Assign,104,67,70,14
 END
 
 IDD_DIALOG_EditFXAlias DIALOGEX 0, 0, 132, 60
@@ -342,7 +316,7 @@ BEGIN
 
 
 
-    IDD_DIALOG_LearnFXLevel1, DIALOG
+    ,IDD_DIALOG_LearnFX DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 274

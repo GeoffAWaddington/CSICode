@@ -8,7 +8,7 @@
 #define IDC_EraseControl                5
 #define ID_BUTTON_AddListener           6
 #define IDD_DIALOG_Page                 103
-#define IDD_DIALOG_LearnFXLevel1        117
+#define IDD_DIALOG_LearnFX              117
 #define IDD_DIALOG_LearnFXLevel2        118
 #define IDD_DIALOG_LearnFXLevel3        119
 #define IDD_DIALOG_AdvancedSetup        123
@@ -54,17 +54,12 @@
 #define IDC_CHECK_ScrollSynch           1096
 #define IDC_RADIO_MCP                   1097
 #define IDC_RADIO_TCP                   1098
-#define IDC_RADIO_FXLearnLevel1         1099
-#define IDC_RADIO_FXLearnLevel2         1100
-#define IDC_RADIO_FXLearnLevel3         1101
 #define IDC_FXAlias                     1102
+#define IDC_DeepEdit                    1104
 #define IDC_Params                      1105
 #define IDC_Advanced                    1106
 #define IDC_EditSteps                   1107
 #define IDC_PickSteps                   1108
-#define IDC_GroupFXAssign               1140
-#define IDC_GroupFXEdit                 1141
-#define IDC_GroupFXEdit2                1142
 #define IDC_PickRingStyle               1143
 #define IDC_FXParamNameEdit             1149
 #define IDC_Edit_FixedTextDisplayTop    1150
@@ -86,6 +81,7 @@
 #define IDC_Unassign                    1191
 #define IDC_Alias                       1192
 #define IDC_Assign                      1193
+#define IDC_Done                        1194
 #define IDC_FXParamRingColorBox         1205
 #define IDC_FXParamIndicatorColorBox    1208
 #define IDC_FXFixedTextDisplayForegroundColorBox 1211

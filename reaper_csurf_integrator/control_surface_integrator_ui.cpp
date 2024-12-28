@@ -29,6 +29,8 @@ static HWND s_hwndLearnFXDlg = NULL;
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
 
+static string s_pageSurfaceFXLearnLevel;
+
 static int s_lastTouchedParamNum = -1;
 static double s_lastTouchedParamValue = -1.0;
 static MediaTrack *s_focusedTrack = NULL;
@@ -610,6 +612,12 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
                 }
             }
         }
+        
+        if (fxTemplate->fonts.size() > 0 || fxTemplate->hasColor)
+            s_pageSurfaceFXLearnLevel = "Level3";
+        else
+            s_pageSurfaceFXLearnLevel = "Level2";
+
     }
     catch (exception)
     {
@@ -1531,7 +1539,7 @@ static void ReleaseFX()
 static HFONT hFont16 = NULL;
 static HFONT hFont14 = NULL;
 
-static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     SurfaceFXTemplate *t = GetSurfaceFXTemplate(hwndDlg);
     
@@ -1585,46 +1593,26 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                    "Arial");
                 
                 if (hFont14)
-                    SendMessage(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), WM_SETFONT, (WPARAM) hFont14, 0);
+                    SendMessage(GetDlgItem(hwndDlg, IDC_AssignWidgetDisplay), WM_SETFONT, (WPARAM) hFont14, 0);
             }
             break;
             
         case WM_CLOSE:
         {
-            s_surfaceFXTemplates.clear();
-
-            if (zoneManager)
-                zoneManager->ClearLearnFocusedFXZone();
-
-            ReleaseFX();
-            
-            s_currentWidget = NULL;
-            s_currentModifier = -1;
-            
             if (hFont16)
                 DeleteObject(hFont16);
             
             if (hFont14)
                 DeleteObject(hFont14);
             
-            DestroyWindow(hwndDlg);
-            s_hwndLearnFXDlg = NULL;
+            DestroyWindow(hwndDlg) ;
         }
+            break ;
+            
+        case WM_DESTROY:
+            EndDialog(hwndDlg, 0);
             break;
-
-        case WM_USER + 1024:
-            {
-                s_lastTouchedParamNum = -1;
-                SetWindowText(hwndDlg, s_fxAlias);
-                
-                if (SurfaceFXTemplate *t =  GetSurfaceFXTemplate(hwndDlg))
-                {
-                    t->zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
-                    CreateContextMap(t);
-                }
-            }
-            break;
-                        
+ 
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
@@ -1691,6 +1679,13 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             switch(LOWORD(wParam))
             {
+                case IDC_Done:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        SendMessage(hwndDlg, WM_CLOSE, 0, 0);
+                    }
+                    break;
+                    
                 case IDC_Alias:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
@@ -1700,32 +1695,6 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                             SetWindowText(hwndDlg, s_fxAlias);
                     }
                     break;
-                    
-                case IDC_Unassign:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        int paramNum = s_lastTouchedParamNum;
-                        if (paramNum < 0)
-                            break;
-
-                        if (widget == NULL)
-                            break;
-                        
-                        if (t)
-                            HandleAssigment(t, widget, modifier, paramNum, false);
-                    }
-                    break;
-                    
-                case IDC_Save:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        if (zoneManager)
-                        {
-                            SaveZone(t);
-                            SendMessage(hwndDlg, WM_CLOSE, 0, 0);
-                        }
-                    }
-                    break ;
                     
                 case IDC_Params:
                     if (HIWORD(wParam) == BN_CLICKED)
@@ -2023,6 +1992,191 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
     return 0;
 }
 
+static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    SurfaceFXTemplate *t = GetSurfaceFXTemplate(hwndDlg);
+    
+    ZoneManager *zoneManager = NULL;
+    
+    if (t)
+        zoneManager = t->zoneManager;
+    
+    Widget *widget = s_currentWidget;
+    
+    switch(uMsg)
+    {
+        case WM_INITDIALOG:
+            {
+                hFont16 = CreateFont(16,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   ANSI_CHARSET,
+                                   OUT_DEFAULT_PRECIS,
+                                   CLIP_DEFAULT_PRECIS,
+                                   DEFAULT_QUALITY,
+                                   DEFAULT_PITCH,
+                                   "Arial");
+                
+                if (hFont16)
+                    SendMessage(GetDlgItem(hwndDlg, IDC_SurfaceName), WM_SETFONT, (WPARAM) hFont16, 0);
+                
+                hFont14 = CreateFont(14,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   0,
+                                   ANSI_CHARSET,
+                                   OUT_DEFAULT_PRECIS,
+                                   CLIP_DEFAULT_PRECIS,
+                                   DEFAULT_QUALITY,
+                                   DEFAULT_PITCH,
+                                   "Arial");
+                
+                if (hFont14)
+                {
+                    SendMessage(GetDlgItem(hwndDlg, IDC_AssignWidgetDisplay), WM_SETFONT, (WPARAM) hFont14, 0);
+                    SetDlgItemText(hwndDlg, IDC_AssignWidgetDisplay, "Turn Widget");
+                    SendMessage(GetDlgItem(hwndDlg, IDC_AssignFXParamDisplay), WM_SETFONT, (WPARAM) hFont14, 0);
+                    SetDlgItemText(hwndDlg, IDC_AssignFXParamDisplay, "Adjust gui param");
+                }
+            }
+            break;
+            
+        case WM_CLOSE:
+        {
+            s_surfaceFXTemplates.clear();
+
+            if (zoneManager)
+                zoneManager->ClearLearnFocusedFXZone();
+
+            ReleaseFX();
+            
+            s_currentWidget = NULL;
+            s_currentModifier = -1;
+            
+            if (hFont16)
+                DeleteObject(hFont16);
+            
+            if (hFont14)
+                DeleteObject(hFont14);
+            
+            DestroyWindow(hwndDlg);
+            s_hwndLearnFXDlg = NULL;
+        }
+            break;
+
+        case WM_USER + 1024:
+            {
+                s_lastTouchedParamNum = -1;
+                SetWindowText(hwndDlg, s_fxAlias);
+                
+                if (SurfaceFXTemplate *t =  GetSurfaceFXTemplate(hwndDlg))
+                {
+                    t->zoneManager->LoadLearnFocusedFXZone(s_focusedTrack, s_fxName, s_fxSlot);
+                    CreateContextMap(t);
+                }
+            }
+            break;
+            
+        case WM_COMMAND:
+        {
+            ActionContext *paramContext = NULL;
+            ActionContext *nameContext = NULL;
+            ActionContext *valueContext = NULL;
+
+            int modifier = 0;
+            
+            if (zoneManager)
+            {
+                const WDL_TypedBuf<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
+                
+                if (modifiers.GetSize() > 0)
+                    modifier = modifiers.Get()[0];
+                
+                paramContext = GetFirstContext(zoneManager, widget, modifier);
+            }
+            
+            FXCell *cell = NULL;
+              
+            if (t)
+            {
+                cell = GetCell(t, widget, modifier);
+                
+                if (cell)
+                {
+                    nameContext = cell->GetNameContext(widget);
+                    valueContext = cell->GetValueContext(widget);
+                }
+            }
+            
+            switch(LOWORD(wParam))
+            {
+                case IDC_Assign:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int paramNum = s_lastTouchedParamNum;
+                        if (paramNum < 0)
+                            break;
+
+                        if (widget == NULL)
+                            break;
+                        
+                        if (t)
+                            HandleAssigment(t, widget, modifier, paramNum, true);
+                    }
+                    break;
+                    
+                case IDC_Unassign:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        int paramNum = s_lastTouchedParamNum;
+                        if (paramNum < 0)
+                            break;
+
+                        if (widget == NULL)
+                            break;
+                        
+                        if (t)
+                            HandleAssigment(t, widget, modifier, paramNum, false);
+                    }
+                    break;
+                    
+                case IDC_DeepEdit:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        if (s_pageSurfaceFXLearnLevel == "Level2")
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFXLevel2), g_hwnd, dlgProcLearnFXDeepEdit);
+                        else if (s_pageSurfaceFXLearnLevel == "Level3")
+                            DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFXLevel3), g_hwnd, dlgProcLearnFXDeepEdit);
+                    }
+                    break ;
+                    
+                case IDC_Save:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        if (zoneManager)
+                        {
+                            SaveZone(t);
+                            SendMessage(hwndDlg, WM_CLOSE, 0, 0);
+                        }
+                    }
+                    break ;
+            }
+        }
+            break;
+    }
+
+    return 0;
+}
+
 void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
 {
     SurfaceFXTemplate *t = GetSurfaceFXTemplate(zoneManager);
@@ -2049,47 +2203,34 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     s_currentModifier = modifier; 
     
     char buf[MEDBUF];
-    
+    GetFullWidgetName(widget, modifier, buf, sizeof(buf));
+    SetDlgItemText(t->hwnd, IDC_AssignWidgetDisplay, buf);
+
     if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
     {
-        if (! strcmp(context->GetAction()->GetName(), "NoAction"))
+        FXCell *cell = GetCell(t, widget, modifier);
+        
+        if (cell)
         {
-            if (s_lastTouchedParamNum >= 0)
-            {
-                GetFullWidgetName(widget, modifier, buf, sizeof(buf));
-                //SetDlgItemText(t->hwnd, IDC_GroupFXWidget, buf);
-                
-                HandleAssigment(t, widget, modifier, s_lastTouchedParamNum, true);
-            }
-        }
-        else if (FXCell *cell = GetCell(t, widget, modifier))
-        {
-            if (ActionContext *context = cell->GetNameContext(widget))
-            {
-                SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, context->GetStringParam());
-                FillParams(t, widget, modifier);
-            }
+            if (ActionContext *nameContext = cell->GetNameContext(widget))
+            SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, nameContext->GetStringParam());
         }
         else
-            ClearParams(t->hwnd);
+        {
+                // GAW - TBD -- if no display, use param num to get plufgin supplied name
+        }
     }
+    else
+        SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, "");
 }
 
-static void InitLearnFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel)
+static void InitLearnFocusedFXDialog(ZoneManager *zoneManager)
 {
     SurfaceFXTemplate *t = new SurfaceFXTemplate(zoneManager);
     s_surfaceFXTemplates.push_back(t);
     LoadTemplates(t);
     
-    int dlgID = IDD_DIALOG_LearnFXLevel1;
-    
-    if (fxLearnLevel == "FXLearnLevel2")
-        dlgID = IDD_DIALOG_LearnFXLevel2;
-    
-    else if (fxLearnLevel == "FXLearnLevel3")
-        dlgID = IDD_DIALOG_LearnFXLevel3;
-    
-    t->hwnd = CreateDialog(g_hInst, MAKEINTRESOURCE(dlgID), g_hwnd, dlgProcLearnFX);
+    t->hwnd = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_LearnFX), g_hwnd, dlgProcLearnFX);
 
     if (t->hwnd)
     {
@@ -2102,7 +2243,7 @@ static void InitLearnFocusedFXDialog(ZoneManager *zoneManager, const string &fxL
     }
 }
 
-void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel)
+void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager)
 {
     TrackFX_GetFXName(s_focusedTrack, s_fxSlot, s_fxName, sizeof(s_fxName));
     
@@ -2115,7 +2256,7 @@ void LaunchLearnFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnL
     else
         zoneManager->GetAlias(s_fxName, s_fxAlias, sizeof(s_fxAlias));
     
-    InitLearnFocusedFXDialog(zoneManager, fxLearnLevel);
+    InitLearnFocusedFXDialog(zoneManager);
 }
 
 static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, int lastTouchedParamNum)
@@ -2125,7 +2266,7 @@ static void CaptureFX(ZoneManager *zoneManager, MediaTrack *track, int fxSlot, i
     s_lastTouchedParamNum = lastTouchedParamNum;
 }
 
-void RequestFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel)
+void RequestFocusedFXDialog(ZoneManager *zoneManager)
 {
     if (s_focusedTrack == NULL)
     {
@@ -2153,7 +2294,7 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager, const string &fxLearnLevel
         {
             CaptureFX(zoneManager, focusedTrack, fxSlot, -1);
             
-            LaunchLearnFocusedFXDialog(zoneManager, fxLearnLevel);
+            LaunchLearnFocusedFXDialog(zoneManager);
         }
         
     }
@@ -2381,7 +2522,6 @@ static string s_pageSurface;
 static string s_pageSurfaceFolder;
 static string s_pageSurfaceZoneFolder;
 static string s_pageSurfaceFXZoneFolder;
-static string s_pageSurfaceFXLearnLevel;
 static int s_channelOffset = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2419,7 +2559,6 @@ struct PageSurfaceLine
     string pageSurfaceFolder;
     string pageSurfaceZoneFolder;
     string pageSurfaceFXZoneFolder;
-    string pageSurfaceFXLearnLevel;
     int channelOffset;
     
     PageSurfaceLine()
@@ -2634,18 +2773,9 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
                 
                 SetDlgItemInt(hwndDlg, IDC_EDIT_ChannelOffset, s_channelOffset, false);
-                
-                if (s_pageSurfaceFXLearnLevel == "FXLearnLevel1")
-                    CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel1, true);
-                else if (s_pageSurfaceFXLearnLevel == "FXLearnLevel2")
-                    CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel2, true);
-                else if (s_pageSurfaceFXLearnLevel == "FXLearnLevel3")
-                    CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel3, true);
-
             }
             else
             {
-                CheckDlgButton(hwndDlg, IDC_RADIO_FXLearnLevel1, true);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurfaceFolder), CB_SETCURSEL, 0, 0);
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface), CB_SETCURSEL, 0, 0);
                 SetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, "0");
@@ -2670,13 +2800,6 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                         s_pageSurfaceZoneFolder = buf;
                         s_pageSurfaceFXZoneFolder = buf;
                         
-                        if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_FXLearnLevel1))
-                            s_pageSurfaceFXLearnLevel = "FXLearnLevel1";
-                        else if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_FXLearnLevel2))
-                            s_pageSurfaceFXLearnLevel = "FXLearnLevel2";
-                        else if (IsDlgButtonChecked(hwndDlg, IDC_RADIO_FXLearnLevel3))
-                            s_pageSurfaceFXLearnLevel = "FXLearnLevel3";
-
                         GetDlgItemText(hwndDlg, IDC_EDIT_ChannelOffset, buf, sizeof(buf));
                         s_channelOffset = atoi(buf);
 
@@ -3398,7 +3521,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 pageSurface->pageSurfaceFolder = s_pageSurfaceFolder;
                                 pageSurface->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
                                 pageSurface->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
-                                pageSurface->pageSurfaceFXLearnLevel = s_pageSurfaceFXLearnLevel;
                                 pageSurface->channelOffset = s_channelOffset;
 
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
@@ -3556,7 +3678,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                     s_pageSurfaceFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder;
                                     s_pageSurfaceZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder;
                                     s_pageSurfaceFXZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder;
-                                    s_pageSurfaceFXLearnLevel = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXLearnLevel;
 
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
@@ -3567,7 +3688,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
                                         s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface = s_pageSurface;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXLearnLevel = s_pageSurfaceFXLearnLevel;
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
                                         for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
@@ -3881,9 +4001,6 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 else
                                     surface->pageSurfaceFXZoneFolder = surfaceFolderProp;
                                 
-                                if (const char *pageSurfaceFXLearnLevelProp = pList.get_prop(PropertyType_FXLearnLevel))
-                                    surface->pageSurfaceFXLearnLevel = pageSurfaceFXLearnLevelProp;
-                                
                                 if (const char *assignedSurfaceStartChannelProp = pList.get_prop(PropertyType_StartChannel))
                                     surface->channelOffset = atoi(assignedSurfaceStartChannelProp);
                             }
@@ -4009,13 +4126,12 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                     for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
                     {
-                        fprintf(iniFile, "\t%s=%s %s=%s %s=%s %s=%s %s=%d %s=%s\n",
+                        fprintf(iniFile, "\t%s=%s %s=%s %s=%s %s=%s %s=%d\n",
                             plist.string_from_prop(PropertyType_Surface), s_pages.Get(i)->surfaces.Get(j)->pageSurface.c_str(),
                             plist.string_from_prop(PropertyType_SurfaceFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFolder.c_str(),
                             plist.string_from_prop(PropertyType_ZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceZoneFolder.c_str(),
                             plist.string_from_prop(PropertyType_FXZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFXZoneFolder.c_str(),
-                            plist.string_from_prop(PropertyType_StartChannel), s_pages.Get(i)->surfaces.Get(j)->channelOffset,
-                            plist.string_from_prop(PropertyType_FXLearnLevel), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFXLearnLevel.c_str());
+                            plist.string_from_prop(PropertyType_StartChannel), s_pages.Get(i)->surfaces.Get(j)->channelOffset);
                     }
                     
                     fprintf(iniFile, "\n");
