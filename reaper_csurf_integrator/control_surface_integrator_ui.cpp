@@ -988,12 +988,6 @@ static void FillPropertiesParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *wid
     
     if (valueContext)
     {
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
-        SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"None");
-        
-        for (int i = 0; i < t->displayRows.size(); ++i)
-            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)buf);
-
         property = valueContext->GetWidgetProperties().get_prop(PropertyType_Font);
         if (property)
             SetDlgItemText(hwndDlg, IDC_FXParamValueDisplayPickFont, property);
@@ -1093,7 +1087,7 @@ static void FillAdvancedParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widge
         
         if (cell->GetNameWidget(widget))
         {
-            int index = (int)SendMessage(GetDlgItem(t->hwnd, IDC_COMBO_PickNameDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetNameWidget(widget)->GetName());
+            int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetNameWidget(widget)->GetName());
             if (index >= 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickNameDisplay), CB_SETCURSEL, index, 0);
             else
@@ -1104,6 +1098,8 @@ static void FillAdvancedParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widge
 
         if (cell->GetValueWidget(widget))
         {
+            string nm = cell->GetValueWidget(widget)->GetName();
+            
             int index = (int)SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_FINDSTRINGEXACT, -1, (LPARAM)cell->GetValueWidget(widget)->GetName());
             if (index >= 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_COMBO_PickValueDisplay), CB_SETCURSEL, index, 0);
@@ -1250,9 +1246,11 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
         paramContext->SetStringParam("");
         paramContext->GetWidgetProperties().delete_props();
         
-        ClearParams(t->hwnd);
-
-        SetDlgItemText(t->hwnd, IDC_FXParamNameEdit, "");
+        SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, "");
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Unassign), false);
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Assign), true);
+        EnableWindow(GetDlgItem(t->hwnd, IDC_Assign), false);
+        EnableWindow(GetDlgItem(t->hwnd, IDC_DeepEdit), false);
     }
     else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
     {
@@ -1326,6 +1324,11 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
             steps.push_back(1.0);
             paramContext->SetStepValues(steps);
         }
+        
+        EnableWindow(GetDlgItem(t->hwnd, IDC_DeepEdit), true);
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Assign), false);
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Unassign), true);
+        EnableWindow(GetDlgItem(t->hwnd, IDC_Unassign), true);
     }
 }
 
@@ -2027,6 +2030,11 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     SendMessage(GetDlgItem(hwndDlg, IDC_AssignFXParamDisplay), WM_SETFONT, (WPARAM) hFont14, 0);
                     SetDlgItemText(hwndDlg, IDC_AssignFXParamDisplay, "Adjust gui param");
                 }
+                
+                EnableWindow(GetDlgItem(hwndDlg, IDC_DeepEdit), false);
+                
+                ShowWindow(GetDlgItem(hwndDlg, IDC_Unassign), false);
+                ShowWindow(GetDlgItem(hwndDlg, IDC_Assign), false);
             }
             break;
             
@@ -2201,6 +2209,11 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
         if (! strcmp(context->GetAction()->GetName(), "NoAction"))
         {
             SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, "");
+            EnableWindow(GetDlgItem(t->hwnd, IDC_DeepEdit), false);
+            
+            ShowWindow(GetDlgItem(t->hwnd, IDC_Unassign), false);
+            ShowWindow(GetDlgItem(t->hwnd, IDC_Assign), true);
+            EnableWindow(GetDlgItem(t->hwnd, IDC_Assign), false);
         }
         else
         {
@@ -2210,6 +2223,13 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
             {
                 if (ActionContext *nameContext = cell->GetNameContext(widget))
                     SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, nameContext->GetStringParam());
+                
+                EnableWindow(GetDlgItem(t->hwnd, IDC_DeepEdit), true);
+                ShowWindow(GetDlgItem(t->hwnd, IDC_Unassign), true);
+                ShowWindow(GetDlgItem(t->hwnd, IDC_Assign), false);
+                EnableWindow(GetDlgItem(t->hwnd, IDC_Unassign), true);
+
+                
             }
             else
             {
@@ -2315,35 +2335,6 @@ void CloseFocusedFXDialog()
         SendMessage(s_hwndLearnFXDlg, WM_CLOSE, 0, 0);
 }
 
-static void UpdateLearnWindowParams(SurfaceFXTemplate *t)
-{
-    if ( ! t)
-        return;
-    
-    ZoneManager *zoneManager = t->zoneManager;
-    Zone *zone = t->zoneManager->GetLearnedFocusedFXZone();
-
-    for (int i = 0; i < zone->GetWidgets().GetSize(); ++i)
-    {
-        Widget *widget = zone->GetWidgets().Get(i);
-        
-        for (int j = 0; j < t->fxRowLayouts.size(); ++j)
-        {
-            int modifier = t->fxRowLayouts[j].modifier;
-
-            ActionContext *context = GetFirstContext(zoneManager, widget, modifier);
-            
-            if ( context != NULL && ! strcmp(context->GetAction()->GetName(), "FXParam") && context->GetParamIndex() == s_lastTouchedParamNum)
-            {
-                s_currentModifier = modifier;
-                zoneManager->GetSurface()->SetModifierValue(modifier);
-                s_currentWidget = widget;
-                return;
-            }
-        }
-    }
-}
-
 void UpdateLearnWindow(ZoneManager *zoneManager)
 {
     SurfaceFXTemplate *t = GetSurfaceFXTemplate(zoneManager);
@@ -2368,7 +2359,15 @@ void UpdateLearnWindow(ZoneManager *zoneManager)
         {
             s_lastTouchedParamNum = paramNumberOut;
             s_lastTouchedParamValue = currentParamValue;
-            UpdateLearnWindowParams(t);
+            
+            if (IsWindowVisible(GetDlgItem(t->hwnd, IDC_Assign)))
+            {
+                char buf[MEDBUF];
+                TrackFX_GetParamName(DAW::GetTrack(trackNumberOut), fxNumberOut, paramNumberOut, buf, sizeof(buf));
+                
+                SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, buf);
+                EnableWindow(GetDlgItem(t->hwnd, IDC_Assign), true);
+            }
         }
     }
 }

@@ -214,13 +214,13 @@ CAPTION "LearnFX"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Unlink",IDC_Unassign,122,44,36,14
-    PUSHBUTTON      "Link",IDC_Assign,122,76,36,14
+    PUSHBUTTON      "Link",IDC_Assign,122,44,36,14
     PUSHBUTTON      "Alias",IDC_Alias,15,76,36,14
     PUSHBUTTON      "Edit",IDC_DeepEdit,185,76,36,14
     PUSHBUTTON      "Save",IDC_Save,229,76,36,14
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10
-    EDITTEXT        IDC_AssignWidgetDisplay,14,43,100,18,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
-    EDITTEXT        IDC_AssignFXParamDisplay,165,43,100,18,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_AssignWidgetDisplay,14,41,100,19,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_AssignFXParamDisplay,165,41,100,19,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
 END
 
 IDD_DIALOG_LearnFXLevel2 DIALOGEX 0, 0, 282, 131
@@ -313,9 +313,7 @@ BEGIN
         BOTTOMMARGIN, 142
     END
 
-
-
-    ,IDD_DIALOG_LearnFX DIALOG
+    IDD_DIALOG_LearnFX, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 274
@@ -346,9 +344,6 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 53
     END
-
-    
-    
     
 END
 #endif    // APSTUDIO_INVOKED
