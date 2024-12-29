@@ -17,13 +17,6 @@ extern int g_maxNumParamSteps;
 
 static int s_dlgResult = IDCANCEL;
 
-
-
-
-
-
-
-
 static bool s_isUpdatingParameters = false;
 static HWND s_hwndLearnFXDlg = NULL;
 static Widget *s_currentWidget = NULL;
@@ -37,10 +30,6 @@ static MediaTrack *s_focusedTrack = NULL;
 static int s_fxSlot = 0;
 static char s_fxName[MEDBUF];
 static char s_fxAlias[MEDBUF];
-
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct FXRowLayout
@@ -1590,6 +1579,9 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                 if (hFont14)
                     SendMessage(GetDlgItem(hwndDlg, IDC_FXParamNameEdit), WM_SETFONT, (WPARAM) hFont14, 0);
                 
+                SetWindowText(hwndDlg, s_fxAlias);
+                SetDlgItemText(hwndDlg, IDC_SurfaceName, t->zoneManager->GetSurface()->GetName());
+                
                 FillParams(hwndDlg, t, s_currentWidget, s_currentModifier);
             }
             break;
@@ -1682,17 +1674,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         SendMessage(hwndDlg, WM_CLOSE, 0, 0);
                     }
                     break;
-                    
-                case IDC_Alias:
-                    if (HIWORD(wParam) == BN_CLICKED)
-                    {
-                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
-                        
-                        if (s_dlgResult == IDOK)
-                            SetWindowText(hwndDlg, s_fxAlias);
-                    }
-                    break;
-                    
+                                        
                 case IDC_Params:
                     if (HIWORD(wParam) == BN_CLICKED)
                         DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditAdvanced), g_hwnd, dlgProcEditAdvanced);
@@ -1715,6 +1697,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                     if (HIWORD(wParam) == EN_CHANGE && widget != NULL)
                     {
                         GetDlgItemText(hwndDlg, IDC_FXParamNameEdit, buf, sizeof(buf));
+                        SetDlgItemText(s_hwndLearnFXDlg, IDC_AssignFXParamDisplay, buf);
                         if (nameContext)
                             nameContext->SetStringParam(buf);
                     }
@@ -2143,6 +2126,16 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         
                         if (t)
                             HandleAssigment(t, widget, modifier, paramNum, false);
+                    }
+                    break;
+                    
+                case IDC_Alias:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                    {
+                        DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_EditFXAlias), g_hwnd, dlgProcEditFXAlias);
+                        
+                        if (s_dlgResult == IDOK)
+                            SetWindowText(hwndDlg, s_fxAlias);
                     }
                     break;
                     
