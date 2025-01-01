@@ -2781,6 +2781,7 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
 
 void ZoneManager::UnlockChannelRight(int channelNumber)
 {
+    /*
     ptrvector<Zone *> iZones = homeZone_->GetIncludedZones();
     
     for (int i = 0; i < iZones.size(); ++i)
@@ -2808,10 +2809,12 @@ void ZoneManager::UnlockChannelRight(int channelNumber)
             }
         }
     }
+    */
 }
 
 void ZoneManager::LockChannelRight(Zone *zone)
 {
+    /*
     MediaTrack *track = zone->GetNavigator()->GetTrack();
         
     for (int i = 0; i < tracksLockedRight_.size(); ++i)
@@ -2834,7 +2837,7 @@ void ZoneManager::LockChannelRight(Zone *zone)
         
         trackZones[GetSurface()->GetNumChannels() - tracksLockedRight_.size()]->SetNavigator(new FixedTrackNavigator(csi_, surface_->GetPage(), track));
     }
-
+*/
     
     
     /*
@@ -2850,6 +2853,7 @@ void ZoneManager::LockChannelRight(Zone *zone)
 
 void ZoneManager::OnTrackListChange()
 {
+    /*
     if (tracksLockedRight_.size() == 0)
         return;
     
@@ -2876,8 +2880,11 @@ void ZoneManager::OnTrackListChange()
             }
             
             tracksLockedRight_.clear();
+            
+            break;
         }
     }
+    */
 }
 
 void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
