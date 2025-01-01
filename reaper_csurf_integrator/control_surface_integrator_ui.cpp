@@ -1254,9 +1254,9 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
         EnableWindow(GetDlgItem(t->hwnd, IDC_Assign), false);
         EnableWindow(GetDlgItem(t->hwnd, IDC_DeepEdit), false);
     }
-    else if (strcmp(paramContext->GetAction()->GetName(), "FXParam"))
+    else if (strcmp(paramContext->GetAction()->GetName(), "FXParam") && strcmp(paramContext->GetAction()->GetName(), "JSFXParam"))
     {
-        paramContext->SetAction(zoneManager->GetCSI()->GetFXParamAction());
+        paramContext->SetAction(zoneManager->GetCSI()->GetFXParamAction(s_fxName));
         paramContext->SetParamIndex(paramIdx);
         paramContext->SetStringParam("");
 

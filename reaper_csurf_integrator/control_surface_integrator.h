@@ -4378,11 +4378,14 @@ public:
         return actions_.Get("NoAction");
     }
     
-    Action *GetFXParamAction()
+    Action *GetFXParamAction(char *FXName)
     {
+       if (strstr(FXName, "JS: "))
+           return actions_.Get("JSFXParam");
+       else
         return actions_.Get("FXParam");
     }
-    
+        
     Action *GetFixedTextDisplayAction()
     {
         return actions_.Get("FixedTextDisplay");
