@@ -2794,10 +2794,8 @@ void ZoneManager::UnlockChannelRight(int channelNumber)
                 Zone *channelZone = iZones[i];
                 
                 if ( ! strcmp(channelZone->GetNavigator()->GetName(), "FixedTrackNavigator"))
-                {
-                    MediaTrack *const trackToRemove = channelZone->GetNavigator()->GetTrack();
-                    
-                    tracksLockedRight_.erase(std::remove(tracksLockedRight_.begin(), tracksLockedRight_.end(), trackToRemove), tracksLockedRight_.end());
+                {                   
+                    tracksLockedRight_.erase(tracksLockedRight_.begin());
                     
                     delete channelZone->GetNavigator();
                     
@@ -2816,8 +2814,9 @@ void ZoneManager::LockChannelRight(Zone *zone)
 {
     MediaTrack *track = zone->GetNavigator()->GetTrack();
         
-    if (find(tracksLockedRight_.begin(), tracksLockedRight_.end(), track) != tracksLockedRight_.end())
-        return;
+    for (int i = 0; i < tracksLockedRight_.size(); ++i)
+        if (tracksLockedRight_[i] == track)
+            return;
 
     if (tracksLockedRight_.size() < GetSurface()->GetNumChannels()) // add
     {
