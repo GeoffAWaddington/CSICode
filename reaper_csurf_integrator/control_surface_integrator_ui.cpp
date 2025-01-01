@@ -840,6 +840,8 @@ static void SaveZone(SurfaceFXTemplate *t)
                         fprintf(fxFile, "%s\n", line.c_str());
             }
 
+            fprintf(fxFile, "%s\n", "ZoneEnd");
+            
             fclose(fxFile);
         }
         

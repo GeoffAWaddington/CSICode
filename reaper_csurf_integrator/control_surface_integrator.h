@@ -62,20 +62,11 @@ extern int strToHex(const char *valueStr);
 class ZoneManager;
 class Zone;
 
-
-
-
-
 extern void RequestFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow(ZoneManager *zoneManager);
 extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot);
 extern void ShutdownLearn();
-
-
-
-
-
 
 extern bool g_surfaceRawInDisplay;
 extern bool g_surfaceInDisplay;
@@ -518,8 +509,7 @@ public:
     
     virtual const char *GetName() override { return "FixedTrackNavigator"; }
    
-    virtual MediaTrack *GetTrack() override { return track_; } ;
-
+    virtual MediaTrack *GetTrack() override { return track_; }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -810,7 +800,7 @@ class Zone
 protected:
     ZoneManager  *const zoneManager_;
     CSurfIntegrator *const csi_;
-    Navigator *const navigator_;
+    Navigator *navigator_;
     int slotIndex_;
     string const name_;
     string const alias_;
@@ -866,6 +856,7 @@ public:
     ptrvector<Zone *> &GetIncludedZones() { return includedZones_; }
 
     Navigator *GetNavigator() { return navigator_; }
+    void SetNavigator(Navigator *navigator) {  navigator_ = navigator; }
     void SetSlotIndex(int index) { slotIndex_ = index; }
     bool GetIsActive() { return isActive_; }
         
@@ -1110,6 +1101,8 @@ private:
 
     ptrvector<Zone *> goZones_;
     
+    vector<MediaTrack *> tracksLockedRight_;
+
     ptrvector<ZoneManager *> listeners_;
     
     WDL_PtrList<Zone> zonesToBeDeleted_;
@@ -1411,6 +1404,10 @@ public:
     void DoRelativeAction(Widget *widget, int accelerationIndex, double delta);
     void DoTouch(Widget *widget, double value);
     
+    void UnlockChannelRight(int channelNumber);
+    void LockChannelRight(Zone *zone);
+    void OnTrackListChange();
+    
     const char *GetFXZoneFolder() { return fxZoneFolder_.c_str(); }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneInfo() { return zoneInfo_; }
 
@@ -1427,7 +1424,7 @@ public:
 
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
     bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
-
+    
     Zone *GetLearnedFocusedFXZone() { return  learnFocusedFXZone_;  }
     
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *GetLearnFocusedFXActionContextDictionary()
@@ -1436,7 +1433,7 @@ public:
             return &learnFocusedFXZone_->GetActionContextDictionary();
         else return NULL;
     }
-
+    
     void GetAlias(const char *fxName, char *alias, int aliassz)
     {
         static const char  *const prefixes[] =
@@ -2341,7 +2338,7 @@ public:
 
     void SetLatchTime(int latchTime) { latchTime_ = latchTime; }
     int GetLatchTime() { return latchTime_; }
-
+    
     double GetStepSize(const char * const widgetClass)
     {
         if (stepSize_.Exists(widgetClass))
@@ -3963,6 +3960,28 @@ public:
     
     const WDL_PtrList<ControlSurface> &GetSurfaces() { return surfaces_; }
     
+    void UnlockChannelRight(int channelNumber)
+    {
+        int maxOffsetSurfaceIdx = 0;
+        
+        for (int i = 0; i < surfaces_.GetSize(); ++i)
+            if (surfaces_.Get(i)->GetChannelOffset() > maxOffsetSurfaceIdx)
+                maxOffsetSurfaceIdx = surfaces_.Get(i)->GetChannelOffset();
+        
+        surfaces_.Get(maxOffsetSurfaceIdx)->GetZoneManager()->UnlockChannelRight(channelNumber);
+    }
+        
+    void LockChannelRight(Zone *zone)
+    {
+        int maxOffsetSurfaceIdx = 0;
+        
+        for (int i = 0; i < surfaces_.GetSize(); ++i)
+            if (surfaces_.Get(i)->GetChannelOffset() > maxOffsetSurfaceIdx)
+                maxOffsetSurfaceIdx = surfaces_.Get(i)->GetChannelOffset();
+        
+        surfaces_.Get(maxOffsetSurfaceIdx)->GetZoneManager()->LockChannelRight(zone);
+    }
+    
     void AddSurface(ControlSurface *surface)
     {
         if (WDL_NOT_NORMALLY(!surface)) { return; }
@@ -4009,6 +4028,14 @@ public:
     void OnTrackListChange()
     {
         trackNavigationManager_->OnTrackListChange();
+        
+        int maxOffsetSurfaceIdx = 0;
+        
+        for (int i = 0; i < surfaces_.GetSize(); ++i)
+            if (surfaces_.Get(i)->GetChannelOffset() > maxOffsetSurfaceIdx)
+                maxOffsetSurfaceIdx = surfaces_.Get(i)->GetChannelOffset();
+        
+        surfaces_.Get(maxOffsetSurfaceIdx)->GetZoneManager()->OnTrackListChange();
     }
     
     void OnTrackSelectionBySurface(MediaTrack *track)
@@ -4233,6 +4260,8 @@ private:
     int currentPageIndex_;
     
     bool shouldRun_;
+    
+    ReaProject* currentProject_;
     
     // these are offsets to be passed to projectconfig_var_addr() when needed in order to get the actual pointers
     int timeModeOffs_;
@@ -4527,6 +4556,14 @@ public:
     void Run() override
     {
         //int start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        
+        ReaProject* currentProject = (*EnumProjects)(-1, NULL, 0);
+
+        if (currentProject_ != currentProject)
+        {
+            currentProject_ = currentProject;
+            DAW::SendCommandMessage(41743);
+        }
         
         if (shouldRun_ && pages_.Get(currentPageIndex_))
             pages_.Get(currentPageIndex_)->Run();
