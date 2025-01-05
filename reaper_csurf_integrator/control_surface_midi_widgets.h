@@ -1422,7 +1422,6 @@ public:
     {
         minDB_ = 0.0;
         maxDB_ = 24.0;
-        param_ = 0;
     }
     
     virtual const char *GetName() override { return "QConProXMasterVUMeter_Midi_FeedbackProcessor"; }
