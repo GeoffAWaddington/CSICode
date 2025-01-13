@@ -2328,7 +2328,8 @@ void RequestFocusedFXDialog(ZoneManager *zoneManager)
 
 void ShutdownLearn()
 {
-    CloseFocusedFXDialog();
+    return;
+    //CloseFocusedFXDialog();
 }
 
 void CloseFocusedFXDialog()

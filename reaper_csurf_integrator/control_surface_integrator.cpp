@@ -20,7 +20,7 @@ extern reaper_plugin_info_t *g_reaper_plugin_info;
 
 extern void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier);
 
-int g_minNumParamSteps = 2;
+int g_minNumParamSteps = 1;
 int g_maxNumParamSteps = 30;
 bool g_surfaceRawInDisplay;
 bool g_surfaceInDisplay;
@@ -1119,10 +1119,6 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 void CSurfIntegrator::InitActionsDictionary()
 {
     // actions_.Insert("DumpHex", new DumpHex());
-    actions_.Insert("MetronomePrimaryVolumeDisplay", new MetronomePrimaryVolumeDisplay());
-    actions_.Insert("MetronomeSecondaryVolumeDisplay", new MetronomeSecondaryVolumeDisplay());
-    actions_.Insert("MetronomePrimaryVolume", new MetronomePrimaryVolume());
-    actions_.Insert("MetronomeSecondaryVolume", new MetronomeSecondaryVolume());
     actions_.Insert("Speak", new SpeakOSARAMessage());
     actions_.Insert("SendMIDIMessage", new SendMIDIMessage());
     actions_.Insert("SendOSCMessage", new SendOSCMessage());
