@@ -359,7 +359,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
     {
         case WM_INITDIALOG:
         {
-            ActionContext *context = GetFirstContext(zoneManager, widget, modifier);
+            context = GetFirstContext(zoneManager, widget, modifier);
             
             if (context == NULL)
                 break;
@@ -1716,7 +1716,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                        if (index >= 0)
                        {
                            string outputString;
-                           GetParamStepsString(outputString, index + 1);
+                           GetParamStepsString(outputString, index);
                            SetDlgItemText(hwndDlg, IDC_EditSteps, outputString.c_str());
                            string_list tokens;
                            GetTokens(tokens, outputString.c_str());

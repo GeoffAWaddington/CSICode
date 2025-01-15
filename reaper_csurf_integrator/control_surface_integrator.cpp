@@ -148,13 +148,20 @@ static double EnumSteppedValues(int numSteps, int stepNumber)
 
 void GetParamStepsString(string &outputString, int numSteps) // appends to string
 {
-    for (int i = 0; i < numSteps; ++i)
+    if (numSteps == 1)
     {
-        char tmp[128];
-        snprintf(tmp,sizeof(tmp), "%.2f", EnumSteppedValues(numSteps, i));
-        WDL_remove_trailing_decimal_zeros(tmp, 0);
-        lstrcatn(tmp, " ", sizeof(tmp));
-        outputString += tmp;
+        outputString = "0.1";
+    }
+    else
+    {
+        for (int i = 0; i < numSteps; ++i)
+        {
+            char tmp[128];
+            snprintf(tmp,sizeof(tmp), "%.2f", EnumSteppedValues(numSteps, i));
+            WDL_remove_trailing_decimal_zeros(tmp, 0);
+            lstrcatn(tmp, " ", sizeof(tmp));
+            outputString += tmp;
+        }
     }
 }
 
