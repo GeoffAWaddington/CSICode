@@ -165,12 +165,12 @@ BEGIN
     PUSHBUTTON      "Remove",ID_RemoveBroadcaster,86,130,37,14,BS_FLAT
     PUSHBUTTON      "Add",ID_BUTTON_AddListener,141,129,37,14,BS_FLAT
     PUSHBUTTON      "Remove",ID_RemoveListener,213,130,37,14,BS_FLAT
-    CONTROL         "SelectedTrackFX",IDC_CHECK_SelectedTrackFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,263,60,66,10
-    CONTROL         "SelectedTrackSends",IDC_CHECK_Sends,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,263,82,78,10
-    CONTROL         "SelectedTrackReceives",IDC_CHECK_Receives,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,263,104,86,10
+    CONTROL         "SelectedTrackFX",IDC_CHECK_SelectedTrackFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,262,60,66,10
+    CONTROL         "SelectedTrackSends",IDC_CHECK_Sends,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,262,82,78,10
+    CONTROL         "SelectedTrackReceives",IDC_CHECK_Receives,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,262,104,85,10
     CONTROL         "FXMenu",IDC_CHECK_FXMenu,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,345,60,36,10
     CONTROL         "GoHome",IDC_CHECK_GoHome,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,345,82,44,10
-    CONTROL         "ModSquad",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,345,104,44,10
+    CONTROL         "ModSquad",IDC_CHECK_Modifiers,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,346,104,44,10
     CONTROL         "Show MIDI input",IDC_CHECK_ShowRawInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,180,65,10
     CONTROL         "Show input",IDC_CHECK_ShowInput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,86,180,47,10
     CONTROL         "Show output",IDC_CHECK_ShowOutput,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,142,180,53,10
