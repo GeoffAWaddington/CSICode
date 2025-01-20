@@ -667,17 +667,7 @@ public:
     double  GetRangeMaximum() const { return rangeMaximum_; }
     void    SetRangeMaximum(double rangeMaximum) { rangeMaximum_ = rangeMaximum; }
     bool    GetProvideFeedback() { return provideFeedback_; }
-    
-    void SetProvideFeedback(bool provideFeedback)
-    {
-        provideFeedback_ = provideFeedback;
-
-        if (provideFeedback)
-            RequestUpdate();
-        else
-            ClearWidget();
-    }
-    
+       
     void SetStringParam(const char *stringParam) 
     { 
         stringParam_ = stringParam;
@@ -4277,8 +4267,6 @@ private:
     static void disposeCounts(WDL_IntKeyedArray<int> *counts) { delete counts; }
     
     void InitActionsDictionary();
-    
-    void InitFXParamStepValues();
 
     double GetPrivateProfileDouble(const char *key)
     {
@@ -4471,7 +4459,7 @@ public:
     {
         for (int i = 0; i < pages_.GetSize(); ++i)
         {
-            if (pages_.Get(i)->GetName() == pageName)
+            if (! strcmp(pages_.Get(i)->GetName(), pageName))
             {
                 if (WDL_NORMALLY(pages_.Get(currentPageIndex_)))
                     pages_.Get(currentPageIndex_)->LeavePage();
