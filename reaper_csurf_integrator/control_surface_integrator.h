@@ -3457,19 +3457,19 @@ public:
     {
         if (currentTrackVCAFolderMode_ != 1)
             return;
-
-        int numTracks = vcaSpillTracks_.GetSize();
-            
-        if (numTracks <= trackNavigators_.GetSize())
-            return;
        
         vcaTrackOffset_ += amount;
         
         if (vcaTrackOffset_ <  0)
             vcaTrackOffset_ =  0;
         
-        int top = numTracks - trackNavigators_.GetSize();
+        int top = 0;
         
+        if (vcaLeadTrack_ == NULL)
+            top = vcaTopLeadTracks_.GetSize() - 1;
+        else
+            top = vcaSpillTracks_.GetSize() - 1;
+
         if (vcaTrackOffset_ >  top)
             vcaTrackOffset_ = top;
     }
@@ -3478,20 +3478,20 @@ public:
     {
         if (currentTrackVCAFolderMode_ != 2)
             return;
-
-        int numTracks = folderSpillTracks_.GetSize();
-        
-        if (numTracks <= trackNavigators_.GetSize())
-            return;
-       
+                   
         folderTrackOffset_ += amount;
         
         if (folderTrackOffset_ <  0)
             folderTrackOffset_ =  0;
+              
+        int top = 0;
         
-        int top = numTracks - trackNavigators_.GetSize();
+        if (folderParentTrack_ == NULL)
+            top = folderTopParentTracks_.GetSize() - 1;
+        else
+            top = folderSpillTracks_.GetSize() - 1;
         
-        if (folderTrackOffset_ >  top)
+        if (folderTrackOffset_ > top)
             folderTrackOffset_ = top;
     }
     
@@ -3499,18 +3499,13 @@ public:
     {
         if (currentTrackVCAFolderMode_ != 3)
             return;
-
-        int numTracks = selectedTracks_.GetSize();
-       
-        if (numTracks <= trackNavigators_.GetSize())
-            return;
         
         selectedTracksOffset_ += amount;
         
         if (selectedTracksOffset_ < 0)
             selectedTracksOffset_ = 0;
         
-        int top = numTracks - trackNavigators_.GetSize();
+        int top = selectedTracks_.GetSize() - 1;
         
         if (selectedTracksOffset_ > top)
             selectedTracksOffset_ = top;
