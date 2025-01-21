@@ -3546,13 +3546,17 @@ public:
     {       
         if (currentTrackVCAFolderMode_ == 0)
         {
-            if (channelNumber + trackOffset_ < GetNumTracks() && channelNumber + trackOffset_ < tracks_.GetSize())
-                return tracks_.Get(channelNumber + trackOffset_);
+            channelNumber += trackOffset_;
+            
+            if (channelNumber < GetNumTracks() && channelNumber < tracks_.GetSize() && DAW::ValidateTrackPtr(tracks_.Get(channelNumber)))
+                return tracks_.Get(channelNumber);
             else
                 return NULL;
         }
         else if (currentTrackVCAFolderMode_ == 1)
         {
+            channelNumber += vcaTrackOffset_;
+
             if (vcaLeadTrack_ == NULL)
             {
                 if (channelNumber < vcaTopLeadTracks_.GetSize() && DAW::ValidateTrackPtr(vcaTopLeadTracks_.Get(channelNumber)))
@@ -3562,21 +3566,16 @@ public:
             }
             else
             {
-                if (channelNumber == 0 && vcaSpillTracks_.GetSize() > 0 && DAW::ValidateTrackPtr(vcaSpillTracks_.Get(channelNumber)))
-                    return vcaSpillTracks_.Get(channelNumber);
-                else if (vcaTrackOffset_ == 0 && channelNumber < vcaSpillTracks_.GetSize() && DAW::ValidateTrackPtr(vcaSpillTracks_.Get(channelNumber)))
+                if (channelNumber < vcaSpillTracks_.GetSize() && DAW::ValidateTrackPtr(vcaSpillTracks_.Get(channelNumber)))
                     return vcaSpillTracks_.Get(channelNumber);
                 else
-                {
-                    channelNumber += vcaTrackOffset_;
-                    
-                    if (channelNumber < vcaSpillTracks_.GetSize() && DAW::ValidateTrackPtr(vcaSpillTracks_.Get(channelNumber)))
-                        return vcaSpillTracks_.Get(channelNumber);
-                }
+                    return NULL;
             }
         }
         else if (currentTrackVCAFolderMode_ == 2)
         {
+            channelNumber += folderTrackOffset_;
+
             if (folderParentTrack_ == NULL)
             {
                 if (channelNumber < folderTopParentTracks_.GetSize() && DAW::ValidateTrackPtr(folderTopParentTracks_.Get(channelNumber)))
@@ -3586,25 +3585,20 @@ public:
             }
             else
             {
-                if (channelNumber == 0 && folderSpillTracks_.GetSize() > 0 && DAW::ValidateTrackPtr(folderSpillTracks_.Get(channelNumber)))
-                    return folderSpillTracks_.Get(channelNumber);
-                else if (folderTrackOffset_ == 0 && channelNumber < folderSpillTracks_.GetSize() && DAW::ValidateTrackPtr(folderSpillTracks_.Get(channelNumber)))
+                if (channelNumber < folderSpillTracks_.GetSize() && DAW::ValidateTrackPtr(folderSpillTracks_.Get(channelNumber)))
                     return folderSpillTracks_.Get(channelNumber);
                 else
-                {
-                    channelNumber += folderTrackOffset_;
-                    
-                    if (channelNumber < folderSpillTracks_.GetSize() && DAW::ValidateTrackPtr(folderSpillTracks_.Get(channelNumber)))
-                        return folderSpillTracks_.Get(channelNumber);
-                }
+                    return NULL;
             }
         }
         else if (currentTrackVCAFolderMode_ == 3)
         {
-            if (channelNumber + selectedTracksOffset_ >= selectedTracks_.GetSize())
-                return NULL;
+            channelNumber += selectedTracksOffset_;
+            
+            if (channelNumber < selectedTracks_.GetSize() && DAW::ValidateTrackPtr(selectedTracks_.Get(channelNumber)))
+                return selectedTracks_.Get(channelNumber);
             else
-                return selectedTracks_.Get(channelNumber + selectedTracksOffset_);
+                return NULL;
         }
         
         return NULL;
@@ -3887,7 +3881,7 @@ public:
         if (folderParentTrack_ != NULL)
             for (int i = 0; i < folderDictionary_.Get(folderParentTrack_)->GetSize(); ++i)
                 folderSpillTracks_.Add(folderDictionary_.Get(folderParentTrack_)->Get(i));
-    }
+     }
     
     void EnterPage()
     {

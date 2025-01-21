@@ -392,7 +392,7 @@ public:
         if (context->GetTrack())
             context->UpdateWidgetValue(GetCurrentNormalizedValue(context));
         else
-            context->ClearWidget();
+            context->GetWidget()->ForceClear();
     }
     
     virtual void Do(ActionContext *context, double value) override
