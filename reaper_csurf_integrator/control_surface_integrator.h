@@ -3698,6 +3698,11 @@ public:
         synchPages_ = ! synchPages_;
     }
     
+    void ToggleFollowMCP()
+    {
+        followMCP_ = ! followMCP_;
+    }
+    
     void ToggleScrollLink(int targetChannel)
     {
         targetScrollLinkChannel_ = targetChannel - 1 < 0 ? 0 : targetChannel - 1;
@@ -4126,6 +4131,7 @@ public:
     void ToggleFolderSpill(MediaTrack *track) { trackNavigationManager_->ToggleFolderSpill(track); }
     void ToggleScrollLink(int targetChannel) { trackNavigationManager_->ToggleScrollLink(targetChannel); }
     void ToggleSynchPages() { trackNavigationManager_->ToggleSynchPages(); }
+    void ToggleFollowMCP() { trackNavigationManager_->ToggleFollowMCP(); }
     void SetTrackOffset(int offset) { trackNavigationManager_->SetTrackOffset(offset); }
     MediaTrack *GetSelectedTrack() { return trackNavigationManager_->GetSelectedTrack(); }
     void NextInputMonitorMode(MediaTrack *track) { trackNavigationManager_->NextInputMonitorMode(track); }

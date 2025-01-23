@@ -1152,6 +1152,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("Record", new Record());
     actions_.Insert("CycleTimeline", new CycleTimeline());
     actions_.Insert("ToggleSynchPageBanking", new ToggleSynchPageBanking());
+    actions_.Insert("ToggleFollowMCP", new ToggleFollowMCP());
     actions_.Insert("ToggleScrollLink", new ToggleScrollLink());
     actions_.Insert("ToggleRestrictTextLength", new ToggleRestrictTextLength());
     actions_.Insert("CSINameDisplay", new CSINameDisplay());
