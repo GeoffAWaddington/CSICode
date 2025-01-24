@@ -300,6 +300,11 @@ class ToggleFollowMCP : public Action
 public:
     virtual const char *GetName() override { return "ToggleFollowMCP"; }
     
+    void RequestUpdate(ActionContext *context) override
+    {
+        context->UpdateWidgetValue(context->GetPage()->GetFollowMCP());
+    }
+
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0) return; // ignore button releases

@@ -3254,6 +3254,7 @@ public:
     void AdjustSelectedTrackBank(int amount);
     bool GetSynchPages() { return synchPages_; }
     bool GetScrollLink() { return isScrollLinkEnabled_; }
+    bool GetFollowMCP() { return followMCP_; }
     int  GetNumTracks() { return CSurf_NumTracks(followMCP_); }
     Navigator *GetMasterTrackNavigator() { return masterTrackNavigator_; }
     Navigator *GetSelectedTrackNavigator() { return selectedTrackNavigator_; }
@@ -4110,6 +4111,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     bool GetSynchPages() { return trackNavigationManager_->GetSynchPages(); }
     bool GetScrollLink() { return trackNavigationManager_->GetScrollLink(); }
+    bool GetFollowMCP() { return trackNavigationManager_->GetFollowMCP(); }
     int  GetNumTracks() { return trackNavigationManager_->GetNumTracks(); }
     Navigator *GetMasterTrackNavigator() { return trackNavigationManager_->GetMasterTrackNavigator(); }
     Navigator * GetSelectedTrackNavigator() { return trackNavigationManager_->GetSelectedTrackNavigator(); }
