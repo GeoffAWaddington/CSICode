@@ -1214,6 +1214,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TrackUniqueSelect", new TrackUniqueSelect());
     actions_.Insert("TrackRangeSelect", new TrackRangeSelect());
     actions_.Insert("TrackRecordArm", new TrackRecordArm());
+    actions_.Insert("TrackRecordArmDisplay", new TrackRecordArmDisplay());
     actions_.Insert("TrackMute", new TrackMute());
     actions_.Insert("TrackSolo", new TrackSolo());
     actions_.Insert("ClearAllSolo", new ClearAllSolo());
