@@ -235,10 +235,11 @@ BEGIN
     COMBOBOX        IDC_PickRingStyle,194,76,70,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Params",IDC_Params,104,105,70,14
     PUSHBUTTON      "Done",IDC_Done,195,105,70,14
-    LTEXT           "name",IDC_STATIC,126,39,18,8
-    LTEXT           "value",IDC_STATIC,218,39,17,8
+    LTEXT           "Name",IDC_STATIC,126,39,19,8
+    LTEXT           "Value",IDC_STATIC,218,39,18,8
     LTEXT           "Steps",IDC_Steps,104,77,18,8
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10
+    LTEXT           "Ring Style",IDC_STATIC,213,66,33,8
 END
 
 IDD_DIALOG_LearnFXLevel3 DIALOGEX 0, 0, 282, 245
@@ -267,8 +268,8 @@ BEGIN
     COMBOBOX        IDC_FXParamValueDisplayPickFont,194,193,25,12,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDC_Edit_ParamValueDisplayTop,225,193,16,12,ES_CENTER | ES_NUMBER
     EDITTEXT        IDC_Edit_ParamValueDisplayBottom,249,193,16,12,ES_CENTER | ES_NUMBER
-    LTEXT           "name",IDC_STATIC,126,39,18,8
-    LTEXT           "value",IDC_STATIC,218,39,17,8
+    LTEXT           "Name",IDC_STATIC,126,39,19,8
+    LTEXT           "Value",IDC_STATIC,218,39,18,8
     LTEXT           "Steps",IDC_Steps,104,77,18,8
     LTEXT           "",IDC_FXParamRingColorBox,82,110,8,14
     LTEXT           "",IDC_FXParamIndicatorColorBox,82,136,8,14
@@ -278,6 +279,11 @@ BEGIN
     LTEXT           "",IDC_FXParamValueDisplayBackgroundColorBox,261,136,8,14
     GROUPBOX        "Apply To All",IDC_GroupApplyToAll,12,165,74,42
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10
+    LTEXT           "Ring Style",IDC_STATIC,213,66,33,8
+    LTEXT           "Font",IDC_STATIC,109,184,15,8
+    LTEXT           "Font",IDC_STATIC,199,184,15,8
+    LTEXT           "Margins",IDC_STATIC,142,184,25,8
+    LTEXT           "Margins",IDC_STATIC,232,184,25,8
 END
 
 IDD_DIALOG_EditFXAlias DIALOGEX 0, 0, 132, 60
@@ -290,6 +296,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,64,33,50,14
     LTEXT           "FX Alias",IDC_STATIC,15,16,26,8
 END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -326,7 +333,6 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 274
         TOPMARGIN, 7
-        BOTTOMMARGIN, 177
     END
 
     IDD_DIALOG_LearnFXLevel3, DIALOG
@@ -334,7 +340,6 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 274
         TOPMARGIN, 7
-        BOTTOMMARGIN, 294
     END
 
     IDD_DIALOG_EditFXAlias, DIALOG
@@ -344,7 +349,6 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 53
     END
-    
 END
 #endif    // APSTUDIO_INVOKED
 
