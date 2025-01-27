@@ -2631,7 +2631,7 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     usesLocalFXSlot_ = false;
     listensToSelectedTrackFX_ = false;
 
-    isLastTouchedFXParamMappingEnabled_ = true;
+    isLastTouchedFXParamMappingEnabled_ = false;
     isFocusedFXMappingEnabled_ = true;
     
     trackSendOffset_ = 0;
