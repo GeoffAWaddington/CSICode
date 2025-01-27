@@ -1179,11 +1179,11 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("SetHoldTime", new SetHoldTime());
     actions_.Insert("ToggleEnableFocusedFXMapping", new ToggleEnableFocusedFXMapping());
     actions_.Insert("DisableFocusedFXMapping", new DisableFocusedFXMapping());
-    actions_.Insert("ToggleEnableFocusedFXParamMapping", new ToggleEnableFocusedFXParamMapping());
-    actions_.Insert("DisableFocusedFXParamMapping", new DisableFocusedFXParamMapping());
+    actions_.Insert("ToggleEnableLastTouchedFXParamMapping", new ToggleEnableLastTouchedFXParamMapping());
+    actions_.Insert("DisableLastTouchedFXParamMapping", new DisableLastTouchedFXParamMapping());
     actions_.Insert("LearnFocusedFX", new LearnFocusedFX());
     actions_.Insert("GoZone", new GoZone());
-    actions_.Insert("ClearFocusedFXParam", new ClearFocusedFXParam());
+    actions_.Insert("ClearLastTouchedFXParam", new ClearLastTouchedFXParam());
     actions_.Insert("ClearFocusedFX", new ClearFocusedFX());
     actions_.Insert("ClearSelectedTrackFX", new ClearSelectedTrackFX());
     actions_.Insert("ClearFXSlot", new ClearFXSlot());
@@ -1244,7 +1244,7 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TrackVolumeWithMeterAverageLR", new TrackVolumeWithMeterAverageLR());
     actions_.Insert("TrackOutputMeterMaxPeakLR", new TrackOutputMeterMaxPeakLR());
     actions_.Insert("TrackVolumeWithMeterMaxPeakLR", new TrackVolumeWithMeterMaxPeakLR());
-    actions_.Insert("FocusedFXParam", new FocusedFXParam());
+    actions_.Insert("LastTouchedFXParam", new LastTouchedFXParam());
     actions_.Insert("FXParam", new FXParam());
     actions_.Insert("JSFXParam", new JSFXParam());
     actions_.Insert("TCPFXParam", new TCPFXParam());
@@ -1259,8 +1259,8 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("TCPFXParamNameDisplay", new TCPFXParamNameDisplay());
     actions_.Insert("FXParamValueDisplay", new FXParamValueDisplay());
     actions_.Insert("TCPFXParamValueDisplay", new TCPFXParamValueDisplay());
-    actions_.Insert("FocusedFXParamNameDisplay", new FocusedFXParamNameDisplay());
-    actions_.Insert("FocusedFXParamValueDisplay", new FocusedFXParamValueDisplay());
+    actions_.Insert("LastTouchedFXParamNameDisplay", new LastTouchedFXParamNameDisplay());
+    actions_.Insert("LastTouchedFXParamValueDisplay", new LastTouchedFXParamValueDisplay());
     actions_.Insert("FXGainReductionMeter", new FXGainReductionMeter());
     actions_.Insert("TrackSendVolume", new TrackSendVolume());
     actions_.Insert("TrackSendVolumeDB", new TrackSendVolumeDB());
@@ -2622,7 +2622,7 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     focusedFXZone_ = NULL;
     fxSlotZone_ = NULL;
     learnFocusedFXZone_ = NULL;
-    focusedFXParamZone_ = NULL;
+    lastTouchedFXParamZone_ = NULL;
     
     listensToGoHome_ = false;
     listensToSends_ = false;
@@ -2631,7 +2631,7 @@ ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, co
     usesLocalFXSlot_ = false;
     listensToSelectedTrackFX_ = false;
 
-    isFocusedFXParamMappingEnabled_ = true;
+    isLastTouchedFXParamMappingEnabled_ = true;
     isFocusedFXMappingEnabled_ = true;
     
     trackSendOffset_ = 0;
@@ -2669,10 +2669,10 @@ void ZoneManager::Initialize()
         LoadZoneMetadata(zoneInfo_.Get("GoZones")->filePath.c_str(), zoneList);
     LoadZones(goZones_, zoneList);
     
-    if (zoneInfo_.Exists("FocusedFXParam"))
+    if (zoneInfo_.Exists("LastTouchedFXParam"))
     {
-        focusedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "FocusedFXParam", "FocusedFXParam", zoneInfo_.Get("FocusedFXParam")->filePath);
-        LoadZoneFile(focusedFXParamZone_, "");
+        lastTouchedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LastTouchedFXParam", "LastTouchedFXParam", zoneInfo_.Get("LastTouchedFXParam")->filePath);
+        LoadZoneFile(lastTouchedFXParamZone_, "");
     }
         
     homeZone_->Activate();
@@ -3199,8 +3199,8 @@ void ZoneManager::UpdateCurrentActionContextModifiers()
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->UpdateCurrentActionContextModifiers();
 
-    if (focusedFXParamZone_ != NULL)
-        focusedFXParamZone_->UpdateCurrentActionContextModifiers();
+    if (lastTouchedFXParamZone_ != NULL)
+        lastTouchedFXParamZone_->UpdateCurrentActionContextModifiers();
     
     if (focusedFXZone_ != NULL)
         focusedFXZone_->UpdateCurrentActionContextModifiers();
@@ -3270,8 +3270,8 @@ void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
     if (isUsed)
         return;
 
-    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-        focusedFXParamZone_->DoAction(widget, isUsed, value);
+    if (lastTouchedFXParamZone_ != NULL && isLastTouchedFXParamMappingEnabled_)
+        lastTouchedFXParamZone_->DoAction(widget, isUsed, value);
 
     if (isUsed)
         return;
@@ -3327,8 +3327,8 @@ void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
     if (isUsed)
         return;
 
-    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-        focusedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
+    if (lastTouchedFXParamZone_ != NULL && isLastTouchedFXParamMappingEnabled_)
+        lastTouchedFXParamZone_->DoRelativeAction(widget, isUsed, delta);
 
     if (isUsed)
         return;
@@ -3384,8 +3384,8 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
     if (isUsed)
         return;
 
-    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-        focusedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
+    if (lastTouchedFXParamZone_ != NULL && isLastTouchedFXParamMappingEnabled_)
+        lastTouchedFXParamZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
     
     if (isUsed)
         return;
@@ -3444,8 +3444,8 @@ void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)
     if (isUsed)
         return;
 
-    if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-        focusedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
+    if (lastTouchedFXParamZone_ != NULL && isLastTouchedFXParamMappingEnabled_)
+        lastTouchedFXParamZone_->DoTouch(widget, widget->GetName(), isUsed, value);
     
     if (isUsed)
         return;

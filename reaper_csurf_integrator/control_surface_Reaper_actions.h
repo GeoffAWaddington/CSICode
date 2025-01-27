@@ -178,11 +178,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FocusedFXParam : public FXAction
+class LastTouchedFXParam : public FXAction
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "FocusedFXParam"; }
+    virtual const char *GetName() override { return "LastTouchedFXParam"; }
    
     virtual double GetCurrentNormalizedValue(ActionContext *context) override
     {
@@ -2119,11 +2119,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FocusedFXParamNameDisplay : public Action
+class LastTouchedFXParamNameDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "FocusedFXParamNameDisplay"; }
+    virtual const char *GetName() override { return "LastTouchedFXParamNameDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {
@@ -2146,11 +2146,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FocusedFXParamValueDisplay : public Action
+class LastTouchedFXParamValueDisplay : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "FocusedFXParamValueDisplay"; }
+    virtual const char *GetName() override { return "LastTouchedFXParamValueDisplay"; }
     
     virtual void RequestUpdate(ActionContext *context) override
     {

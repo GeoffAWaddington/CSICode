@@ -755,42 +755,42 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ToggleEnableFocusedFXParamMapping  : public Action
+class ToggleEnableLastTouchedFXParamMapping  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "ToggleEnableFocusedFXParamMapping"; }
+    virtual const char *GetName() override { return "ToggleEnableLastTouchedFXParamMapping"; }
 
     void RequestUpdate(ActionContext *context) override
     {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXParamMappingEnabled());
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsLastTouchedFXParamMappingEnabled());
     }
     
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->DeclareToggleEnableFocusedFXParamMapping();
+        context->GetSurface()->GetZoneManager()->DeclareToggleEnableLastTouchedFXParamMapping();
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class DisableFocusedFXParamMapping  : public Action
+class DisableLastTouchedFXParamMapping  : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "DisableFocusedFXParamMapping"; }
+    virtual const char *GetName() override { return "DisableLastTouchedFXParamMapping"; }
 
     void RequestUpdate(ActionContext *context) override
     {
-        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsFocusedFXParamMappingEnabled());
+        context->UpdateWidgetValue(context->GetSurface()->GetZoneManager()->GetIsLastTouchedFXParamMappingEnabled());
     }
     
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0) return; // ignore button releases
         
-        context->GetSurface()->GetZoneManager()->DisableFocusedFXParamMapping();
+        context->GetSurface()->GetZoneManager()->DisableLastTouchedFXParamMapping();
     }
 };
 
@@ -844,18 +844,18 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class ClearFocusedFXParam : public Action
+class ClearLastTouchedFXParam : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    virtual const char *GetName() override { return "ClearFocusedFXParam"; }
+    virtual const char *GetName() override { return "ClearLastTouchedFXParam"; }
     
     void Do(ActionContext *context, double value) override
     {
         if (value == 0.0)
             return; // ignore button releases
 
-        context->GetSurface()->GetZoneManager()->DeclareClearFXZone("FocusedFXParam");
+        context->GetSurface()->GetZoneManager()->DeclareClearFXZone("LastTouchedFXParam");
     }
 };
 

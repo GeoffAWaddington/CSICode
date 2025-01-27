@@ -1104,8 +1104,8 @@ private:
     bool usesLocalFXSlot_;
     bool listensToSelectedTrackFX_;
 
-    Zone *focusedFXParamZone_;
-    bool isFocusedFXParamMappingEnabled_;
+    Zone *lastTouchedFXParamZone_;
+    bool isLastTouchedFXParamMappingEnabled_;
     
     Zone *focusedFXZone_;
     bool isFocusedFXMappingEnabled_;
@@ -1220,9 +1220,9 @@ private:
     
     void ListenToClearFXZone(const char *zoneToClear)
     {
-        if (!strcmp("FocusedFXParam", zoneToClear))
+        if (!strcmp("LastTouchedFXParam", zoneToClear))
             for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ClearFocusedFXParam();
+                listeners_[i]->ClearLastTouchedFXParam();
         else if (!strcmp("FocusedFX", zoneToClear))
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ClearFocusedFX();
@@ -1246,21 +1246,21 @@ private:
             GoFXSlot(track, navigator, fxSlot);
     }
 
-    void ListenToToggleEnableFocusedFXParamMapping()
+    void ListenToToggleEnableLastTouchedFXParamMapping()
     {
-        ToggleEnableFocusedFXParamMapping();
+        ToggleEnableLastTouchedFXParamMapping();
     }
 
-    void ToggleEnableFocusedFXParamMapping()
+    void ToggleEnableLastTouchedFXParamMapping()
     {
-        isFocusedFXParamMappingEnabled_ = ! isFocusedFXParamMappingEnabled_;
+        isLastTouchedFXParamMappingEnabled_ = ! isLastTouchedFXParamMappingEnabled_;
         
-        if (focusedFXParamZone_ != NULL)
+        if (lastTouchedFXParamZone_ != NULL)
         {
-            if (isFocusedFXParamMappingEnabled_)
-                focusedFXParamZone_->Activate();
+            if (isLastTouchedFXParamMappingEnabled_)
+                lastTouchedFXParamZone_->Activate();
             else
-                focusedFXParamZone_->Deactivate();
+                lastTouchedFXParamZone_->Deactivate();
         }
     }
 
@@ -1274,10 +1274,10 @@ private:
         isFocusedFXMappingEnabled_ = ! isFocusedFXMappingEnabled_;
     }
 
-    void ClearFocusedFXParam()
+    void ClearLastTouchedFXParam()
     {
-        if (focusedFXParamZone_ != NULL)
-            focusedFXParamZone_->Deactivate();
+        if (lastTouchedFXParamZone_ != NULL)
+            lastTouchedFXParamZone_->Deactivate();
     }
     
     void ClearFocusedFX()
@@ -1340,10 +1340,10 @@ public:
             focusedFXZone_ = NULL;
         }
             
-        if (focusedFXParamZone_ != NULL)
+        if (lastTouchedFXParamZone_ != NULL)
         {
-            delete focusedFXParamZone_;
-            focusedFXParamZone_ = NULL;
+            delete lastTouchedFXParamZone_;
+            lastTouchedFXParamZone_ = NULL;
         }
             
         if (fxSlotZone_ != NULL)
@@ -1413,7 +1413,7 @@ public:
     int GetMasterTrackFXMenuOffset() { return masterTrackFXMenuOffset_; }
 
     bool GetIsFocusedFXMappingEnabled() { return isFocusedFXMappingEnabled_; }
-    bool GetIsFocusedFXParamMappingEnabled() { return isFocusedFXParamMappingEnabled_; }
+    bool GetIsLastTouchedFXParamMappingEnabled() { return isLastTouchedFXParamMappingEnabled_; }
     
     Zone *GetLearnedFocusedFXZone() { return  learnFocusedFXZone_;  }
     
@@ -1566,8 +1566,8 @@ public:
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
         {
-            if (!strcmp("FocusedFXParam", zoneName))
-                ClearFocusedFXParam();
+            if (!strcmp("LastTouchedFXParam", zoneName))
+                ClearLastTouchedFXParam();
             else if (!strcmp("FocusedFX", zoneName))
                 ClearFocusedFX();
             else if (!strcmp("SelectedTrackFX", zoneName))
@@ -1682,18 +1682,18 @@ public:
         homeZone_->OnTrackDeselection();
     }
     
-    void DeclareToggleEnableFocusedFXParamMapping()
+    void DeclareToggleEnableLastTouchedFXParamMapping()
     {
         if (! GetIsBroadcaster() && ! GetIsListener()) // No Broadcasters/Listeners relationships defined
-            ToggleEnableFocusedFXParamMapping();
+            ToggleEnableLastTouchedFXParamMapping();
         else
             for (int i = 0; i < listeners_.size(); ++i)
-                listeners_[i]->ListenToToggleEnableFocusedFXParamMapping();
+                listeners_[i]->ListenToToggleEnableLastTouchedFXParamMapping();
     }
 
-    void DisableFocusedFXParamMapping()
+    void DisableLastTouchedFXParamMapping()
     {
-        isFocusedFXParamMappingEnabled_ = false;
+        isLastTouchedFXParamMappingEnabled_ = false;
     }
     
     void DeclareToggleEnableFocusedFXMapping()
@@ -1777,8 +1777,8 @@ public:
             learnFocusedFXZone_->RequestUpdate();
         }
 
-        if (focusedFXParamZone_ != NULL && isFocusedFXParamMappingEnabled_)
-            focusedFXParamZone_->RequestUpdate();
+        if (lastTouchedFXParamZone_ != NULL && isLastTouchedFXParamMappingEnabled_)
+            lastTouchedFXParamZone_->RequestUpdate();
 
         if (focusedFXZone_ != NULL)
             focusedFXZone_->RequestUpdate();
