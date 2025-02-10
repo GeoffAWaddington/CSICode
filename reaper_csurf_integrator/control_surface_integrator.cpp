@@ -796,7 +796,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
         {
             feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(csi_, this, widget, message1, atoi(tokenLines[i][4]), atoi(tokenLines[i][5]), atoi(tokenLines[i][6]));
         }
-        else if ((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
+        else if ((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower" || widgetType == "FB_MCULogicDisplayUpper" || widgetType == "FB_MCULogicDisplayLower") && size == 2)
         {
             if (widgetType == "FB_MCUDisplayUpper")
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x14, 0x12, atoi(tokenLines[i][1].c_str()));
@@ -806,6 +806,10 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x15, 0x12, atoi(tokenLines[i][1].c_str()));
             else if (widgetType == "FB_MCUXTDisplayLower")
                 feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x15, 0x12, atoi(tokenLines[i][1].c_str()));
+            else if (widgetType == "FB_MCULogicDisplayUpper")
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 0, 0x10, 0x12, atoi(tokenLines[i][1].c_str()));
+            else if (widgetType == "FB_MCULogicDisplayLower")
+                feedbackProcessor = new MCUDisplay_Midi_FeedbackProcessor(csi_, this, widget, 1, 0x10, 0x12, atoi(tokenLines[i][1].c_str()));
         }
         else if ((widgetType == "FB_IconDisplay1Upper" || widgetType == "FB_IconDisplay1Lower" || widgetType == "FB_IconDisplay2Upper" || widgetType == "FB_IconDisplay2Lower") && size == 2)
         {
