@@ -547,7 +547,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
        
     AddWidget(widget);
 
-    ptrvector<string_list> tokenLines;
+    vector<string_list> tokenLines;
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -856,7 +856,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     
     AddWidget(widget);
 
-    ptrvector<string_list> tokenLines;
+    vector<string_list> tokenLines;
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -904,7 +904,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
 //////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 //////////////////////////////////////////////////////////////////////////////
-void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
+void ControlSurface::ProcessValues(const vector<string_list> &lines)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -981,7 +981,7 @@ void ControlSurface::ProcessValues(const ptrvector<string_list> &lines)
 void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
-    ptrvector<string_list> valueLines;
+    vector<string_list> valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -1028,7 +1028,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
-    ptrvector<string_list> valueLines;
+    vector<string_list> valueLines;
     
     stepSize_.DeleteAll();
     accelerationValuesForDecrement_.DeleteAll();
@@ -2720,7 +2720,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidget
     modifier += s_modifierManager.GetModifierValue(tokens);
 }
 
-void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators)
+void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigatorName, vector<Navigator *> &navigators)
 {
     if (!strcmp(navigatorName, "MasterTrackNavigator") || !strcmp(zoneName, "MasterTrack"))
         navigators.push_back(GetMasterTrackNavigator());
@@ -2753,7 +2753,7 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
         navigators.push_back(GetSelectedTrackNavigator());
 }
 
-void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
+void ZoneManager::LoadZones(vector<Zone *> &zones, string_list &zoneList)
 {
     for (int i = 0; i < zoneList.size(); ++i)
     {
@@ -2770,7 +2770,7 @@ void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)
     
         if (zoneInfo_.Exists(zoneName))
         {
-            ptrvector<Navigator *> navigators;
+            vector<Navigator *> navigators;
             GetNavigatorsForZone(zoneName, navigatorName, navigators);
             
             if (navigators.size() == 1)

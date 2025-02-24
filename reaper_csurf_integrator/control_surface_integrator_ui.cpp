@@ -252,7 +252,7 @@ struct SurfaceFXTemplate
     int currentModifier;
 
     WDL_PtrList<FXCell> cells;
-    ptrvector<FXRowLayout> fxRowLayouts;
+    vector<FXRowLayout> fxRowLayouts;
     string_list paramWidgets;
     string_list paramWidgetParams;
     string_list displayRows;
@@ -277,7 +277,7 @@ struct SurfaceFXTemplate
     }
 };
 
-static ptrvector<SurfaceFXTemplate *> s_surfaceFXTemplates;
+static vector<SurfaceFXTemplate *> s_surfaceFXTemplates;
 
 SurfaceFXTemplate *GetSurfaceFXTemplate(HWND hwnd)
 {

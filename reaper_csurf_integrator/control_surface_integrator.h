@@ -147,46 +147,6 @@ class string_list
 extern void GetTokens(string_list &tokens, const char *line);
 extern void GetSubTokens(string_list &tokens, const char *line, char delim);
 
-template<class T> class ptrvector : public WDL_PtrList<T>
-{
-  public:
-    ptrvector() { }
-    ptrvector(const ptrvector &cp)
-    {
-        for (int x = 0; x < cp.GetSize(); ++x)
-            push_back(cp[x]);
-    }
-    ~ptrvector() { WDL_PtrList<T>::Empty(true); }
-
-    ptrvector &operator=(const ptrvector &cp)
-    {
-        WDL_PtrList<T>::Empty(true);
-        for (int x = 0; x < cp.GetSize(); ++x)
-            push_back(cp[x]);
-        return *this;
-    }
-
-    void clear() { WDL_PtrList<T>::Empty(true); }
-    int size() const { return WDL_PtrList<T>::GetSize(); }
-    const T &operator[](int idx) const {
-        const T *p = WDL_PtrList<T>::Get(idx);
-        if (WDL_NORMALLY(p)) return *p;
-        static T tmp;
-        return tmp;
-    }
-    T &operator[](int idx) {
-        T *p = WDL_PtrList<T>::Get(idx);
-        if (WDL_NORMALLY(p)) return *p;
-        static T tmp;
-        return tmp;
-    }
-
-    void push_back(const T &list)
-    {
-        WDL_PtrList<T>::Add(new T(list));
-    }
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -788,9 +748,9 @@ protected:
     static void destroyActionContextList(WDL_PtrList<ActionContext> *l) { l->Empty(true); delete l; }
     WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
         
-    ptrvector<Zone *> includedZones_;
+    vector<Zone *> includedZones_;
 
-    ptrvector<Zone *> subZones_;
+    vector<Zone *> subZones_;
 
     void UpdateCurrentActionContextModifier(Widget *widget);
         
@@ -822,7 +782,7 @@ public:
     const WDL_PtrList<Widget> &GetWidgets() { return widgets_; }
 
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
-    ptrvector<Zone *> &GetIncludedZones() { return includedZones_; }
+    vector<Zone *> &GetIncludedZones() { return includedZones_; }
 
     Navigator *GetNavigator() { return navigator_; }
     void SetNavigator(Navigator *navigator) {  navigator_ = navigator; }
@@ -1060,11 +1020,11 @@ private:
     
     Zone *homeZone_ = NULL;
 
-    ptrvector<Zone *> goZones_;
+    vector<Zone *> goZones_;
     
     vector<MediaTrack *> tracksLockedRight_;
 
-    ptrvector<ZoneManager *> listeners_;
+    vector<ZoneManager *> listeners_;
     
     WDL_PtrList<Zone> zonesToBeDeleted_;
     
@@ -1081,7 +1041,7 @@ private:
     Zone *focusedFXZone_ = NULL;
     bool isFocusedFXMappingEnabled_ = true;
     
-    ptrvector<Zone *> selectedTrackFXZones_;
+    vector<Zone *> selectedTrackFXZones_;
     Zone *fxSlotZone_ = NULL;
     
     int trackSendOffset_ = 0;
@@ -1098,8 +1058,8 @@ private:
     void GoSelectedTrackFX();
     void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
-    void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, ptrvector<Navigator *> &navigators);
-    void LoadZones(ptrvector<Zone *> &zones, string_list &zoneList);
+    void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, vector<Navigator *> &navigators);
+    void LoadZones(vector<Zone *> &zones, string_list &zoneList);
          
     void DoAction(Widget *widget, double value, bool &isUsed);
     void DoRelativeAction(Widget *widget, double delta, bool &isUsed);
@@ -1271,7 +1231,7 @@ private:
                 zonesToBeDeleted_.Add(selectedTrackFXZones_[i]);
         }
         
-        selectedTrackFXZones_.Empty();
+        selectedTrackFXZones_.clear();
     }
     
     void ClearFXSlot()
@@ -1331,7 +1291,7 @@ public:
             
         goZones_.clear();
 
-        selectedTrackFXZones_.Empty(true);
+        selectedTrackFXZones_.clear();
     }
     
     void Initialize();
@@ -1346,7 +1306,7 @@ public:
     bool GetIsBroadcaster() { return  ! (listeners_.size() == 0); }
     void AddListener(ControlSurface *surface);
     void SetListenerCategories(PropertyList &pList);
-    const ptrvector<ZoneManager *> &GetListeners() { return listeners_; }
+    const vector<ZoneManager *> &GetListeners() { return listeners_; }
     void ToggleUseLocalFXSlot() { usesLocalFXSlot_ = ! usesLocalFXSlot_; }
     bool GetToggleUseLocalFXSlot() { return usesLocalFXSlot_; }
 
@@ -1633,7 +1593,7 @@ public:
     {
         ResetSelectedTrackOffsets();
         
-        selectedTrackFXZones_.Empty(true);
+        selectedTrackFXZones_.clear();
         
         for (int i = 0; i < goZones_.size(); ++i)
         {
@@ -2132,7 +2092,7 @@ protected:
     
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
     
-    void ProcessValues(const ptrvector<string_list> &lines);
+    void ProcessValues(const vector<string_list> &lines);
     
     CSurfIntegrator *const csi_;
     Page *const page_;
