@@ -5,7 +5,6 @@
 //
 
 #include "control_surface_integrator.h"
-#include "../WDL/dirscan.h"
 #include "resource.h"
 
 extern void TrimLine(string &line);
@@ -2434,45 +2433,6 @@ void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTr
     CreateContextMap(t);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class FileSystem
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    static string_list GetDirectoryFilenames(const string &path)
-    {
-        string_list filenames;
-
-        WDL_DirScan scan;
-        
-        if (!scan.First(path.c_str()))
-            do {
-              const char *ext = WDL_get_fileext(scan.GetCurrentFN());
-              if (scan.GetCurrentFN()[0] != '.' && !scan.GetCurrentIsDirectory() && (!stricmp(ext,".mst") || !stricmp(ext,".ost")))
-                filenames.push_back(std::string(scan.GetCurrentFN()));
-            } while (!scan.Next());
-        
-        return filenames;
-    }
-    
-    static string_list GetDirectoryFolderNames(const string &path)
-    {
-        string_list folderNames;
-
-        WDL_DirScan scan;
-        
-        if (!scan.First(path.c_str()))
-        {
-            do {
-              if (scan.GetCurrentFN()[0] != '.' && scan.GetCurrentIsDirectory())
-                folderNames.push_back(std::string(scan.GetCurrentFN()));
-            } while (!scan.Next());
-        }
-        
-        return folderNames;
-    }
-};
-
 static bool s_editMode = false;
 
 static char *s_genericOSCSurface = (char *)"Generic OSC Surface";
@@ -2726,15 +2686,15 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
     {
         case WM_INITDIALOG:
         {
-            const string resourcePath(GetResourcePath());
-            
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_COMBO_PageSurface));
-               
-            string_list list = FileSystem::GetDirectoryFolderNames(resourcePath + "/CSI/Surfaces");
-
-            for (int i = 0; i < list.size(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)list.get(i), IDC_COMBO_PageSurfaceFolder);
-                        
+            
+            filesystem::path path { string(GetResourcePath()) + "/CSI/Surfaces"};
+            
+            if(filesystem::exists(path) && filesystem::is_directory(path))
+                for(auto& file : filesystem::directory_iterator(path))
+                    if (filesystem::is_directory(file.path()))
+                        AddComboEntry(hwndDlg, 0, (char *)file.path().filename().c_str(), IDC_COMBO_PageSurfaceFolder);
+            
             for (int i = 0; i < s_surfaces.GetSize(); ++i)
                 AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_COMBO_PageSurface);
             
