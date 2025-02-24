@@ -2863,14 +2863,14 @@ protected:
     CSurfIntegrator *const csi_;
     string const name_;
     int const channelCount_;
-    oscpkt::UdpSocket *inSocket_;
-    oscpkt::UdpSocket *outSocket_;
+    oscpkt::UdpSocket *inSocket_ = NULL;
+    oscpkt::UdpSocket *outSocket_ = NULL;
     oscpkt::PacketReader packetReader_;
     oscpkt::PacketWriter packetWriter_;
     oscpkt::Storage storageTmp_;
-    int maxBundleSize_; // 0 = no bundles (would only be useful if the destination doesn't support bundles)
+    int maxBundleSize_ = 0; // 0 = no bundles (would only be useful if the destination doesn't support bundles)
     int maxPacketsPerRun_; // 0 = no limit
-    int sentPacketCount_; // count of packets sent this Run() slice, after maxPacketsPerRun_ packtees go into packetQueue_
+    int sentPacketCount_= 0; // count of packets sent this Run() slice, after maxPacketsPerRun_ packtees go into packetQueue_
     WDL_Queue packetQueue_;
     
 public:

@@ -4005,11 +4005,7 @@ OSC_X32ControlSurfaceIO::OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, con
 OSC_ControlSurfaceIO::OSC_ControlSurfaceIO(CSurfIntegrator *const csi, const char *surfaceName, int channelCount, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun) : csi_(csi), name_(surfaceName), channelCount_(channelCount)
 {
     // private:
-    inSocket_ = NULL;
-    outSocket_ = NULL;
-    maxBundleSize_ = 0; // could be user configured, possible some networks might enforce a 1500 byte MTU or something
     maxPacketsPerRun_ = maxPacketsPerRun < 0 ? 0 : maxPacketsPerRun;
-    sentPacketCount_ = 0;
 
     if (strcmp(receiveOnPort, transmitToPort))
     {
