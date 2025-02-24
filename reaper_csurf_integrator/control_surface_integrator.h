@@ -3856,11 +3856,7 @@ protected:
     WDL_PtrList<ControlSurface> surfaces_;
     
 public:
-    Page(CSurfIntegrator *const csi, const char *name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : csi_(csi), name_(name)
-    {
-        trackNavigationManager_ = new TrackNavigationManager(csi_, this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
-        modifierManager_ = new ModifierManager(csi_, this, NULL);
-    }
+    Page(CSurfIntegrator *const csi, const char *name, bool followMCP,  bool synchPages, bool isScrollLinkEnabled, bool isScrollSynchEnabled) : csi_(csi), name_(name), trackNavigationManager_(new TrackNavigationManager(csi_, this, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled)), modifierManager_(new ModifierManager(csi_, this, NULL)) {}
 
     ~Page()
     {
