@@ -223,7 +223,7 @@ void ReplaceAllWith(string &output, const char *charsToReplace, const char *repl
     }
 }
 
-void GetSubTokens(string_list &tokens, const char *line, char delim)
+void GetTokens(string_list &tokens, const char *line, char delim)
 {
     while (*line)
     {
@@ -2689,7 +2689,7 @@ static ModifierManager s_modifierManager(NULL);
 void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount, bool &isDecrease, bool &isIncrease)
 {
     string_list tokens;
-    GetSubTokens(tokens, line, '+');
+    GetTokens(tokens, line, '+');
     
     baseWidgetName = tokens[tokens.size() - 1];
 

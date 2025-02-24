@@ -1189,7 +1189,7 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
     for (int i = 0; i < tokens.size(); ++i)
     {
         string_list kvps;
-        GetSubTokens(kvps, tokens.get(i), '=');
+        GetTokens(kvps, tokens.get(i), '=');
         
         if (kvps.size() == 2)
             context->GetWidgetProperties().set_prop(PropertyList::prop_from_string(kvps.get(0)), kvps.get(1));

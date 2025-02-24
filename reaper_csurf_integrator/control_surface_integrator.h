@@ -145,7 +145,7 @@ class string_list
 };
 
 extern void GetTokens(string_list &tokens, const char *line);
-extern void GetSubTokens(string_list &tokens, const char *line, char delim);
+extern void GetTokens(string_list &tokens, const char *line, char delim);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
@@ -1910,7 +1910,7 @@ public:
     int GetModifierValue(const char *modifierString)
     {
         string_list modifierTokens;
-        GetSubTokens(modifierTokens, modifierString, '+');
+        GetTokens(modifierTokens, modifierString, '+');
         return GetModifierValue(modifierTokens);
     }
     
