@@ -2542,17 +2542,14 @@ class FeedbackProcessor
 {
 protected:
     CSurfIntegrator *const csi_;
-    double lastDoubleValue_;
+    double lastDoubleValue_ = 0.0;
     string lastStringValue_;
     rgba_color lastColor_;
     
     Widget  *const widget_;
     
 public:
-    FeedbackProcessor(CSurfIntegrator *const csi, Widget *widget) : csi_(csi), widget_(widget)
-    {
-        lastDoubleValue_ = 0.0;
-    }
+    FeedbackProcessor(CSurfIntegrator *const csi, Widget *widget) : csi_(csi), widget_(widget) {}
     virtual ~FeedbackProcessor() {}
     virtual const char *GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
