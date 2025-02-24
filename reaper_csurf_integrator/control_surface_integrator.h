@@ -3097,22 +3097,22 @@ protected:
     bool synchPages_;
     bool isScrollLinkEnabled_;
     bool isScrollSynchEnabled_;
-    int currentTrackVCAFolderMode_;
-    int targetScrollLinkChannel_;
-    int trackOffset_;
-    int vcaTrackOffset_;
-    int folderTrackOffset_;
-    int selectedTracksOffset_;
+    int currentTrackVCAFolderMode_ = 0;
+    int targetScrollLinkChannel_ = 0;
+    int trackOffset_ = 0;
+    int vcaTrackOffset_ = 0;
+    int folderTrackOffset_ = 0;
+    int selectedTracksOffset_ = 0;
     WDL_PtrList<MediaTrack> tracks_;
     WDL_PtrList<MediaTrack> selectedTracks_;
     
     WDL_PtrList<MediaTrack> vcaTopLeadTracks_;
-    MediaTrack             *vcaLeadTrack_;
+    MediaTrack             *vcaLeadTrack_ = NULL;
     WDL_PtrList<MediaTrack> vcaLeadTracks_;
     WDL_PtrList<MediaTrack> vcaSpillTracks_;
     
     WDL_PtrList<MediaTrack> folderTopParentTracks_;
-    MediaTrack             *folderParentTrack_;
+    MediaTrack             *folderParentTrack_ = NULL;
     WDL_PtrList<MediaTrack> folderParentTracks_;
     WDL_PtrList<MediaTrack> folderSpillTracks_;
     WDL_PointerKeyedArray<MediaTrack*, WDL_PtrList<MediaTrack>* > folderDictionary_;
@@ -3167,18 +3167,7 @@ public:
     masterTrackNavigator_(new MasterTrackNavigator(csi_, page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(csi_, page_)),
     focusedFXNavigator_(new FocusedFXNavigator(csi_, page_)),
-    folderDictionary_(disposeFolderParents)
-    {
-        //private:
-        currentTrackVCAFolderMode_ = 0;
-        targetScrollLinkChannel_ = 0;
-        trackOffset_ = 0;
-        vcaTrackOffset_ = 0;
-        folderTrackOffset_ = 0;
-        selectedTracksOffset_ = 0;
-        vcaLeadTrack_ = NULL;
-        folderParentTrack_ = NULL;
-    }
+    folderDictionary_(disposeFolderParents) {}
     
     ~TrackNavigationManager()
     {
