@@ -3926,12 +3926,6 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
 : ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
 {
-    // private:
-    // special processing for MCU meters
-    hasMCUMeters_ = false;
-    displayType_ = 0x14;
-    lastRun_ = 0;
-    
     ProcessMIDIWidgetFile(surfaceFile, this);
     InitHardwiredWidgets(this);
     InitializeMeters();

@@ -2752,15 +2752,15 @@ private:
     WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
     static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
     
-    DWORD lastRun_;
+    DWORD lastRun_ = 0;
 
     void ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     
     // special processing for MCU meters
-    bool hasMCUMeters_;
-    int displayType_;
+    bool hasMCUMeters_ = false;
+    int displayType_ = 0x14;
 
     void InitializeMCU();
     void InitializeMCUXT();
