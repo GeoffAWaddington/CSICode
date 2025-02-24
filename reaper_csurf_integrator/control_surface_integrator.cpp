@@ -11,7 +11,6 @@
 #include "control_surface_Reaper_actions.h"
 #include "control_surface_manager_actions.h"
 
-#include "../WDL/dirscan.h"
 #include "resource.h"
 
 extern WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -545,38 +544,14 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
 }
 
 // files
-static void listFilesOfType(const string &path, string_list &results, const char *type)
+static void listFilesOfType(const string &path, vector<string> &results, const string &type)
 {
-    WDL_PtrList<char> stack;
-    WDL_FastString tmp;
-    stack.Add(strdup(path.c_str()));
+    filesystem::path zonePath { path };
     
-    while (stack.GetSize()>0)
-    {
-        const char *curpath = stack.Get(0);
-        WDL_DirScan ds;
-        if (!ds.First(curpath))
-        {
-            do
-            {
-                if (ds.GetCurrentFN()[0] == '.')
-                {
-                  // ignore dotfiles and ./..
-                }
-                else if (ds.GetCurrentIsDirectory())
-                {
-                    ds.GetCurrentFullFN(&tmp);
-                    stack.Add(strdup(tmp.Get()));
-                }
-                else if (!stricmp(type,WDL_get_fileext(ds.GetCurrentFN())))
-                {
-                    ds.GetCurrentFullFN(&tmp);
-                    results.push_back(string(tmp.Get()));
-                }
-            } while (!ds.Next());
-        }
-        stack.Delete(0,true,free);
-    }
+    if(filesystem::exists(path) && filesystem::is_directory(path))
+        for(auto& file : filesystem::recursive_directory_iterator(path))
+            if(file.path().extension() == type)
+                results.push_back(file.path().string());
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1303,7 +1278,7 @@ void CSurfIntegrator::Init()
     
     string CSIFolderPath = string(GetResourcePath()) + "/CSI";
     
-    if ( ! std::filesystem::exists(CSIFolderPath))
+    if ( ! filesystem::exists(CSIFolderPath))
     {
         char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), CSIFolderPath.c_str());
@@ -1314,7 +1289,7 @@ void CSurfIntegrator::Init()
     
     string iniFilePath = string(GetResourcePath()) + "/CSI/CSI.ini";
     
-    if ( ! std::filesystem::exists(iniFilePath))
+    if ( ! filesystem::exists(iniFilePath))
     {
         char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), iniFilePath.c_str());
@@ -1507,7 +1482,7 @@ void CSurfIntegrator::Init()
                                 
                                 string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/");
                                      
-                                if ( ! std::filesystem::exists(baseDir))
+                                if ( ! filesystem::exists(baseDir))
                                 {
                                     char tmp[MEDBUF];
                                     snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), baseDir.c_str());
@@ -1518,7 +1493,7 @@ void CSurfIntegrator::Init()
                                 
                                 string surfaceFile = baseDir + surfaceFolderProp + "/Surface.txt";
                                 
-                                if ( ! std::filesystem::exists(surfaceFile))
+                                if ( ! filesystem::exists(surfaceFile))
                                 {
                                     char tmp[MEDBUF];
                                     snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), surfaceFile.c_str());
@@ -1531,7 +1506,7 @@ void CSurfIntegrator::Init()
                                 if (const char *zoneFolderProp = pList.get_prop(PropertyType_ZoneFolder))
                                     zoneFolder = baseDir + zoneFolderProp + "/Zones";
                                 
-                                if ( ! std::filesystem::exists(zoneFolder))
+                                if ( ! filesystem::exists(zoneFolder))
                                 {
                                     char tmp[MEDBUF];
                                     snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), zoneFolder.c_str());
@@ -1544,7 +1519,7 @@ void CSurfIntegrator::Init()
                                 if (const char *fxZoneFolderProp = pList.get_prop(PropertyType_FXZoneFolder))
                                     fxZoneFolder = baseDir + fxZoneFolderProp + "/FXZones";
 
-                                if ( ! std::filesystem::exists(fxZoneFolder))
+                                if ( ! filesystem::exists(fxZoneFolder))
                                 {
                                     char tmp[MEDBUF];
                                     snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), fxZoneFolder.c_str());
@@ -3142,7 +3117,8 @@ void ZoneManager::PreProcessZones()
         return;
     }
     
-    string_list zoneFilesToProcess;
+    vector<string>  zoneFilesToProcess;
+    
     listFilesOfType(zoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at zoneFolder
        
     if (zoneFilesToProcess.size() == 0)
@@ -3156,8 +3132,8 @@ void ZoneManager::PreProcessZones()
           
     listFilesOfType(fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
      
-    for (int i = 0; i < (int)zoneFilesToProcess.size(); ++i)
-        PreProcessZoneFile(zoneFilesToProcess[i]);
+    for (const string& zoneFile : zoneFilesToProcess)
+        PreProcessZoneFile(zoneFile.c_str());
 }
 
 void ZoneManager::DoAction(Widget *widget, double value)
