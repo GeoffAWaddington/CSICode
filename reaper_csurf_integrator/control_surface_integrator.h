@@ -1828,7 +1828,7 @@ private:
     Page *page_;
     ControlSurface *surface_;
     
-    int latchTime_;
+    int latchTime_ = 100;
     
     enum Modifiers
     {
@@ -1914,13 +1914,8 @@ private:
     void SetLatchModifier(bool value, Modifiers modifier, int latchTime);
 
 public:
-    ModifierManager(CSurfIntegrator *const csi, Page *page = NULL, ControlSurface *surface = NULL) : csi_(csi)
+    ModifierManager(CSurfIntegrator *const csi, Page *page = NULL, ControlSurface *surface = NULL) : csi_(csi), page_(page), surface_(surface)
     {
-        // private:
-        page_ = page;
-        surface_ = surface;
-        latchTime_ = 100;
-
         int *p = modifierCombinations_.ResizeOK(1);
         if (WDL_NORMALLY(p)) p[0]=0;
 
