@@ -522,9 +522,9 @@ static void listFilesOfType(const string &path, vector<string> &results, const s
 {
     filesystem::path zonePath { path };
     
-    if(filesystem::exists(path) && filesystem::is_directory(path))
-        for(auto& file : filesystem::recursive_directory_iterator(path))
-            if(file.path().extension() == type)
+    if (filesystem::exists(path) && filesystem::is_directory(path))
+        for (auto &file : filesystem::recursive_directory_iterator(path))
+            if (file.path().extension() == type)
                 results.push_back(file.path().string());
 }
 
@@ -2648,7 +2648,7 @@ void ZoneManager::Initialize()
     homeZone_->Activate();
 }
 
-void ZoneManager::PreProcessZoneFile(const char *filePath)
+void ZoneManager::PreProcessZoneFile(const string &filePath)
 {
     try
     {
@@ -2679,7 +2679,7 @@ void ZoneManager::PreProcessZoneFile(const char *filePath)
     catch (exception)
     {
         char buffer[250];
-        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath, 1);
+        snprintf(buffer, sizeof(buffer), "Trouble in %s, around line %d\n", filePath.c_str(), 1);
         ShowConsoleMsg(buffer);
     }
 }
@@ -3106,8 +3106,8 @@ void ZoneManager::PreProcessZones()
           
     listFilesOfType(fxZoneFolder_ + "/", zoneFilesToProcess, ".zon"); // recursively find all .zon files, starting at fxZoneFolder
      
-    for (const string& zoneFile : zoneFilesToProcess)
-        PreProcessZoneFile(zoneFile.c_str());
+    for (const string &zoneFile : zoneFilesToProcess)
+        PreProcessZoneFile(zoneFile);
 }
 
 void ZoneManager::DoAction(Widget *widget, double value)

@@ -1313,7 +1313,7 @@ public:
     int  GetNumChannels();
     
     void PreProcessZones();
-    void PreProcessZoneFile(const char *filePath);
+    void PreProcessZoneFile(const string &filePath);
     void LoadZoneFile(Zone *zone, const char *widgetSuffix);
     void LoadZoneFile(Zone *zone, const char *filePath, const char *widgetSuffix);
 
