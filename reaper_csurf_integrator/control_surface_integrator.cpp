@@ -2612,34 +2612,7 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneInfo_(true, disposeAction)
-{
-    holdDelayAmount_ = 1.0;
-    
-    homeZone_ = NULL;
-
-    focusedFXZone_ = NULL;
-    fxSlotZone_ = NULL;
-    learnFocusedFXZone_ = NULL;
-    lastTouchedFXParamZone_ = NULL;
-    
-    listensToGoHome_ = false;
-    listensToSends_ = false;
-    listensToReceives_ = false;
-    listensToFXMenu_ = false;
-    usesLocalFXSlot_ = false;
-    listensToSelectedTrackFX_ = false;
-
-    isLastTouchedFXParamMappingEnabled_ = false;
-    isFocusedFXMappingEnabled_ = true;
-    
-    trackSendOffset_ = 0;
-    trackReceiveOffset_ = 0;
-    trackFXMenuOffset_ = 0;
-    selectedTrackSendOffset_ = 0;
-    selectedTrackReceiveOffset_ = 0;
-    selectedTrackFXMenuOffset_ = 0;
-    masterTrackFXMenuOffset_ = 0;
-}
+{}
 
 Navigator *ZoneManager::GetNavigatorForTrack(MediaTrack *track) { return surface_->GetPage()->GetNavigatorForTrack(track); }
 Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }

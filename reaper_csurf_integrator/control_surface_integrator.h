@@ -1063,11 +1063,11 @@ private:
     WDL_StringKeyedArray<CSIZoneInfo*> zoneInfo_;
     static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
         
-    double holdDelayAmount_;
+    double holdDelayAmount_ = 1.0;
     
-    Zone *learnFocusedFXZone_;
+    Zone *learnFocusedFXZone_ = NULL;
     
-    Zone *homeZone_;
+    Zone *homeZone_ = NULL;
 
     ptrvector<Zone *> goZones_;
     
@@ -1077,29 +1077,29 @@ private:
     
     WDL_PtrList<Zone> zonesToBeDeleted_;
     
-    bool listensToGoHome_;
-    bool listensToSends_;
-    bool listensToReceives_;
-    bool listensToFXMenu_;
-    bool usesLocalFXSlot_;
-    bool listensToSelectedTrackFX_;
+    bool listensToGoHome_ = false;
+    bool listensToSends_ = false;
+    bool listensToReceives_ = false;
+    bool listensToFXMenu_ = false;
+    bool usesLocalFXSlot_ = false;
+    bool listensToSelectedTrackFX_ = false;
 
-    Zone *lastTouchedFXParamZone_;
-    bool isLastTouchedFXParamMappingEnabled_;
+    Zone *lastTouchedFXParamZone_ = NULL;
+    bool isLastTouchedFXParamMappingEnabled_= false;
     
-    Zone *focusedFXZone_;
-    bool isFocusedFXMappingEnabled_;
+    Zone *focusedFXZone_ = NULL;
+    bool isFocusedFXMappingEnabled_ = true;
     
     ptrvector<Zone *> selectedTrackFXZones_;
-    Zone *fxSlotZone_;
+    Zone *fxSlotZone_ = NULL;
     
-    int trackSendOffset_;
-    int trackReceiveOffset_;
-    int trackFXMenuOffset_;
-    int selectedTrackSendOffset_;
-    int selectedTrackReceiveOffset_;
-    int selectedTrackFXMenuOffset_;
-    int masterTrackFXMenuOffset_;
+    int trackSendOffset_ = 0;
+    int trackReceiveOffset_ = 0;
+    int trackFXMenuOffset_ = 0;
+    int selectedTrackSendOffset_ = 0;
+    int selectedTrackReceiveOffset_ = 0;
+    int selectedTrackFXMenuOffset_ = 0;
+    int masterTrackFXMenuOffset_ = 0;
     
     string_list paramList_;
 
