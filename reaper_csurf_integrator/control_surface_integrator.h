@@ -23,6 +23,7 @@
 #endif
 #endif
 
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <math.h>
@@ -88,18 +89,6 @@ static const char * const s_OSCX32SurfaceToken = "OSCX32";
 static const char * const s_BadFileChars = " \\:*?<>|.,()/";
 static const char * const s_BeginAutoSection = "#Begin auto generated section";
 static const char * const s_EndAutoSection = "#End auto generated section";
-
-class fpistream
-{
-  public:
-    FILE *handle;
-
-    fpistream(const char *fn) { handle = fopenUTF8(fn, "rb"); }
-    ~fpistream() { close(); }
-    void close() { if (handle) { fclose(handle); handle = NULL; } }
-};
-
-bool getline(fpistream &fp, string &str); // mimic C++ getline()
 
 static char *format_number(double v, char *buf, int bufsz)
 {
@@ -1123,7 +1112,7 @@ private:
         
         try
         {
-            fpistream file(filePath);
+            ifstream file(filePath);
             
             for (string line; getline(file, line) ; )
             {
@@ -2756,7 +2745,7 @@ private:
     
     DWORD lastRun_ = 0;
 
-    void ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
+    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     
@@ -3059,7 +3048,7 @@ class OSC_ControlSurface : public ControlSurface
 {
 private:
     OSC_ControlSurfaceIO *const surfaceIO_;
-    void ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens);
+    void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
     OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);

@@ -202,32 +202,6 @@ void TrimLine(string &line)
     }
 }
 
-bool getline(fpistream &fp, string &str) // mimic C++ getline()
-{
-    if (fp.handle == NULL)
-        return false;
-    
-    str.clear();
-    if (WDL_NOT_NORMALLY(!fp.handle)) return false;
-    for (;;)
-    {
-        char buf[512];
-        if (!fgets(buf, sizeof(buf), fp.handle) || WDL_NOT_NORMALLY(!buf[0]))
-            return str.length()>0;
-        str.append(buf);
-
-        const size_t sz = str.length();
-        if (WDL_NORMALLY(sz>0) && str.c_str()[sz-1] == '\n')
-        {
-            if (sz>1 && str.c_str()[sz-2] == '\r')
-                str.resize(sz - 2);
-            else
-                str.resize(sz - 1);
-            return true;
-        }
-    }
-}
-
 void ReplaceAllWith(string &output, const char *charsToReplace, const char *replacement)
 {
     // replace all occurences of
@@ -557,7 +531,7 @@ static void listFilesOfType(const string &path, vector<string> &results, const s
 //////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 //////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -873,7 +847,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, fpistream &surfaceT
 //////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 //////////////////////////////////////////////////////////////////////////////
-void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, fpistream &surfaceTemplateFile, const string_list &in_tokens)
+void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
@@ -1016,7 +990,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 
     try
     {
-        fpistream file(filePath.c_str());
+        ifstream file(filePath);
         
         for (string line; getline(file, line) ; )
         {
@@ -1063,7 +1037,7 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 
     try
     {
-        fpistream file(filePath.c_str());
+        ifstream file(filePath);
         
         for (string line; getline(file, line) ; )
         {
@@ -1303,7 +1277,7 @@ void CSurfIntegrator::Init()
     
     try
     {
-        fpistream iniFile(iniFilePath.c_str());
+        ifstream iniFile(iniFilePath);
                
         for (string line; getline(iniFile, line) ; )
         {
@@ -2678,7 +2652,7 @@ void ZoneManager::PreProcessZoneFile(const char *filePath)
 {
     try
     {
-        fpistream file(filePath);
+        ifstream file(filePath);
         
         CSIZoneInfo info;
         info.filePath = filePath;
@@ -2843,7 +2817,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
 
     try
     {
-        fpistream file(filePath);
+        ifstream file(filePath);
         
         for (string line; getline(file, line) ; )
         {

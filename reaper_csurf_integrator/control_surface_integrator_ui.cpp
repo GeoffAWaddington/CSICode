@@ -514,7 +514,7 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
 
     try
     {
-        fpistream file(zoneInfo.Get("FXRowLayout")->filePath.c_str());
+        ifstream file(zoneInfo.Get("FXRowLayout")->filePath);
         
         for (string line; getline(file, line) ; )
         {
@@ -549,7 +549,7 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
 
     try
     {
-        fpistream file(zoneInfo.Get("FXWidgetLayout")->filePath.c_str());
+        ifstream file(zoneInfo.Get("FXWidgetLayout")->filePath);
         
         for (string line; getline(file, line) ; )
         {
@@ -622,7 +622,7 @@ static void WriteBoilerPlate(FILE *fxFile, string &fxBoilerplatePath)
     
     try
     {
-        fpistream file(fxBoilerplatePath.c_str());
+        ifstream file(fxBoilerplatePath);
         
         for (string line; getline(file, line) ; )
         {
@@ -679,7 +679,7 @@ static void SaveZone(SurfaceFXTemplate *t)
             
             if (zoneManager->GetZoneInfo().Exists("FXPrologue"))
             {
-                fpistream file(zoneManager->GetZoneInfo().Get("FXPrologue")->filePath.c_str());
+                ifstream file(zoneManager->GetZoneInfo().Get("FXPrologue")->filePath);
                     
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
@@ -833,7 +833,7 @@ static void SaveZone(SurfaceFXTemplate *t)
 
             if (zoneManager->GetZoneInfo().Exists("FXEpilogue"))
             {
-                fpistream file(zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath.c_str());
+                ifstream file(zoneManager->GetZoneInfo().Get("FXEpilogue")->filePath);
                     
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
@@ -3780,7 +3780,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
             
             string iniFilePath = string(GetResourcePath()) + "/CSI/CSI.ini";
             
-            fpistream iniFile(iniFilePath.c_str());
+            ifstream iniFile(iniFilePath);
             
             int lineNumber = 0;
             
