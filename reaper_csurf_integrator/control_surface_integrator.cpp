@@ -4331,10 +4331,6 @@ static const char * const Control_Surface_Integrator = "Control Surface Integrat
 
 CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), fxParamSteppedValueCounts_(true, disposeCounts)
 {
-    currentPageIndex_ = 0;
-
-    shouldRun_ = true;
-    currentProject_ = NULL;
     
     InitActionsDictionary();
 

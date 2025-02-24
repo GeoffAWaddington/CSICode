@@ -4139,11 +4139,11 @@ private:
 
     WDL_PtrList<Page> pages_;
 
-    int currentPageIndex_;
+    int currentPageIndex_ = 0;
     
-    bool shouldRun_;
+    bool shouldRun_ = true;
     
-    ReaProject* currentProject_;
+    ReaProject* currentProject_ = NULL;
     
     // these are offsets to be passed to projectconfig_var_addr() when needed in order to get the actual pointers
     int timeModeOffs_;
