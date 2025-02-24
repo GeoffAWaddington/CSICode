@@ -1394,10 +1394,6 @@ public:
     void DoRelativeAction(Widget *widget, int accelerationIndex, double delta);
     void DoTouch(Widget *widget, double value);
     
-    void UnlockChannelRight(int channelNumber);
-    void LockChannelRight(Zone *zone);
-    void OnTrackListChange();
-    
     const char *GetFXZoneFolder() { return fxZoneFolder_.c_str(); }
     const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneInfo() { return zoneInfo_; }
 
@@ -3945,28 +3941,6 @@ public:
     
     const WDL_PtrList<ControlSurface> &GetSurfaces() { return surfaces_; }
     
-    void UnlockChannelRight(int channelNumber)
-    {
-        int maxOffsetSurfaceIdx = 0;
-        
-        for (int i = 0; i < surfaces_.GetSize(); ++i)
-            if (surfaces_.Get(i)->GetChannelOffset() > maxOffsetSurfaceIdx)
-                maxOffsetSurfaceIdx = surfaces_.Get(i)->GetChannelOffset();
-        
-        surfaces_.Get(maxOffsetSurfaceIdx)->GetZoneManager()->UnlockChannelRight(channelNumber);
-    }
-        
-    void LockChannelRight(Zone *zone)
-    {
-        int maxOffsetSurfaceIdx = 0;
-        
-        for (int i = 0; i < surfaces_.GetSize(); ++i)
-            if (surfaces_.Get(i)->GetChannelOffset() > maxOffsetSurfaceIdx)
-                maxOffsetSurfaceIdx = surfaces_.Get(i)->GetChannelOffset();
-        
-        surfaces_.Get(maxOffsetSurfaceIdx)->GetZoneManager()->LockChannelRight(zone);
-    }
-    
     void AddSurface(ControlSurface *surface)
     {
         if (WDL_NOT_NORMALLY(!surface)) { return; }
@@ -4013,14 +3987,6 @@ public:
     void OnTrackListChange()
     {
         trackNavigationManager_->OnTrackListChange();
-        
-        int maxOffsetSurfaceIdx = 0;
-        
-        for (int i = 0; i < surfaces_.GetSize(); ++i)
-            if (surfaces_.Get(i)->GetChannelOffset() > maxOffsetSurfaceIdx)
-                maxOffsetSurfaceIdx = surfaces_.Get(i)->GetChannelOffset();
-        
-        surfaces_.Get(maxOffsetSurfaceIdx)->GetZoneManager()->OnTrackListChange();
     }
     
     void OnTrackSelectionBySurface(MediaTrack *track)

@@ -1162,8 +1162,6 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.Insert("NextPage", new GoNextPage());
     actions_.Insert("GoPage", new GoPage());
     actions_.Insert("PageNameDisplay", new PageNameDisplay());
-    actions_.Insert("UnlockChannelRight", new UnlockChannelRight());
-    actions_.Insert("LockChannelRight", new LockChannelRight());
     actions_.Insert("GoHome", new GoHome());
     actions_.Insert("AllSurfacesGoHome", new AllSurfacesGoHome());
     actions_.Insert("GoSubZone", new GoSubZone());
@@ -2781,114 +2779,6 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
         navigators.push_back(GetFocusedFXNavigator());
     else
         navigators.push_back(GetSelectedTrackNavigator());
-}
-
-void ZoneManager::UnlockChannelRight(int channelNumber)
-{
-    /*
-    ptrvector<Zone *> iZones = homeZone_->GetIncludedZones();
-    
-    for (int i = 0; i < iZones.size(); ++i)
-    {
-        if ( ! strcmp(iZones[i]->GetName(), "Track"))
-        {
-            const WDL_PtrList<Widget> &widgets = iZones[i]->GetWidgets();
-            
-            if (widgets.GetSize() > 0 && widgets.Get(0)->GetChannelNumber() == channelNumber && surface_->GetNumChannels() - tracksLockedRight_.size() == channelNumber - 1)
-            {
-                Zone *channelZone = iZones[i];
-                
-                if ( ! strcmp(channelZone->GetNavigator()->GetName(), "FixedTrackNavigator"))
-                {                   
-                    tracksLockedRight_.erase(tracksLockedRight_.begin());
-                    
-                    delete channelZone->GetNavigator();
-                    
-                    int channelToRestore = surface_->GetChannelOffset() + surface_->GetNumChannels() - tracksLockedRight_.size() - 1;
-                    
-                    channelZone->SetNavigator(surface_->GetPage()->GetNavigatorForChannel(channelToRestore));
-                    
-                    break;
-                }
-            }
-        }
-    }
-    */
-}
-
-void ZoneManager::LockChannelRight(Zone *zone)
-{
-    /*
-    MediaTrack *track = zone->GetNavigator()->GetTrack();
-        
-    for (int i = 0; i < tracksLockedRight_.size(); ++i)
-        if (tracksLockedRight_[i] == track)
-            return;
-
-    if (tracksLockedRight_.size() < GetSurface()->GetNumChannels()) // add
-    {
-        tracksLockedRight_.push_back(track);
-
-        ptrvector<Zone *> iZones = homeZone_->GetIncludedZones();
-        
-        vector<Zone *> trackZones;
-        
-        for (int i = 0; i < iZones.size(); ++i)
-        {
-            if ( ! strcmp(iZones[i]->GetName(), "Track"))
-                trackZones.push_back(iZones[i]);
-        }
-        
-        trackZones[GetSurface()->GetNumChannels() - tracksLockedRight_.size()]->SetNavigator(new FixedTrackNavigator(csi_, surface_->GetPage(), track));
-    }
-*/
-    
-    
-    /*
-    const GUID *guid = GetTrackGUID(track);
-    
-    char guidBuf[MEDBUF];
-    
-    guidToString(guid, guidBuf);
-    */
-    
-    
-}
-
-void ZoneManager::OnTrackListChange()
-{
-    /*
-    if (tracksLockedRight_.size() == 0)
-        return;
-    
-    for (int i = 0; i < tracksLockedRight_.size(); ++i)
-    {
-        if ( ! ValidatePtr(tracksLockedRight_[i], "MediaTrack*"))
-        {
-            ptrvector<Zone *> iZones = homeZone_->GetIncludedZones();
-            
-            vector<Zone *> trackZones;
-            
-            for (int i = 0; i < iZones.size(); ++i)
-            {
-                if ( ! strcmp(iZones[i]->GetName(), "Track"))
-                    trackZones.push_back(iZones[i]);
-            }
-            
-            for (int i = 0; i < trackZones.size(); ++i)
-            {
-                if (! strcmp(trackZones[i]->GetNavigator()->GetName(), "FixedTrackNavigator"))
-                    delete trackZones[i]->GetNavigator();
-                
-                trackZones[i]->SetNavigator(surface_->GetPage()->GetNavigatorForChannel(surface_->GetChannelOffset() + i));
-            }
-            
-            tracksLockedRight_.clear();
-            
-            break;
-        }
-    }
-    */
 }
 
 void ZoneManager::LoadZones(ptrvector<Zone *> &zones, string_list &zoneList)

@@ -461,60 +461,6 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class UnlockChannelRight : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "UnlockChannelRight"; }
-    
-    virtual void RequestUpdate(ActionContext *context) override
-    {
-        /*
-        if (context->GetSurface()->GetZoneManager()->GetIsHomeZoneOnlyActive())
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-         */
-    }
-
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0)
-            return; // ignore button releases
-
-        if (Zone *zone = context->GetZone())
-            context->GetSurface()->GetPage()->UnlockChannelRight(context->GetWidget()->GetChannelNumber());
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class LockChannelRight : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "LockChannelRight"; }
-    
-    virtual void RequestUpdate(ActionContext *context) override
-    {
-        /*
-        if (context->GetSurface()->GetZoneManager()->GetIsHomeZoneOnlyActive())
-            context->UpdateWidgetValue(1.0);
-        else
-            context->UpdateWidgetValue(0.0);
-         */
-    }
-
-    void Do(ActionContext *context, double value) override
-    {
-        if (value == 0.0)
-            return; // ignore button releases
-
-        if (Zone *zone = context->GetZone())
-            context->GetSurface()->GetPage()->LockChannelRight(zone);
-    }
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class GoHome : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
