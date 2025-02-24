@@ -787,7 +787,7 @@ protected:
     string const alias_;
     string const sourceFilePath_;
     
-    bool isActive_;
+    bool isActive_= false;
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
     WDL_PtrList<Widget> widgets_;
@@ -804,10 +804,7 @@ protected:
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), actionContextDictionary_(destroyActionContextListArray)
-    {
-        isActive_ = false;
-    }
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), actionContextDictionary_(destroyActionContextListArray) {}
 
     virtual ~Zone()
     {
