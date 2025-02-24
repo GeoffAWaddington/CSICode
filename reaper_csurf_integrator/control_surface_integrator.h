@@ -2112,19 +2112,19 @@ class ControlSurface
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {    
 private:
-    int *scrubModePtr_;
-    int configScrubMode_;
+    int *scrubModePtr_ = NULL;
+    int configScrubMode_ = 0;
     
-    bool isRewinding_;
-    bool isFastForwarding_;
+    bool isRewinding_ = false;
+    bool isFastForwarding_ = false;
     
-    bool isTextLengthRestricted_;
-    int restrictedTextLength_;
+    bool isTextLengthRestricted_ = false;
+    int restrictedTextLength_ = 6;
     
-    bool usesLocalModifiers_;
-    bool listensToModifiers_;
+    bool usesLocalModifiers_ = false;
+    bool listensToModifiers_ = false;
         
-    int latchTime_;
+    int latchTime_ = 100;
         
     WDL_PtrList<FeedbackProcessor> trackColorFeedbackProcessors_; // does not own pointers
     
@@ -2146,7 +2146,7 @@ protected:
     CSurfIntegrator *const csi_;
     Page *const page_;
     string const name_;
-    ZoneManager *zoneManager_;
+    ZoneManager *zoneManager_ = NULL;
     ModifierManager *modifierManager_;
     
     int const numChannels_;
@@ -2158,30 +2158,16 @@ protected:
     WDL_StringKeyedArray<CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     static void disposeAction(CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
 
-    bool speedX5_;
+    bool speedX5_ = false;
 
-    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
+    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), modifierManager_(new ModifierManager(csi_, NULL, this)),
+    CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
         accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
     {
-        //private:
-        scrubModePtr_ = NULL;
-        configScrubMode_ = 0;
 
-        isRewinding_ = false;
-        isFastForwarding_ = false;
         
-        isTextLengthRestricted_ = false;
-        restrictedTextLength_ = 6;
-        
-        usesLocalModifiers_ = false;
-        listensToModifiers_ = false;
-        
-        latchTime_ = 100;
-        
-        // protected
-        zoneManager_ = NULL;
-        modifierManager_ = new ModifierManager(csi_, NULL, this);
-        speedX5_ = false;
+
+ 
         
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
