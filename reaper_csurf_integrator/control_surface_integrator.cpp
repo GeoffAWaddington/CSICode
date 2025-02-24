@@ -1290,6 +1290,11 @@ void CSurfIntegrator::InitActionsDictionary()
 
 void CSurfIntegrator::Init()
 {
+    if (isInitialized_)
+        return;
+    
+    isInitialized_ = true;
+    
     pages_.Empty(true);
     
     string currentBroadcaster;
@@ -1298,17 +1303,27 @@ void CSurfIntegrator::Init()
     
     string CSIFolderPath = string(GetResourcePath()) + "/CSI";
     
-    WDL_DirScan ds;
-    if (ds.First(CSIFolderPath.c_str()))
-    {       
+    if ( ! std::filesystem::exists(CSIFolderPath))
+    {
         char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), CSIFolderPath.c_str());
         MessageBox(g_hwnd, tmp, __LOCALIZE("Missing CSI Folder","csi_mbox"), MB_OK);
-        
+
         return;
     }
     
     string iniFilePath = string(GetResourcePath()) + "/CSI/CSI.ini";
+    
+    if ( ! std::filesystem::exists(iniFilePath))
+    {
+        char tmp[MEDBUF];
+        snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), iniFilePath.c_str());
+        MessageBox(g_hwnd, tmp, __LOCALIZE("Missing CSI.ini","csi_mbox"), MB_OK);
+
+        return;
+    }
+
+    
     int lineNumber = 0;
     
     try
@@ -1491,16 +1506,52 @@ void CSurfIntegrator::Init()
                                 int startChannel = atoi(startChannelProp);
                                 
                                 string baseDir = string(GetResourcePath()) + string("/CSI/Surfaces/");
+                                     
+                                if ( ! std::filesystem::exists(baseDir))
+                                {
+                                    char tmp[MEDBUF];
+                                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), baseDir.c_str());
+                                    MessageBox(g_hwnd, tmp, __LOCALIZE("Missing Surfaces Folder","csi_mbox"), MB_OK);
+
+                                    return;
+                                }
                                 
                                 string surfaceFile = baseDir + surfaceFolderProp + "/Surface.txt";
+                                
+                                if ( ! std::filesystem::exists(surfaceFile))
+                                {
+                                    char tmp[MEDBUF];
+                                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), surfaceFile.c_str());
+                                    MessageBox(g_hwnd, tmp, __LOCALIZE("Missing Surface File","csi_mbox"), MB_OK);
+
+                                    return;
+                                }
                                 
                                 string zoneFolder = baseDir + surfaceFolderProp + "/Zones";
                                 if (const char *zoneFolderProp = pList.get_prop(PropertyType_ZoneFolder))
                                     zoneFolder = baseDir + zoneFolderProp + "/Zones";
                                 
+                                if ( ! std::filesystem::exists(zoneFolder))
+                                {
+                                    char tmp[MEDBUF];
+                                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), zoneFolder.c_str());
+                                    MessageBox(g_hwnd, tmp, __LOCALIZE("Missing Zone Folder","csi_mbox"), MB_OK);
+
+                                    return;
+                                }
+                                
                                 string fxZoneFolder = baseDir + surfaceFolderProp + "/FXZones";
                                 if (const char *fxZoneFolderProp = pList.get_prop(PropertyType_FXZoneFolder))
                                     fxZoneFolder = baseDir + fxZoneFolderProp + "/FXZones";
+
+                                if ( ! std::filesystem::exists(fxZoneFolder))
+                                {
+                                    char tmp[MEDBUF];
+                                    snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("Please check your installation, cannot find %s", "csi_mbox"), fxZoneFolder.c_str());
+                                    MessageBox(g_hwnd, tmp, __LOCALIZE("Missing FX Zone Folder","csi_mbox"), MB_OK);
+
+                                    return;
+                                }
 
                                 bool foundIt = false;
                                 

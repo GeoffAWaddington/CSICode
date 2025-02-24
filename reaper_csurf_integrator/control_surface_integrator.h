@@ -32,6 +32,8 @@
 #include "udp.hh"
 #endif
 
+#include <filesystem>
+
 #include "../WDL/win32_utf8.h"
 #include "../WDL/ptrlist.h"
 #include "../WDL/assocarray.h"
@@ -4131,6 +4133,8 @@ class CSurfIntegrator : public IReaperControlSurface
 private:
     char configtmp[1024];
 
+    bool isInitialized_ = false;
+    
     WDL_PtrList<Midi_ControlSurfaceIO> midiSurfacesIO_;
     WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
 
