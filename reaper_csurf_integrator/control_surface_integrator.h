@@ -960,29 +960,21 @@ protected:
     ControlSurface *const surface_;
     string const name_;
     WDL_PtrList<FeedbackProcessor> feedbackProcessors_; // owns the objects
-    int channelNumber_;
-    int lastIncomingMessageTime_;
-    double lastIncomingDelta_;
+    int channelNumber_ = 0;
+    int lastIncomingMessageTime_ = GetTickCount()-30000;
+    double lastIncomingDelta_ = 0.0;
     
-    double stepSize_;
+    double stepSize_ = 0.0;
     vector<double> accelerationValues_;
     
-    bool hasBeenUsedByUpdate_;
+    bool hasBeenUsedByUpdate_ = false;
     
-    bool isTwoState_;
+    bool isTwoState_ = false;
     
 public:
     // all Widgets are owned by their ControlSurface!
     Widget(CSurfIntegrator *const csi,  ControlSurface *surface, const char *name) : csi_(csi), surface_(surface), name_(name)
     {
-        // private:
-        channelNumber_ = 0;
-        lastIncomingMessageTime_ = GetTickCount()-30000;
-        lastIncomingDelta_ = 0.0;
-        stepSize_ = 0.0;
-        hasBeenUsedByUpdate_ = false;
-        isTwoState_ = false;
-
         int index = (int)strlen(name) - 1;
         if (isdigit(name[index]))
         {
