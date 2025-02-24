@@ -2164,11 +2164,6 @@ protected:
     CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
         accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
     {
-
-        
-
- 
-        
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
         
