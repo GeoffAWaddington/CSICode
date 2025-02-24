@@ -3028,8 +3028,8 @@ class OSC_X32ControlSurfaceIO :public OSC_ControlSurfaceIO
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 protected:
-    DWORD X32HeartBeatRefreshInterval_;
-    DWORD X32HeartBeatLastRefreshTime_;
+    DWORD X32HeartBeatRefreshInterval_ = 5000;
+    DWORD X32HeartBeatLastRefreshTime_ = GetTickCount() - 30000;
     
 public:
     OSC_X32ControlSurfaceIO(CSurfIntegrator *const csi, const char *name, int channelCount, const char *receiveOnPort, const char *transmitToPort, const char *transmitToIpAddress, int maxPacketsPerRun);
