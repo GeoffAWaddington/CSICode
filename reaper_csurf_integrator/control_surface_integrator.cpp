@@ -4331,7 +4331,6 @@ static const char * const Control_Surface_Integrator = "Control Surface Integrat
 
 CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), fxParamSteppedValueCounts_(true, disposeCounts)
 {
-    
     InitActionsDictionary();
 
     int size = 0;
