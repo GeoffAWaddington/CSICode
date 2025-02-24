@@ -431,23 +431,14 @@ class Navigator
 protected:
     const CSurfIntegrator *const csi_;
     Page *const page_;
-    bool isVolumeTouched_;
-    bool isPanTouched_;
-    bool isPanWidthTouched_;
-    bool isPanLeftTouched_;
-    bool isPanRightTouched_;
-    bool isMCUTrackPanWidth_;
+    bool isVolumeTouched_ = false;
+    bool isPanTouched_ = false;
+    bool isPanWidthTouched_ = false;
+    bool isPanLeftTouched_ = false;
+    bool isPanRightTouched_ = false;
+    bool isMCUTrackPanWidth_ = false;
 
-    Navigator(const CSurfIntegrator *const csi, Page * page) : csi_(csi), page_(page)
-    {
-        // protected:
-        isVolumeTouched_ = false;
-        isPanTouched_ = false;
-        isPanWidthTouched_ = false;
-        isPanLeftTouched_ = false;
-        isPanRightTouched_ = false;
-        isMCUTrackPanWidth_ = false;
-    }
+    Navigator(const CSurfIntegrator *const csi, Page * page) : csi_(csi), page_(page) {}
 
 public:
     virtual ~Navigator() {}
