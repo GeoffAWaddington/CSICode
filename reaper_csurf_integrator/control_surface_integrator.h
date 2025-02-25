@@ -2068,8 +2068,8 @@ private:
         
     vector<FeedbackProcessor *> trackColorFeedbackProcessors_; // does not own pointers
     
-    WDL_TypedBuf<ChannelTouch> channelTouches_;
-    WDL_TypedBuf<ChannelToggle> channelToggles_;
+    vector<ChannelTouch> channelTouches_;
+    vector<ChannelToggle> channelToggles_;
 
 protected:
     map<const string, double> stepSize_;
@@ -2107,11 +2107,11 @@ protected:
         {
             ChannelTouch channelTouch;
             channelTouch.channelNum = i;
-            channelTouches_.Add(channelTouch);
+            channelTouches_.push_back(channelTouch);
             
             ChannelToggle channelToggle;
             channelToggle.channelNum = i;
-            channelToggles_.Add(channelToggle);
+            channelToggles_.push_back(channelToggle);
         }
     }
     
@@ -2250,38 +2250,38 @@ public:
     
     void TouchChannel(int channelNum, bool isTouched)
     {
-        for (int i = 0; i < channelTouches_.GetSize(); ++i)
-            if (channelTouches_.Get()[i].channelNum == channelNum)
+        for (auto &channelTouch : channelTouches_)
+            if (channelTouch.channelNum == channelNum)
             {
-                channelTouches_.Get()[i].isTouched = isTouched;
+                channelTouch.isTouched = isTouched;
                 break;
             }
     }
     
     bool GetIsChannelTouched(int channelNum)
     {
-        for (int i = 0; i < channelTouches_.GetSize(); ++i)
-            if (channelTouches_.Get()[i].channelNum == channelNum)
-                return channelTouches_.Get()[i].isTouched;
+        for (auto &channelTouch : channelTouches_)
+            if (channelTouch.channelNum == channelNum)
+                return channelTouch.isTouched;
 
         return false;
     }
        
     void ToggleChannel(int channelNum)
     {
-        for (int i = 0; i < channelToggles_.GetSize(); ++i)
-            if (channelToggles_.Get()[i].channelNum == channelNum)
+        for (auto &channelToggle : channelToggles_)
+            if (channelToggle.channelNum == channelNum)
             {
-                channelToggles_.Get()[i].isToggled = ! channelToggles_.Get()[i].isToggled;
+                channelToggle.isToggled = ! channelToggle.isToggled;
                 break;
             }
     }
     
     bool GetIsChannelToggled(int channelNum)
     {
-        for (int i = 0; i < channelToggles_.GetSize(); ++i)
-            if (channelToggles_.Get()[i].channelNum == channelNum)
-                return channelToggles_.Get()[i].isToggled;
+        for (auto &channelToggle : channelToggles_)
+            if (channelToggle.channelNum == channelNum)
+                return channelToggle.isToggled;
 
         return false;
     }
