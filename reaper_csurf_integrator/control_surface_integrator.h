@@ -912,9 +912,9 @@ protected:
     CSurfIntegrator *const csi_;
     ControlSurface *const surface_;
     string const name_;
-    WDL_PtrList<FeedbackProcessor> feedbackProcessors_; // owns the objects
+    vector<FeedbackProcessor *> feedbackProcessors_; // owns the objects
     int channelNumber_ = 0;
-    int lastIncomingMessageTime_ = GetTickCount()-30000;
+    int lastIncomingMessageTime_ = GetTickCount() - 30000;
     double lastIncomingDelta_ = 0.0;
     
     double stepSize_ = 0.0;
@@ -942,10 +942,8 @@ public:
     
     ~Widget()
     {
-      feedbackProcessors_.Empty(true);
+      feedbackProcessors_.clear();
     }
-    
-    const WDL_PtrList<FeedbackProcessor> &GetFeedbackProcessors() { return feedbackProcessors_; }
     
     void ClearHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = false; }
     void SetHasBeenUsedByUpdate() { hasBeenUsedByUpdate_ = true; }
@@ -983,7 +981,8 @@ public:
     
     void AddFeedbackProcessor(FeedbackProcessor *feedbackProcessor) // takes ownership of feedbackProcessor
     {
-        feedbackProcessors_.Add(feedbackProcessor);
+        if (feedbackProcessor != NULL)
+            feedbackProcessors_.push_back(feedbackProcessor);
     }
 };
 

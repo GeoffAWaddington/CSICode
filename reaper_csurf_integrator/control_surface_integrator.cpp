@@ -847,8 +847,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
                 feedbackProcessor = new QConLiteDisplay_Midi_FeedbackProcessor(csi_, this, widget, 3, 0x14, 0x12, atoi(tokenLines[i][1].c_str()));
         }
 
-        if (feedbackProcessor != NULL)
-            widget->AddFeedbackProcessor(feedbackProcessor);
+        widget->AddFeedbackProcessor(feedbackProcessor);
     }
 }
 
@@ -2480,56 +2479,56 @@ ZoneManager *Widget::GetZoneManager()
 
 void Widget::Configure(const WDL_PtrList<ActionContext> &contexts)
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->Configure(contexts);
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->Configure(contexts);
 }
 
 void  Widget::UpdateValue(const PropertyList &properties, double value)
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->SetValue(properties, value);
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->SetValue(properties, value);
 }
 
 void  Widget::UpdateValue(const PropertyList &properties, const char * const &value)
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->SetValue(properties, value);
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->SetValue(properties, value);
 }
 
 void  Widget::ForceValue(const PropertyList &properties, const char * const &value)
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->ForceValue(properties, value);
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->ForceValue(properties, value);
 }
 
 void Widget::RunDeferredActions()
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->RunDeferredActions();
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->RunDeferredActions();
 }
 
 void  Widget::UpdateColorValue(const rgba_color &color)
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->SetColorValue(color);
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->SetColorValue(color);
 }
 
 void Widget::SetXTouchDisplayColors(const char *colors)
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->SetXTouchDisplayColors(colors);
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->SetXTouchDisplayColors(colors);
 }
 
 void Widget::RestoreXTouchDisplayColors()
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->RestoreXTouchDisplayColors();
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->RestoreXTouchDisplayColors();
 }
 
 void  Widget::ForceClear()
 {
-    for (int i = 0; i < feedbackProcessors_.GetSize(); ++i)
-        feedbackProcessors_.Get(i)->ForceClear();
+    for (auto feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->ForceClear();
 }
 
 void Widget::LogInput(double value)
