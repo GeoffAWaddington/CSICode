@@ -236,6 +236,14 @@ void GetTokens(string_list &tokens, const char *line, char delim)
     }
 }
 
+void GetTokens(vector<string> &tokens, const string &line)
+{
+    istringstream iss(line);
+    string token;
+    while (iss >> quoted(token))
+        tokens.push_back(token);
+}
+
 void GetTokens(string_list &tokens, const char *line)
 {
     const char *rd = line;
@@ -2131,15 +2139,15 @@ void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Zone
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-void Zone::InitSubZones(const string_list &subZones, const char *widgetSuffix)
+void Zone::InitSubZones(const vector<string> &subZones, const char *widgetSuffix)
 {
+    map<const string, CSIZoneInfo> &zoneInfo = zoneManager_->GetZoneInfo();
+
     for (int i = 0; i < (int)subZones.size(); ++i)
     {
-        const WDL_StringKeyedArray<CSIZoneInfo*> &zfp = zoneManager_->GetZoneInfo();
-        
-        if (zfp.Exists(subZones[i]))
+        if (zoneInfo.find(subZones[i]) != zoneInfo.end())
         {
-            SubZone *subZone = new SubZone(csi_, zoneManager_, GetNavigator(), GetSlotIndex(), subZones[i].c_str(), zfp.Get(subZones[i])->alias.c_str(), zfp.Get(subZones[i])->filePath.c_str(), this);
+            SubZone *subZone = new SubZone(csi_, zoneManager_, GetNavigator(), GetSlotIndex(), subZones[i], zoneInfo[subZones[i]].alias, zoneInfo[subZones[i]].filePath, this);
             zoneManager_->LoadZoneFile(subZone, widgetSuffix);
             subZones_.push_back(subZone);
         }
@@ -2611,7 +2619,7 @@ void OSC_IntFeedbackProcessor::ForceValue(const PropertyList &properties, double
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ZoneManager
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder), zoneInfo_(true, disposeAction) {}
+ZoneManager::ZoneManager(CSurfIntegrator *const csi, ControlSurface *surface, const string &zoneFolder, const string &fxZoneFolder) : csi_(csi), surface_(surface), zoneFolder_(zoneFolder), fxZoneFolder_(fxZoneFolder == "" ? zoneFolder : fxZoneFolder) {}
 
 Navigator *ZoneManager::GetNavigatorForTrack(MediaTrack *track) { return surface_->GetPage()->GetNavigatorForTrack(track); }
 Navigator *ZoneManager::GetMasterTrackNavigator() { return surface_->GetPage()->GetMasterTrackNavigator(); }
@@ -2623,7 +2631,7 @@ void ZoneManager::Initialize()
 {
     PreProcessZones();
 
-    if ( ! zoneInfo_.Exists("Home"))
+    if (zoneInfo_.find("Home") == zoneInfo_.end())
     {
         char tmp[MEDBUF];
         snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s needs a Home Zone to operate, please recheck your installation", "csi_mbox"), surface_->GetName());
@@ -2631,17 +2639,17 @@ void ZoneManager::Initialize()
         return;
     }
             
-    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneInfo_.Get("Home")->filePath);
+    homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneInfo_["Home"].filePath);
     LoadZoneFile(homeZone_, "");
     
     string_list zoneList;
-    if (zoneInfo_.Exists("GoZones"))
-        LoadZoneMetadata(zoneInfo_.Get("GoZones")->filePath.c_str(), zoneList);
+    if (zoneInfo_.find("GoZones") != zoneInfo_.end())
+        LoadZoneMetadata(zoneInfo_["GoZones"].filePath.c_str(), zoneList);
     LoadZones(goZones_, zoneList);
     
-    if (zoneInfo_.Exists("LastTouchedFXParam"))
+    if (zoneInfo_.find("LastTouchedFXParam") != zoneInfo_.end())
     {
-        lastTouchedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LastTouchedFXParam", "LastTouchedFXParam", zoneInfo_.Get("LastTouchedFXParam")->filePath);
+        lastTouchedFXParamZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), 0, "LastTouchedFXParam", "LastTouchedFXParam", zoneInfo_["LastTouchedFXParam"].filePath);
         LoadZoneFile(lastTouchedFXParamZone_, "");
     }
         
@@ -2664,13 +2672,13 @@ void ZoneManager::PreProcessZoneFile(const string &filePath)
             if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                 continue;
             
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
+            vector<string> tokens;
+            GetTokens(tokens, line);
 
             if (tokens[0] == "Zone" && tokens.size() > 1)
             {
                 info.alias = tokens.size() > 2 ? tokens[2] : tokens[1];
-                AddZoneFilePath(tokens[1].c_str(), info);
+                AddZoneFilePath(tokens[1], info);
             }
 
             break;
@@ -2768,14 +2776,14 @@ void ZoneManager::LoadZones(vector<Zone *> &zones, string_list &zoneList)
         if(tokens.size() > 1)
             snprintf(navigatorName, sizeof(navigatorName), "%s", tokens[1].c_str());
     
-        if (zoneInfo_.Exists(zoneName))
+        if (zoneInfo_.find(zoneName) != zoneInfo_.end())
         {
             vector<Navigator *> navigators;
             GetNavigatorsForZone(zoneName, navigatorName, navigators);
             
             if (navigators.size() == 1)
             {
-                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneName), zoneInfo_.Get(zoneName)->alias, zoneInfo_.Get(zoneName)->filePath);
+                Zone *zone = new Zone(csi_, this, navigators[0], 0, string(zoneName), zoneInfo_[zoneName].alias, zoneInfo_[zoneName].filePath);
                 if (zone)
                 {
                     LoadZoneFile(zone, "");
@@ -2789,7 +2797,7 @@ void ZoneManager::LoadZones(vector<Zone *> &zones, string_list &zoneList)
                     char buf[MEDBUF];
                     snprintf(buf, sizeof(buf), "%s%d", string(zoneName).c_str(), j + 1);
                     
-                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneName), string(buf), zoneInfo_.Get(zoneName)->filePath);
+                    Zone *zone = new Zone(csi_, this, navigators[j], j, string(zoneName), string(buf), zoneInfo_[zoneName].filePath);
                     if (zone)
                     {
                         snprintf(buf, sizeof(buf), "%d", j + 1);
@@ -2813,7 +2821,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
     bool isInIncludedZonesSection = false;
     string_list includedZonesList;
     bool isInSubZonesSection = false;
-    string_list subZonesList;
+    vector<string> subZonesList;
 
     try
     {
@@ -2833,8 +2841,8 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
             
             ReplaceAllWith(line, "|", widgetSuffix);
             
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
+            vector<string> tokens;
+            GetTokens(tokens, line);
             
             if (tokens[0] == "Zone" || tokens[0] == "ZoneEnd")
                 continue;
@@ -2869,9 +2877,9 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
                 bool isDecrease = false;
                 bool isIncrease = false;
                 
-                GetWidgetNameAndModifiers(tokens[0], widgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
+                GetWidgetNameAndModifiers(tokens[0].c_str(), widgetName, modifier, isValueInverted, isFeedbackInverted, holdDelayAmount,isDecrease, isIncrease);
                 
-                Widget *widget = GetSurface()->GetWidgetByName(widgetName.c_str());
+                Widget *widget = GetSurface()->GetWidgetByName(widgetName);
                                             
                 if (widget == NULL)
                     continue;
@@ -2884,10 +2892,10 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
                     memberParams.push_back(tokens[i]);
                 
                 // For legacy .zon definitions
-                if (!strcmp(tokens[1], "NullDisplay"))
+                if (tokens[1] == "NullDisplay")
                     continue;
                 
-                ActionContext *context = csi_->GetActionContext(tokens[1], widget, zone, memberParams);
+                ActionContext *context = csi_->GetActionContext(tokens[1].c_str(), widget, zone, memberParams);
                 
                 if (isValueInverted)
                     context->SetIsValueInverted();
@@ -3004,9 +3012,9 @@ void ZoneManager::CheckFocusedFXState()
         else
             ClearFocusedFX();
         
-        if (zoneInfo_.Exists(fxName))
+        if (zoneInfo_.find(fxName) != zoneInfo_.end())
         {
-            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath.c_str());
+            focusedFXZone_ = new Zone(csi_, this, GetFocusedFXNavigator(), fxSlot, fxName, zoneInfo_[fxName].alias, zoneInfo_[fxName].filePath.c_str());
             LoadZoneFile(focusedFXZone_, "");
             focusedFXZone_->Activate();
         }            
@@ -3025,9 +3033,9 @@ void ZoneManager::GoSelectedTrackFX()
             
             TrackFX_GetFXName(selectedTrack, i, fxName, sizeof(fxName));
             
-            if (zoneInfo_.Exists(fxName))
+            if (zoneInfo_.find(fxName) != zoneInfo_.end())
             {
-                Zone *zone = new Zone(csi_, this, GetSelectedTrackNavigator(), i, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
+                Zone *zone = new Zone(csi_, this, GetSelectedTrackNavigator(), i, fxName, zoneInfo_[fxName].alias, zoneInfo_[fxName].filePath);
                 LoadZoneFile(zone, "");
                 selectedTrackFXZones_.push_back(zone);
                 zone->Activate();
@@ -3045,10 +3053,10 @@ void ZoneManager::GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot)
     
     TrackFX_GetFXName(track, fxSlot, fxName, sizeof(fxName));
 
-    if (zoneInfo_.Exists(fxName))
+    if (zoneInfo_.find(fxName) != zoneInfo_.end())
     {
         ClearFXSlot();        
-        fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
+        fxSlotZone_ = new Zone(csi_, this, navigator, fxSlot, fxName, zoneInfo_[fxName].alias, zoneInfo_[fxName].filePath);
         LoadZoneFile(fxSlotZone_, "");
         fxSlotZone_->Activate();
     }

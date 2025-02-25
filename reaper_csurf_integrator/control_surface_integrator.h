@@ -148,6 +148,7 @@ class string_list
 extern void GetTokens(string_list &tokens, const char *line);
 extern void GetTokens(string_list &tokens, const char *line, char delim);
 
+extern void GetTokens(vector<string> &tokens, const string &line);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -764,7 +765,7 @@ public:
         subZones_.clear();
     }
     
-    void InitSubZones(const string_list &subZones, const char *widgetSuffix);
+    void InitSubZones(const vector<string> &subZones, const char *widgetSuffix);
     int GetSlotIndex();
     void SetXTouchDisplayColors(const char *colors);
     void RestoreXTouchDisplayColors();
@@ -1012,8 +1013,7 @@ private:
     string const zoneFolder_;
     string const fxZoneFolder_;
    
-    WDL_StringKeyedArray<CSIZoneInfo*> zoneInfo_;
-    static void disposeAction(CSIZoneInfo *zoneInfo) { delete zoneInfo; }
+    map<const string, CSIZoneInfo> zoneInfo_;
         
     double holdDelayAmount_ = 1.0;
     
@@ -1293,6 +1293,8 @@ public:
         goZones_.clear();
 
         selectedTrackFXZones_.clear();
+        
+        zoneInfo_.clear();
     }
     
     void Initialize();
@@ -1327,7 +1329,7 @@ public:
     void DoTouch(Widget *widget, double value);
     
     const char *GetFXZoneFolder() { return fxZoneFolder_.c_str(); }
-    const WDL_StringKeyedArray<CSIZoneInfo*> &GetZoneInfo() { return zoneInfo_; }
+    map<const string, CSIZoneInfo> &GetZoneInfo() { return zoneInfo_; }
 
     CSurfIntegrator *GetCSI() { return csi_; }
     ControlSurface *GetSurface() { return surface_; }
@@ -1415,9 +1417,9 @@ public:
     
     void LoadLearnFocusedFXZone(MediaTrack *track, const char *fxName, int fxIndex)
     {
-        if(zoneInfo_.Exists(fxName))
+        if (zoneInfo_.find(fxName) != zoneInfo_.end())
         {
-            learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, zoneInfo_.Get(fxName)->alias, zoneInfo_.Get(fxName)->filePath);
+            learnFocusedFXZone_ = new Zone(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, zoneInfo_[fxName].alias, zoneInfo_[fxName].filePath);
             LoadZoneFile(learnFocusedFXZone_, "");
             
             learnFocusedFXZone_->Activate();
@@ -1516,23 +1518,14 @@ public:
             for (int i = 0; i < listeners_.size(); ++i)
                 listeners_[i]->ListenToGoFXSlot(track, navigator, fxSlot);
     }
-                
-    void RemoveZone(const char *zoneName)
-    {
-        if (zoneInfo_.Exists(zoneName))
-        {
-            remove(zoneInfo_.Get(zoneName)->filePath.c_str());
-            zoneInfo_.Delete(zoneName);
-        }
-    }
-      
+                      
     void GetName(MediaTrack *track, int fxIndex, char *name, int namesz)
     {
         char fxName[MEDBUF];
         TrackFX_GetFXName(track, fxIndex, fxName, sizeof(fxName));
 
-        if (zoneInfo_.Exists(fxName))
-            lstrcpyn_safe(name, zoneInfo_.Get(fxName)->alias.c_str(), namesz);
+        if (zoneInfo_.find(fxName) != zoneInfo_.end())
+            lstrcpyn_safe(name, zoneInfo_[fxName].alias.c_str(), namesz);
         else
             GetAlias(fxName, name, namesz);
     }
@@ -1683,16 +1676,12 @@ public:
             AdjustBank(masterTrackFXMenuOffset_, amount);
     }
                 
-    void AddZoneFilePath(const char *name, CSIZoneInfo &zoneInfo)
+    void AddZoneFilePath(const string &name, CSIZoneInfo &zoneInfo)
     {
-        CSIZoneInfo *info = new CSIZoneInfo();
-        info->alias = zoneInfo.alias;
-        info->filePath = zoneInfo.filePath;
-        
-        if ( ! zoneInfo_.Exists(name) && name && *name)
-            zoneInfo_.Insert(name, info);
+        if (zoneInfo_.find(name) == zoneInfo_.end())
+            zoneInfo_[name] = zoneInfo;
         else
-            zoneInfo_.Get(name)->alias = info->alias;
+            zoneInfo_[name].alias = zoneInfo.alias;
     }
 
     void RequestUpdate()
