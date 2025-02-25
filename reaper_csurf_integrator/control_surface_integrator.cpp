@@ -3506,11 +3506,12 @@ void ControlSurface::Record()
 
 void ControlSurface::OnTrackSelection(MediaTrack *track)
 {
-    Widget *w = widgetsByName_.Get("OnTrackSelection");
-    if (w)
+    string onTrackSelection("OnTrackSelection");
+    
+    if (widgetsByName_.find(onTrackSelection) != widgetsByName_.end())
     {
         if (GetMediaTrackInfo_Value(track, "I_SELECTED"))
-            zoneManager_->DoAction(w, 1.0);
+            zoneManager_->DoAction(widgetsByName_[onTrackSelection], 1.0);
         else
             zoneManager_->OnTrackDeselection();
         
@@ -3520,9 +3521,9 @@ void ControlSurface::OnTrackSelection(MediaTrack *track)
 
 void ControlSurface::ForceClearTrack(int trackNum)
 {
-    for (int i = 0; i < widgets_.GetSize(); ++i)
-        if (widgets_.Get(i)->GetChannelNumber() + channelOffset_ == trackNum)
-            widgets_.Get(i)->ForceClear();
+    for (auto widget : widgets_)
+        if (widget->GetChannelNumber() + channelOffset_ == trackNum)
+            widget->ForceClear();
 }
 
 void ControlSurface::ForceUpdateTrackColors()
@@ -3549,18 +3550,15 @@ rgba_color ControlSurface::GetTrackColorForChannel(int channel)
 
 void ControlSurface::RequestUpdate()
 {
-    for (int i = 0; i < widgets_.GetSize(); ++i)
-        widgets_.Get(i)->ClearHasBeenUsedByUpdate();
-    
+    for (auto widget : widgets_)
+        widget->ClearHasBeenUsedByUpdate();
+
     zoneManager_->RequestUpdate();
 
-    // default is to zero unused Widgets -- for an opposite sense device, you can override this by supplying an inverted NoAction context in the Home Zone
     const PropertyList properties;
     
-    for (int i = 0; i < widgets_.GetSize(); ++i)
+    for (auto widget : widgets_)
     {
-        Widget *widget =  widgets_.Get(i);
-        
         if ( ! widget->GetHasBeenUsedByUpdate())
         {
             widget->SetHasBeenUsedByUpdate();
@@ -4330,7 +4328,7 @@ void Midi_ControlSurface::InitializeMCUXT()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 static const char * const Control_Surface_Integrator = "Control Surface Integrator";
 
-CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction), fxParamSteppedValueCounts_(true, disposeCounts)
+CSurfIntegrator::CSurfIntegrator() : actions_(true, disposeAction)
 {
     InitActionsDictionary();
 

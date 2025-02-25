@@ -34,6 +34,7 @@
 #endif
 
 #include <filesystem>
+#include <map>
 
 #include "../WDL/win32_utf8.h"
 #include "../WDL/ptrlist.h"
@@ -2103,8 +2104,8 @@ protected:
     int const numChannels_;
     int const channelOffset_;
     
-    WDL_PtrList<Widget> widgets_; // owns list
-    WDL_StringKeyedArray<Widget*> widgetsByName_;
+    vector<Widget *> widgets_; // owns list
+    map<const string, Widget*> widgetsByName_;
     
     WDL_StringKeyedArray<CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
     static void disposeAction(CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
@@ -2176,10 +2177,17 @@ protected:
         AddWidget(new Widget(csi_, surface, "OnZoneDeactivation"));
     }
     
+    void DoWidgetAction(const string &widgetName)
+    {
+        if (widgetsByName_.find(widgetName) != widgetsByName_.end())
+            zoneManager_->DoAction(widgetsByName_[widgetName], 1.0);
+    }
+    
 public:
     virtual ~ControlSurface()
     {
-        widgets_.Empty(true);
+        widgets_.clear();
+        widgetsByName_.clear();
         delete zoneManager_;
         delete modifierManager_;
     }
@@ -2338,8 +2346,8 @@ public:
         
     void ForceClear()
     {
-        for (int i = 0; i < widgets_.GetSize(); ++i)
-            widgets_.Get(i)->ForceClear();
+        for (auto widget : widgets_)
+            widget->ForceClear();
         
         FlushIO();
     }
@@ -2349,12 +2357,6 @@ public:
         OnTrackSelection(track);
     }
 
-    void DoWidgetAction(const char *name, double v=1.0)
-    {
-        Widget *w = widgetsByName_.Get(name);
-        if (w) zoneManager_->DoAction(w, 1.0);
-    }
-    
     void HandleStop()
     {
         DoWidgetAction("OnRecordStop");
@@ -2417,9 +2419,11 @@ public:
            
     void AddWidget(Widget *widget)
     {
-        if (WDL_NOT_NORMALLY(!widget)) return;
-        widgets_.Add(widget);
-        widgetsByName_.Insert(widget->GetName(),widget);
+        if (widget != NULL && find(widgets_.begin(), widgets_.end(), widget) == widgets_.end())
+        {
+            widgets_.push_back(widget);
+            widgetsByName_[widget->GetName()] = widget;
+        }
     }
     
     void AddCSIMessageGenerator(const char *message, CSIMessageGenerator *messageGenerator)
@@ -2428,9 +2432,12 @@ public:
         CSIMessageGeneratorsByMessage_.Insert(message, messageGenerator);
     }
 
-    Widget *GetWidgetByName(const char *name)
+    Widget *GetWidgetByName(const string &widgetName)
     {
-      return widgetsByName_.Get(name);
+        if (widgetsByName_.find(widgetName) != widgetsByName_.end())
+            return widgetsByName_[widgetName];
+        else
+            return NULL;
     }
     
     void OnPageEnter()
@@ -4107,10 +4114,7 @@ private:
     
     int projectMetronomePrimaryVolumeOffs_; // for double -- if invalid, use fallbacks
     int projectMetronomeSecondaryVolumeOffs_; // for double -- if invalid, use fallbacks
-    
-    WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > fxParamSteppedValueCounts_;
-    static void disposeCounts(WDL_IntKeyedArray<int> *counts) { delete counts; }
-    
+        
     void InitActionsDictionary();
 
     double GetPrivateProfileDouble(const char *key)
