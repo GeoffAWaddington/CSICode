@@ -13,7 +13,7 @@ class OSC_X32FeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_X32FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress)  {}
+    OSC_X32FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress)  {}
     ~OSC_X32FeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_X32FeedbackProcessor"; }
@@ -48,7 +48,7 @@ class OSC_X32IntFeedbackProcessor : public OSC_IntFeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_X32IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_IntFeedbackProcessor(csi, surface, widget, oscAddress) {}
+    OSC_X32IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_IntFeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_X32IntFeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_X32IntFeedbackProcessor"; }
@@ -92,7 +92,7 @@ class OSC_X32FaderFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_X32FaderFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    OSC_X32FaderFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_X32FaderFeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_X32FaderFeedbackProcessor"; }
@@ -138,7 +138,7 @@ class OSC_X32_RotaryToEncoderFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_X32_RotaryToEncoderFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    OSC_X32_RotaryToEncoderFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_X32_RotaryToEncoderFeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_X32_RotaryToEncoderFeedbackProcessor"; }

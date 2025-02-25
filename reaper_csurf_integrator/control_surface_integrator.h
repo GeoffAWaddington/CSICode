@@ -2096,13 +2096,12 @@ protected:
     vector<Widget *> widgets_; // owns list
     map<const string, Widget*> widgetsByName_;
     
-    WDL_StringKeyedArray<CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
-    static void disposeAction(CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
+    map<const string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
 
     bool speedX5_ = false;
 
     ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), modifierManager_(new ModifierManager(csi_, NULL, this)),
-    CSIMessageGeneratorsByMessage_(true, disposeAction), accelerationValues_(true, disposeAccelValues),
+        accelerationValues_(true, disposeAccelValues),
         accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
     {
         int size = 0;
@@ -2415,10 +2414,10 @@ public:
         }
     }
     
-    void AddCSIMessageGenerator(const char *message, CSIMessageGenerator *messageGenerator)
+    void AddCSIMessageGenerator(const string &message, CSIMessageGenerator *messageGenerator)
     {
-        if (WDL_NOT_NORMALLY(!messageGenerator)) { return; }
-        CSIMessageGeneratorsByMessage_.Insert(message, messageGenerator);
+        if (messageGenerator != NULL)
+            CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
 
     Widget *GetWidgetByName(const string &widgetName)
@@ -2777,7 +2776,7 @@ protected:
     string const oscAddress_;
     
 public:
-    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
+    OSC_FeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : FeedbackProcessor(csi, widget), surface_(surface), oscAddress_(oscAddress) {}
     ~OSC_FeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_FeedbackProcessor"; }
@@ -2793,7 +2792,7 @@ class OSC_IntFeedbackProcessor : public OSC_FeedbackProcessor
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
-    OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const char *oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
+    OSC_IntFeedbackProcessor(CSurfIntegrator *const csi, OSC_ControlSurface *surface, Widget *widget, const string &oscAddress) : OSC_FeedbackProcessor(csi, surface, widget, oscAddress) {}
     ~OSC_IntFeedbackProcessor() {}
 
     virtual const char *GetName() override { return "OSC_IntFeedbackProcessor"; }

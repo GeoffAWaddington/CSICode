@@ -864,7 +864,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     
     AddWidget(widget);
 
-    vector<string_list> tokenLines;
+    vector<vector<string>> tokenLines;
 
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -873,8 +873,8 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
         if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
             continue;
         
-        string_list tokens;
-        GetTokens(tokens, line.c_str());
+        vector<string> tokens;
+        GetTokens(tokens, line);
 
         if (tokens[0] == "WidgetEnd")    // Widget list complete
             break;
@@ -4155,8 +4155,8 @@ OSC_ControlSurface::OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, c
 
 void OSC_ControlSurface::ProcessOSCMessage(const char *message, double value)
 {
-    if (CSIMessageGeneratorsByMessage_.Exists(message))
-        CSIMessageGeneratorsByMessage_.Get(message)->ProcessMessage(value);
+    if (CSIMessageGeneratorsByMessage_.find(message) != CSIMessageGeneratorsByMessage_.end())
+        CSIMessageGeneratorsByMessage_[message]->ProcessMessage(value);
     
     if (g_surfaceInDisplay)
     {
