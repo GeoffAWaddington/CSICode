@@ -4083,8 +4083,7 @@ private:
     WDL_PtrList<Midi_ControlSurfaceIO> midiSurfacesIO_;
     WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
 
-    WDL_StringKeyedArray<Action*> actions_;
-    static void disposeAction(Action *action) { delete action; }
+    map<const string, Action*> actions_;
 
     WDL_PtrList<Page> pages_;
 
@@ -4201,34 +4200,34 @@ public:
     // These direct calls are used by Learn to change Actions in the dynamic learnFXZone -- it allows for realtime editing, with results immediately visible in the hardware
     Action *GetNoActionAction()
     {
-        return actions_.Get("NoAction");
+        return actions_["NoAction"];
     }
     
     Action *GetFXParamAction(char *FXName)
     {
        if (strstr(FXName, "JS: "))
-           return actions_.Get("JSFXParam");
+           return actions_["JSFXParam"];
        else
-        return actions_.Get("FXParam");
+        return actions_["FXParam"];
     }
         
     Action *GetFixedTextDisplayAction()
     {
-        return actions_.Get("FixedTextDisplay");
+        return actions_["FixedTextDisplay"];
     }
     
     Action *GetFXParamValueDisplayAction()
     {
-        return actions_.Get("FXParamValueDisplay");
+        return actions_["FXParamValueDisplay"];
     }
     // End direct calls
     
     ActionContext *GetActionContext(const char *actionName, Widget *widget, Zone *zone, const string_list &params)
     {
-        if (actions_.Exists(actionName))
-            return new ActionContext(this, actions_.Get(actionName), widget, zone, 0, &params, NULL);
+        if (actions_.find(actionName) != actions_.end())
+            return new ActionContext(this, actions_[actionName], widget, zone, 0, &params, NULL);
         else
-            return new ActionContext(this, actions_.Get("NoAction"), widget, zone, 0, &params, NULL);
+            return new ActionContext(this, actions_["NoAction"], widget, zone, 0, &params, NULL);
     }
 
     void OnTrackSelection(MediaTrack *track) override

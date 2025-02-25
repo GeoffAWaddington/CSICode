@@ -7,65 +7,6 @@
 #ifndef control_surface_manager_actions_h
 #define control_surface_manager_actions_h
 
-/*
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-class DumpHex : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-{
-public:
-    virtual const char *GetName() override { return "DumpHex"; }
-
-    void Do(ActionContext *context, double value) override
-    {
-        string binFilePath = string(GetResourcePath()) + "/CSI/EncoderModule.bin";
-        string hexFilePath = string(GetResourcePath()) + "/CSI/EncoderModuleFirmware.h";
-
-        // open the file:
-        streampos fileSize;
-        ifstream file(binFilePath, ios::binary);
-
-        // get its size:
-        file.seekg(0, ios::end);
-        fileSize = file.tellg();
-        file.seekg(0, ios::beg);
-
-        // read the data:
-        vector<BYTE> fileData(fileSize);
-        file.read((char*) &fileData[0], fileSize);
-        
-        file.close();
-        
-        ofstream hexFile(hexFilePath);
-        
-        hexFile << "const uint8_t encoderModuleFirmware[";
-        
-        hexFile << fileSize;
-        
-        hexFile << "] = {\n";
-        
-        int byteCount = 0;
-        
-        for (auto byte : fileData)
-        {
-            byteCount++;
-            
-            hexFile << "0x";
-            
-            hexFile << uppercase << hex << setw(2) << setfill('0') << int(byte);
-
-            if (byteCount < fileSize)
-                hexFile << ", ";
-            else
-                hexFile << "};";
-            
-            if (byteCount % 16 == 0)
-                hexFile << "\n";
-        }
-        
-        hexFile.close();
-    }
-};
-*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SendMIDIMessage : public Action
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
