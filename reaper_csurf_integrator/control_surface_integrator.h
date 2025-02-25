@@ -2073,11 +2073,10 @@ private:
     WDL_TypedBuf<ChannelToggle> channelToggles_;
 
 protected:
-    WDL_StringKeyedArray<double> stepSize_;
-    WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > accelerationValuesForDecrement_;
-    WDL_StringKeyedArray<WDL_IntKeyedArray<int>* > accelerationValuesForIncrement_;
-    static void disposeIncDecAccelValues(WDL_IntKeyedArray<int> *accelValues) { delete  accelValues; }
-    WDL_StringKeyedArray<vector<double>* > accelerationValues_;
+    map<const string, double> stepSize_;
+    map<const string, WDL_IntKeyedArray<int>* > accelerationValuesForDecrement_;
+    map<const string, WDL_IntKeyedArray<int>* > accelerationValuesForIncrement_;
+    map<const string, vector<double>* > accelerationValues_;
     vector<double> emptyAccelerationValues_;
     
     static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
@@ -2100,9 +2099,7 @@ protected:
 
     bool speedX5_ = false;
 
-    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), modifierManager_(new ModifierManager(csi_, NULL, this)),
-        accelerationValues_(true, disposeAccelValues),
-        accelerationValuesForDecrement_(true, disposeIncDecAccelValues), accelerationValuesForIncrement_(true, disposeIncDecAccelValues)
+    ControlSurface(CSurfIntegrator *const csi, Page *page, const string &name, int numChannels, int channelOffset) : csi_(csi), page_(page), name_(name), numChannels_(numChannels), channelOffset_(channelOffset), modifierManager_(new ModifierManager(csi_, NULL, this))
     {
         int size = 0;
         scrubModePtr_ = (int*)get_config_var("scrubmode", &size);
@@ -2222,32 +2219,32 @@ public:
     
     double GetStepSize(const char * const widgetClass)
     {
-        if (stepSize_.Exists(widgetClass))
-            return stepSize_.Get(widgetClass);
+        if (stepSize_.find(widgetClass) != stepSize_.end())
+            return stepSize_[widgetClass];
         else
             return 0;
     }
 
     const vector<double> *GetAccelerationValues(const char * const  widgetClass)
     {
-        if (accelerationValues_.Exists(widgetClass))
-            return accelerationValues_.Get(widgetClass);
+        if (accelerationValues_.find(widgetClass) != accelerationValues_.end())
+            return accelerationValues_[widgetClass];
         else
             return &emptyAccelerationValues_;
     }
 
     WDL_IntKeyedArray<int> *GetAccelerationValuesForDecrement(const char * const  widgetClass)
     {
-         if (accelerationValuesForDecrement_.Exists(widgetClass))
-             return accelerationValuesForDecrement_.Get(widgetClass);
+        if (accelerationValuesForDecrement_.find(widgetClass) != accelerationValuesForDecrement_.end())
+             return accelerationValuesForDecrement_[widgetClass];
         else
             return NULL;
     }
     
     WDL_IntKeyedArray<int> *GetAccelerationValuesForIncrement(const char * const  widgetClass)
     {
-        if (accelerationValuesForIncrement_.Exists(widgetClass))
-            return accelerationValuesForIncrement_.Get(widgetClass);
+        if (accelerationValuesForIncrement_.find(widgetClass) != accelerationValuesForIncrement_.end())
+            return accelerationValuesForIncrement_[widgetClass];
        else
            return NULL;
     }

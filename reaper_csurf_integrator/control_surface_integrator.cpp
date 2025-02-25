@@ -947,35 +947,35 @@ void ControlSurface::ProcessValues(const vector<string_list> &lines)
                 const char *widgetClass = lines[i].get(0);
                 
                 if (inStepSizes)
-                    stepSize_.Insert(widgetClass, atof(lines[i][1].c_str()));
+                    stepSize_[widgetClass] = atof(lines[i][1].c_str());
                 else if (lines[i].size() > 2 && inAccelerationValues)
                 {
                     
                     if (lines[i][1] == "Dec")
                         for (int j = 2; j < lines[i].size(); ++j)
                         {
-                            if ( ! accelerationValuesForDecrement_.Exists(widgetClass))
-                                accelerationValuesForDecrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
+                            if (accelerationValuesForDecrement_.find(widgetClass) == accelerationValuesForDecrement_.end())
+                                accelerationValuesForDecrement_[widgetClass] = new WDL_IntKeyedArray<int>();
                             
-                            if (accelerationValuesForDecrement_.Exists(widgetClass))
-                                accelerationValuesForDecrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
+                            if (accelerationValuesForDecrement_.find(widgetClass) != accelerationValuesForDecrement_.end())
+                                accelerationValuesForDecrement_[widgetClass]->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
                         }
                     else if (lines[i][1] == "Inc")
                         for (int j = 2; j < lines[i].size(); ++j)
                         {
-                            if ( ! accelerationValuesForIncrement_.Exists(widgetClass))
-                                accelerationValuesForIncrement_.Insert(widgetClass, new WDL_IntKeyedArray<int>());
+                            if (accelerationValuesForIncrement_.find(widgetClass) == accelerationValuesForIncrement_.end())
+                                accelerationValuesForIncrement_[widgetClass] = new WDL_IntKeyedArray<int>();
                             
-                            if (accelerationValuesForIncrement_.Exists(widgetClass))
-                                accelerationValuesForIncrement_.Get(widgetClass)->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
+                            if (accelerationValuesForIncrement_.find(widgetClass) != accelerationValuesForIncrement_.end())
+                                accelerationValuesForIncrement_[widgetClass]->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
                         }
                     else if (lines[i][1] == "Val")
                         for (int j = 2; j < lines[i].size(); ++j)
                         {
-                            if ( ! accelerationValues_.Exists(widgetClass))
-                                accelerationValues_.Insert(widgetClass, new vector<double>());
+                            if (accelerationValues_.find(widgetClass)  == accelerationValues_.end())
+                                accelerationValues_[widgetClass] = new vector<double>();
                             
-                            accelerationValues_.Get(widgetClass)->push_back(atof(lines[i][j].c_str()));
+                            accelerationValues_[widgetClass]->push_back(atof(lines[i][j].c_str()));
                         }
                 }
             }
@@ -991,10 +991,10 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
     int lineNumber = 0;
     vector<string_list> valueLines;
     
-    stepSize_.DeleteAll();
-    accelerationValuesForDecrement_.DeleteAll();
-    accelerationValuesForIncrement_.DeleteAll();
-    accelerationValues_.DeleteAll();
+    stepSize_.clear();
+    accelerationValuesForDecrement_.clear();
+    accelerationValuesForIncrement_.clear();
+    accelerationValues_.clear();
 
     try
     {
@@ -1038,10 +1038,10 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
     int lineNumber = 0;
     vector<string_list> valueLines;
     
-    stepSize_.DeleteAll();
-    accelerationValuesForDecrement_.DeleteAll();
-    accelerationValuesForIncrement_.DeleteAll();
-    accelerationValues_.DeleteAll();
+    stepSize_.clear();
+    accelerationValuesForDecrement_.clear();
+    accelerationValuesForIncrement_.clear();
+    accelerationValues_.clear();
 
     try
     {
