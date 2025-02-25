@@ -3534,8 +3534,8 @@ void ControlSurface::ForceClearTrack(int trackNum)
 
 void ControlSurface::ForceUpdateTrackColors()
 {
-    for (int i = 0; i < trackColorFeedbackProcessors_.GetSize(); ++i)
-        trackColorFeedbackProcessors_.Get(i)->ForceUpdateTrackColors();
+    for (auto trackColorFeedbackProcessor : trackColorFeedbackProcessors_)
+        trackColorFeedbackProcessor->ForceUpdateTrackColors();
 }
 
 rgba_color ControlSurface::GetTrackColorForChannel(int channel)

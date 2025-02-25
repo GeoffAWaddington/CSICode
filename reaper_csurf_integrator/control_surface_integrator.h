@@ -2066,7 +2066,7 @@ private:
         
     int latchTime_ = 100;
         
-    WDL_PtrList<FeedbackProcessor> trackColorFeedbackProcessors_; // does not own pointers
+    vector<FeedbackProcessor *> trackColorFeedbackProcessors_; // does not own pointers
     
     WDL_TypedBuf<ChannelTouch> channelTouches_;
     WDL_TypedBuf<ChannelToggle> channelToggles_;
@@ -2324,8 +2324,8 @@ public:
            
     void AddTrackColorFeedbackProcessor(FeedbackProcessor *feedbackProcessor) // does not own this pointer
     {
-        if (WDL_NOT_NORMALLY(!feedbackProcessor)) { return; }
-        trackColorFeedbackProcessors_.Add(feedbackProcessor);
+        if (feedbackProcessor != NULL)
+        trackColorFeedbackProcessors_.push_back(feedbackProcessor);
     }
         
     void ForceClear()
