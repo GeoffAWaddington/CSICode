@@ -3929,7 +3929,7 @@ void Midi_ControlSurfaceIO::HandleExternalInput(Midi_ControlSurface *surface)
 // Midi_ControlSurface
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 Midi_ControlSurface::Midi_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *surfaceFile, const char *zoneFolder, const char *fxZoneFolder, Midi_ControlSurfaceIO *surfaceIO)
-: ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO), Midi_CSIMessageGeneratorsByMessage_(disposeAction)
+: ControlSurface(csi, page, name, surfaceIO->GetChannelCount(), channelOffset), surfaceIO_(surfaceIO)
 {
     ProcessMIDIWidgetFile(surfaceFile, this);
     InitHardwiredWidgets(this);
@@ -3951,12 +3951,12 @@ void Midi_ControlSurface::ProcessMidiMessage(const MIDI_event_ex_t *evt)
     int oneByteKey = evt->midi_message[0] * 0x10000;
 
     // At this point we don't know how much of the message comprises the key, so try all three
-    if (Midi_CSIMessageGeneratorsByMessage_.Exists(threeByteKey))
-        Midi_CSIMessageGeneratorsByMessage_.Get(threeByteKey)->ProcessMidiMessage(evt);
-    else if (Midi_CSIMessageGeneratorsByMessage_.Exists(twoByteKey))
-        Midi_CSIMessageGeneratorsByMessage_.Get(twoByteKey)->ProcessMidiMessage(evt);
-    else if (Midi_CSIMessageGeneratorsByMessage_.Exists(oneByteKey))
-        Midi_CSIMessageGeneratorsByMessage_.Get(oneByteKey)->ProcessMidiMessage(evt);
+    if (Midi_CSIMessageGeneratorsByMessage_.find(threeByteKey) != Midi_CSIMessageGeneratorsByMessage_.end())
+        Midi_CSIMessageGeneratorsByMessage_[threeByteKey]->ProcessMidiMessage(evt);
+    else if (Midi_CSIMessageGeneratorsByMessage_.find(twoByteKey) != Midi_CSIMessageGeneratorsByMessage_.end())
+        Midi_CSIMessageGeneratorsByMessage_[twoByteKey]->ProcessMidiMessage(evt);
+    else if (Midi_CSIMessageGeneratorsByMessage_.find(oneByteKey) != Midi_CSIMessageGeneratorsByMessage_.end())
+        Midi_CSIMessageGeneratorsByMessage_[oneByteKey]->ProcessMidiMessage(evt);
 }
 
 void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)

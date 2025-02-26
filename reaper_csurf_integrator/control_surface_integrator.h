@@ -2692,9 +2692,9 @@ class Midi_ControlSurface : public ControlSurface
 {
 private:
     Midi_ControlSurfaceIO *const surfaceIO_;
-    WDL_IntKeyedArray<Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
-    static void disposeAction(Midi_CSIMessageGenerator *messageGenerator) { delete messageGenerator; }
     
+    map<int, Midi_CSIMessageGenerator*> Midi_CSIMessageGeneratorsByMessage_;
+
     DWORD lastRun_ = 0;
 
     void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens);
@@ -2748,8 +2748,8 @@ public:
     
     void AddCSIMessageGenerator(int messageKey, Midi_CSIMessageGenerator *messageGenerator)
     {
-        if (WDL_NOT_NORMALLY(!messageGenerator)) return;
-        Midi_CSIMessageGeneratorsByMessage_.Insert(messageKey, messageGenerator);
+        if (messageGenerator != NULL)
+            Midi_CSIMessageGeneratorsByMessage_[messageKey] = messageGenerator;
     }
     
     virtual void RequestUpdate() override
