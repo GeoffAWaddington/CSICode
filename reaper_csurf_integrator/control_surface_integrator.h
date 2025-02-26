@@ -3058,8 +3058,7 @@ protected:
     MediaTrack           *folderParentTrack_ = NULL;
     vector<MediaTrack *> folderParentTracks_;
     vector<MediaTrack *> folderSpillTracks_;
-    WDL_PointerKeyedArray<MediaTrack*, WDL_PtrList<MediaTrack>* > folderDictionary_;
-    static void disposeFolderParents(WDL_PtrList<MediaTrack> *parent) { delete parent;  }
+    map<MediaTrack*, vector<MediaTrack*>> folderDictionary_;
  
     vector<Navigator *> fixedTrackNavigators_;
     vector<Navigator *> trackNavigators_;
@@ -3109,8 +3108,7 @@ public:
     isScrollSynchEnabled_(isScrollSynchEnabled),
     masterTrackNavigator_(new MasterTrackNavigator(csi_, page_)),
     selectedTrackNavigator_(new SelectedTrackNavigator(csi_, page_)),
-    focusedFXNavigator_(new FocusedFXNavigator(csi_, page_)),
-    folderDictionary_(disposeFolderParents) {}
+    focusedFXNavigator_(new FocusedFXNavigator(csi_, page_)) {}
     
     ~TrackNavigationManager()
     {
@@ -3712,49 +3710,44 @@ public:
             return;
         
         folderTopParentTracks_.clear();
-        folderDictionary_.DeleteAll();
-
+        folderDictionary_.clear();
         folderSpillTracks_.clear();
        
-        vector<WDL_PtrList<MediaTrack>*> currentDepthTracks;
+        vector<vector<MediaTrack*>*> currentDepthTracks;
         
-        for (int i = 1; i <= GetNumTracks(); ++i)
+        for (int i = 1; i <= GetNumTracks(); i++)
         {
-            MediaTrack *track = CSurf_TrackFromID(i, followMCP_);
+            MediaTrack* track = CSurf_TrackFromID(i, followMCP_);
 
-            if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+            if(GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             {
-                if (currentDepthTracks.size() == 0)
+                if(currentDepthTracks.size() == 0)
                     folderTopParentTracks_.push_back(track);
                 else
-                    currentDepthTracks.back()->Add(track);
+                    currentDepthTracks.back()->push_back(track);
                 
-                if ( ! folderDictionary_.Exists(track))
-                    folderDictionary_.Insert(track, new WDL_PtrList<MediaTrack>());
+                folderDictionary_[track].push_back(track);
                 
-                if (folderDictionary_.Exists(track))
-                    folderDictionary_.Get(track)->Add(track);
-                
-                currentDepthTracks.push_back(folderDictionary_.Get(track));
+                currentDepthTracks.push_back(&folderDictionary_[track]);
             }
-            else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
+            else if(GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 0 && currentDepthTracks.size() > 0)
             {
-                currentDepthTracks.back()->Add(track);
+                currentDepthTracks.back()->push_back(track);
             }
-            else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0 && currentDepthTracks.size() > 0)
+            else if(GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") < 0 && currentDepthTracks.size() > 0)
             {
-                currentDepthTracks.back()->Add(track);
+                currentDepthTracks.back()->push_back(track);
                 
                 int folderBackTrack = (int)-GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH");
                 
-                for (int t = 0; t < folderBackTrack && currentDepthTracks.size() > 0; ++t)
+                for(int i = 0; i < folderBackTrack && currentDepthTracks.size() > 0; i++)
                     currentDepthTracks.pop_back();
             }
         }
-        
+
         if (folderParentTrack_ != NULL)
-            for (int i = 0; i < folderDictionary_.Get(folderParentTrack_)->GetSize(); ++i)
-                folderSpillTracks_.push_back(folderDictionary_.Get(folderParentTrack_)->Get(i));
+            for (int i = 0; i < folderDictionary_[folderParentTrack_].size(); ++i)
+                folderSpillTracks_.push_back(folderDictionary_[folderParentTrack_][i]);
      }
     
     void EnterPage()
