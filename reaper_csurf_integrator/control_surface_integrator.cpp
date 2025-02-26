@@ -1250,7 +1250,7 @@ void CSurfIntegrator::Init()
     
     isInitialized_ = true;
     
-    pages_.Empty(true);
+    pages_.clear();
     
     string currentBroadcaster;
     
@@ -1416,7 +1416,7 @@ void CSurfIntegrator::Init()
                         }
                         
                         currentPage = new Page(this, pageNameProp, followMCP, synchPages, isScrollLinkEnabled, isScrollSynchEnabled);
-                        pages_.Add(currentPage);
+                        pages_.push_back(currentPage);
                     }
                 }
                 else if (const char *broadcasterProp = pList.get_prop(PropertyType_Broadcaster))
@@ -1552,15 +1552,15 @@ void CSurfIntegrator::Init()
         ShowConsoleMsg(buffer);
     }
     
-    if (pages_.GetSize() == 0)
-        pages_.Add(new Page(this, "Home", false, false, false, false));
+    if (pages_.size() == 0)
+        pages_.push_back(new Page(this, "Home", false, false, false, false));
     
-    for (int i = 0; i < pages_.GetSize(); ++i)
+    for (auto page : pages_)
     {
-        for (int j = 0; j < pages_.Get(i)->GetSurfaces().GetSize(); ++j)
-            pages_.Get(i)->GetSurfaces().Get(j)->ForceClear();
+        for (int j = 0; j < page->GetSurfaces().GetSize(); ++j)
+            page->GetSurfaces().Get(j)->ForceClear();
 
-        pages_.Get(i)->OnInitialization();
+        page->OnInitialization();
     }
 }
 
@@ -4370,7 +4370,7 @@ CSurfIntegrator::~CSurfIntegrator()
     
     oscSurfacesIO_.Empty(true);
             
-    pages_.Empty(true);
+    pages_.clear();
         
     actions_.clear();
 }
