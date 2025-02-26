@@ -26,11 +26,11 @@ bool g_surfaceInDisplay;
 bool g_surfaceOutDisplay;
 bool g_fxParamsWrite;
 
-void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties)
+void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens, PropertyList &properties)
 {
     for (int i = start; i < finish; ++i)
     {
-        const char *tok = tokens.get(i);
+        const char *tok = tokens[i].c_str();
         const char *eq = strstr(tok,"=");
         if (eq != NULL && strstr(eq+1, "=") == NULL /* legacy behavior, don't allow = in value */)
         {
@@ -59,7 +59,7 @@ void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, P
     }
 }
 
-void GetSteppedValues(const string_list &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void GetSteppedValues(const vector<string> &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     int openSquareIndex = -1, closeSquareIndex = -1;
     
@@ -83,7 +83,7 @@ void GetSteppedValues(const string_list &params, int start_idx, double &deltaVal
     {
         for (int i = openSquareIndex + 1; i < closeSquareIndex; ++i)
         {
-            const char *str = params.get(i);
+            const char *str = params[i].c_str();
 
             if (str[0] == '(' && str[strlen(str)-1] == ')')
             {
@@ -223,19 +223,6 @@ void ReplaceAllWith(string &output, const char *charsToReplace, const char *repl
     }
 }
 
-void GetTokens(string_list &tokens, const char *line, char delim)
-{
-    while (*line)
-    {
-        const char *np = line;
-        while (*np && *np != delim) np++;
-
-        tokens.add_raw(line, (int) (np-line));
-        if (!*np) break;
-        line = np + 1;
-    }
-}
-
 void GetTokens(vector<string> &tokens, const string &line)
 {
     istringstream iss(line);
@@ -244,112 +231,17 @@ void GetTokens(vector<string> &tokens, const string &line)
         tokens.push_back(token);
 }
 
-void GetTokens(string_list &tokens, const char *line)
+void GetTokens(vector<string> &tokens, const string &line, char delimiter)
 {
-    const char *rd = line;
-    for (;;)
-    {
-        while (*rd > 0 && isspace(*rd)) rd++;
-        if (!*rd) break;
-
-        if (*rd == '\"')
-        {
-            rd++;
-            char *wr = tokens.add_raw(NULL, strlen(rd));
-            if (WDL_NOT_NORMALLY(!wr)) break;
-            // wr will be all 0 bytes
-            while (*rd)
-            {
-                if (*rd == '\"')
-                {
-                    rd++;
-                    break;
-                }
-                if (*rd == '\\' && (rd[1] == '\\' || rd[1] == '\"')) // if \\ or \", passthrough second character
-                    rd++;
-                *wr++ = *rd++;
-            }
-            tokens.trim_last(); // remove any trailing 0 bytes
-        }
-        else
-        {
-            const char *sp = rd;
-            while (*rd && (*rd<0 || !isspace(*rd))) rd++;
-            tokens.add_raw(sp, rd-sp);
-        }
-    }
+    istringstream iss(line);
+    string token;
+    while (getline(iss, token, delimiter))
+        tokens.push_back(token);
 }
 
-void string_list::clear()
+int strToHex(string &valueStr)
 {
-    buf_.Resize(0);
-    offsets_.Resize(0);
-}
-
-char *string_list::add_raw(const char *str, size_t len)
-{
-    offsets_.Add(buf_.GetSize());
-    char *ret = buf_.Add(str, (int)len + 1);
-    if (WDL_NORMALLY(ret)) ret[len]=0;
-    return ret;
-}
-
-void string_list::trim_last()
-{
-    if (WDL_NOT_NORMALLY(!offsets_.GetSize())) return;
-    const int lastidx = offsets_.Get()[offsets_.GetSize()-1];
-
-    int sz = buf_.GetSize();
-    if (WDL_NOT_NORMALLY(lastidx<0 || lastidx >= sz)) return;
-
-    while (sz > lastidx+1 && buf_.Get()[sz-1] == 0 && buf_.Get()[sz-2] == 0)
-        sz--;
-    buf_.Resize(sz);
-}
-
-void string_list::update(int idx, const char *value)
-{
-    string tmp;
-    if (value >= buf_.Get() && value < buf_.Get() + buf_.GetSize())
-    {
-        tmp = value;
-        value = tmp.c_str();
-    }
-    if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
-    {
-        const int o = offsets_.Get()[idx];
-        if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
-        {
-            const int newl = (int) strlen(value) + 1, oldl = (int) strlen(buf_.Get() + o) + 1;
-            if (newl != oldl)
-            {
-                const int trail = buf_.GetSize() - (o + oldl);
-                const int dsize = newl - oldl;
-                buf_.Resize(buf_.GetSize() + dsize, false);
-                if (trail > 0) memmove(buf_.Get() + o + newl, buf_.Get() + o + oldl, trail);
-                for (int i = 0; i < offsets_.GetSize(); i ++)
-                    if (offsets_.Get()[i] > o)
-                        offsets_.Get()[i] += dsize;
-            }
-            memcpy(buf_.Get() + o, value, newl + 1);
-        }
-    }
-}
-
-const char *string_list::get(int idx) const
-{
-    if (WDL_NORMALLY(idx >= 0 && idx < offsets_.GetSize()))
-    {
-        const int o = offsets_.Get()[idx];
-        if (WDL_NORMALLY(o >= 0 && o < buf_.GetSize()))
-            return buf_.Get() + o;
-    }
-    return "";
-}
-
-int strToHex(const char *valueStr)
-{
-    return strtol(valueStr, NULL, 16);
+    return strtol(valueStr.c_str(), NULL, 16);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -539,23 +431,23 @@ static void listFilesOfType(const string &path, vector<string> &results, const s
 //////////////////////////////////////////////////////////////////////////////
 // Midi_ControlSurface
 //////////////////////////////////////////////////////////////////////////////
-void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens)
+void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
     
-    const char *widgetName = in_tokens[1];
+    const string &widgetName = in_tokens[1];
     
     string widgetClass;
     
     if (in_tokens.size() > 2)
         widgetClass = in_tokens[2];
 
-    Widget *widget = new Widget(csi_, this, widgetName);
+    Widget *widget = new Widget(csi_, this, widgetName.c_str());
        
     AddWidget(widget);
 
-    vector<string_list> tokenLines;
+    vector<vector<string>> tokenLines;
     
     for (string line; getline(surfaceTemplateFile, line) ; )
     {
@@ -566,8 +458,8 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
             continue;
         
-        string_list tokens;
-        GetTokens(tokens, line.c_str());
+        vector<string> tokens;
+        GetTokens(tokens, line);
 
         if (tokens[0] == "WidgetEnd")    // Widget list complete
             break;
@@ -582,7 +474,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
     {
         int size = (int)tokenLines[i].size();
         
-        const string_list::string_ref widgetType = tokenLines[i][0];
+        const string widgetType = tokenLines[i][0];
 
         MIDI_event_ex_t *message1 = NULL;
         MIDI_event_ex_t *message2 = NULL;
@@ -743,7 +635,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         }
         else if (widgetType == "FB_SCE24OLEDButton" && size == 7)
         {
-            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])), atoi(tokenLines[i][4]), atoi(tokenLines[i][5]), atoi(tokenLines[i][6]));
+            feedbackProcessor = new SCE24OLED_Midi_FeedbackProcessor(csi_, this, widget, new MIDI_event_ex_t(strToHex(tokenLines[i][1]), strToHex(tokenLines[i][2]) + 0x60, strToHex(tokenLines[i][3])), atoi(tokenLines[i][4].c_str()), atoi(tokenLines[i][5].c_str()), atoi(tokenLines[i][6].c_str()));
         }
         else if (widgetType == "FB_SCE24Encoder" && size == 4 && message1)
         {
@@ -751,7 +643,7 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
         }
         else if (widgetType == "FB_SCE24EncoderText" && size == 7 && message1)
         {
-            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(csi_, this, widget, message1, atoi(tokenLines[i][4]), atoi(tokenLines[i][5]), atoi(tokenLines[i][6]));
+            feedbackProcessor = new SCE24Text_Midi_FeedbackProcessor(csi_, this, widget, message1, atoi(tokenLines[i][4].c_str()), atoi(tokenLines[i][5].c_str()), atoi(tokenLines[i][6].c_str()));
         }
         else if ((widgetType == "FB_MCUDisplayUpper" || widgetType == "FB_MCUDisplayLower" || widgetType == "FB_MCUXTDisplayUpper" || widgetType == "FB_MCUXTDisplayLower") && size == 2)
         {
@@ -854,12 +746,12 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
 //////////////////////////////////////////////////////////////////////////////
 // OSC_ControlSurface
 //////////////////////////////////////////////////////////////////////////////
-void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens)
+void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens)
 {
     if (in_tokens.size() < 2)
         return;
     
-    Widget *widget = new Widget(csi_, this, in_tokens[1]);
+    Widget *widget = new Widget(csi_, this, in_tokens[1].c_str());
     
     AddWidget(widget);
 
@@ -911,7 +803,7 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
 //////////////////////////////////////////////////////////////////////////////
 // ControlSurface
 //////////////////////////////////////////////////////////////////////////////
-void ControlSurface::ProcessValues(const vector<string_list> &lines)
+void ControlSurface::ProcessValues(const vector<vector<string>> &lines)
 {
     bool inStepSizes = false;
     bool inAccelerationValues = false;
@@ -943,7 +835,7 @@ void ControlSurface::ProcessValues(const vector<string_list> &lines)
 
             if (lines[i].size() > 1)
             {
-                const char *widgetClass = lines[i].get(0);
+                const string &widgetClass = lines[i][0];
                 
                 if (inStepSizes)
                     stepSize_[widgetClass] = atof(lines[i][1].c_str());
@@ -988,7 +880,7 @@ void ControlSurface::ProcessValues(const vector<string_list> &lines)
 void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface)
 {
     int lineNumber = 0;
-    vector<string_list> valueLines;
+    vector<vector<string>> valueLines;
     
     stepSize_.clear();
     accelerationValuesForDecrement_.clear();
@@ -1008,7 +900,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
             if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            string_list tokens;
+            vector<string> tokens;
             GetTokens(tokens, line.c_str());
 
             if (tokens.size() > 0 && tokens[0] != "Widget")
@@ -1035,7 +927,7 @@ void Midi_ControlSurface::ProcessMIDIWidgetFile(const string &filePath, Midi_Con
 void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
 {
     int lineNumber = 0;
-    vector<string_list> valueLines;
+    vector<vector<string>> valueLines;
     
     stepSize_.clear();
     accelerationValuesForDecrement_.clear();
@@ -1055,8 +947,8 @@ void OSC_ControlSurface::ProcessOSCWidgetFile(const string &filePath)
             if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            string_list tokens;
-            GetTokens(tokens, line.c_str());
+            vector<string> tokens;
+            GetTokens(tokens, line);
 
             if (tokens.size() > 0 && tokens[0] != "Widget")
                 valueLines.push_back(tokens);
@@ -1292,7 +1184,7 @@ void CSurfIntegrator::Init()
             if (lineNumber == 0)
             {
                 PropertyList pList;
-                string_list properties;
+                vector<string> properties;
                 properties.push_back(line.c_str());
                 GetPropertiesFromTokens(0, 1, properties, pList);
 
@@ -1328,7 +1220,7 @@ void CSurfIntegrator::Init()
             if (line == "" || line[0] == '\r' || line[0] == '/') // ignore comment lines and blank lines
                 continue;
             
-            string_list tokens;
+            vector<string> tokens;
             GetTokens(tokens, line.c_str());
             
             if (tokens.size() > 0) // ignore comment lines and blank lines
@@ -1619,7 +1511,7 @@ MediaTrack *FocusedFXNavigator::GetTrack()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ActionContext
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const string_list *paramsAndProperties, const string *stringParam): csi_(csi), action_(action), widget_(widget), zone_(zone)
+ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const vector<string> &paramsAndProperties, const string *stringParam): csi_(csi), action_(action), widget_(widget), zone_(zone)
 {
     intParam_ = 0;
     supportsColor_ = false;
@@ -1654,28 +1546,26 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     
     supportsTrackColor_ = false;
     
-    string_list params_wr;
-    const string_list &params = params_wr;
+    vector<string> params_wr;
+    const vector<string> &params = params_wr;
     
-    if (paramsAndProperties != NULL)
+    for (int i = 0; i < (int)(paramsAndProperties).size(); ++i)
     {
-        for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
-        {
-            if ((*paramsAndProperties)[i].find("=") == string::npos)
-                params_wr.push_back((*paramsAndProperties)[i]);
-        }
-        GetPropertiesFromTokens(0, (int)(*paramsAndProperties).size(), *paramsAndProperties, widgetProperties_);
+        if ((paramsAndProperties)[i].find("=") == string::npos)
+            params_wr.push_back((paramsAndProperties)[i]);
     }
+    GetPropertiesFromTokens(0, (int)(paramsAndProperties).size(), paramsAndProperties, widgetProperties_);
+
     
     const char *feedback = widgetProperties_.get_prop(PropertyType_Feedback);
     if (feedback && !strcmp(feedback, "No"))
         provideFeedback_ = false;
 
-    for (int i = 0; i < (int)(*paramsAndProperties).size(); ++i)
-        if (!strcmp((*paramsAndProperties)[i], "NoFeedback"))
+    for (int i = 0; i < (int)(paramsAndProperties).size(); ++i)
+        if (paramsAndProperties[i] == "NoFeedback")
             provideFeedback_ = false;
 
-    const char *actionName = "";
+    string actionName = "";
     
     if (params.size() > 0)
         actionName = params[0];
@@ -1686,7 +1576,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         intParam_= atol(params[1].c_str());
     }
     
-    if (!strcmp(actionName, "Bank") && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 2003 says empty strings can be queried without catastrophe :)
+    if (actionName == "Bank" && (params.size() > 2 && (isdigit(params[2][0]) ||  params[2][0] == '-')))  // C++ 2003 says empty strings can be queried without catastrophe :)
     {
         stringParam_ = params[1];
         intParam_= atol(params[2].c_str());
@@ -1702,24 +1592,24 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
     if (params.size() > 1)
         stringParam_ = params[1];
     
-    if (!strcmp(actionName, "TrackVolumeDB") || !strcmp(actionName, "TrackSendVolumeDB"))
+    if (actionName == "TrackVolumeDB" || actionName == "TrackSendVolumeDB")
     {
         rangeMinimum_ = -144.0;
         rangeMaximum_ = 24.0;
     }
     
-    if (!strcmp(actionName, "TrackPanPercent") ||
-        !strcmp(actionName, "TrackPanWidthPercent") ||
-        !strcmp(actionName, "TrackPanLPercent") ||
-        !strcmp(actionName, "TrackPanRPercent"))
+    if (actionName == "TrackPanPercent" ||
+        actionName == "TrackPanWidthPercent" ||
+        actionName == "TrackPanLPercent" ||
+        actionName == "TrackPanRPercent")
     {
         rangeMinimum_ = -100.0;
         rangeMaximum_ = 100.0;
     }
    
-    if ((!strcmp(actionName, "Reaper") ||
-         !strcmp(actionName, "ReaperDec") ||
-         !strcmp(actionName, "ReaperInc")) && params.size() > 1)
+    if ((actionName == "Reaper" ||
+         actionName == "ReaperDec" ||
+         actionName == "ReaperInc") && params.size() > 1)
     {
         if (isdigit(params[1][0]))
         {
@@ -1734,18 +1624,18 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
         }
     }
         
-    if ((!strcmp(actionName, "FXParam") || !strcmp(actionName, "JSFXParam")) &&
+    if ((actionName == "FXParam" || actionName == "JSFXParam") &&
           params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
     }
     
-    if (!strcmp(actionName, "FXParamValueDisplay") && params.size() > 1 && isdigit(params[1][0]))
+    if (actionName == "FXParamValueDisplay" && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
     }
     
-    if (!strcmp(actionName, "FXParamNameDisplay") && params.size() > 1 && isdigit(params[1][0]))
+    if (actionName == "FXParamNameDisplay" && params.size() > 1 && isdigit(params[1][0]))
     {
         paramIndex_ = atol(params[1].c_str());
         
@@ -1753,7 +1643,7 @@ ActionContext::ActionContext(CSurfIntegrator *const csi, Action *action, Widget 
                fxParamDisplayName_ = params[2];
     }
     
-    if (!strcmp(actionName, "FixedTextDisplay") && (params.size() > 2 && (isdigit(params[2][0]))))  // C++ 2003 says empty strings can be queried without catastrophe :)
+    if (actionName == "FixedTextDisplay" && (params.size() > 2 && (isdigit(params[2][0]))))  // C++ 2003 says empty strings can be queried without catastrophe :)
     {
         stringParam_ = params[1];
         paramIndex_= atol(params[2].c_str());
@@ -2027,21 +1917,21 @@ void ActionContext::DoAcceleratedDeltaValueAction(int accelerationIndex, double 
         DoRangeBoundAction(action_->GetCurrentNormalizedValue(this) - acceleratedDeltaValues_[accelerationIndex]);
 }
 
-void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const string_list &colors)
+void ActionContext::GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors)
 {
     for (int i = 0; i < (int)colors.size(); ++i)
     {
         rgba_color colorValue;
         
-        if (GetColorValue(colors[i], colorValue))
+        if (GetColorValue(colors[i].c_str(), colorValue))
             colorValues.push_back(colorValue);
     }
 }
 
-void ActionContext::SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
+void ActionContext::SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues)
 {
     vector<int> rawValues;
-    string_list hexColors;
+    vector<string> hexColors;
 
     int openCurlyIndex = 0;
     int closeCurlyIndex = 0;
@@ -2064,7 +1954,7 @@ void ActionContext::SetColor(const string_list &params, bool &supportsColor, boo
     {
         for (int i = openCurlyIndex + 1; i < closeCurlyIndex; ++i)
         {
-            const char *strVal = params[i];
+            const string &strVal = params[i];
             
             if (strVal[0] == '#')
             {
@@ -2072,7 +1962,7 @@ void ActionContext::SetColor(const string_list &params, bool &supportsColor, boo
                 continue;
             }
             
-            if (!strcmp(strVal, "Track"))
+            if (strVal == "Track")
             {
                 supportsTrackColor = true;
                 break;
@@ -2080,7 +1970,7 @@ void ActionContext::SetColor(const string_list &params, bool &supportsColor, boo
             else if (strVal[0])
             {
                 char *ep = NULL;
-                const int value = strtol(strVal, &ep, 10);
+                const int value = strtol(strVal.c_str(), &ep, 10);
                 if (ep && !*ep)
                     rawValues.push_back(wdl_clamp(value, 0, 255));
             }
@@ -2110,7 +2000,7 @@ void ActionContext::SetColor(const string_list &params, bool &supportsColor, boo
     }
 }
 
-void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
+void ActionContext::GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues)
 {
     ::GetSteppedValues(params, 0, deltaValue, acceleratedDeltaValues, rangeMinimum, rangeMaximum, steppedValues, acceleratedTickValues);
     
@@ -2640,7 +2530,7 @@ void ZoneManager::Initialize()
     homeZone_ = new Zone(csi_, this, GetSelectedTrackNavigator(), 0, "Home", "Home", zoneInfo_["Home"].filePath);
     LoadZoneFile(homeZone_, "");
     
-    string_list zoneList;
+    vector<string> zoneList;
     if (zoneInfo_.find("GoZones") != zoneInfo_.end())
         LoadZoneMetadata(zoneInfo_["GoZones"].filePath.c_str(), zoneList);
     LoadZones(goZones_, zoneList);
@@ -2692,9 +2582,9 @@ void ZoneManager::PreProcessZoneFile(const string &filePath)
 
 static ModifierManager s_modifierManager(NULL);
 
-void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount, bool &isDecrease, bool &isIncrease)
+void ZoneManager::GetWidgetNameAndModifiers(const string &line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount, bool &isDecrease, bool &isIncrease)
 {
-    string_list tokens;
+    vector<string> tokens;
     GetTokens(tokens, line, '+');
     
     baseWidgetName = tokens[tokens.size() - 1];
@@ -2721,7 +2611,7 @@ void ZoneManager::GetWidgetNameAndModifiers(const char *line, string &baseWidget
         }
     }
     
-    tokens.erase(tokens.size() - 1);
+    tokens.erase(tokens.begin() + tokens.size() - 1);
     
     modifier += s_modifierManager.GetModifierValue(tokens);
 }
@@ -2759,11 +2649,11 @@ void ZoneManager::GetNavigatorsForZone(const char *zoneName, const char *navigat
         navigators.push_back(GetSelectedTrackNavigator());
 }
 
-void ZoneManager::LoadZones(vector<Zone *> &zones, string_list &zoneList)
+void ZoneManager::LoadZones(vector<Zone *> &zones, vector<string> &zoneList)
 {
     for (int i = 0; i < zoneList.size(); ++i)
     {
-        string_list tokens;
+        vector<string> tokens;
         GetTokens(tokens, zoneList[i]);
         
         char zoneName[MEDBUF];
@@ -2817,7 +2707,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
 {
     int lineNumber = 0;
     bool isInIncludedZonesSection = false;
-    string_list includedZonesList;
+    vector<string> includedZonesList;
     bool isInSubZonesSection = false;
     vector<string> subZonesList;
 
@@ -2884,7 +2774,7 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
 
                 zone->AddWidget(widget);
 
-                string_list memberParams;
+                vector<string> memberParams;
 
                 for (int i = 1; i < tokens.size(); ++i)
                     memberParams.push_back(tokens[i]);

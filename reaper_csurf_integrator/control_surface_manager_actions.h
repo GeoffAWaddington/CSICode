@@ -18,7 +18,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        string_list tokens;
+        vector<string> tokens;
         GetTokens(tokens, context->GetStringParam());
         
         if (tokens.size() == 3)
@@ -55,7 +55,7 @@ public:
     {
         if (value == 0.0) return; // ignore button releases
         
-        string_list tokens;
+        vector<string> tokens;
         GetTokens(tokens, context->GetStringParam());
 
         if (tokens.size() == 1)
@@ -67,7 +67,7 @@ public:
         if (tokens.size() != 2)
             return;
         
-        const char *t1 = tokens.get(1), *t1e = NULL;
+        const char *t1 = tokens[1].c_str(), *t1e = NULL;
         
         if (strstr(t1,"."))
         {

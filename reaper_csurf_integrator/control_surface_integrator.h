@@ -61,7 +61,7 @@
 
 extern void TrimLine(string &line);
 extern void ReplaceAllWith(string &output, const char *replaceAny, const char *replacement);
-extern int strToHex(const char *valueStr);
+extern int strToHex(string &valueStr);
 
 class ZoneManager;
 class Zone;
@@ -98,57 +98,8 @@ static char *format_number(double v, char *buf, int bufsz)
   return buf;
 }
 
-class string_list
-{
-  public:
-
-     void clear();
-     char *add_raw(const char *str, size_t len); // may pass NULL, adds all 0s of len (use trim_last after)
-     void push_back(const char *str) { add_raw(str, strlen(str)); }
-     void push_back(const string &str) { push_back(str.c_str()); }
-     void trim_last(); // removes any extra trailing 0 bytes on last item
-
-     int size() const { return offsets_.GetSize(); }
-
-     int begin() const { return 0; }
-     void erase(int idx) { offsets_.Delete(idx); }
-     void update(int idx, const char *value);
-
-     const char *get(int idx) const;
-
-     struct string_ref {
-         string_ref(const char *v) : v_(v) { }
-         const char *v_;
-
-         const char *c_str() const { return v_; }
-         operator const char *() const { return v_; }
-
-         size_t find(const char *s, size_t pos = 0) const
-         {
-             const char *sp = v_;
-             while (pos-- != 0 && *sp) sp++;
-             const char *f = strstr(sp,s);
-             return f ? (f - v_) : string::npos;
-         }
-         size_t find(const string &s, size_t pos = 0) const { return find(s.c_str(), pos); }
-
-         bool operator==(const char *str) const { return !strcmp(v_,str); }
-         bool operator!=(const char *str) const { return !!strcmp(v_,str); }
-         bool operator==(const string &str) const { return !strcmp(v_,str.c_str()); }
-         bool operator!=(const string &str) const { return !!strcmp(v_,str.c_str()); }
-     };
-
-     const string_ref operator[](const int idx) const { return string_ref(get(idx)); }
-
-  private:
-      WDL_TypedBuf<int> offsets_;
-      WDL_TypedBuf<char> buf_;
-};
-
-extern void GetTokens(string_list &tokens, const char *line);
-extern void GetTokens(string_list &tokens, const char *line, char delim);
-
 extern void GetTokens(vector<string> &tokens, const string &line);
+extern void GetTokens(vector<string> &tokens, const string &line, char delimiter);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 enum PropertyType {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -544,11 +495,11 @@ private:
     PropertyList widgetProperties_;
         
     void UpdateTrackColor();
-    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const string_list &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
-    void SetColor(const string_list &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
-    void GetColorValues(vector<rgba_color> &colorValues, const string_list &colors);
+    void GetSteppedValues(Widget *widget, Action *action,  Zone *zone, int paramNumber, const vector<string> &params, const PropertyList &widgetProperties, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
+    void SetColor(const vector<string> &params, bool &supportsColor, bool &supportsTrackColor, vector<rgba_color> &colorValues);
+    void GetColorValues(vector<rgba_color> &colorValues, const vector<string> &colors);
 public:
-    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const string_list *params, const string *stringParam);
+    ActionContext(CSurfIntegrator *const csi, Action *action, Widget *widget, Zone *zone, int paramIndex, const vector<string> &params, const string *stringParam);
 
     virtual ~ActionContext() {}
     
@@ -990,9 +941,7 @@ public:
 // For Zone Manager
 ////////////////////////////
 
-void GetSteppedValues(const string_list &params, int start_idx, double &deltaValue, vector<double> &acceleratedDeltaValues, double &rangeMinimum, double &rangeMaximum, vector<double> &steppedValues, vector<int> &acceleratedTickValues);
-
-void GetPropertiesFromTokens(int start, int finish, const string_list &tokens, PropertyList &properties);
+void GetPropertiesFromTokens(int start, int finish, const vector<string> &tokens, PropertyList &properties);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct CSIZoneInfo
@@ -1049,22 +998,20 @@ private:
     int selectedTrackReceiveOffset_ = 0;
     int selectedTrackFXMenuOffset_ = 0;
     int masterTrackFXMenuOffset_ = 0;
-    
-    string_list paramList_;
 
     void GoFXSlot(MediaTrack *track, Navigator *navigator, int fxSlot);
     void GoSelectedTrackFX();
-    void GetWidgetNameAndModifiers(const char *line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
+    void GetWidgetNameAndModifiers(const string &line, string &baseWidgetName, int &modifier, bool &isValueInverted, bool &isFeedbackInverted, double &holdDelayAmount,
                                    bool &isDecrease, bool &isIncrease);
     void GetNavigatorsForZone(const char *zoneName, const char *navigatorName, vector<Navigator *> &navigators);
-    void LoadZones(vector<Zone *> &zones, string_list &zoneList);
+    void LoadZones(vector<Zone *> &zones, vector<string> &zoneList);
          
     void DoAction(Widget *widget, double value, bool &isUsed);
     void DoRelativeAction(Widget *widget, double delta, bool &isUsed);
     void DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed);
     void DoTouch(Widget *widget, double value, bool &isUsed);
     
-    void LoadZoneMetadata(const char *filePath, string_list &metadata)
+    void LoadZoneMetadata(const char *filePath, vector<string> &metadata)
     {
         int lineNumber = 0;
         
@@ -1081,8 +1028,8 @@ private:
                 if (line == "" || (line.size() > 0 && line[0] == '/')) // ignore blank lines and comment lines
                     continue;
                 
-                string_list tokens;
-                GetTokens(tokens, line.c_str());
+                vector<string> tokens;
+                GetTokens(tokens, line);
                 
                 if (tokens[0] == "Zone" || tokens[0] == "ZoneEnd")
                     continue;
@@ -1899,12 +1846,12 @@ public:
 
     int GetModifierValue(const char *modifierString)
     {
-        string_list modifierTokens;
+        vector<string> modifierTokens;
         GetTokens(modifierTokens, modifierString, '+');
         return GetModifierValue(modifierTokens);
     }
     
-    int GetModifierValue(const string_list &tokens)
+    int GetModifierValue(const vector<string> &tokens)
     {
         int modifierValue = 0;
         for (int i = 0; i < tokens.size(); ++i)
@@ -2079,7 +2026,7 @@ protected:
     map<const string, vector<double>* > accelerationValues_;
     vector<double> emptyAccelerationValues_;
     
-    void ProcessValues(const vector<string_list> &lines);
+    void ProcessValues(const vector<vector<string>> &lines);
     
     CSurfIntegrator *const csi_;
     Page *const page_;
@@ -2695,7 +2642,7 @@ private:
 
     DWORD lastRun_ = 0;
 
-    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens);
+    void ProcessMidiWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens);
     
     void ProcessMIDIWidgetFile(const string &filePath, Midi_ControlSurface *surface);
     
@@ -2998,7 +2945,7 @@ class OSC_ControlSurface : public ControlSurface
 {
 private:
     OSC_ControlSurfaceIO *const surfaceIO_;
-    void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const string_list &in_tokens);
+    void ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemplateFile, const vector<string> &in_tokens);
     void ProcessOSCWidgetFile(const string &filePath);
 public:
     OSC_ControlSurface(CSurfIntegrator *const csi, Page *page, const char *name, int channelOffset, const char *templateFilename, const char *zoneFolder, const char *fxZoneFolder, OSC_ControlSurfaceIO *surfaceIO);
@@ -4209,12 +4156,12 @@ public:
     }
     // End direct calls
     
-    ActionContext *GetActionContext(const char *actionName, Widget *widget, Zone *zone, const string_list &params)
+    ActionContext *GetActionContext(const char *actionName, Widget *widget, Zone *zone, const vector<string> &params)
     {
         if (actions_.find(actionName) != actions_.end())
-            return new ActionContext(this, actions_[actionName], widget, zone, 0, &params, NULL);
+            return new ActionContext(this, actions_[actionName], widget, zone, 0, params, NULL);
         else
-            return new ActionContext(this, actions_["NoAction"], widget, zone, 0, &params, NULL);
+            return new ActionContext(this, actions_["NoAction"], widget, zone, 0, params, NULL);
     }
 
     void OnTrackSelection(MediaTrack *track) override

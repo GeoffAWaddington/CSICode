@@ -252,12 +252,12 @@ struct SurfaceFXTemplate
 
     vector<FXCell *> cells;
     vector<FXRowLayout> fxRowLayouts;
-    string_list paramWidgets;
-    string_list paramWidgetParams;
-    string_list displayRows;
-    string_list displayRowParams;
-    string_list ringStyles;
-    string_list fonts;
+    vector<string> paramWidgets;
+    vector<string> paramWidgetParams;
+    vector<string> displayRows;
+    vector<string> displayRowParams;
+    vector<string> ringStyles;
+    vector<string> fonts;
     bool hasColor;
     char paramWidget[SMLBUF];
     char nameWidget[SMLBUF];
@@ -441,11 +441,11 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         context->SetRangeMaximum(atof(buf));
 
                         GetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, buf, sizeof(buf));
-                        string_list tokens;
+                        vector<string> tokens;
                         GetTokens(tokens, buf);
                         vector<double> deltas;
                         for (int i = 0; i < tokens.size(); ++i)
-                            deltas.push_back(atof(tokens[i]));
+                            deltas.push_back(atof(tokens[i].c_str()));
                         context->SetAccelerationValues(deltas);
                      
                         GetDlgItemText(hwndDlg, IDC_EDIT_TickValues, buf, sizeof(buf));
@@ -453,7 +453,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         GetTokens(tokens, buf);
                         vector<int> ticks;
                         for (int i = 0; i < tokens.size(); ++i)
-                            ticks.push_back(atoi(tokens[i]));
+                            ticks.push_back(atoi(tokens[i].c_str()));
                         context->SetTickCounts(ticks);
                        
                         GetDlgItemText(hwndDlg, IDC_EditSteps, buf, sizeof(buf));
@@ -461,7 +461,7 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
                         GetTokens(tokens, buf);
                         vector<double> steps;
                         for (int i = 0; i < tokens.size(); ++i)
-                            steps.push_back(atof(tokens[i]));
+                            steps.push_back(atof(tokens[i].c_str()));
                         context->SetStepValues(steps);
 
                         s_dlgResult = IDOK;
@@ -522,16 +522,16 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
             
             if (line.find("Zone") == string::npos)
             {
-                string_list tokens;
+                vector<string> tokens;
                 GetTokens(tokens, line.c_str());
                 
                 if (tokens.size() == 2)
                 {
                     FXRowLayout t;
                     
-                    strcpy(t.suffix, tokens[1]);
-                    strcpy(t.modifiers, tokens[0]);
-                    t.modifier = zoneManager->GetSurface()->GetModifierManager()->GetModifierValue(tokens[0]);
+                    strcpy(t.suffix, tokens[1].c_str());
+                    strcpy(t.modifiers, tokens[0].c_str());
+                    t.modifier = zoneManager->GetSurface()->GetModifierManager()->GetModifierValue(tokens[0].c_str());
                     fxTemplate->fxRowLayouts.push_back(t);
                 }
             }
@@ -557,7 +557,7 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
             
             if (line.find("Zone") == string::npos)
             {
-                string_list tokens;
+                vector<string> tokens;
                 GetTokens(tokens, line.c_str());
                                 
                 if (line.find("Zone") == string::npos)
@@ -589,11 +589,11 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
                     else
                     {
                         if (tokens.size() > 1 && tokens[1] == "FXParam")
-                            strcpy(fxTemplate->paramWidget, tokens[0]);
+                            strcpy(fxTemplate->paramWidget, tokens[0].c_str());
                         if (tokens.size() > 1 && tokens[1] == "FixedTextDisplay")
-                            strcpy(fxTemplate->nameWidget, tokens[0]);
+                            strcpy(fxTemplate->nameWidget, tokens[0].c_str());
                         if (tokens.size() > 1 && tokens[1] == "FXParamValueDisplay")
-                            strcpy(fxTemplate->valueWidget, tokens[0]);
+                            strcpy(fxTemplate->valueWidget, tokens[0].c_str());
                     }
                 }
             }
@@ -1178,16 +1178,16 @@ static void SetWidgetProperties(ActionContext *context, const char *params)
 {
     context->GetWidgetProperties().delete_props();
     
-    string_list tokens;
+    vector<string> tokens;
     GetTokens(tokens, params);
     
     for (int i = 0; i < tokens.size(); ++i)
     {
-        string_list kvps;
-        GetTokens(kvps, tokens.get(i), '=');
+        vector<string> kvps;
+        GetTokens(kvps, tokens[i], '=');
         
         if (kvps.size() == 2)
-            context->GetWidgetProperties().set_prop(PropertyList::prop_from_string(kvps.get(0)), kvps.get(1));
+            context->GetWidgetProperties().set_prop(PropertyList::prop_from_string(kvps[0].c_str()), kvps[1].c_str());
     }
 }
 
@@ -1262,9 +1262,9 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
         
         for (int i = 0; i < t->paramWidgetParams.size() && i < t->paramWidgets.size(); ++i)
         {
-            if ( ! strcmp(t->paramWidgets[i], rawWidgetName))
+            if (t->paramWidgets[i] == rawWidgetName)
             {
-                SetWidgetProperties(paramContext, t->paramWidgetParams[i]);
+                SetWidgetProperties(paramContext, t->paramWidgetParams[i].c_str());
                 break;
             }
         }
@@ -1286,9 +1286,9 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
 
                 for (int i = 0; i < t->displayRowParams.size() && i < t->displayRows.size(); ++i)
                 {
-                    if ( ! strcmp(t->displayRows[i], rawWidgetName))
+                    if (t->displayRows[i] == rawWidgetName)
                     {
-                        SetWidgetProperties(context, t->displayRowParams[i]);
+                        SetWidgetProperties(context, t->displayRowParams[i].c_str());
                         context->ForceWidgetValue(context->GetStringParam());
                         break;
                     }
@@ -1304,9 +1304,9 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
 
                 for (int i = 0; i < t->displayRowParams.size() && i < t->displayRows.size(); ++i)
                 {
-                    if ( ! strcmp(t->displayRows[i], rawWidgetName))
+                    if (t->displayRows[i] == rawWidgetName)
                     {
-                        SetWidgetProperties(context, t->displayRowParams[i]);
+                        SetWidgetProperties(context, t->displayRowParams[i].c_str());
                         break;
                     }
                 }
@@ -1713,11 +1713,11 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                            string outputString;
                            GetParamStepsString(outputString, index);
                            SetDlgItemText(hwndDlg, IDC_EditSteps, outputString.c_str());
-                           string_list tokens;
+                           vector<string> tokens;
                            GetTokens(tokens, outputString.c_str());
                            vector<double> steps;
                            for (int i = 0; i < tokens.size(); ++i)
-                               steps.push_back(atof(tokens[i]));
+                               steps.push_back(atof(tokens[i].c_str()));
                            
                            if (paramContext)
                                paramContext->SetStepValues(steps);
@@ -2394,7 +2394,7 @@ void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTr
       
     char widgetName[MEDBUF];
 
-    string_list blankParams;
+    vector<string> blankParams;
     
     for (int rowLayoutIdx = 0; rowLayoutIdx < t->fxRowLayouts.size(); ++rowLayoutIdx)
     {
@@ -3752,7 +3752,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 if (lineNumber == 1)
                 {
                     PropertyList pList;
-                    string_list properties;
+                    vector<string> properties;
                     properties.push_back(line.c_str());
                     GetPropertiesFromTokens(0, 1, properties, pList);
 
@@ -3774,11 +3774,11 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 if (line[0] != '\r' && line[0] != '/' && line != "") // ignore comment lines and blank lines
                 {
-                    string_list tokens;
+                    vector<string> tokens;
                     GetTokens(tokens, line.c_str());
                     
                     PropertyList pList;
-                    string_list properties;
+                    vector<string> properties;
                     properties.push_back(line.c_str());
                     GetPropertiesFromTokens(0, tokens.size(), tokens, pList);
 
