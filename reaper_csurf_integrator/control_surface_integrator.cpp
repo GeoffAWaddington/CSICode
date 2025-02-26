@@ -1431,16 +1431,16 @@ void CSurfIntegrator::Init()
                         ControlSurface *broadcaster = NULL;
                         ControlSurface *listener = NULL;
                         
-                        const WDL_PtrList<ControlSurface> &list = currentPage->GetSurfaces();
+                        const vector<ControlSurface *> &surfaces = currentPage->GetSurfaces();
                         
                         string currentSurface = string(pList.get_prop(PropertyType_Listener));
                         
-                        for (int i = 0; i < list.GetSize(); ++i)
+                        for (int i = 0; i < surfaces.size(); ++i)
                         {
-                            if (list.Get(i)->GetName() == currentBroadcaster)
-                                broadcaster = list.Get(i);
-                            if (list.Get(i)->GetName() == currentSurface)
-                                 listener = list.Get(i);
+                            if (surfaces[i]->GetName() == currentBroadcaster)
+                                broadcaster = surfaces[i];
+                            if (surfaces[i]->GetName() == currentSurface)
+                                 listener = surfaces[i];
                         }
                         
                         if (broadcaster != NULL && listener != NULL)
@@ -1557,8 +1557,8 @@ void CSurfIntegrator::Init()
     
     for (auto page : pages_)
     {
-        for (int j = 0; j < page->GetSurfaces().GetSize(); ++j)
-            page->GetSurfaces().Get(j)->ForceClear();
+        for (auto surface : page->GetSurfaces())
+            surface->ForceClear();
 
         page->OnInitialization();
     }
