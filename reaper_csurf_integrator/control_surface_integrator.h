@@ -3048,23 +3048,23 @@ protected:
     int vcaTrackOffset_ = 0;
     int folderTrackOffset_ = 0;
     int selectedTracksOffset_ = 0;
-    WDL_PtrList<MediaTrack> tracks_;
-    WDL_PtrList<MediaTrack> selectedTracks_;
+    vector<MediaTrack *> tracks_;
+    vector<MediaTrack *> selectedTracks_;
     
-    WDL_PtrList<MediaTrack> vcaTopLeadTracks_;
-    MediaTrack             *vcaLeadTrack_ = NULL;
-    WDL_PtrList<MediaTrack> vcaLeadTracks_;
-    WDL_PtrList<MediaTrack> vcaSpillTracks_;
+    vector<MediaTrack *> vcaTopLeadTracks_;
+    MediaTrack           *vcaLeadTrack_ = NULL;
+    vector<MediaTrack *> vcaLeadTracks_;
+    vector<MediaTrack *> vcaSpillTracks_;
     
-    WDL_PtrList<MediaTrack> folderTopParentTracks_;
-    MediaTrack             *folderParentTrack_ = NULL;
-    WDL_PtrList<MediaTrack> folderParentTracks_;
-    WDL_PtrList<MediaTrack> folderSpillTracks_;
+    vector<MediaTrack *> folderTopParentTracks_;
+    MediaTrack           *folderParentTrack_ = NULL;
+    vector<MediaTrack *> folderParentTracks_;
+    vector<MediaTrack *> folderSpillTracks_;
     WDL_PointerKeyedArray<MediaTrack*, WDL_PtrList<MediaTrack>* > folderDictionary_;
     static void disposeFolderParents(WDL_PtrList<MediaTrack> *parent) { delete parent;  }
  
-    WDL_PtrList<Navigator> fixedTrackNavigators_;
-    WDL_PtrList<Navigator> trackNavigators_;
+    vector<Navigator *> fixedTrackNavigators_;
+    vector<Navigator *> trackNavigators_;
     Navigator *const masterTrackNavigator_;
     Navigator *selectedTrackNavigator_;
     Navigator *focusedFXNavigator_;
@@ -3076,8 +3076,8 @@ protected:
         
         if (selectedTrack != NULL)
         {
-            for (int i = 0; i < trackNavigators_.GetSize(); ++i)
-                if (selectedTrack == trackNavigators_.Get(i)->GetTrack())
+            for (auto trackNavigator : trackNavigators_)
+                if (selectedTrack == trackNavigator->GetTrack())
                     return;
             
             for (int i = 1; i <= GetNumTracks(); ++i)
@@ -3094,7 +3094,7 @@ protected:
             if (trackOffset_ <  0)
                 trackOffset_ =  0;
             
-            int top = GetNumTracks() - trackNavigators_.GetSize();
+            int top = GetNumTracks() - trackNavigators_.size();
             
             if (trackOffset_ >  top)
                 trackOffset_ = top;
@@ -3120,8 +3120,8 @@ public:
         delete selectedTrackNavigator_;
         delete focusedFXNavigator_;
         
-        fixedTrackNavigators_.Empty(true);
-        trackNavigators_.Empty(true);
+        fixedTrackNavigators_.clear();
+        trackNavigators_.clear();
     }
     
     void RebuildTracks();
@@ -3282,12 +3282,12 @@ public:
             return "";
     }
     
-    const WDL_PtrList<MediaTrack> &GetSelectedTracks()
+    const vector<MediaTrack *> &GetSelectedTracks()
     {
-        selectedTracks_.Empty();
+        selectedTracks_.clear();
         
         for (int i = 0; i < CountSelectedTracks2(NULL, false); ++i)
-            selectedTracks_.Add(DAW::GetSelectedTrack(i));
+            selectedTracks_.push_back(DAW::GetSelectedTrack(i));
         
         return selectedTracks_;
     }
@@ -3303,9 +3303,9 @@ public:
         if (currentTrackVCAFolderMode_ != 0)
             return;
 
-        int numTracks = tracks_.GetSize();
+        int numTracks = tracks_.size();
         
-        if (numTracks <= trackNavigators_.GetSize())
+        if (numTracks <= trackNavigators_.size())
             return;
        
         trackOffset_ += amount;
@@ -3313,7 +3313,7 @@ public:
         if (trackOffset_ <  0)
             trackOffset_ =  0;
         
-        int top = numTracks - trackNavigators_.GetSize();
+        int top = numTracks - trackNavigators_.size();
         
         if (trackOffset_ >  top)
             trackOffset_ = top;
@@ -3342,9 +3342,9 @@ public:
         int top = 0;
         
         if (vcaLeadTrack_ == NULL)
-            top = vcaTopLeadTracks_.GetSize() - 1;
+            top = vcaTopLeadTracks_.size() - 1;
         else
-            top = vcaSpillTracks_.GetSize() - 1;
+            top = vcaSpillTracks_.size() - 1;
 
         if (vcaTrackOffset_ >  top)
             vcaTrackOffset_ = top;
@@ -3363,9 +3363,9 @@ public:
         int top = 0;
         
         if (folderParentTrack_ == NULL)
-            top = folderTopParentTracks_.GetSize() - 1;
+            top = folderTopParentTracks_.size() - 1;
         else
-            top = folderSpillTracks_.GetSize() - 1;
+            top = folderSpillTracks_.size() - 1;
         
         if (folderTrackOffset_ > top)
             folderTrackOffset_ = top;
@@ -3381,7 +3381,7 @@ public:
         if (selectedTracksOffset_ < 0)
             selectedTracksOffset_ = 0;
         
-        int top = selectedTracks_.GetSize() - 1;
+        int top = selectedTracks_.size() - 1;
         
         if (selectedTracksOffset_ > top)
             selectedTracksOffset_ = top;
@@ -3389,26 +3389,26 @@ public:
     
     Navigator *GetNavigatorForChannel(int channelNum)
     {
-        for (int i = 0; i < trackNavigators_.GetSize(); ++i)
-            if (trackNavigators_.Get(i)->GetChannelNum() == channelNum)
-                return trackNavigators_.Get(i);
+        for (auto trackNavigator : trackNavigators_)
+            if (trackNavigator->GetChannelNum() == channelNum)
+                return trackNavigator;
           
         TrackNavigator *newNavigator = new TrackNavigator(csi_, page_, this, channelNum);
         
-        trackNavigators_.Add(newNavigator);
+        trackNavigators_.push_back(newNavigator);
             
         return newNavigator;
     }
     
     Navigator *GetNavigatorForTrack(MediaTrack *track)
     {
-        for (int i = 0; i < fixedTrackNavigators_.GetSize(); ++i)
-            if (fixedTrackNavigators_.Get(i)->GetTrack() == track)
-                return fixedTrackNavigators_.Get(i);
+        for (auto fixedTrackNavigator : fixedTrackNavigators_)
+            if (fixedTrackNavigator->GetTrack() == track)
+                return fixedTrackNavigator;
           
         FixedTrackNavigator *newNavigator = new FixedTrackNavigator(csi_, page_, track);
         
-        fixedTrackNavigators_.Add(newNavigator);
+        fixedTrackNavigators_.push_back(newNavigator);
             
         return newNavigator;
     }
@@ -3419,8 +3419,8 @@ public:
         {
             channelNumber += trackOffset_;
             
-            if (channelNumber < GetNumTracks() && channelNumber < tracks_.GetSize() && DAW::ValidateTrackPtr(tracks_.Get(channelNumber)))
-                return tracks_.Get(channelNumber);
+            if (channelNumber < GetNumTracks() && channelNumber < tracks_.size() && DAW::ValidateTrackPtr(tracks_[channelNumber]))
+                return tracks_[channelNumber];
             else
                 return NULL;
         }
@@ -3430,15 +3430,15 @@ public:
 
             if (vcaLeadTrack_ == NULL)
             {
-                if (channelNumber < vcaTopLeadTracks_.GetSize() && DAW::ValidateTrackPtr(vcaTopLeadTracks_.Get(channelNumber)))
-                    return vcaTopLeadTracks_.Get(channelNumber);
+                if (channelNumber < vcaTopLeadTracks_.size() && DAW::ValidateTrackPtr(vcaTopLeadTracks_[channelNumber]))
+                    return vcaTopLeadTracks_[channelNumber];
                 else
                     return NULL;
             }
             else
             {
-                if (channelNumber < vcaSpillTracks_.GetSize() && DAW::ValidateTrackPtr(vcaSpillTracks_.Get(channelNumber)))
-                    return vcaSpillTracks_.Get(channelNumber);
+                if (channelNumber < vcaSpillTracks_.size() && DAW::ValidateTrackPtr(vcaSpillTracks_[channelNumber]))
+                    return vcaSpillTracks_[channelNumber];
                 else
                     return NULL;
             }
@@ -3449,15 +3449,15 @@ public:
 
             if (folderParentTrack_ == NULL)
             {
-                if (channelNumber < folderTopParentTracks_.GetSize() && DAW::ValidateTrackPtr(folderTopParentTracks_.Get(channelNumber)))
-                    return folderTopParentTracks_.Get(channelNumber);
+                if (channelNumber < folderTopParentTracks_.size() && DAW::ValidateTrackPtr(folderTopParentTracks_[channelNumber]))
+                    return folderTopParentTracks_[channelNumber];
                 else
                     return NULL;
             }
             else
             {
-                if (channelNumber < folderSpillTracks_.GetSize() && DAW::ValidateTrackPtr(folderSpillTracks_.Get(channelNumber)))
-                    return folderSpillTracks_.Get(channelNumber);
+                if (channelNumber < folderSpillTracks_.size() && DAW::ValidateTrackPtr(folderSpillTracks_[channelNumber]))
+                    return folderSpillTracks_[channelNumber];
                 else
                     return NULL;
             }
@@ -3466,8 +3466,8 @@ public:
         {
             channelNumber += selectedTracksOffset_;
             
-            if (channelNumber < selectedTracks_.GetSize() && DAW::ValidateTrackPtr(selectedTracks_.Get(channelNumber)))
-                return selectedTracks_.Get(channelNumber);
+            if (channelNumber < selectedTracks_.size() && DAW::ValidateTrackPtr(selectedTracks_[channelNumber]))
+                return selectedTracks_[channelNumber];
             else
                 return NULL;
         }
@@ -3508,17 +3508,17 @@ public:
 
         if (vcaLeadTrack_ == track)
         {
-            if (vcaLeadTracks_.GetSize() > 0)
+            if (vcaLeadTracks_.size() > 0)
             {
-                vcaLeadTrack_ = vcaLeadTracks_.Get(vcaLeadTracks_.GetSize() - 1);
-                vcaLeadTracks_.Delete(vcaLeadTracks_.GetSize() - 1);
+                vcaLeadTrack_ = vcaLeadTracks_[vcaLeadTracks_.size() - 1];
+                vcaLeadTracks_.erase(vcaLeadTracks_.begin() + vcaLeadTracks_.size() - 1);
             }
             else
                 vcaLeadTrack_ = NULL;
         }
         else if (vcaLeadTrack_ != NULL)
         {
-            vcaLeadTracks_.Add(vcaLeadTrack_);
+            vcaLeadTracks_.push_back(vcaLeadTrack_);
             vcaLeadTrack_ = track;
         }
         else
@@ -3529,7 +3529,7 @@ public:
 
     bool GetIsFolderSpilled(MediaTrack *track)
     {
-        if (folderTopParentTracks_.Find(track) >= 0)
+        if (find(folderTopParentTracks_.begin(), folderTopParentTracks_.end(), track) != folderTopParentTracks_.end())
             return true;
         else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             return true;
@@ -3542,7 +3542,7 @@ public:
         if (currentTrackVCAFolderMode_ != 2)
             return;
         
-        if (folderTopParentTracks_.GetSize() == 0)
+        if (folderTopParentTracks_.size() == 0)
             return;
 
         else if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") != 1)
@@ -3550,17 +3550,17 @@ public:
         
         if (folderParentTrack_ == track)
         {
-            if (folderParentTracks_.GetSize() > 0)
+            if (folderParentTracks_.size() > 0)
             {
-                folderParentTrack_ = folderParentTracks_.Get(folderParentTracks_.GetSize() - 1);
-                folderParentTracks_.Delete(folderParentTracks_.GetSize() - 1);
+                folderParentTrack_ = folderParentTracks_[folderParentTracks_.size() - 1];
+                folderParentTracks_.erase(folderParentTracks_.begin() + folderParentTracks_.size() - 1);
             }
             else
                 folderParentTrack_ = NULL;
         }
         else if (folderParentTrack_ != NULL)
         {
-            folderParentTracks_.Add(folderParentTrack_);
+            folderParentTracks_.push_back(folderParentTrack_);
             folderParentTrack_ = track;
         }
         else
@@ -3600,13 +3600,13 @@ public:
        
     void OnTrackSelection()
     {
-        if (isScrollLinkEnabled_ && tracks_.GetSize() > trackNavigators_.GetSize())
+        if (isScrollLinkEnabled_ && tracks_.size() > trackNavigators_.size())
             ForceScrollLink();
     }
     
     void OnTrackListChange()
     {
-        if (isScrollLinkEnabled_ && tracks_.GetSize() > trackNavigators_.GetSize())
+        if (isScrollLinkEnabled_ && tracks_.size() > trackNavigators_.size())
             ForceScrollLink();
     }
 
@@ -3627,9 +3627,9 @@ public:
         if (track == GetMasterTrackNavigator()->GetTrack())
             return GetIsNavigatorTouched(GetMasterTrackNavigator(), touchedControl);
         
-        for (int i = 0; i < trackNavigators_.GetSize(); ++i)
-            if (track == trackNavigators_.Get(i)->GetTrack())
-                return GetIsNavigatorTouched(trackNavigators_.Get(i), touchedControl);
+        for (auto trackNavigator : trackNavigators_)
+            if (track == trackNavigator->GetTrack())
+                return GetIsNavigatorTouched(trackNavigator, touchedControl);
  
         if (MediaTrack *selectedTrack = GetSelectedTrack())
              if (track == selectedTrack)
@@ -3665,8 +3665,8 @@ public:
         if (currentTrackVCAFolderMode_ != 1)
             return;
     
-        vcaTopLeadTracks_.Empty();
-        vcaSpillTracks_.Empty();
+        vcaTopLeadTracks_.clear();
+        vcaSpillTracks_.clear();
         
         unsigned int leadTrackVCALeaderGroup = 0;
         unsigned int leadTrackVCALeaderGroupHigh = 0;
@@ -3675,7 +3675,7 @@ public:
         {
             leadTrackVCALeaderGroup = DAW::GetTrackGroupMembership(vcaLeadTrack_, "VOLUME_VCA_LEAD");
             leadTrackVCALeaderGroupHigh = DAW::GetTrackGroupMembershipHigh(vcaLeadTrack_, "VOLUME_VCA_LEAD");
-            vcaSpillTracks_.Add(vcaLeadTrack_);
+            vcaSpillTracks_.push_back(vcaLeadTrack_);
         }
         
         // Get Visible Tracks
@@ -3684,10 +3684,10 @@ public:
             MediaTrack *track = CSurf_TrackFromID(tidx, followMCP_);
             
             if (DAW::GetTrackGroupMembership(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembership(track, "VOLUME_VCA_FOLLOW") == 0)
-                vcaTopLeadTracks_.Add(track);
+                vcaTopLeadTracks_.push_back(track);
             
             if (DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_LEAD") != 0 && DAW::GetTrackGroupMembershipHigh(track, "VOLUME_VCA_FOLLOW") == 0)
-                vcaTopLeadTracks_.Add(track);
+                vcaTopLeadTracks_.push_back(track);
             
             if (vcaLeadTrack_ != NULL)
             {
@@ -3703,7 +3703,7 @@ public:
                 }
                 
                 if (isFollower)
-                    vcaSpillTracks_.Add(track);
+                    vcaSpillTracks_.push_back(track);
             }
         }
     }
@@ -3713,10 +3713,10 @@ public:
         if (currentTrackVCAFolderMode_ != 2)
             return;
         
-        folderTopParentTracks_.Empty();
+        folderTopParentTracks_.clear();
         folderDictionary_.DeleteAll();
 
-        folderSpillTracks_.Empty();
+        folderSpillTracks_.clear();
        
         vector<WDL_PtrList<MediaTrack>*> currentDepthTracks;
         
@@ -3727,7 +3727,7 @@ public:
             if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
             {
                 if (currentDepthTracks.size() == 0)
-                    folderTopParentTracks_.Add(track);
+                    folderTopParentTracks_.push_back(track);
                 else
                     currentDepthTracks.back()->Add(track);
                 
@@ -3756,7 +3756,7 @@ public:
         
         if (folderParentTrack_ != NULL)
             for (int i = 0; i < folderDictionary_.Get(folderParentTrack_)->GetSize(); ++i)
-                folderSpillTracks_.Add(folderDictionary_.Get(folderParentTrack_)->Get(i));
+                folderSpillTracks_.push_back(folderDictionary_.Get(folderParentTrack_)->Get(i));
      }
     
     void EnterPage()
@@ -3981,7 +3981,7 @@ public:
     const char *GetAutoModeDisplayName(int modeIndex) { return trackNavigationManager_->GetAutoModeDisplayName(modeIndex); }
     const char *GetGlobalAutoModeDisplayName() { return trackNavigationManager_->GetGlobalAutoModeDisplayName(); }
     const char *GetCurrentInputMonitorMode(MediaTrack *track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
-    const WDL_PtrList<MediaTrack> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
+    const vector<MediaTrack *> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
     
     
     /*

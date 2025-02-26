@@ -3078,10 +3078,10 @@ public:
     {
         double retVal = 0.0;
         
-        const WDL_PtrList<MediaTrack> &list = context->GetPage()->GetSelectedTracks();
-        for (int i = 0; i < list.GetSize(); ++i)
+        const vector<MediaTrack *> &selectedTracks = context->GetPage()->GetSelectedTracks();
+        for (auto selectedTrack : selectedTracks)
         {
-            if (context->GetIntParam() == GetMediaTrackInfo_Value(list.Get(i), "I_AUTOMODE"))
+            if (context->GetIntParam() == GetMediaTrackInfo_Value(selectedTrack, "I_AUTOMODE"))
             {
                 retVal = 1.0;
                 break;
@@ -3103,9 +3103,9 @@ public:
         
         int mode = context->GetIntParam();
         
-        const WDL_PtrList<MediaTrack> &list = context->GetPage()->GetSelectedTracks();
-        for (int i = 0; i < list.GetSize(); ++i)
-            GetSetMediaTrackInfo(list.Get(i), "I_AUTOMODE", &mode);
+        const vector<MediaTrack *> &selectedTracks = context->GetPage()->GetSelectedTracks();
+        for (auto selectedTrack : selectedTracks)
+            GetSetMediaTrackInfo(selectedTrack, "I_AUTOMODE", &mode);
     }
 };
 

@@ -3415,24 +3415,24 @@ void ModifierManager::SetLatchModifier(bool value, Modifiers modifier, int latch
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TrackNavigationManager::RebuildTracks()
 {
-    int oldTracksSize = tracks_.GetSize();
+    int oldTracksSize = tracks_.size();
     
-    tracks_.Empty();
+    tracks_.clear();
     
     for (int i = 1; i <= GetNumTracks(); ++i)
     {
         if (MediaTrack *track = CSurf_TrackFromID(i, followMCP_))
             if (IsTrackVisible(track, followMCP_))
-                tracks_.Add(track);
+                tracks_.push_back(track);
     }
     
-    if (tracks_.GetSize() < oldTracksSize)
+    if (tracks_.size() < oldTracksSize)
     {
-        for (int i = oldTracksSize; i > tracks_.GetSize(); i--)
+        for (int i = oldTracksSize; i > tracks_.size(); i--)
             page_->ForceClearTrack(i - trackOffset_);
     }
     
-    if (tracks_.GetSize() != oldTracksSize)
+    if (tracks_.size() != oldTracksSize)
         page_->ForceUpdateTrackColors();
 }
 
@@ -3441,20 +3441,20 @@ void TrackNavigationManager::RebuildSelectedTracks()
     if (currentTrackVCAFolderMode_ != 3)
         return;
 
-    int oldTracksSize = selectedTracks_.GetSize();
+    int oldTracksSize = selectedTracks_.size();
     
-    selectedTracks_.Empty();
+    selectedTracks_.clear();
     
     for (int i = 0; i < CountSelectedTracks2(NULL, false); ++i)
-        selectedTracks_.Add(DAW::GetSelectedTrack(i));
+        selectedTracks_.push_back(DAW::GetSelectedTrack(i));
 
-    if (selectedTracks_.GetSize() < oldTracksSize)
+    if (selectedTracks_.size() < oldTracksSize)
     {
-        for (int i = oldTracksSize; i > selectedTracks_.GetSize(); i--)
+        for (int i = oldTracksSize; i > selectedTracks_.size(); i--)
             page_->ForceClearTrack(i - selectedTracksOffset_);
     }
     
-    if (selectedTracks_.GetSize() != oldTracksSize)
+    if (selectedTracks_.size() != oldTracksSize)
         page_->ForceUpdateTrackColors();
 }
 
