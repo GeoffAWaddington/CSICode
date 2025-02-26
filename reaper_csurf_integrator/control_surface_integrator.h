@@ -4078,8 +4078,8 @@ private:
 
     bool isInitialized_ = false;
     
-    WDL_PtrList<Midi_ControlSurfaceIO> midiSurfacesIO_;
-    WDL_PtrList<OSC_ControlSurfaceIO> oscSurfacesIO_;
+    vector<Midi_ControlSurfaceIO *> midiSurfacesIO_;
+    vector<OSC_ControlSurfaceIO *> oscSurfacesIO_;
 
     map<const string, Action*> actions_;
 

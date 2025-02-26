@@ -1356,7 +1356,7 @@ void CSurfIntegrator::Init()
                                     int surfaceRefreshRate = atoi(pList.get_prop(PropertyType_MIDISurfaceRefreshRate));
                                     int maxMIDIMesssagesPerRun = atoi(pList.get_prop(PropertyType_MaxMIDIMesssagesPerRun));
                                     
-                                    midiSurfacesIO_.Add(new Midi_ControlSurfaceIO(this, nameProp, channelCount, GetMidiInputForPort(midiIn), GetMidiOutputForPort(midiOut), surfaceRefreshRate, maxMIDIMesssagesPerRun));
+                                    midiSurfacesIO_.push_back(new Midi_ControlSurfaceIO(this, nameProp, channelCount, GetMidiInputForPort(midiIn), GetMidiOutputForPort(midiOut), surfaceRefreshRate, maxMIDIMesssagesPerRun));
                                 }
                             }
                             else if (( ! strcmp(typeProp, s_OSCSurfaceToken) || ! strcmp(typeProp, s_OSCX32SurfaceToken)) && tokens.size() == 7)
@@ -1372,9 +1372,9 @@ void CSurfIntegrator::Init()
                                     int maxPacketsPerRun = atoi(pList.get_prop(PropertyType_MaxPacketsPerRun));
                                     
                                     if ( ! strcmp(typeProp, s_OSCSurfaceToken))
-                                        oscSurfacesIO_.Add(new OSC_ControlSurfaceIO(this, nameProp, channelCount, receiveOnPort, transmitToPort, transmitToIPAddress, maxPacketsPerRun));
+                                        oscSurfacesIO_.push_back(new OSC_ControlSurfaceIO(this, nameProp, channelCount, receiveOnPort, transmitToPort, transmitToIPAddress, maxPacketsPerRun));
                                     else if ( ! strcmp(typeProp, s_OSCX32SurfaceToken))
-                                        oscSurfacesIO_.Add(new OSC_X32ControlSurfaceIO(this, nameProp, channelCount, receiveOnPort, transmitToPort, transmitToIPAddress, maxPacketsPerRun));
+                                        oscSurfacesIO_.push_back(new OSC_X32ControlSurfaceIO(this, nameProp, channelCount, receiveOnPort, transmitToPort, transmitToIPAddress, maxPacketsPerRun));
                                 }
                             }
                         }
@@ -1510,9 +1510,9 @@ void CSurfIntegrator::Init()
 
                                 bool foundIt = false;
                                 
-                                for (int i = 0; i < midiSurfacesIO_.GetSize(); ++i)
+                                for (int i = 0; i < midiSurfacesIO_.size(); ++i)
                                 {
-                                    Midi_ControlSurfaceIO *const io = midiSurfacesIO_.Get(i);
+                                    Midi_ControlSurfaceIO *const io = midiSurfacesIO_[i];
                                     
                                     if ( ! strcmp(surfaceProp, io->GetName()))
                                     {
@@ -1524,9 +1524,9 @@ void CSurfIntegrator::Init()
                                 
                                 if ( ! foundIt)
                                 {
-                                    for (int i = 0; i < oscSurfacesIO_.GetSize(); ++i)
+                                    for (int i = 0; i < oscSurfacesIO_.size(); ++i)
                                     {
-                                        OSC_ControlSurfaceIO *const io = oscSurfacesIO_.Get(i);
+                                        OSC_ControlSurfaceIO *const io = oscSurfacesIO_[i];
                                         
                                         if ( ! strcmp(surfaceProp, io->GetName()))
                                         {
@@ -4366,9 +4366,9 @@ CSurfIntegrator::~CSurfIntegrator()
 {
     Shutdown();
 
-    midiSurfacesIO_.Empty(true);
+    midiSurfacesIO_.clear();
     
-    oscSurfacesIO_.Empty(true);
+    oscSurfacesIO_.clear();
             
     pages_.clear();
         
