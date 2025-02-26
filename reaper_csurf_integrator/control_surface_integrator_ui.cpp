@@ -66,8 +66,8 @@ struct FXCell
 {
     ZoneManager *const zoneManager;
     
-    WDL_PtrList<Widget> controlWidgets;
-    WDL_PtrList<Widget> displayWidgets;
+    vector<Widget *> controlWidgets;
+    vector<Widget *> displayWidgets;
 
     string suffix;
     int modifier;
@@ -84,9 +84,9 @@ struct FXCell
         if (widget == NULL)
             return NULL;
         
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            ActionContext *nameContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+            ActionContext *nameContext = GetFirstContext(zoneManager, displayWidget, modifier);
             
             if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
@@ -105,9 +105,9 @@ struct FXCell
         if (widget == NULL)
             return NULL;
         
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            ActionContext *valueContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+            ActionContext *valueContext = GetFirstContext(zoneManager, displayWidget, modifier);
             
             if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
@@ -123,16 +123,16 @@ struct FXCell
         
     Widget *GetNameWidget(Widget *widget)
     {
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            ActionContext *nameContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+            ActionContext *nameContext = GetFirstContext(zoneManager, displayWidget, modifier);
             
             if (nameContext != NULL && ! strcmp(nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
                 ActionContext *paramContext = GetFirstContext(zoneManager, widget, modifier);
 
                 if (paramContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex())
-                    return displayWidgets.Get(i);
+                    return displayWidget;
             }
         }
 
@@ -141,16 +141,16 @@ struct FXCell
     
     Widget *GetValueWidget(Widget *widget)
     {
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            ActionContext *valueContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+            ActionContext *valueContext = GetFirstContext(zoneManager, displayWidget, modifier);
             
             if (valueContext != NULL && ! strcmp(valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
                 ActionContext *paramContext = GetFirstContext(zoneManager, widget, modifier);
 
                 if (paramContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex())
-                    return displayWidgets.Get(i);
+                    return displayWidget;
             }
         }
         
@@ -159,12 +159,12 @@ struct FXCell
     
     void SetNameWidget(Widget *widget, const char *displayWidgetName, const char *paramName)
     {
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            if( ! strcmp (displayWidgets.Get(i)->GetName(), displayWidgetName))
+            if( ! strcmp (displayWidget->GetName(), displayWidgetName))
             {
                 ActionContext *paramContext = GetFirstContext(zoneManager, widget, modifier);
-                ActionContext *nameContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+                ActionContext *nameContext = GetFirstContext(zoneManager, displayWidget, modifier);
 
                 if (nameContext != NULL && paramContext != NULL)
                 {
@@ -180,12 +180,12 @@ struct FXCell
     
     void SetValueWidget(Widget *widget, const char *displayWidgetName)
     {
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            if( ! strcmp (displayWidgets.Get(i)->GetName(), displayWidgetName))
+            if( ! strcmp (displayWidget->GetName(), displayWidgetName))
             {
                 ActionContext *paramContext = GetFirstContext(zoneManager, widget, modifier);
-                ActionContext *nameContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+                ActionContext *nameContext = GetFirstContext(zoneManager, displayWidget, modifier);
 
                 if (nameContext != NULL && paramContext != NULL)
                 {
@@ -205,9 +205,9 @@ struct FXCell
         if (paramContext == NULL)
             return;
 
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            ActionContext *nameContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+            ActionContext *nameContext = GetFirstContext(zoneManager, displayWidget, modifier);
             
             if (nameContext != NULL && nameContext->GetParamIndex() == paramContext->GetParamIndex() && ! strcmp (nameContext->GetAction()->GetName(), "FixedTextDisplay"))
             {
@@ -226,9 +226,9 @@ struct FXCell
         if (paramContext == NULL)
             return;
         
-        for (int i = 0; i < displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : displayWidgets)
         {
-            ActionContext *valueContext = GetFirstContext(zoneManager, displayWidgets.Get(i), modifier);
+            ActionContext *valueContext = GetFirstContext(zoneManager, displayWidget, modifier);
             
             if (valueContext != NULL && valueContext->GetParamIndex() == paramContext->GetParamIndex() && ! strcmp (valueContext->GetAction()->GetName(), "FXParamValueDisplay"))
             {
@@ -250,7 +250,7 @@ struct SurfaceFXTemplate
     Widget *currentWidget;
     int currentModifier;
 
-    WDL_PtrList<FXCell> cells;
+    vector<FXCell *> cells;
     vector<FXRowLayout> fxRowLayouts;
     string_list paramWidgets;
     string_list paramWidgetParams;
@@ -301,13 +301,11 @@ static FXCell *GetCell(SurfaceFXTemplate *t, Widget *widget, int modifier)
     if (widget == NULL)
         return NULL;
 
-    for (int i = 0; i < t->cells.GetSize(); ++i)
+    for (auto cell : t->cells)
     {
-        for (int j = 0; j < t->cells.Get(i)->controlWidgets.GetSize(); ++j)
+        for (auto controlWidget : cell->controlWidgets)
         {
-            FXCell *cell = t->cells.Get(i);
-            
-            if (cell->controlWidgets.Get(j) == widget && cell->modifier == modifier)
+            if (controlWidget == widget && cell->modifier == modifier)
                 return cell;
         }
     }
@@ -496,7 +494,7 @@ static void LoadTemplates(SurfaceFXTemplate *fxTemplate)
     ZoneManager *zoneManager = fxTemplate->zoneManager;
     
     fxTemplate->fxRowLayouts.clear();
-    fxTemplate->cells.Empty();
+    fxTemplate->cells.clear();
     fxTemplate->paramWidget[0] = 0;
     fxTemplate->nameWidget[0] = 0;
     fxTemplate->valueWidget[0] = 0;
@@ -691,12 +689,10 @@ static void SaveZone(SurfaceFXTemplate *t)
                         
             int previousChannel = 1;
             
-            for (int cellIdx = 0; cellIdx < t->cells.GetSize(); ++cellIdx)
+            for (auto cell : t->cells)
             {
                 char modifierBuf[SMLBUF];
                 
-                FXCell *cell = t->cells.Get(cellIdx);
-               
                 if (previousChannel > cell->channel)
                 {
                     fprintf(fxFile, "\n\n");
@@ -708,10 +704,8 @@ static void SaveZone(SurfaceFXTemplate *t)
                 int modifier = cell->modifier;
                 zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
                 
-                for (int controlIdx = 0; controlIdx < cell->controlWidgets.GetSize(); ++controlIdx)
+                for (auto widget : cell->controlWidgets)
                 {
-                    Widget *widget = cell->controlWidgets.Get(controlIdx);
-                    
                     fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
                     
                     if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
@@ -782,9 +776,9 @@ static void SaveZone(SurfaceFXTemplate *t)
                     fprintf(fxFile, "\n");
                 }
                 
-                for (int displayIdx = 0; displayIdx < cell->displayWidgets.GetSize(); ++displayIdx)
+                for (auto displayWidget : cell->displayWidgets)
                 {
-                    Widget *widget = cell->displayWidgets.Get(displayIdx);
+                    Widget *widget = displayWidget;
                     
                     if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
                     {
@@ -904,7 +898,7 @@ static void FillPropertiesParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *wid
     if ( cell == NULL)
         return;
     
-    if (cell->displayWidgets.GetSize() < 2)
+    if (cell->displayWidgets.size() < 2)
         return;
     
     ActionContext *paramContext = GetFirstContext(t->zoneManager, widget, modifier);
@@ -1044,7 +1038,7 @@ static void FillAdvancedParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widge
     if ( cell == NULL)
         return;
     
-    if (cell->displayWidgets.GetSize() < 2)
+    if (cell->displayWidgets.size() < 2)
         return;
     
     ActionContext *paramContext = GetFirstContext(t->zoneManager, widget, modifier);
@@ -1082,10 +1076,10 @@ static void FillAdvancedParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widge
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_RESETCONTENT, 0, 0);
         SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)"");
 
-        for (int i = 0; i < cell->displayWidgets.GetSize(); ++i)
+        for (auto displayWidget : cell->displayWidgets)
         {
-            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
-            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)cell->displayWidgets.Get(i)->GetName());
+            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickNameDisplay, CB_ADDSTRING, 0, (LPARAM)displayWidget->GetName());
+            SendDlgItemMessage(hwndDlg, IDC_COMBO_PickValueDisplay, CB_ADDSTRING, 0, (LPARAM)displayWidget->GetName());
         }
         
         if (cell->GetNameWidget(widget))
@@ -1154,7 +1148,7 @@ static void FillParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widget, int m
     if ( cell == NULL)
         return;
     
-    if (cell->displayWidgets.GetSize() < 2)
+    if (cell->displayWidgets.size() < 2)
         return;
 
     ActionContext *paramContext = GetFirstContext(t->zoneManager, widget, modifier);
@@ -1337,13 +1331,13 @@ static void HandleAssigment(SurfaceFXTemplate *t, Widget *widget, int modifier, 
 
 static void ApplyColorsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget, int modifier, ActionContext *sourceParamContext, ActionContext *sourceNameContext, ActionContext *sourceValueContext, ZoneManager *zoneManager)
 {
-    for (int cell = 0; cell < t->cells.GetSize(); ++cell)
+    for (auto cell : t->cells)
     {
-        for (int i = 0; i < t->cells.Get(cell)->controlWidgets.GetSize(); ++i)
+        for (auto controlWidget : cell->controlWidgets)
         {
             if (sourceParamContext != NULL)
             {
-                if (ActionContext *context = GetFirstContext(zoneManager, t->cells.Get(cell)->controlWidgets.Get(i), modifier))
+                if (ActionContext *context = GetFirstContext(zoneManager, controlWidget, modifier))
                 {
                     if (const char *sourceRingColor = sourceParamContext->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
                         if (context->GetWidgetProperties().get_prop(PropertyType_LEDRingColor))
@@ -1359,7 +1353,7 @@ static void ApplyColorsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget,
             
             if (sourceNameContext != NULL)
             {
-                if (ActionContext *context = t->cells.Get(cell)->GetNameContext(t->cells.Get(cell)->controlWidgets.Get(i)))
+                if (ActionContext *context = cell->GetNameContext(controlWidget))
                 {
                     if (const char *sourceTextColor = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
                         if (context->GetWidgetProperties().get_prop(PropertyType_TextColor))
@@ -1375,7 +1369,7 @@ static void ApplyColorsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget,
             
             if (sourceValueContext != NULL)
             {
-                if (ActionContext *context = t->cells.Get(cell)->GetValueContext(t->cells.Get(cell)->controlWidgets.Get(i)))
+                if (ActionContext *context = cell->GetValueContext(controlWidget))
                 {
                     if (const char *sourceTextColor = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TextColor))
                         if (const char *textColor = context->GetWidgetProperties().get_prop(PropertyType_TextColor))
@@ -1394,13 +1388,13 @@ static void ApplyColorsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget,
 
 static void ApplyFontsAndMarginsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget, int modifier, ActionContext *sourceParamContext, ActionContext *sourceNameContext, ActionContext *sourceValueContext)
 {
-    for (int cell = 0; cell < t->cells.GetSize(); ++cell)
+    for (auto cell : t->cells)
     {
-        for (int i = 0; i < t->cells.Get(cell)->controlWidgets.GetSize(); ++i)
+        for (auto controlWidget : cell->controlWidgets)
         {
             if (sourceNameContext != NULL)
             {
-                if (ActionContext *context = t->cells.Get(cell)->GetNameContext(t->cells.Get(cell)->controlWidgets.Get(i)))
+                if (ActionContext *context = cell->GetNameContext(controlWidget))
                 {
                     if (const char *sourceTopMargin = sourceNameContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
                         if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
@@ -1420,7 +1414,7 @@ static void ApplyFontsAndMarginsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget
             
             if (sourceValueContext != NULL)
             {
-                if (ActionContext *context = t->cells.Get(cell)->GetValueContext(t->cells.Get(cell)->controlWidgets.Get(i)))
+                if (ActionContext *context = cell->GetValueContext(controlWidget))
                 {
                     if (const char *sourceTopMargin = sourceValueContext->GetWidgetProperties().get_prop(PropertyType_TopMargin))
                         if (context->GetWidgetProperties().get_prop(PropertyType_TopMargin))
@@ -1480,7 +1474,7 @@ static void CreateContextMap(SurfaceFXTemplate *t)
 
     ZoneManager *zoneManager = t->zoneManager;
     
-    t->cells.Empty();
+    t->cells.clear();
     
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
 
@@ -1499,20 +1493,20 @@ static void CreateContextMap(SurfaceFXTemplate *t)
             cell->suffix = t->fxRowLayouts[rowLayoutIdx].suffix;
             cell->modifier = modifier;
             cell->channel = channel;
-            t->cells.Add(cell);
+            t->cells.push_back(cell);
 
             for (int widgetTypesIdx = 0; widgetTypesIdx < t->paramWidgets.size(); ++widgetTypesIdx)
             {
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", t->paramWidgets[widgetTypesIdx].c_str(), t->fxRowLayouts[rowLayoutIdx].suffix, channel);
                 if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                    cell->controlWidgets.Add(widget);
+                    cell->controlWidgets.push_back(widget);
             }
             
             for (int widgetTypesIdx = 0; widgetTypesIdx < t->displayRows.size(); ++widgetTypesIdx)
             {
                 snprintf(widgetName, sizeof(widgetName), "%s%s%d", t->displayRows[widgetTypesIdx].c_str(), t->fxRowLayouts[rowLayoutIdx].suffix, channel);
                 if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
-                    cell->displayWidgets.Add(widget);
+                    cell->displayWidgets.push_back(widget);
             }
         }
     }
@@ -2495,7 +2489,7 @@ struct SurfaceLine
     }
 };
 
-static WDL_PtrList<SurfaceLine> s_surfaces;
+static vector<SurfaceLine *> s_surfaces;
 
 struct PageSurfaceLine
 {
@@ -2537,7 +2531,7 @@ struct Listener
 struct Broadcaster
 {
     string name;
-    WDL_PtrList<Listener> listeners;    
+    vector<Listener *> listeners;
 };
 
 struct PageLine
@@ -2547,8 +2541,8 @@ struct PageLine
     bool synchPages;
     bool isScrollLinkEnabled;
     bool isScrollSynchEnabled;
-    WDL_PtrList<PageSurfaceLine> surfaces;
-    WDL_PtrList<Broadcaster> broadcasters;
+    vector<PageSurfaceLine *> surfaces;
+    vector<Broadcaster *> broadcasters;
     
     PageLine()
     {
@@ -2560,39 +2554,39 @@ struct PageLine
 };
 
 // Scratch pad to get in and out of dialogs easily
-static WDL_PtrList<Broadcaster> s_broadcasters;
+static vector<Broadcaster *> s_broadcasters;
 
-static void TransferBroadcasters(WDL_PtrList<Broadcaster> &source, WDL_PtrList<Broadcaster> &destination)
+static void TransferBroadcasters(vector<Broadcaster *> &source, vector<Broadcaster *> &destination)
 {
-    destination.Empty(true);
+    destination.clear();
     
-    for (int i = 0; i < source.GetSize(); ++i)
+    for (int i = 0; i < source.size(); ++i)
     {
         Broadcaster *destinationBroadcaster = new Broadcaster();
         
-        destinationBroadcaster->name = source.Get(i)->name;
+        destinationBroadcaster->name = source[i]->name;
         
-        for (int j = 0; j < source.Get(i)->listeners.GetSize(); ++j)
+        for (auto listener : source[i]->listeners)
         {
             Listener *destinationListener = new Listener();
             
-            destinationListener->name = source.Get(i)->listeners.Get(j)->name;
+            destinationListener->name = listener->name;
             
-            destinationListener->goHome = source.Get(i)->listeners.Get(j)->goHome;
-            destinationListener->sends = source.Get(i)->listeners.Get(j)->sends;
-            destinationListener->receives = source.Get(i)->listeners.Get(j)->receives;
-            destinationListener->fxMenu = source.Get(i)->listeners.Get(j)->fxMenu;
-            destinationListener->modifiers = source.Get(i)->listeners.Get(j)->modifiers;
-            destinationListener->selectedTrackFX = source.Get(i)->listeners.Get(j)->selectedTrackFX;
+            destinationListener->goHome = listener->goHome;
+            destinationListener->sends = listener->sends;
+            destinationListener->receives = listener->receives;
+            destinationListener->fxMenu = listener->fxMenu;
+            destinationListener->modifiers = listener->modifiers;
+            destinationListener->selectedTrackFX = listener->selectedTrackFX;
             
-            destinationBroadcaster->listeners.Add(destinationListener);
+            destinationBroadcaster->listeners.push_back(destinationListener);
         }
         
-        destination.Add(destinationBroadcaster);
+        destination.push_back(destinationBroadcaster);
     }
 }
 
-static WDL_PtrList<PageLine> s_pages;
+static vector<PageLine *> s_pages;
 
 static void AddComboEntry(HWND hwndDlg, int x, char  *buf, int comboId)
 {
@@ -2700,8 +2694,8 @@ static WDL_DLGRET dlgProcPageSurface(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
                     if (filesystem::is_directory(file.path()))
                         AddComboEntry(hwndDlg, 0, (char *)file.path().filename().c_str(), IDC_COMBO_PageSurfaceFolder);
             
-            for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_COMBO_PageSurface);
+            for (auto surface : s_surfaces)
+                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_COMBO_PageSurface);
             
             if (s_editMode)
             {
@@ -3019,20 +3013,20 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
         {
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_AddBroadcaster));
             WDL_UTF8_HookComboBox(GetDlgItem(hwndDlg, IDC_AddListener));
-            for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddBroadcaster);
+            for (auto surface : s_surfaces)
+                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddBroadcaster);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddBroadcaster), CB_SETCURSEL, 0, 0);
 
-            for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                AddComboEntry(hwndDlg, 0, (char *)s_surfaces.Get(i)->name.c_str(), IDC_AddListener);
+            for (auto surface : s_surfaces)
+                AddComboEntry(hwndDlg, 0, (char *)surface->name.c_str(), IDC_AddListener);
             SendMessage(GetDlgItem(hwndDlg, IDC_AddListener), CB_SETCURSEL, 0, 0);
             
-            TransferBroadcasters(s_pages.Get(s_pageIndex)->broadcasters, s_broadcasters);
+            TransferBroadcasters(s_pages[s_pageIndex]->broadcasters, s_broadcasters);
             
-            if (s_broadcasters.GetSize() > 0)
+            if (s_broadcasters.size() > 0)
             {
-                for (int i = 0; i < s_broadcasters.GetSize(); ++i)
-                    AddListEntry(hwndDlg, s_broadcasters.Get(i)->name, IDC_LIST_Broadcasters);
+                for (auto broadcaster: s_broadcasters)
+                    AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
                     
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, 0, 0);
             }
@@ -3055,14 +3049,14 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         {
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                            
-                            for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
-                                AddListEntry(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name, IDC_LIST_Listeners);
+                            for (auto listener : s_broadcasters[broadcasterIndex]->listeners)
+                                AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
                             
-                            if (s_broadcasters.GetSize() > 0)
+                            if (s_broadcasters.size() > 0)
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, 0, 0);
                             
-                            if (broadcasterIndex >= 0 && s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
-                                SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(0));
+                            if (broadcasterIndex >= 0 && s_broadcasters[broadcasterIndex]->listeners.size() > 0)
+                                SetCheckBoxes(hwndDlg, s_broadcasters[broadcasterIndex]->listeners[0]);
                             else
                                 ClearCheckBoxes(hwndDlg);
                         }
@@ -3080,7 +3074,7 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         int listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                         
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
-                            SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex));
+                            SetCheckBoxes(hwndDlg, s_broadcasters[broadcasterIndex]->listeners[listenerIndex]);
                     }
                     break;
 
@@ -3094,16 +3088,16 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                             GetDlgItemText(hwndDlg, IDC_AddBroadcaster, broadcasterName, sizeof(broadcasterName));
                             
                             bool foundit = false;
-                            for (int i = 0; i < s_broadcasters.GetSize(); ++i)
-                                if (broadcasterName == s_broadcasters.Get(i)->name)
+                            for (auto broadcaster :s_broadcasters)
+                                if (broadcasterName == broadcaster->name)
                                     foundit = true;
                             if (! foundit)
                             {
                                 Broadcaster *broadcaster = new Broadcaster();
                                 broadcaster->name = broadcasterName;
-                                s_broadcasters.Add(broadcaster);
+                                s_broadcasters.push_back(broadcaster);
                                 AddListEntry(hwndDlg, broadcasterName, IDC_LIST_Broadcasters);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.size() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             }
@@ -3122,21 +3116,21 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                             GetDlgItemText(hwndDlg, IDC_AddListener, listenerName, sizeof(listenerName));
                             
                             bool foundit = false;
-                            for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
-                                if (listenerName == s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name)
-                                foundit = true;
+                            for (auto listener : s_broadcasters[broadcasterIndex]->listeners)
+                                if (listenerName == listener->name)
+                                    foundit = true;
                             if (! foundit)
                             {
                                 Listener *listener = new Listener();
                                 listener->name = listenerName;
-                                 s_broadcasters.Get(broadcasterIndex)->listeners.Add(listener);
+                                 s_broadcasters[broadcasterIndex]->listeners.push_back(listener);
                                 AddListEntry(hwndDlg, listenerName, IDC_LIST_Listeners);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL,  s_broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
                                 ClearCheckBoxes(hwndDlg);
 
                                 char tmp[MEDBUF];
                                 snprintf(tmp, sizeof(tmp), __LOCALIZE_VERFMT("%s Listens to","csi_osc"), 
-                                   s_broadcasters.Get(broadcasterIndex)->listeners.Get(s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1)->name.c_str());
+                                   s_broadcasters[broadcasterIndex]->listeners[s_broadcasters[broadcasterIndex]->listeners.size() - 1]->name.c_str());
                                 SetDlgItemText(hwndDlg, IDC_ListenCheckboxes, tmp);
                             }
                         }
@@ -3152,9 +3146,9 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_GoHome), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->goHome = true;
+                                 s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = true;
                             else
-                                 s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->goHome = false;
+                                 s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->goHome = false;
                         }
                     }
                     break;
@@ -3168,9 +3162,9 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Sends), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->sends = true;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = true;
                             else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->sends = false;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->sends = false;
                         }
                     }
                     break;
@@ -3184,9 +3178,9 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Receives), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = true;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = true;
                             else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->receives = false;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->receives = false;
                         }
                     }
                     break;
@@ -3200,9 +3194,9 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_FXMenu), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->fxMenu = true;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxMenu = true;
                             else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->fxMenu = false;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->fxMenu = false;
                         }
                     }
                     break;
@@ -3216,9 +3210,9 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_Modifiers), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->modifiers = true;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->modifiers = true;
                             else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->modifiers = false;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->modifiers = false;
                         }
                     }
                     break;
@@ -3232,9 +3226,9 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
                             if (SendMessage(GetDlgItem(hwndDlg, IDC_CHECK_SelectedTrackFX), BM_GETCHECK, 0, 0) == BST_CHECKED)
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->selectedTrackFX = true;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = true;
                             else
-                                s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex)->selectedTrackFX = false;
+                                s_broadcasters[broadcasterIndex]->listeners[listenerIndex]->selectedTrackFX = false;
                         }
                     }
                     break;
@@ -3246,17 +3240,17 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
 
                         if (broadcasterIndex >= 0)
                         {
-                            s_broadcasters.Delete(broadcasterIndex);
+                            s_broadcasters.erase(s_broadcasters.begin() + broadcasterIndex);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_RESETCONTENT, 0, 0);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
 
-                            if (s_broadcasters.GetSize() > 0)
+                            if (s_broadcasters.size() > 0)
                             {
-                                for (int i = 0; i < s_broadcasters.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_broadcasters.Get(i)->name, IDC_LIST_Broadcasters);
+                                for (auto broadcaster : s_broadcasters)
+                                    AddListEntry(hwndDlg, broadcaster->name, IDC_LIST_Broadcasters);
                                     
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Broadcasters), LB_SETCURSEL, s_broadcasters.size() - 1, 0);
                             }
                         }
                     }
@@ -3270,15 +3264,15 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
 
                         if (broadcasterIndex >= 0 && listenerIndex >= 0)
                         {
-                            s_broadcasters.Get(broadcasterIndex)->listeners.Delete(listenerIndex, true);
+                            s_broadcasters[broadcasterIndex]->listeners.erase(s_broadcasters[broadcasterIndex]->listeners.begin() + listenerIndex);
                             SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_RESETCONTENT, 0, 0);
                             ClearCheckBoxes(hwndDlg);
-                            if (s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() > 0)
+                            if (s_broadcasters[broadcasterIndex]->listeners.size() > 0)
                             {
-                                for (int i = 0; i < s_broadcasters.Get(broadcasterIndex)->listeners.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(i)->name, IDC_LIST_Listeners);
+                                for (auto listener : s_broadcasters[broadcasterIndex]->listeners)
+                                    AddListEntry(hwndDlg, listener->name, IDC_LIST_Listeners);
                                     
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, s_broadcasters.Get(broadcasterIndex)->listeners.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Listeners), LB_SETCURSEL, s_broadcasters[broadcasterIndex]->listeners.size() - 1, 0);
                                 
 #ifdef WIN32
                                 listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
@@ -3306,7 +3300,7 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                         g_surfaceOutDisplay = IsDlgButtonChecked(hwndDlg, IDC_CHECK_ShowOutput) != 0;
                         g_fxParamsWrite = IsDlgButtonChecked(hwndDlg, IDC_CHECK_WriteFXParams) != 0;
                         
-                        TransferBroadcasters(s_broadcasters, s_pages.Get(s_pageIndex)->broadcasters);
+                        TransferBroadcasters(s_broadcasters, s_pages[s_pageIndex]->broadcasters);
 
                         EndDialog(hwndDlg, 0);
                     }
@@ -3343,10 +3337,10 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
                                 s_pageIndex = index;
                                
-                                for (int i = 0; i < s_pages.Get(s_pageIndex)->surfaces.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
+                                for (auto surface : s_pages[s_pageIndex]->surfaces)
+                                    AddListEntry(hwndDlg, surface->pageSurface, IDC_LIST_PageSurfaces);
                                 
-                                if (s_pages.Get(index)->surfaces.GetSize() > 0)
+                                if (s_pages[index]->surfaces.size() > 0)
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
                                 
                             }
@@ -3394,10 +3388,10 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 surface->surfaceRefreshRate = s_surfaceRefreshRate;
                                 surface->surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
 
-                                s_surfaces.Add(surface);
+                                s_surfaces.push_back(surface);
                                 
                                 AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.size() - 1, 0);
                             }
                         }
                         break ;
@@ -3421,10 +3415,10 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 surface->surfaceRefreshRate = s_surfaceRefreshRate;
                                 surface->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
                                 
-                                s_surfaces.Add(surface);
+                                s_surfaces.push_back(surface);
                                 
                                 AddListEntry(hwndDlg, s_surfaceName.c_str(), IDC_LIST_Surfaces);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, s_surfaces.size() - 1, 0);
                             }
                         }
                         break ;
@@ -3444,9 +3438,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 page->isScrollLinkEnabled = s_isScrollLinkEnabled;
                                 page->isScrollSynchEnabled = s_scrollSynch;
 
-                                s_pages.Add(page);
+                                s_pages.push_back(page);
                                 AddListEntry(hwndDlg, s_pageName.c_str(), IDC_LIST_Pages);
-                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, s_pages.GetSize() - 1, 0);
+                                SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, s_pages.size() - 1, 0);
                             }
                         }
                         break ;
@@ -3471,9 +3465,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                                 if (index >= 0)
                                 {
-                                    s_pages.Get(index)->surfaces.Add(pageSurface);
+                                    s_pages[index]->surfaces.push_back(pageSurface);
                                     AddListEntry(hwndDlg, s_pageSurface, IDC_LIST_PageSurfaces);
-                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, s_pages.Get(index)->surfaces.GetSize() - 1, 0);
+                                    SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, s_pages[index]->surfaces.size() - 1, 0);
                                 }
                             }
                         }
@@ -3489,19 +3483,19 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_GETTEXT, index, (LPARAM)(LPCTSTR)(surfaceNameBuf));
                                 s_surfaceName = surfaceNameBuf;
                                 s_oldSurfaceName = surfaceNameBuf;
-                                s_surfaceType = s_surfaces.Get(index)->type;
-                                s_surfaceChannelCount = s_surfaces.Get(index)->channelCount;
-                                s_surfaceInPort = s_surfaces.Get(index)->inPort;
-                                s_surfaceOutPort = s_surfaces.Get(index)->outPort;
-                                s_surfaceRemoteDeviceIP = s_surfaces.Get(index)->remoteDeviceIP;
-                                s_surfaceRefreshRate = s_surfaces.Get(index)->surfaceRefreshRate;
-                                s_surfaceMaxPacketsPerRun = s_surfaces.Get(index)->surfaceMaxPacketsPerRun;
-                                s_surfaceMaxSysExMessagesPerRun = s_surfaces.Get(index)->surfaceMaxSysExMessagesPerRun;
+                                s_surfaceType = s_surfaces[index]->type;
+                                s_surfaceChannelCount = s_surfaces[index]->channelCount;
+                                s_surfaceInPort = s_surfaces[index]->inPort;
+                                s_surfaceOutPort = s_surfaces[index]->outPort;
+                                s_surfaceRemoteDeviceIP = s_surfaces[index]->remoteDeviceIP;
+                                s_surfaceRefreshRate = s_surfaces[index]->surfaceRefreshRate;
+                                s_surfaceMaxPacketsPerRun = s_surfaces[index]->surfaceMaxPacketsPerRun;
+                                s_surfaceMaxSysExMessagesPerRun = s_surfaces[index]->surfaceMaxSysExMessagesPerRun;
 
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
-                                string type = s_surfaces.Get(index)->type;
+                                string type = s_surfaces[index]->type;
                                 
                                 if (type == s_MidiSurfaceToken)
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_MidiSurface), hwndDlg, dlgProcMidiSurface);
@@ -3510,45 +3504,45 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                                                
                                 if (s_dlgResult == IDOK)
                                 {
-                                    s_surfaces.Get(index)->name = s_surfaceName;
-                                    s_surfaces.Get(index)->type = s_surfaceType;
-                                    s_surfaces.Get(index)->channelCount = s_surfaceChannelCount;
-                                    s_surfaces.Get(index)->remoteDeviceIP = s_surfaceRemoteDeviceIP;
-                                    s_surfaces.Get(index)->inPort = s_surfaceInPort;
-                                    s_surfaces.Get(index)->outPort = s_surfaceOutPort;
-                                    s_surfaces.Get(index)->surfaceRefreshRate = s_surfaceRefreshRate;
-                                    s_surfaces.Get(index)->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
-                                    s_surfaces.Get(index)->surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
+                                    s_surfaces[index]->name = s_surfaceName;
+                                    s_surfaces[index]->type = s_surfaceType;
+                                    s_surfaces[index]->channelCount = s_surfaceChannelCount;
+                                    s_surfaces[index]->remoteDeviceIP = s_surfaceRemoteDeviceIP;
+                                    s_surfaces[index]->inPort = s_surfaceInPort;
+                                    s_surfaces[index]->outPort = s_surfaceOutPort;
+                                    s_surfaces[index]->surfaceRefreshRate = s_surfaceRefreshRate;
+                                    s_surfaces[index]->surfaceMaxPacketsPerRun = s_surfaceMaxPacketsPerRun;
+                                    s_surfaces[index]->surfaceMaxSysExMessagesPerRun = s_surfaceMaxSysExMessagesPerRun;
                                     
                                     if (s_oldSurfaceName != s_surfaceName)
                                     {
-                                        for (int i = 0; i < s_pages.GetSize(); ++i)
+                                        for (auto page : s_pages)
                                         {
-                                            for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
+                                            for (auto surface : page->surfaces)
                                             {
-                                                if (s_pages.Get(i)->surfaces.Get(j)->surface == s_oldSurfaceName)
-                                                    s_pages.Get(i)->surfaces.Get(j)->surface = s_surfaceName;
+                                                if (surface->surface == s_oldSurfaceName)
+                                                    surface->surface = s_surfaceName;
                                                 
-                                                if (s_pages.Get(i)->surfaces.Get(j)->pageSurface == s_oldSurfaceName)
-                                                    s_pages.Get(i)->surfaces.Get(j)->pageSurface = s_surfaceName;
+                                                if (surface->pageSurface == s_oldSurfaceName)
+                                                    surface->pageSurface = s_surfaceName;
                                             }
                                             
-                                            for (int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
+                                            for (auto broadcaster : page->broadcasters)
                                             {
-                                                if (s_pages.Get(i)->broadcasters.Get(j)->name == s_oldSurfaceName)
-                                                    s_pages.Get(i)->broadcasters.Get(j)->name = s_surfaceName;
+                                                if (broadcaster->name == s_oldSurfaceName)
+                                                    broadcaster->name = s_surfaceName;
 
-                                                for (int k = 0; k < s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize(); ++k)
-                                                    if (s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->name == s_oldSurfaceName)
-                                                        s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->name = s_surfaceName;
+                                                for (auto listener : broadcaster->listeners)
+                                                    if (listener->name == s_oldSurfaceName)
+                                                        listener->name = s_surfaceName;
                                             }
                                             
                                             if (s_pageIndex >= 0)
                                             {
                                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
-                                                for (int i = 0; i < s_pages.Get(s_pageIndex)->surfaces.GetSize(); ++i)
-                                                    AddListEntry(hwndDlg, s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
+                                                for (auto surface : s_pages[s_pageIndex]->surfaces)
+                                                    AddListEntry(hwndDlg, surface->pageSurface, IDC_LIST_PageSurfaces);
                                                 
                                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                             }
@@ -3572,23 +3566,23 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 s_dlgResult = false;
                                 s_editMode = true;
                                 
-                                s_followMCP = s_pages.Get(index)->followMCP;
-                                s_synchPages = s_pages.Get(index)->synchPages;
-                                s_isScrollLinkEnabled = s_pages.Get(index)->isScrollLinkEnabled;
-                                s_scrollSynch = s_pages.Get(index)->isScrollSynchEnabled;
+                                s_followMCP = s_pages[index]->followMCP;
+                                s_synchPages = s_pages[index]->synchPages;
+                                s_isScrollLinkEnabled = s_pages[index]->isScrollLinkEnabled;
+                                s_scrollSynch = s_pages[index]->isScrollSynchEnabled;
                                 
                                 DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_Page), hwndDlg, dlgProcPage);
                                 if (s_dlgResult == IDOK)
                                 {
-                                    s_pages.Get(index)->name = s_pageName;
-                                    s_pages.Get(index)->followMCP = s_followMCP;
-                                    s_pages.Get(index)->synchPages = s_synchPages;
-                                    s_pages.Get(index)->isScrollLinkEnabled = s_isScrollLinkEnabled;
-                                    s_pages.Get(index)->isScrollSynchEnabled = s_scrollSynch;
+                                    s_pages[index]->name = s_pageName;
+                                    s_pages[index]->followMCP = s_followMCP;
+                                    s_pages[index]->synchPages = s_synchPages;
+                                    s_pages[index]->isScrollLinkEnabled = s_isScrollLinkEnabled;
+                                    s_pages[index]->isScrollSynchEnabled = s_scrollSynch;
 
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
-                                    for (int i = 0; i < s_pages.GetSize(); ++i)
-                                        AddListEntry(hwndDlg, s_pages.Get(i)->name, IDC_LIST_Pages);
+                                    for (auto page : s_pages)
+                                        AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                                 }
                                 
@@ -3618,25 +3612,25 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 int pageIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                                 if (pageIndex >= 0)
                                 {
-                                    s_channelOffset = s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset;
-                                    s_pageSurface = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface;
-                                    s_pageSurfaceFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder;
-                                    s_pageSurfaceZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder;
-                                    s_pageSurfaceFXZoneFolder = s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder;
+                                    s_channelOffset = s_pages[pageIndex]->surfaces[index]->channelOffset;
+                                    s_pageSurface = s_pages[pageIndex]->surfaces[index]->pageSurface;
+                                    s_pageSurfaceFolder = s_pages[pageIndex]->surfaces[index]->pageSurfaceFolder;
+                                    s_pageSurfaceZoneFolder = s_pages[pageIndex]->surfaces[index]->pageSurfaceZoneFolder;
+                                    s_pageSurfaceFXZoneFolder = s_pages[pageIndex]->surfaces[index]->pageSurfaceFXZoneFolder;
 
                                     DialogBox(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_PageSurface), hwndDlg, dlgProcPageSurface);
                                     
                                     if (s_dlgResult == IDOK)
                                     {
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->channelOffset = s_channelOffset;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFolder = s_pageSurfaceFolder;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
-                                        s_pages.Get(pageIndex)->surfaces.Get(index)->pageSurface = s_pageSurface;
+                                        s_pages[pageIndex]->surfaces[index]->channelOffset = s_channelOffset;
+                                        s_pages[pageIndex]->surfaces[index]->pageSurfaceFolder = s_pageSurfaceFolder;
+                                        s_pages[pageIndex]->surfaces[index]->pageSurfaceZoneFolder = s_pageSurfaceZoneFolder;
+                                        s_pages[pageIndex]->surfaces[index]->pageSurfaceFXZoneFolder = s_pageSurfaceFXZoneFolder;
+                                        s_pages[pageIndex]->surfaces[index]->pageSurface = s_pageSurface;
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
-                                        for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
-                                            AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
+                                        for (auto surface : s_pages[pageIndex]->surfaces)
+                                            AddListEntry(hwndDlg, surface->pageSurface, IDC_LIST_PageSurfaces);
                                         
                                         SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                     }
@@ -3654,41 +3648,41 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Surfaces, LB_GETCURSEL, 0, 0);
                             if (index >= 0)
                             {
-                                string deletedSurface = s_surfaces.Get(index)->name;
+                                string deletedSurface = s_surfaces[index]->name;
                                 
-                                s_surfaces.Delete(index, true);
+                                s_surfaces.erase(s_surfaces.begin() + index);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_RESETCONTENT, 0, 0);
-                                for (int i = 0; i < s_surfaces.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_surfaces.Get(i)->name, IDC_LIST_Surfaces);
+                                for (auto surface : s_surfaces)
+                                    AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, index, 0);
                                 
                                 if (s_pageIndex >= 0)
                                 {
-                                    for (int i = s_pages.Get(s_pageIndex)->broadcasters.GetSize() - 1; i >= 0; --i)
+                                    for (int i = s_pages[s_pageIndex]->broadcasters.size() - 1; i >= 0; --i)
                                     {
-                                        if (s_pages.Get(s_pageIndex)->broadcasters.Get(i)->name == deletedSurface)
+                                        if (s_pages[s_pageIndex]->broadcasters[i]->name == deletedSurface)
                                         {
-                                            s_pages.Get(s_pageIndex)->broadcasters.Get(i)->listeners.Empty();
-                                            s_pages.Get(s_pageIndex)->broadcasters.Delete(i);
+                                            s_pages[s_pageIndex]->broadcasters[i]->listeners.clear();
+                                            s_pages[s_pageIndex]->broadcasters.erase(s_pages[s_pageIndex]->broadcasters.begin() + i);
                                         }
                                         else
                                         {
-                                            for (int k = s_pages.Get(s_pageIndex)->broadcasters.Get(i)->listeners.GetSize() - 1; k >= 0; --k)
-                                                if (s_pages.Get(s_pageIndex)->broadcasters.Get(i)->listeners.Get(k)->name == deletedSurface)
-                                                     s_pages.Get(s_pageIndex)->broadcasters.Get(i)->listeners.Delete(k);
+                                            for (int k = s_pages[s_pageIndex]->broadcasters[i]->listeners.size() - 1; k >= 0; --k)
+                                                if (s_pages[s_pageIndex]->broadcasters[i]->listeners[k]->name == deletedSurface)
+                                                     s_pages[s_pageIndex]->broadcasters[i]->listeners.erase(s_pages[s_pageIndex]->broadcasters[i]->listeners.begin() + k);
                                         }
                                     }
                                     
-                                    for (int i = s_pages.Get(s_pageIndex)->surfaces.GetSize() - 1; i >= 0; --i)
-                                        if ( s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurface == deletedSurface)
-                                            s_pages.Get(s_pageIndex)->surfaces.Delete(i);
+                                    for (int i = s_pages[s_pageIndex]->surfaces.size() - 1; i >= 0; --i)
+                                        if ( s_pages[s_pageIndex]->surfaces[i]->pageSurface == deletedSurface)
+                                            s_pages[s_pageIndex]->surfaces.erase(s_pages[s_pageIndex]->surfaces.begin() + i);
 
                                     
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
-                                    for (int i = 0; i < s_pages.Get(s_pageIndex)->surfaces.GetSize(); ++i)
-                                        AddListEntry(hwndDlg, s_pages.Get(s_pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
+                                    for (auto surface : s_pages[s_pageIndex]->surfaces)
+                                        AddListEntry(hwndDlg, surface->pageSurface, IDC_LIST_PageSurfaces);
                                     
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                 }
@@ -3702,14 +3696,14 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                             int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Pages, LB_GETCURSEL, 0, 0);
                             if (index >= 0)
                             {
-                                s_pages.Delete(index, true);
+                                s_pages.erase(s_pages.begin() + index);
                                 
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_RESETCONTENT, 0, 0);
 #ifdef WIN32
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 #endif
-                                for (int i = 0; i < s_pages.GetSize(); ++i)
-                                    AddListEntry(hwndDlg, s_pages.Get(i)->name, IDC_LIST_Pages);
+                                for (auto page : s_pages)
+                                    AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, index, 0);
                             }
                         }
@@ -3724,12 +3718,12 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 int index = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_PageSurfaces, LB_GETCURSEL, 0, 0);
                                 if (index >= 0)
                                 {
-                                    s_pages.Get(pageIndex)->surfaces.Delete(index, true);
+                                    s_pages[pageIndex]->surfaces.erase(s_pages[pageIndex]->surfaces.begin() + index);
                                     
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_RESETCONTENT, 0, 0);
 
-                                    for (int i = 0; i < s_pages.Get(pageIndex)->surfaces.GetSize(); ++i)
-                                        AddListEntry(hwndDlg, s_pages.Get(pageIndex)->surfaces.Get(i)->pageSurface, IDC_LIST_PageSurfaces);
+                                    for (auto surface : s_pages[pageIndex]->surfaces)
+                                        AddListEntry(hwndDlg, surface->pageSurface, IDC_LIST_PageSurfaces);
                                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, index, 0);
                                 }
                             }
@@ -3812,7 +3806,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                         surface->surfaceRefreshRate = atoi(pList.get_prop(PropertyType_MIDISurfaceRefreshRate));
                                         surface->surfaceMaxSysExMessagesPerRun = atoi(pList.get_prop(PropertyType_MaxMIDIMesssagesPerRun));
 
-                                        s_surfaces.Add(surface);
+                                        s_surfaces.push_back(surface);
                                         
                                         AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                                     }
@@ -3829,7 +3823,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                         surface->remoteDeviceIP = pList.get_prop(PropertyType_TransmitToIPAddress);
                                         surface->surfaceMaxPacketsPerRun = atoi(pList.get_prop(PropertyType_MaxPacketsPerRun));
                                         
-                                        s_surfaces.Add(surface);
+                                        s_surfaces.push_back(surface);
                                         
                                         AddListEntry(hwndDlg, surface->name, IDC_LIST_Surfaces);
                                     }
@@ -3876,22 +3870,22 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         page->isScrollLinkEnabled = isScrollLinkEnabled;
                         page->isScrollSynchEnabled = isScrollSynchEnabled;
  
-                        s_pages.Add(page);
+                        s_pages.push_back(page);
                         
                         AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
                     }
                     else if (const char *broadcasterNameProp = pList.get_prop(PropertyType_Broadcaster))
                     {
-                        if (s_pages.GetSize() > 0)
+                        if (s_pages.size() > 0)
                         {
                             Broadcaster *broadcaster = new Broadcaster();
                             broadcaster->name = broadcasterNameProp;
-                            s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Add(broadcaster);
+                            s_pages[s_pages.size() - 1]->broadcasters.push_back(broadcaster);
                         }
                     }
                     else if (const char *listenerProp = pList.get_prop(PropertyType_Listener))
                     {
-                        if (tokens.size() > 0 && s_pages.GetSize() > 0 && s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() > 0)
+                        if (tokens.size() > 0 && s_pages.size() > 0 && s_pages[s_pages.size() - 1]->broadcasters.size() > 0)
                         {
                             Listener *listener = new Listener();
                             listener->name = listenerProp;
@@ -3920,7 +3914,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                                 if ( ! strcmp(listenerProp, "Yes"))
                                     listener->receives = true;
                             
-                            s_pages.Get(s_pages.GetSize() - 1)->broadcasters.Get(s_pages.Get(s_pages.GetSize() - 1)->broadcasters.GetSize() - 1)->listeners.Add(listener);
+                            s_pages[s_pages.size() - 1]->broadcasters[s_pages[s_pages.size() - 1]->broadcasters.size() - 1]->listeners.push_back(listener);
                         }
                     }
                     else if (const char *surfaceProp = pList.get_prop(PropertyType_Surface))
@@ -3929,9 +3923,9 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                         {
                             PageSurfaceLine *surface = new PageSurfaceLine();
                             
-                            if (s_pages.GetSize() > 0)
+                            if (s_pages.size() > 0)
                             {
-                                s_pages.Get(s_pages.GetSize() - 1)->surfaces.Add(surface);
+                                s_pages[s_pages.size() - 1]->surfaces.push_back(surface);
                                 
                                 surface->pageSurface = surfaceProp;
                                 surface->pageSurfaceFolder = surfaceFolderProp;
@@ -3954,7 +3948,7 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 }
             }
           
-            if (s_pages.GetSize() == 0)
+            if (s_pages.size() == 0)
             {
                 PageLine *page = new PageLine();
                 page->name = "Home";
@@ -3963,22 +3957,22 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 page->isScrollLinkEnabled = false;
                 page->isScrollSynchEnabled = false;
 
-                s_pages.Add(page);
+                s_pages.push_back(page);
                 
                 AddListEntry(hwndDlg, page->name, IDC_LIST_Pages);
             }
                 
-            if (s_surfaces.GetSize() > 0)
+            if (s_surfaces.size() > 0)
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Surfaces), LB_SETCURSEL, 0, 0);
             
-            if (s_pages.GetSize() > 0)
+            if (s_pages.size() > 0)
             {
                 SendMessage(GetDlgItem(hwndDlg, IDC_LIST_Pages), LB_SETCURSEL, 0, 0);
 
                 // the messages above don't trigger the user-initiated code, so pretend the user selected them
                 SendMessage(hwndDlg, WM_COMMAND, MAKEWPARAM(IDC_LIST_Pages, LBN_SELCHANGE), 0);
                 
-                if (s_pages.Get(0)->surfaces.GetSize() > 0)
+                if (s_pages[0]->surfaces.size() > 0)
                     SendMessage(GetDlgItem(hwndDlg, IDC_LIST_PageSurfaces), LB_SETCURSEL, 0, 0);
             }
         }
@@ -3986,19 +3980,19 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         
         case WM_DESTROY:
         {
-            s_surfaces.Empty(true);
+            s_surfaces.clear();
         
-            for (int i = 0; i < s_pages.GetSize(); ++i)
+            for (auto page : s_pages)
             {
-                s_pages.Get(i)->surfaces.Empty(true);
+                page->surfaces.clear();
                 
-                for (int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
-                    s_pages.Get(i)->broadcasters.Get(j)->listeners.Empty();
+                for (int j = 0; j < page->broadcasters.size(); ++j)
+                    page->broadcasters[j]->listeners.clear();
                     
-                s_pages.Get(i)->broadcasters.Empty(true);
+                page->broadcasters.clear();
             }
             
-            s_pages.Empty(true);
+            s_pages.clear();
         }
         break;
 
@@ -4014,38 +4008,38 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 fprintf(iniFile, "\n");
                 
-                for (int i = 0; i < s_surfaces.GetSize(); ++i)
+                for (auto surface : s_surfaces)
                 {
-                    string type = s_surfaces.Get(i)->type;
+                    string type = surface->type;
                                         
                     if (type == s_MidiSurfaceToken)
                     {
                         fprintf(iniFile, "%s=%s %s=%s %s=%d %s=%d %s=%d ",
-                            plist.string_from_prop(PropertyType_SurfaceType), s_surfaces.Get(i)->type.c_str(),
-                            plist.string_from_prop(PropertyType_SurfaceName), s_surfaces.Get(i)->name.c_str(),
-                            plist.string_from_prop(PropertyType_SurfaceChannelCount), s_surfaces.Get(i)->channelCount,
-                            plist.string_from_prop(PropertyType_MidiInput), s_surfaces.Get(i)->inPort,
-                            plist.string_from_prop(PropertyType_MidiOutput), s_surfaces.Get(i)->outPort);
+                            plist.string_from_prop(PropertyType_SurfaceType), surface->type.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceName), surface->name.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceChannelCount), surface->channelCount,
+                            plist.string_from_prop(PropertyType_MidiInput), surface->inPort,
+                            plist.string_from_prop(PropertyType_MidiOutput), surface->outPort);
                         
-                        int refreshRate = s_surfaces.Get(i)->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : s_surfaces.Get(i)->surfaceRefreshRate;
+                        int refreshRate = surface->surfaceRefreshRate < 1 ? s_surfaceDefaultRefreshRate : surface->surfaceRefreshRate;
                         fprintf(iniFile, "%s=%d ", plist.string_from_prop(PropertyType_MIDISurfaceRefreshRate), refreshRate);
                         
-                        int maxSysExMessagesPerRun = s_surfaces.Get(i)->surfaceMaxSysExMessagesPerRun < 1 ? s_surfaceDefaultMaxSysExMessagesPerRun : s_surfaces.Get(i)->surfaceMaxSysExMessagesPerRun;
+                        int maxSysExMessagesPerRun = surface->surfaceMaxSysExMessagesPerRun < 1 ? s_surfaceDefaultMaxSysExMessagesPerRun : surface->surfaceMaxSysExMessagesPerRun;
                         fprintf(iniFile, "%s=%d ", plist.string_from_prop(PropertyType_MaxMIDIMesssagesPerRun), maxSysExMessagesPerRun);
                     }
                     
                     else if (type == s_OSCSurfaceToken || type == s_OSCX32SurfaceToken)
                     {
                         fprintf(iniFile, "%s=%s %s=%s %s=%d %s=%d %s=%d ",
-                            plist.string_from_prop(PropertyType_SurfaceType), s_surfaces.Get(i)->type.c_str(),
-                            plist.string_from_prop(PropertyType_SurfaceName), s_surfaces.Get(i)->name.c_str(),
-                            plist.string_from_prop(PropertyType_SurfaceChannelCount), s_surfaces.Get(i)->channelCount,
-                            plist.string_from_prop(PropertyType_ReceiveOnPort), s_surfaces.Get(i)->inPort,
-                            plist.string_from_prop(PropertyType_TransmitToPort), s_surfaces.Get(i)->outPort);
+                            plist.string_from_prop(PropertyType_SurfaceType), surface->type.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceName), surface->name.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceChannelCount), surface->channelCount,
+                            plist.string_from_prop(PropertyType_ReceiveOnPort), surface->inPort,
+                            plist.string_from_prop(PropertyType_TransmitToPort), surface->outPort);
 
-                        fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_TransmitToIPAddress), s_surfaces.Get(i)->remoteDeviceIP.c_str());
+                        fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_TransmitToIPAddress), surface->remoteDeviceIP.c_str());
                         
-                        int maxPacketsPerRun = s_surfaces.Get(i)->surfaceMaxPacketsPerRun < 0 ? s_surfaceDefaultMaxPacketsPerRun : s_surfaces.Get(i)->surfaceMaxPacketsPerRun;
+                        int maxPacketsPerRun = surface->surfaceMaxPacketsPerRun < 0 ? s_surfaceDefaultMaxPacketsPerRun : surface->surfaceMaxPacketsPerRun;
                         
                         fprintf(iniFile, "%s=%d ", plist.string_from_prop(PropertyType_MaxPacketsPerRun), maxPacketsPerRun);
                     }
@@ -4055,44 +4049,43 @@ WDL_DLGRET dlgProcMainConfig(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
                 
                 fprintf(iniFile, "\n");
                 
-                for (int i = 0; i < s_pages.GetSize(); ++i)
+                for (auto page : s_pages)
                 {
-                    fprintf(iniFile, "%s=%s", plist.string_from_prop(PropertyType_PageName), s_pages.Get(i)->name.c_str());
+                    fprintf(iniFile, "%s=%s", plist.string_from_prop(PropertyType_PageName), page->name.c_str());
                     
-                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_PageFollowsMCP), s_pages.Get(i)->followMCP == true ? "Yes" : "No");
+                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_PageFollowsMCP), page->followMCP == true ? "Yes" : "No");
                                         
-                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_SynchPages), s_pages.Get(i)->synchPages == true ? "Yes" : "No");
+                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_SynchPages), page->synchPages == true ? "Yes" : "No");
                                         
-                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_ScrollLink), s_pages.Get(i)->isScrollLinkEnabled == true ? "Yes" : "No");
+                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_ScrollLink), page->isScrollLinkEnabled == true ? "Yes" : "No");
                                         
-                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_ScrollSynch), s_pages.Get(i)->isScrollSynchEnabled == true ? "Yes" : "No");
+                    fprintf(iniFile, " %s=%s", plist.string_from_prop(PropertyType_ScrollSynch), page->isScrollSynchEnabled == true ? "Yes" : "No");
 
                     fprintf(iniFile, "\n");
 
-                    for (int j = 0; j < s_pages.Get(i)->surfaces.GetSize(); ++j)
+                    for (auto surface : page->surfaces)
                     {
                         fprintf(iniFile, "\t%s=%s %s=%s %s=%s %s=%s %s=%d\n",
-                            plist.string_from_prop(PropertyType_Surface), s_pages.Get(i)->surfaces.Get(j)->pageSurface.c_str(),
-                            plist.string_from_prop(PropertyType_SurfaceFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFolder.c_str(),
-                            plist.string_from_prop(PropertyType_ZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceZoneFolder.c_str(),
-                            plist.string_from_prop(PropertyType_FXZoneFolder), s_pages.Get(i)->surfaces.Get(j)->pageSurfaceFXZoneFolder.c_str(),
-                            plist.string_from_prop(PropertyType_StartChannel), s_pages.Get(i)->surfaces.Get(j)->channelOffset);
+                            plist.string_from_prop(PropertyType_Surface), surface->pageSurface.c_str(),
+                            plist.string_from_prop(PropertyType_SurfaceFolder), surface->pageSurfaceFolder.c_str(),
+                            plist.string_from_prop(PropertyType_ZoneFolder), surface->pageSurfaceZoneFolder.c_str(),
+                            plist.string_from_prop(PropertyType_FXZoneFolder), surface->pageSurfaceFXZoneFolder.c_str(),
+                            plist.string_from_prop(PropertyType_StartChannel), surface->channelOffset);
                     }
                     
                     fprintf(iniFile, "\n");
                     
-                    for (int j = 0; j < s_pages.Get(i)->broadcasters.GetSize(); ++j)
+                    for (auto broadcaster : page->broadcasters)
                     {
-                        if (s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize() == 0)
+                        if (broadcaster->listeners.size() == 0)
                             continue;
                         
-                        fprintf(iniFile, "\t%s=%s\n", plist.string_from_prop(PropertyType_Broadcaster), s_pages.Get(i)->broadcasters.Get(j)->name.c_str());
+                        fprintf(iniFile, "\t%s=%s\n", plist.string_from_prop(PropertyType_Broadcaster), broadcaster->name.c_str());
                         
-                        for (int k = 0; k < s_pages.Get(i)->broadcasters.Get(j)->listeners.GetSize(); ++k)
+                        for (auto listener : broadcaster->listeners)
                         {
-                            Listener *listener = s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k);
                             
-                            fprintf(iniFile, "\t\%s=%s ", plist.string_from_prop(PropertyType_Listener), s_pages.Get(i)->broadcasters.Get(j)->listeners.Get(k)->name.c_str());
+                            fprintf(iniFile, "\t\%s=%s ", plist.string_from_prop(PropertyType_Listener), listener->name.c_str());
                             
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_GoHome), listener->goHome == true ? "Yes" : "No");
                             fprintf(iniFile, "%s=%s ", plist.string_from_prop(PropertyType_SelectedTrackSends), listener->sends == true ? "Yes" : "No");
