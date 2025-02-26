@@ -1021,8 +1021,6 @@ private:
     Zone *homeZone_ = NULL;
 
     vector<Zone *> goZones_;
-    
-    vector<MediaTrack *> tracksLockedRight_;
 
     vector<ZoneManager *> listeners_;
     
