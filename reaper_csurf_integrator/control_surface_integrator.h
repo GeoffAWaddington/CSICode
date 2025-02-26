@@ -743,7 +743,7 @@ protected:
     bool isActive_= false;
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
-    WDL_PtrList<Widget> widgets_;
+    vector<Widget *> widgets_;
     WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
 
     static void destroyActionContextListArray(WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *list) { delete list; }
@@ -781,7 +781,7 @@ public:
     void DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex, double delta);
     void DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double value);
     void RequestUpdate();
-    const WDL_PtrList<Widget> &GetWidgets() { return widgets_; }
+    const vector<Widget *> &GetWidgets() { return widgets_; }
 
     const char *GetSourceFilePath() { return sourceFilePath_.c_str(); }
     vector<Zone *> &GetIncludedZones() { return includedZones_; }
@@ -2081,8 +2081,6 @@ protected:
     map<const string, vector<double>* > accelerationValues_;
     vector<double> emptyAccelerationValues_;
     
-    static void disposeAccelValues(vector<double> *accelValues) { delete  accelValues; }
-    
     void ProcessValues(const vector<string_list> &lines);
     
     CSurfIntegrator *const csi_;
@@ -2487,11 +2485,11 @@ class FeedbackProcessor
 {
 protected:
     CSurfIntegrator *const csi_;
+    Widget  *const widget_;
+
     double lastDoubleValue_ = 0.0;
     string lastStringValue_;
     rgba_color lastColor_;
-    
-    Widget  *const widget_;
     
 public:
     FeedbackProcessor(CSurfIntegrator *const csi, Widget *widget) : csi_(csi), widget_(widget) {}

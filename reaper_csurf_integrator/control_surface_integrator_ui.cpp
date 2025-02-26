@@ -2197,7 +2197,8 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
     if (zoneManager->GetLearnedFocusedFXZone() == NULL)
         return;
     
-    if (zoneManager->GetLearnedFocusedFXZone()->GetWidgets().Find(widget) < 0)
+    vector<Widget *> widgets = zoneManager->GetLearnedFocusedFXZone()->GetWidgets();
+    if (find(widgets.begin(), widgets.end(), widget) == widgets.end())
         return;
 
     s_currentWidget = widget;

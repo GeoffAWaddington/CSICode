@@ -2175,21 +2175,21 @@ int Zone::GetSlotIndex()
 
 void Zone::AddWidget(Widget *widget)
 {
-    if (widgets_.Find(widget) < 0)
-        widgets_.Add(widget);
+    if (find(widgets_.begin(), widgets_.end(), widget) == widgets_.end())
+        widgets_.push_back(widget);
 }
 
 void Zone::Activate()
 {
     UpdateCurrentActionContextModifiers();
     
-    for (int i = 0; i < widgets_.GetSize(); ++i)
+    for (auto widget : widgets_)
     {
-        if (!strcmp(widgets_.Get(i)->GetName(), "OnZoneActivation"))
-            for (int j = 0; j < GetActionContexts(widgets_.Get(i)).GetSize(); ++j)
-                GetActionContexts(widgets_.Get(i)).Get(j)->DoAction(1.0);
+        if (!strcmp(widget->GetName(), "OnZoneActivation"))
+            for (int j = 0; j < GetActionContexts(widget).GetSize(); ++j)
+                GetActionContexts(widget).Get(j)->DoAction(1.0);
             
-        widgets_.Get(i)->Configure(GetActionContexts(widgets_.Get(i)));
+        widget->Configure(GetActionContexts(widget));
     }
 
     isActive_ = true;
@@ -2212,15 +2212,15 @@ void Zone::Activate()
 
 void Zone::Deactivate()
 {    
-    for (int i = 0; i < widgets_.GetSize(); ++i)
+    for (auto widget : widgets_)
     {
-        for (int j = 0; j < GetActionContexts(widgets_.Get(i)).GetSize(); ++j)
+        for (int j = 0; j < GetActionContexts(widget).GetSize(); ++j)
         {
-            GetActionContexts(widgets_.Get(i)).Get(j)->UpdateWidgetValue(0.0);
-            GetActionContexts(widgets_.Get(i)).Get(j)->UpdateWidgetValue("");
+            GetActionContexts(widget).Get(j)->UpdateWidgetValue(0.0);
+            GetActionContexts(widget).Get(j)->UpdateWidgetValue("");
 
-            if (!strcmp(widgets_.Get(i)->GetName(), "OnZoneDeactivation"))
-                GetActionContexts(widgets_.Get(i)).Get(j)->DoAction(1.0);
+            if (!strcmp(widget->GetName(), "OnZoneDeactivation"))
+                GetActionContexts(widget).Get(j)->DoAction(1.0);
         }
     }
 
@@ -2251,26 +2251,26 @@ void Zone::RequestUpdate()
     for (int i =  0; i < includedZones_.size(); ++i)
         includedZones_[i]->RequestUpdate();
     
-    for (int i = 0; i < widgets_.GetSize(); ++i)
+    for (auto widget : widgets_)
     {
-        if ( ! widgets_.Get(i)->GetHasBeenUsedByUpdate())
+        if ( ! widget->GetHasBeenUsedByUpdate())
         {
-            widgets_.Get(i)->SetHasBeenUsedByUpdate();
-            RequestUpdateWidget(widgets_.Get(i));
+            widget->SetHasBeenUsedByUpdate();
+            RequestUpdateWidget(widget);
         }
     }
 }
 
 void Zone::SetXTouchDisplayColors(const char *colors)
 {
-    for (int i = 0; i < widgets_.GetSize(); ++i)
-        widgets_.Get(i)->SetXTouchDisplayColors(colors);
+    for (auto widget : widgets_)
+       widget->SetXTouchDisplayColors(colors);
 }
 
 void Zone::RestoreXTouchDisplayColors()
 {
-    for (int i = 0; i < widgets_.GetSize(); ++i)
-        widgets_.Get(i)->RestoreXTouchDisplayColors();
+    for (auto widget : widgets_)
+        widget->RestoreXTouchDisplayColors();
 }
 
 void Zone::DoAction(Widget *widget, bool &isUsed, double value)
@@ -2284,7 +2284,7 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
     if (isUsed)
         return;
 
-    if (widgets_.Find(widget) >= 0)
+    if (find(widgets_.begin(), widgets_.end(), widget) != widgets_.end())
     {
         if (g_surfaceInDisplay)
         {
@@ -2316,7 +2316,7 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
     if (isUsed)
         return;
 
-    if (widgets_.Find(widget) >= 0)
+    if (find(widgets_.begin(), widgets_.end(), widget) != widgets_.end())
     {
         if (g_surfaceInDisplay)
         {
@@ -2348,7 +2348,7 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
     if (isUsed)
         return;
 
-    if (widgets_.Find(widget) >= 0)
+    if (find(widgets_.begin(), widgets_.end(), widget) != widgets_.end())
     {
         if (g_surfaceInDisplay)
         {
@@ -2379,8 +2379,8 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
     
     if (isUsed)
         return;
-
-    if (widgets_.Find(widget) >= 0)
+    
+    if (find(widgets_.begin(), widgets_.end(), widget) != widgets_.end())
     {
         if (g_surfaceInDisplay)
         {
@@ -2403,10 +2403,10 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
 
 void Zone::UpdateCurrentActionContextModifiers()
 {
-    for (int i = 0; i < widgets_.GetSize(); ++i)
+    for (auto widget : widgets_)
     {
-        UpdateCurrentActionContextModifier(widgets_.Get(i));
-        widgets_.Get(i)->Configure(GetActionContexts(widgets_.Get(i), currentActionContextModifiers_.Get(widgets_.Get(i))));
+        UpdateCurrentActionContextModifier(widget);
+        widget->Configure(GetActionContexts(widget, currentActionContextModifiers_.Get(widget)));
     }
     
     for (int i = 0; i < includedZones_.size(); ++i)
