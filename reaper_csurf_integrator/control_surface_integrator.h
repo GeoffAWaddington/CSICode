@@ -693,16 +693,40 @@ protected:
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
     vector<Widget *> widgets_;
-    WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
+    WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_Old;
+    WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_Old;
+      
+    vector<ActionContext *> emptyContexts_;
+    map<Widget *, int> currentActionContextModifiers_;
+    map<Widget *, map<int, vector<ActionContext*> > > actionContextDictionary_;
 
-    WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
-        
     vector<Zone *> includedZones_;
 
     vector<Zone *> subZones_;
 
+    void UpdateCurrentActionContextModifierOld(Widget *widget);
     void UpdateCurrentActionContextModifier(Widget *widget);
-        
+
+    const WDL_PtrList<ActionContext> &GetActionContextsOld(Widget *widget, int modifier)
+    {
+        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_Old.Get(widget);
+        if (m)
+        {
+            WDL_PtrList<ActionContext> *list = m->Get(modifier);
+            if (list) return *list;
+        }
+        static const WDL_PtrList<ActionContext> empty;
+        return empty;
+    }
+    
+    const vector<ActionContext *> &GetActionContexts(Widget *widget, int modifier)
+    {
+        if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
+            return actionContextDictionary_[widget][modifier];
+        else
+            return emptyContexts_;
+    }
+    
 public:
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath) {}
 
@@ -718,8 +742,13 @@ public:
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
     
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> &GetActionContextDictionary() { return actionContextDictionary_; }
-    const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget);
+    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> &GetActionContextDictionaryOld() { return actionContextDictionary_Old; }
+    const WDL_PtrList<ActionContext> &GetActionContextsOld(Widget *widget);
+    
+    const vector<ActionContext *> &GetActionContexts(Widget *widget);
+
+    
+    
     void AddWidget(Widget *widget);
     void Activate();
     void Deactivate();
@@ -761,7 +790,12 @@ public:
             
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
-        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
+        actionContextDictionary_[widget][modifier].push_back(actionContext);
+
+
+        
+        
+        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_Old.Get(widget);
         
         if (m)
         {
@@ -776,7 +810,7 @@ public:
         if (!m)
         {
             m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>();
-            actionContextDictionary_.Insert(widget,m);
+            actionContextDictionary_Old.Insert(widget,m);
         }
         
         WDL_PtrList<ActionContext> *l = m->Get(modifier);
@@ -787,18 +821,6 @@ public:
         }
 
         l->Add(actionContext);
-    }
-
-    const WDL_PtrList<ActionContext> &GetActionContexts(Widget *widget, int modifier)
-    {
-        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_.Get(widget);
-        if (m)
-        {
-            WDL_PtrList<ActionContext> *list = m->Get(modifier);
-            if (list) return *list;
-        }
-        static const WDL_PtrList<ActionContext> empty;
-        return empty;
     }
     
     void OnTrackDeselection()
@@ -811,11 +833,19 @@ public:
 
     void RequestUpdateWidget(Widget *widget)
     {
-        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
+        for (int i = 0; i < GetActionContextsOld(widget).GetSize(); ++i)
         {
-            GetActionContexts(widget).Get(i)->RunDeferredActions();
-            GetActionContexts(widget).Get(i)->RequestUpdate();
+            GetActionContextsOld(widget).Get(i)->RunDeferredActions();
+            GetActionContextsOld(widget).Get(i)->RequestUpdate();
         }
+        
+        /*
+        for (auto actionContext : GetActionContexts(widget))
+        {
+            actionContext->RunDeferredActions();
+            actionContext->RequestUpdate();
+        }
+        */
     }
     
     virtual void GoSubZone(const char *subZoneName)
@@ -1290,7 +1320,7 @@ public:
     const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *GetLearnFocusedFXActionContextDictionary()
     {
         if (learnFocusedFXZone_ != NULL)
-            return &learnFocusedFXZone_->GetActionContextDictionary();
+            return &learnFocusedFXZone_->GetActionContextDictionaryOld();
         else return NULL;
     }
     

@@ -1108,7 +1108,7 @@ static void FillAdvancedParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widge
     
     FillPropertiesParams(hwndDlg, t, widget, modifier);
 
-    paramContext->GetWidget()->Configure(t->zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
+    paramContext->GetWidget()->Configure(t->zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
 }
 
 static void FillParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widget, int modifier)
@@ -1346,7 +1346,7 @@ static void ApplyColorsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget,
                         if (context->GetWidgetProperties().get_prop(PropertyType_PushColor))
                             context->GetWidgetProperties().set_prop(PropertyType_PushColor, sourcePushColor);
                     
-                    context->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
+                    context->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
                 }
             }
             
@@ -1783,7 +1783,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (paramContext)
                         {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
-                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
+                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
                         }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
@@ -1799,7 +1799,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (paramContext)
                         {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
-                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
+                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
                         }
                         InvalidateRect(hwndDlg, NULL, true);
                     }

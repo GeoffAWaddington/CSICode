@@ -2076,10 +2076,10 @@ void Zone::Activate()
     for (auto widget : widgets_)
     {
         if (!strcmp(widget->GetName(), "OnZoneActivation"))
-            for (int j = 0; j < GetActionContexts(widget).GetSize(); ++j)
-                GetActionContexts(widget).Get(j)->DoAction(1.0);
+            for (auto actionContext :  GetActionContexts(widget))
+                actionContext->DoAction(1.0);
             
-        widget->Configure(GetActionContexts(widget));
+        widget->Configure(GetActionContextsOld(widget));
     }
 
     isActive_ = true;
@@ -2104,14 +2104,24 @@ void Zone::Deactivate()
 {    
     for (auto widget : widgets_)
     {
-        for (int j = 0; j < GetActionContexts(widget).GetSize(); ++j)
+        for (int j = 0; j < GetActionContextsOld(widget).GetSize(); ++j)
         {
-            GetActionContexts(widget).Get(j)->UpdateWidgetValue(0.0);
-            GetActionContexts(widget).Get(j)->UpdateWidgetValue("");
+            GetActionContextsOld(widget).Get(j)->UpdateWidgetValue(0.0);
+            GetActionContextsOld(widget).Get(j)->UpdateWidgetValue("");
 
             if (!strcmp(widget->GetName(), "OnZoneDeactivation"))
-                GetActionContexts(widget).Get(j)->DoAction(1.0);
+                GetActionContextsOld(widget).Get(j)->DoAction(1.0);
         }
+        /*
+        for (auto actionContext : GetActionContexts(widget))
+        {
+            actionContext->UpdateWidgetValue(0.0);
+            actionContext->UpdateWidgetValue("");
+
+            if (!strcmp(widget->GetName(), "OnZoneDeactivation"))
+                actionContext->DoAction(1.0);
+        }
+        */
     }
 
     isActive_ = false;
@@ -2185,8 +2195,8 @@ void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 
         isUsed = true;
         
-        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-            GetActionContexts(widget).Get(i)->DoAction(value);
+        for (auto actionContext : GetActionContexts(widget))
+            actionContext->DoAction(value);
     }
     else
     {
@@ -2217,8 +2227,8 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, double delta)
 
         isUsed = true;
 
-        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-            GetActionContexts(widget).Get(i)->DoRelativeAction(delta);
+        for (auto actionContext : GetActionContexts(widget))
+            actionContext->DoRelativeAction(delta);
     }
     else
     {
@@ -2249,8 +2259,8 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
 
         isUsed = true;
 
-        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-            GetActionContexts(widget).Get(i)->DoRelativeAction(accelerationIndex, delta);
+        for (auto actionContext : GetActionContexts(widget))
+            actionContext->DoRelativeAction(accelerationIndex, delta);
     }
     else
     {
@@ -2281,8 +2291,8 @@ void Zone::DoTouch(Widget *widget, const char *widgetName, bool &isUsed, double 
 
         isUsed = true;
 
-        for (int i = 0; i < GetActionContexts(widget).GetSize(); ++i)
-            GetActionContexts(widget).Get(i)->DoTouch(value);
+        for (auto actionContext : GetActionContexts(widget))
+            actionContext->DoTouch(value);
     }
     else
     {
@@ -2295,8 +2305,9 @@ void Zone::UpdateCurrentActionContextModifiers()
 {
     for (auto widget : widgets_)
     {
+        UpdateCurrentActionContextModifierOld(widget);
         UpdateCurrentActionContextModifier(widget);
-        widget->Configure(GetActionContexts(widget, currentActionContextModifiers_.Get(widget)));
+        widget->Configure(GetActionContextsOld(widget, currentActionContextModifiers_Old.Get(widget)));
     }
     
     for (int i = 0; i < includedZones_.size(); ++i)
@@ -2306,24 +2317,24 @@ void Zone::UpdateCurrentActionContextModifiers()
         subZones_[i]->UpdateCurrentActionContextModifiers();
 }
 
-void Zone::UpdateCurrentActionContextModifier(Widget *widget)
+void Zone::UpdateCurrentActionContextModifierOld(Widget *widget)
 {
     const vector<int> &modifiers = widget->GetSurface()->GetModifiers();
     
-    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(widget);
+    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_Old.Get(widget);
     if (wl != NULL)
     {
         for (auto modifier : modifiers)
         {
             if (wl->Get(modifier))
             {
-                if (currentActionContextModifiers_.Exists(widget))
+                if (currentActionContextModifiers_Old.Exists(widget))
                 {
-                    if (currentActionContextModifiers_.GetPtr(widget))
-                        *currentActionContextModifiers_.GetPtr(widget) = modifier;
+                    if (currentActionContextModifiers_Old.GetPtr(widget))
+                        *currentActionContextModifiers_Old.GetPtr(widget) = modifier;
                 }
                 else
-                    currentActionContextModifiers_.Insert(widget, modifier);
+                    currentActionContextModifiers_Old.Insert(widget, modifier);
                 
                 break;
             }
@@ -2331,10 +2342,22 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
     }
 }
 
-const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
+void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 {
-    if ( ! currentActionContextModifiers_.Exists(widget))
-        UpdateCurrentActionContextModifier(widget);
+    for(int i = 0; i < (int)widget->GetSurface()->GetModifiers().size(); ++i)
+    {
+        if(actionContextDictionary_[widget].count(widget->GetSurface()->GetModifiers()[i]) > 0)
+        {
+            currentActionContextModifiers_[widget] = widget->GetSurface()->GetModifiers()[i];
+            break;
+        }
+    }
+}
+
+const WDL_PtrList<ActionContext> &Zone::GetActionContextsOld(Widget *widget)
+{
+    if ( ! currentActionContextModifiers_Old.Exists(widget))
+        UpdateCurrentActionContextModifierOld(widget);
     
     bool isTouched = false;
     bool isToggled = false;
@@ -2346,9 +2369,9 @@ const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
         isToggled = true;
     
     WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = NULL;
-    if (currentActionContextModifiers_.Exists(widget) && (wl = actionContextDictionary_.Get(widget)) != NULL)
+    if (currentActionContextModifiers_Old.Exists(widget) && (wl = actionContextDictionary_Old.Get(widget)) != NULL)
     {
-        const int modifier = currentActionContextModifiers_.Get(widget);
+        const int modifier = currentActionContextModifiers_Old.Get(widget);
         
         WDL_PtrList<ActionContext> *ret = NULL;
         if (isTouched && isToggled && !ret) ret = wl->Get(modifier+3);
@@ -2360,6 +2383,37 @@ const WDL_PtrList<ActionContext> &Zone::GetActionContexts(Widget *widget)
 
     static WDL_PtrList<ActionContext> empty;
     return empty;
+}
+
+const vector<ActionContext *> &Zone::GetActionContexts(Widget *widget)
+{
+    if(currentActionContextModifiers_.count(widget) == 0)
+        UpdateCurrentActionContextModifier(widget);
+    
+    bool isTouched = false;
+    bool isToggled = false;
+    
+    if(widget->GetSurface()->GetIsChannelTouched(widget->GetChannelNumber()))
+        isTouched = true;
+
+    if(widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
+        isToggled = true;
+    
+    if(currentActionContextModifiers_.count(widget) > 0 && actionContextDictionary_.count(widget) > 0)
+    {
+        int modifier = currentActionContextModifiers_[widget];
+        
+        if(isTouched && isToggled && actionContextDictionary_[widget].count(modifier + 3) > 0)
+            return actionContextDictionary_[widget][modifier + 3];
+        else if(isTouched && actionContextDictionary_[widget].count(modifier + 1) > 0)
+            return actionContextDictionary_[widget][modifier + 1];
+        else if(isToggled && actionContextDictionary_[widget].count(modifier + 2) > 0)
+            return actionContextDictionary_[widget][modifier + 2];
+        else if(actionContextDictionary_[widget].count(modifier) > 0)
+            return actionContextDictionary_[widget][modifier];
+    }
+
+    return emptyContexts_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
