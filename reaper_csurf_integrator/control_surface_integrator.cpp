@@ -3855,23 +3855,21 @@ void Midi_ControlSurface::SendMidiSysExMessage(MIDI_event_ex_t *midiMessage)
     
     if (g_surfaceOutDisplay)
     {
-        WDL_FastString output;
+        string output = "OUT->";
         
-        output.Set("OUT->");
-        output.Append(name_.c_str());
-        output.Append(" ");
+        output += name_ + " ";
 
         char buf[32];
 
         for (int i = 0; i < midiMessage->size; ++i)
         {
             snprintf(buf, sizeof(buf), "%02x ", midiMessage->midi_message[i]);
-            output.Append(buf);
+            output += buf;
         }
         
-        output.Append("\n");
+        output + "\n";
 
-        ShowConsoleMsg(output.Get());
+        ShowConsoleMsg(output.c_str());
     }
 }
 
@@ -4010,18 +4008,16 @@ void OSC_X32ControlSurfaceIO::HandleExternalInput(OSC_ControlSurface *surface)
                    
                    if (message->addressPattern() == "/-stat/selidx")
                    {
-                       WDL_FastString x32Select;
+                       string x32Select = message->addressPattern() + "/";
                        
-                       x32Select.Set(message->addressPattern().c_str());
-                       x32Select.Append("/");
                        if (value < 10)
-                           x32Select.Append("0");
+                           x32Select + "0";
 
                        char buf[64];
                        snprintf(buf, sizeof(buf), "%d", value);
-                       x32Select.Append(buf);
+                       x32Select + buf;
                                               
-                       surface->ProcessOSCMessage(x32Select.Get(), 1.0);
+                       surface->ProcessOSCMessage(x32Select.c_str(), 1.0);
                    }
                    else
                        surface->ProcessOSCMessage(message->addressPattern().c_str(), value);

@@ -38,7 +38,6 @@
 
 #include "../WDL/win32_utf8.h"
 #include "../WDL/ptrlist.h"
-#include "../WDL/wdlstring.h"
 #include "../WDL/queue.h"
 
 #include "control_surface_integrator_Reaper.h"

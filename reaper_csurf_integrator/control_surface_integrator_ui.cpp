@@ -405,15 +405,14 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
             SetDlgItemText(hwndDlg, IDC_EDIT_DeltaValues, deltas.c_str());
             
             const vector<int> &acceleratedTickCounts = context->GetAcceleratedTickCounts();
-            WDL_FastString ticks;
-            ticks.Set("");
-            
+            string ticks = "";
+
             for (int i = 0; i < (int)acceleratedTickCounts.size(); ++i)
             {
                 snprintf(buf, sizeof(buf), "%d ", acceleratedTickCounts[i]);
-                ticks.Append(buf);
+                ticks += buf;
             }
-            SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.Get());
+            SetDlgItemText(hwndDlg, IDC_EDIT_TickValues, ticks.c_str());
         }
             break;
             
