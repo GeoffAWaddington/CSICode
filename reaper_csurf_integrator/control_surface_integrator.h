@@ -695,8 +695,6 @@ protected:
     vector<Widget *> widgets_;
     WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_;
 
-    static void destroyActionContextListArray(WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *list) { delete list; }
-    static void destroyActionContextList(WDL_PtrList<ActionContext> *l) { l->Empty(true); delete l; }
     WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_;
         
     vector<Zone *> includedZones_;
@@ -706,7 +704,7 @@ protected:
     void UpdateCurrentActionContextModifier(Widget *widget);
         
 public:
-    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath), actionContextDictionary_(destroyActionContextListArray) {}
+    Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath) {}
 
     virtual ~Zone()
     {
@@ -777,7 +775,7 @@ public:
         
         if (!m)
         {
-            m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>(destroyActionContextList);
+            m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>();
             actionContextDictionary_.Insert(widget,m);
         }
         
@@ -1778,8 +1776,12 @@ private:
         bool isEngaged;
         DWORD pressedTime;
     };
+    
     ModifierState modifiers_[MaxModifiers];
+    
     WDL_TypedBuf<int> modifierCombinations_;
+    vector<int> modifierVector_;
+
     static int intcmp_rev(const void *a, const void *b) { return *(const int *)a > *(const int *)b ? -1 : *(const int *)a < *(const int *)b ? 1 : 0; }
     
     void GetCombinations(const Modifiers *indices, int num_indices, WDL_TypedBuf<int> &combinations)
@@ -1805,12 +1807,14 @@ public:
         int *p = modifierCombinations_.ResizeOK(1);
         if (WDL_NORMALLY(p)) p[0]=0;
 
+        modifierVector_.push_back(0);
+        
         memset(modifiers_,0,sizeof(modifiers_));
     }
     
     void RecalculateModifiers();
-    const WDL_TypedBuf<int> &GetModifiers() { return modifierCombinations_; }
-    
+    const vector<int> &GetModifiers() { return modifierVector_; }
+
     bool GetShift() { return modifiers_[Shift].isEngaged; }
     bool GetOption() { return modifiers_[Option].isEngaged; }
     bool GetControl() { return modifiers_[Control].isEngaged; }
@@ -2123,6 +2127,33 @@ public:
     void Stop();
     void Play();
     void Record();
+    
+    bool GetShift();
+    bool GetOption();
+    bool GetControl();
+    bool GetAlt();
+    bool GetFlip();
+    bool GetGlobal();
+    bool GetMarker();
+    bool GetNudge();
+    bool GetZoom();
+    bool GetScrub();
+
+    void SetModifierValue(int value);
+    void SetShift(bool value);
+    void SetOption(bool value);
+    void SetControl(bool value);
+    void SetAlt(bool value);
+    void SetFlip(bool value);
+    void SetGlobal(bool value);
+    void SetMarker(bool value);
+    void SetNudge(bool value);
+    void SetZoom(bool value);
+    void SetScrub(bool value);
+    
+    const vector<int> &GetModifiers();
+    void ClearModifiers();
+    void ClearModifier(const char *modifier);
         
     virtual void RequestUpdate();
     void ForceClearTrack(int trackNum);
@@ -2159,6 +2190,12 @@ public:
 
     void SetLatchTime(int latchTime) { latchTime_ = latchTime; }
     int GetLatchTime() { return latchTime_; }
+    
+    void UpdateCurrentActionContextModifiers()
+    {
+        if (! usesLocalModifiers_)
+            GetZoneManager()->UpdateCurrentActionContextModifiers();
+    }
     
     double GetStepSize(const char * const widgetClass)
     {
@@ -2385,40 +2422,6 @@ public:
     void OnInitialization()
     {
         DoWidgetAction("OnInitialization");
-    }
-    
-    
-    bool GetShift();
-    bool GetOption();
-    bool GetControl();
-    bool GetAlt();
-    bool GetFlip();
-    bool GetGlobal();
-    bool GetMarker();
-    bool GetNudge();
-    bool GetZoom();
-    bool GetScrub();
-
-    void SetModifierValue(int value);
-    void SetShift(bool value);
-    void SetOption(bool value);
-    void SetControl(bool value);
-    void SetAlt(bool value);
-    void SetFlip(bool value);
-    void SetGlobal(bool value);
-    void SetMarker(bool value);
-    void SetNudge(bool value);
-    void SetZoom(bool value);
-    void SetScrub(bool value);
-    
-    const WDL_TypedBuf<int> &GetModifiers();
-    void ClearModifiers();
-    void ClearModifier(const char *modifier);
-
-    void UpdateCurrentActionContextModifiers()
-    {
-        if (! usesLocalModifiers_)
-            GetZoneManager()->UpdateCurrentActionContextModifiers();
     }
 };
 

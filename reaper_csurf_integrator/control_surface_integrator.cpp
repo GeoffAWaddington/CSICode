@@ -2308,22 +2308,25 @@ void Zone::UpdateCurrentActionContextModifiers()
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
 {
-    const WDL_TypedBuf<int> &mods = widget->GetSurface()->GetModifiers();
+    const vector<int> &modifiers = widget->GetSurface()->GetModifiers();
     
     WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_.Get(widget);
-    if (wl != NULL) for (int i = 0; i < mods.GetSize(); ++i)
+    if (wl != NULL)
     {
-        if (wl->Get(mods.Get()[i]))
+        for (auto modifier : modifiers)
         {
-            if (currentActionContextModifiers_.Exists(widget))
+            if (wl->Get(modifier))
             {
-                if (currentActionContextModifiers_.GetPtr(widget))
-                    *currentActionContextModifiers_.GetPtr(widget) = mods.Get()[i];
+                if (currentActionContextModifiers_.Exists(widget))
+                {
+                    if (currentActionContextModifiers_.GetPtr(widget))
+                        *currentActionContextModifiers_.GetPtr(widget) = modifier;
+                }
+                else
+                    currentActionContextModifiers_.Insert(widget, modifier);
+                
+                break;
             }
-            else
-                currentActionContextModifiers_.Insert(widget, mods.Get()[i]);
-            
-            break;
         }
     }
 }
@@ -3020,8 +3023,8 @@ void ZoneManager::DoAction(Widget *widget, double value)
     
 void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
 {
-    if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
+    if (surface_->GetModifiers().size() > 0)
+        WidgetMoved(this, widget, surface_->GetModifiers()[0]);
     
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoAction(widget, isUsed, value);
@@ -3077,8 +3080,8 @@ void ZoneManager::DoRelativeAction(Widget *widget, double delta)
 
 void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
 {
-    if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
+    if (surface_->GetModifiers().size() > 0)
+        WidgetMoved(this, widget, surface_->GetModifiers()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoRelativeAction(widget, isUsed, delta);
@@ -3134,8 +3137,8 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
 
 void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed)
 {
-    if (surface_->GetModifiers().GetSize() > 0)
-        WidgetMoved(this, widget, surface_->GetModifiers().Get()[0]);
+    if (surface_->GetModifiers().size() > 0)
+        WidgetMoved(this, widget, surface_->GetModifiers()[0]);
 
     if (learnFocusedFXZone_ != NULL)
         learnFocusedFXZone_->DoRelativeAction(widget, isUsed, accelerationIndex, delta);
@@ -3246,7 +3249,7 @@ void ModifierManager::RecalculateModifiers()
         return;
     
     if (modifierCombinations_.ResizeOK(1,false))
-      modifierCombinations_.Get()[0] =0 ;
+      modifierCombinations_.Get()[0] = 0 ;
            
     Modifiers activeModifierIndices[MaxModifiers];
     int activeModifierIndices_cnt = 0;
@@ -3260,6 +3263,11 @@ void ModifierManager::RecalculateModifiers()
         GetCombinations(activeModifierIndices,activeModifierIndices_cnt, modifierCombinations_);
         qsort(modifierCombinations_.Get(), modifierCombinations_.GetSize(), sizeof(modifierCombinations_.Get()[0]), intcmp_rev);
     }
+    
+    modifierVector_.clear();
+    
+    for (int i = 0; i < modifierCombinations_.GetSize(); ++i)
+        modifierVector_.push_back(modifierCombinations_.Get()[i]);
     
     if (surface_ != NULL)
         surface_->GetZoneManager()->UpdateCurrentActionContextModifiers();
@@ -3759,7 +3767,7 @@ void ControlSurface::SetScrub(bool value)
         page_->GetModifierManager()->SetScrub(value, latchTime_);
 }
 
-const WDL_TypedBuf<int> &ControlSurface::GetModifiers()
+const vector<int> &ControlSurface::GetModifiers()
 {
     if (usesLocalModifiers_ || listensToModifiers_)
         return modifierManager_->GetModifiers();

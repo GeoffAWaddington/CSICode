@@ -347,10 +347,10 @@ static WDL_DLGRET dlgProcEditAdvanced(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 
     int modifier = 0;
 
-    const WDL_TypedBuf<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
+    const vector<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
         
-    if (modifiers.GetSize() > 0)
-        modifier = modifiers.Get()[0];
+    if (modifiers.size() > 0)
+        modifier = modifiers[0];
         
     switch (uMsg)
     {
@@ -1644,10 +1644,10 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             
             if (zoneManager)
             {
-                const WDL_TypedBuf<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
+                const vector<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
                 
-                if (modifiers.GetSize() > 0)
-                    modifier = modifiers.Get()[0];
+                if (modifiers.size() > 0)
+                    modifier = modifiers[0];
                 
                 paramContext = GetFirstContext(zoneManager, widget, modifier);
             }
@@ -2080,10 +2080,10 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             
             if (zoneManager)
             {
-                const WDL_TypedBuf<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
+                const vector<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
                 
-                if (modifiers.GetSize() > 0)
-                    modifier = modifiers.Get()[0];
+                if (modifiers.size() > 0)
+                    modifier = modifiers[0];
                 
                 paramContext = GetFirstContext(zoneManager, widget, modifier);
             }
