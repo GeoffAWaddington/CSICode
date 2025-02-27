@@ -3278,7 +3278,7 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                                 listenerIndex = (int)SendDlgItemMessage(hwndDlg, IDC_LIST_Listeners, LB_GETCURSEL, 0, 0);
                                 
                                 if (listenerIndex >= 0)
-                                    SetCheckBoxes(hwndDlg, s_broadcasters.Get(broadcasterIndex)->listeners.Get(listenerIndex));
+                                    SetCheckBoxes(hwndDlg, s_broadcasters[broadcasterIndex]->listeners[listenerIndex]);
 #endif
                             }
                         }
@@ -3290,7 +3290,7 @@ static WDL_DLGRET dlgProcAdvancedSetup(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
                     {
                          EndDialog(hwndDlg, 0);
                     }
-                     break;
+                    break;
                     
                 case IDOK:
                     if (HIWORD(wParam) == BN_CLICKED)
