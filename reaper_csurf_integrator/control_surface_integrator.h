@@ -1994,8 +1994,11 @@ private:
 
 protected:
     map<const string, double> stepSize_;
-    map<const string, WDL_IntKeyedArray<int>* > accelerationValuesForDecrement_;
-    map<const string, WDL_IntKeyedArray<int>* > accelerationValuesForIncrement_;
+    
+    map<const string, map<int, int>> accelerationValuesForDecrement_;
+    map<const string, map<int, int>> accelerationValuesForIncrement_;
+    map<int, int> emptyAccelerationMap_;
+    
     map<const string, vector<double>* > accelerationValues_;
     vector<double> emptyAccelerationValues_;
     
@@ -2184,20 +2187,20 @@ public:
             return &emptyAccelerationValues_;
     }
 
-    WDL_IntKeyedArray<int> *GetAccelerationValuesForDecrement(const char * const  widgetClass)
+    map<int, int> &GetAccelerationValuesForDecrement(const char * const  widgetClass)
     {
-        if (accelerationValuesForDecrement_.find(widgetClass) != accelerationValuesForDecrement_.end())
+        if (accelerationValuesForDecrement_.count(widgetClass) > 0)
              return accelerationValuesForDecrement_[widgetClass];
         else
-            return NULL;
+            return emptyAccelerationMap_;
     }
     
-    WDL_IntKeyedArray<int> *GetAccelerationValuesForIncrement(const char * const  widgetClass)
+    map<int, int> &GetAccelerationValuesForIncrement(const char * const  widgetClass)
     {
-        if (accelerationValuesForIncrement_.find(widgetClass) != accelerationValuesForIncrement_.end())
+        if (accelerationValuesForIncrement_.count(widgetClass) > 0)
             return accelerationValuesForIncrement_[widgetClass];
        else
-           return NULL;
+           return emptyAccelerationMap_;
     }
     
     void TouchChannel(int channelNum, bool isTouched)

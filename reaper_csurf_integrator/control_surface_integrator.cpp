@@ -844,22 +844,10 @@ void ControlSurface::ProcessValues(const vector<vector<string>> &lines)
                     
                     if (lines[i][1] == "Dec")
                         for (int j = 2; j < lines[i].size(); ++j)
-                        {
-                            if (accelerationValuesForDecrement_.find(widgetClass) == accelerationValuesForDecrement_.end())
-                                accelerationValuesForDecrement_[widgetClass] = new WDL_IntKeyedArray<int>();
-                            
-                            if (accelerationValuesForDecrement_.find(widgetClass) != accelerationValuesForDecrement_.end())
-                                accelerationValuesForDecrement_[widgetClass]->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
-                        }
+                            accelerationValuesForDecrement_[widgetClass][strtol(lines[i][j].c_str(), NULL, 16)] = j - 2;
                     else if (lines[i][1] == "Inc")
                         for (int j = 2; j < lines[i].size(); ++j)
-                        {
-                            if (accelerationValuesForIncrement_.find(widgetClass) == accelerationValuesForIncrement_.end())
-                                accelerationValuesForIncrement_[widgetClass] = new WDL_IntKeyedArray<int>();
-                            
-                            if (accelerationValuesForIncrement_.find(widgetClass) != accelerationValuesForIncrement_.end())
-                                accelerationValuesForIncrement_[widgetClass]->Insert(strtol(lines[i][j].c_str(), NULL, 16), j - 2);
-                        }
+                            accelerationValuesForIncrement_[widgetClass][strtol(lines[i][j].c_str(), NULL, 16)] = j - 2;
                     else if (lines[i][1] == "Val")
                         for (int j = 2; j < lines[i].size(); ++j)
                         {

@@ -136,8 +136,8 @@ class AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator : public Midi_CSI
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    WDL_IntKeyedArray<int> *accelerationValuesForIncrement_;
-    WDL_IntKeyedArray<int> *accelerationValuesForDecrement_;
+    map<int, int> accelerationValuesForIncrement_;
+    map<int, int> accelerationValuesForDecrement_;
     
 public:
     virtual ~AcceleratedPreconfiguredEncoder_Midi_CSIMessageGenerator() {}
@@ -154,10 +154,10 @@ public:
     {
         int val = midiMessage->midi_message[2];
         
-        if (accelerationValuesForIncrement_ && accelerationValuesForIncrement_->Exists(val))
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_->Get(val), 0.001);
-        else if (accelerationValuesForDecrement_ && accelerationValuesForDecrement_->Exists(val))
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_->Get(val), -0.001);
+        if (accelerationValuesForIncrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], 0.001);
+        else if (accelerationValuesForDecrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], -0.001);
     }
 };
 
