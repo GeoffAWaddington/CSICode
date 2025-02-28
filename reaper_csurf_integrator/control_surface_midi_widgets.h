@@ -166,47 +166,46 @@ class MFT_AcceleratedEncoder_Midi_CSIMessageGenerator : public Midi_CSIMessageGe
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 private:
-    WDL_IntKeyedArray<int> accelerationIndicesForIncrement_;
-    WDL_IntKeyedArray<int> accelerationIndicesForDecrement_;
+    map<int, int> accelerationValuesForIncrement_;
+    map<int, int> accelerationValuesForDecrement_;
 
-    
 public:
     virtual ~MFT_AcceleratedEncoder_Midi_CSIMessageGenerator() {}
     MFT_AcceleratedEncoder_Midi_CSIMessageGenerator(CSurfIntegrator *const csi, Widget *widget, vector<string> &params) : Midi_CSIMessageGenerator(csi, widget)
     {
-        accelerationIndicesForDecrement_.Insert(0x3f, 0);
-        accelerationIndicesForDecrement_.Insert(0x3e, 1);
-        accelerationIndicesForDecrement_.Insert(0x3d, 2);
-        accelerationIndicesForDecrement_.Insert(0x3c, 3);
-        accelerationIndicesForDecrement_.Insert(0x3b, 4);
-        accelerationIndicesForDecrement_.Insert(0x3a, 5);
-        accelerationIndicesForDecrement_.Insert(0x39, 6);
-        accelerationIndicesForDecrement_.Insert(0x38, 7);
-        accelerationIndicesForDecrement_.Insert(0x36, 8);
-        accelerationIndicesForDecrement_.Insert(0x33, 9);
-        accelerationIndicesForDecrement_.Insert(0x2f, 10);
+        accelerationValuesForIncrement_[0x3f] = 0;
+        accelerationValuesForIncrement_[0x3e] = 1;
+        accelerationValuesForIncrement_[0x3d] = 2;
+        accelerationValuesForIncrement_[0x3c] = 3;
+        accelerationValuesForIncrement_[0x3b] = 4;
+        accelerationValuesForIncrement_[0x3a] = 5;
+        accelerationValuesForIncrement_[0x39] = 6;
+        accelerationValuesForIncrement_[0x38] = 7;
+        accelerationValuesForIncrement_[0x36] = 8;
+        accelerationValuesForIncrement_[0x33] = 9;
+        accelerationValuesForIncrement_[0x2f] = 10;
 
-        accelerationIndicesForIncrement_.Insert(0x41, 0);
-        accelerationIndicesForIncrement_.Insert(0x42, 1);
-        accelerationIndicesForIncrement_.Insert(0x43, 2);
-        accelerationIndicesForIncrement_.Insert(0x44, 3);
-        accelerationIndicesForIncrement_.Insert(0x45, 4);
-        accelerationIndicesForIncrement_.Insert(0x46, 5);
-        accelerationIndicesForIncrement_.Insert(0x47, 6);
-        accelerationIndicesForIncrement_.Insert(0x48, 7);
-        accelerationIndicesForIncrement_.Insert(0x4a, 8);
-        accelerationIndicesForIncrement_.Insert(0x4d, 9);
-        accelerationIndicesForIncrement_.Insert(0x51, 10);
+        accelerationValuesForDecrement_[0x41] = 0;
+        accelerationValuesForDecrement_[0x42] = 1;
+        accelerationValuesForDecrement_[0x43] = 2;
+        accelerationValuesForDecrement_[0x44] = 3;
+        accelerationValuesForDecrement_[0x45] = 4;
+        accelerationValuesForDecrement_[0x46] = 5;
+        accelerationValuesForDecrement_[0x47] = 6;
+        accelerationValuesForDecrement_[0x48] = 7;
+        accelerationValuesForDecrement_[0x4a] = 8;
+        accelerationValuesForDecrement_[0x4d] = 9;
+        accelerationValuesForDecrement_[0x51] = 10;
     }
     
     virtual void ProcessMidiMessage(const MIDI_event_ex_t *midiMessage) override
     {
         int val = midiMessage->midi_message[2];
         
-        if (accelerationIndicesForIncrement_.Exists(val))
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForIncrement_.Get(val), 0.001);
-        else if (accelerationIndicesForDecrement_.Exists(val))
-            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationIndicesForDecrement_.Get(val), -0.001);
+        if (accelerationValuesForIncrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForIncrement_[val], 0.001);
+        else if (accelerationValuesForDecrement_.count(val) > 0)
+            widget_->GetZoneManager()->DoRelativeAction(widget_, accelerationValuesForDecrement_[val], -0.001);
     }
 };
 
@@ -1908,7 +1907,8 @@ private:
     int channel_;
     int preventUpdateTrackColors_;
     string lastStringSent_;
-    WDL_TypedBuf<rgba_color> currentTrackColors_;
+    vector<rgba_color> currentTrackColors_;
+    
     static int colorFromString(const char *str)
     {
         if (!strcmp(str, "Black")) return 0;
@@ -1931,7 +1931,7 @@ public:
         rgba_color color;
         
         for (int i = 0; i < surface_->GetNumChannels(); ++i)
-            currentTrackColors_.Add(color);
+            currentTrackColors_.push_back(color);
     }
         
     virtual const char *GetName() override { return "XTouchDisplay_Midi_FeedbackProcessor"; }
@@ -2062,7 +2062,7 @@ public:
             {
                 rgba_color color = trackColors[i];
                 
-                currentTrackColors_.Get()[i] = color;
+                currentTrackColors_[i] = color;
                 
                 int r = color.r;
                 int g = color.g;

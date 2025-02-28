@@ -257,18 +257,19 @@ struct MidiPort
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Midi I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static WDL_TypedBuf<MidiPort> s_midiInputs, s_midiOutputs;
+static vector<MidiPort> s_midiInputs;
+static vector<MidiPort> s_midiOutputs;
 
 void ReleaseMidiInput(midi_Input *input)
 {
-    for (int i = 0; i < s_midiInputs.GetSize(); ++i)
-        if (s_midiInputs.Get()[i].dev == (void*)input)
+    for (int i = 0; i < s_midiInputs.size(); ++i)
+        if (s_midiInputs[i].dev == (void*)input)
         {
-            if (!--s_midiInputs.Get()[i].refcnt)
+            if (!--s_midiInputs[i].refcnt)
             {
                 input->stop();
                 delete input;
-                s_midiInputs.Delete(i);
+                s_midiInputs.erase(s_midiInputs.begin() + i);
                 break;
             }
         }
@@ -276,13 +277,13 @@ void ReleaseMidiInput(midi_Input *input)
 
 void ReleaseMidiOutput(midi_Output *output)
 {
-    for (int i = 0; i < s_midiOutputs.GetSize(); ++i)
-        if (s_midiOutputs.Get()[i].dev == (void*)output)
+    for (int i = 0; i < s_midiOutputs.size(); ++i)
+        if (s_midiOutputs[i].dev == (void*)output)
         {
-            if (!--s_midiOutputs.Get()[i].refcnt)
+            if (!--s_midiOutputs[i].refcnt)
             {
                 delete output;
-                s_midiOutputs.Delete(i);
+                s_midiOutputs.erase(s_midiInputs.begin() + i);
                 break;
             }
         }
@@ -290,11 +291,11 @@ void ReleaseMidiOutput(midi_Output *output)
 
 static midi_Input *GetMidiInputForPort(int inputPort)
 {
-    for (int i = 0; i < s_midiInputs.GetSize(); ++i)
-        if (s_midiInputs.Get()[i].port == inputPort)
+    for (auto midiInput : s_midiInputs)
+        if (midiInput.port == inputPort)
         {
-            s_midiInputs.Get()[i].refcnt++;
-            return (midi_Input *)s_midiInputs.Get()[i].dev;
+            midiInput.refcnt++;
+            return (midi_Input *)midiInput.dev;
         }
     
     midi_Input *newInput = CreateMIDIInput(inputPort);
@@ -303,7 +304,7 @@ static midi_Input *GetMidiInputForPort(int inputPort)
     {
         newInput->start();
         MidiPort midiInputPort(inputPort, newInput);
-        s_midiInputs.Add(midiInputPort);
+        s_midiInputs.push_back(midiInputPort);
     }
     
     return newInput;
@@ -311,11 +312,11 @@ static midi_Input *GetMidiInputForPort(int inputPort)
 
 static midi_Output *GetMidiOutputForPort(int outputPort)
 {
-    for (int i = 0; i < s_midiOutputs.GetSize(); ++i)
-        if (s_midiOutputs.Get()[i].port == outputPort)
+    for (auto midiOutput : s_midiOutputs)
+        if (midiOutput.port == outputPort)
         {
-            s_midiOutputs.Get()[i].refcnt++;
-            return (midi_Output *)s_midiOutputs.Get()[i].dev;
+            midiOutput.refcnt++;
+            return (midi_Output *)midiOutput.dev;
         }
     
     midi_Output *newOutput = CreateMIDIOutput(outputPort, false, NULL);
@@ -323,7 +324,7 @@ static midi_Output *GetMidiOutputForPort(int outputPort)
     if (newOutput)
     {
         MidiPort midiOutputPort(outputPort, newOutput);
-        s_midiOutputs.Add(midiOutputPort);
+        s_midiOutputs.push_back(midiOutputPort);
     }
     
     return newOutput;
@@ -352,16 +353,16 @@ struct OSCSurfaceSocket
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OSC I/O Manager
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static WDL_PtrList<OSCSurfaceSocket> s_inputSockets;
-static WDL_PtrList<OSCSurfaceSocket> s_outputSockets;
+static vector<OSCSurfaceSocket *> s_inputSockets;
+static vector<OSCSurfaceSocket *> s_outputSockets;
 
 static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPort)
 {
-    for (int i = 0; i < s_inputSockets.GetSize(); ++i)
-        if (s_inputSockets.Get(i)->surfaceName == surfaceName)
+    for (auto inputSocket : s_inputSockets)
+        if (inputSocket->surfaceName == surfaceName)
         {
-            s_inputSockets.Get(i)->refcnt++;
-            return s_inputSockets.Get(i)->socket; // return existing
+            inputSocket->refcnt++;
+            return inputSocket->socket; // return existing
         }
     
     // otherwise make new
@@ -377,7 +378,7 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
             return NULL;
         }
         
-        s_inputSockets.Add(new OSCSurfaceSocket(surfaceName, newInputSocket));
+        s_inputSockets.push_back(new OSCSurfaceSocket(surfaceName, newInputSocket));
         return newInputSocket;
     }
     
@@ -386,11 +387,11 @@ static oscpkt::UdpSocket *GetInputSocketForPort(string surfaceName, int inputPor
 
 static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surfaceName, const string &address, int outputPort)
 {
-    for (int i = 0; i < s_outputSockets.GetSize(); ++i)
-        if (s_outputSockets.Get(i)->surfaceName == surfaceName)
+    for (auto outputSocket : s_outputSockets)
+        if (outputSocket->surfaceName == surfaceName)
         {
-            s_outputSockets.Get(i)->refcnt++;
-            return s_outputSockets.Get(i)->socket; // return existing
+            outputSocket->refcnt++;
+            return outputSocket->socket; // return existing
         }
     
     // otherwise make new
@@ -410,7 +411,7 @@ static oscpkt::UdpSocket *GetOutputSocketForAddressAndPort(const string &surface
             return NULL;
         }
 
-        s_outputSockets.Add(new OSCSurfaceSocket(surfaceName, newOutputSocket));
+        s_outputSockets.push_back(new OSCSurfaceSocket(surfaceName, newOutputSocket));
         return newOutputSocket;
     }
     
@@ -3902,24 +3903,24 @@ OSC_ControlSurfaceIO::~OSC_ControlSurfaceIO()
 
     if (inSocket_)
     {
-        for (int x = 0; x < s_inputSockets.GetSize(); ++x)
+        for (int x = 0; x < s_inputSockets.size(); ++x)
         {
-            if (s_inputSockets.Get(x)->socket == inSocket_)
+            if (s_inputSockets[x]->socket == inSocket_)
             {
-                if (!--s_inputSockets.Get(x)->refcnt)
-                    s_inputSockets.Delete(x, true);
+                if (!--s_inputSockets[x]->refcnt)
+                    s_inputSockets.erase(s_inputSockets.begin() + x);
                 break;
             }
         }
     }
     if (outSocket_ && outSocket_ != inSocket_)
     {
-        for (int x = 0; x < s_outputSockets.GetSize(); ++x)
+        for (int x = 0; x < s_outputSockets.size(); ++x)
         {
-            if (s_outputSockets.Get(x)->socket == outSocket_)
+            if (s_outputSockets[x]->socket == outSocket_)
             {
-                if (!--s_outputSockets.Get(x)->refcnt)
-                    s_outputSockets.Delete(x, true);
+                if (!--s_outputSockets[x]->refcnt)
+                    s_outputSockets.erase(s_outputSockets.begin() + x);
                 break;
             }
         }
