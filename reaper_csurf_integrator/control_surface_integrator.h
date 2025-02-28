@@ -2014,7 +2014,7 @@ protected:
     int const channelOffset_;
     
     vector<Widget *> widgets_; // owns list
-    map<const string, Widget*> widgetsByName_;
+    map<const string, unique_ptr<Widget>> widgetsByName_;
     
     map<const string, CSIMessageGenerator*> CSIMessageGeneratorsByMessage_;
 
@@ -2071,22 +2071,22 @@ protected:
     virtual void InitHardwiredWidgets(ControlSurface *surface)
     {
         // Add the "hardwired" widgets
-        AddWidget(new Widget(csi_, surface, "OnTrackSelection"));
-        AddWidget(new Widget(csi_, surface, "OnPageEnter"));
-        AddWidget(new Widget(csi_, surface, "OnPageLeave"));
-        AddWidget(new Widget(csi_, surface, "OnInitialization"));
-        AddWidget(new Widget(csi_, surface, "OnPlayStart"));
-        AddWidget(new Widget(csi_, surface, "OnPlayStop"));
-        AddWidget(new Widget(csi_, surface, "OnRecordStart"));
-        AddWidget(new Widget(csi_, surface, "OnRecordStop"));
-        AddWidget(new Widget(csi_, surface, "OnZoneActivation"));
-        AddWidget(new Widget(csi_, surface, "OnZoneDeactivation"));
+        AddWidget(surface, "OnTrackSelection");
+        AddWidget(surface, "OnPageEnter");
+        AddWidget(surface, "OnPageLeave");
+        AddWidget(surface, "OnInitialization");
+        AddWidget(surface, "OnPlayStart");
+        AddWidget(surface, "OnPlayStop");
+        AddWidget(surface, "OnRecordStart");
+        AddWidget(surface, "OnRecordStop");
+        AddWidget(surface, "OnZoneActivation");
+        AddWidget(surface, "OnZoneDeactivation");
     }
     
     void DoWidgetAction(const string &widgetName)
     {
-        if (widgetsByName_.find(widgetName) != widgetsByName_.end())
-            zoneManager_->DoAction(widgetsByName_[widgetName], 1.0);
+        if (widgetsByName_.count(widgetName) > 0)
+            zoneManager_->DoAction(widgetsByName_[widgetName].get(), 1.0);
     }
     
 public:
@@ -2355,14 +2355,24 @@ public:
         configScrubMode_ = *scrubModePtr_;
         *scrubModePtr_ = 2;
     }
-           
-    void AddWidget(Widget *widget)
+    
+    void AddWidget(ControlSurface * surface, const char *widgetName)
     {
-        if (widget != NULL && find(widgets_.begin(), widgets_.end(), widget) == widgets_.end())
+        if (widgetsByName_.count(string(widgetName)) == 0)
         {
-            widgets_.push_back(widget);
-            widgetsByName_[widget->GetName()] = widget;
+            widgetsByName_.insert(std::make_pair(widgetName, std::make_unique<Widget>(csi_, surface, widgetName)));
+            
+            if (widgetsByName_.count(widgetName) > 0)
+                widgets_.push_back(GetWidgetByName(widgetName));
         }
+    }
+
+    Widget *GetWidgetByName(const string &widgetName)
+    {
+        if (widgetsByName_.count(widgetName.c_str()) > 0)
+            return widgetsByName_[widgetName].get();
+        else
+            return NULL;
     }
     
     void AddCSIMessageGenerator(const string &message, CSIMessageGenerator *messageGenerator)
@@ -2371,14 +2381,6 @@ public:
             CSIMessageGeneratorsByMessage_[message] = messageGenerator;
     }
 
-    Widget *GetWidgetByName(const string &widgetName)
-    {
-        if (widgetsByName_.find(widgetName) != widgetsByName_.end())
-            return widgetsByName_[widgetName];
-        else
-            return NULL;
-    }
-    
     void OnPageEnter()
     {
         ForceClear();

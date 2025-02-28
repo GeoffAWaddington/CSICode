@@ -443,10 +443,13 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
     
     if (in_tokens.size() > 2)
         widgetClass = in_tokens[2];
+      
+    AddWidget(this, widgetName.c_str());
 
-    Widget *widget = new Widget(csi_, this, widgetName.c_str());
-       
-    AddWidget(widget);
+    Widget *widget = GetWidgetByName(in_tokens[1]);
+    
+    if (widget == NULL)
+        return;
 
     vector<vector<string>> tokenLines;
     
@@ -752,10 +755,13 @@ void OSC_ControlSurface::ProcessOSCWidget(int &lineNumber, ifstream &surfaceTemp
     if (in_tokens.size() < 2)
         return;
     
-    Widget *widget = new Widget(csi_, this, in_tokens[1].c_str());
-    
-    AddWidget(widget);
+    AddWidget(this, in_tokens[1].c_str());
 
+    Widget *widget = GetWidgetByName(in_tokens[1]);
+    
+    if (widget == NULL)
+        return;
+    
     vector<vector<string>> tokenLines;
 
     for (string line; getline(surfaceTemplateFile, line) ; )
@@ -3375,10 +3381,10 @@ void ControlSurface::OnTrackSelection(MediaTrack *track)
 {
     string onTrackSelection("OnTrackSelection");
     
-    if (widgetsByName_.find(onTrackSelection) != widgetsByName_.end())
+    if (widgetsByName_.count(onTrackSelection) > 0)
     {
         if (GetMediaTrackInfo_Value(track, "I_SELECTED"))
-            zoneManager_->DoAction(widgetsByName_[onTrackSelection], 1.0);
+            zoneManager_->DoAction(widgetsByName_[onTrackSelection].get(), 1.0);
         else
             zoneManager_->OnTrackDeselection();
         
