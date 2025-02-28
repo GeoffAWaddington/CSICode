@@ -51,13 +51,10 @@ static ActionContext *GetFirstContext(ZoneManager *zoneManager, Widget *widget, 
     if (widget == NULL)
         return NULL;
     
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *contexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
+    const vector<ActionContext *> &actionContexts = zoneManager->GetLearnFocusedFXActionContexts(widget, modifier);
     
-    if (contexts == NULL)
-        return NULL;
-    
-    if (contexts->Exists(widget) && contexts->Get(widget)->Exists(modifier) && contexts->Get(widget)->Get(modifier)->GetSize() > 0)
-        return contexts->Get(widget)->Get(modifier)->Get(0);
+    if (actionContexts.size() > 0)
+        return actionContexts[0];
     else
         return NULL;
 }
@@ -1108,7 +1105,7 @@ static void FillAdvancedParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widge
     
     FillPropertiesParams(hwndDlg, t, widget, modifier);
 
-    paramContext->GetWidget()->Configure(t->zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
+    paramContext->GetWidget()->Configure(t->zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
 }
 
 static void FillParams(HWND hwndDlg, SurfaceFXTemplate *t, Widget *widget, int modifier)
@@ -1346,7 +1343,7 @@ static void ApplyColorsToAll(SurfaceFXTemplate *t, HWND hwndDlg, Widget *widget,
                         if (context->GetWidgetProperties().get_prop(PropertyType_PushColor))
                             context->GetWidgetProperties().set_prop(PropertyType_PushColor, sourcePushColor);
                     
-                    context->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
+                    context->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
                 }
             }
             
@@ -1474,11 +1471,6 @@ static void CreateContextMap(SurfaceFXTemplate *t)
     ZoneManager *zoneManager = t->zoneManager;
     
     t->cells.clear();
-    
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *zoneContexts = zoneManager->GetLearnFocusedFXActionContextDictionary();
-
-    if (zoneContexts == NULL)
-        return;
     
     char widgetName[SMLBUF];
     
@@ -1783,7 +1775,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (paramContext)
                         {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_LEDRingColor, color.rgba_to_string(colorBuf));
-                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
+                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
                         }
                         InvalidateRect(hwndDlg, NULL, true);
                     }
@@ -1799,7 +1791,7 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
                         if (paramContext)
                         {
                             paramContext->GetWidgetProperties().set_prop(PropertyType_PushColor, color.rgba_to_string(colorBuf));
-                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContextsOld(widget));
+                            paramContext->GetWidget()->Configure(zoneManager->GetLearnedFocusedFXZone()->GetActionContexts(widget));
                         }
                         InvalidateRect(hwndDlg, NULL, true);
                     }

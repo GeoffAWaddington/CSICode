@@ -2079,7 +2079,7 @@ void Zone::Activate()
             for (auto actionContext :  GetActionContexts(widget))
                 actionContext->DoAction(1.0);
             
-        widget->Configure(GetActionContextsOld(widget));
+        widget->Configure(GetActionContexts(widget));
     }
 
     isActive_ = true;
@@ -2104,15 +2104,6 @@ void Zone::Deactivate()
 {    
     for (auto widget : widgets_)
     {
-        for (int j = 0; j < GetActionContextsOld(widget).GetSize(); ++j)
-        {
-            GetActionContextsOld(widget).Get(j)->UpdateWidgetValue(0.0);
-            GetActionContextsOld(widget).Get(j)->UpdateWidgetValue("");
-
-            if (!strcmp(widget->GetName(), "OnZoneDeactivation"))
-                GetActionContextsOld(widget).Get(j)->DoAction(1.0);
-        }
-        /*
         for (auto actionContext : GetActionContexts(widget))
         {
             actionContext->UpdateWidgetValue(0.0);
@@ -2121,7 +2112,6 @@ void Zone::Deactivate()
             if (!strcmp(widget->GetName(), "OnZoneDeactivation"))
                 actionContext->DoAction(1.0);
         }
-        */
     }
 
     isActive_ = false;
@@ -2305,9 +2295,8 @@ void Zone::UpdateCurrentActionContextModifiers()
 {
     for (auto widget : widgets_)
     {
-        UpdateCurrentActionContextModifierOld(widget);
         UpdateCurrentActionContextModifier(widget);
-        widget->Configure(GetActionContextsOld(widget, currentActionContextModifiers_Old.Get(widget)));
+        widget->Configure(GetActionContexts(widget, currentActionContextModifiers_[widget]));
     }
     
     for (int i = 0; i < includedZones_.size(); ++i)
@@ -2315,31 +2304,6 @@ void Zone::UpdateCurrentActionContextModifiers()
 
     for (int i = 0; i < subZones_.size(); ++i)
         subZones_[i]->UpdateCurrentActionContextModifiers();
-}
-
-void Zone::UpdateCurrentActionContextModifierOld(Widget *widget)
-{
-    const vector<int> &modifiers = widget->GetSurface()->GetModifiers();
-    
-    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = actionContextDictionary_Old.Get(widget);
-    if (wl != NULL)
-    {
-        for (auto modifier : modifiers)
-        {
-            if (wl->Get(modifier))
-            {
-                if (currentActionContextModifiers_Old.Exists(widget))
-                {
-                    if (currentActionContextModifiers_Old.GetPtr(widget))
-                        *currentActionContextModifiers_Old.GetPtr(widget) = modifier;
-                }
-                else
-                    currentActionContextModifiers_Old.Insert(widget, modifier);
-                
-                break;
-            }
-        }
-    }
 }
 
 void Zone::UpdateCurrentActionContextModifier(Widget *widget)
@@ -2352,37 +2316,6 @@ void Zone::UpdateCurrentActionContextModifier(Widget *widget)
             break;
         }
     }
-}
-
-const WDL_PtrList<ActionContext> &Zone::GetActionContextsOld(Widget *widget)
-{
-    if ( ! currentActionContextModifiers_Old.Exists(widget))
-        UpdateCurrentActionContextModifierOld(widget);
-    
-    bool isTouched = false;
-    bool isToggled = false;
-    
-    if (widget->GetSurface()->GetIsChannelTouched(widget->GetChannelNumber()))
-        isTouched = true;
-
-    if (widget->GetSurface()->GetIsChannelToggled(widget->GetChannelNumber()))
-        isToggled = true;
-    
-    WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *wl = NULL;
-    if (currentActionContextModifiers_Old.Exists(widget) && (wl = actionContextDictionary_Old.Get(widget)) != NULL)
-    {
-        const int modifier = currentActionContextModifiers_Old.Get(widget);
-        
-        WDL_PtrList<ActionContext> *ret = NULL;
-        if (isTouched && isToggled && !ret) ret = wl->Get(modifier+3);
-        if (isTouched && !ret) ret = wl->Get(modifier+1);
-        if (isToggled && !ret) ret = wl->Get(modifier+2);
-        if (!ret) ret = wl->Get(modifier);
-        if (ret) return *ret;
-    }
-
-    static WDL_PtrList<ActionContext> empty;
-    return empty;
 }
 
 const vector<ActionContext *> &Zone::GetActionContexts(Widget *widget)
@@ -2424,7 +2357,7 @@ ZoneManager *Widget::GetZoneManager()
     return surface_->GetZoneManager();
 }
 
-void Widget::Configure(const WDL_PtrList<ActionContext> &contexts)
+void Widget::Configure(const vector<ActionContext *> &contexts)
 {
     for (auto feedbackProcessor : feedbackProcessors_)
         feedbackProcessor->Configure(contexts);
@@ -2880,7 +2813,6 @@ void ZoneManager::LoadZoneFile(Zone *zone, const char *filePath, const char *wid
 
 void ZoneManager::AddListener(ControlSurface *surface)
 {
-    if (WDL_NOT_NORMALLY(!surface)) { return; }
     listeners_.push_back(surface->GetZoneManager());
 }
 
@@ -3065,14 +2997,11 @@ void ZoneManager::PreProcessZones()
 
 void ZoneManager::DoAction(Widget *widget, double value)
 {
-    if (WDL_NOT_NORMALLY(!widget)) return;
     widget->LogInput(value);
     
     bool isUsed = false;
     
     DoAction(widget, value, isUsed);
-    
-    zonesToBeDeleted_.Empty(true);
 }
     
 void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
@@ -3122,14 +3051,11 @@ void ZoneManager::DoAction(Widget *widget, double value, bool &isUsed)
 
 void ZoneManager::DoRelativeAction(Widget *widget, double delta)
 {
-    if (WDL_NOT_NORMALLY(!widget)) return;
     widget->LogInput(delta);
     
     bool isUsed = false;
     
     DoRelativeAction(widget, delta, isUsed);
-    
-    zonesToBeDeleted_.Empty(true);
 }
 
 void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
@@ -3179,14 +3105,11 @@ void ZoneManager::DoRelativeAction(Widget *widget, double delta, bool &isUsed)
 
 void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta)
 {
-    if (WDL_NOT_NORMALLY(!widget)) return;
     widget->LogInput(delta);
     
     bool isUsed = false;
     
     DoRelativeAction(widget, accelerationIndex, delta, isUsed);
-    
-    zonesToBeDeleted_.Empty(true);
 }
 
 void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double delta, bool &isUsed)
@@ -3236,14 +3159,11 @@ void ZoneManager::DoRelativeAction(Widget *widget, int accelerationIndex, double
 
 void ZoneManager::DoTouch(Widget *widget, double value)
 {
-    if (WDL_NOT_NORMALLY(!widget)) return;
     widget->LogInput(value);
     
     bool isUsed = false;
     
     DoTouch(widget, value, isUsed);
-    
-    zonesToBeDeleted_.Empty(true);
 }
 
 void ZoneManager::DoTouch(Widget *widget, double value, bool &isUsed)

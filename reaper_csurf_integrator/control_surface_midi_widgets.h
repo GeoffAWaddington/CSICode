@@ -843,12 +843,12 @@ public:
         return val + 64;
     }
         
-    virtual void Configure(const WDL_PtrList<ActionContext> &contexts) override
+    virtual void Configure(const vector<ActionContext *> &contexts) override
     {
-        if (contexts.GetSize() == 0)
+        if (contexts.size() == 0)
             return;
         
-        const PropertyList &properties = contexts.Get(0)->GetWidgetProperties();
+        const PropertyList &properties = contexts[0]->GetWidgetProperties();
         
         vector<LEDRingRangeColor> colors;
         

@@ -693,8 +693,6 @@ protected:
     
     // these do not own the widgets, ultimately the ControlSurface contains the list of widgets
     vector<Widget *> widgets_;
-    WDL_PointerKeyedArray<Widget*, int> currentActionContextModifiers_Old;
-    WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> actionContextDictionary_Old;
       
     vector<ActionContext *> emptyContexts_;
     map<Widget *, int> currentActionContextModifiers_;
@@ -704,28 +702,7 @@ protected:
 
     vector<Zone *> subZones_;
 
-    void UpdateCurrentActionContextModifierOld(Widget *widget);
     void UpdateCurrentActionContextModifier(Widget *widget);
-
-    const WDL_PtrList<ActionContext> &GetActionContextsOld(Widget *widget, int modifier)
-    {
-        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_Old.Get(widget);
-        if (m)
-        {
-            WDL_PtrList<ActionContext> *list = m->Get(modifier);
-            if (list) return *list;
-        }
-        static const WDL_PtrList<ActionContext> empty;
-        return empty;
-    }
-    
-    const vector<ActionContext *> &GetActionContexts(Widget *widget, int modifier)
-    {
-        if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
-            return actionContextDictionary_[widget][modifier];
-        else
-            return emptyContexts_;
-    }
     
 public:
     Zone(CSurfIntegrator *const csi, ZoneManager  *const zoneManager, Navigator *navigator, int slotIndex, const string &name, const string &alias, const string &sourceFilePath): csi_(csi), zoneManager_(zoneManager), navigator_(navigator), slotIndex_(slotIndex), name_(name), alias_(alias), sourceFilePath_(sourceFilePath) {}
@@ -742,13 +719,8 @@ public:
     void RestoreXTouchDisplayColors();
     void UpdateCurrentActionContextModifiers();
     
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> &GetActionContextDictionaryOld() { return actionContextDictionary_Old; }
-    const WDL_PtrList<ActionContext> &GetActionContextsOld(Widget *widget);
-    
     const vector<ActionContext *> &GetActionContexts(Widget *widget);
-
-    
-    
+   
     void AddWidget(Widget *widget);
     void Activate();
     void Deactivate();
@@ -791,36 +763,14 @@ public:
     void AddActionContext(Widget *widget, int modifier, ActionContext *actionContext)
     {
         actionContextDictionary_[widget][modifier].push_back(actionContext);
-
-
-        
-        
-        WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *m = actionContextDictionary_Old.Get(widget);
-        
-        if (m)
-        {
-            WDL_PtrList<ActionContext> *l = m->Get(modifier);
-            if (l)
-            {
-                l->Add(actionContext);
-                return;
-            }
-        }
-        
-        if (!m)
-        {
-            m = new WDL_IntKeyedArray<WDL_PtrList<ActionContext> *>();
-            actionContextDictionary_Old.Insert(widget,m);
-        }
-        
-        WDL_PtrList<ActionContext> *l = m->Get(modifier);
-        if (!l)
-        {
-            l = new WDL_PtrList<ActionContext>;
-            m->Insert(modifier,l);
-        }
-
-        l->Add(actionContext);
+    }
+    
+    const vector<ActionContext *> &GetActionContexts(Widget *widget, int modifier)
+    {
+        if(actionContextDictionary_.count(widget) > 0 && actionContextDictionary_[widget].count(modifier) > 0)
+            return actionContextDictionary_[widget][modifier];
+        else
+            return emptyContexts_;
     }
     
     void OnTrackDeselection()
@@ -833,19 +783,11 @@ public:
 
     void RequestUpdateWidget(Widget *widget)
     {
-        for (int i = 0; i < GetActionContextsOld(widget).GetSize(); ++i)
-        {
-            GetActionContextsOld(widget).Get(i)->RunDeferredActions();
-            GetActionContextsOld(widget).Get(i)->RequestUpdate();
-        }
-        
-        /*
         for (auto actionContext : GetActionContexts(widget))
         {
             actionContext->RunDeferredActions();
             actionContext->RequestUpdate();
         }
-        */
     }
     
     virtual void GoSubZone(const char *subZoneName)
@@ -945,7 +887,7 @@ public:
     void SetLastIncomingDelta(double delta) { lastIncomingDelta_ = delta; }
     double GetLastIncomingDelta() { return lastIncomingDelta_; }
 
-    void Configure(const WDL_PtrList<ActionContext> &contexts);
+    void Configure(const vector<ActionContext *> &contexts);
     void UpdateValue(const PropertyList &properties, double value);
     void UpdateValue(const PropertyList &properties, const char * const &value);
     void ForceValue(const PropertyList &properties, const char * const &value);
@@ -987,6 +929,8 @@ private:
     string const zoneFolder_;
     string const fxZoneFolder_;
    
+    vector<ActionContext *> emptyContexts_;
+    
     map<const string, CSIZoneInfo> zoneInfo_;
         
     double holdDelayAmount_ = 1.0;
@@ -999,7 +943,7 @@ private:
 
     vector<ZoneManager *> listeners_;
     
-    WDL_PtrList<Zone> zonesToBeDeleted_;
+    vector<Zone *> zonesToBeDeleted_;
     
     bool listensToGoHome_ = false;
     bool listensToSends_ = false;
@@ -1187,22 +1131,18 @@ private:
         if (focusedFXZone_ != NULL)
         {
             focusedFXZone_->Deactivate();
-            if (zonesToBeDeleted_.Find(focusedFXZone_) == -1)
-                zonesToBeDeleted_.Add(focusedFXZone_);
+            zonesToBeDeleted_.push_back(focusedFXZone_);
             focusedFXZone_ = NULL;
         }
     }
         
     void ClearSelectedTrackFX()
     {
-        for (int i = 0; i < (int)selectedTrackFXZones_.size(); ++i)
+        for (auto selectedTrackFXZone : selectedTrackFXZones_)
         {
-            selectedTrackFXZones_[i]->Deactivate();
-            if (zonesToBeDeleted_.Find(selectedTrackFXZones_[i]) == -1)
-                zonesToBeDeleted_.Add(selectedTrackFXZones_[i]);
+            selectedTrackFXZone->Deactivate();
+            zonesToBeDeleted_.push_back(selectedTrackFXZone);
         }
-        
-        selectedTrackFXZones_.clear();
     }
     
     void ClearFXSlot()
@@ -1210,8 +1150,7 @@ private:
         if (fxSlotZone_ != NULL)
         {
             fxSlotZone_->Deactivate();
-            if (zonesToBeDeleted_.Find(fxSlotZone_) == -1)
-                zonesToBeDeleted_.Add(fxSlotZone_);
+            zonesToBeDeleted_.push_back(fxSlotZone_);
             fxSlotZone_ = NULL;
             ReactivateFXMenuZone();
         }
@@ -1317,13 +1256,14 @@ public:
     
     Zone *GetLearnedFocusedFXZone() { return  learnFocusedFXZone_;  }
     
-    const WDL_PointerKeyedArray<Widget*, WDL_IntKeyedArray<WDL_PtrList<ActionContext> *> *> *GetLearnFocusedFXActionContextDictionary()
+    const vector<ActionContext *> &GetLearnFocusedFXActionContexts(Widget *widget, int modifier)
     {
         if (learnFocusedFXZone_ != NULL)
-            return &learnFocusedFXZone_->GetActionContextDictionaryOld();
-        else return NULL;
+            return learnFocusedFXZone_->GetActionContexts(widget, modifier);
+        else
+            return emptyContexts_;
     }
-    
+        
     void GetAlias(const char *fxName, char *alias, int aliassz)
     {
         static const char  *const prefixes[] =
@@ -1379,8 +1319,7 @@ public:
         if (learnFocusedFXZone_ != NULL)
         {
             learnFocusedFXZone_->Deactivate();
-            if (zonesToBeDeleted_.Find(learnFocusedFXZone_) == -1)
-                zonesToBeDeleted_.Add(learnFocusedFXZone_);
+            zonesToBeDeleted_.push_back(learnFocusedFXZone_);
             learnFocusedFXZone_ = NULL;
         }
     }
@@ -1684,6 +1623,8 @@ public:
 
         if (homeZone_ != NULL)
             homeZone_->RequestUpdate();
+        
+        zonesToBeDeleted_.clear();
     }
 };
 
@@ -2305,7 +2246,7 @@ public:
     
     const char *GetRestrictedLengthText(const char *textc, char *buf, int bufsz) // may return textc if not restricted
     {
-        if (isTextLengthRestricted_ && strlen(textc) > restrictedTextLength_ && WDL_NORMALLY(restrictedTextLength_ >= 0))
+        if (isTextLengthRestricted_ && strlen(textc) > restrictedTextLength_ && restrictedTextLength_ >= 0)
         {
             static const char * const filter_lists[3] = {
               " \t\r\n",
@@ -2472,7 +2413,7 @@ public:
     virtual ~FeedbackProcessor() {}
     virtual const char *GetName()  { return "FeedbackProcessor"; }
     Widget *GetWidget() { return widget_; }
-    virtual void Configure(const WDL_PtrList<ActionContext> &contexts) {}
+    virtual void Configure(const vector<ActionContext *> &contexts) {}
     virtual void ForceValue(const PropertyList &properties, double value) {}
     virtual void ForceValue(const PropertyList &properties, const char * const &value) {}
     virtual void ForceColorValue(const rgba_color &color) {}
