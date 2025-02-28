@@ -3915,22 +3915,22 @@ public:
             totalDuration += duration;
             ShowDuration("Rebuild Track/VCA/Folder List", duration);
             
-            for (int i = 0; i < surfaces_.GetSize(); ++i)
+            for (int i = 0; i < surfaces_.size(); ++i)
             {
                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-                surfaces_.Get(i)->HandleExternalInput();
+                surfaces_[i]->HandleExternalInput();
                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
                 totalDuration += duration;
-                ShowDuration(surfaces_.Get(i)->GetName(), "HandleExternalInput", duration);
+                ShowDuration(surfaces_[i]->GetName(), "HandleExternalInput", duration);
             }
             
-            for (int i = 0; i < surfaces_.GetSize(); ++i)
+            for (int i = 0; i < surfaces_.size(); ++i)
             {
                 start = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-                surfaces_.Get(i)->RequestUpdate();
+                surfaces_[i]->RequestUpdate();
                 duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - start;
                 totalDuration += duration;
-                ShowDuration(surfaces_.Get(i)->GetName(), "Request Update", duration);
+                ShowDuration(surfaces_[i]->GetName(), "Request Update", duration);
             }
             
             char msgBuffer[250];
