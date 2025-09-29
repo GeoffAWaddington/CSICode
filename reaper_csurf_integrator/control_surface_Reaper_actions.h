@@ -3355,7 +3355,13 @@ public:
         if (value == ActionContext::BUTTON_RELEASE_MESSAGE_VALUE) return;
         
         if (MediaTrack *track = context->GetTrack())
-            context->GetPage()->ToggleFolderSpill(track);
+        {
+            Page* page = context->GetPage();
+            page->ToggleFolderSpill(track);
+
+            if (GetMediaTrackInfo_Value(track, "I_FOLDERDEPTH") == 1)
+                DAW::UpdateView("ToggleSpill", true, track);
+        }
     }
 };
 

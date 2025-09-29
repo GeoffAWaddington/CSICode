@@ -719,6 +719,39 @@ void Midi_ControlSurface::ProcessMidiWidget(int &lineNumber, ifstream &surfaceTe
 
             AddTrackColorFeedbackProcessor(widget->GetFeedbackProcessors().back().get());
             }
+
+        //V1M Start
+        else if (widgetType == "FB_V1MMasterVUMeter" && size == 2)
+        {
+            int displayType = NULL;
+            int code = 0xD1; //Master
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MVUMeter_Midi_FeedbackProcessor>(csi_, this, widget, code, displayType, atoi(tokenLines[i][1].c_str())));
+        }
+        else if ((widgetType == "FB_V1MVUMeter" || widgetType == "FB_V1MXVUMeter") && size == 2) //Kev Smart
+        {
+            int displayType = (widgetType == "FB_V1MVUMeter") ? 0x14 : 0x15;
+            int code = 0xD0; //Channel Strip
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MVUMeter_Midi_FeedbackProcessor>(csi_, this, widget, code, displayType, atoi(tokenLines[i][1].c_str())));
+            SetHasMCUMeters(displayType);
+        }
+        else if (widgetType == "FB_V1MTrackColors")
+        {
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MTrackColors_Midi_FeedbackProcessor>(csi_, this, widget));
+            AddTrackColorFeedbackProcessor(widget->GetFeedbackProcessors().back().get());
+            }
+        else if ((widgetType == "FB_V1MDisplay1Upper" || widgetType == "FB_V1MDisplay1Lower" || widgetType == "FB_V1MDisplay2Upper" || widgetType == "FB_V1MDisplay2Lower") && size == 2) //Kev Smart
+        {
+            if (widgetType == "FB_V1MDisplay1Upper")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
+            else if (widgetType == "FB_V1MDisplay1Lower")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
+            else if (widgetType == "FB_V1MDisplay2Upper")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
+            else if (widgetType == "FB_V1MDisplay2Lower")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
+        }
+        //V1M End
+
         else if ((widgetType == "FB_C4DisplayUpper" || widgetType == "FB_C4DisplayLower") && size == 3)
         {
             if (widgetType == "FB_C4DisplayUpper")
@@ -1031,6 +1064,8 @@ void CSurfIntegrator::InitActionsDictionary()
     actions_.insert(make_pair("LeaveSubZone", make_unique<LeaveSubZone>()));
     actions_.insert(make_pair("SetXTouchDisplayColors", make_unique<SetXTouchDisplayColors>()));
     actions_.insert(make_pair("RestoreXTouchDisplayColors", make_unique<RestoreXTouchDisplayColors>()));
+    actions_.insert(make_pair("OverrideTrackColors", make_unique<OverrideTrackColors>()));
+    actions_.insert(make_pair("RestoreTrackColors", make_unique<RestoreTrackColors>()));
     actions_.insert(make_pair("GoFXSlot", make_unique<GoFXSlot>()));
     actions_.insert(make_pair("ShowFXSlot", make_unique<ShowFXSlot>()));
     actions_.insert(make_pair("HideFXSlot", make_unique<HideFXSlot>()));
@@ -2241,6 +2276,20 @@ void Zone::RestoreXTouchDisplayColors()
         widget->RestoreXTouchDisplayColors();
 }
 
+void Zone::OverrideTrackColors(const char* colors)
+{
+    for (auto& widget : widgets_)
+        widget->OverrideTrackColors(colors, name_);
+}
+
+void Zone::RestoreTrackColors()
+{
+    for (auto& widget : widgets_)
+        widget->RestoreTrackColors();
+}
+
+
+
 void Zone::DoAction(Widget *widget, bool &isUsed, double value)
 {
     if (! isActive_ || isUsed)
@@ -2306,7 +2355,7 @@ void Zone::DoRelativeAction(Widget *widget, bool &isUsed, int accelerationIndex,
     {
         isUsed = true;
 
-        for (auto &actionContext : GetActionContexts(widget))
+       for (auto &actionContext : GetActionContexts(widget))
             actionContext->DoRelativeAction(accelerationIndex, delta);
     }
     else
@@ -2461,6 +2510,19 @@ void Widget::RestoreXTouchDisplayColors()
     for (auto &feedbackProcessor : feedbackProcessors_)
         feedbackProcessor->RestoreXTouchDisplayColors();
 }
+
+void Widget::OverrideTrackColors(const char* colors, string const zone_name)
+{
+    for (auto& feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->OverrideTrackColors(colors, zone_name);
+}
+
+void Widget::RestoreTrackColors()
+{
+    for (auto& feedbackProcessor : feedbackProcessors_)
+        feedbackProcessor->RestoreTrackColors();
+}
+
 
 void  Widget::ForceClear()
 {
@@ -3493,18 +3555,18 @@ void ControlSurface::UpdateTrackColors()
 
 rgba_color ControlSurface::GetTrackColorForChannel(int channel)
 {
-    rgba_color white;
-    white.r = 255;
-    white.g = 255;
-    white.b = 255;
+    rgba_color black;
+    black.r = 0;
+    black.g = 0;
+    black.b = 0;
 
     if (channel < 0 || channel >= numChannels_)
-        return white;
+        return black;
     
     if (MediaTrack *track = page_->GetNavigatorForChannel(channel + channelOffset_)->GetTrack())
         return DAW::GetTrackColor(track);
     else
-        return white;
+        return black;
 }
 
 void ControlSurface::RequestUpdate()

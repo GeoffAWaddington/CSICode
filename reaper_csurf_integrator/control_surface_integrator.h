@@ -794,6 +794,9 @@ public:
     int GetSlotIndex();
     void SetXTouchDisplayColors(const char *colors);
     void RestoreXTouchDisplayColors();
+    void OverrideTrackColors(const char* colors);
+    void RestoreTrackColors();
+
     void UpdateCurrentActionContextModifiers();
     
     const vector<unique_ptr<ActionContext>> &GetActionContexts(Widget *widget);
@@ -920,9 +923,11 @@ public:
     virtual void ForceUpdateTrackColors() {}
     virtual void RunDeferredActions() {}
     virtual void ForceClear() {}
-    
+
     virtual void SetXTouchDisplayColors(const char *colors) {}
     virtual void RestoreXTouchDisplayColors() {}
+    virtual void OverrideTrackColors(const char* colors, string const zone_name) {}
+    virtual void RestoreTrackColors() {}
 
     virtual void SetColorValue(const rgba_color &color) {}
 
@@ -1053,6 +1058,10 @@ public:
     void UpdateColorValue(const rgba_color &color);
     void SetXTouchDisplayColors(const char *colors);
     void RestoreXTouchDisplayColors();
+    void OverrideTrackColors(const char* colors, string const zone_name);
+    void RestoreTrackColors();
+
+
     void ForceClear();
 
     void SetHasDoublePressActions() { hasDoublePressActions_ = true; };
@@ -1624,6 +1633,8 @@ public:
         HideAllFXWindows();
         ClearFXMapping();
         ResetOffsets();
+
+        DAW::SetHomeView();
 
         for (auto &goZone : goZones_)
             goZone->Deactivate();
@@ -3957,7 +3968,7 @@ public:
     const char *GetCurrentInputMonitorMode(MediaTrack *track) { return trackNavigationManager_->GetCurrentInputMonitorMode(track); }
     const vector<MediaTrack *> &GetSelectedTracks() { return trackNavigationManager_->GetSelectedTracks(); }
     
-    
+     
     /*
     int repeats = 0;
     

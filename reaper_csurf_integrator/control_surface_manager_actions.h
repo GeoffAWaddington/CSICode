@@ -129,18 +129,50 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class RestoreXTouchDisplayColors : public Action
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 {
 public:
     virtual const char *GetName() override { return "RestoreXTouchDisplayColors"; }
-    
+
     void Do(ActionContext *context, double value) override
     {
         if (value == ActionContext::BUTTON_RELEASE_MESSAGE_VALUE) return;
-        
+
         context->GetZone()->RestoreXTouchDisplayColors();
     }
 };
+
+
+class OverrideTrackColors : public Action
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual const char* GetName() override { return "OverrideTrackColors"; }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if (value == ActionContext::BUTTON_RELEASE_MESSAGE_VALUE) return;
+
+        context->GetZone()->OverrideTrackColors(context->GetStringParam());
+    }
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+class RestoreTrackColors : public Action
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+public:
+    virtual const char* GetName() override { return "RestoreTrackColors"; }
+
+    void Do(ActionContext* context, double value) override
+    {
+        if (value == ActionContext::BUTTON_RELEASE_MESSAGE_VALUE) return;
+
+        context->GetZone()->RestoreTrackColors();
+    }
+};
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SaveProject : public Action
@@ -736,6 +768,10 @@ public:
             context->GetPage()->GoZone(name);
         else
             context->GetSurface()->GetZoneManager()->DeclareGoZone(name);
+
+        bool isActive = context->GetSurface()->GetZoneManager()->GetIsGoZoneActive(context->GetStringParam());
+        DAW::UpdateView(name, isActive, NULL);
+
     }
 };
 

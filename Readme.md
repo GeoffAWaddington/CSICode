@@ -1,182 +1,122 @@
-# CSI - Control Surface Integrator
+# CSI Code Specifically Modified for the Icon V1-M Surface
+## The Major Changes
 
-Welcome to the primary code repository for the **CSI (Control Surface Integrator)** project!
+**Four new classes. (control_surface_midi_widgets.h)**
 
-CSI is a powerful and flexible system for integrating a wide range of hardware control surfaces with [REAPER](https://www.reaper.fm/), providing advanced mapping, feedback, and workflow customization capabilities. Whether you're using a basic MIDI controller or a complex multi-surface studio setup including MIDI and OSC devices, CSI enables deep control over your DAW environment.
-
-CSI is a fully open-source project. Anyone is welcome to explore, contribute to, or fork the codebase to create customized builds that meet their specific needs.
-
----
-
-## Resources and Documentation
-
-- 📚 **[CSI Wiki - User Guide and Troubleshooting](https://github.com/FunkybotsEvilTwin/CSIUserGuide/wiki)**  
-  The official CSI User Guide with setup instructions, feature documentation, and troubleshooting tips.
-
-- 📦 **[CSI Install Repository](https://github.com/FunkybotsEvilTwin/CSI_Install)**  
-  Contains required installation files, surface definitions, and support scripts needed to run CSI.
-
-- 🧪 **[CSI Experimental Repository](https://github.com/FunkybotsEvilTwin/CSI_Install)**  
-  A place to explore experimental and beta versions of CSI.
-
----
-
-## Issue Reporting
-
-If you encounter a bug or problem with CSI, we recommend first reporting it in the **main CSI thread** on the [REAPER Forum](https://forum.cockos.com/showthread.php?t=183143).  
-This allows for community discussion and quick troubleshooting.
-
-If community discussions and quick troubleshooting fail to resolve the issue, feel free to open an Issue here on GitHub to help track and resolve the problem.
-
-When submitting an Issue, please provide:
-- A clear description of the problem
-- Steps to reproduce
-- Expected results
-- Actual results
-- Surface(s) involved
-- CSI version
-- Operating system and REAPER version
-
----
-
-## Contributing Code
-
-**Code contributions are welcome and encouraged!**
-
-We kindly ask that contributors follow these guidelines, as well as review the CSI Code Style Guide and Authoring Tips in the next section, to help keep the project organized and moving forward smoothly:
-
-- **Introduce yourself!**  
-  Feel free to reach out to the team before beginning work — either by posting in the **main CSI thread** on the [REAPER Forum](https://forum.cockos.com/showthread.php?t=183143) or by sending a private message to `funkybot` on the forum.  
-  Contacting us helps avoid conflicts with project goals or other contributors who may already be working on related tasks.
-
-- **Align with project goals.**  
-  Before making major changes, please check in to make sure your ideas fit with the long-term direction of the project.
-
-- **Issues list.**  
-  If you see an open Issue you would like to tackle, please post a quick comment calling "dibs" before you start working.  
-  This helps avoid duplicate efforts where multiple contributors work on the same thing.
-
-- **Keep Pull Requests (PRs) focused and small.**  
-  PRs should ideally cover a **single feature or fix**.  
-  This makes reviewing and testing changes much easier.
-
-- **Include clear explanations.**  
-  When submitting a PR, please describe:
-  - The purpose of the change
-  - Why the change is necessary
-  - How the change is used (especially if it relates to a specific surface)
-  - Any relevant zone or syntax information
-
-- **Do not remove project files** without prior discussion.  
-  Project files (such as Visual Studio solutions, WDL components, etc.) are important for cross-platform builds and ongoing development. Please avoid deleting or replacing these files in a PR unless the change has been discussed and agreed upon by the team.
-
-- **PR review process.**  
-  Regular CSI contributors will review and approve pull requests to ensure consistency, compatibility, and project integrity.
-
----
-
-## CSI Code Style Guide and Authoring Tips
-
-### 1. Avoid Shorthand  
-Use full, descriptive names instead of abbreviations. This makes code self-documenting and easier to read.
-
-**Bad:**  
 ```
-    #elif CONDITION  
-    // ...  
-    #endif  
+	class V1MDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
 
-    int oldTracksSize = (int)t;
+	class V1MTrackColors_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+
+	class V1MDisplay_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+
+	class V1MVUMeter_Midi_FeedbackProcessor : public Midi_FeedbackProcessor
+	    (This handles both master and channel strip VUMeters since there is only one difference in the code.
+       channel strip VU = 0xD0 and MasterVU = 0xD1)
 ```
 
-**Good:**  
-```
-    #else  
-    #if CONDITION  
-    // ...  
-    #endif  
+**Widgets linked to the new classes (control_surface_integrator.cpp)**
 
-    int oldTracksSize = static_cast<int>(tracks);
 ```
+	    else if (widgetType == "FB_V1MMasterVUMeter" && size == 2)
+        {
+            int displayType = NULL;
+            int code = 0xD1; //Master
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MVUMeter_Midi_FeedbackProcessor>(csi_, this, widget, code, displayType, atoi(tokenLines[i][1].c_str())));
+        }
+		    else if ((widgetType == "FB_V1MVUMeter" || widgetType == "FB_V1MXVUMeter") && size == 2) //Kev Smart
+        {
+            int displayType = (widgetType == "FB_V1MVUMeter") ? 0x14 : 0x15;
+            int code = 0xD0; //Channel Strip
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MVUMeter_Midi_FeedbackProcessor>(csi_, this, widget, code, displayType, atoi(tokenLines[i][1].c_str())));
+            SetHasMCUMeters(displayType);
+        }
 
-### 2. Bracket Usage  
-Place opening braces on their own line and align closing braces vertically. Never leave an opening brace at the end of a line. This helps visually align code in various IDE's.
+        else if (widgetType == "FB_V1MTrackColors")
+        {
+            widget->GetFeedbackProcessors().push_back(make_unique<V1MTrackColors_Midi_FeedbackProcessor>(csi_, this, widget));
+            AddTrackColorFeedbackProcessor(widget->GetFeedbackProcessors().back().get());
+        }
 
-**Bad:**  
-```
-    class Something : public Action {  
-    public:  
-        const char* GetName() override { return "Something"; }  
-    };
-```
-
-**Good:**  
-```
-    class Something : public Action  
-    {  
-    public:  
-        const char* GetName() override  
-        {  
-            return "Something";  
-        }  
-    };
-```
-
-### 3. Lowercase Variables  
-Variable names should be lowercase and spelled out and use a trailing underscore for private members. 
-
-**Bad:**  
-```
-    if (!T) continue;
+        else if ((widgetType == "FB_V1MDisplay1Upper" || widgetType == "FB_V1MDisplay1Lower" || widgetType == "FB_V1MDisplay2Upper" || widgetType == "FB_V1MDisplay2Lower") && size == 2) //Kev Smart
+        {
+            if (widgetType == "FB_V1MDisplay1Upper")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
+            else if (widgetType == "FB_V1MDisplay1Lower")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x14, 0x12, atoi(tokenLines[i][1].c_str()), 0x00, 0x66));
+            else if (widgetType == "FB_V1MDisplay2Upper")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 1, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
+            else if (widgetType == "FB_V1MDisplay2Lower")
+                widget->GetFeedbackProcessors().push_back(make_unique<V1MDisplay_Midi_FeedbackProcessor>(csi_, this, widget, 0, 0x15, 0x13, atoi(tokenLines[i][1].c_str()), 0x02, 0x4e));
+        }
 ```
 
-**Good:**  
+**The New widgets (Surface.txt)**
 ```
-    if (!track) continue;
-```   
- 
- **Bad:**  
+Widget TrackColors
+	FB_V1MTrackColors
+WidgetEnd
+
+Widget Display1Upper1
+    FB_V1MDisplay1Upper 0
+WidgetEnd
+.............
+Widget Display1Upper8
+    FB_V1MDisplay1Upper 7
+WidgetEnd
+
+Widget Display1Lower1
+    FB_V1MDisplay1Lower 0
+WidgetEnd
+................
+Widget Display1Lower8
+    FB_V1MDisplay1Lower 7
+WidgetEnd
+
+Widget Display2Upper1
+    FB_V1MDisplay2Upper 0
+WidgetEnd
+.............
+Widget Display2Upper8
+    FB_V1MDisplay2Upper 7
+WidgetEnd
+
+Widget Display2Lower1
+    FB_V1MDisplay2Lower 0
+WidgetEnd
+................
+Widget Display2Lower8
+    FB_V1MDisplay2Lower 7
+WidgetEnd
+
+Widget MasterChannelMeterLeft 
+	FB_V1MMasterVUMeter 0
+WidgetEnd
+
+Widget MasterChannelMeterRight
+	FB_V1MMasterVUMeter 1
+WidgetEnd
+
+Widget VUMeter1
+	FB_V1MVUMeter 0
+WidgetEnd
+.............
+Widget VUMeter8
+	FB_V1MVUMeter 7
+WidgetEnd
 ```
-    bool IsInitialized_ = false;
+
+
+
+
+
+
+
+
+
+
+
 ```
 
-**Good:**  
-```
-    bool isInitialized_ = false;
-```
 
-### 4. Spacing and Comparisons  
-Use consistent spacing around operators and align related expressions to improve readability.
 
-**Not Recommended:**  
-```
-    if (tracks_[i] !=track||colors_[i] !=GetTrackColor(track))
-```
-
-**Preferred:** Adds a few extra spaces to make comparisons a little easier to spot.  
-```
-    if (tracks_[i] != track   ||  colors_[i] != GetTrackColor(track))
-```
-
-### 5. Avoid Timers  
-CSI's Run method is called approximately every 30 ms. Do not introduce timers. Keep all logic within Run.
-
-### 6. Embrace Object-Oriented Design Principles  
-CSI is built around object-oriented design. Before implementing a solution, review how existing classes interact to ensure your changes integrate seamlessly.
-
-### 7. Keep Code Self-Contained  
-When adding things like new actions or feedback processors, encapsulate logic within the class. If you find yourself scattering helper functions across files, reconsider your design or stop and ask for guidance.
-
----
-
-## Forks and Custom Versions
-
-Because CSI is open source, anyone is free to clone this repository and create their own builds incorporating any changes, large or small.
-
-If you have ideas that significantly diverge from the current project goals, you're welcome to maintain your own fork!
-
----
-
-## Thank You!
-
-We appreciate your contributions and interest in helping CSI continue to grow and improve. Your support makes this project possible!
