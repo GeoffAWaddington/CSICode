@@ -49,3 +49,6 @@ reaper_csurf_integrator.xcodeproj/project.xcworkspace/xcuserdata/christopherreis
 reaper_csurf_integrator.xcodeproj/project.xcworkspace/xcuserdata/christopherreis.xcuserdatad/UserInterfaceState.xcuserstate
 reaper_csurf_integrator.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 reaper_csurf_integrator.xcodeproj/project.pbxproj
+
+# JetBrains IDEs
+.idea/

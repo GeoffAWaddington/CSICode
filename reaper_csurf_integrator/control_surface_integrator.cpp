@@ -4250,13 +4250,6 @@ CSurfIntegrator::CSurfIntegrator()
     
     index = projectconfig_var_getoffs("panmode", &size);
     projectPanModeOffs_ = size==4 ? index : -1;
-
-    // these are supported by ~7.10+, previous versions we fallback to get_config_var() on-demand
-    index = projectconfig_var_getoffs("projmetrov1", &size);
-    projectMetronomePrimaryVolumeOffs_ = size==8 ? index : -1;
-
-    index = projectconfig_var_getoffs("projmetrov2", &size);
-    projectMetronomeSecondaryVolumeOffs_ = size==8 ? index : -1;
 }
 
 CSurfIntegrator::~CSurfIntegrator()

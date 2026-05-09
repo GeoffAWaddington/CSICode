@@ -4061,10 +4061,7 @@ private:
     int measOffsOffs_;
     int timeOffsOffs_; // for a double
     int projectPanModeOffs_;
-    
-    int projectMetronomePrimaryVolumeOffs_; // for double -- if invalid, use fallbacks
-    int projectMetronomeSecondaryVolumeOffs_; // for double -- if invalid, use fallbacks
-        
+
     void InitActionsDictionary();
 
     double GetPrivateProfileDouble(const char *key)
@@ -4121,29 +4118,7 @@ public:
     int *GetMeasOffsPtr() { return (int *) projectconfig_var_addr(NULL,measOffsOffs_); }
     double *GetTimeOffsPtr() { return (double *) projectconfig_var_addr(NULL,timeOffsOffs_); }
     int GetProjectPanMode() { int *p = (int *) projectconfig_var_addr(NULL,projectPanModeOffs_); return p ? *p : 0; }
-   
-    double *GetMetronomePrimaryVolumePtr()
-    {
-      void *ret = projectconfig_var_addr(NULL,projectMetronomePrimaryVolumeOffs_);
-      if (ret) return (double *)ret;
-      // REAPER 7.09 and earlier require this:
-      int size=0;
-      ret = get_config_var("projmetrov1", &size);
-      if (size==8) return (double *)ret;
-      return NULL;
-    }
-    
-    double *GetMetronomeSecondaryVolumePtr()
-    { 
-      void *ret = projectconfig_var_addr(NULL,projectMetronomeSecondaryVolumeOffs_);
-      if (ret) return (double *)ret;
-      // REAPER 7.09 and earlier require this:
-      int size=0;
-      ret = get_config_var("projmetrov2", &size);
-      if (size==8) return (double *)ret;
-      return NULL;
-    }
-    
+
     void Speak(const char *phrase)
     {
         static void (*osara_outputMessage)(const char *message);
