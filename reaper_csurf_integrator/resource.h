@@ -127,6 +127,8 @@
 #define IDC_ApplyFontsAndMarginsToAll   1307
 #define IDC_GroupApplyToAll             1308
 #define IDC_EDIT_FREE_FORM              1309
+#define IDC_OutputStandard              1310
+#define IDC_OutputPaged                 1311
 
 // Next default values for new objects
 // 

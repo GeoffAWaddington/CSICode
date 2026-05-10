@@ -229,6 +229,9 @@ BEGIN
     PUSHBUTTON      "Unlink",IDC_Unassign,122,44,36,14
     PUSHBUTTON      "Link",IDC_Assign,122,44,36,14
     PUSHBUTTON      "Alias",IDC_Alias,15,76,36,14
+    LTEXT           "Save as:",IDC_STATIC,60,80,34,8
+    AUTORADIOBUTTON "Standard",IDC_OutputStandard,97,78,44,10,WS_GROUP
+    AUTORADIOBUTTON "Paged",IDC_OutputPaged,143,78,36,10
     PUSHBUTTON      "Edit",IDC_DeepEdit,185,76,36,14
     PUSHBUTTON      "Save",IDC_Save,229,76,36,14
     CTEXT           "Surface Name",IDC_SurfaceName,14,14,251,10

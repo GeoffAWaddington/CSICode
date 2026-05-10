@@ -17,6 +17,7 @@ extern int g_maxNumParamSteps;
 static int s_dlgResult = IDCANCEL;
 
 static bool s_isUpdatingParameters = false;
+static bool s_outputPaged = false;
 static HWND s_hwndLearnFXDlg = NULL;
 static Widget *s_currentWidget = NULL;
 static int s_currentModifier = 0;
@@ -642,6 +643,31 @@ static void WriteBoilerPlate(FILE *fxFile, string &fxBoilerplatePath)
     }
 }
 
+static void CleanupPagedFiles(const char *path, const char *trimmedName)
+{
+    // Remove standard backup (name.zon_inact) now that standard is active again
+    char inactStdPath[BUFSIZ];
+    snprintf(inactStdPath, sizeof(inactStdPath), "%s/%s.zon_inact", path, trimmedName);
+    remove(inactStdPath);
+
+    // Rename paged page files (name-1.zon, name-2.zon, ...) to .zon_inact
+    for (int i = 1; ; i++)
+    {
+        char pagedPath[BUFSIZ];
+        snprintf(pagedPath, sizeof(pagedPath), "%s/%s-%d.zon", path, trimmedName, i);
+
+        FILE *f = fopenUTF8(pagedPath, "rb");
+        if (!f)
+            break;
+        fclose(f);
+
+        char inactPath[BUFSIZ];
+        snprintf(inactPath, sizeof(inactPath), "%s/%s-%d.zon_inact", path, trimmedName, i);
+        remove(inactPath);
+        rename(pagedPath, inactPath);
+    }
+}
+
 static void SaveZone(SurfaceFXTemplate *t)
 {
     if (s_focusedTrack == NULL || s_fxName[0] == 0 || t == NULL)
@@ -666,171 +692,260 @@ static void SaveZone(SurfaceFXTemplate *t)
         
         snprintf(filePath, sizeof(filePath), "%s/%s.zon", path, trimmedFXName.c_str());
         
+        // Before writing, scan for paged page files (name-1.zon, name-2.zon, ...) and
+        // extract their fader content, keyed by the modifier stamp embedded in each file.
+        // This allows a Paged->Standard conversion to recover all modifier row mappings.
+        map<int, vector<string>> pagedSupplement;
+
+        for (int pageNum = 1; ; pageNum++)
+        {
+            char pagedPath[BUFSIZ];
+            snprintf(pagedPath, sizeof(pagedPath), "%s/%s-%d.zon", path, trimmedFXName.c_str(), pageNum);
+
+            FILE *testFile = fopenUTF8(pagedPath, "rb");
+            if (!testFile)
+                break;
+            fclose(testFile);
+
+            ifstream pageStream(pagedPath);
+            int pageModifier = -1;
+            vector<string> contentLines;
+            bool contentStarted = false;
+
+            for (string line; getline(pageStream, line); )
+            {
+                if (line.find("Zone ") == 0 || line == "ZoneEnd")
+                    continue;
+
+                if (line.find("// CSI:paged-modifier=") == 0)
+                {
+                    pageModifier = atoi(line.c_str() + (int)strlen("// CSI:paged-modifier="));
+                    continue;
+                }
+
+                // Skip navigation lines
+                if (line.find("GoZone") != string::npos || line.find("GoSubZone") != string::npos)
+                    continue;
+                if (line.find("// ---") != string::npos)
+                    continue;
+
+                // Wait for the first tab-indented widget line to start collecting content
+                if (!contentStarted)
+                {
+                    if (!line.empty() && line[0] == '\t' && line.size() > 1 && isalpha((unsigned char)line[1]))
+                        contentStarted = true;
+                    else
+                        continue;
+                }
+
+                contentLines.push_back(line);
+            }
+
+            if (pageModifier >= 0 && !contentLines.empty())
+                pagedSupplement[pageModifier] = move(contentLines);
+        }
+
         FILE *fxFile = fopenUTF8(filePath,"wb");
-        
+
         if (fxFile)
         {
             fprintf(fxFile, "Zone \"%s\" \"%s\"\n", s_fxName, s_fxAlias);
-            
+
             map<const string, CSIZoneInfo> &zoneInfo = zoneManager->GetZoneInfo();
-            
+
             if (zoneInfo.find("FXPrologue") != zoneInfo.end())
             {
                 ifstream file(zoneInfo["FXPrologue"].filePath);
-                    
+
                 for (string line; getline(file, line) ; )
                     if (line.find("Zone") != 0)
                         fprintf(fxFile, "%s\n", line.c_str());
             }
-            
+
+            fprintf(fxFile, "\n\tCancel GoZone SelectedTrackFXMenu\n");
             fprintf(fxFile, "\n%s\n\n", s_BeginAutoSection);
-                        
-            int previousChannel = 1;
-            
+
+            // Build ordered modifier groups from t->cells
+            vector<int> modifierOrder;
+            map<int, vector<FXCell*>> cellsByMod;
             for (auto &cell : t->cells)
             {
-                char modifierBuf[SMLBUF];
-                
-                if (previousChannel > cell->channel)
-                {
+                if (cellsByMod.find(cell->modifier) == cellsByMod.end())
+                    modifierOrder.push_back(cell->modifier);
+                cellsByMod[cell->modifier].push_back(cell.get());
+            }
+
+            bool firstGroup = true;
+            for (int modifier : modifierOrder)
+            {
+                if (!firstGroup)
                     fprintf(fxFile, "\n\n");
-                    previousChannel = 1;
+                firstGroup = false;
+
+                char modifierBuf[SMLBUF];
+                zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
+
+                auto &groupCells = cellsByMod[modifier];
+
+                // Check if this modifier group has any real (non-NoAction) mapping in memory
+                bool hasRealMapping = false;
+                for (auto *cell : groupCells)
+                {
+                    for (auto widget : cell->controlWidgets)
+                    {
+                        ActionContext *ctx = GetFirstContext(zoneManager, widget, modifier);
+                        if (ctx && strcmp(ctx->GetAction()->GetName(), "NoAction") != 0)
+                        {
+                            hasRealMapping = true;
+                            break;
+                        }
+                    }
+                    if (hasRealMapping) break;
+                }
+
+                if (!hasRealMapping && pagedSupplement.count(modifier) > 0)
+                {
+                    // Supplement from paged page file: re-add modifier prefix to each widget line
+                    for (auto &supLine : pagedSupplement.at(modifier))
+                    {
+                        if (!supLine.empty() && supLine[0] == '\t')
+                            fprintf(fxFile, "\t%s%s\n", modifierBuf, supLine.c_str() + 1);
+                        else
+                            fprintf(fxFile, "%s\n", supLine.c_str());
+                    }
                 }
                 else
-                    previousChannel++;
-
-                int modifier = cell->modifier;
-                zoneManager->GetSurface()->GetModifierManager()->GetModifierString(modifier, modifierBuf, sizeof(modifierBuf));
-                
-                for (auto widget : cell->controlWidgets)
                 {
-                    fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
-                    
-                    if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
+                    // Write from t->cells (standard path)
+                    for (auto *cell : groupCells)
                     {
-                        char actionName[SMLBUF];
-                        snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
-                        
-                        fprintf(fxFile, "%s ", actionName);
-
-                        if (strcmp(actionName, "NoAction"))
+                        for (auto widget : cell->controlWidgets)
                         {
-                            fprintf(fxFile, "%d ", context->GetParamIndex());
-                            
-                            context->GetWidgetProperties().save_list(fxFile);
-                            
-                            fprintf(fxFile, "[ %0.2f>%0.2f ", context->GetRangeMinimum(), context->GetRangeMaximum());
-                            
-                            fprintf(fxFile, "(");
-                            
-                            char numBuf[MEDBUF];
+                            fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
 
-                            if (context->GetAcceleratedDeltaValues().size() > 0)
+                            if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
                             {
-                                
-                                for (int i = 0; i < context->GetAcceleratedDeltaValues().size(); ++i)
-                                {
-                                    format_number(context->GetAcceleratedDeltaValues()[i], numBuf, sizeof(numBuf));
+                                char actionName[SMLBUF];
+                                snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
 
-                                    if ( i < context->GetAcceleratedDeltaValues().size() - 1)
-                                        fprintf(fxFile, "%s,", numBuf);
+                                fprintf(fxFile, "%s ", actionName);
+
+                                if (strcmp(actionName, "NoAction"))
+                                {
+                                    fprintf(fxFile, "%d ", context->GetParamIndex());
+
+                                    context->GetWidgetProperties().save_list(fxFile);
+
+                                    fprintf(fxFile, "[ %0.2f>%0.2f ", context->GetRangeMinimum(), context->GetRangeMaximum());
+
+                                    fprintf(fxFile, "(");
+
+                                    char numBuf[MEDBUF];
+
+                                    if (context->GetAcceleratedDeltaValues().size() > 0)
+                                    {
+                                        for (int i = 0; i < (int)context->GetAcceleratedDeltaValues().size(); ++i)
+                                        {
+                                            format_number(context->GetAcceleratedDeltaValues()[i], numBuf, sizeof(numBuf));
+
+                                            if (i < (int)context->GetAcceleratedDeltaValues().size() - 1)
+                                                fprintf(fxFile, "%s,", numBuf);
+                                            else
+                                                fprintf(fxFile, "%s", numBuf);
+                                        }
+                                    }
                                     else
+                                    {
+                                        format_number(context->GetDeltaValue(), numBuf, sizeof(numBuf));
                                         fprintf(fxFile, "%s", numBuf);
+                                    }
+
+                                    fprintf(fxFile, ") ");
+
+                                    fprintf(fxFile, "(");
+
+                                    if (context->GetAcceleratedTickCounts().size() > 0)
+                                    {
+                                        for (int i = 0; i < (int)context->GetAcceleratedTickCounts().size(); ++i)
+                                        {
+                                            if (i < (int)context->GetAcceleratedTickCounts().size() - 1)
+                                                fprintf(fxFile, "%d,", context->GetAcceleratedTickCounts()[i]);
+                                            else
+                                                fprintf(fxFile, "%d", context->GetAcceleratedTickCounts()[i]);
+                                        }
+                                    }
+
+                                    fprintf(fxFile, ") ");
+
+                                    if (context->GetSteppedValues().size() > 0)
+                                    {
+                                        for (int i = 0; i < (int)context->GetSteppedValues().size(); ++i)
+                                            fprintf(fxFile, "%0.2f ", context->GetSteppedValues()[i]);
+                                    }
+
+                                    fprintf(fxFile, " ]");
+
+                                    {
+                                        const char* freeText = context->GetFreeFormText();
+                                        if (freeText && freeText[0] != '\0')
+                                            fprintf(fxFile, " %s", freeText);
+                                    }
                                 }
+                            }
+
+                            fprintf(fxFile, "\n");
+                        }
+
+                        for (auto displayWidget : cell->displayWidgets)
+                        {
+                            Widget *widget = displayWidget;
+
+                            if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
+                            {
+                                if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                    fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
                             }
                             else
-                            {
-                                format_number(context->GetDeltaValue(), numBuf, sizeof(numBuf));
-                                fprintf(fxFile, "%s", numBuf);
-                            }
-                                
-                            fprintf(fxFile, ") ");
+                                fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
 
-                            fprintf(fxFile, "(");
-                            
-                            if (context->GetAcceleratedTickCounts().size() > 0)
+                            if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
                             {
-                                for (int i = 0; i < context->GetAcceleratedTickCounts().size(); ++i)
-                                {
-                                    if ( i < context->GetAcceleratedTickCounts().size() - 1)
-                                        fprintf(fxFile, "%d,", context->GetAcceleratedTickCounts()[i]);
-                                    else
-                                        fprintf(fxFile, "%d", context->GetAcceleratedTickCounts()[i]);
-                                }
-                            }
-                                
-                            fprintf(fxFile, ") ");
-                            
-                            if (context->GetSteppedValues().size() > 0)
-                            {
-                                for (int i = 0; i < context->GetSteppedValues().size(); ++i)
-                                    fprintf(fxFile, "%0.2f ", context->GetSteppedValues()[i]);
-                            }
-                            
-                            fprintf(fxFile, " ]");
+                                char actionName[SMLBUF];
+                                snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
 
-                            // ***** NEW: Append free-form text for this assignment *****
-                            {
-                                const char* freeText = context->GetFreeFormText();
-                                if (freeText && freeText[0] != '\0')
+                                if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
                                 {
-                                    fprintf(fxFile, " %s", freeText);
+                                    if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                        fprintf(fxFile, "%s ", actionName);
                                 }
+                                else
+                                    fprintf(fxFile, "%s ", actionName);
+
+                                if (strcmp(actionName, "NoAction"))
+                                {
+                                    if ( ! strcmp(actionName, "FixedTextDisplay"))
+                                        fprintf(fxFile, "\"%s\" %d ", context->GetStringParam(), context->GetParamIndex());
+                                    else if ( ! strcmp(actionName, "FXParamValueDisplay"))
+                                        fprintf(fxFile, "%d ", context->GetParamIndex());
+
+                                    context->GetWidgetProperties().save_list(fxFile);
+                                }
+
+                                if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
+                                {
+                                    if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                        fprintf(fxFile, "\n");
+                                }
+                                else
+                                    fprintf(fxFile, "\n");
                             }
                         }
-                    }
-                    
-                    fprintf(fxFile, "\n");
-                }
-                
-                for (auto displayWidget : cell->displayWidgets)
-                {
-                    Widget *widget = displayWidget;
-                    
-                    if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
-                    {
-                        if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
-                            fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
-                    }
-                    else
-                        fprintf(fxFile, "\t%s%s ", modifierBuf, widget->GetName());
- 
-                    if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
-                    {
-                        char actionName[SMLBUF];
-                        snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
-                        
-                        if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
-                        {
-                            if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
-                                fprintf(fxFile, "%s ", actionName);
-                        }
-                        else
-                            fprintf(fxFile, "%s ", actionName);
-                        
-                        if (strcmp(actionName, "NoAction"))
-                        {
-                            if ( ! strcmp(actionName, "FixedTextDisplay"))
-                                fprintf(fxFile, "\"%s\" %d ", context->GetStringParam(), context->GetParamIndex());
-                            else if ( ! strcmp(actionName, "FXParamValueDisplay"))
-                                fprintf(fxFile, "%d ", context->GetParamIndex());
-                            
-                            context->GetWidgetProperties().save_list(fxFile);
-                        }
-                        
-                        if ( ! strcmp (zoneManager->GetSurface()->GetName(), "SCE24"))
-                        {
-                            if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
-                                fprintf(fxFile, "\n");
-                        }
-                        else
-                            fprintf(fxFile, "\n");
+
+                        fprintf(fxFile, "\n\n");
                     }
                 }
-
-                fprintf(fxFile, "\n\n");
             }
-            
+
             fprintf(fxFile, "\n%s\n\n", s_EndAutoSection);
 
             if (zoneInfo.find("FXEpilogue") != zoneInfo.end())
@@ -850,12 +965,323 @@ static void SaveZone(SurfaceFXTemplate *t)
         CSIZoneInfo info;
         info.filePath = filePath;
         info.alias = s_fxAlias;
-        
+
         zoneManager->AddZoneFilePath(s_fxName, info);
+
+        CleanupPagedFiles(path, trimmedFXName.c_str());
     }
     catch (const std::exception& e)
     {
         LogToConsole(256, "[ERROR] FAILED to SaveZone %s\n", path);
+        LogToConsole(2048, "Exception: %s\n", e.what());
+    }
+}
+
+static void SaveZonePaged(SurfaceFXTemplate *t)
+{
+    if (s_focusedTrack == NULL || s_fxName[0] == 0 || t == NULL)
+        return;
+
+    ZoneManager *zoneManager = t->zoneManager;
+
+    char path[BUFSIZ];
+    snprintf(path, sizeof(path), "%s/AutoGeneratedFXZones", zoneManager->GetFXZoneFolder());
+
+    try
+    {
+        RecursiveCreateDirectory(path, 0);
+
+        string trimmedFXName = s_fxName;
+        ReplaceAllWith(trimmedFXName, s_BadFileChars, "_");
+
+        // Group cells by modifier in definition order
+        vector<int> modifierOrder;
+        map<int, vector<FXCell*>> cellsByModifier;
+
+        for (auto &cell : t->cells)
+        {
+            if (cellsByModifier.find(cell->modifier) == cellsByModifier.end())
+                modifierOrder.push_back(cell->modifier);
+            cellsByModifier[cell->modifier].push_back(cell.get());
+        }
+
+        // Each modifier group with at least one non-NoAction mapping becomes a page
+        vector<pair<int, vector<FXCell*>>> pages;
+
+        for (int mod : modifierOrder)
+        {
+            auto &cells = cellsByModifier[mod];
+            bool hasMapping = false;
+            for (auto *cell : cells)
+            {
+                for (auto widget : cell->controlWidgets)
+                {
+                    ActionContext *ctx = GetFirstContext(zoneManager, widget, mod);
+                    if (ctx && strcmp(ctx->GetAction()->GetName(), "NoAction") != 0)
+                    {
+                        hasMapping = true;
+                        break;
+                    }
+                }
+                if (hasMapping) break;
+            }
+            if (hasMapping)
+                pages.push_back(make_pair(mod, cells));
+        }
+
+        if (pages.empty())
+            return;
+
+        int numPages = (int)pages.size();
+        map<const string, CSIZoneInfo> &zoneInfo = zoneManager->GetZoneInfo();
+
+        // Build zone name/alias for each page index
+        // Page 1: s_fxName / s_fxAlias
+        // Page N (N>1): "{s_fxName}-{N-1}" / "Page N"
+        auto getZoneName = [&](int idx) -> string {
+            if (idx == 0)
+                return string(s_fxName);
+            char suffix[32];
+            snprintf(suffix, sizeof(suffix), "-%d", idx);
+            return string(s_fxName) + suffix;
+        };
+        auto getZoneAlias = [&](int idx) -> string {
+            if (idx == 0)
+                return string(s_fxAlias);
+            char buf[32];
+            snprintf(buf, sizeof(buf), "Page %d", idx + 1);
+            return string(buf);
+        };
+
+        // Backup existing name.zon (standard) → name.zon_inact
+        char standardPath[BUFSIZ];
+        snprintf(standardPath, sizeof(standardPath), "%s/%s.zon", path, trimmedFXName.c_str());
+        char standardInactPath[BUFSIZ];
+        snprintf(standardInactPath, sizeof(standardInactPath), "%s/%s.zon_inact", path, trimmedFXName.c_str());
+        remove(standardInactPath);
+        rename(standardPath, standardInactPath);
+
+        // Write each page file
+        for (int pageIdx = 0; pageIdx < numPages; pageIdx++)
+        {
+            char filePath[BUFSIZ];
+            if (pageIdx == 0)
+                snprintf(filePath, sizeof(filePath), "%s/%s.zon", path, trimmedFXName.c_str());
+            else
+                snprintf(filePath, sizeof(filePath), "%s/%s-%d.zon", path, trimmedFXName.c_str(), pageIdx);
+
+            FILE *fxFile = fopenUTF8(filePath, "wb");
+            if (!fxFile)
+                continue;
+
+            string zoneName  = getZoneName(pageIdx);
+            string zoneAlias = getZoneAlias(pageIdx);
+            int    modifier  = pages[pageIdx].first;
+            auto  &pageCells = pages[pageIdx].second;
+
+            fprintf(fxFile, "Zone \"%s\" \"%s\"\n", zoneName.c_str(), zoneAlias.c_str());
+            fprintf(fxFile, "// CSI:paged-modifier=%d\n", modifier);
+
+            // FXPrologue (page 1 only)
+            if (pageIdx == 0 && zoneInfo.find("FXPrologue") != zoneInfo.end())
+            {
+                ifstream prologueFile(zoneInfo["FXPrologue"].filePath);
+                for (string line; getline(prologueFile, line); )
+                    if (line.find("Zone") != 0)
+                        fprintf(fxFile, "%s\n", line.c_str());
+            }
+
+            fprintf(fxFile, "\n");
+
+            // SubZones bridge (page 1 only, when there are multiple pages)
+            if (pageIdx == 0 && numPages > 1)
+            {
+                fprintf(fxFile, "\t// --- SubZone Bridge ---\n");
+                fprintf(fxFile, "\tSubZones\n");
+                for (int i = 1; i < numPages; i++)
+                    fprintf(fxFile, "\t\t\"%s\"\n", getZoneName(i).c_str());
+                fprintf(fxFile, "\tSubZonesEnd\n");
+                fprintf(fxFile, "\n");
+            }
+
+            // Navigation
+            fprintf(fxFile, "\t// --- Navigation ---\n");
+            fprintf(fxFile, "\tCancel GoZone SelectedTrackFXMenu\n");
+
+            if (pageIdx > 0)
+            {
+                string prevName  = getZoneName(pageIdx - 1);
+                string prevAlias = getZoneAlias(pageIdx - 1);
+                fprintf(fxFile, "\tBankLeft  GoSubZone \"%s\" \"%s\"\n", prevName.c_str(), prevAlias.c_str());
+                fprintf(fxFile, "\tLeft      GoSubZone \"%s\" \"%s\"\n", prevName.c_str(), prevAlias.c_str());
+            }
+
+            if (pageIdx < numPages - 1)
+            {
+                string nextName  = getZoneName(pageIdx + 1);
+                string nextAlias = getZoneAlias(pageIdx + 1);
+                fprintf(fxFile, "\tBankRight GoSubZone \"%s\" \"%s\"\n", nextName.c_str(), nextAlias.c_str());
+                fprintf(fxFile, "\tRight     GoSubZone \"%s\" \"%s\"\n", nextName.c_str(), nextAlias.c_str());
+            }
+            else
+            {
+                fprintf(fxFile, "\tBankRight NoAction\n");
+                fprintf(fxFile, "\tRight     NoAction\n");
+            }
+
+            fprintf(fxFile, "\n");
+
+            // Cell mappings (no modifier prefix)
+            for (auto *cell : pageCells)
+            {
+                for (auto widget : cell->controlWidgets)
+                {
+                    fprintf(fxFile, "\t%s ", widget->GetName());
+
+                    if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
+                    {
+                        char actionName[SMLBUF];
+                        snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
+
+                        fprintf(fxFile, "%s ", actionName);
+
+                        if (strcmp(actionName, "NoAction"))
+                        {
+                            fprintf(fxFile, "%d ", context->GetParamIndex());
+                            context->GetWidgetProperties().save_list(fxFile);
+                            fprintf(fxFile, "[ %0.2f>%0.2f ", context->GetRangeMinimum(), context->GetRangeMaximum());
+                            fprintf(fxFile, "(");
+
+                            char numBuf[MEDBUF];
+                            if (context->GetAcceleratedDeltaValues().size() > 0)
+                            {
+                                for (int i = 0; i < (int)context->GetAcceleratedDeltaValues().size(); ++i)
+                                {
+                                    format_number(context->GetAcceleratedDeltaValues()[i], numBuf, sizeof(numBuf));
+                                    if (i < (int)context->GetAcceleratedDeltaValues().size() - 1)
+                                        fprintf(fxFile, "%s,", numBuf);
+                                    else
+                                        fprintf(fxFile, "%s", numBuf);
+                                }
+                            }
+                            else
+                            {
+                                format_number(context->GetDeltaValue(), numBuf, sizeof(numBuf));
+                                fprintf(fxFile, "%s", numBuf);
+                            }
+
+                            fprintf(fxFile, ") (");
+
+                            if (context->GetAcceleratedTickCounts().size() > 0)
+                            {
+                                for (int i = 0; i < (int)context->GetAcceleratedTickCounts().size(); ++i)
+                                {
+                                    if (i < (int)context->GetAcceleratedTickCounts().size() - 1)
+                                        fprintf(fxFile, "%d,", context->GetAcceleratedTickCounts()[i]);
+                                    else
+                                        fprintf(fxFile, "%d", context->GetAcceleratedTickCounts()[i]);
+                                }
+                            }
+
+                            fprintf(fxFile, ") ");
+
+                            if (context->GetSteppedValues().size() > 0)
+                                for (int i = 0; i < (int)context->GetSteppedValues().size(); ++i)
+                                    fprintf(fxFile, "%0.2f ", context->GetSteppedValues()[i]);
+
+                            fprintf(fxFile, " ]");
+
+                            const char *freeText = context->GetFreeFormText();
+                            if (freeText && freeText[0] != '\0')
+                                fprintf(fxFile, " %s", freeText);
+                        }
+                    }
+
+                    fprintf(fxFile, "\n");
+                }
+
+                for (auto displayWidget : cell->displayWidgets)
+                {
+                    Widget *widget = displayWidget;
+
+                    if ( ! strcmp(zoneManager->GetSurface()->GetName(), "SCE24"))
+                    {
+                        if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                            fprintf(fxFile, "\t%s ", widget->GetName());
+                    }
+                    else
+                        fprintf(fxFile, "\t%s ", widget->GetName());
+
+                    if (ActionContext *context = GetFirstContext(zoneManager, widget, modifier))
+                    {
+                        char actionName[SMLBUF];
+                        snprintf(actionName, sizeof(actionName), "%s", context->GetAction()->GetName());
+
+                        if ( ! strcmp(zoneManager->GetSurface()->GetName(), "SCE24"))
+                        {
+                            if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                fprintf(fxFile, "%s ", actionName);
+                        }
+                        else
+                            fprintf(fxFile, "%s ", actionName);
+
+                        if (strcmp(actionName, "NoAction"))
+                        {
+                            if ( ! strcmp(actionName, "FixedTextDisplay"))
+                                fprintf(fxFile, "\"%s\" %d ", context->GetStringParam(), context->GetParamIndex());
+                            else if ( ! strcmp(actionName, "FXParamValueDisplay"))
+                                fprintf(fxFile, "%d ", context->GetParamIndex());
+
+                            context->GetWidgetProperties().save_list(fxFile);
+                        }
+
+                        if ( ! strcmp(zoneManager->GetSurface()->GetName(), "SCE24"))
+                        {
+                            if (strstr(widget->GetName(), t->paramWidget) || strstr(widget->GetName(), t->nameWidget) || strstr(widget->GetName(), t->valueWidget))
+                                fprintf(fxFile, "\n");
+                        }
+                        else
+                            fprintf(fxFile, "\n");
+                    }
+                }
+
+                fprintf(fxFile, "\n");
+            }
+
+            // FXEpilogue (page 1 only)
+            if (pageIdx == 0 && zoneInfo.find("FXEpilogue") != zoneInfo.end())
+            {
+                ifstream epilogueFile(zoneInfo["FXEpilogue"].filePath);
+                for (string line; getline(epilogueFile, line); )
+                    if (line.find("Zone") != 0)
+                        fprintf(fxFile, "%s\n", line.c_str());
+            }
+
+            fprintf(fxFile, "ZoneEnd\n");
+            fclose(fxFile);
+        }
+
+        // Remove stale page files beyond the current count (from a prior paged save with more pages)
+        for (int i = numPages; ; i++)
+        {
+            char oldPagePath[BUFSIZ];
+            snprintf(oldPagePath, sizeof(oldPagePath), "%s/%s-%d.zon", path, trimmedFXName.c_str(), i);
+            if (remove(oldPagePath) != 0)
+                break;
+        }
+
+        // Register page 1 as the active zone file
+        char page1Path[BUFSIZ];
+        snprintf(page1Path, sizeof(page1Path), "%s/%s.zon", path, trimmedFXName.c_str());
+
+        CSIZoneInfo info;
+        info.filePath = page1Path;
+        info.alias = s_fxAlias;
+        zoneManager->AddZoneFilePath(s_fxName, info);
+    }
+    catch (const std::exception& e)
+    {
+        LogToConsole(256, "[ERROR] FAILED to SaveZonePaged %s\n", path);
         LogToConsole(2048, "Exception: %s\n", e.what());
     }
 }
@@ -1640,24 +2066,17 @@ static WDL_DLGRET dlgProcLearnFXDeepEdit(HWND hwndDlg, UINT uMsg, WPARAM wParam,
             ActionContext *nameContext = NULL;
             ActionContext *valueContext = NULL;
 
-            int modifier = 0;
-            
+            int modifier = s_currentModifier;
+
             if (zoneManager)
-            {
-                const vector<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
-                
-                if (modifiers.size() > 0)
-                    modifier = modifiers[0];
-                
                 paramContext = GetFirstContext(zoneManager, widget, modifier);
-            }
-            
+
             FXCell *cell = NULL;
-              
+
             if (t)
             {
                 cell = GetCell(t, widget, modifier);
-                
+
                 if (cell)
                 {
                     nameContext = cell->GetNameContext(widget);
@@ -2028,12 +2447,15 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 }
                 
                 EnableWindow(GetDlgItem(hwndDlg, IDC_DeepEdit), false);
-                
+
                 ShowWindow(GetDlgItem(hwndDlg, IDC_Unassign), false);
                 ShowWindow(GetDlgItem(hwndDlg, IDC_Assign), false);
+
+                CheckDlgButton(hwndDlg, IDC_OutputStandard, s_outputPaged ? BST_UNCHECKED : BST_CHECKED);
+                CheckDlgButton(hwndDlg, IDC_OutputPaged,    s_outputPaged ? BST_CHECKED   : BST_UNCHECKED);
             }
             break;
-            
+
         case WM_CLOSE:
         {
             s_surfaceFXTemplates.clear();
@@ -2076,31 +2498,24 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
             ActionContext *nameContext = NULL;
             ActionContext *valueContext = NULL;
 
-            int modifier = 0;
-            
+            int modifier = s_currentModifier;
+
             if (zoneManager)
-            {
-                const vector<int> &modifiers = zoneManager->GetSurface()->GetModifiers();
-                
-                if (modifiers.size() > 0)
-                    modifier = modifiers[0];
-                
                 paramContext = GetFirstContext(zoneManager, widget, modifier);
-            }
-            
+
             FXCell *cell = NULL;
-              
+
             if (t)
             {
                 cell = GetCell(t, widget, modifier);
-                
+
                 if (cell)
                 {
                     nameContext = cell->GetNameContext(widget);
                     valueContext = cell->GetValueContext(widget);
                 }
             }
-            
+
             switch(LOWORD(wParam))
             {
                 case IDC_Assign:
@@ -2153,12 +2568,25 @@ static WDL_DLGRET dlgProcLearnFX(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
                     }
                     break ;
                     
+                case IDC_OutputStandard:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        s_outputPaged = false;
+                    break;
+
+                case IDC_OutputPaged:
+                    if (HIWORD(wParam) == BN_CLICKED)
+                        s_outputPaged = true;
+                    break;
+
                 case IDC_Save:
                     if (HIWORD(wParam) == BN_CLICKED)
                     {
                         if (zoneManager)
                         {
-                            SaveZone(t);
+                            if (s_outputPaged)
+                                SaveZonePaged(t);
+                            else
+                                SaveZone(t);
                             SendMessage(hwndDlg, WM_CLOSE, 0, 0);
                         }
                     }
@@ -2235,7 +2663,13 @@ void WidgetMoved(ZoneManager *zoneManager, Widget *widget, int modifier)
         }
     }
     else
+    {
         SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, "");
+        EnableWindow(GetDlgItem(t->hwnd, IDC_DeepEdit), false);
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Unassign), false);
+        ShowWindow(GetDlgItem(t->hwnd, IDC_Assign), GetCell(t, widget, modifier) != NULL);
+        EnableWindow(GetDlgItem(t->hwnd, IDC_Assign), false);
+    }
 }
 
 static void InitLearnFocusedFXDialog(ZoneManager *zoneManager)
@@ -2366,6 +2800,51 @@ void UpdateLearnWindow(ZoneManager *zoneManager)
                 
                 SetDlgItemText(t->hwnd, IDC_AssignFXParamDisplay, buf);
                 EnableWindow(GetDlgItem(t->hwnd, IDC_Assign), true);
+            }
+        }
+    }
+}
+
+void FillMissingFXZoneContexts(ZoneManager *zoneManager, Zone *fxZone)
+{
+    SurfaceFXTemplate *t = GetSurfaceFXTemplate(zoneManager);
+
+    if ( ! t)
+        return;
+
+    char widgetName[MEDBUF];
+    vector<string> blankParams;
+
+    for (int rowLayoutIdx = 0; rowLayoutIdx < t->fxRowLayouts.size(); ++rowLayoutIdx)
+    {
+        int modifier = t->fxRowLayouts[rowLayoutIdx].modifier;
+
+        for (int channel = 1; channel <= zoneManager->GetSurface()->GetNumChannels(); ++channel)
+        {
+            for (int widgetTypesIdx = 0; widgetTypesIdx < t->paramWidgets.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", t->paramWidgets[widgetTypesIdx].c_str(), t->fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                {
+                    if (zoneManager->GetLearnFocusedFXActionContexts(widget, modifier).empty())
+                    {
+                        fxZone->AddWidget(widget);
+                        fxZone->AddActionContext(widget, modifier, fxZone, "NoAction", blankParams);
+                    }
+                }
+            }
+
+            for (int widgetTypesIdx = 0; widgetTypesIdx < t->displayRows.size(); ++widgetTypesIdx)
+            {
+                snprintf(widgetName, sizeof(widgetName), "%s%s%d", t->displayRows[widgetTypesIdx].c_str(), t->fxRowLayouts[rowLayoutIdx].suffix, channel);
+                if (Widget *widget = zoneManager->GetSurface()->GetWidgetByName(widgetName))
+                {
+                    if (zoneManager->GetLearnFocusedFXActionContexts(widget, modifier).empty())
+                    {
+                        fxZone->AddWidget(widget);
+                        fxZone->AddActionContext(widget, modifier, fxZone, "NoAction", blankParams);
+                    }
+                }
             }
         }
     }

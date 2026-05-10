@@ -97,6 +97,7 @@ extern void RequestFocusedFXDialog(ZoneManager *zoneManager);
 extern void CloseFocusedFXDialog();
 extern void UpdateLearnWindow(ZoneManager *zoneManager);
 extern void InitBlankLearnFocusedFXZone(ZoneManager *zoneManager, Zone *fxZone, MediaTrack *track, int fxSlot);
+extern void FillMissingFXZoneContexts(ZoneManager *zoneManager, Zone *fxZone);
 extern void ShutdownLearn();
 
 extern int g_debugLevel;
@@ -1484,7 +1485,8 @@ public:
         {
             learnFocusedFXZone_ = make_shared<Zone>(csi_, this, GetNavigatorForTrack(track), fxIndex, fxName, zoneInfo_[fxName].alias, zoneInfo_[fxName].filePath);
             LoadZoneFile(learnFocusedFXZone_.get(), "");
-            
+            FillMissingFXZoneContexts(this, learnFocusedFXZone_.get());
+
             learnFocusedFXZone_->Activate();
         }
         else
